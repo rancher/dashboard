@@ -55,10 +55,7 @@ export default {
     },
 
     paginatedListFilterMode() {
-      return paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct.inStore,
-        resource: { id: this.$route.params?.resource }
-      }) ? paginationUtils.validNsProjectFilters : null;
+      return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
     filtered() {
@@ -384,7 +381,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeCloseKeyHandler();
   },
 
@@ -839,7 +836,7 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
-          :disabled="!opt.enabled"
+          :disabled="opt.enabled ? null : true"
           :class="{
             'ns-selected': opt.selected,
             'ns-single-match': cachedFiltered.length === 1 && !opt.selected,

@@ -117,7 +117,7 @@ export default {
     v-bind="config"
     @close="$emit('close')"
   >
-    <template slot="body">
+    <template #body>
       <div class="pl-10 pr-10 mt-20 mb-20 body">
         <div v-if="allToDelete.length === 1">
           {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ safeMachinesToDelete[0].nameDisplay }}</b>
@@ -131,8 +131,8 @@ export default {
         >
           <span class="mb-20">{{ t('promptScaleMachineDown.retainedMachine1') }}</span>
           <span
-            v-for="i in ignored"
-            :key="i.nameDisplay"
+            v-for="(i) in ignored"
+            :key="i"
             v-clean-html="t('promptScaleMachineDown.retainedMachine2', { name: i.nameDisplay }, true)"
           />
         </div>

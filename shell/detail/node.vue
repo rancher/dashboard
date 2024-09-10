@@ -19,6 +19,7 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import Loading from '@shell/components/Loading';
 import metricPoller from '@shell/mixins/metric-poller';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
 const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
@@ -46,9 +47,26 @@ export default {
   },
 
   async fetch() {
-    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
 
-    return this.$store.dispatch('cluster/findAll', { type: POD });
+    if (this.filterByApi) {
+      // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
+      const opt = { // Of type ActionFindPageArgs
+        pagination: new FilterArgs({
+          sort:    [{ field: 'metadata.name', asc: true }],
+          filters: PaginationParamFilter.createSingleField({
+            field: 'spec.nodeName',
+            value: this.value.id,
+          })
+        })
+      };
+
+      this.$store.dispatch(`cluster/findPage`, { type: POD, opt });
+    } else {
+      this.$store.dispatch('cluster/findAll', { type: POD });
+    }
+
+    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
   },
 
   data() {
@@ -80,7 +98,8 @@ export default {
       podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema),
       NODE_METRICS_DETAIL_URL,
       NODE_METRICS_SUMMARY_URL,
-      showMetrics:     false
+      showMetrics:     false,
+      filterByApi:     undefined,
     };
   },
 
@@ -215,8 +234,9 @@ export default {
     </div>
     <div class="spacer" />
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="pods"

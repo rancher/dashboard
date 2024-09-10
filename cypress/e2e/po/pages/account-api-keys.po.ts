@@ -67,4 +67,11 @@ export default class AccountPagePo extends PagePo {
   confirmPassword(): PasswordPo {
     return new PasswordPo('[data-testid="account__confirm_password"]');
   }
+
+  /**
+   * Convenience method
+   */
+  sortableTable() {
+    return this.list().resourceTable().sortableTable();
+  }
 }

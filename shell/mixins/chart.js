@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED, HIDDEN, _FLAGGED, _CREATE, _EDIT
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
 } from '@shell/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
@@ -27,6 +27,8 @@ export default {
       existing:         null,
 
       ignoreWarning: false,
+
+      chart: null,
     };
   },
 
@@ -34,19 +36,6 @@ export default {
     ...mapGetters(['currentCluster', 'isRancher']),
 
     showPreRelease: mapPref(SHOW_PRE_RELEASE),
-
-    chart() {
-      if ( this.repo && this.query.chartName ) {
-        return this.$store.getters['catalog/chart']({
-          repoType:      this.query.repoType,
-          repoName:      this.query.repoName,
-          chartName:     this.query.chartName,
-          includeHidden: true,
-        });
-      }
-
-      return null;
-    },
 
     repo() {
       return this.$store.getters['catalog/repo']({
@@ -136,16 +125,18 @@ export default {
         versionName:  query[VERSION],
         appNamespace: query[NAMESPACE] || '',
         appName:      query[NAME] || '',
-        description:  query[DESCRIPTION_QUERY]
+        description:  query[DESCRIPTION_QUERY],
+        hidden:       query[HIDDEN],
+        deprecated:   query[DEPRECATED_QUERY]
       };
     },
 
     showDeprecated() {
-      return this.$route.query[DEPRECATED] === _FLAGGED;
+      return this.query.deprecated === 'true' || this.query.deprecated === _FLAGGED;
     },
 
     showHidden() {
-      return this.$route.query[HIDDEN] === _FLAGGED;
+      return this.query.hidden === _FLAGGED;
     },
 
     // If the user is installing the app for the first time,
@@ -255,10 +246,38 @@ export default {
   },
 
   methods: {
+    /**
+     * Populate `this.chart`
+     *
+     * `chart` used to be a computed property pointing at getter catalog/chart
+     *
+     * this however stopped recalculating given changes to the store
+     *
+     * (the store would populate a charts collection, which the getter uses to find the chart,
+     * however this did not kick off the computed property, so this.charts was not populated)
+     *
+     * Now we find and cache the chart
+     */
+    fetchStoreChart() {
+      if (!this.chart && this.repo && this.query.chartName) {
+        this.chart = this.$store.getters['catalog/chart']({
+          repoType:       this.query.repoType,
+          repoName:       this.query.repoName,
+          chartName:      this.query.chartName,
+          includeHidden:  true,
+          showDeprecated: this.showDeprecated
+        });
+      }
+
+      return this.chart;
+    },
+
     async fetchChart() {
       this.versionInfoError = null;
 
       await this.$store.dispatch('catalog/load'); // not the problem
+
+      this.fetchStoreChart();
 
       if ( this.query.appNamespace && this.query.appName ) {
         // First check the URL query for an app name and namespace.
@@ -453,7 +472,7 @@ export default {
         }
       }
 
-      this.$set(this, 'autoInstallInfo', out);
+      this['autoInstallInfo'] = out;
     },
 
     selectVersion({ id: version }) {

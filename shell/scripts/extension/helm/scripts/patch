@@ -57,6 +57,18 @@ DESCRIPTION=$(cat ${PACKAGE_JSON} | jq ".description" | tr -d '"')
 ICON=$(cat ${PACKAGE_JSON} | jq ".icon" | tr -d '"')
 KEYWORDS=$(cat ${PACKAGE_JSON} | jq ".keywords")
 HOME=$(cat ${PACKAGE_JSON} | jq ".homepage" | tr -d '"')
+ANNOTATIONS=""
+NO_AUTH="false"
+
+if jq -e '.rancher.annotations | objects' ${PACKAGE_JSON} > /dev/null 2>&1; then
+    ANNOTATIONS=$(jq -r '.rancher.annotations | to_entries[] | @base64' < ${PACKAGE_JSON})
+fi
+
+# Check if the package file specifies noAuth
+if jq -e '.rancher.noAuth' ${PACKAGE_JSON} > /dev/null 2>&1; then
+    NO_AUTH=$(jq -r '.rancher.noAuth' < ${PACKAGE_JSON})
+    echo "noAuth: ${NO_AUTH}"
+fi
 
 if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]]; then
     echo "Usage: [CHART=charts/ui-plugin-server] [REGISTRY=""] [ORG=rancher] [REPO=<override-repo>] [TAG=<override-tag>] [PACKAGE_JSON=plugin/package.json] ./scripts/patch <chart>"
@@ -98,4 +110,19 @@ if [[ -n "${HOME}" ]]; then
     else
         yq -i eval ".home = \"${HOME}\"" $CHART/Chart.yaml
     fi
+fi
+
+if [[ -n "${ANNOTATIONS}" ]]; then
+    for ANNOTATION in ${ANNOTATIONS}; do
+        decoded_annotation=$(echo ${ANNOTATION} | base64 --decode)
+        key=$(echo ${decoded_annotation} | jq -r '.key')
+        value=$(echo ${decoded_annotation} | jq -r '.value')
+
+        yq -i eval ".plugin.metadata[\"${key}\"] = \"${value}\"" $CHART/values.yaml
+    done
+fi
+
+# If the extension has noAuth as true then patch this into the values.yaml to override the default of false
+if [ "${NO_AUTH}" == "true" ]; then
+    yq -i eval ".plugin.noAuth=true" $CHART/values.yaml
 fi

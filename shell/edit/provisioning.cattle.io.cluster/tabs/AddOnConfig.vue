@@ -88,13 +88,13 @@ export default {
       :key="addonsRev"
     >
       <div
-        v-for="v in addonVersions"
-        :key="v._key"
+        v-for="(v, i) in addonVersions"
+        :key="i"
       >
         <h3>{{ labelForAddon(v.name) }}</h3>
         <Questions
           v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
-          v-model="userChartValuesTemp[v.name]"
+          v-model:value="userChartValuesTemp[v.name]"
           :emit="true"
           in-store="management"
           :mode="mode"
@@ -111,7 +111,7 @@ export default {
           :as-object="true"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
           :hide-preview-buttons="true"
-          @input="data => $emit('update-values', v.name, data)"
+          @update:value="data => $emit('update-values', v.name, data)"
         />
         <div class="spacer" />
       </div>
@@ -127,7 +127,7 @@ export default {
       </h3>
       <YamlEditor
         ref="yaml-additional"
-        v-model="additionalManifest"
+        v-model:value="additionalManifest"
         :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
         initial-yaml-values="# Additional Manifest YAML"
         class="yaml-editor"

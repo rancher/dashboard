@@ -1,6 +1,6 @@
 <script lang="ts">
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { Store, mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -27,31 +27,47 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+
     region: {
       type:    String,
       default: ''
     },
+
     amazonCredentialSecret: {
       type:    String,
       default: ''
     },
 
     subnets: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: () => []
     },
+
+    securityGroups: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     publicAccess: {
       type:    Boolean,
       default: false
     },
+
     privateAccess: {
       type:    Boolean,
       default: false
     },
+
     publicAccessSources: {
       type:    Array,
       default: () => []
     },
+
+    statusSubnets: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     rules: {
       type:    Object,
       default: () => {}
@@ -63,6 +79,7 @@ export default defineComponent({
       handler(neu) {
         if (neu && !this.isView) {
           this.fetchVpcs();
+          this.fetchSecurityGroups();
         }
       },
       immediate: true
@@ -71,6 +88,7 @@ export default defineComponent({
       handler(neu ) {
         if (neu && !this.isView) {
           this.fetchVpcs();
+          this.fetchSecurityGroups();
         }
       },
       immediate: true
@@ -80,16 +98,24 @@ export default defineComponent({
       if (!neu) {
         this.$emit('update:subnets', []);
       }
+    },
+
+    selectedVpc(neu: string, old: string) {
+      if (!!old) {
+        this.$emit('update:securityGroups', []);
+      }
     }
 
   },
 
   data() {
     return {
-      loadingVpcs:  false,
-      vpcInfo:      {} as {Vpcs: AWS.VPC[]},
-      subnetInfo:   {} as {Subnets: AWS.Subnet[]},
-      chooseSubnet: this.subnets && !!this.subnets.length
+      loadingVpcs:           false,
+      loadingSecurityGroups: false,
+      vpcInfo:               {} as {Vpcs: AWS.VPC[]},
+      subnetInfo:            {} as {Subnets: AWS.Subnet[]},
+      securityGroupInfo:     {} as {SecurityGroups: AWS.SecurityGroup[]},
+      chooseSubnet:          !!this.subnets && !!this.subnets.length
     };
   },
 
@@ -131,7 +157,8 @@ export default defineComponent({
             const subnetFormOption = {
               key:       SubnetId,
               label:     `${ nameTag } (${ SubnetId })`,
-              _isSubnet: true
+              _isSubnet: true,
+              disabled:  !!this.selectedVpc && VpcId !== this.selectedVpc
             };
 
             out.push(subnetFormOption);
@@ -142,13 +169,40 @@ export default defineComponent({
       return out;
     },
 
+    securityGroupOptions() {
+      const allGroups = this.securityGroupInfo?.SecurityGroups || [];
+
+      return allGroups.reduce((opts, sg) => {
+        if (sg.VpcId !== this.selectedVpc) {
+          return opts;
+        }
+        opts.push({
+          label: `${ sg.GroupName } (${ sg.GroupId })`,
+          value: sg.GroupId
+        });
+
+        return opts;
+      }, [] as {label: string, value: string}[]);
+    },
+
     displaySubnets: {
-      get(): {key:string, label:string, _isSubnet?:boolean, kind?:string}[] {
-        return this.vpcOptions.filter((option) => this.subnets.includes(option.key));
+      get(): {key:string, label:string, _isSubnet?:boolean, kind?:string}[] | string[] {
+        const subnets: string[] = this.chooseSubnet ? this.subnets : this.statusSubnets;
+
+        // vpcOptions will be empty in 'view config' mode, where aws API requests are not made
+        return this.vpcOptions.length ? this.vpcOptions.filter((option) => subnets.includes(option.key)) : subnets;
       },
       set(neu: {key:string, label:string, _isSubnet?:boolean, kind?:string}[]) {
         this.$emit('update:subnets', neu.map((s) => s.key));
       }
+    },
+
+    selectedVpc() {
+      if (!this.chooseSubnet) {
+        return null;
+      }
+
+      return (this.subnetInfo?.Subnets || []).find((s) => this.subnets.includes(s.SubnetId))?.VpcId;
     },
 
     isNew(): boolean {
@@ -179,6 +233,24 @@ export default defineComponent({
       }
       this.loadingVpcs = false;
     },
+
+    async fetchSecurityGroups() {
+      this.loadingSecurityGroups = true;
+      const { region, amazonCredentialSecret } = this;
+
+      if (!region || !amazonCredentialSecret) {
+        return;
+      }
+      const store: Store<any> = this.$store;
+      const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
+
+      try {
+        this.securityGroupInfo = await ec2Client.describeSecurityGroups({ });
+      } catch (err) {
+        this.$emit('error', err);
+      }
+      this.loadingSecurityGroups = false;
+    }
   }
 });
 </script>
@@ -195,13 +267,13 @@ export default defineComponent({
           :value="publicAccess"
           :mode="mode"
           label-key="eks.publicAccess.label"
-          @input="$emit('update:publicAccess', $event)"
+          @update:value="$emit('update:publicAccess', $event)"
         />
         <Checkbox
           :value="privateAccess"
           :mode="mode"
           label-key="eks.privateAccess.label"
-          @input="$emit('update:privateAccess', $event)"
+          @update:value="$emit('update:privateAccess', $event)"
         />
       </div>
     </div>
@@ -214,7 +286,7 @@ export default defineComponent({
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
           data-testid="eks-public-access-sources"
-          @input="$emit('update:publicAccessSources', $event)"
+          @update:value="$emit('update:publicAccessSources', $event)"
         >
           <template #title>
             {{ t('eks.publicAccessSources.label') }}
@@ -223,9 +295,12 @@ export default defineComponent({
       </div>
     </div>
     <div class="row mb-10">
-      <div class="col span-6">
+      <div
+        v-if="isNew"
+        class="col span-6"
+      >
         <RadioGroup
-          v-model="chooseSubnet"
+          v-model:value="chooseSubnet"
           name="subnet-mode"
           :mode="mode"
           :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
@@ -233,12 +308,17 @@ export default defineComponent({
           :disabled="!isNew"
         />
       </div>
+    </div>
+    <div
+      class="row mb-10"
+    >
       <div
-        v-if="chooseSubnet"
+        v-if="chooseSubnet || !isNew"
         class="col span-6"
       >
         <LabeledSelect
-          v-model="displaySubnets"
+          v-model:value="displaySubnets"
+          :disabled="!isNew"
           :mode="mode"
           label-key="eks.vpcSubnet.label"
           :options="vpcOptions"
@@ -252,6 +332,23 @@ export default defineComponent({
             <span :class="{'pl-30': option._isSubnet}">{{ option.label }}</span>
           </template>
         </LabeledSelect>
+      </div>
+      <div
+        v-if="chooseSubnet"
+        class="col span-6"
+      >
+        <LabeledSelect
+          :mode="mode"
+          :disabled="!isNew"
+          label-key="eks.securityGroups.label"
+          :tooltip="t('eks.securityGroups.tooltip')"
+          :options="securityGroupOptions"
+          :multiple="true"
+          :value="securityGroups"
+          :loading="loadingSecurityGroups"
+          data-testid="eks-security-groups-dropdown"
+          @update:value="$emit('update:securityGroups', $event)"
+        />
       </div>
     </div>
   </div>

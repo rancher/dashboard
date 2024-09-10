@@ -15,6 +15,17 @@ export const STATE = {
   formatter: 'BadgeStateFormatter',
 };
 
+export const USER_STATE = {
+  name:      'user-state',
+  labelKey:  'tableHeaders.userState',
+  sort:      ['stateSort', 'nameSort'],
+  value:     'stateDisplay',
+  getValue:  (row) => row.stateDisplay,
+  width:     72,
+  default:   'unknown',
+  formatter: 'BadgeStateFormatter',
+};
+
 export const DOWNLOAD = {
   name:          'download',
   labelKey:      'tableHeaders.download',
@@ -403,6 +414,33 @@ export const USER_PROVIDER = {
   value:       'providerDisplay',
   dashIfEmpty: true,
   sort:        'providerDisplay',
+};
+
+export const USER_LAST_LOGIN = {
+  name:          'user-last-login',
+  labelKey:      'tableHeaders.userLastLogin',
+  value:         'userLastLogin',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          'userLastLogin',
+};
+
+export const USER_DISABLED_IN = {
+  name:          'user-disabled-in',
+  labelKey:      'tableHeaders.userDisabledIn',
+  value:         'userDisabledInDisplay',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDisabledIn',
+};
+
+export const USER_DELETED_IN = {
+  name:          'user-deleted-in',
+  labelKey:      'tableHeaders.userDeletedIn',
+  value:         'userDeletedIn',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDeletedIn',
 };
 
 export const USER_ID = {

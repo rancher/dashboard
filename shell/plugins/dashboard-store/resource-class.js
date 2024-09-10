@@ -30,7 +30,7 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import Vue from 'vue';
+import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
@@ -552,13 +552,13 @@ function maybeFn(val) {
 }
 
 export default class Resource {
-  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+  constructor(data, ctx = {}, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
       this[k] = data[k];
     }
 
     Object.defineProperty(this, '$ctx', {
-      value:      ctx,
+      value:      markRaw(ctx),
       enumerable: false,
     });
 
@@ -880,7 +880,7 @@ export default class Resource {
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
-    const currentRoute = this.currentRouter().app._route;
+    const currentRoute = this.currentRouter().currentRoute.value;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
     const all = [
@@ -1626,7 +1626,7 @@ export default class Resource {
           if ( tolower !== pathValue ) {
             pathValue = tolower;
 
-            Vue.set(data, path, pathValue);
+            data[path] = pathValue;
           }
 
           errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));

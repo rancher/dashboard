@@ -189,7 +189,7 @@ export default {
       MapCustomerOwnedIpOnLaunch:  false,
       State:                       'available',
       SubnetId:                    'subnet-12',
-      VpcId:                       'vpc-1234',
+      VpcId:                       'vpc-12',
       OwnerId:                     '1234',
       AssignIpv6AddressOnCreation: false,
       Ipv6CidrBlockAssociationSet: [],

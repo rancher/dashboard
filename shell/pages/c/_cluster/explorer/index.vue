@@ -159,7 +159,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
@@ -184,6 +184,11 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
+    showClusterTools() {
+      return this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
+      this.$store.getters['cluster/canList'](CATALOG.APP);
+    },
+
     displayProvider() {
       const other = 'other';
 
@@ -204,11 +209,13 @@ export default {
       const obj = {};
 
       this.nodes?.forEach((node) => {
-        const architecture = node.labels?.[NODE_ARCHITECTURE];
+        if (!node.metadata?.state?.transitioning) {
+          const architecture = node.labels?.[NODE_ARCHITECTURE];
 
-        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+          const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
 
-        obj[key] = (obj[key] || 0) + 1;
+          obj[key] = (obj[key] || 0) + 1;
+        }
       });
 
       return obj;
@@ -217,10 +224,17 @@ export default {
     architecture() {
       const keys = Object.keys(this.nodesArchitecture);
 
-      return {
-        label:   keys.length === 1 ? keys[0] : this.t('cluster.architecture.label.mixed'),
-        tooltip: keys.length === 1 ? undefined : keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
-      };
+      switch (keys.length) {
+      case 0:
+        return { label: this.t('generic.provisioning') };
+      case 1:
+        return { label: keys[0] };
+      default:
+        return {
+          label:   this.t('cluster.architecture.label.mixed'),
+          tooltip: keys.reduce((acc, k) => `${ acc }${ k }: ${ this.nodesArchitecture[k] }<br>`, '')
+        };
+      }
     },
 
     isHarvesterCluster() {
@@ -292,11 +306,15 @@ export default {
     },
 
     fleetStatus() {
-      const resources = [this.fleetStatefulSet];
-
-      if (this.currentCluster.isLocal) {
-        resources.push(this.fleetDeployment);
-      }
+      const resources = this.currentCluster.isLocal ? [
+        /**
+         * 'fleetStatefulSet' could take a while to be created by rancher.
+         * During that startup period, only 'fleetDeployment' will be used to calculate the fleet agent status.
+         */
+        ...(this.fleetStatefulSet ? [this.fleetStatefulSet, this.fleetDeployment] : [this.fleetDeployment]),
+      ] : [
+        this.fleetStatefulSet
+      ];
 
       if (resources.find((r) => r === 'loading')) {
         return STATES_ENUM.IN_PROGRESS;
@@ -459,7 +477,10 @@ export default {
           resource: SECRET,
         }
       };
-    }
+    },
+    hasNodes() {
+      return this.nodes?.length > 0;
+    },
   },
 
   methods: {
@@ -546,8 +567,11 @@ export default {
             {{ t('clusterIndexPage.header') }}
           </TabTitle>
         </h1>
-        <div>
-          <span v-if="hasDescription">{{ currentCluster.spec.description }}</span>
+        <div
+          v-if="hasDescription"
+          class="cluster-dashboard-description"
+        >
+          <span>{{ currentCluster.spec.description }}</span>
         </div>
       </div>
     </header>
@@ -577,7 +601,7 @@ export default {
         >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
       <div
-        v-if="nodes.length > 0"
+        v-if="hasNodes"
         data-testid="architecture__label"
       >
         <label>{{ t('glance.architecture') }}: </label>
@@ -594,13 +618,12 @@ export default {
         /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="!monitoringStatus.v2">
+      <div v-if="showClusterTools">
         <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
-          class="monitoring-install"
+          class="cluster-tools-link"
         >
-          <i class="icon icon-gear" />
-          <span>{{ t('glance.installMonitoring') }}</span>
+          <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
       </div>
       <ConfigBadge
@@ -672,8 +695,8 @@ export default {
 
     <div v-if="clusterServices">
       <div
-        v-for="service in clusterServices"
-        :key="service.name"
+        v-for="(service, i) in clusterServices"
+        :key="i"
         class="k8s-service-status"
         :class="{[service.status]: true }"
         :data-testid="`k8s-service-${ service.name }`"
@@ -805,9 +828,10 @@ export default {
 }
 
 .cluster-dashboard-glance {
+  align-items: center;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 20px 0px;
+  padding: 10px 0px;
   display: flex;
 
   &>*:not(:nth-last-child(-n+2)) {
@@ -819,8 +843,15 @@ export default {
   }
 }
 
-.title h1 {
-  margin: 0;
+.title {
+  h1 {
+    margin: 0;
+  }
+
+  .cluster-dashboard-description {
+    margin: 5px 0;
+    opacity: 0.7;
+  }
 }
 
 .actions-span {
@@ -838,7 +869,7 @@ export default {
   align-items: center;
 }
 
-.etcd-metrics ::v-deep .external-link {
+.etcd-metrics :deep() .external-link {
   top: -107px;
 }
 
@@ -846,9 +877,9 @@ export default {
   margin-top: 0;
 }
 
-.monitoring-install {
+.cluster-tools-link {
   display: flex;
-  margin-left: 10px;
+  margin-right: 10px;
 
   > I {
     line-height: inherit;

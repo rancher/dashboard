@@ -43,8 +43,8 @@ const SESSION_STICKY_TIME_DEFAULT = 10800;
 export default {
   // Props are found in CreateEditView
   // props: {},
-
-  components: {
+  inheritAttrs: false,
+  components:   {
     ArrayList,
     Banner,
     CruResource,
@@ -69,10 +69,10 @@ export default {
   data() {
     if (!this?.value?.spec?.type) {
       if (!this.value?.spec) {
-        this.$set(this.value, 'spec', {
+        this.value['spec'] = {
           ports:           [],
-          sessionAffinity: 'None',
-        });
+          sessionAffinity: 'None'
+        };
       }
     }
 
@@ -83,7 +83,7 @@ export default {
         this.value.spec.clusterIP = '';
       }
       if (this.value?.spec?.clusterIPs) {
-        this.$delete(this.value.spec, 'clusterIPs');
+        delete this.value.spec['clusterIPs'];
       }
     }
 
@@ -151,19 +151,19 @@ export default {
         this.$emit('set-subtype', serviceType);
 
         if (serviceType === HEADLESS) {
-          this.$set(this.value.spec, 'type', CLUSTERIP);
-          this.$set(this.value.spec, 'clusterIP', 'None');
+          this.value.spec['type'] = CLUSTERIP;
+          this.value.spec['clusterIP'] = 'None';
         } else {
           if (
             serviceType !== HEADLESS &&
             this.value?.spec?.clusterIP === 'None'
           ) {
-            this.$set(this.value.spec, 'clusterIP', null);
+            this.value.spec['clusterIP'] = null;
           } else if (serviceType === 'ExternalName') {
-            this.$set(this.value.spec, 'ports', null);
+            this.value.spec['ports'] = null;
           }
 
-          this.$set(this.value.spec, 'type', serviceType);
+          this.value.spec['type'] = serviceType;
         }
       },
     },
@@ -248,12 +248,13 @@ export default {
   mounted() {
     const initialType = this.serviceType;
 
-    this.$set(this, 'serviceType', initialType);
+    this['serviceType'] = initialType;
   },
 
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
+      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
@@ -303,7 +304,7 @@ export default {
     },
 
     updateServicePorts(servicePorts) {
-      this.$set(this.value.spec, 'ports', servicePorts);
+      this.value.spec['ports'] = servicePorts;
     },
 
     targetPortsStrOrInt(targetPorts = []) {
@@ -386,12 +387,12 @@ export default {
         :error="tabErrors.servicePorts"
       >
         <ServicePorts
-          v-model="value.spec.ports"
+          v-model:value="value.spec.ports"
           class="col span-12"
           :mode="mode"
           :spec-type="serviceType"
           :rules="fvGetAndReportPathRules('spec.ports')"
-          @input="updateServicePorts"
+          @update:value="updateServicePorts"
         />
       </Tab>
       <Tab
@@ -411,11 +412,11 @@ export default {
           <div class="col span-12">
             <KeyValue
               key="selectors"
-              v-model="value.spec.selector"
+              v-model:value="value.spec.selector"
               :mode="mode"
               :initial-empty-row="true"
               :protip="false"
-              @input="(e) => $set(value.spec, 'selector', e)"
+              @update:value="(e) => $set(value.spec, 'selector', e)"
             />
           </div>
         </div>
@@ -431,14 +432,14 @@ export default {
         >
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.clusterIP"
+              v-model:value="value.spec.clusterIP"
               :mode="mode"
               :label="t('servicesPage.ips.input.label')"
               :placeholder="t('servicesPage.ips.input.placeholder')"
               :tooltip-key="
                 hasClusterIp ? 'servicesPage.ips.clusterIpHelpText' : null
               "
-              @input="(e) => $set(value.spec, 'clusterIP', e)"
+              @update:value="(e) => $set(value.spec, 'clusterIP', e)"
             />
           </div>
         </div>
@@ -448,14 +449,14 @@ export default {
         >
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.loadBalancerIP"
+              v-model:value="value.spec.loadBalancerIP"
               :mode="mode"
               :label="t('servicesPage.ips.loadBalancerIp.label')"
               :placeholder="t('servicesPage.ips.loadBalancerIp.placeholder')"
               :tooltip-key="
                 hasClusterIp ? 'servicesPage.ips.loadBalancerIp.helpText' : null
               "
-              @input="(e) => $set(value.spec, 'loadBalancerIP', e)"
+              @update:value="(e) => $set(value.spec, 'loadBalancerIP', e)"
             />
           </div>
         </div>
@@ -463,12 +464,12 @@ export default {
           <div class="col span-7">
             <ArrayList
               key="clusterExternalIpAddresses"
-              v-model="value.spec.externalIPs"
+              v-model:value="value.spec.externalIPs"
               :title="hasClusterIp ? t('servicesPage.ips.external.label') : ''"
               :value-placeholder="t('servicesPage.ips.external.placeholder')"
               :mode="mode"
               :protip="false"
-              @input="(e) => $set(value.spec, 'externalIPs', e)"
+              @update:value="(e) => $set(value.spec, 'externalIPs', e)"
             />
           </div>
         </div>
@@ -494,7 +495,7 @@ export default {
         <div class="row session-affinity">
           <div class="col span-6">
             <RadioGroup
-              v-model="value.spec.sessionAffinity"
+              v-model:value="value.spec.sessionAffinity"
               name="sessionAffinity"
               class="enforcement-action"
               :options="sessionAffinityActionOptions"
@@ -507,7 +508,7 @@ export default {
             class="col span-6"
           >
             <UnitInput
-              v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
+              v-model:value="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
               :suffix="
                 t('suffix.seconds', {
                   count:

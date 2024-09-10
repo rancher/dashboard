@@ -70,7 +70,7 @@ export default {
         return this.value;
       },
       set(localValue) {
-        this.$emit('input', localValue);
+        this.$emit('update:value', localValue);
       }
     }
   },
@@ -109,12 +109,13 @@ export default {
     :class="{[mode]: true}"
   >
     <ArrayList
-      v-model="localValue"
+      :value="value"
       :protip="false"
       :show-header="true"
       :add-label="addLabel"
       :default-add-value="defaultAddValue"
       :mode="mode"
+      @update:value="$emit('input', $event)"
     >
       <template v-slot:column-headers>
         <div class="box">
@@ -133,7 +134,7 @@ export default {
       <template v-slot:columns="scope">
         <div class="key">
           <LabeledInput
-            v-model="scope.row.value.key"
+            v-model:value="scope.row.value.key"
             :mode="mode"
           />
         </div>
@@ -142,7 +143,7 @@ export default {
             :mode="mode"
             :value="scope.row.value.operator"
             :options="operatorOptions"
-            @input="onOperatorInput(scope, $event)"
+            @update:value="onOperatorInput(scope, $event)"
           />
         </div>
         <div class="value">
@@ -150,7 +151,7 @@ export default {
             :disabled="isValueDisabled(scope)"
             :value="getValue(scope)"
             :mode="mode"
-            @input="onValueInput(scope, $event)"
+            @update:value="onValueInput(scope, $event)"
           />
         </div>
       </template>
@@ -164,7 +165,7 @@ export default {
     table-layout: initial;
   }
 
-   ::v-deep .box {
+   :deep() .box {
     display: grid;
     grid-template-columns: 25% 25% 25% 15%;
     column-gap: 1.75%;

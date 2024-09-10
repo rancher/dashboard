@@ -92,6 +92,23 @@ export default {
       }
 
       return false;
+    },
+
+    warningMessage() {
+      const {
+        deprecated, experimental, chartName: name, chartNameDisplay
+      } = this.chart;
+      const chartName = chartNameDisplay || name;
+
+      if (deprecated && experimental) {
+        return this.t('catalog.chart.deprecatedAndExperimentalWarning', { chartName });
+      } else if (deprecated) {
+        return this.t('catalog.chart.deprecatedWarning', { chartName });
+      } else if (experimental) {
+        return this.t('catalog.chart.experimentalWarning', { chartName });
+      }
+
+      return '';
     }
 
   },
@@ -138,6 +155,12 @@ export default {
       v-if="chart"
       class="chart-header"
     >
+      <Banner
+        v-if="warningMessage"
+        color="warning"
+        :label="warningMessage"
+        data-testid="deprecation-and-experimental-banner"
+      />
       <div class="name-logo-install">
         <div class="name-logo">
           <div class="logo-bg">
@@ -180,16 +203,16 @@ export default {
           <span v-clean-html="osWarning" />
         </Banner>
         <Banner
-          v-for="msg in requires"
-          :key="msg"
+          v-for="(msg, i) in requires"
+          :key="i"
           color="error"
         >
           <span v-clean-html="msg" />
         </Banner>
 
         <Banner
-          v-for="msg in warnings"
-          :key="msg"
+          v-for="(msg, i) in warnings"
+          :key="i"
           color="warning"
         >
           <span v-clean-html="msg" />

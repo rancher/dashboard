@@ -59,7 +59,7 @@ export default {
 
   mounted() {
     // Ensures that if the default value is used, the model is updated with it
-    this.$emit('input', this.inputValue);
+    this.$emit('update:value', this.inputValue);
   }
 };
 </script>
@@ -76,6 +76,7 @@ export default {
       :raw="true"
     />{{ label }}</label>
     <div
+      :data-testid="componentTestid + '-color-input_preview-container'"
       class="preview-container"
       @click.stop="$refs.input.click($event)"
     >
@@ -88,7 +89,7 @@ export default {
           type="color"
           :disabled="mode !== editMode"
           :value="inputValue"
-          @input="$emit('input', $event.target.value)"
+          @input="$emit('update:value', $event.target.value)"
         >
       </span>
       <span class="text-muted color-value">{{ inputValue }}</span>

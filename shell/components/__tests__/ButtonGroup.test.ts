@@ -19,7 +19,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         value: 'val1'
       }
@@ -61,7 +61,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         activeClass:   'bg-another-active-class',
         inactiveClass: 'bg-some-inactive-class',
@@ -105,7 +105,7 @@ describe('component: ButtonGroup', () => {
     ];
 
     const wrapper = shallowMount(ButtonGroup, {
-      propsData: {
+      props: {
         options,
         value: 'val1'
       }
@@ -115,7 +115,7 @@ describe('component: ButtonGroup', () => {
 
     firstBtn.trigger('click');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe('val1');
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe('val1');
   });
 });

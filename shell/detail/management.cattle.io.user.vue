@@ -229,8 +229,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="globalBindings"

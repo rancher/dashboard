@@ -8,14 +8,14 @@ describe('component: FileImageSelector', () => {
 
   beforeEach(() => {
     wrapper = mount(FileImageSelector, {
-      propsData: { label: 'upload' },
-      mocks:     {},
-      methods:   {},
+      props:   { label: 'upload' },
+      methods: {},
+      global:  { mocks: {} },
     });
   });
 
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('should render', () => {
@@ -37,6 +37,6 @@ describe('component: FileImageSelector', () => {
     const fs = wrapper.findComponent(FileSelector);
 
     await fs.vm.$emit('selected');
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });

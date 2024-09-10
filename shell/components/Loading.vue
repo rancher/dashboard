@@ -29,7 +29,7 @@ export default {
     }, 250);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this.timer);
   }
 };

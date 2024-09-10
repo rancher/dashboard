@@ -5,6 +5,7 @@ const fs = require('fs');
 const glob = require('glob');
 const semver = require('semver');
 const path = require('path');
+
 /**
  * Init logger
  */
@@ -226,7 +227,7 @@ const packageUpdatesResolution = (file, oldContent) => {
  * Verify GitHub Actions use of current node version, e.g. node-version: '<18'
  */
 const gitHubActionsUpdates = () => {
-  const files = glob.sync(params.paths || '.github/workflows/**.{yml,yaml}', { ignore });
+  const files = glob.sync(params.paths || '.github/{actions,workflows}/**.{yml,yaml}', { ignore });
 
   files.forEach((file) => {
     let content = fs.readFileSync(file, 'utf8');
@@ -359,10 +360,13 @@ const vueSyntaxUpdates = () => {
     // TODO: Add missing import
 
     [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
-    [`value=`, `modelValue=`],
-    [`@input=`, `@update:modelValue=`],
+    // [`value=`, `modelValue=`],
+    // [`@input=`, `@update:modelValue=`],
+    [/\@input=\"((?!.*plainInputEvent).+)\"/g, (_, betweenQuotes) => `@update:value="${ betweenQuotes }"`], // Matches @input while avoiding `@input="($plainInputEvent) => onInput($plainInputEvent)"` which we used on plain <input elements since they differ in vue3
+    [`v-model=`, `v-model:value=`],
     // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     // ['v-model=', ':modelValue=', ''],
+    [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
     [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
     [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
     [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
@@ -523,7 +527,7 @@ const eslintUpdates = () => {
     });
 
     // Add the new rules if they don't exist
-    const eslintConfigPath = path.join(__dirname, `../${ file }`);
+    const eslintConfigPath = path.join(process.cwd(), `${ file }`);
     const eslintConfig = require(eslintConfigPath);
 
     Object.keys(newRules).forEach((rule) => {

@@ -25,17 +25,17 @@ export default {
     let atLeastOneDirWithAnIdentifier = false;
     let allDirsWithSameIdentifier = false;
 
-    if (this.value.systemAgent.length || this.value.provisioning.length || this.value.k8sDistro.length) {
+    if (this.value?.systemAgent?.length || this.value?.provisioning?.length || this.value?.k8sDistro?.length) {
       atLeastOneDirWithAnIdentifier = true;
-      if (this.value.systemAgent === this.value.provisioning && this.value.provisioning === this.value.k8sDistro &&
-      this.value.systemAgent === this.value.k8sDistro) {
+      if (this.value?.systemAgent === this.value?.provisioning && this.value?.provisioning === this.value?.k8sDistro &&
+      this.value?.systemAgent === this.value?.k8sDistro) {
         allDirsWithSameIdentifier = true;
       }
     }
 
     return {
       isSettingCommonConfig: !(atLeastOneDirWithAnIdentifier && !allDirsWithSameIdentifier),
-      commonConfig:          allDirsWithSameIdentifier ? this.value.systemAgent : '',
+      commonConfig:          allDirsWithSameIdentifier ? this.value?.systemAgent : '',
     };
   },
   watch: {
@@ -81,11 +81,11 @@ export default {
         :label="t('cluster.directoryConfig.checkboxText')"
         :disabled="disableEditInput"
         data-testid="rke2-directory-config-individual-config-checkbox"
-        @input="handleCommonConfig"
+        @update:value="handleCommonConfig"
       />
       <LabeledInput
         v-if="isSettingCommonConfig"
-        v-model="commonConfig"
+        v-model:value="commonConfig"
         class="mb-20"
         :mode="mode"
         :label="t('cluster.directoryConfig.common.label')"
@@ -95,7 +95,7 @@ export default {
       />
       <div v-if="!isSettingCommonConfig">
         <LabeledInput
-          v-model="value.systemAgent"
+          v-model:value="value.systemAgent"
           class="mb-20"
           :mode="mode"
           :label="t('cluster.directoryConfig.systemAgent.label')"
@@ -104,7 +104,7 @@ export default {
           data-testid="rke2-directory-config-systemAgent-data-dir"
         />
         <LabeledInput
-          v-model="value.provisioning"
+          v-model:value="value.provisioning"
           class="mb-20"
           :mode="mode"
           :label="t('cluster.directoryConfig.provisioning.label')"
@@ -113,7 +113,7 @@ export default {
           data-testid="rke2-directory-config-provisioning-data-dir"
         />
         <LabeledInput
-          v-model="value.k8sDistro"
+          v-model:value="value.k8sDistro"
           class="mb-20"
           :mode="mode"
           :label="t('cluster.directoryConfig.k8sDistro.label')"

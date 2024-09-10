@@ -99,11 +99,39 @@ describe('Home Page', () => {
       homePage.getLoginPageBanner().checkVisible();
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@adminUser'] }, () => {
+    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
-     * Get cluster details from the Home page
-     * Verify that the cluster details match those on the Cluster Management page
+     * Click 'Manage' button and verify user lands on the Cluster Management page
+     * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
+     * Click on the Create button and verify user lands on the cluster creation page
      */
+      const clusterManagerPage = new ClusterManagerListPagePo('_');
+      const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
+
+      HomePagePo.navTo();
+      homePage.manageButton().click();
+      clusterManagerPage.waitForPage();
+
+      HomePagePo.goToAndWaitForGet();
+      homePage.importExistingButton().click();
+      genericCreateClusterPage.waitForPage('mode=import');
+
+      HomePagePo.goToAndWaitForGet();
+      homePage.createButton().click();
+      genericCreateClusterPage.waitForPage();
+    });
+  });
+
+  describe('List', { testIsolation: 'off' }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
+      /**
+       * Get cluster details from the Home page
+       * Verify that the cluster details match those on the Cluster Management page
+       */
 
       const clusterDetails: string[] = [];
 
@@ -151,32 +179,10 @@ describe('Home Page', () => {
       });
     });
 
-    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click 'Manage' button and verify user lands on the Cluster Management page
-     * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
-     * Click on the Create button and verify user lands on the cluster creation page
-     */
-      const clusterManagerPage = new ClusterManagerListPagePo('_');
-      const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
-
-      HomePagePo.navTo();
-      homePage.manageButton().click();
-      clusterManagerPage.waitForPage();
-
-      HomePagePo.goToAndWaitForGet();
-      homePage.importExistingButton().click();
-      genericCreateClusterPage.waitForPage('mode=import');
-
-      HomePagePo.goToAndWaitForGet();
-      homePage.createButton().click();
-      genericCreateClusterPage.waitForPage();
-    });
-
     it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
-    /**
-     * Filter rows in the cluster list
-     */
+      /**
+       * Filter rows in the cluster list
+       */
       HomePagePo.navTo();
       homePage.waitForPage();
 
@@ -214,6 +220,23 @@ describe('Home Page', () => {
         .get('.cluster-description');
 
       desc.contains(longClusterDescription);
+    });
+
+    it('check table headers are visible', { tags: ['@vai', '@generic', '@adminUser'] }, () => {
+      homePage.goTo();
+      homePage.waitForPage();
+
+      // check table headers
+      const expectedHeaders = ['State', 'Name', 'Provider Distro', 'Kubernetes Version Architecture', 'CPU', 'Memory', 'Pods'];
+
+      homePage.list().resourceTable().sortableTable().tableHeaderRow()
+        .get('.table-header-container .content')
+        .each((el, i) => {
+          const text = el.text().trim().split('\n').map((r) => r.trim())
+            .join(' ');
+
+          expect(text).to.eq(expectedHeaders[i]);
+        });
     });
   });
 

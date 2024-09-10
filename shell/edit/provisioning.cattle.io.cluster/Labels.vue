@@ -16,6 +16,16 @@ export default {
       required: true,
     },
   },
+  computed: {
+    localValue: {
+      get() {
+        return this.value;
+      },
+      set(newValue) {
+        this.$emit('update:value', newValue);
+      }
+    },
+  },
 };
 </script>
 
@@ -25,9 +35,10 @@ export default {
     label-key="generic.labelsAndAnnotations"
   >
     <Labels
-      v-model="value"
+      v-model:value="localValue"
       :mode="mode"
       :display-side-by-side="false"
+      @input="$emit('input', $event)"
     />
   </Tab>
 </template>

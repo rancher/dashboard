@@ -8,8 +8,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
-import VirtualList from 'vue-virtual-scroll-list';
+import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
+import { shallowRef } from 'vue';
+import { debounce } from 'lodash';
 
 import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
@@ -130,18 +132,19 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod?.defaultContainerName,
-      socket:      null,
-      isOpen:      false,
-      isFollowing: true,
-      timestamps:  this.$store.getters['prefs/get'](LOGS_TIME),
-      wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
-      previous:    false,
-      search:      '',
-      backlog:     [],
-      lines:       [],
-      now:         new Date(),
-      logItem:     LogItem
+      container:       this.initialContainer || this.pod?.defaultContainerName,
+      socket:          null,
+      isOpen:          false,
+      isFollowing:     true,
+      scrollThreshold: 80,
+      timestamps:      this.$store.getters['prefs/get'](LOGS_TIME),
+      wrap:            this.$store.getters['prefs/get'](LOGS_WRAP),
+      previous:        false,
+      search:          '',
+      backlog:         [],
+      lines:           [],
+      now:             new Date(),
+      logItem:         shallowRef(LogItem),
     };
   },
 
@@ -275,16 +278,27 @@ export default {
       this.connect();
     },
 
+    lines: {
+      handler() {
+        if (this.isFollowing) {
+          this.$nextTick(() => {
+            this.follow();
+          });
+        }
+      },
+      deep: true
+    }
+
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.cleanup();
   },
 
   async mounted() {
     await this.connect();
     this.boundFlush = this.flush.bind(this);
-    this.timerFlush = setInterval(this.boundFlush, 100);
+    this.timerFlush = setInterval(this.boundFlush, 200);
   },
 
   methods: {
@@ -417,21 +431,21 @@ export default {
           this.lines = this.lines.slice(-maxLines);
         }
       }
-
-      if ( this.isFollowing ) {
-        this.$nextTick(() => {
-          this.follow();
-        });
-      }
     },
 
-    updateFollowing() {
+    updateFollowing: debounce(function() {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
+        const scrollSize = virtualList.getScrollSize();
+        const clientSize = virtualList.getClientSize();
+        const offset = virtualList.getOffset();
+
+        const distanceFromBottom = scrollSize - clientSize - offset;
+
+        this.isFollowing = distanceFromBottom <= this.scrollThreshold;
       }
-    },
+    }, 100),
 
     parseRange(range) {
       range = `${ range }`.trim().toLowerCase();
@@ -503,7 +517,8 @@ export default {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        virtualList.$el.scrollTop = virtualList.getScrollSize();
+        virtualList.scrollToBottom();
+        this.isFollowing = true;
       }
     },
 
@@ -549,7 +564,7 @@ export default {
       <div class="wm-button-bar">
         <Select
           v-if="containerChoices.length > 0"
-          v-model="container"
+          v-model:value="container"
           :disabled="containerChoices.length === 1"
           class="containerPicker"
           :options="containerChoices"
@@ -599,13 +614,13 @@ export default {
             <Checkbox
               :label="t('wm.containerLogs.previous')"
               :value="previous"
-              @input="togglePrevious"
+              @update:value="togglePrevious"
             />
           </div>
         </div>
 
         <div class="log-action log-action-group ml-5">
-          <v-popover
+          <v-dropdown
             trigger="click"
             placement="top"
           >
@@ -614,34 +629,34 @@ export default {
               <i class="icon icon-chevron-up" />
             </button>
 
-            <template slot="popover">
+            <template #popper>
               <div class="filter-popup">
                 <LabeledSelect
-                  v-model="range"
+                  v-model:value="range"
                   class="range"
                   :label="t('wm.containerLogs.range.label')"
                   :options="rangeOptions"
                   :clearable="false"
                   placement="top"
-                  @input="toggleRange($event)"
+                  @update:value="toggleRange($event)"
                 />
                 <div>
                   <Checkbox
                     :label="t('wm.containerLogs.wrap')"
                     :value="wrap"
-                    @input="toggleWrap "
+                    @update:value="toggleWrap "
                   />
                 </div>
                 <div>
                   <Checkbox
                     :label="t('wm.containerLogs.timestamps')"
                     :value="timestamps"
-                    @input="toggleTimestamps"
+                    @update:value="toggleTimestamps"
                   />
                 </div>
               </div>
             </template>
-          </v-popover>
+          </v-dropdown>
         </div>
 
         <div class="log-action log-action-group ml-5">
@@ -669,11 +684,11 @@ export default {
         <VirtualList
           v-show="filtered.length"
           ref="virtualList"
+          class="virtual-list"
           data-key="id"
           :data-sources="filtered"
           :data-component="logItem"
           direction="vertical"
-          class="virtual-list"
           :keeps="200"
           @scroll="updateFollowing"
         />
@@ -716,11 +731,11 @@ export default {
       opacity: 0.25;
     }
 
-    &.wrap-lines ::v-deep .msg {
+    &.wrap-lines :deep() .msg {
       white-space: pre-wrap;
     }
 
-    &.show-times ::v-deep .time {
+    &.show-times :deep() .time {
       display: initial;
       width: auto;
     }
@@ -728,7 +743,7 @@ export default {
   }
 
   .containerPicker {
-    ::v-deep &.unlabeled-select {
+    :deep() &.unlabeled-select {
       display: inline-block;
       min-width: 200px;
       height: 30px;

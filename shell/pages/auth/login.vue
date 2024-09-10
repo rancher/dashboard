@@ -9,7 +9,8 @@ import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
-  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED
+  LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
+  IS_SLO
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
@@ -27,8 +28,8 @@ import {
   setVendor
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
-import { fetchInitialSettings } from '@shell/utils/settings';
 import Loading from '@shell/components/Loading';
+import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 
 export default {
   name:       'Login',
@@ -47,6 +48,7 @@ export default {
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut:          this.$route.query[LOGGED_OUT] === _FLAGGED,
       isSsoLogout:        this.$route.query[IS_SSO] === _FLAGGED,
+      isSlo:              this.$route.query[IS_SLO] === _FLAGGED,
       err:                this.$route.query.err,
       showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true',
 
@@ -63,6 +65,16 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    loggedOutSuccessMsg() {
+      if (this.isSlo) {
+        return this.t('login.loggedOutFromSlo');
+      } else if (this.isSsoLogout) {
+        return this.t('login.loggedOutFromSso');
+      }
+
+      return this.t('login.loggedOut');
+    },
+
     singleProvider() {
       return this.providers.length === 1 ? this.providers[0] : undefined;
     },
@@ -78,6 +90,10 @@ export default {
     },
 
     errorMessage() {
+      if (this.isSlo) {
+        return this.err?.length ? this.t('logout.error', { msg: this.err }) : '';
+      }
+
       if (this.err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
         return this.t('login.clientError');
       } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
@@ -105,8 +121,14 @@ export default {
 
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
-    }
+    },
 
+    // Apply bottom margin so that the locale secletor control lifts up to avoid the footer fixed banner, if it is shown
+    localeSelectorStyle() {
+      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
+
+      return { marginBottom: globalBannerSettings?.footerFont };
+    }
   },
 
   async fetch() {
@@ -147,8 +169,6 @@ export default {
       // For newer versions this will return all settings if you are somehow logged in,
       // and just the public ones if you aren't.
       try {
-        await fetchInitialSettings(this.$store);
-
         firstLoginSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
         plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
         brand = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
@@ -269,7 +289,7 @@ export default {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
-          this.$router.replace('/');
+          this.$router.push({ name: 'index' });
         }
       } catch (err) {
         this.err = err;
@@ -284,7 +304,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading
+    v-if="$fetchState.pending"
+    mode="relative"
+  />
   <main
     v-else
     class="main-layout login"
@@ -311,7 +334,7 @@ export default {
             v-else-if="loggedOut"
             class="text-success text-center"
           >
-            {{ isSsoLogout ? t('login.loggedOutFromSso') : t('login.loggedOut') }}
+            {{ loggedOutSuccessMsg }}
           </h4>
           <h4
             v-else-if="timedOut"
@@ -384,7 +407,7 @@ export default {
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
-            :key="name"
+            :key="idx"
             class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
             :name="name"
@@ -397,6 +420,7 @@ export default {
           <form
             v-if="showLocal"
             :class="{'mt-30': !hasLoginMessage}"
+            @submit.prevent
           >
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -404,7 +428,7 @@ export default {
                   v-if="!firstLogin"
                   id="username"
                   ref="username"
-                  v-model.trim="username"
+                  v-model:value.trim="username"
                   data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
@@ -414,7 +438,7 @@ export default {
                 <Password
                   id="password"
                   ref="password"
-                  v-model="password"
+                  v-model:value="password"
                   data-testid="local-login-password"
                   :label="t('login.password')"
                   autocomplete="password"
@@ -438,7 +462,7 @@ export default {
                   class="mt-20"
                 >
                   <Checkbox
-                    v-model="remember"
+                    v-model:value="remember"
                     :label="t('login.remember.label')"
                     type="checkbox"
                   />
@@ -473,9 +497,12 @@ export default {
         </template>
         <div
           v-if="showLocaleSelector"
-          class="locale-elector"
+          class="locale-selector"
         >
-          <LocaleSelector mode="login" />
+          <LocaleSelector
+            :style="localeSelectorStyle"
+            mode="login"
+          />
         </div>
       </div>
       <BrandImage
@@ -530,7 +557,7 @@ export default {
         margin-bottom: 0;
         border-left: 0;
 
-        ::v-deep code {
+        :deep() code {
           font-size: 12px;
           padding: 0;
         }
@@ -548,7 +575,7 @@ export default {
       place-content: center;
     }
   }
-  .locale-elector {
+  .locale-selector {
     position: absolute;
     bottom: 30px;
   }

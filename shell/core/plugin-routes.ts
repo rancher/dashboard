@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import Router, { RouteConfig } from 'vue-router';
+import { createRouterMatcher } from 'vue-router';
 
 interface RouteInfo {
   parent?: string;
-  route: RouteConfig;
+  route: any;
 }
 
 export class PluginRoutes {
-  router: Router;
+  router: any;
 
-  constructor(router: Router) {
+  constructor(router: any) {
     this.router = router;
   }
 
@@ -32,7 +32,7 @@ export class PluginRoutes {
     // Remove all routes that are being replaced
     const newRoutes = newRouteInfos.map((ri) => ri.route);
 
-    this.forEachNestedRoutes(newRoutes, (r: RouteConfig) => {
+    this.forEachNestedRoutes(newRoutes, (r: any) => {
       // Patch colliding legacy routes that start /:product
       if (r.path?.startsWith('/:product')) {
         // Legacy pattern used by extensions - routes may collide, so modify them not to
@@ -60,7 +60,7 @@ export class PluginRoutes {
     this.updateMatcher(newRouteInfos, allRoutes);
   }
 
-  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+  private updateMatcher(newRoutes: RouteInfo[], allRoutes: any[]) {
     // Note - Always use a new router and replace the existing router's matching
     // Using the existing router and adding routes to it will force nuxt middleware to
     // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
@@ -73,7 +73,7 @@ export class PluginRoutes {
       let foundParentRoute;
 
       if (r.parent) {
-        foundParentRoute = this.findInNestedRoutes(allRoutes, (route: RouteConfig) => route.name === r.parent);
+        foundParentRoute = this.findInNestedRoutes(allRoutes, (route: any) => route.name === r.parent);
 
         if (foundParentRoute) {
           foundParentRoute.children = foundParentRoute?.children || [];
@@ -86,12 +86,9 @@ export class PluginRoutes {
       }
     });
 
-    const newRouter: Router = new Router({
-      mode:   'history',
-      routes: [...orderedPluginRoutes, ...allRoutes]
-    });
+    const matcher = createRouterMatcher([...orderedPluginRoutes, ...allRoutes], {});
 
-    (this.router as any).matcher = (newRouter as any).matcher;
+    (this.router as any).matcher = (matcher as any);
   }
 
   /**
@@ -101,7 +98,7 @@ export class PluginRoutes {
    * @param fn -> Return true if you'd like to break the loop early (small)
    * @returns {@boolean} -> Returns true if breaking early
    */
-  private forEachNestedRoutes(routes: RouteConfig[] = [], fn: (route: RouteConfig) => boolean | undefined | void) {
+  private forEachNestedRoutes(routes: any[] = [], fn: (route: any) => boolean | undefined | void) {
     for (let i = 0; i < routes.length; ++i) {
       const route = routes[i];
       const result = fn(route);
@@ -119,7 +116,7 @@ export class PluginRoutes {
    * @param fn -> Returns true if the passed in route matches the expected criteria
    * @returns The found route or undefined
    */
-  private findInNestedRoutes(routes: RouteConfig[] = [], fn: (route: RouteConfig) => boolean): RouteConfig | undefined {
+  private findInNestedRoutes(routes: any[] = [], fn: (route: any) => boolean): any | undefined {
     let found: any;
 
     this.forEachNestedRoutes(routes, (route) => {

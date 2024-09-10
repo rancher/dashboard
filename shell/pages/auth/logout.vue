@@ -1,8 +1,30 @@
 <script>
+import { authProvidersInfo } from '@shell/utils/auth';
 
 export default {
   async fetch() {
-    await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+    const authInfo = await authProvidersInfo(this.$store);
+
+    if (authInfo.enabled?.length) {
+      const authProvider = authInfo.enabled[0];
+
+      const {
+        logoutAllSupported, logoutAllEnabled, logoutAllForced, configType
+      } = authProvider;
+
+      if (configType === 'saml' && logoutAllSupported && logoutAllEnabled && logoutAllForced) {
+        // SAML - force SLO (logout from all apps)
+        await this.$store.dispatch('auth/logout', {
+          force: true, slo: true, provider: authProvider
+        }, { root: true });
+      } else {
+        // simple logout
+        await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+      }
+    } else {
+      // simple logout
+      await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+    }
   }
 };
 </script>

@@ -95,7 +95,7 @@ export default {
     this.$refs.frame.onload = this.inject;
     this.poll();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.interval) {
       clearInterval(this.interval);
     }
@@ -114,10 +114,12 @@ export default {
       this.interval = setInterval(() => {
         try {
           const graphWindow = this.$refs.frame?.contentWindow;
-          const errorElements = graphWindow.document.getElementsByClassName('alert-error');
-          const errorCornerElements = graphWindow.document.getElementsByClassName('panel-info-corner--error');
-          const panelInFullScreenElements = graphWindow.document.getElementsByClassName('panel-in-fullscreen');
-          const panelContainerElements = graphWindow.document.getElementsByClassName('panel-container');
+
+          // Note. getElementsByClassName won't work, following a grafana bump class names are now unique - for example css-2qng6u-panel-container
+          const errorElements = graphWindow.document.querySelectorAll('[class$="alert-error');
+          const errorCornerElements = graphWindow.document.querySelectorAll('[class$="panel-info-corner--error');
+          const panelInFullScreenElements = graphWindow.document.querySelectorAll('[class$="panel-in-fullscreen');
+          const panelContainerElements = graphWindow.document.querySelectorAll('[class$="panel-container');
           const error = errorElements.length > 0 || errorCornerElements.length > 0;
           const loaded = panelInFullScreenElements.length > 0 || panelContainerElements.length > 0;
           const errorMessageElms = graphWindow.document.getElementsByTagName('pre');
@@ -128,11 +130,11 @@ export default {
             throw new Error('An error was detected in the iframe');
           }
 
-          this.$set(this, 'loading', !loaded);
-          this.$set(this, 'error', isFailure);
+          this['loading'] = !loaded;
+          this['error'] = isFailure;
         } catch (ex) {
-          this.$set(this, 'error', true);
-          this.$set(this, 'loading', false);
+          this['error'] = true;
+          this['loading'] = false;
           clearInterval(this.interval);
           this.interval = null;
         }
@@ -285,7 +287,7 @@ export default {
   min-height: 100%;
   min-width: 100%;
 
-  & ::v-deep .content {
+  & :deep() .content {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -296,7 +298,7 @@ export default {
     padding: 0;
   }
 
-  & ::v-deep .overlay {
+  & :deep() .overlay {
     position: static;
     background-color: initial;
   }

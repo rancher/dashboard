@@ -33,13 +33,13 @@ export default defineComponent({
 
   methods: {
     typeEnabled(type: string) {
-      return this.loggingTypes.includes(type);
+      return (this.loggingTypes || []).includes(type);
     },
 
     toggleType(type:string) {
-      const out = [...this.loggingTypes];
+      const out = [...(this.loggingTypes || [])];
 
-      if (this.loggingTypes.includes(type)) {
+      if (out.includes(type)) {
         removeObject(out, type);
       } else {
         out.push(type);

@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'vsphereVolume', this.value.spec.vsphereVolume || {});
+    this.value.spec['vsphereVolume'] = this.value.spec.vsphereVolume || {};
 
     return { };
   },
@@ -26,7 +26,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.vsphereVolume.volumePath"
+          v-model:value="value.spec.vsphereVolume.volumePath"
           :mode="mode"
           :label="t('persistentVolume.vsphereVolume.volumePath.label')"
           :placeholder="t('persistentVolume.vsphereVolume.volumePath.placeholder')"
@@ -34,7 +34,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.vsphereVolume.storagePolicyName"
+          v-model:value="value.spec.vsphereVolume.storagePolicyName"
           :mode="mode"
           :label="t('persistentVolume.vsphereVolume.storagePolicyName.label')"
           :placeholder="t('persistentVolume.vsphereVolume.storagePolicyName.placeholder')"
@@ -44,7 +44,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.vsphereVolume.storagePolicyID"
+          v-model:value="value.spec.vsphereVolume.storagePolicyID"
           :mode="mode"
           :label="t('persistentVolume.vsphereVolume.storagePolicyId.label')"
           :placeholder="t('persistentVolume.vsphereVolume.storagePolicyId.placeholder')"
@@ -52,7 +52,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.vsphereVolume.fsType"
+          v-model:value="value.spec.vsphereVolume.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"

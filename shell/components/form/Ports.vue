@@ -98,7 +98,7 @@ export default {
           out.push(value);
         }
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     }
   },
 };
@@ -207,18 +207,18 @@ export default {
             <span v-if="isView">{{ row.expose ? "Yes" : "No" }}</span>
             <Checkbox
               v-else
-              v-model="row.expose"
+              v-model:value="row.expose"
               type="checkbox"
-              @input="queueUpdate"
+              @update:value="queueUpdate"
             />
           </td>
           <td class="hostPort">
             <span v-if="isView">{{ row.hostPort ? "Yes" : "No" }}</span>
             <Checkbox
               v-else
-              v-model="row.hostPort"
+              v-model:value="row.hostPort"
               type="checkbox"
-              @input="queueUpdate"
+              @update:value="queueUpdate"
             />
           </td>
           <td

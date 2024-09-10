@@ -1,4 +1,5 @@
-import { shallowMount, RouterLinkStub, createLocalVue } from '@vue/test-utils';
+import { nextTick } from 'vue';
+import { shallowMount, RouterLinkStub } from '@vue/test-utils';
 import Type from '@shell/components/nav/Type.vue';
 import { createChildRenderingRouterLinkStub } from '@shell/utils/unit-tests/ChildRenderingRouterLinkStub';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -11,14 +12,9 @@ const favoriteClass = 'favorite';
 
 describe('component: Type', () => {
   describe('testing router-link type', () => {
-    const localVue = createLocalVue();
-
-    localVue.directive('cleanHtml', (identity) => identity);
-
     const defaultRouteTypeProp = {
       name:  'route-type',
       route: 'route',
-      exact: true,
       mode:  TYPE_MODES.FAVORITE
     };
 
@@ -33,24 +29,31 @@ describe('component: Type', () => {
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: RouterLinkStub },
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+            mocks:      { $store: storeMock },
+            stubs:      { routerLink: RouterLinkStub },
+          },
         });
 
         const linkStub = wrapper.findComponent(RouterLinkStub);
 
         expect(linkStub.props().to).toBe(defaultRouteTypeProp.route);
-        expect(linkStub.props().exact).toBe(defaultRouteTypeProp.exact);
       });
 
       it('should use router-link-slot href prop', () => {
         const fakeHref = 'fake-href';
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ href: fakeHref }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ href: fakeHref }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`a[href='${ fakeHref }']`);
@@ -61,10 +64,14 @@ describe('component: Type', () => {
       it('should use router-link-slot navigate prop', () => {
         const navigate = jest.fn();
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ isActive: true, navigate }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: true, navigate }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ activeClass }`);
@@ -78,10 +85,14 @@ describe('component: Type', () => {
     describe('should not use classes if preconditions are not met', () => {
       it('should not use active class if the link is not active', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ isActive: false }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: false }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ activeClass }`);
@@ -91,10 +102,14 @@ describe('component: Type', () => {
 
       it('should not use exact active class if the link is not active', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ isExactActive: false }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: false }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ exactActiveClass }`);
@@ -104,10 +119,14 @@ describe('component: Type', () => {
 
       it('should not use root class if the isRoot prop is false', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp, isRoot: false },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub() },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp, isRoot: false },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
@@ -119,10 +138,14 @@ describe('component: Type', () => {
     describe('should use classes if preconditions are met', () => {
       it('should use active class if the link is active', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ isActive: true }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: true }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ activeClass }`);
@@ -132,10 +155,14 @@ describe('component: Type', () => {
 
       it('should use exact active class if the link is active', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ exactActiveClass }`);
@@ -145,10 +172,14 @@ describe('component: Type', () => {
 
       it('should use root class if the isRoot prop is true', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp, isRoot: true },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub() },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp, isRoot: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.${ rootClass }`);
@@ -158,10 +189,14 @@ describe('component: Type', () => {
 
       it('should show depth-0 class if depth prop is not defined', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub() },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.depth-0`);
@@ -171,10 +206,14 @@ describe('component: Type', () => {
 
       it('should show depth-1 class if depth prop is defined as 1', () => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp, depth: 1 },
-          stubs:     { routerLink: createChildRenderingRouterLinkStub() },
-          mocks:     { $store: storeMock }
+          props: { type: defaultRouteTypeProp, depth: 1 },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
         });
 
         const elementWithSelector = wrapper.find(`.depth-1`);
@@ -186,19 +225,24 @@ describe('component: Type', () => {
     describe('should handle the favorite icon appropriately', () => {
       it('should show favorite icon if mouse is over and type is favorite', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const aElement = wrapper.find(`a`);
 
         aElement.trigger('mouseenter');
-        await wrapper.vm.$nextTick();
+        await nextTick();
 
         const favoriteElement = wrapper.find(`.${ favoriteClass }`);
 
@@ -207,13 +251,18 @@ describe('component: Type', () => {
 
       it('should not show favorite icon if mouse is not over and type is favorite', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const favoriteElement = wrapper.find(`.${ favoriteClass }`);
@@ -223,19 +272,24 @@ describe('component: Type', () => {
 
       it('should not show favorite icon if mouse is over and type is not favorite', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: { ...defaultRouteTypeProp, mode: null } },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: { ...defaultRouteTypeProp, mode: null } },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const aElement = wrapper.find(`a`);
 
         aElement.trigger('mouseenter');
-        await wrapper.vm.$nextTick();
+        await nextTick();
 
         const favoriteElement = wrapper.find(`.${ favoriteClass }`);
 
@@ -247,13 +301,18 @@ describe('component: Type', () => {
       it('should show count if on type', async() => {
         const count = 2;
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: { ...defaultRouteTypeProp, count } },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: { ...defaultRouteTypeProp, count } },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const typeCount = wrapper.find(`span[data-testid="type-count"]`);
@@ -263,13 +322,18 @@ describe('component: Type', () => {
 
       it('should show count if in store', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: defaultRouteTypeProp },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const typeCount = wrapper.find(`span[data-testid="type-count"]`);
@@ -279,21 +343,26 @@ describe('component: Type', () => {
 
       it('should not show count if not in type or store', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: defaultRouteTypeProp },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
-          },
-          mocks: {
+          props: { type: defaultRouteTypeProp },
 
-            $store: {
-              getters: {
-                currentStore:    () => 'cluster',
-                'cluster/count': () => null,
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+
+              $store: {
+                getters: {
+                  currentStore:    () => 'cluster',
+                  'cluster/count': () => null,
+                }
               }
-            }
-          }
+            },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
+          },
         });
 
         const typeCount = wrapper.find(`span[data-testid="type-count"]`);
@@ -305,13 +374,18 @@ describe('component: Type', () => {
     describe('should handle namespace appropriately', () => {
       it('should show namespace if on type', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: { ...defaultRouteTypeProp, namespaced: true } },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: { ...defaultRouteTypeProp, namespaced: true } },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const namespaced = wrapper.find(`i[data-testid="type-namespaced"]`);
@@ -321,13 +395,18 @@ describe('component: Type', () => {
 
       it('should not show namespace if not on type', async() => {
         const wrapper = shallowMount(Type as any, {
-          localVue,
-          propsData: { type: { ...defaultRouteTypeProp, namespaced: false } },
-          stubs:     {
-            routerLink: createChildRenderingRouterLinkStub(),
-            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          props: { type: { ...defaultRouteTypeProp, namespaced: false } },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: { $store: storeMock },
+
+            stubs: {
+              routerLink: createChildRenderingRouterLinkStub(),
+              Favorite:   { template: `<div class=${ favoriteClass } />` }
+            },
           },
-          mocks: { $store: storeMock }
         });
 
         const namespaced = wrapper.find(`i[data-testid="type-namespaced"]`);
@@ -346,10 +425,14 @@ describe('component: Type', () => {
       };
 
       const wrapper = shallowMount(Type as any, {
-        propsData: { type: defaultLinkTypeProp },
-        stubs:     {
-          routerLink: createChildRenderingRouterLinkStub(),
-          Favorite:   { template: `<div class=${ favoriteClass } />` }
+        props:  { type: defaultLinkTypeProp },
+        global: {
+          directives: { cleanHtml: (identity) => identity },
+
+          stubs: {
+            routerLink: createChildRenderingRouterLinkStub(),
+            Favorite:   { template: `<div class=${ favoriteClass } />` }
+          },
         },
       });
 

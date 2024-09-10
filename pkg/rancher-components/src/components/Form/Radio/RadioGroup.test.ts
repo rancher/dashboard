@@ -1,3 +1,4 @@
+import { h } from 'vue';
 import { mount } from '@vue/test-utils';
 import { RadioGroup } from './index';
 
@@ -10,15 +11,11 @@ describe('component: RadioGroup', () => {
           options: [{ label: 'whatever', value: 'whatever' }],
           disabled
         },
-        scopedSlots: {
-          0(props: {isDisabled: boolean}) {
-            return this.$createElement('input', {
-              attrs: {
-                id:       'test',
-                disabled: props.isDisabled
-              }
-            });
-          }
+        slots: {
+          0: (props: {isDisabled: boolean}) => h('input', {
+            id:       'test',
+            disabled: props.isDisabled
+          })
         }
       });
 

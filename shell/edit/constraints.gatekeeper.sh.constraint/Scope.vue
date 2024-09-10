@@ -45,6 +45,6 @@ export default {
     :value="value"
     :mode="mode"
     :options="SCOPE_OPTIONS"
-    @input="e=>$emit('input', e)"
+    @update:value="e=>$emit('update:value', e)"
   />
 </template>

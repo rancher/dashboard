@@ -91,7 +91,7 @@ export default {
           :fixed-open="true"
           @close="$emit('closeSearch')"
         >
-          <template slot="accordion">
+          <template #accordion>
             <h6>{{ g.label }}</h6>
           </template>
         </Group>

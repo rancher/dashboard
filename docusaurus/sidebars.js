@@ -20,52 +20,7 @@ const sidebars = {
   // Items name and page should be same.
   // For eg. if you rename a page you should also change that page name in item attribute under the tutorialSidebar.
 
-  mainSidebar: [
-    'home',
-    {
-      type:  'category',
-      label: 'Getting Started',
-      items: [
-        'getting-started/quickstart',
-        'getting-started/concepts',
-        'getting-started/development_environment',
-        'getting-started/ui-walkthrough'
-      ],
-    },
-    {
-      type:  'category',
-      label: 'Guide',
-      items: [
-        'guide/package-management',
-        'guide/auth-providers',
-        'guide/custom-dev-build'
-      ],
-    },
-    {
-      type:  'category',
-      label: 'How the Code Base Works',
-      items: [
-        'code-base-works/api-resources-and-schemas',
-        'code-base-works/auth-sessions-and-tokens',
-        'code-base-works/cluster-management-resources',
-        'code-base-works/customising-how-k8s-resources-are-presented',
-        'code-base-works/directory-structure',
-        'code-base-works/products-and-navigation',
-        'code-base-works/forms-and-validation',
-        'code-base-works/helm-chart-apps',
-        'code-base-works/keyboard-shortcuts',
-        'code-base-works/kubernetes-resources-data-load',
-        'code-base-works/routes',
-        'code-base-works/middleware',
-        'code-base-works/stores',
-        'code-base-works/nuxt-plugins',
-        'code-base-works/machine-drivers',
-        'code-base-works/performance',
-        'code-base-works/sortable-table',
-        'code-base-works/on-screen-text-and-translations',
-        'code-base-works/style',
-      ],
-    },
+  extensionsSidebar: [
     {
       type:  'category',
       label: 'Extensions',
@@ -75,6 +30,16 @@ const sidebars = {
       },
       items: [
         'extensions/introduction',
+        {
+          type:  'category',
+          label: 'Changelog',
+          link:  {
+            type: 'doc',
+            id:   'extensions/changelog',
+          },
+          items: ['extensions/rancher-2.9-support', 'extensions/rancher-2.10-support']
+        },
+        'extensions/support-matrix',
         'extensions/extensions-getting-started',
         'extensions/extensions-configuration',
         {
@@ -130,7 +95,7 @@ const sidebars = {
             'extensions/advanced/stores',
             'extensions/advanced/version-compatibility',
             'extensions/advanced/safe-mode',
-            'extensions/advanced/yarn-link'
+            'extensions/advanced/yarn-link',
           ]
         },
         'extensions/publishing',
@@ -155,26 +120,75 @@ const sidebars = {
                 'extensions/usecases/node-driver/about-drivers',
                 'extensions/usecases/node-driver/cloud-credential',
                 'extensions/usecases/node-driver/machine-config',
+                'extensions/usecases/node-driver/node-driver-icon',
                 'extensions/usecases/node-driver/advanced',
                 'extensions/usecases/node-driver/proxying',
                 'extensions/usecases/node-driver/about-example',
               ]
             }
           ]
-        }
+        },
+        'extensions/known-issues',
       ]
     },
-    'storybook',
+  ],
+  internalSidebar: [
+    'internal/docs',
+    {
+      type:  'category',
+      label: 'Getting Started',
+      items: [
+        'internal/getting-started/quickstart',
+        'internal/getting-started/concepts',
+        'internal/getting-started/development_environment',
+        'internal/getting-started/ui-walkthrough'
+      ],
+    },
+    {
+      type:  'category',
+      label: 'Guide',
+      items: [
+        'internal/guide/package-management',
+        'internal/guide/auth-providers',
+        'internal/guide/custom-dev-build'
+      ],
+    },
+    {
+      type:  'category',
+      label: 'How the Code Base Works',
+      items: [
+        'internal/code-base-works/api-resources-and-schemas',
+        'internal/code-base-works/auth-sessions-and-tokens',
+        'internal/code-base-works/cluster-management-resources',
+        'internal/code-base-works/customising-how-k8s-resources-are-presented',
+        'internal/code-base-works/directory-structure',
+        'internal/code-base-works/products-and-navigation',
+        'internal/code-base-works/forms-and-validation',
+        'internal/code-base-works/helm-chart-apps',
+        'internal/code-base-works/keyboard-shortcuts',
+        'internal/code-base-works/kubernetes-resources-data-load',
+        'internal/code-base-works/routes',
+        'internal/code-base-works/middleware',
+        'internal/code-base-works/stores',
+        'internal/code-base-works/nuxt-plugins',
+        'internal/code-base-works/machine-drivers',
+        'internal/code-base-works/performance',
+        'internal/code-base-works/sortable-table',
+        'internal/code-base-works/on-screen-text-and-translations',
+        'internal/code-base-works/style',
+      ],
+    },
+    'internal/storybook',
     {
       type:  'category',
       label: 'Testing',
       items: [
-        'testing/unit-test',
-        'testing/e2e-test',
-        'testing/stress-test',
+        'internal/testing/unit-test',
+        'internal/testing/e2e-test',
+        'internal/testing/stress-test',
       ],
     },
-    'terminology',
+    'internal/terminology',
   ],
 };
 

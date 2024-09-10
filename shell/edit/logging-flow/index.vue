@@ -6,14 +6,12 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import {
-  LOGGING, NAMESPACE, NODE, POD, SCHEMA
-} from '@shell/config/types';
+import { LOGGING, NAMESPACE, NODE, SCHEMA } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { allHash } from '@shell/utils/promise';
-import { isArray, uniq } from '@shell/utils/array';
+import { isArray } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { clone, set } from '@shell/utils/object';
@@ -55,7 +53,6 @@ export default {
     const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
-    const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
@@ -67,7 +64,6 @@ export default {
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
-      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
@@ -85,7 +81,7 @@ export default {
       filtersYaml = jsyaml.dump(this.value.spec.filters);
     } else {
       // Note - no need to call fetchResourceFields here (spoofed type has popoulated resourceFields)
-      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
+      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, {});
       // createYaml doesn't support passing reference types (array, map) as the first type. As such
       // I'm manipulating the output since I'm not sure it's something we want to actually support
       // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
@@ -204,17 +200,6 @@ export default {
       return out;
     },
 
-    containerChoices() {
-      const out = [];
-
-      for ( const pod of this.allPods ) {
-        for ( const c of (pod.spec?.containers || []) ) {
-          out.push(c.name);
-        }
-      }
-
-      return uniq(out).sort();
-    },
   },
 
   watch: {
@@ -285,7 +270,7 @@ export default {
     },
 
     updateMatch(neu, idx) {
-      this.$set(this.matches, idx, neu);
+      this.matches[idx] = neu;
     },
 
     tabChanged({ tab }) {
@@ -317,11 +302,11 @@ export default {
     },
     willSave() {
       if (this.value.spec.filters && isEmpty(this.value.spec.filters)) {
-        this.$delete(this.value.spec, 'filters');
+        delete this.value.spec['filters'];
       }
 
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
-        this.$delete(this.value.spec, 'match');
+        delete this.value.spec['match'];
       }
     },
     onYamlEditorReady(cm) {
@@ -354,9 +339,10 @@ export default {
   >
     <NameNsDescription
       v-if="!isView"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="value.type !== LOGGING.CLUSTER_FLOW"
+      @update:value="$emit('input', $event)"
     />
 
     <Tabbed
@@ -374,7 +360,7 @@ export default {
           :label="t('logging.flow.matches.banner')"
         />
         <ArrayListGrouped
-          v-model="matches"
+          v-model:value="matches"
           :add-label="t('ingress.rules.addRule')"
           :default-add-value="{}"
           :mode="mode"
@@ -386,10 +372,9 @@ export default {
               :mode="mode"
               :namespaces="namespaceChoices"
               :nodes="nodeChoices"
-              :containers="containerChoices"
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
-              @input="e=>updateMatch(e,props.row.i)"
+              @update:value="e=>updateMatch(e,props.row.i)"
             />
           </template>
           <template #add>
@@ -422,7 +407,7 @@ export default {
           color="info"
         />
         <LabeledSelect
-          v-model="globalOutputRefs"
+          v-model:value="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
           :options="clusterOutputChoices"
           :multiple="true"
@@ -442,7 +427,7 @@ export default {
         </LabeledSelect>
         <LabeledSelect
           v-if="value.type === LOGGING.FLOW"
-          v-model="localOutputRefs"
+          v-model:value="localOutputRefs"
           :label="t('logging.flow.outputs.label')"
           class="mt-10"
           :options="outputChoices"
@@ -470,7 +455,7 @@ export default {
       >
         <YamlEditor
           ref="yaml"
-          v-model="filtersYaml"
+          v-model:value="filtersYaml"
           :scrolling="false"
           :initial-yaml-values="initialFiltersYaml"
           :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
@@ -487,7 +472,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep {
+:deep() {
   .icon-info {
     margin-top: -3px;
     margin-right: 4px;

@@ -334,6 +334,9 @@ export default {
     // set watcher for the chart data
     this.dataWatcher = this.$watch(this.fdcConfig.watcherProp, function(newValue) {
       this.watcherFunction(newValue);
+    }, {
+      deep:      true,
+      immediate: true
     });
   },
   unmounted() {
@@ -344,7 +347,10 @@ export default {
 
 <template>
   <div>
-    <div class="chart-container">
+    <div
+      class="chart-container"
+      data-testid="gitrepo_graph"
+    >
       <!-- loading status container -->
       <div
         v-if="!isChartFirstRenderAnimationFinished"

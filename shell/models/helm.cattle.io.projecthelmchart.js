@@ -1,12 +1,11 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
-import Vue from 'vue';
 import { NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 
 export default class ProjectHelmChart extends SteveModel {
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { helmApiVersion: 'monitoring.cattle.io/v1alpha1' });
-      Vue.set(this, 'metadata', { name: 'project-monitoring' });
+      this['spec'] = { helmApiVersion: 'monitoring.cattle.io/v1alpha1' };
+      this['metadata'] = { name: 'project-monitoring' };
     }
   }
 
@@ -22,7 +21,7 @@ export default class ProjectHelmChart extends SteveModel {
     const clusterId = this.$rootGetters['currentCluster']?.id;
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
-    return project.spec.displayName;
+    return project?.spec.displayName;
   }
 
   get namespaces() {

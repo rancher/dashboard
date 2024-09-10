@@ -14,7 +14,7 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'flocker', this.value.spec.flocker || {});
+    this.value.spec['flocker'] = this.value.spec.flocker || {};
 
     return {};
   },
@@ -26,7 +26,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flocker.datasetName"
+          v-model:value="value.spec.flocker.datasetName"
           :mode="mode"
           :label="t('persistentVolume.flocker.datasetName.label')"
           :placeholder="t('persistentVolume.flocker.datasetName.placeholder')"
@@ -34,7 +34,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flocker.datasetUUID"
+          v-model:value="value.spec.flocker.datasetUUID"
           :mode="mode"
           :label="t('persistentVolume.flocker.datasetUUID.label')"
           :placeholder="t('persistentVolume.flocker.datasetUUID.placeholder')"

@@ -59,7 +59,7 @@ export default {
       const proxyObj = this.allProfiles.filter((profile) => profile.id === scanProfileName)[0];
 
       if (!proxyObj) {
-        this.$set(this.value.spec, 'scanProfileName', '');
+        this.value.spec['scanProfileName'] = '';
       }
     }
   },
@@ -69,10 +69,10 @@ export default {
       this.value.metadata.generateName = 'scan-';
     }
     if (!this.value.spec.scheduledScanConfig) {
-      this.$set(this.value.spec, 'scheduledScanConfig', { scanAlertRule: {} });
+      this.value.spec['scheduledScanConfig'] = { scanAlertRule: {} };
     }
     if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
-      this.$set(this.value.spec.scheduledScanConfig, 'scanAlertRule', { });
+      this.value.spec.scheduledScanConfig['scanAlertRule'] = { };
     }
     const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
 
@@ -258,7 +258,7 @@ export default {
       >
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.spec.scanProfileName"
+            v-model:value="value.spec.scanProfileName"
             :mode="mode"
             :label="t('cis.profile')"
             :options="validProfiles"
@@ -273,7 +273,7 @@ export default {
             class="icon icon-info"
           />
           <RadioGroup
-            v-model="value.spec.scoreWarning"
+            v-model:value="value.spec.scoreWarning"
             :mode="mode"
             name="scoreWarning"
             :options="['pass', 'fail']"
@@ -286,7 +286,7 @@ export default {
         <div class="row mb-20">
           <div class="col">
             <RadioGroup
-              v-model="isScheduled"
+              v-model:value="isScheduled"
               :mode="mode"
               name="scheduling"
               :options="[ {value: false, label: t('cis.scheduling.disable')}, {value: true, label: t('cis.scheduling.enable')}]"
@@ -297,7 +297,7 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="scheduledScanConfig.cronSchedule"
+                v-model:value="scheduledScanConfig.cronSchedule"
                 required
                 :mode="mode"
                 :label="t('cis.cronSchedule.label')"
@@ -328,12 +328,12 @@ export default {
                 <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox
-                v-model="scanAlertRule.alertOnComplete"
+                v-model:value="scanAlertRule.alertOnComplete"
                 :mode="mode"
                 :label="t('cis.alertOnComplete')"
               />
               <Checkbox
-                v-model="scanAlertRule.alertOnFailure"
+                v-model:value="scanAlertRule.alertOnFailure"
                 :mode="mode"
                 :label="t('cis.alertOnFailure')"
               />

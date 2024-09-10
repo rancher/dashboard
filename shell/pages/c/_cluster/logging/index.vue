@@ -1,6 +1,4 @@
 <script>
-import { NAME, CHART_NAME } from '@shell/config/product/logging';
-import InstallRedirect from '@shell/utils/install-redirect';
 import { LOGGING } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { allHash } from '@shell/utils/promise';
@@ -8,10 +6,12 @@ import {
   CONFIGURED_PROVIDERS, CLUSTER_OUTPUT, OUTPUT, NAMESPACE, NAME as NAME_COL
 } from '@shell/config/table-headers';
 import ChartHeading from '@shell/components/ChartHeading';
+import Loading from '@shell/components/Loading';
 
 export default {
-  middleware: InstallRedirect(NAME, CHART_NAME),
-  components: { ChartHeading, SortableTable },
+  components: {
+    ChartHeading, SortableTable, Loading
+  },
   async fetch() {
     const getAllOrDefault = (type) => {
       const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
@@ -56,7 +56,11 @@ export default {
 </script>
 
 <template>
-  <div class="logging">
+  <Loading v-if="$fetchState.pending" />
+  <div
+    v-else
+    class="logging"
+  >
     <ChartHeading
       :label="t('logging.overview.poweredBy')"
       url="https://github.com/banzaicloud/logging-operator"

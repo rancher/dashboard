@@ -7,7 +7,7 @@ import { ExtensionPoint } from './types';
 
 const MODEL_TYPE = 'models';
 
-export default function(context, inject, Vue) {
+export default function(context, inject, vueApp) {
   const {
     app, store, $axios, redirect
   } = context;
@@ -90,6 +90,10 @@ export default function(context, inject, Vue) {
               delete window[oldPlugin.id];
 
               delete plugins[oldPlugin.id];
+
+              const oldElement = document.getElementById(oldPlugin.id);
+
+              oldElement.parentElement.removeChild(oldElement);
             });
           }
 
@@ -124,7 +128,9 @@ export default function(context, inject, Vue) {
             };
 
             element.onerror = (e) => {
-            // Massage the error into something useful
+              element.parentElement.removeChild(element);
+
+              // Massage the error into something useful
               const errorMessage = `Failed to load script from '${ e.target.src }'`;
 
               console.error(errorMessage, e); // eslint-disable-line no-console
@@ -407,6 +413,6 @@ export default function(context, inject, Vue) {
       },
     },
     context,
-    Vue
+    vueApp
   );
 }

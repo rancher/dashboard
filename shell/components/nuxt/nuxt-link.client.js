@@ -9,8 +9,9 @@ export const nuxtLinkAlias = (aliasName) => {
   return {
     functional: true,
     render(createElement, context) {
-      console.warn(`${aliasName} is deprecated in Rancher Dashboard. Use 'router-link' instead.`);
+      console.warn(`${ aliasName } is deprecated in Rancher Dashboard. Use 'router-link' instead.`); // eslint-disable-line no-console
+
       return createElement('router-link', context.data, context.children);
     }
-  }
-}
+  };
+};

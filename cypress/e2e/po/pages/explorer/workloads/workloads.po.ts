@@ -87,6 +87,10 @@ export class WorkloadsListPageBasePo extends PagePo {
     return this.resourcesList().resourceTable().sortableTable();
   }
 
+  details(name: string, index: number) {
+    return this.sortableTable().rowWithName(name).column(index);
+  }
+
   deleteItemWithUI(name: string) {
     this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').click();
 

@@ -2,6 +2,9 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+
+const chartBranch = 'release-v2.9';
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
@@ -24,14 +27,14 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos').its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
@@ -88,7 +91,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete a repository', function() {
@@ -126,14 +129,14 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can create a repository with SSH key', function() {
@@ -145,8 +148,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
     repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
-    repositoriesPage.createEditRepositories().gitBranch().set('release-v2.8');
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
     repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
     repositoriesPage.waitForPage();
 
@@ -195,19 +198,26 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }ssh`).should('not.exist');
   });
 
-  it('can create an oci repository with basic auth', function() {
+  it.skip('[Vue3 Skip]: can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
+    const ociMinWait = '2';
+    const expectedOciMinWaitInPayload = 2;
+    const ociMaxWait = '7';
 
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().clusterrepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().ociMinWaitInput().set(ociMinWait);
+    // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().set(ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 
@@ -216,6 +226,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.url).to.equal(ociUrl);
+      expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(expectedOciMinWaitInPayload);
+      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
     });

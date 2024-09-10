@@ -17,7 +17,7 @@ export const NORMAN = {
   ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
-  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
   FLEET_WORKSPACES:              'fleetworkspace',
   GLOBAL_ROLE:                   'globalRole',
@@ -92,6 +92,24 @@ export const WORKLOAD_TYPES = {
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller',
 };
+
+export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
+  // Each deployment creates a replicaset and the metrics are published for a replicaset.
+  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
+  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
+  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
+  [WORKLOAD_TYPES.JOB]:                    'Job',
+  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
+  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+};
+
+export const METRICS_SUPPORTED_KINDS = [
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.REPLICA_SET,
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.DEPLOYMENT
+];
 
 const {
   DAEMON_SET, CRON_JOB, JOB, ...scalableWorkloads
@@ -191,6 +209,7 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
 };
 
 export const CAPI = {
@@ -283,7 +302,8 @@ export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
-  NAMESPACES:         'namespaces'
+  NAMESPACES:         'namespaces',
+  JWT_AUTHENTICATION: 'jwt.authentication'
 };
 
 // harvester
@@ -324,3 +344,6 @@ export const CLUSTER_REPO_TYPES = {
 export const ZERO_TIME = '0001-01-01T00:00:00Z';
 
 export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
+
+export const DEPRECATED = 'Deprecated';
+export const EXPERIMENTAL = 'Experimental';

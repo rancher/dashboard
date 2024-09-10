@@ -17,7 +17,7 @@ export default {
 </script>
 <template>
   <KeyValue
-    v-model="value.parameters"
+    v-model:value="value.parameters"
     :add-label="t('storageClass.custom.addLabel')"
     :read-allowed="false"
     :mode="mode"

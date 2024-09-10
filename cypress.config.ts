@@ -9,7 +9,7 @@ require('dotenv').config();
  * VARIABLES
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-const testDirs = ['components', 'setup', 'pages', 'navigation', 'global-ui'];
+const testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
@@ -55,7 +55,7 @@ console.log('');
  */
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
-  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
+  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   retries:               {
@@ -76,8 +76,6 @@ export default defineConfig({
         'docusaurus/**/*.*',
         'stories/**/*.*',
         'drone/**/*.*',
-        '.nuxt/**/*.*',
-        '.nuxt-prod/**/*.*',
       ],
       include: [
         'shell/**/*.{vue,ts,js}',

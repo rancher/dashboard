@@ -138,17 +138,40 @@ export default defineComponent({
       type:    Object,
       default: () => {}
     },
+
+    version: {
+      type:    String,
+      default: ''
+    },
+
+    clusterVersion: {
+      type:    String,
+      default: ''
+    },
+
+    originalClusterVersion: {
+      type:    String,
+      default: ''
+    },
+
     mode: {
       type:    String,
       default: _EDIT
     },
+
     ec2Roles: {
       type:    Array as PropType<AWS.IamRole[]>,
       default: () => []
     },
+
     isNewOrUnprovisioned: {
       type:    Boolean,
       default: true
+    },
+
+    poolIsNew: {
+      type:    Boolean,
+      default: false
     },
 
     instanceTypeOptions: {
@@ -166,10 +189,21 @@ export default defineComponent({
       default: () => []
     },
 
+    sshKeyPairs: {
+      type:    Array as PropType<string[]>,
+      default: () => []
+    },
+
     normanCluster: {
       type:    Object,
       default: null
     },
+
+    poolIsUpgrading: {
+      type:    Boolean,
+      default: false
+    },
+
     loadingInstanceTypes: {
       type:    Boolean,
       default: false
@@ -181,6 +215,11 @@ export default defineComponent({
     },
 
     loadingLaunchTemplates: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadingSshKeyPairs: {
       type:    Boolean,
       default: false
     },
@@ -202,6 +241,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
+      originalNodeVersion:   this.version,
       defaultTemplateOption: { LaunchTemplateName: t('eks.defaultCreateOne') } as AWS.LaunchTemplate,
 
       defaultNodeRoleOption:          { RoleName: t('eks.defaultCreateOne') },
@@ -246,6 +286,15 @@ export default defineComponent({
         this.$emit('update:spotInstanceTypes', null);
       }
     },
+
+    sshKeyPairs: {
+      handler(neu) {
+        if (!neu.includes(this.ec2SshKey)) {
+          this.$emit('update:ec2SshKey', '');
+        }
+      },
+      deep: true
+    }
   },
 
   computed: {
@@ -343,6 +392,53 @@ export default defineComponent({
 
     userDataPlaceholder() {
       return DEFAULT_USER_DATA;
+    },
+
+    poolIsUnprovisioned() {
+      return this.isNewOrUnprovisioned || this.poolIsNew;
+    },
+
+    clusterWillUpgrade() {
+      return this.clusterVersion !== this.originalClusterVersion;
+    },
+
+    nodeCanUpgrade() {
+      return !this.clusterWillUpgrade && this.originalNodeVersion !== this.clusterVersion && !this.poolIsNew;
+    },
+
+    willUpgrade: {
+      get() {
+        return this.nodeCanUpgrade && this.version === this.clusterVersion;
+      },
+      set(neu: boolean) {
+        if (neu) {
+          this.$emit('update:version', this.clusterVersion);
+          this.$emit('update:poolIsUpgrading', true);
+        } else {
+          this.$emit('update:version', this.originalNodeVersion);
+          this.$emit('update:poolIsUpgrading', false);
+        }
+      }
+    },
+
+    minMaxDesiredErrors() {
+      const errs = (this.rules?.minMaxDesired || []).reduce((errs: string[], rule: Function) => {
+        const err = rule({
+          minSize: this.minSize, maxSize: this.maxSize, desiredSize: this.desiredSize
+        });
+
+        if (err) {
+          errs.push(err);
+        }
+
+        return errs;
+      }, [] as string[]);
+
+      return errs.length ? errs.join(' ') : null;
+    },
+
+    isView() {
+      return this.mode === _VIEW;
     }
   },
 
@@ -350,7 +446,7 @@ export default defineComponent({
     async fetchLaunchTemplateVersionInfo(launchTemplate: AWS.LaunchTemplate) {
       const { region, amazonCredentialSecret } = this;
 
-      if (!region || !amazonCredentialSecret || this.mode === _VIEW) {
+      if (!region || !amazonCredentialSecret || this.isView) {
         return;
       }
       const store = this.$store as Store<any>;
@@ -440,30 +536,30 @@ export default defineComponent({
 
 <template>
   <div>
-    <h3>Group Details</h3>
+    <h3>{{ t('eks.nodeGroups.groupDetails') }}</h3>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
           :value="nodegroupName"
           label-key="eks.nodeGroups.name.label"
           :mode="mode"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :rules="rules.nodegroupName"
           data-testid="eks-nodegroup-name"
           required
-          @input="$emit('update:nodegroupName', $event)"
+          @update:value="$emit('update:nodegroupName', $event)"
         />
       </div>
 
       <div class="col span-6">
         <LabeledSelect
-          v-model="displayNodeRole"
+          v-model:value="displayNodeRole"
           :mode="mode"
           label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
           option-key="Arn"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :loading="loadingRoles"
         />
       </div>
@@ -476,7 +572,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.desiredSize.label"
           :mode="mode"
           :rules="rules.desiredSize"
-          @input="$emit('update:desiredSize', $event)"
+          @update:value="$emit('update:desiredSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -486,7 +582,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.minSize.label"
           :mode="mode"
           :rules="rules.minSize"
-          @input="$emit('update:minSize', $event)"
+          @update:value="$emit('update:minSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -496,10 +592,15 @@ export default defineComponent({
           label-key="eks.nodeGroups.maxSize.label"
           :mode="mode"
           :rules="rules.maxSize"
-          @input="$emit('update:maxSize', $event)"
+          @update:value="$emit('update:maxSize', parseInt($event))"
         />
       </div>
     </div>
+    <Banner
+      v-if="!!minMaxDesiredErrors"
+      color="error"
+      :label="minMaxDesiredErrors"
+    />
     <div class="row mb-10">
       <div class="col span-6">
         <KeyValue
@@ -508,7 +609,7 @@ export default defineComponent({
           :read-allowed="false"
           :value="labels"
           :as-map="true"
-          @input="$emit('update:labels', $event)"
+          @update:value="$emit('update:labels', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.groupLabels.label') }}</label>
@@ -522,7 +623,8 @@ export default defineComponent({
           :read-allowed="false"
           :as-map="true"
           :value="tags"
-          @input="$emit('update:tags', $event)"
+          data-testid="eks-resource-tags-input"
+          @update:value="$emit('update:tags', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.groupTags.label') }}</label>
@@ -531,17 +633,39 @@ export default defineComponent({
       </div>
     </div>
     <hr class="mb-20">
-    <h3>Node Template Details</h3>
+    <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
+    <Banner
+      v-if="clusterWillUpgrade && !poolIsUnprovisioned"
+      color="info"
+      label-key="eks.nodeGroups.kubernetesVersion.clusterWillUpgrade"
+      data-testid="eks-version-upgrade-banner"
+    />
     <div class="row mb-10">
+      <div class="col span-4 upgrade-version">
+        <LabeledInput
+          v-if="!nodeCanUpgrade"
+          label-key="eks.nodeGroups.kubernetesVersion.label"
+          :disabled="true"
+          :value="version"
+          data-testid="eks-version-display"
+        />
+        <Checkbox
+          v-else
+          v-model:value="willUpgrade"
+          :label="t('eks.nodeGroups.kubernetesVersion.upgrade', {from: originalNodeVersion, to: clusterVersion})"
+          data-testid="eks-version-upgrade-checkbox"
+          :disabled="isView"
+        />
+      </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="selectedLaunchTemplate"
+          v-model:value="selectedLaunchTemplate"
           :mode="mode"
           label-key="eks.nodeGroups.launchTemplate.label"
           :options="launchTemplateOptions"
           option-label="LaunchTemplateName"
           option-key="LaunchTemplateId"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="!poolIsUnprovisioned"
           :loading="loadingLaunchTemplates"
           data-testid="eks-launch-template-dropdown"
         />
@@ -554,7 +678,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.launchTemplate.version"
           :options="launchTemplateVersionOptions"
           data-testid="eks-launch-template-version-dropdown"
-          @input="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
+          @update:value="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
         />
       </div>
     </div>
@@ -570,7 +694,7 @@ export default defineComponent({
           :value="imageId"
           :disabled="hasUserLaunchTemplate"
           data-testid="eks-image-id-input"
-          @input="$emit('update:imageId', $event)"
+          @update:value="$emit('update:imageId', $event)"
         />
       </div>
       <div class="col span-4">
@@ -585,7 +709,7 @@ export default defineComponent({
           :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
           :rules="!requestSpotInstances ? rules.instanceType : []"
           data-testid="eks-instance-type-dropdown"
-          @input="$emit('update:instanceType', $event)"
+          @update:value="$emit('update:instanceType', $event)"
         />
       </div>
 
@@ -600,7 +724,7 @@ export default defineComponent({
           :disabled="!!templateValue('diskSize') || loadingSelectedVersion"
           :rules="rules.diskSize"
           data-testid="eks-disksize-input"
-          @input="$emit('update:diskSize', $event)"
+          @update:value="$emit('update:diskSize', $event)"
         />
       </div>
     </div>
@@ -619,7 +743,7 @@ export default defineComponent({
           :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
           :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
           data-testid="eks-gpu-input"
-          @input="$emit('update:gpu', $event)"
+          @update:value="$emit('update:gpu', $event)"
         />
       </div>
       <div class="col span-4">
@@ -628,7 +752,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.nodeGroups.requestSpotInstances.label"
           :disabled="hasRancherLaunchTemplate"
-          @input="$emit('update:requestSpotInstances', $event)"
+          @update:value="$emit('update:requestSpotInstances', $event)"
         />
       </div>
     </div>
@@ -647,7 +771,7 @@ export default defineComponent({
           :multiple="true"
           :loading="loadingSelectedVersion || loadingInstanceTypes"
           data-testid="eks-spot-instance-type-dropdown"
-          @input="$emit('update:spotInstanceTypes', $event)"
+          @update:value="$emit('update:spotInstanceTypes', $event)"
         />
       </div>
     </div>
@@ -661,7 +785,7 @@ export default defineComponent({
           :disabled="hasUserLaunchTemplate"
           :placeholder="userDataPlaceholder"
           :sub-label="t('eks.nodeGroups.userData.tooltip', {}, true)"
-          @input="$emit('update:userData', $event)"
+          @update:value="$emit('update:userData', $event)"
         />
         <FileSelector
           :mode="mode"
@@ -671,26 +795,30 @@ export default defineComponent({
         />
       </div>
       <div class="col span-6">
-        <LabeledInput
-          type="multiline"
+        <LabeledSelect
+          :loading="loadingSshKeyPairs"
           :value="ec2SshKey"
+          :options="sshKeyPairs"
           label-key="eks.nodeGroups.ec2SshKey.label"
           :mode="mode"
           :disabled="hasUserLaunchTemplate"
-          @input="$emit('update:ec2SshKey', $event)"
+          :taggable="true"
+          :searchable="true"
+          data-testid="eks-nodegroup-ec2-key-select"
+          @update:value="$emit('update:ec2SshKey', $event)"
         />
       </div>
     </div>
     <div row="mb-10">
       <div class="col span-12">
         <KeyValue
-          :key="resourceTagKey"
           :mode="mode"
           label-key="eks.nodeGroups.resourceTags.label"
           :value="resourceTags"
           :disabled="hasUserLaunchTemplate"
           :read-allowed="false"
           :as-map="true"
+          @update:value="$emit('update:resourceTags', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.resourceTags.label') }}</label>
@@ -706,5 +834,10 @@ export default defineComponent({
   &>button{
     float: right;
   }
+}
+
+.upgrade-version {
+  display: flex;
+  align-items: center;
 }
 </style>

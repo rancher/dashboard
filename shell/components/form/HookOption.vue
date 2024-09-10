@@ -70,7 +70,7 @@ export default {
       const header = { name: '', value: '' };
 
       if (!this.value.httpGet.httpHeaders) {
-        this.$set(this.value.httpGet, 'httpHeaders', []);
+        this.value.httpGet['httpHeaders'] = [];
       }
 
       this.value.httpGet.httpHeaders.push(header);
@@ -99,7 +99,7 @@ export default {
         break;
       }
 
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
 
     deleteLeftovers(leftovers) {
@@ -117,7 +117,7 @@ export default {
   <div>
     <div class="row mb-10">
       <RadioGroup
-        v-model="selectHook"
+        v-model:value="selectHook"
         name="selectHook"
         :options="['none', 'exec', 'httpGet']"
         :labels="[
@@ -126,7 +126,7 @@ export default {
           t('workload.container.lifecycleHook.httpGet.add'),
         ]"
         :mode="mode"
-        @input="update"
+        @update:value="update"
       />
     </div>
 
@@ -135,7 +135,7 @@ export default {
         <h4>{{ t('workload.container.lifecycleHook.exec.title') }}</h4>
         <div>
           <ShellInput
-            v-model="value.exec.command"
+            v-model:value="value.exec.command"
             :mode="mode"
             :label="t('workload.container.lifecycleHook.exec.command.label')"
             :placeholder="t('workload.container.lifecycleHook.exec.command.placeholder', null, true)"
@@ -148,15 +148,15 @@ export default {
     <template v-if="selectHook === 'httpGet'">
       <h4>{{ t('workload.container.lifecycleHook.httpGet.title') }}</h4>
       <div class="var-row">
-        <template @input="update">
+        <template @update:value="update">
           <LabeledInput
-            v-model="value.httpGet.host"
+            v-model:value="value.httpGet.host"
             :label="t('workload.container.lifecycleHook.httpGet.host.label')"
             :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
             :mode="mode"
           />
           <LabeledInput
-            v-model="value.httpGet.path"
+            v-model:value="value.httpGet.path"
             :label="t('workload.container.lifecycleHook.httpGet.path.label')"
             :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
             :mode="mode"
@@ -170,7 +170,7 @@ export default {
             required
           />
           <LabeledSelect
-            v-model="value.httpGet.scheme"
+            v-model:value="value.httpGet.scheme"
             :label="t('workload.container.lifecycleHook.httpGet.scheme.label')"
             :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
             :options="schemeOptions"
@@ -182,12 +182,12 @@ export default {
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
       <div
         v-for="(header, index) in value.httpGet.httpHeaders"
-        :key="header.id"
+        :key="index"
         class="var-row"
       >
-        <template @input="update">
+        <template @update:value="update">
           <LabeledInput
-            v-model="value.httpGet.httpHeaders[index].name"
+            v-model:value="value.httpGet.httpHeaders[index].name"
             :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"
             :placeholder="t('workload.container.lifecycleHook.httpHeaders.name.placeholder')"
             class="single-value"
@@ -195,7 +195,7 @@ export default {
             required
           />
           <LabeledInput
-            v-model="value.httpGet.httpHeaders[index].value"
+            v-model:value="value.httpGet.httpHeaders[index].value"
             :label="t('workload.container.lifecycleHook.httpHeaders.value.label')"
             :placeholder="t('workload.container.lifecycleHook.httpHeaders.value.placeholder')"
             class="single-value"

@@ -23,6 +23,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -46,40 +47,43 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   // testing https://github.com/rancher/dashboard/issues/9823
-  it('Toggling the user preference "rke1-ui" to false should not display RKE toggle on cluster creation screen and hide RKE1 resources from nav', () => {
-    cy.intercept('GET', 'v1/management.cattle.io.features?*', {
-      type:         'collection',
-      resourceType: 'management.cattle.io.feature',
-      data:         [
-        {
-          id:     'rke1-ui',
-          type:   'management.cattle.io.feature',
-          kind:   'Feature',
-          spec:   { value: false },
-          status: {
-            default:     true,
-            description: 'Disable RKE1 provisioning',
-            dynamic:     false,
-            lockedValue: false
+  it('Toggling the feature flag "rke1-ui" to false should not display RKE toggle on cluster creation screen and hide RKE1 resources from nav', () => {
+    cy.fetchRevision().then((revision) => {
+      cy.intercept('GET', 'v1/management.cattle.io.features?*', {
+        type:         'collection',
+        resourceType: 'management.cattle.io.feature',
+        revision,
+        data:         [
+          {
+            id:     'rke1-ui',
+            type:   'management.cattle.io.feature',
+            kind:   'Feature',
+            spec:   { value: false },
+            status: {
+              default:     true,
+              description: 'Disable RKE1 provisioning',
+              dynamic:     false,
+              lockedValue: false
+            }
           }
-        }
-      ]
-    }).as('featuresGet');
+        ]
+      }).as('featuresGet');
 
-    const clusterCreate = new ClusterManagerCreatePagePo();
+      const clusterCreate = new ClusterManagerCreatePagePo();
 
-    clusterCreate.goTo();
-    clusterCreate.waitForPage();
+      clusterCreate.goTo();
+      clusterCreate.waitForPage();
 
-    // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
-    // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
-    clusterCreate.gridElementExistance(0, 0, 'exist');
-    clusterCreate.rkeToggleExistance('not.exist');
+      // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
+      // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
+      clusterCreate.gridElementExistanceByName('Linode', 'exist');
+      clusterCreate.rkeToggleExistance('not.exist');
 
-    const sideNav = new ProductNavPo();
+      const sideNav = new ProductNavPo();
 
-    // check that the nav group isn't visible anymore
-    sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
+      // check that the nav group isn't visible anymore
+      sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
+    });
   });
 
   describe('All providers', () => {
@@ -201,7 +205,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.list().state(rke2CustomName).should('contain', 'Updating');
-        clusterList.list().state(rke2CustomName).contains('Active', { timeout: 700000 });
+        clusterList.list().state(rke2CustomName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
       });
 
       it('can copy config to clipboard', () => {
@@ -289,7 +293,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can delete cluster', () => {
         clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
         clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
@@ -416,8 +420,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           snapshots.goTo();
           snapshots.waitForPage();
 
+          snapshots.list().resourceTable().sortableTable().groupElementWithName('Location')
+            .should('have.length', 1); // 1 group row
+
           snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 3); // 2 main rows + 1 group row
+            .should('have.length.gte', 2); // 2 main rows
         });
       });
 
@@ -433,7 +440,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         promptRemove.confirm(rke1CustomName);
         promptRemove.remove();
 
-        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(rke1CustomName, MEDIUM_TIMEOUT_OPT).should('not.exist', MEDIUM_TIMEOUT_OPT);
       });
     });
   });
@@ -483,7 +490,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.waitForPage();
         clusterList.list().state(importGenericName).should('contain', 'Pending');
         clusterList.list().state(importGenericName).should('contain', 'Waiting');
-        clusterList.list().state(importGenericName).contains('Active', { timeout: 700000 });
+        clusterList.list().state(importGenericName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
         // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
         clusterList.list().provider(importGenericName).should('contain', 'Imported');
         clusterList.list().providerSubType(importGenericName).should('contain', 'RKE2');
@@ -498,7 +505,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can delete cluster by bulk actions', () => {
         clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', MEDIUM_TIMEOUT_OPT);
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();

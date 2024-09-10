@@ -63,7 +63,7 @@ export default {
         out.secretName = null;
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     onSecretInput(e) {
       this.secretName = e && typeof e === 'object' ? e.label : e;
@@ -80,11 +80,11 @@ export default {
 <template>
   <div
     class="cert row"
-    @input="update"
+    @update:value="update"
   >
     <div class="col span-6">
       <LabeledSelect
-        v-model="secretName"
+        v-model:value="secretName"
         class="secret-name"
         :options="certsWithDefault"
         :label="t('ingress.certificates.certificate.label')"
@@ -94,7 +94,7 @@ export default {
         :tooltip="certificateTooltip"
         :hover-tooltip="true"
         :searchable="true"
-        @input="onSecretInput"
+        @update:value="onSecretInput"
       />
     </div>
     <div class="col span-6">
@@ -103,7 +103,7 @@ export default {
         :add-label="t('ingress.certificates.addHost')"
         :rules="rules.host"
         :initial-empty-row="true"
-        @input="onHostsInput"
+        @update:value="onHostsInput"
       />
     </div>
   </div>

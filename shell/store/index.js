@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -37,6 +37,7 @@ import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
+import { markRaw } from 'vue';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -247,9 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 undefined,
-    $route:                  undefined,
-    $plugin:                 undefined,
+    $router:                 markRaw({}),
+    $route:                  markRaw({}),
+    $plugin:                 markRaw({}),
   };
 };
 
@@ -593,7 +594,7 @@ export const getters = {
   },
 
   releaseNotesUrl(state, getters) {
-    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+    const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
 
     const base = 'https://github.com/rancher/rancher/releases';
 
@@ -695,6 +696,11 @@ export const mutations = {
   },
 
   setError(state, { error: obj, locationError }) {
+    // We don't want to clobber one error with another, doing so can hide the original cause of an error
+    if (obj && state.error) {
+      return;
+    }
+
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
@@ -728,15 +734,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = router;
+    state.$router = markRaw(router || {});
   },
 
   setRoute(state, route) {
-    state.$route = route;
+    state.$route = markRaw(route || {});
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = pluginDefinition;
+    state.$plugin = markRaw(pluginDefinition || {});
   }
 };
 
@@ -768,13 +774,23 @@ export const actions = {
       rancherSchemas: dispatch('rancher/loadSchemas', true),
     });
 
+    // Note - why aren't we watching anything fetched in the `promises` object?
+    // To watch we need feature flags to know that the vai cache is enabled.
+    // So to work around this we won't watch anything initially... and then watch once we have feature flags
+    // The alternative is simpler (fetch features up front) but would add another blocking request in
+
     const promises = {
       // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } }),
 
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
     };
+
+    const toWatch = [
+      MANAGEMENT.CLUSTER,
+      MANAGEMENT.FEATURE,
+    ];
 
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
@@ -784,24 +800,34 @@ export const actions = {
     }
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      promises['counts'] = dispatch('management/findAll', { type: COUNT });
+      promises['counts'] = dispatch('management/findAll', { type: COUNT, opt: { watch: false } });
+      toWatch.push(COUNT);
     }
 
     if ( getters['management/canList'](MANAGEMENT.SETTING) ) {
-      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { watch: false } });
+      toWatch.push(MANAGEMENT.SETTING);
     }
 
     if ( getters['management/schemaFor'](NAMESPACE) ) {
-      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
+      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE, opt: { watch: false } });
+      toWatch.push(NAMESPACE);
     }
 
     const fleetSchema = getters['management/schemaFor'](FLEET.WORKSPACE);
 
     if (fleetSchema?.links?.collection) {
-      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
+      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE, opt: { watch: false } });
+      toWatch.push(FLEET.WORKSPACE);
     }
 
     res = await allHash(promises);
+
+    // See comment above. Now that we have feature flags we can watch resources
+    toWatch.forEach((type) => {
+      dispatch('management/watch', { type });
+    });
+
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
@@ -1116,7 +1142,7 @@ export const actions = {
     commit('catalog/reset');
 
     const router = state.$router;
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
 
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
@@ -1134,6 +1160,9 @@ export const actions = {
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
+
+      // adds IS_SLO query param to login route if logout came with an auth provider with Single Logout enabled
+      QUERY += (IS_SLO in route.query) ? `&${ IS_SLO }` : '';
 
       // Go back to login and force a full page reload, this ensures we unload any dangling resources the user is no longer authorized to use (like extensions).
       // We use document instead of router because router does a clunky job of visiting a new page and reloading. In this case it would cause the login page to flash before actually reloading.

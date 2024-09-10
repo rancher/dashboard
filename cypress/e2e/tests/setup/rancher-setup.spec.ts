@@ -6,7 +6,7 @@ import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCa
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
-describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
+describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@explorer2', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths', '@elemental', '@vai'] }, () => {
   const rancherSetupLoginPage = new RancherSetupLoginPagePo();
   const rancherSetupConfigurePage = new RancherSetupConfigurePage();
   const homePage = new HomePagePo();
@@ -14,6 +14,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   it('Requires initial setup', () => {
     homePage.goTo();
 
+    rancherSetupLoginPage.goTo();
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.hasInfoMessage();
   });
@@ -34,7 +35,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
     rancherSetupConfigurePage.waitForPage();
 

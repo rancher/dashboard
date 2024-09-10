@@ -85,7 +85,7 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
-  applyDefaults(vm) {
+  applyDefaults() {
     const { spec = {} } = this;
 
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
@@ -118,7 +118,7 @@ export default class Workload extends WorkloadService {
         spec.selector = {};
       }
     }
-    vm.$set(this, 'spec', spec);
+    this.spec = spec;
   }
 
   toggleRollbackModal( workload = this ) {
@@ -647,6 +647,7 @@ export default class Workload extends WorkloadService {
 
     const selector = convertSelectorObj(this.spec.selector);
 
+    // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
     return matching(allInNamespace, selector);
   }
 

@@ -3,6 +3,7 @@ import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import { ucFirst } from '@shell/utils/string';
 import { colorForState, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 import { sortBy } from '@shell/utils/sort';
+import { FLEET } from '@shell/config/types';
 
 export default {
   components: { ProgressBarMulti },
@@ -32,7 +33,7 @@ export default {
     },
 
     show() {
-      return this.stateParts.length > 0 && this.row.targetClusters?.length;
+      return this.stateParts.length > 0 && (this.row.type === FLEET.CLUSTER || this.row.targetClusters?.length);
     },
 
     stateParts() {
@@ -58,7 +59,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     v-if="show"
     class="text-center hand"
     placement="top"
@@ -73,15 +74,15 @@ export default {
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"
       >
         <tbody>
           <tr
-            v-for="obj in stateParts"
-            :key="obj.label"
+            v-for="(obj, i) in stateParts"
+            :key="i"
           >
             <td
               class="text-left pr-20"
@@ -96,7 +97,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
   <div
     v-else
     class="text-center text-muted"

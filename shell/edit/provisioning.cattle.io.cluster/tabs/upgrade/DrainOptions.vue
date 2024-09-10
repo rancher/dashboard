@@ -70,7 +70,7 @@ export default {
         out.timeout = 0;
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   },
 };
@@ -79,63 +79,63 @@ export default {
 <template>
   <div>
     <RadioGroup
-      v-model="enabled"
+      v-model:value="enabled"
       name="enabled"
       :options="[false, true]"
       :label="t('cluster.rke2.drain.label')"
       :labels="[t('generic.no'), t('generic.yes')]"
       :tooltip="t('cluster.rke2.drain.toolTip')"
       :mode="mode"
-      @input="update"
+      @update:value="update"
     />
 
     <template v-if="enabled">
       <div class="mt-20">
         <Checkbox
-          v-model="deleteEmptyDirData"
+          v-model:value="deleteEmptyDirData"
           label-key="cluster.rke2.drain.deleteEmptyDir.label"
           tooltip-key="cluster.rke2.drain.deleteEmptyDir.tooltip"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div>
         <Checkbox
-          v-model="force"
+          v-model:value="force"
           label="Delete standalone pods"
           label-key="cluster.rke2.drain.force.label"
           tooltip="Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods."
           tooltop-key="cluster.rke2.drain.force.tooltip"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div>
         <Checkbox
-          v-model="customGracePeriod"
+          v-model:value="customGracePeriod"
           label-key="cluster.rke2.drain.gracePeriod.checkboxLabel"
-          @input="update"
+          @update:value="update"
         />
         <UnitInput
           v-if="customGracePeriod"
-          v-model="gracePeriod"
+          v-model:value="gracePeriod"
           label-key="cluster.rke2.drain.gracePeriod.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="mb-10"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div>
         <Checkbox
-          v-model="customTimeout"
+          v-model:value="customTimeout"
           label-key="cluster.rke2.drain.timeout.checkboxLabel"
-          @input="update"
+          @update:value="update"
         />
         <UnitInput
           v-if="customTimeout"
-          v-model="timeout"
+          v-model:value="timeout"
           label-key="cluster.rke2.drain.timeout.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="drain-timeout"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </template>

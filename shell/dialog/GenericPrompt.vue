@@ -68,17 +68,16 @@ export default {
     class="prompt-restore"
     :show-highlight-border="false"
   >
-    <template slot="title">
+    <template #title>
       <slot name="title">
         <h4
-          slot="title"
           v-clean-html="title"
           class="text-default-text"
         />
       </slot>
     </template>
 
-    <template slot="body">
+    <template #body>
       <slot name="body">
         <div
           v-clean-html="decodeHtml(body)"
@@ -88,30 +87,29 @@ export default {
       </slot>
     </template>
 
-    <div
-      slot="actions"
-      class="bottom"
-    >
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        :label="err"
-      />
-      <div class="buttons">
-        <button
-          class="btn role-secondary mr-10"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-
-        <AsyncButton
-          :mode="applyMode"
-          @click="apply"
+    <template #actions>
+      <div class="bottom">
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
         />
+        <div class="buttons">
+          <button
+            class="btn role-secondary mr-10"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+
+          <AsyncButton
+            :mode="applyMode"
+            @click="apply"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>

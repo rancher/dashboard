@@ -120,6 +120,7 @@ locale:
 nav:
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
+  tools: Tools
   clusterTools: Cluster Tools
   kubeconfig:
     download: Download KubeConfig
@@ -158,6 +159,7 @@ nav:
     admission: Admission
     apps: Apps
     clusterProvisioning: Cluster Provisioning
+    jwt.authentication: JWT Authentication
     core: Core
     legacy: Legacy
     API: API
@@ -246,6 +248,7 @@ suffix:
   ib: iB
   mib: MiB
   gb: GB
+  ago: ago
   revisions: |-
     {count, plural,
       =1 { Revision }
@@ -504,6 +507,11 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -551,6 +559,12 @@ authConfig:
       label: Token Endpoint
     authEndpoint:
       label: Auth Endpoint
+    groupMembershipFilter:
+      label: Group Membership Filter
+      enable: Limit users by group membership
+      tooltip: Limit users by applying a GroupMembershipFilter
+      externalHelp: See the OData filter expression documentation for more information.
+      externalHelpLink: https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/use-filter-expressions-in-odata-uris#filter-expressions
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
@@ -563,7 +577,7 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
-    oidc: Configure an OIDC account
+    genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     rancherUrl: Rancher URL
     clientId: Client ID
@@ -572,11 +586,21 @@ authConfig:
       label: Endpoints
       custom: Specify
       standard: Generate
+    url: URL
+    realm: Realm
     keycloak:
       url: Keycloak URL
       realm: Keycloak Realm
     issuer: Issuer
     authEndpoint: Auth Endpoint
+    jwksUrl: JWKS URL
+    tokenEndpoint: Token Endpoint
+    userInfoEndpoint: User Info Endpoint
+    acrValue: Authorization Context Reference
+    scope:
+      label: Scopes
+      placeholder: openid
+      protip: The <code>openid</code> scope is required. If you are using custom scopes, ensure that it is included.
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -792,7 +816,7 @@ backupRestoreOperator:
       warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
   encryption: Encryption
   encryptionConfigName:
-    backuptip: 'Any secret in the <code>cattle-resources-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    backuptip: 'Any secret in the <code>{ns}</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
     label: Encryption Config Secret
     options:
       none: Store the contents of the backup unencrypted
@@ -880,6 +904,9 @@ catalog:
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
+    deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
+    experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
+    deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
     all: All
     categories:
@@ -901,6 +928,8 @@ catalog:
       linux: Linux
       windows: Windows
     search: Filter
+    deprecatedChartsFilter:
+      label: Show deprecated apps
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -1158,6 +1187,9 @@ cis:
   testsToSkip: Tests to Skip
 
 cluster:
+  jwtAuthentication:
+    banner: "Service Account access with JWT authentication can be configured after cluster creation from <br>
+      <code>Cluster Management > Advanced > JWT Authentication</code>"
   addonChart:
     rancher-vsphere-cpi: vSphere CPI Configuration
     rancher-vsphere-csi: vSphere CSI Configuration
@@ -1352,6 +1384,7 @@ cluster:
       placeholder: 'Namespace/Name'
       cluster: Imported Harvester Cluster
       installGuestAgent: Install guest agent
+      tokenExpirationWarning: 'Warning: Harvester Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
@@ -1751,10 +1784,12 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
-    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the <b>Amazon</b> Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderUnsupportedAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderMigrateAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. To upgrade Kubernetes, the cluster should be migrated to External provider first.<br> See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
@@ -2159,6 +2194,7 @@ resource:
 codeMirror:
   keymap:
     tooltip: Key mapping preference.
+    indicatorToolip: "Key mapping: {name}"
 
 cruResource:
   backToForm: Back to Form
@@ -2196,7 +2232,22 @@ drivers:
     refresh: Refresh Kubernetes Metadata
   deactivate:
     title: Are you sure?
-    warning: You will no longer be able to edit the configuration of clusters using {name} driver. Resources in the provider will not be automatically removed.
+    andOthers: |-
+      {count, plural,
+      =0 {}
+      =1 { and <b>one other </b>}
+      other { and <b>{count} other </b>}
+      }
+    warningDrivers: |-
+      {count, plural,
+      =1 { You will no longer be able to edit the configuration of clusters using {names} driver.}
+      other { You will no longer be able to edit the configuration of clusters using {names} drivers.}
+      }
+    warning: |-
+      {count, plural,
+      =1 { {warningDrivers} Resources in the corresponding provider will not be automatically removed.}
+      other { {warningDrivers} Resources in the corresponding providers will not be automatically removed.}
+      }
 
 detailText:
   collapse: Hide
@@ -2472,6 +2523,7 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
   customize: Customize
@@ -2857,6 +2909,21 @@ istio:
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
+jwt:
+  title: JWT Authentication
+  actions:
+    activate: Enable
+    deactivate: Disable
+    refresh: Refresh
+  state:
+    enabled: Enabled
+    disabled: Disabled
+  headers:
+    clusterName: Cluster Name
+    updatedOn: JWT Enabled On
+    clusterAge: Cluster Age
+
+
 labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
@@ -2872,6 +2939,13 @@ labels:
   annotations:
     title: Annotations
 
+labelSelect:
+  noOptions:
+    empty: No options
+    noMatch: No matching options
+  pagination:
+    counts: '{count} / {totalCount} items'
+    more: Load More...
 landing:
   clusters:
     title: Clusters
@@ -2938,6 +3012,7 @@ logging:
           include: Limit to specific container names
           exclude: Exclude specific container names
         placeholder: "Default: Any container"
+        enter: Enter container name to select
       namespaces:
         title:
           include: Limit to specific namespaces
@@ -2956,7 +3031,7 @@ logging:
     dockerRootDirectory: Docker Root Directory
     systemdLogPath: systemd Log Path
     tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
-    url: '<a href="https://ranchermanager.docs.rancher.com/v2.8/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    url: '<a href="{docsBase}/integrations-in-rancher/logging/logging-helm-chart-options" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
     default: /run/log/journal
   elasticsearch:
     host: Host
@@ -3195,6 +3270,7 @@ login:
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
+  loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
   serverError:
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
@@ -3219,6 +3295,10 @@ login:
 
 logout:
   message: Logging Out...
+  error: 'An error occurred logging out: {msg}'
+  specificError:
+    unknown: Unknown.\n\nPlease contact your system administrator.
+    500: "Server-side error.\n\nPlease contact your system administrator."
 
 managementNode:
   customName: Custom Name
@@ -4201,7 +4281,7 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
-    api: This Extension is not compatible with the Extensions API
+    api: This Extension is not compatible with the current Extensions API version
     host: This Extension is not compatible with this application
     version: This Extension is not compatible with this version of Rancher
     load: An error occurred loading the code for this Extension
@@ -4318,17 +4398,17 @@ plugins:
     title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
-      can: You need to install the Extension Operator
+      can: 'You need to enable the <code>{ff}</code> Feature Flag in Global Settings. Once enabled, Rancher will require a restart.'
       official: The Official Rancher Extensions Repository provides extensions published by Rancher
       partners: The Partners Extensions Repository provides extensions published by Rancher Partners
       community: The Community Extensions Repository provides extensions published by Rancher Community
     install:
       title: Enable Extension Support?
-      prompt: This will install the Helm charts needed to enable Extension support
+      prompt: This will lead you to the page where you can enable the Feature Flag needed to enable Extension support.
+      featuresButton: Go to Feature Flags
       airgap: Air-gapped installations should NOT enable this feature
       addRancherRepo: Add Official Rancher Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
-      addCommunityRancherRepo: Add Community Extensions Repository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
@@ -4578,6 +4658,15 @@ promptScaleMachineDown:
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
 
+promptSlo:
+  title: "Log out"
+  text: "Log out of only Rancher, or all {name} applications."
+  rancher:
+    active: Only log out of Rancher
+  all:
+    active: Log out of {name}
+    waiting: Logging Out
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
@@ -4664,6 +4753,9 @@ rbac:
         label: Grant Resources
         noApiGroupClusterScope: Core K8s API, Cluster Scoped
         noApiGroupNamespaceScope: Core K8s API, Namespaced
+        neuvector:
+          labelClusterScoped: NeuVector, Cluster Scoped
+          labelNamespaceScoped: NeuVector, Namespaced
         deprecatedLabel: (deprecated)
         resourceOptionInfo: The resource options are not a complete list of every resource available in every Rancher-managed Kubernetes cluster. Resources and API groups may need to be manually entered in advanced use cases.
         tableHeaders:
@@ -5697,6 +5789,10 @@ tableHeaders:
   users: Users
   userDisplayName: Display Name
   userId: ID
+  userDeletedIn: Delete After
+  userDisabledIn: Disable After
+  userLastLogin: Last Login
+  userState: Enabled
   userStatus: Status
   username: Local Username
   value: Value
@@ -5720,6 +5816,10 @@ target:
     placeholder: Select a version
 
 user:
+  state:
+    active: 'Enabled'
+    inactive: 'Disabled'
+    unknown: 'Unknown'
   detail:
     username: Username
     globalPermissions:
@@ -5757,6 +5857,41 @@ user:
         placeholder: e.g. This account is for John Smith
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
+  retention:
+    button:
+      label: User retention settings
+    growl:
+      title: Save user retention settings
+      message: User retention settings have been updated successfully
+    edit:
+      title:
+        header: "Users: Settings"
+        pre: "Users:"
+        post: Settings
+        subTitle: User retention
+      form:
+        disableAfter:
+          checkbox: Disable user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
+        deleteAfter:
+          checkbox: Delete user accounts after an inactivity period (duration since last login)
+          input:
+            label: Inactivity period
+            tooltip: Uses duration units (e.g. use 30h for 30 hours)
+            subLabel: This value must be larger than the Disable period, if it's active
+        cron:
+          label: User retention process schedule
+          subLabel: The user retention process runs as a cron job (required)
+          errorMessage: User retention process schedule must be a valid cron expression
+        dryRun:
+          label: Run the user retention process in DRY mode (no changes will be applied)
+          subLabel: You can check the logs to see which accounts would be affected
+        defaultLastLogin:
+          label: Default last login (ms)
+          subLabel: Accounts without a registered last login timestamp will get this as a default
+          placeholder: Unix timestamp
 validation:
   noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
@@ -6483,7 +6618,7 @@ model:
       okta: Okta
       freeipa: FreeIPA
       googleoauth: Google
-      oidc: OIDC
+      genericoidc: Generic OIDC
       keycloakoidc: Keycloak
 
   cluster:
@@ -6523,6 +6658,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
@@ -7233,6 +7369,9 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
+    'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
+  warnings:
+    'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -7255,6 +7394,9 @@ advancedSettings:
       info: Info
       debug: Debug
       trace: Trace
+    'agent-tls-mode':
+      strict: 'Strict'
+      system-store: 'System Store'
 
 featureFlags:
   label: Feature Flags
@@ -7281,7 +7423,7 @@ performance:
       When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
-    incompatibleDescription: "Incremental Loading is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
+    incompatibleDescription: "Incremental Loading is incompatible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   manualRefresh:
     label: Manual Refresh
     setting: You can configure a threshold above which manual refresh will be enabled.
@@ -7290,7 +7432,7 @@ performance:
       When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable manual refresh of data for lists
     inputLabel: Resource Threshold
-    incompatibleDescription: "Manual Refresh is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
+    incompatibleDescription: "Manual Refresh is incompatible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   websocketNotification:
     label: Websocket Notifications
     description: |-
@@ -7298,7 +7440,7 @@ performance:
     checkboxLabel: Disable websocket notifications
   gc:
     label: Resource Garbage Collection
-    description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
+    description: The UI will cache Kubernetes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
     checkboxLabel: Enable Garbage Collection
     whenRun:
       description: Update when garbage collection runs
@@ -7321,7 +7463,7 @@ performance:
     label: Require Namespace / Project Filtering
     description: Require the user to select namespaces and/or projects. This restricts the number of resources fetched when viewing lists and should help the responsiveness of the UI in systems with a lot of resources.
     checkboxLabel: Enable Required Namespace / Project Filtering
-    incompatibleDescription: "Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
+    incompatibleDescription: "Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
   advancedWorker:
     label: Websocket Web Worker
     description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
@@ -7338,8 +7480,8 @@ performance:
     description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Change this setting to enable pagination server-side. This should help the responsiveness of the UI in systems with a lot of resources.
     checkboxLabel: Enable Server-side Pagination
     applicable: "This applies to the following resource types"
-    incompatibleDescription: "Server-side Pagination is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
-    featureFlag: The <a href="{ffUrl}">Feature Flag</a> `on-disk-steve-cache` must be enabled to use this feature
+    incompatibleDescription: "Server-side Pagination is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
+    featureFlag: The&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache` must be enabled to use this feature
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
@@ -7374,6 +7516,7 @@ banner:
     label: 'Font Size'
   consent: Consent Banner
   consentFootnote: "Tip: Use \\n character for line break"
+  individualSetting: 'This banner is managed by the setting "{name}" and can not be modified in the UI'
 
 branding:
   label: Branding
@@ -7578,6 +7721,8 @@ manager:
     label: RKE Templates
   nodeTemplates:
     label: Node Templates
+  jwtAuthentication:
+    label: JWT Authentication
 
 auth:
   roleTemplate: Role Templates

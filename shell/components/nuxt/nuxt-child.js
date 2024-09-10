@@ -1,53 +1,52 @@
 
 export default {
-  name: 'NuxtChild',
+  name:       'NuxtChild',
   functional: true,
-  props: {
+  props:      {
     nuxtChildKey: {
-      type: String,
+      type:    String,
       default: ''
     },
-    keepAlive: Boolean,
+    keepAlive:      Boolean,
     keepAliveProps: {
-      type: Object,
+      type:    Object,
       default: undefined
     }
   },
-  render (_, { parent, data, props }) {
-    const h = parent.$createElement
+  render(_, { parent, data, props }) {
+    const h = parent.$createElement;
 
-    data.nuxtChild = true
-    const _parent = parent
-    let depth = 0
+    data.nuxtChild = true;
+    const _parent = parent;
+    let depth = 0;
 
     while (parent) {
       if (parent.$vnode && parent.$vnode.data.nuxtChild) {
-        depth++
+        depth++;
       }
-      parent = parent.$parent
+      parent = parent.$parent;
     }
-    data.nuxtChildDepth = depth
+    data.nuxtChildDepth = depth;
 
-    const listeners = {}
-    
-    const beforeEnter = listeners.beforeEnter
+    const listeners = {};
+
+    const beforeEnter = listeners.beforeEnter;
+
     listeners.beforeEnter = (el) => {
       if (beforeEnter) {
-        return beforeEnter.call(_parent, el)
+        return beforeEnter.call(_parent, el);
       }
-    }
+    };
 
-    let routerView = h('routerView', data)
+    let routerView = h('routerView', data);
 
     if (props.keepAlive) {
-      routerView = h('keep-alive', { props: props.keepAliveProps }, [routerView])
+      routerView = h('keep-alive', { props: props.keepAliveProps }, [routerView]);
     }
 
-    // this needs to be a "transition" or another non-rendering component, 
+    // this needs to be a "transition" or another non-rendering component,
     // otherwise we will break pages like the charts wizard or the extensions main screen (DOM would render an additional element and break CSS)
     // we can deal with this later once we remove this component and <nuxt /> component
-    return h('transition', {
-      on: listeners
-    }, [routerView])
+    return h('transition', { on: listeners }, [routerView]);
   }
-}
+};

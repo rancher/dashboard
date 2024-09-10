@@ -75,9 +75,10 @@ export default {
     <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       mode="view"
       class="mt-20"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         label="Git Repos"

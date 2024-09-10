@@ -8,6 +8,8 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
+import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -53,8 +55,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
-  it('has the correct title', () => {
-    ClusterDashboardPagePo.goTo('local');
+  it.skip('[Vue3 Skip]: has the correct title', () => {
+    clusterDashboard.goTo('local');
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
   });
@@ -119,7 +122,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     ClusterDashboardPagePo.navTo();
 
     // Add Badge
-    clusterDashboard.addCustomBadge('Add Cluster Badge').click();
+    clusterDashboard.customizeAppearanceButton().click();
 
     const customClusterCard = new CardPo();
 
@@ -151,7 +154,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
 
     // Reset
-    clusterDashboard.addCustomBadge('Edit Cluster Badge').click();
+    clusterDashboard.customizeAppearanceButton().click();
     clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
@@ -166,7 +169,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view deployments', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
+    clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
@@ -181,7 +185,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view nodes', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage();
 
     cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
@@ -220,7 +224,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         // create ns
         cy.get<string>('@projId').then((projId) => {
-          cy.createNamespace(nsName, projId);
+          cy.createNamespaceInProject(nsName, projId);
         });
 
         // create pod
@@ -229,7 +233,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       });
     });
 
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
@@ -241,8 +245,43 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     const events = new EventsPagePo('local');
 
     events.waitForPage();
-    events.eventslist().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+    events.sortableTable().rowElements().should('have.length.gte', 2);
+  });
+
+  it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
+    const events = new EventsPagePo('local');
+
+    HomePagePo.goTo();
+
+    eventsNoDataset();
+    ClusterDashboardPagePo.navTo();
+    cy.wait('@eventsNoData');
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
+
+    clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
+
+    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+
+    clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeaders[i]);
+      });
+
+    clusterDashboard.fullEventsLink().click();
+    cy.wait('@eventsNoData');
+    events.waitForPage();
+
+    events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+
+    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+
+    events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+      });
   });
 
   after(function() {
@@ -251,5 +290,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

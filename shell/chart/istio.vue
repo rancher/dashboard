@@ -104,7 +104,7 @@ export default {
 
   methods: {
     update() {
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
 
     valuesChanged(value) {
@@ -147,9 +147,9 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.cni.enabled"
+          v-model:value="value.cni.enabled"
           :label="t('istio.cni')"
-          @input="update"
+          @update:value="update"
         />
       </div>
       <div
@@ -157,7 +157,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.ingressGateways.enabled"
+          v-model:value="value.ingressGateways.enabled"
           :label="t('istio.ingressGateway')"
         />
       </div>
@@ -166,7 +166,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.egressGateways.enabled"
+          v-model:value="value.egressGateways.enabled"
           :label="t('istio.egressGateway')"
         />
       </div>
@@ -177,7 +177,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.pilot.enabled"
+          v-model:value="value.pilot.enabled"
           :label="t('istio.pilot')"
           :disabled="value.kiali && value.kiali.enabled"
         />
@@ -187,7 +187,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.policy.enabled"
+          v-model:value="value.policy.enabled"
           :label="t('istio.policy')"
         />
       </div>
@@ -196,7 +196,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.telemetry.enabled"
+          v-model:value="value.telemetry.enabled"
           :label="t('istio.telemetry')"
         />
       </div>
@@ -207,9 +207,9 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.kiali.enabled"
+          v-model:value="value.kiali.enabled"
           :label="t('istio.kiali')"
-          @input="changeKiali"
+          @update:value="changeKiali"
         />
       </div>
       <div
@@ -217,7 +217,7 @@ export default {
         class="col span-4"
       >
         <Checkbox
-          v-model="value.tracing.enabled"
+          v-model:value="value.tracing.enabled"
           :label="t('istio.tracing')"
         />
       </div>

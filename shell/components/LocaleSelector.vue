@@ -51,7 +51,7 @@ export default {
   <div>
     <div v-if="mode === 'login'">
       <div v-if="showLocale">
-        <v-popover
+        <v-dropdown
           popover-class="localeSelector"
           placement="top"
           trigger="click"
@@ -63,7 +63,7 @@ export default {
             {{ selectedLocaleLabel }}
             <i class="icon icon-fw icon-sort-down" />
           </a>
-          <template slot="popover">
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"
@@ -84,14 +84,14 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </div>
     </div>
     <div v-else>
       <Select
         :value="selectedOption"
         :options="localesOptions"
-        @input="switchLocale($event)"
+        @update:value="switchLocale($event)"
       />
     </div>
   </div>

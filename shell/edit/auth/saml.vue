@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import AuthConfig from '@shell/mixins/auth-config';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -11,6 +11,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
@@ -45,6 +46,7 @@ export default {
     Banner,
     AllowedPrincipals,
     Checkbox,
+    RadioGroup,
     FileSelector,
     config,
     AuthBanner,
@@ -55,7 +57,7 @@ export default {
   data() {
     return {
       showLdap:        false,
-      showLdapDetails: false,
+      showLdapDetails: false
     };
   },
 
@@ -66,6 +68,24 @@ export default {
         provider: this.displayName,
         username: this.principal.loginName || this.principal.name,
       };
+    },
+
+    isLogoutAllSupported() {
+      return this.model?.logoutAllSupported;
+    },
+
+    sloOptions() {
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.saml.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.saml.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.saml.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      return sloOptionSelected?.label || '';
     },
 
     toSave() {
@@ -97,10 +117,32 @@ export default {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
-        this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
+        this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
+      }
+    },
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType(neu) {
+      switch (neu) {
+      case SLO_OPTION_VALUES.rancher:
+        this.model.logoutAllEnabled = false;
+        this.model.logoutAllForced = false;
+        break;
+      case SLO_OPTION_VALUES.all:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = true;
+        break;
+      case SLO_OPTION_VALUES.both:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = false;
+        break;
       }
     }
-  }
+  },
+  methods: {
+    onSelected(val, key) {
+      this.model[key] = val;
+    }
+  },
 };
 </script>
 
@@ -128,20 +170,21 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template
-            slot="rows"
-          >
+          <template #rows>
             <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.UID`) }}: </td><td>{{ model.uidField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t(`authConfig.saml.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
+            </tr>
           </template>
 
           <template
             v-if="supportsLDAPSearch"
-            slot="footer"
+            #footer
           >
             <Banner
               v-if="showLdap"
@@ -197,10 +240,11 @@ export default {
         />
 
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
+
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="model.displayNameField"
+              v-model:value="model.displayNameField"
               :label="t(`authConfig.saml.displayName`)"
               :mode="mode"
               required
@@ -208,7 +252,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.userNameField"
+              v-model:value="model.userNameField"
               :label="t(`authConfig.saml.userName`)"
               :mode="mode"
               required
@@ -219,7 +263,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="model.uidField"
+              v-model:value="model.uidField"
               :label="t(`authConfig.saml.UID`)"
               :mode="mode"
               required
@@ -227,27 +271,28 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.groupsField"
+              v-model:value="model.groupsField"
               :label="t(`authConfig.saml.groups`)"
               :mode="mode"
               required
             />
           </div>
         </div>
+
         <div class="row mb-20">
           <div
             v-if="NAME === 'keycloak' || NAME === 'ping'"
             class="col span-6"
           >
             <LabeledInput
-              v-model="model.entityID"
+              v-model:value="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
               :mode="mode"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.rancherApiHost"
+              v-model:value="model.rancherApiHost"
               :label="t(`authConfig.saml.api`)"
               :mode="mode"
               required
@@ -258,7 +303,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-4">
             <LabeledInput
-              v-model="model.spKey"
+              v-model:value="model.spKey"
               :label="t(`authConfig.saml.key.label`)"
               :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
@@ -269,12 +314,12 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'spKey', $event)"
+              @selected="onSelected($event, 'spKey')"
             />
           </div>
           <div class="col span-4">
             <LabeledInput
-              v-model="model.spCert"
+              v-model:value="model.spCert"
               :label="t(`authConfig.saml.cert.label`)"
               :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
@@ -285,12 +330,12 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'spCert', $event)"
+              @selected="onSelected($event, 'spCert')"
             />
           </div>
           <div class="col span-4">
             <LabeledInput
-              v-model="model.idpMetadataContent"
+              v-model:value="model.idpMetadataContent"
               :label="t(`authConfig.saml.metadata.label`)"
               :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
@@ -301,13 +346,38 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'idpMetadataContent', $event)"
+              @selected="onSelected($event, 'idpMetadataContent')"
             />
           </div>
         </div>
+
+        <!-- SLO logout -->
+        <div
+          v-if="isLogoutAllSupported"
+          class="mt-10 mb-30"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.saml.sloTitle') }}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4">
+              <RadioGroup
+                v-model:value="sloType"
+                :mode="mode"
+                :options="sloOptions"
+                :disabled="!model.logoutAllSupported"
+                name="sloTypeRadio"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- LDAP search -->
         <div v-if="supportsLDAPSearch">
           <div class="row">
-            <h2>{{ t('authConfig.saml.search.title') }}</h2>
+            <h3>{{ t('authConfig.saml.search.title') }}</h3>
           </div>
           <div class="row">
             <Banner
@@ -317,7 +387,7 @@ export default {
           </div>
           <div class="row">
             <Checkbox
-              v-model="showLdap"
+              v-model:value="showLdap"
               :mode="mode"
               :label="t('authConfig.saml.showLdap')"
             />
@@ -325,7 +395,7 @@ export default {
           <div class="row mt-20 mb-20">
             <config
               v-if="showLdap && model.openLdapConfig"
-              v-model="model.openLdapConfig"
+              v-model:value="model.openLdapConfig"
               :type="NAME"
               :mode="mode"
               :is-create="!model.enabled"
@@ -340,7 +410,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

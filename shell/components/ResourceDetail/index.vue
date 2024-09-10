@@ -155,8 +155,11 @@ export default {
       }
 
       if ( as === _YAML ) {
-        // fetch resourceFields for createYaml
-        await schema.fetchResourceFields();
+        if (schema?.fetchResourceFields) {
+          // fetch resourceFields for createYaml
+          await schema.fetchResourceFields();
+        }
+
         yaml = createYaml(schemas, resource, data);
       }
     } else {
@@ -270,6 +273,7 @@ export default {
       model:           null,
       notFound:        null,
       canViewChart:    true,
+      canViewYaml:     null,
     };
   },
 
@@ -403,21 +407,22 @@ export default {
     <ResourceYaml
       v-else-if="isYaml"
       ref="resourceyaml"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :yaml="yaml"
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value.doneOverride"
       :class="{'flex-content': flexContent}"
+      @update:value="$emit('input', $event)"
     />
 
     <component
       :is="showComponent"
       v-else
       ref="comp"
-      v-model="value"
-      v-bind="_data"
+      v-model:value="value"
+      v-bind="$data"
       :done-params="doneParams"
       :done-route="doneRoute"
       :mode="mode"
@@ -425,6 +430,7 @@ export default {
       :live-value="liveModel"
       :real-mode="realMode"
       :class="{'flex-content': flexContent}"
+      @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"
     />
 

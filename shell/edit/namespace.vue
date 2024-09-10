@@ -34,7 +34,8 @@ export default {
     MoveModal
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
@@ -123,11 +124,11 @@ export default {
     project() {
       const limits = this.getDefaultContainerResourceLimits(this.projectName);
 
-      this.$set(this, 'containerResourceLimits', limits);
+      this['containerResourceLimits'] = limits;
     },
 
     projectName(newProjectName) {
-      this.$set(this, 'project', this.projects.find((p) => p.id.includes(newProjectName)));
+      this['project'] = this.projects.find((p) => p.id.includes(newProjectName));
     }
   },
 
@@ -191,7 +192,7 @@ export default {
         #project-col
       >
         <LabeledSelect
-          v-model="projectName"
+          v-model:value="projectName"
           data-testid="name-ns-description-project"
           :label="t('namespace.project.label')"
           :options="projectOpts"
@@ -199,9 +200,10 @@ export default {
       </template>
     </NameNsDescription>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
       :side-tabs="true"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="showResourceQuota"
@@ -227,10 +229,11 @@ export default {
           </div>
         </div>
         <ResourceQuota
-          v-model="value"
+          :value="value"
           :mode="mode"
           :project="project"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -240,7 +243,6 @@ export default {
         :label="t('namespace.containerResourceLimit')"
       >
         <ContainerResourceLimit
-          :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"
           :mode="mode"
           :namespace="value"
@@ -253,7 +255,6 @@ export default {
         :weight="-1"
       >
         <Labels
-          :key="rerenderNums"
           default-container-class="labels-and-annotations-container"
           :value="value"
           :mode="mode"

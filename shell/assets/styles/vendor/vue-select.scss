@@ -94,6 +94,11 @@
     hr {
       cursor: default;
     }
+
+    .vs__option-kind-group {
+      color: var(--dropdown-group-text);
+      cursor: default;
+    }
   }
 
   &.vs__dropdown-option--selected {

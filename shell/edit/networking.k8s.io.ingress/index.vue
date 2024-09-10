@@ -16,10 +16,12 @@ import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name:       'CRUIngress',
-  components: {
+  name:         'CRUIngress',
+  inheritAttrs: false,
+  components:   {
     IngressClass,
     Certificates,
     CruResource,
@@ -45,23 +47,37 @@ export default {
       default: 'edit'
     }
   },
+
   async fetch() {
     this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
-    const hash = await allHash({
-      secrets:               this.$store.dispatch('cluster/findAll', { type: SECRET }),
+
+    const promises = {
       services:              this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       ingressClasses:        this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
       ingressResourceFields: this.schema.fetchResourceFields(),
-    });
+    };
+
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](SECRET);
+
+    if (this.filterByApi) {
+      promises.filteredSecrets = this.filterSecretsByApi();
+    } else {
+      promises.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
+
+    const hash = await allHash(promises);
 
     this.allServices = hash.services;
     this.allSecrets = hash.secrets;
+    this.filteredSecrets = hash.filteredSecrets;
     this.allIngressClasses = hash.ingressClasses;
   },
   data() {
     return {
+      filterByApi:        null,
       ingressClassSchema: null,
-      allSecrets:         [],
+      allSecrets:         null,
+      filteredSecrets:    null,
       allServices:        [],
       allIngressClasses:  [],
       fvFormRuleSets:     [
@@ -92,6 +108,15 @@ export default {
       fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
   },
+
+  watch: {
+    async 'value.metadata.namespace'() {
+      if (this.filterByApi) {
+        this.filteredSecrets = await this.filterSecretsByApi();
+      }
+    }
+  },
+
   computed: {
     fvExtraRules() {
       const backEndOrRules = (spec) => {
@@ -147,7 +172,17 @@ export default {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      return this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS)).map((secret) => {
+      let filteredSecrets;
+
+      if (this.filteredSecrets) {
+        filteredSecrets = this.filteredSecrets;
+      } else if (this.allSecrets ) {
+        filteredSecrets = this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS));
+      } else {
+        return [];
+      }
+
+      return filteredSecrets.map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);
@@ -160,18 +195,34 @@ export default {
       }));
     },
   },
+
   created() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'rules', this.value.spec.rules || [{}]);
-    this.$set(this.value.spec, 'backend', this.value.spec.backend || {});
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['rules'] = this.value.spec.rules || [{}];
+    this.value.spec['backend'] = this.value.spec.backend || {};
 
     if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0] || {}).length === 0) {
-      this.$set(this.value.spec, 'tls', []);
+      this.value.spec['tls'] = [];
     }
 
     this.registerBeforeHook(this.willSave, 'willSave');
   },
+
   methods: {
+    filterSecretsByApi() {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.value.metadata.namespace,
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.1',
+            value: TYPES.TLS
+          })
+        }),
+      };
+
+      return this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
+    },
+
     filterByCurrentResourceNamespace(resources) {
       // When configuring an Ingress, the options for Secrets and
       // default backend Services are limited to the namespace of the Ingress.
@@ -179,6 +230,7 @@ export default {
         return resource.metadata.namespace === this.value.metadata.namespace;
       });
     },
+
     willSave() {
       const backend = get(this.value.spec, this.value.defaultBackendPath);
       const serviceName = get(backend, this.value.serviceNamePath);
@@ -228,11 +280,12 @@ export default {
         :error="tabErrors.rules"
       >
         <Rules
-          v-model="value"
+          :value="value"
           :mode="mode"
           :service-targets="serviceTargets"
           :certificates="certificates"
           :rules="rulesPathRules"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -242,10 +295,11 @@ export default {
         :error="tabErrors.defaultBackend"
       >
         <DefaultBackend
-          v-model="value"
+          :value="value"
           :service-targets="serviceTargets"
           :mode="mode"
           :rules="defaultBackendPathRules"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -255,10 +309,11 @@ export default {
         :weight="2"
       >
         <Certificates
-          v-model="value"
+          :value="value"
           :mode="mode"
           :certificates="certificates"
           :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -267,9 +322,10 @@ export default {
         :weight="1"
       >
         <IngressClass
-          v-model="value"
+          :value="value"
           :mode="mode"
           :ingress-classes="ingressClasses"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab

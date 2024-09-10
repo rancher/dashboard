@@ -6,6 +6,7 @@ import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
+import { SETTING } from '@shell/config/settings';
 
 // Note: This dialog handles installation and update of a plugin
 
@@ -20,7 +21,7 @@ export default {
   async fetch() {
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
-      id:   'system-default-registry'
+      id:   SETTING.SYSTEM_DEFAULT_REGISTRY,
     });
   },
 
@@ -274,7 +275,7 @@ export default {
           />
           <LabeledSelect
             v-if="showVersionSelector"
-            v-model="version"
+            v-model:value="version"
             label-key="plugins.install.version"
             :options="versionOptions"
             class="version-selector mt-10"

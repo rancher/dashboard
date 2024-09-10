@@ -14,9 +14,9 @@ import throttle from 'lodash/throttle';
 import { allHash } from '@shell/utils/promise';
 
 export default {
-  name: 'CruClusterGroup',
-
-  components: {
+  name:         'CruClusterGroup',
+  inheritAttrs: false,
+  components:   {
     Banner,
     CruResource,
     Labels,
@@ -139,11 +139,12 @@ export default {
   >
     <NameNsDescription
       v-if="!isView"
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="false"
       namespace-label="nameNsDescription.workspace.label"
       :namespace-type="FLEET_WORKSPACE"
+      @update:value="$emit('input', $event)"
     />
 
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
@@ -151,7 +152,7 @@ export default {
       :mode="mode"
       :value="expressions"
       :show-remove="false"
-      @input="matchChanged($event)"
+      @update:value="matchChanged($event)"
     />
     <Banner
       v-if="matchingClusters"

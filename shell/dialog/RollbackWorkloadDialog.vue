@@ -200,77 +200,74 @@ export default {
     class="prompt-rollback"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      class="text-default-text"
-    >
-      {{ t('promptRollback.modalTitle', { workloadName }, true) }}
-    </h4>
-    <div
-      slot="body"
-      class="pl-10 pr-10 "
-    >
-      <Banner
-        v-if="revisions.length === 1"
-        color="info"
-        :label="t('promptRollback.singleRevisionBanner')"
-      />
-      <form>
-        <LabeledSelect
-          v-model="selectedRevision"
-          class="provider"
-          :label="t('promptRollback.dropdownTitle')"
-          :placeholder="t('promptRollback.placeholder')"
-          :options="revisions"
-          :get-option-label="getOptionLabel"
+    <template #title>
+      <h4 class="text-default-text">
+        {{ t('promptRollback.modalTitle', { workloadName }, true) }}
+      </h4>
+    </template>
+    <template #body>
+      <div class="pl-10 pr-10 ">
+        <Banner
+          v-if="revisions.length === 1"
+          color="info"
+          :label="t('promptRollback.singleRevisionBanner')"
         />
-      </form>
-      <Banner
-        v-for="(error, i) in errors"
-        :key="i"
-        class=""
-        color="error"
-        :label="error"
-      />
-      <YamlEditor
-        v-if="selectedRevision && showDiff"
-        :key="selectedRevisionId"
-        v-model="sanitizedSelectedRevision"
-        :initial-yaml-values="sanitizeYaml(currentRevision)"
-        class="mt-10 "
-        :editor-mode="editorMode"
-        :as-object="true"
-      />
-    </div>
-    <div
-      slot="actions"
-      class="buttons "
-    >
-      <div class="left">
-        <button
-          :disabled="!selectedRevision"
-          class="btn role-secondary diff"
-          @click="showDiff = !showDiff; sizeDialog()"
-        >
-          {{ showDiff ? t('resourceYaml.buttons.hideDiff') : t('resourceYaml.buttons.diff') }}
-        </button>
-      </div>
-      <div class="right">
-        <button
-          class="btn role-secondary mr-10"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          :action-label="t('asyncButton.rollback.action')"
-          :disabled="!selectedRevision"
-          get-option-label="getOptionLabel"
-          :right-align="true"
-          @click="save"
+        <form>
+          <LabeledSelect
+            v-model:value="selectedRevision"
+            class="provider"
+            :label="t('promptRollback.dropdownTitle')"
+            :placeholder="t('promptRollback.placeholder')"
+            :options="revisions"
+            :get-option-label="getOptionLabel"
+          />
+        </form>
+        <Banner
+          v-for="(error, i) in errors"
+          :key="i"
+          class=""
+          color="error"
+          :label="error"
+        />
+        <YamlEditor
+          v-if="selectedRevision && showDiff"
+          :key="selectedRevisionId"
+          v-model:value="sanitizedSelectedRevision"
+          :initial-yaml-values="sanitizeYaml(currentRevision)"
+          class="mt-10 "
+          :editor-mode="editorMode"
+          :as-object="true"
         />
       </div>
-    </div>
+    </template>
+    <template #actions>
+      <div class="buttons ">
+        <div class="left">
+          <button
+            :disabled="!selectedRevision"
+            class="btn role-secondary diff"
+            @click="showDiff = !showDiff; sizeDialog()"
+          >
+            {{ showDiff ? t('resourceYaml.buttons.hideDiff') : t('resourceYaml.buttons.diff') }}
+          </button>
+        </div>
+        <div class="right">
+          <button
+            class="btn role-secondary mr-10"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <AsyncButton
+            :action-label="t('asyncButton.rollback.action')"
+            :disabled="!selectedRevision"
+            get-option-label="getOptionLabel"
+            :right-align="true"
+            @click="save"
+          />
+        </div>
+      </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>
@@ -278,7 +275,7 @@ export default {
 .prompt-rollback {
   margin: 0;
 
-  & ::v-deep .card-actions {
+  & :deep() .card-actions {
     display: grid;
   }
 }
@@ -286,7 +283,7 @@ export default {
 .yaml-editor {
   max-height: 70vh;
 
-  & ::v-deep.root {
+  & :deep().root {
     max-height: 65vh;
   }
 }
@@ -301,7 +298,7 @@ export default {
   }
 }
 
-::v-deep .card-body {
+:deep() .card-body {
   max-height: calc(95vh - 135px);
   overflow: hidden;
 }

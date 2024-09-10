@@ -143,8 +143,9 @@ export default {
 
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     :mode="mode"
+    @input="$emit('input', $event)"
   >
     <Tab
       name="pods"

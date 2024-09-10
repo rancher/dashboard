@@ -1,0 +1,198 @@
+asyncButton:
+  authenticate:
+    action: Authenticate
+    success: Authenticated
+    waiting: Authenticating
+gke:
+  accordion:
+    advanced: Additional Options
+    config: Config
+    labels: Labels and Annotations
+    members: Cluster Members
+    networking: Networking
+    nodePools: Node Pools
+  authScopes:
+    modeLabel: API Access Scopes
+    modes:
+      custom: Set access for each API
+      default: Allow default access
+      full: Allow full access to all cloud APIs
+    options:
+      enabled: Enabled
+      full: Full
+      none: None
+      readOnly: Read Only
+      readWrite: Read/Write
+      tablesOnly: Tables Only
+      writeOnly: Write Only
+    scopes:
+      bigquery: Big Query
+      bigtable.admin: Bigtable Admin
+      bigtable.data: Bigtable Data
+      cloud-platform: Cloud Platform
+      cloud_debugger: Cloud Debugger
+      clouddatastore: Cloud Datastore
+      compute: Compute Engine
+      devstorage: Storage
+      logging: Stack Driver Logging API
+      monitoring: Stack Driver Monitoring API
+      pubsub: Cloud Pub/Sub
+      service.management: Service Management
+      servicecontrol: Service Control
+      source: Cloudsource Repositories
+      sqlservice: Cloud SQL
+      taskqueue: Task Queue
+      trace: Stackdriver Trace
+      userinfo: User Info
+  authenticate: Authenticate
+  autoRepair:
+    label: Auto Repair
+  autoUpgrade:
+    label: Auto Upgrade
+  autoscaling:
+    label: Autoscaling
+  clusterIpv4Cidr:
+    label: Container Address Range
+    placeholder: 10.0.0.0/14
+  clusterIpv4CidrBlock:
+    label: Pod Secondary CIDR Block
+  clusterLabels:
+    add: Add Label
+    label: Cluster Labels
+  clusterSecondaryRangeName:
+    label: Pod Secondary Address Range Name
+  diskSizeGb:
+    label: Disk Size
+  diskType:
+    label: Disk Type
+    ssd: SSD Persistent Disk
+    standard: Standard Persistent Disk
+  enableKubernetesAlpha:
+    label: Alpha Features
+    warning: <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/alpha-clusters" target="_blank" rel="nofollow noopener noreferrer">Kubernetes Alpha Features</a> should not be used for production clusters. <b>Alpha Clusters expire after 30 days</b>, along with other caveats. Ensure that you fully understand this feature before enabling it.
+  enableNetworkPolicy:
+    label: Project Network Isolation
+  enablePrivateEndpoint:
+    label: Private Endpoint
+    tooltip: When enabled, the control plane may only be accessed via the private IP.
+  enablePrivateNodes:
+    label: Private Cluster
+    warning: GKE private clusters are an adavnced use-case which require special GKE configuration. Before enabling private clusters, ensure you have read through the <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-clusters-from-hosted-kubernetes-providers/gke" target="_blank" rel="nofollow noopener noreferrer">GKE provisioning documentation</a> for instructions on configuring  GKE so that private nodes may communicate with Rancher.
+  errors:
+    clusterNameChars: Cluster name may only contain lowercase letters, numbers, and hyphens.
+    clusterNameStartEnd: Cluster name must startd and end with a letter or number.
+    diskSizeGb: Disk Size must be at least 10GB.
+    genericKey: Value
+    initialNodeCount: Initial Node Count must be at least 0, and no greater than 1000.
+    ipv4Cidr: '{key} must be a valid ipv4 cidr range.'
+    ipv4oripv6: '{key} must be a valid ipv6 or ipv4 CIDR address'
+    minMaxNodeCount: Minimum Node Count cannot exceed Maximum Node Count.
+    minNodeCount: Minimum Node Count must be at least 1.
+    poolNamesUnique: Pool group names must be unique.
+    ssdCount: SSD Count must be a positive number.
+  groupDetails: Group Details
+  groupName:
+    label: Name
+  hideAdvanced: Hide Advanced Options
+  horizontalPodAutoscaling:
+    label: Horizontal Pod Autoscaling
+  httpLoadBalancing:
+    label: HTTP (L7) Load Balancing
+  imageType:
+    # windows SAC and Docker options are no longer supported but the translations are defined here in case an older cluster is edited
+    COS: Container-Optimized OS with Docker
+    COS_CONTAINERD: Container-Optimized OS with Containerd
+    UBUNTU: Ubuntu with Docker
+    UBUNTU_CONTAINERD: Ubuntu with Containerd
+    WINDOWS_LTSC: Windows Long Term Service Channel with Docker
+    WINDOWS_LTSC_CONTAINERD: Windows Long Term Service Channel with Containerd
+    WINDOWS_SAC: Windows Semi-Annual Channel with Docker
+    WINDOWS_SAC_CONTAINERD: Windows Semi-Annual Channel with Containerd
+    label: Image Type
+  initialNodeCount:
+    label: Initial Node Count
+  label: Google GKE
+  localSsdCount:
+    label: Local SSD Count
+  location:
+    extraZones: Extra Zones
+    region: Region
+    regional: Regional
+    zonal: Zonal
+    zone: Zone
+  loggingService:
+    infoBanner: Enabling logging and monitoring here will enable system and workload logging, as well as system monitoring and a Google-managed Prometheus service. You can learn more about these features in the Google documentation <a aria-label="Official documentation for GKE observability configuration" href="https://cloud.google.com/kubernetes-engine/docs/concepts/observability" target="_blank" rel="nofollow noopener noreferrer">here</a>.
+    label: Logging
+    warningBanner: Logging and Monitoring must both be enabled or both be disabled.
+  machineType:
+    label: Machine Type
+  maintenanceWindow:
+    any: Any Time
+    label: Maintenance Window - UTC
+  masterAuthorizedNetwork:
+    cidrBlocks:
+      add: Add Authorized Network
+      cidr: CIDR Block
+      displayName: Display Name
+      label: Master Authorized Network CIDR Blocks
+    enable:
+      label: Master Authorized Network
+  masterIpv4CidrBlock:
+    label: Master Ipv4 CIDR Block
+    placeholder: 10.42.0.0/28
+    tooltip: Master CIDR block must be at least /28
+  maxNodeCount:
+    label: Maximum Node Count
+  maxPodsConstraint:
+    label: Maximum Number of Pods per Node
+  minNodeCount:
+    label: Minimum Node Count
+  monitoringService:
+    label: Monitoring
+  network:
+    label: Network
+    sharedvpc: Shared VPC
+    subnetworksAvailable: subnets available
+    vpc: VPC
+  networkPolicyConfig:
+    label: Network Policy Support (Master only)
+  networkPolicyEnabled:
+    label: Network Policy Support (Worker nodes)
+  nodeDetails: Node Details
+  nodeIpv4CidrBlock:
+    label: Node Ipv4 CIDR Block
+  nodeLabels:
+    add: Add Label
+    label: Node Labels
+    tooltip: These labels will be applied to each node in the pool.
+  notNamed: Not Named
+  preemptible:
+    label: Preemptible Nodes
+  project:
+    label: Google Project ID
+  serviceAccount:
+    default:
+      label: Use the default service account
+    label: Service Account
+  servicesIpv4CidrBlock:
+    label: Services Secondary CIDR Block
+  servicesSecondaryRangeName:
+    label: Services Secondary Address Range Name
+  showAdvanced: Show Advanced Options
+  subnetwork:
+    auto: Auto-create Subnetwork
+    label: Subnet
+    name: Subnetwork Name
+    namePlaceholder: Your Subnetwork Name
+    nodeLabel: Node Subnet
+  tags:
+    add: Add Tag
+    label: Network Tags
+  useIpAliases:
+    label: IP Aliases
+    warning: When not using IP Aliases, you must select both a network and subnet.
+  version:
+    current: Current
+    label: Kubernetes Version
+    tooltip: Upgrades cannot be more than one minor version away from the current version.
+    upgrade: Upgrade the node pool version from {version} to {clusterKubernetesVersion}

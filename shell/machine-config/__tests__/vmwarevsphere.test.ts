@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
-import vmwarevsphere, { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere.vue';
+import vmwarevsphere from '@shell/machine-config/vmwarevsphere.vue';
+import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-config';
 
 describe('component: vmwarevsphere', () => {
   const defaultGetters = { 'i18n/t': jest.fn().mockImplementation((key: string) => key) };
@@ -11,11 +12,13 @@ describe('component: vmwarevsphere', () => {
       disabled:     false,
       provider:     'vmwarevsphere'
     },
-    mocks: {
-      $fetchState: { pending: false },
-      $store:      { getters: defaultGetters },
-    },
-    stubs: { CodeMirror: true },
+    global: {
+      mocks: {
+        $fetchState: { pending: false },
+        $store:      { getters: defaultGetters },
+      },
+      stubs: { CodeMirror: true },
+    }
   };
   const defaultCreateSetup = {
     ...baseSetup,
@@ -115,7 +118,7 @@ describe('component: vmwarevsphere', () => {
 
   describe('mapHostOptionsToContent', () => {
     const hostPlaceholder = {
-      label: 'cluster.machineConfig.vsphere.hostOptions.any',
+      label: '%cluster.machineConfig.vsphere.hostOptions.any%',
       value: SENTINEL
     };
     const testCases = [

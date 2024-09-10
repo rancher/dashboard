@@ -39,7 +39,7 @@ export default {
     </div>
     <div class="col span-4">
       <LabeledSelect
-        v-model="value.protocol"
+        v-model:value="value.protocol"
         :mode="mode"
         :options="portOptions"
         :multiple="false"

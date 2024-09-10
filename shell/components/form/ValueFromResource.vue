@@ -214,7 +214,7 @@ export default {
     updateRow() {
       if (!this.name?.length && !this.refName?.length) {
         if (this.type !== 'fieldRef') {
-          this.$emit('input', null);
+          this.$emit('update:value', null);
 
           return;
         }
@@ -251,7 +251,7 @@ export default {
         out.prefix = this.name;
         out[this.type] = { name: this.refName, optional: false };
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     get
   }
@@ -262,7 +262,7 @@ export default {
   <div class="var-row">
     <div class="type">
       <LabeledSelect
-        v-model="type"
+        v-model:value="type"
         :mode="mode"
         :multiple="false"
         :options="typeOpts"
@@ -270,17 +270,17 @@ export default {
         :searchable="false"
         :reduce="e=>e.value"
         :label="t('workload.container.command.fromResource.type')"
-        @input="updateRow"
+        @update:value="updateRow"
       />
     </div>
 
     <div class="name">
       <LabeledInput
-        v-model="name"
+        v-model:value="name"
         :label="nameLabel"
         :placeholder="t('workload.container.command.fromResource.name.placeholder')"
         :mode="mode"
-        @input="updateRow"
+        @update:value="updateRow"
       />
     </div>
 
@@ -289,18 +289,18 @@ export default {
       class="single-value"
     >
       <LabeledInput
-        v-model="valStr"
+        v-model:value="valStr"
         :label="t('workload.container.command.fromResource.value.label')"
         :placeholder="t('workload.container.command.fromResource.value.placeholder')"
         :mode="mode"
-        @input="updateRow"
+        @update:value="updateRow"
       />
     </div>
 
     <template v-else-if="needsSource">
       <div :class="{'single-value': type === 'configMapRef' || type === 'secretRef'}">
         <LabeledSelect
-          v-model="referenced"
+          v-model:value="referenced"
           :options="sourceOptions"
           :multiple="false"
           :get-option-label="opt=>get(opt, 'metadata.name') || opt"
@@ -312,14 +312,14 @@ export default {
       </div>
       <div v-if="type!=='secretRef' && type!== 'configMapRef'">
         <LabeledSelect
-          v-model="key"
+          v-model:value="key"
           :multiple="false"
           :options="keys"
           :mode="mode"
           option-label="label"
           :label="t('workload.container.command.fromResource.key.label')"
           :loading="loading"
-          @input="updateRow"
+          @update:value="updateRow"
         />
       </div>
     </template>
@@ -327,23 +327,23 @@ export default {
     <template v-else-if="type==='resourceFieldRef'">
       <div>
         <LabeledInput
-          v-model="refName"
+          v-model:value="refName"
           :label="t('workload.container.command.fromResource.containerName')"
           :placeholder="t('workload.container.command.fromResource.source.placeholder')"
           :mode="mode"
-          @input="updateRow"
+          @update:value="updateRow"
         />
       </div>
       <div>
         <LabeledSelect
-          v-model="key"
+          v-model:value="key"
           :label="t('workload.container.command.fromResource.key.label')"
           :multiple="false"
           :options="resourceKeyOpts"
           :mode="mode"
           :searchable="false"
           :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
-          @input="updateRow"
+          @update:value="updateRow"
         />
       </div>
     </template>
@@ -351,11 +351,11 @@ export default {
     <template v-else>
       <div class="single-value">
         <LabeledInput
-          v-model="fieldPath"
+          v-model:value="fieldPath"
           :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
           :label="t('workload.container.command.fromResource.key.label')"
           :mode="mode"
-          @input="updateRow"
+          @update:value="updateRow"
         />
       </div>
     </template>

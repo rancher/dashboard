@@ -1,23 +1,37 @@
+import { dirname, join } from "path";
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const NM_REGEX  = /node_modules\/(.*)/
 
 module.exports = {
-  "stories": [
-    "../stories/**/Welcome.stories.mdx",
-    "../stories/**/*.stories.mdx",
-    "../stories/**/*.stories.@(js|jsx|ts|tsx)"
+  framework: {
+    name: '@storybook/vue3-webpack5',
+    options: {}
+  },
+  
+  stories: [
+    '../stories/**/Welcome.mdx',
+    '../stories/**/*.mdx',
+    '../stories/**/*.stories.@(js|jsx|ts|tsx)'
   ],
-  "addons": [
-    "@storybook/addon-links",
-    "@storybook/addon-essentials",
-    "@storybook/addon-a11y",
-    "storybook-dark-mode",
-    "@storybook/addon-actions"
+
+  addons: [
+    getAbsolutePath("@storybook/addon-links"),
+    getAbsolutePath("@storybook/addon-essentials"),
+    getAbsolutePath("@storybook/addon-a11y"),
+    getAbsolutePath("storybook-dark-mode"),
+    getAbsolutePath("@storybook/addon-actions"),
+    getAbsolutePath("@storybook/addon-mdx-gfm"),
+    '@storybook/addon-webpack5-compiler-babel'
   ],
+
   features: {
     buildStoriesJson: true, // 👈 Enable this to build the stories.json file
+  },
+
+  core: {
+    disableTelemetry: true,
   },
 
   staticDirs: [
@@ -103,4 +117,12 @@ module.exports = {
 
     return config;
   },
+
+  docs: {
+    autodocs: true
+  }
+}
+
+function getAbsolutePath(value) {
+  return dirname(require.resolve(join(value, "package.json")));
 }

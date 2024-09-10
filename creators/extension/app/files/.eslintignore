@@ -1,0 +1,16 @@
+assets/fonts
+coverage
+.nyc_output
+node_modules/
+.npm
+.eslintcache
+.env
+.cache
+.next
+dist
+dist-pkg
+.DS_Store
+dynamic-importer.js
+ksconfig.json
+shell/utils/dynamic-importer.js
+shell/assets/fonts

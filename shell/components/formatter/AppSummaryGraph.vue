@@ -85,7 +85,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     v-if="show"
     class="text-center hand"
     placement="top"
@@ -105,15 +105,15 @@ export default {
     </router-link>
     <span v-else>{{ displayLabel }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"
       >
         <tbody>
           <tr
-            v-for="obj in stateParts"
-            :key="obj.key"
+            v-for="(obj, i) in stateParts"
+            :key="i"
           >
             <td
               class="text-left pr-20"
@@ -128,7 +128,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
   <div
     v-else
     class="text-center text-muted"

@@ -14,40 +14,7 @@ export function generateFakeNodeSchema(mgmtClusterId:string):any {
       'PUT',
       'PATCH'
     ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
+    collectionMethods: [
       'GET',
       'POST'
     ],
@@ -150,9 +117,6 @@ export function generateFakeNodeSchema(mgmtClusterId:string):any {
       ],
       version: 'v1'
     },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
   };
 }
 
@@ -172,40 +136,8 @@ export function generateFakeCountSchema(mgmtClusterId:string):any {
       'PUT',
       'PATCH'
     ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
+    resourceFields:    null,
+    collectionMethods: [
       'GET',
       'POST'
     ],
@@ -308,9 +240,6 @@ export function generateFakeCountSchema(mgmtClusterId:string):any {
       ],
       version: 'v1'
     },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
   };
 }
 
@@ -330,40 +259,8 @@ export function generateFakeNamespaceSchema(mgmtClusterId:string):any {
       'PUT',
       'PATCH'
     ],
-    _resourceFields: {
-      apiVersion: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-      },
-      kind: {
-        type:        'string',
-        create:      true,
-        update:      true,
-        description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-      },
-      metadata: {
-        type:        'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
-        create:      true,
-        update:      true,
-        description: "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata"
-      },
-      spec: {
-        type:        'io.k8s.api.core.v1.NodeSpec',
-        create:      true,
-        update:      true,
-        description: 'Spec defines the behavior of a node. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      },
-      status: {
-        type:        'io.k8s.api.core.v1.NodeStatus',
-        create:      true,
-        update:      true,
-        description: 'Most recently observed status of the node. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-      }
-    },
-    requiresResourceFields: false,
-    collectionMethods:      [
+    resourceFields:    null,
+    collectionMethods: [
       'GET',
       'POST'
     ],
@@ -466,9 +363,6 @@ export function generateFakeNamespaceSchema(mgmtClusterId:string):any {
       ],
       version: 'v1'
     },
-    _id:    'node',
-    _group: '',
-    store:  'cluster'
   };
 }
 

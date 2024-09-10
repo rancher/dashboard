@@ -26,8 +26,8 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'quobyte', this.value.spec.quobyte || {});
-    this.$set(this.value.spec.quobyte, 'readOnly', this.value.spec.quobyte.readOnly || false);
+    this.value.spec['quobyte'] = this.value.spec.quobyte || {};
+    this.value.spec.quobyte['readOnly'] = this.value.spec.quobyte.readOnly || false;
 
     return { readOnlyOptions };
   },
@@ -39,7 +39,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.quobyte.volume"
+          v-model:value="value.spec.quobyte.volume"
           :mode="mode"
           :label="t('persistentVolume.quobyte.volume.label')"
           :placeholder="t('persistentVolume.quobyte.volume.placeholder')"
@@ -47,7 +47,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.quobyte.user"
+          v-model:value="value.spec.quobyte.user"
           :mode="mode"
           :label="t('persistentVolume.quobyte.user.label')"
           :placeholder="t('persistentVolume.quobyte.user.placeholder')"
@@ -57,7 +57,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.quobyte.group"
+          v-model:value="value.spec.quobyte.group"
           :mode="mode"
           :label="t('persistentVolume.quobyte.group.label')"
           :placeholder="t('persistentVolume.quobyte.group.placeholder')"
@@ -65,7 +65,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.quobyte.registry"
+          v-model:value="value.spec.quobyte.registry"
           :mode="mode"
           :label="t('persistentVolume.quobyte.registry.label')"
           :placeholder="t('persistentVolume.quobyte.registry.placeholder')"
@@ -75,7 +75,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.quobyte.readOnly"
+          v-model:value="value.spec.quobyte.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

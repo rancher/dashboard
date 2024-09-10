@@ -26,9 +26,9 @@ export default {
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'namespaceDefaultResourceQuota', this.value.spec.namespaceDefaultResourceQuota || { limit: {} });
-    this.$set(this.value.spec, 'resourceQuota', this.value.spec.resourceQuota || { limit: {} });
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['namespaceDefaultResourceQuota'] = this.value.spec.namespaceDefaultResourceQuota || { limit: {} };
+    this.value.spec['resourceQuota'] = this.value.spec.resourceQuota || { limit: {} };
 
     return { typeValues: Object.keys(this.value.spec.resourceQuota.limit) };
   },
@@ -37,7 +37,7 @@ export default {
 
   methods: {
     updateType(i, type) {
-      this.$set(this.typeValues, i, type);
+      this.typeValues[i] = type;
     },
     remainingTypes(currentType) {
       return this.mappedTypes
@@ -63,7 +63,7 @@ export default {
       </div>
     </div>
     <ArrayList
-      v-model="typeValues"
+      v-model:value="typeValues"
       label="Resources"
       :add-label="t('resourceQuota.add.label')"
       :default-add-value="remainingTypes()[0] ? remainingTypes()[0].value : ''"
@@ -73,10 +73,11 @@ export default {
     >
       <template #columns="props">
         <Row
-          v-model="value"
+          :value="value"
           :mode="mode"
           :types="remainingTypes(typeValues[props.i])"
           :type="typeValues[props.i]"
+          @input="$emit('input', $event)"
           @type-change="updateType(props.i, $event)"
         />
       </template>

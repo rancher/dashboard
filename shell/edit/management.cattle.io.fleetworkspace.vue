@@ -18,9 +18,9 @@ import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 
 export default {
-  name: 'FleetCruWorkspace',
-
-  components: {
+  name:         'FleetCruWorkspace',
+  inheritAttrs: false,
+  components:   {
     CruResource,
     Labels,
     Loading,
@@ -57,7 +57,7 @@ export default {
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
+    this.value['spec'] = this.value.spec || {};
 
     return {
       fleetClusters:            null,
@@ -172,9 +172,10 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="false"
+      @update:value="$emit('input', $event)"
     />
 
     <Tabbed
@@ -199,8 +200,9 @@ export default {
         label-key="generic.labelsAndAnnotations"
       >
         <Labels
-          v-model="value"
+          :value="value"
           :mode="mode"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -227,7 +229,7 @@ export default {
 
         <ArrayList
           key="labels"
-          v-model="allowedTargetNamespaces"
+          v-model:value="allowedTargetNamespaces"
           :add-label="t('fleet.restrictions.addLabel')"
           :mode="mode"
           :title="t('fleet.restrictions.addTitle')"

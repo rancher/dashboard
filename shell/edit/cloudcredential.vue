@@ -152,13 +152,17 @@ export default {
       }
 
       for ( const id of types ) {
-        let bannerImage, bannerAbbrv;
+        let bannerAbbrv;
 
-        try {
-          bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
-        } catch (e) {
-          bannerImage = null;
-          bannerAbbrv = this.initialDisplayFor(id);
+        let bannerImage = this.$store.app.$plugin.getDynamic('image', `providers/${ id }.svg`);
+
+        if (!bannerImage) {
+          try {
+            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+          } catch (e) {
+            bannerImage = null;
+            bannerAbbrv = this.initialDisplayFor(id);
+          }
         }
 
         out.push({
@@ -241,7 +245,7 @@ export default {
         set(this.value, `${ field }credentialConfig`, {});
       }
 
-      this.$set(this.value, '_type', type);
+      this.value['_type'] = type;
       this.$emit('set-subtype', this.typeDisplay(type, driver));
     },
 
@@ -276,7 +280,7 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :name-editable="true"
         name-key="_name"
         description-key="description"
@@ -284,6 +288,7 @@ export default {
         name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
+        @update:value="$emit('input', $event)"
         @change="handleNameRequiredValidation"
       />
       <keep-alive>

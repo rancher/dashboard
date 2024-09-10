@@ -26,8 +26,8 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'glusterfs', this.value.spec.glusterfs || {});
-    this.$set(this.value.spec.glusterfs, 'readOnly', this.value.spec.glusterfs.readOnly || false);
+    this.value.spec['glusterfs'] = this.value.spec.glusterfs || {};
+    this.value.spec.glusterfs['readOnly'] = this.value.spec.glusterfs.readOnly || false;
 
     return { readOnlyOptions };
   },
@@ -39,7 +39,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.glusterfs.endpoints"
+          v-model:value="value.spec.glusterfs.endpoints"
           :mode="mode"
           :label="t('persistentVolume.glusterfs.endpoints.label')"
           :placeholder="t('persistentVolume.glusterfs.endpoints.placeholder')"
@@ -47,7 +47,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.glusterfs.path"
+          v-model:value="value.spec.glusterfs.path"
           :mode="mode"
           :label="t('persistentVolume.glusterfs.path.label')"
           :placeholder="t('persistentVolume.glusterfs.path.placeholder')"
@@ -57,7 +57,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.glusterfs.readOnly"
+          v-model:value="value.spec.glusterfs.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

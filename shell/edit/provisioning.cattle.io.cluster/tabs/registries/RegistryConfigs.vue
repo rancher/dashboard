@@ -1,12 +1,12 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { set } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -55,7 +55,7 @@ export default {
       if (configMap[hostname]) {
         configMap[hostname].insecureSkipVerify = configMap[hostname].insecureSkipVerify ?? defaultAddValue.insecureSkipVerify;
         configMap[hostname].authConfigSecretName = configMap[hostname].authConfigSecretName ?? defaultAddValue.authConfigSecretName;
-        configMap[hostname].caBundle = configMap[hostname].caBundle ?? defaultAddValue.caBundle;
+        configMap[hostname].caBundle = base64Decode(configMap[hostname].caBundle ?? defaultAddValue.caBundle);
         configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? defaultAddValue.tlsSecretName;
       }
       entries.push({
@@ -94,11 +94,15 @@ export default {
           continue;
         }
 
-        configs[h] = { ...entry };
+        configs[h] = {
+          ...entry,
+          caBundle: base64Encode(entry.caBundle)
+        };
+
         delete configs[h].hostname;
       }
 
-      set(this.value, 'spec.rkeConfig.registries.configs', configs);
+      this.value.spec.rkeConfig.registries.configs = configs;
       this.$emit('updateConfigs', configs);
     },
 
@@ -131,27 +135,26 @@ export default {
       {{ t('registryConfig.description') }}
     </p>
     <ArrayListGrouped
-      v-model="entries"
+      v-model:value="entries"
       :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
       :initial-empty-row="true"
       :mode="mode"
       data-testid="registry-authentication"
-      @input="update"
+      @update:value="update"
     >
       <template #default="{row, i}">
         <div class="row">
           <div class="col span-6">
             <LabeledInput
-              v-model="row.value.hostname"
+              v-model:value="row.value.hostname"
               label="Registry Hostname"
               :mode="mode"
               :data-testid="`registry-auth-host-input-${i}`"
             />
 
             <SelectOrCreateAuthSecret
-              :key="`${row.value.hostname}-${row.value.authConfigSecretName}`"
-              v-model="row.value.authConfigSecretName"
+              v-model:value="row.value.authConfigSecretName"
               :register-before-hook="wrapRegisterBeforeHook"
               :append-unique-id-to-hook="true"
               in-store="management"
@@ -162,11 +165,12 @@ export default {
               :mode="mode"
               generate-name="registryconfig-auth-"
               :data-testid="`registry-auth-select-or-create-${i}`"
+              :cache-secrets="true"
             />
           </div>
           <div class="col span-6">
             <SecretSelector
-              v-model="row.value.tlsSecretName"
+              v-model:value="row.value.tlsSecretName"
               in-store="management"
               :mode="mode"
               :types="[TLS]"
@@ -175,7 +179,8 @@ export default {
             />
 
             <LabeledInput
-              v-model="row.value.caBundle"
+              v-model:value="row.value.caBundle"
+              :data-testid="`registry-caBundle-${i}`"
               class="mt-20"
               type="multiline"
               label="CA Cert Bundle"
@@ -184,7 +189,7 @@ export default {
 
             <div>
               <Checkbox
-                v-model="row.value.insecureSkipVerify"
+                v-model:value="row.value.insecureSkipVerify"
                 class="mt-10"
                 :mode="mode"
                 label="Skip TLS Verifications"

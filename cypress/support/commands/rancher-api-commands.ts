@@ -1,5 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { CreateUserParams } from '@/cypress/globals';
+import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
+import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -235,9 +236,9 @@ Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
 });
 
 /**
- * create a namespace
+ * create a namespace in project
  */
-Cypress.Commands.add('createNamespace', (nsName, projId) => {
+Cypress.Commands.add('createNamespaceInProject', (nsName, projId) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/v1/namespaces`,
@@ -267,9 +268,34 @@ Cypress.Commands.add('createNamespace', (nsName, projId) => {
 });
 
 /**
+ * create a namespace
+ */
+Cypress.Commands.add('createNamespace', (nsName) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'namespace',
+      metadata: {
+        annotations: { 'field.cattle.io/containerDefaultResourceLimit': '{}' },
+        name:        nsName
+      },
+      disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
  * Create pod
  */
-Cypress.Commands.add('createPod', (nsName, podName, image) => {
+Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/v1/pods`,
@@ -277,6 +303,7 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
+    failOnStatusCode,
     body: {
       type:     'pod',
       metadata: {
@@ -295,7 +322,9 @@ Cypress.Commands.add('createPod', (nsName, podName, image) => {
     }
   })
     .then((resp) => {
-      expect(resp.status).to.eq(201);
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
     });
 });
 
@@ -459,6 +488,34 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     });
 });
 
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal) => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+  let retries = 20;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+    })
+      .then((resp) => {
+        if (resp.body.count === expectedResourcesTotal) return resp;
+        else {
+          retries = retries - 1;
+          if (retries === 0) return resp;
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(3000);
+          retry();
+        }
+      });
+  };
+
+  return retry();
+});
+
 /**
  * delete a node template
  */
@@ -471,5 +528,384 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000) => 
     } else {
       expect(resp.status).to.be.oneOf([200, 204]);
     }
+  });
+});
+
+/**
+ * Create RKE2 cluster with Amazon EC2 cloud provider
+ */
+Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
+  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+
+  return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
+    .then((resp: Cypress.Response<any>) => {
+      const cloudCredentialId = resp.body.id;
+
+      return cy.createAmazonMachineConfig(
+        machineConfig.instanceType, machineConfig.region, machineConfig.vpcId, machineConfig.zone, machineConfig.type, machineConfig.clusterName, machineConfig.namespace)
+        .then((resp: Cypress.Response<any>) => {
+          const machineConfigId = resp.body.id.split('/');
+
+          return cy.request({
+            method:           'POST',
+            url:              `${ Cypress.env('api') }/v1/provisioning.cattle.io.clusters`,
+            failOnStatusCode: true,
+            headers:          {
+              'x-api-csrf': token.value,
+              Accept:       'application/json'
+            },
+            body: {
+              type:     'provisioning.cattle.io.cluster',
+              metadata: {
+                namespace:   rke2ClusterAmazon.namespace,
+                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
+                name:        rke2ClusterAmazon.clusterName
+              },
+              spec: {
+                rkeConfig: {
+                  chartValues:     { 'rke2-calico': {} },
+                  upgradeStrategy: {
+                    controlPlaneConcurrency:  '1',
+                    controlPlaneDrainOptions: {
+                      deleteEmptyDirData:              true,
+                      disableEviction:                 false,
+                      enabled:                         false,
+                      force:                           false,
+                      gracePeriod:                     -1,
+                      ignoreDaemonSets:                true,
+                      skipWaitForDeleteTimeoutSeconds: 0,
+                      timeout:                         120
+                    },
+                    workerConcurrency:  '1',
+                    workerDrainOptions: {
+                      deleteEmptyDirData:              true,
+                      disableEviction:                 false,
+                      enabled:                         false,
+                      force:                           false,
+                      gracePeriod:                     -1,
+                      ignoreDaemonSets:                true,
+                      skipWaitForDeleteTimeoutSeconds: 0,
+                      timeout:                         120
+                    }
+                  },
+                  dataDirectories: {
+                    systemAgent:  '',
+                    provisioning: '',
+                    k8sDistro:    ''
+                  },
+                  machineGlobalConfig: {
+                    cni:                   'calico',
+                    'disable-kube-proxy':  false,
+                    'etcd-expose-metrics': false
+                  },
+                  machineSelectorConfig: [
+                    { config: { 'protect-kernel-defaults': false } }
+                  ],
+                  etcd: {
+                    disableSnapshots:     false,
+                    s3:                   null,
+                    snapshotRetention:    5,
+                    snapshotScheduleCron: '0 */5 * * *'
+                  },
+                  registries: {
+                    configs: {},
+                    mirrors: {}
+                  },
+                  machinePools: [
+                    {
+                      name:                 'pool1',
+                      etcdRole:             true,
+                      controlPlaneRole:     true,
+                      workerRole:           true,
+                      hostnamePrefix:       '',
+                      labels:               {},
+                      quantity:             3,
+                      unhealthyNodeTimeout: '0m',
+                      machineConfigRef:     {
+                        kind: 'Amazonec2Config',
+                        name: machineConfigId[1]
+                      },
+                      drainBeforeDelete: true
+                    }
+                  ]
+                },
+                machineSelectorConfig: [
+                  { config: {} }
+                ],
+                kubernetesVersion:                                    'v1.29.4+rke2r1',
+                defaultPodSecurityAdmissionConfigurationTemplateName: '',
+                cloudCredentialSecretName:                            cloudCredentialId,
+                localClusterAuthEndpoint:                             {
+                  enabled: false,
+                  caCerts: '',
+                  fqdn:    ''
+                }
+              }
+            }
+          })
+            .then((resp: Cypress.Response<any>) => {
+              expect(resp.status).to.eq(201);
+            });
+        });
+    });
+});
+
+/**
+ * Create RKE2 cluster with Amazon EC2 cloud provider without machine config
+ */
+Cypress.Commands.add('createAmazonRke2ClusterWithoutMachineConfig', (params: CreateAmazonRke2ClusterWithoutMachineConfigParams) => {
+  const { rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+
+  return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
+    .then((resp: Cypress.Response<any>) => {
+      const cloudCredentialId = resp.body.id;
+
+      return cy.request({
+        method:           'POST',
+        url:              `${ Cypress.env('api') }/v1/provisioning.cattle.io.clusters`,
+        failOnStatusCode: true,
+        headers:          {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        body: {
+          type:     'provisioning.cattle.io.cluster',
+          metadata: {
+            namespace:   rke2ClusterAmazon.namespace,
+            annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
+            name:        rke2ClusterAmazon.clusterName
+          },
+          spec: {
+            rkeConfig: {
+              chartValues:     { 'rke2-calico': {} },
+              upgradeStrategy: {
+                controlPlaneConcurrency:  '1',
+                controlPlaneDrainOptions: {
+                  deleteEmptyDirData:              true,
+                  disableEviction:                 false,
+                  enabled:                         false,
+                  force:                           false,
+                  gracePeriod:                     -1,
+                  ignoreDaemonSets:                true,
+                  skipWaitForDeleteTimeoutSeconds: 0,
+                  timeout:                         120
+                },
+                workerConcurrency:  '1',
+                workerDrainOptions: {
+                  deleteEmptyDirData:              true,
+                  disableEviction:                 false,
+                  enabled:                         false,
+                  force:                           false,
+                  gracePeriod:                     -1,
+                  ignoreDaemonSets:                true,
+                  skipWaitForDeleteTimeoutSeconds: 0,
+                  timeout:                         120
+                }
+              },
+              dataDirectories: {
+                systemAgent:  '',
+                provisioning: '',
+                k8sDistro:    ''
+              },
+              machineGlobalConfig: {
+                cni:                   'calico',
+                'disable-kube-proxy':  false,
+                'etcd-expose-metrics': false
+              },
+              machineSelectorConfig: [
+                { config: { 'protect-kernel-defaults': false } }
+              ],
+              etcd: {
+                disableSnapshots:     false,
+                s3:                   null,
+                snapshotRetention:    5,
+                snapshotScheduleCron: '0 */5 * * *'
+              },
+              registries: {
+                configs: {},
+                mirrors: {}
+              },
+              machinePools: [
+                {
+                  name:                 'pool1',
+                  etcdRole:             true,
+                  controlPlaneRole:     true,
+                  workerRole:           true,
+                  hostnamePrefix:       '',
+                  labels:               {},
+                  quantity:             3,
+                  unhealthyNodeTimeout: '0m',
+                  machineConfigRef:     {},
+                  drainBeforeDelete:    true
+                }
+              ]
+            },
+            machineSelectorConfig: [
+              { config: {} }
+            ],
+            kubernetesVersion:                                    'v1.29.4+rke2r1',
+            defaultPodSecurityAdmissionConfigurationTemplateName: '',
+            cloudCredentialSecretName:                            cloudCredentialId,
+            localClusterAuthEndpoint:                             {
+              enabled: false,
+              caCerts: '',
+              fqdn:    ''
+            }
+          }
+        }
+      })
+        .then((resp: Cypress.Response<any>) => {
+          expect(resp.status).to.eq(201);
+        });
+    });
+});
+
+/**
+ * Create Amazon Machine config
+ */
+Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, zone, type, clusterName, namespace) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/rke-machine-config.cattle.io.amazonec2configs/${ namespace }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      instanceType,
+      metadata: {
+        annotations: {}, generateName: `nc-${ clusterName }-pool1-`, labels: {}, namespace
+      },
+      region,
+      securityGroup:         ['rancher-nodes'],
+      securityGroupReadonly: false,
+      subnetId:              null,
+      vpcId,
+      zone,
+      type
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+// update resource list view preference
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.data[0].id.trim();
+
+    cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, clusterName, groupBy, namespaceFilter));
+  });
+});
+
+/**
+ * Create token (API Keys)
+ */
+Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnStatusCode = true, clusterId?: string) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/tokens`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:     'token',
+      metadata: {},
+      description,
+      clusterId,
+      ttl
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+    });
+});
+
+/**
+ * Create global role
+ */
+Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/globalroles`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:  'globalRole',
+      name,
+      rules: [{
+        apiGroups,
+        resourceNames,
+        resources,
+        verbs
+      }],
+      newUserDefault
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+    });
+});
+
+/**
+* Create fleet workspace
+*/
+Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:        'fleetworkspace',
+      name,
+      annotations: { 'field.cattle.io/description': description },
+      labels:      {}
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+    });
+});
+
+/**
+ * Fetch the steve `revision` / timestamp of request
+ */
+Cypress.Commands.add('fetchRevision', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, 200)
+    .then((res) => {
+      return res.body.revision;
+    });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.data[0].id.trim();
+
+    cy.setRancherResource('v1', `userpreferences`, userId, {
+      id:   `${ userId }`,
+      type: 'userpreference',
+      data: {
+        cluster:         clusterName,
+        'per-page':      `${ rows }`,
+        'group-by':      groupBy,
+        'ns-by-cluster': namespaceFilter
+      }
+    });
   });
 });

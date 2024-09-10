@@ -1,12 +1,14 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { EKSConfig, AWS } from '../types';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
+
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
@@ -22,7 +24,8 @@ export default defineComponent({
     RadioGroup,
     KeyValue,
     Checkbox,
-    LabeledInput
+    LabeledInput,
+    Banner
   },
 
   props: {
@@ -30,6 +33,7 @@ export default defineComponent({
       type:    String,
       default: _EDIT
     },
+
     isNewOrUnprovisioned: {
       type:    Boolean,
       default: true
@@ -39,6 +43,7 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+
     eksRoles: {
       type:    Array,
       default: () => []
@@ -48,26 +53,37 @@ export default defineComponent({
       type:    Object,
       default: () => {}
     },
+
     kmsKey: {
       type:    String,
       default: ''
     },
+
+    secretsEncryption: {
+      type:    Boolean,
+      default: false
+    },
+
     serviceRole: {
       type:    String,
       default: ''
     },
+
     kubernetesVersion: {
       type:    String,
       default: ''
     },
+
     enableNetworkPolicy: {
       type:    Boolean,
       default: false
     },
+
     ebsCSIDriver: {
       type:    Boolean,
       default: false
     },
+
     config: {
       type:     Object as PropType<EKSConfig>,
       required: true
@@ -90,7 +106,6 @@ export default defineComponent({
       canReadKms:            false,
       supportedVersionRange,
       customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
-      encryptSecrets:        false,
       loadingVersions:       false,
       loadingKms:            false,
       allKubernetesVersions: eksVersions as string[],
@@ -119,7 +134,8 @@ export default defineComponent({
       },
       immediate: true
     },
-    'encryptSecrets'(neu) {
+
+    'secretsEncryption'(neu) {
       if (!neu) {
         this.$emit('update:kmsKey', '');
       }
@@ -134,7 +150,7 @@ export default defineComponent({
     versionOptions: {
       handler(neu) {
         if (neu && neu.length && !this.kubernetesVersion) {
-          this.$emit('update:kubernetesVersion', neu[0]);
+          this.$emit('update:kubernetesVersion', neu[0].value);
         }
       },
       immediate: true
@@ -145,19 +161,46 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    versionOptions(): string[] {
-      return this.allKubernetesVersions.filter((v: string) => {
+    // the control plane k8s version can't be more than one minor version ahead of any node pools
+    // verify that all nodepools are on the same version as the control plane before showing upgrade optiopns
+    canUpgrade(): boolean {
+      if (this.mode === _CREATE) {
+        return true;
+      }
+      const nodeGroups = this.config?.nodeGroups || [];
+
+      const needsUpgrade = nodeGroups.filter((group) => semver.gt(semver.coerce(this.originalVersion), semver.coerce(group.version)) || group._isUpgrading);
+
+      return !needsUpgrade.length;
+    },
+
+    hasUpgradesAvailable() {
+      return this.versionOptions.filter((opt) => !opt.disabled).length > 1;
+    },
+
+    versionOptions(): {value: string, label: string, disabled?:boolean}[] {
+      return this.allKubernetesVersions.reduce((versions, v: string) => {
         const coerced = semver.coerce(v);
 
         if (this.supportedVersionRange && !semver.satisfies(coerced, this.supportedVersionRange)) {
-          return false;
+          return versions;
         }
-        if (this.originalVersion && semver.gt(semver.coerce(this.originalVersion), coerced)) {
-          return false;
+        if (!this.originalVersion) {
+          versions.push({ value: v, label: v });
+        } else if (semver.lte(semver.coerce(this.originalVersion), coerced)) {
+          const withinOneMinor = semver.inc(semver.coerce(this.originalVersion), 'minor');
+
+          if (semver.gt(coerced, withinOneMinor)) {
+            versions.push({
+              value: v, label: `${ v } ${ this.t('eks.version.upgradeWarning') }`, disabled: true
+            });
+          } else {
+            versions.push({ value: v, label: v });
+          }
         }
 
-        return true;
-      }).sort().reverse();
+        return versions;
+      }, [] as {value: string, label: string, disabled?:boolean}[]);
     },
 
     kmsOptions(): string[] {
@@ -227,6 +270,12 @@ export default defineComponent({
 
 <template>
   <div>
+    <Banner
+      v-if="!canUpgrade && hasUpgradesAvailable"
+      color="info"
+      label-key="eks.version.upgradeDisallowed"
+      data-testid="eks-version-upgrade-disallowed-banner"
+    />
     <div
       :style="{'display':'flex',
                'align-items':'center'}"
@@ -242,7 +291,8 @@ export default defineComponent({
           :taggable="true"
           :searchable="true"
           data-testid="eks-version-dropdown"
-          @input="$emit('update:kubernetesVersion', $event)"
+          :disabled="!canUpgrade && hasUpgradesAvailable"
+          @update:value="$emit('update:kubernetesVersion', $event)"
         />
       </div>
       <div class="col span-3">
@@ -251,7 +301,7 @@ export default defineComponent({
           label-key="eks.enableNetworkPolicy.label"
           :value="enableNetworkPolicy"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:enableNetworkPolicy', $event)"
+          @update:value="$emit('update:enableNetworkPolicy', $event)"
         />
       </div>
       <div class="col span-3">
@@ -260,14 +310,14 @@ export default defineComponent({
           label-key="eks.ebsCSIDriver.label"
           :value="ebsCSIDriver"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:ebsCSIDriver', $event)"
+          @update:value="$emit('update:ebsCSIDriver', $event)"
         />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="customServiceRole"
+          v-model:value="customServiceRole"
           :mode="mode"
           :options="serviceRoleOptions"
           name="serviceRoleMode"
@@ -287,7 +337,7 @@ export default defineComponent({
           label-key="eks.serviceRole.label"
           :loading="loadingIam"
           data-testid="eks-service-role-dropdown"
-          @input="$emit('update:serviceRole', $event.RoleName)"
+          @update:value="$emit('update:serviceRole', $event.RoleName)"
         />
       </div>
     </div>
@@ -295,16 +345,17 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="encryptSecrets"
+          :value="secretsEncryption"
           :disabled="mode!=='create'"
           :mode="mode"
           label-key="eks.encryptSecrets.label"
-          data-testid="eks-encrypt-secrets-checkbox"
+          data-testid="eks-secrets-encryption-checkbox"
+          @update:value="$emit('update:secretsEncryption', $event)"
         />
       </div>
     </div>
     <div
-      v-if="encryptSecrets"
+      v-if="secretsEncryption"
       class="row mb-10"
     >
       <div
@@ -319,7 +370,7 @@ export default defineComponent({
           :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
           data-testid="eks-kms-dropdown"
           :disabled="mode!=='create'"
-          @input="$emit('update:kmsKey', $event)"
+          @update:value="$emit('update:kmsKey', $event)"
         />
         <template v-else>
           <LabeledInput
@@ -329,7 +380,7 @@ export default defineComponent({
             :tooltip="t('cluster.machineConfig.amazonEc2.kmsKey.text')"
             data-testid="eks-kms-input"
             :disabled="mode!=='create'"
-            @input="$emit('update:kmsKey', $event)"
+            @update:value="$emit('update:kmsKey', $event)"
           />
         </template>
       </div>
@@ -342,7 +393,7 @@ export default defineComponent({
         :title="t('eks.tags.label')"
         :as-map="true"
         :read-allowed="false"
-        @input="$emit('update:tags', $event)"
+        @update:value="$emit('update:tags', $event)"
       >
         <template #title>
           <label class="text-label">{{ t('eks.tags.label') }}</label>

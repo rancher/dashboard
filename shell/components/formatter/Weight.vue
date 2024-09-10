@@ -82,7 +82,7 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     :class="{'hand': canAdjust}"
     placement="top"
     :open-group="row.id"
@@ -110,7 +110,7 @@ export default {
       </div>
     </div>
 
-    <template #popover>
+    <template #popper>
       <div
         v-if="canAdjust"
         class="text-center pb-5"
@@ -143,5 +143,5 @@ export default {
         </form>
       </div>
     </template>
-  </v-popover>
+  </v-dropdown>
 </template>

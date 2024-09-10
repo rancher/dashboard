@@ -125,7 +125,7 @@ export default {
           },
         };
 
-        this.$set(this.value, 'overrideResourceRequirements', cleanUp(out));
+        this.value['overrideResourceRequirements'] = cleanUp(out);
       },
     },
 
@@ -168,18 +168,18 @@ export default {
 
         // Copy the default so that the user can edit it
         // this will cover the pod affinities
-        this.$set(this.value, 'overrideAffinity', parsedDefaultAffinites);
+        this.value['overrideAffinity'] = parsedDefaultAffinites;
 
         // in order not to break the node affinity component, let's go for a slightly different way of handling the logic here
         if (parsedDefaultAffinites.nodeAffinity) {
           this.nodeAffinity = parsedDefaultAffinites.nodeAffinity;
         }
       } else {
-        this.$set(this.value, 'overrideAffinity', {});
+        this.value['overrideAffinity'] = {};
       }
     },
     updateNodeAffinity(val) {
-      this.$set(this.value.overrideAffinity, 'nodeAffinity', val);
+      this.value.overrideAffinity['nodeAffinity'] = val;
     }
   }
 };
@@ -203,7 +203,7 @@ export default {
         label-key="cluster.agentConfig.banners.limits"
       />
       <ContainerResourceLimit
-        v-model="flatResources"
+        v-model:value="flatResources"
         :mode="mode"
         :show-tip="false"
         :handle-gpu-limit="false"
@@ -221,7 +221,7 @@ export default {
         label-key="cluster.agentConfig.banners.tolerations"
       />
       <Tolerations
-        v-model="value.appendTolerations"
+        v-model:value="value.appendTolerations"
         :mode="mode"
         class="mt-10"
       />
@@ -232,13 +232,13 @@ export default {
       class="mt-20"
     >
       <RadioGroup
-        v-model="affinitySetting"
+        v-model:value="affinitySetting"
         name="affinity-override"
         :mode="mode"
         :options="affinityOptions"
         class="mt-10"
         data-testid="affinity-options"
-        @input="affinitySettingChange"
+        @update:value="affinitySettingChange"
       />
 
       <Banner
@@ -255,7 +255,7 @@ export default {
 
       <PodAffinity
         v-if="canEditAffinity"
-        v-model="value"
+        :value="value"
         field="overrideAffinity"
         :mode="mode"
         class="mt-0 mb-20"
@@ -263,6 +263,7 @@ export default {
         :force-input-namespace-selection="true"
         :remove-labeled-input-namespace-label="true"
         data-testid="pod-affinity"
+        @update:value="$emit('input', $event)"
       />
 
       <div
@@ -278,12 +279,12 @@ export default {
 
       <NodeAffinity
         v-if="canEditAffinity"
-        v-model="nodeAffinity"
+        v-model:value="nodeAffinity"
         :matching-selector-display="true"
         :mode="mode"
         class="mt-0"
         data-testid="node-affinity"
-        @input="updateNodeAffinity"
+        @update:value="updateNodeAffinity"
       />
     </GroupPanel>
   </div>

@@ -10,6 +10,8 @@ export default {
 
   components: { Favorite, TabTitle },
 
+  emits: ['selected'],
+
   props: {
     type: {
       type:     Object,
@@ -64,7 +66,7 @@ export default {
     selectType() {
       // Prevent issues if custom NavLink is used #5047
       if (this.type?.route) {
-        const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
+        const typePath = this.$router.resolve(this.type.route)?.fullPath;
 
         if (typePath !== this.$route.fullPath) {
           this.$emit('selected');
@@ -82,8 +84,6 @@ export default {
     v-slot="{ href, navigate, isActive, isExactActive }"
     custom
     :to="type.route"
-    :exact="type.exact"
-    :exact-path="type['exact-path']"
   >
     <li
       class="child nav-type"
@@ -99,7 +99,7 @@ export default {
       </TabTitle>
       <a
         :href="href"
-        @click="selectType"
+        @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"
       >
@@ -171,13 +171,13 @@ export default {
         padding-left: 3px;
       }
 
-      ::v-deep .highlight {
+      :deep() .highlight {
         background: var(--diff-ins-bg);
         color: var(--body-text);
         padding: 2px;
       }
 
-      ::v-deep .icon {
+      :deep() .icon {
         position: relative;
         color: var(--muted);
       }
@@ -202,7 +202,7 @@ export default {
         background: var(--nav-hover);
         text-decoration: none;
 
-        ::v-deep .icon {
+        :deep() .icon {
           color: var(--body-text);
         }
       }
@@ -229,7 +229,7 @@ export default {
         padding-left: 16px;
       }
 
-      ::v-deep .label I {
+      :deep() .label I {
         padding-right: 2px;
       }
     }

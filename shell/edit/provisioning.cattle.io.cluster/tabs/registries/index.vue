@@ -80,7 +80,7 @@ export default {
         class="mb-20"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
-        @input="$emit('custom-registry-changed', $event)"
+        @update:value="$emit('custom-registry-changed', $event)"
       />
     </div>
     <div
@@ -94,10 +94,10 @@ export default {
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"
           data-testid="registry-host-input"
-          @input="$emit('registry-host-changed', $event)"
+          @update:value="$emit('registry-host-changed', $event)"
         />
         <SelectOrCreateAuthSecret
-          v-model="registrySecret"
+          :value="registrySecret"
           :register-before-hook="registerBeforeHook"
           :hook-priority="1"
           :mode="mode"
@@ -107,7 +107,8 @@ export default {
           :vertical="true"
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
-          @input="$emit('registry-secret-changed', $event)"
+          :cache-secrets="true"
+          @update:value="$emit('registry-secret-changed', $event)"
         />
       </div>
     </div>
@@ -129,15 +130,17 @@ export default {
             :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
           />
           <RegistryMirrors
-            v-model="value"
+            :value="value"
             class="mt-20"
             :mode="mode"
+            @update:value="$emit('input', $event)"
           />
           <RegistryConfigs
-            v-model="value"
+            :value="value"
             class="mt-20"
             :mode="mode"
             :cluster-register-before-hook="registerBeforeHook"
+            @update:value="$emit('input', $event)"
             @updateConfigs="$emit('update-configs-changed', $event)"
           />
         </AdvancedSection>

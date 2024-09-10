@@ -73,7 +73,7 @@ export default {
     const pvc = await this.$store.dispatch('cluster/create', data);
 
     pvc.applyDefaults();
-    this.$set(this.value, '__newPvc', pvc);
+    this.value['__newPvc'] = pvc;
   },
 
   computed: {
@@ -112,7 +112,7 @@ export default {
       >
         <PersistentVolumeClaim
           v-if="value.__newPvc"
-          v-model="value.__newPvc"
+          v-model:value="value.__newPvc"
           :mode="mode"
           :register-before-hook="registerBeforeHook"
           :save-pvc-hook-name="savePvcHookName"
@@ -122,7 +122,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -131,7 +131,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-if="!createNew"
-            v-model="value.persistentVolumeClaim.claimName"
+            v-model:value="value.persistentVolumeClaim.claimName"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.subtypes.persistentVolumeClaim')"
@@ -142,7 +142,7 @@ export default {
       </div>
       <div class="row">
         <Checkbox
-          v-model="value.persistentVolumeClaim.readOnly"
+          v-model:value="value.persistentVolumeClaim.readOnly"
           :mode="mode"
           :label="t('workload.storage.readOnly')"
         />

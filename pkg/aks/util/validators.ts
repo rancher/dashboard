@@ -4,8 +4,8 @@
  * Due to current limitations of the fv mixin
  */
 
-import { get } from '@shell/utils/object';
-import { LoadBalancerSku, OutboundType } from '@pkg/aks/types';
+import { get, set } from '@shell/utils/object';
+import { LoadBalancerSku, OutboundType, AKSNodePool } from '../types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 export const needsValidation = (ctx: any): Boolean => {
@@ -133,8 +133,47 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
   return () :string | undefined => {
     const toValidate = (get(ctx.normanCluster, clusterPath) || '').toLowerCase();
     const subscriptionRegex = /^\/subscriptions\/.+\/resourcegroups\/.+\/providers\/microsoft\.network\/privatednszones\/([a-zA-Z0-9-]{1,32}\.){0,32}private(link){0,1}\.[a-zA-Z0-9]+\.azmk8s\.io$/;
-    const isValid = toValidate.match(subscriptionRegex);
+    const isValid = toValidate.match(subscriptionRegex) || toValidate === 'system';
 
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.privateDnsZone', {}, true);
+  };
+};
+
+export const nodePoolNames = (ctx: any) => {
+  return (poolName:string) :string | undefined => {
+    let allAvailable = true;
+
+    const isValid = (name:string) => name.match(/^[a-z]+[a-z0-9]*$/) && name.length <= 12;
+
+    if (poolName || poolName === '') {
+      return isValid(poolName) ? undefined : ctx.t('aks.errors.poolName');
+    } else {
+      ctx.nodePools.forEach((pool: AKSNodePool) => {
+        const name = pool.name || '';
+
+        if (!isValid(name)) {
+          set(pool._validation, '_validName', false);
+
+          allAvailable = false;
+        } else {
+          set(pool._validation, '_validName', true);
+        }
+      });
+      if (!allAvailable) {
+        return ctx.t('aks.errors.poolName');
+      }
+    }
+  };
+};
+
+export const nodePoolNamesUnique = (ctx: any) => {
+  return () :string | undefined => {
+    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+
+    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+
+    if (hasDuplicates) {
+      return ctx.t('aks.errors.poolNamesUnique');
+    }
   };
 };

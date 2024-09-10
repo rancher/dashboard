@@ -6,18 +6,53 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
     describe('Add', () => {
-      before(() => {
+      const appRepoList = new ReposListPagePo('local', 'apps');
+
+      beforeEach(() => {
         cy.login();
 
-        const appRepoList = new ReposListPagePo('local', 'apps');
-
         appRepoList.goTo();
-        appRepoList.waitForPage();
+        appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+
+        cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
+      });
+
+      describe('Contained', () => {
+        const reposToDelete = [];
+
+        it('After add Repo list should not contain multiple entries', function() {
+          const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+
+          appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+          appRepoList.sortableTable().rowCount().should('be.lessThan', 10); // catch page size 10...
+          appRepoList.sortableTable().rowCount().then((count) => {
+            // track repo rows
+
+            const initialRowCount = count;
+
+            // create a new cluster repo
+            appRepoList.create();
+            appRepoCreate.waitForPage();
+            appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+              .should('be.visible');
+            appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+            appRepoCreate.create().self().scrollIntoView();
+            appRepoCreate.create().click();
+
+            // test repo rows
+            appRepoList.waitForPage();
+            reposToDelete.push(this.helmRepoDupeName);
+            appRepoList.sortableTable().rowCount().should('eq', initialRowCount + 1);
+          });
+        });
+
+        // Ensure this runs after an attempt, rather than all attemps (`after` only runs once after all cypress retries)
+        afterEach(() => {
+          reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
+        });
       });
 
       it('Should reset input values when switching cluster repo type', () => {
-        const appRepoList = new ReposListPagePo('local', 'apps');
-
         // create a new cluster repo
         appRepoList.create();
 
@@ -111,7 +146,7 @@ describe('Apps', () => {
       const appRepoList = new ReposListPagePo(clusterId, 'apps');
       const chartsPage = new ChartsPage(clusterId);
 
-      before(() => {
+      beforeEach(() => {
         cy.login();
 
         appRepoList.goTo();
@@ -141,7 +176,8 @@ describe('Apps', () => {
         appRepoList.waitForPage();
 
         // Nav back to the summary page for a specific chart
-        cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?*', cy.spy().as('rancherCharts2'));
+        // Note we're intercepting a more precise url here to avoid any icon requests made from the charts list
+        cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?link=info&chartName=rancher-backup&version=*', cy.spy().as('rancherCharts2'));
         ChartPage.navTo(clusterId, 'Rancher Backups');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
         // The specific version of the chart (and any other) should NOT be fetched

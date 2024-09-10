@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { markRaw, reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -34,12 +34,12 @@ function registerType(state, type) {
        * Used to cancel incremental loads if the page changes during load
        */
       loadCounter:   0,
+
+      // Not enumerable so they don't get sent back to the client for SSR
+      map: markRaw(new Map()),
     };
 
-    // Not enumerable so they don't get sent back to the client for SSR
-    Object.defineProperty(cache, 'map', { value: new Map() });
-
-    Vue.set(state.types, type, cache);
+    state.types[type] = cache;
   }
 
   return cache;
@@ -51,7 +51,7 @@ export function replace(existing, data) {
   }
 
   for ( const k of Object.keys(data) ) {
-    Vue.set(existing, k, data[k]);
+    existing[k] = data[k];
   }
 
   return existing;
@@ -98,37 +98,52 @@ export function load(state, {
 
   cache.generation++;
 
-  let entry;
+  let entry = cache.map.get(id);
+  const inMap = !!entry;
 
+  //
+  // Determine the `entry` that should be in the local map and list cache
+  //
   if ( existing && !existing.id ) {
-    // A specific proxy instance to used was passed in (for create -> save),
-    // use it instead of making a new proxy
-    entry = replaceResource(existing, data, getters);
-    addObject(cache.list, entry);
-    cache.map.set(id, entry);
-    // console.log('### Mutation added from existing proxy', type, id);
-  } else {
-    entry = cache.map.get(id);
+    // A specific proxy instance to use was passed in (for create -> save), use it instead of making a new proxy
+    // `existing` is a classified resource created locally that is most probably not in the store (unless a slow connection means it's added by socket before the API responds)
+    // Note - `existing` has no `id` because the resource was created locally and not supplied by Rancher API
 
-    if ( entry ) {
-      // There's already an entry in the store, update it
-      replaceResource(entry, data, getters);
-      // console.log('### Mutation Updated', type, id);
+    // Get the latest and greatest version of the resource
+    const latestEntry = replaceResource(existing, data, getters);
+
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, latestEntry, getters);
+    } else {
+      // There's no entry, using existing proxy
+      entry = latestEntry;
+    }
+  } else {
+    if (inMap) {
+      // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
+      entry = replaceResource(entry, data, getters);
     } else {
       // There's no entry, make a new proxy
       entry = classify(ctx, data);
-      addObject(cache.list, entry);
-      cache.map.set(id, entry);
-      // console.log('### Mutation', type, id);
-
-      // If there is a limit to the number of resources we can store for this type then
-      // remove the first one to keep the list size to that limit
-      if (limit && cache.list.length > limit) {
-        const rm = cache.list.shift();
-
-        cache.map.delete(rm.id);
-      }
     }
+  }
+
+  //
+  // Ensure the `entry` is in both both list and cache
+  // Note - We should be safe assuming the two collections have parity (not in map means not in list)
+  //
+  if (!inMap) {
+    cache.list.push(entry);
+    cache.map.set(id, entry);
+  }
+
+  // If there is a limit to the number of resources we can store for this type then
+  // remove the first one to keep the list size to that limit
+  if (limit && cache.list.length > limit) {
+    const rm = cache.list.shift();
+
+    cache.map.delete(rm.id);
   }
 
   if ( data.baseType ) {
@@ -309,7 +324,7 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map((x) => classify(ctx, x));
+  const proxies = reactive(data.map((x) => classify(ctx, x)));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -439,7 +454,7 @@ export default {
     }
 
     const keyField = ctx.getters.keyFieldForType(type);
-    const proxies = data.map((x) => classify(ctx, x));
+    const proxies = reactive(data.map((x) => classify(ctx, x)));
     const cache = registerType(state, type);
 
     clear(cache.list);

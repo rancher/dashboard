@@ -188,7 +188,7 @@ export default {
 
         const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
 
-        this.$set(this.value, 'spec', podSpec);
+        this.value['spec'] = podSpec;
       }
     }
 
@@ -198,7 +198,7 @@ export default {
       const podSpec = { ...this.value.spec };
       const metadata = { ...this.value.metadata };
 
-      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
+      this.value.spec['template'] = { spec: podSpec, metadata };
     }
 
     const spec = this.value.spec;
@@ -345,9 +345,9 @@ export default {
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set(this.spec.jobTemplate.spec.template, 'spec', neu);
+          this.spec.jobTemplate.spec.template['spec'] = neu;
         } else {
-          this.$set(this.spec.template, 'spec', neu);
+          this.spec.template['spec'] = neu;
         }
       },
     },
@@ -356,23 +356,23 @@ export default {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set(this.spec.jobTemplate, 'metadata', { labels: {} });
+            this.spec.jobTemplate['metadata'] = { labels: {} };
           }
 
           return this.spec.jobTemplate.metadata.labels;
         }
 
         if (!this.spec.template.metadata) {
-          this.$set(this.spec.template, 'metadata', { labels: {} });
+          this.spec.template['metadata'] = { labels: {} };
         }
 
         return this.spec.template.metadata.labels;
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set(this.spec.jobTemplate.metadata, 'labels', neu);
+          this.spec.jobTemplate.metadata['labels'] = neu;
         } else {
-          this.$set(this.spec.template.metadata, 'labels', neu);
+          this.spec.template.metadata['labels'] = neu;
         }
       },
     },
@@ -381,22 +381,22 @@ export default {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set(this.spec.jobTemplate, 'metadata', { annotations: {} });
+            this.spec.jobTemplate['metadata'] = { annotations: {} };
           }
 
           return this.spec.jobTemplate.metadata.annotations;
         }
         if (!this.spec.template.metadata) {
-          this.$set(this.spec.template, 'metadata', { annotations: {} });
+          this.spec.template['metadata'] = { annotations: {} };
         }
 
         return this.spec.template.metadata.annotations;
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set(this.spec.jobTemplate.metadata, 'annotations', neu);
+          this.spec.jobTemplate.metadata['annotations'] = neu;
         } else {
-          this.$set(this.spec.template.metadata, 'annotations', neu);
+          this.spec.template.metadata['annotations'] = neu;
         }
       },
     },
@@ -471,7 +471,7 @@ export default {
           },
         };
 
-        this.$set(this.container, 'resources', cleanUp(out));
+        this.container['resources'] = cleanUp(out);
       },
     },
 
@@ -493,7 +493,7 @@ export default {
     imagePullSecrets: {
       get() {
         if (!this.podTemplateSpec.imagePullSecrets) {
-          this.$set(this.podTemplateSpec, 'imagePullSecrets', []);
+          this.podTemplateSpec['imagePullSecrets'] = [];
         }
 
         const { imagePullSecrets } = this.podTemplateSpec;
@@ -586,23 +586,23 @@ export default {
         restartPolicy = 'Always';
       }
 
-      this.$set(template.spec, 'restartPolicy', restartPolicy);
+      template.spec['restartPolicy'] = restartPolicy;
 
       if (!this.isReplicable) {
         delete this.spec.replicas;
       }
 
       if (old === WORKLOAD_TYPES.CRON_JOB) {
-        this.$set(this.spec, 'template', { ...template });
+        this.spec['template'] = { ...template };
         delete this.spec.jobTemplate;
         delete this.spec.schedule;
       } else if (neu === WORKLOAD_TYPES.CRON_JOB) {
-        this.$set(this.spec, 'jobTemplate', { spec: { template } });
-        this.$set(this.spec, 'schedule', '0 * * * *');
+        this.spec['jobTemplate'] = { spec: { template } };
+        this.spec['schedule'] = '0 * * * *';
         delete this.spec.template;
       }
 
-      this.$set(this.value, 'type', neu);
+      this.value['type'] = neu;
       delete this.value.apiVersion;
     },
   },
@@ -813,7 +813,7 @@ export default {
 
       // delete this.value.kind;
       if (this.container && !this.container.name) {
-        this.$set(this.container, 'name', this.value.metadata.name);
+        this.container['name'] = this.value.metadata.name;
       }
 
       const ports = this.value.containers.reduce((total, each) => {
@@ -1030,29 +1030,29 @@ export default {
       const annotations = this.value?.metadata?.annotations;
 
       if (annotations) {
-        this.$delete(annotations, 'batch.kubernetes.io/job-tracking');
+        delete annotations['batch.kubernetes.io/job-tracking'];
       }
       const labels = this.value?.metadata?.labels;
 
       if (labels) {
-        this.$delete(labels, 'batch.kubernetes.io/controller-uid');
-        this.$delete(labels, 'batch.kubernetes.io/job-name');
-        this.$delete(labels, 'controller-uid');
-        this.$delete(labels, 'job-name');
+        delete labels['batch.kubernetes.io/controller-uid'];
+        delete labels['batch.kubernetes.io/job-name'];
+        delete labels['controller-uid'];
+        delete labels['job-name'];
       }
 
       const matchLabels = this.value?.spec?.selector?.matchLabels;
 
       if (matchLabels) {
-        this.$delete(matchLabels, 'batch.kubernetes.io/controller-uid');
+        delete matchLabels['batch.kubernetes.io/controller-uid'];
       }
       const templateLabels = this.value?.spec?.template?.metadata?.labels;
 
       if (templateLabels) {
-        this.$delete(templateLabels, 'batch.kubernetes.io/controller-uid');
-        this.$delete(templateLabels, 'batch.kubernetes.io/job-name');
-        this.$delete(templateLabels, 'controller-uid');
-        this.$delete(templateLabels, 'job-name');
+        delete templateLabels['batch.kubernetes.io/controller-uid'];
+        delete templateLabels['batch.kubernetes.io/job-name'];
+        delete templateLabels['controller-uid'];
+        delete templateLabels['job-name'];
       }
     }
   },

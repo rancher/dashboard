@@ -34,7 +34,8 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
-import { STEVE_CACHE } from '@shell/store/features';
+import paginationUtils from '@shell/utils/pagination-utils';
+import _ from 'lodash';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -179,7 +180,8 @@ export async function createWorker(store, ctx) {
   while (workerQueues[storeName]?.length) {
     const message = workerQueues[storeName].shift();
 
-    store.$workers[storeName].postMessage(message);
+    // TODO: 11541: Web Worker communication fails due to Proxy objects in messages
+    store.$workers[storeName].postMessage(_.cloneDeep(message));
   }
 }
 
@@ -403,18 +405,15 @@ const sharedActions = {
       return;
     }
 
-    // This is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
+    // isSteveCacheEnabled check is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
     // Steve cache backed api does not return a revision, so `revision` here is always undefined
     // Which means we find a revision within a resource itself and use it in the watch
     // That revision is probably too old and results in a watch error
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    if (typeof revision === 'undefined' && !rootGetters['features/get']?.(STEVE_CACHE)) {
+    if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
       revision = getters.nextResourceVersion(type, id);
     }
-    // if ( typeof revision === 'undefined' ) {
-    //   revision = getters.nextResourceVersion(type, id);
-    // }
 
     const msg = { resourceType: type };
 

@@ -86,7 +86,7 @@ export default {
     }
   },
   data() {
-    const input = (this.value || []).slice();
+    const input = (Array.isArray(this.value) ? this.value : []).slice();
     const rows = [];
 
     for ( const value of input ) {
@@ -192,7 +192,7 @@ export default {
           out.push(value);
         }
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
 
     /**
@@ -271,25 +271,25 @@ export default {
               <TextAreaAutoGrow
                 v-if="valueMultiline"
                 ref="value"
-                v-model="row.value"
+                v-model:value="row.value"
                 :data-testid="`textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:value="queueUpdate"
               />
               <LabeledInput
                 v-else-if="rules.length > 0"
                 ref="value"
-                v-model="row.value"
+                v-model:value="row.value"
                 :data-testid="`labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
                 :compact="false"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:value="queueUpdate"
               />
               <input
                 v-else
@@ -299,7 +299,6 @@ export default {
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
               >
             </slot>
           </div>
@@ -339,7 +338,7 @@ export default {
     </div>
     <div
       v-if="showAdd && !isView"
-      class="footer"
+      class="footer mt-20"
     >
       <slot
         v-if="showAdd"

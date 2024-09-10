@@ -87,7 +87,7 @@ export default {
     }
 
     if (!this.value._type) {
-      this.$set(this.value, '_type', TYPES.OPAQUE);
+      this.value['_type'] = TYPES.OPAQUE;
     }
 
     return {
@@ -158,8 +158,9 @@ export default {
 
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     :mode="mode"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       name="data"

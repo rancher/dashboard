@@ -16,6 +16,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
+import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 
 export default {
   components: {
@@ -59,35 +60,14 @@ export default {
       },
     },
     sideMenuStyle() {
+      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
+
       return {
-        marginBottom: this.globalBannerSettings?.footerFont,
-        marginTop:    this.globalBannerSettings?.headerFont
+        marginBottom: globalBannerSettings?.footerFont,
+        marginTop:    globalBannerSettings?.headerFont
       };
     },
 
-    globalBannerSettings() {
-      const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
-
-      if (bannerSettings) {
-        const parsed = JSON.parse(bannerSettings.value);
-        const {
-          showFooter, showHeader, bannerFooter, bannerHeader, banner
-        } = parsed;
-
-        // add defaults to accomodate older JSON structures for banner definitions without breaking the UI
-        // https://github.com/rancher/dashboard/issues/10140
-        const bannerHeaderFontSize = bannerHeader?.fontSize || banner?.fontSize || '14px';
-        const bannerFooterFontSize = bannerFooter?.fontSize || banner?.fontSize || '14px';
-
-        return {
-          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeaderFontSize) : '0px',
-          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooterFontSize) : '0px'
-        };
-      }
-
-      return undefined;
-    },
     legacyEnabled() {
       return this.features(LEGACY);
     },
@@ -280,6 +260,21 @@ export default {
       return getProductFromRoute(this.$route);
     },
 
+    aboutText() {
+      // If a version number (starts with 'v') then use that
+      if (this.displayVersion.startsWith('v')) {
+        // Don't show the '.0' for a minor release (e.g. 2.8.0, 2.9.0 etc)
+        return !this.displayVersion.endsWith('.0') ? this.displayVersion : this.displayVersion.substr(0, this.displayVersion.length - 2);
+      }
+
+      // Default fallback to 'About'
+      return this.t('about.title');
+    },
+
+    largeAboutText() {
+      return this.aboutText.length > 6;
+    },
+
     appBar() {
       let activeFound = false;
 
@@ -323,24 +318,11 @@ export default {
     document.addEventListener('keyup', this.handler);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
   },
 
   methods: {
-    /**
-     * Converts a pixel value to an em value based on the default font size.
-     * @param {number} elementFontSize - The font size of the element in pixels.
-     * @param {number} [defaultFontSize=14] - The default font size in pixels.
-     * @returns {string} The converted value in em units.
-     */
-    pxToEm(elementFontSize, defaultFontSize = 14) {
-      const lineHeightInPx = 2 * parseInt(elementFontSize);
-      const lineHeightInEm = lineHeightInPx / defaultFontSize;
-
-      return `${ lineHeightInEm }em`;
-    },
-
     checkActiveRoute(obj, isClusterRoute) {
       // for Cluster links in main nav: check if route is a cluster explorer one + check if route cluster matches cluster obj id + check if curr product matches route product
       if (isClusterRoute) {
@@ -579,8 +561,8 @@ export default {
               </a>
             </div>
             <div
-              v-for="a in appBar.hciApps"
-              :key="a.label"
+              v-for="(a, i) in appBar.hciApps"
+              :key="i"
               @click="hide()"
             >
               <router-link
@@ -611,7 +593,7 @@ export default {
               >
                 <div
                   v-for="(c, index) in appBar.pinFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`pinned-ready-cluster-${index}`"
                   @click="hide()"
                 >
@@ -686,7 +668,7 @@ export default {
               <div class="clustersList">
                 <div
                   v-for="(c, index) in appBar.clustersFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
@@ -710,6 +692,7 @@ export default {
                       v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
+                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -791,8 +774,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.multiClusterApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.multiClusterApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -819,8 +802,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.legacyApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.legacyApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -849,8 +832,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.configurationApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.configurationApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -887,12 +870,13 @@ export default {
           </div>
           <div
             class="version"
+            :class="{'version-small': largeAboutText}"
             @click="hide()"
           >
             <router-link
               :to="{ name: 'about' }"
             >
-              {{ t('about.title') }}
+              {{ aboutText }}
             </router-link>
           </div>
         </div>
@@ -920,15 +904,15 @@ export default {
   }
 
   .localeSelector {
-    .popover-inner {
+    .v-popper__inner {
       padding: 10px 0;
     }
 
-    .popover-arrow {
+    .v-popper__arrow-container {
       display: none;
     }
 
-    .popover:focus {
+    .v-popper:focus {
       outline: 0;
     }
   }
@@ -1107,7 +1091,7 @@ export default {
           }
         }
 
-        > i {
+        > i, > img {
           display: block;
           width: 42px;
           font-size: $icon-size;
@@ -1118,9 +1102,6 @@ export default {
         svg {
           margin-right: 16px;
           fill: var(--link);
-        }
-        img {
-          margin-right: 16px;
         }
 
         &.router-link-active, &.active-menu-link {
@@ -1379,14 +1360,19 @@ export default {
       }
 
       .footer {
-        margin: 20px 15px;
+        margin: 20px 10px;
+        width: 50px;
 
         .support {
           display: none;
         }
 
         .version{
-          text-align: left;
+          text-align: center;
+
+          &.version-small {
+            font-size: 12px;
+          }
         }
       }
     }
@@ -1465,15 +1451,15 @@ export default {
   }
 
   .localeSelector {
-    ::v-deep .popover-inner {
+    :deep() .v-popper__inner {
       padding: 50px 0;
     }
 
-    ::v-deep .popover-arrow {
+    :deep() .v-popper__arrow-container {
       display: none;
     }
 
-    ::v-deep .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 

@@ -13,7 +13,7 @@ import {
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 
-import { HCI, CATALOG, UI, SCHEMA } from '@shell/config/types';
+import { HCI, UI, SCHEMA } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TYPE_MODES } from '@shell/store/type-map';
@@ -116,12 +116,6 @@ export default {
     ...mapGetters('type-map', ['activeProducts']),
 
     favoriteTypes: mapPref(FAVORITE_TYPES),
-
-    showClusterTools() {
-      return this.isExplorer &&
-             this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
-             this.$store.getters['cluster/canList'](CATALOG.APP);
-    },
 
     supportLink() {
       const product = this.rootProduct;
@@ -406,10 +400,12 @@ export default {
   <nav class="side-nav">
     <!-- Actual nav -->
     <div class="nav">
-      <template v-for="(g) in groups">
+      <template
+        v-for="(g) in groups"
+        :key="g.name"
+      >
         <Group
           ref="groups"
-          :key="g.name"
           id-prefix=""
           class="package"
           :group="g"
@@ -420,28 +416,6 @@ export default {
         />
       </template>
     </div>
-    <!-- Cluster tools -->
-    <router-link
-      v-if="showClusterTools"
-      v-slot="{ href, navigate }"
-      custom
-      :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}"
-    >
-      <div
-        class="tools"
-        @click="navigate"
-        @keypress.enter="navigate"
-      >
-        <a
-          class="tools-button"
-          :href="href"
-          @click="collapseAll()"
-        >
-          <i class="icon icon-gear" />
-          <span>{{ t('nav.clusterTools') }}</span>
-        </a>
-      </div>
-    </router-link>
     <!-- SideNav footer area (seems to be tied to harvester) -->
     <div
       v-if="showProductFooter"
@@ -464,10 +438,10 @@ export default {
 
       <!-- locale selector -->
       <span v-if="isSingleProduct">
-        <v-popover
-          popover-class="localeSelector"
+        <v-dropdown
+          popperClass="localeSelector"
           placement="top"
-          trigger="click"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"
@@ -476,7 +450,7 @@ export default {
             {{ locale }}
           </a>
 
-          <template slot="popover">
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"
@@ -491,7 +465,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </span>
     </div>
     <!-- SideNav footer alternative -->
@@ -506,7 +480,6 @@ export default {
         {{ displayVersion }}
       </router-link>
       <template v-else>
-        <span>{{ displayVersion }}</span>
         <span
           v-if="isVirtualCluster && isExplorer"
           v-tooltip="{content: harvesterVersion, placement: 'top'}"
@@ -534,7 +507,7 @@ export default {
     overflow-y: auto;
 
     // h6 is used in Group element
-    ::v-deep h6 {
+    :deep() h6 {
       margin: 0;
       letter-spacing: normal;
       line-height: 15px;

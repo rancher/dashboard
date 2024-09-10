@@ -10,3 +10,5 @@ spec:
     version: {{ (semver (default .Chart.AppVersion .Values.plugin.versionOverride)).Original }}
     endpoint: http://{{ include "extension-server.fullname" . }}.{{ .Release.Namespace }}.svc
     noCache: {{ .Values.plugin.noCache }}
+    noAuth: {{ .Values.plugin.noAuth }}
+    metadata: {{ include "extension-server.pluginMetadata" . | indent 6 }}
