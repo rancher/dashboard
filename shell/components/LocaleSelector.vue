@@ -52,8 +52,10 @@ export default {
     <div v-if="mode === 'login'">
       <div v-if="showLocale">
         <v-dropdown
-          popover-class="localeSelector"
+          popperClass="localeSelector"
           placement="top"
+          distance="8"
+          skidding="12"
           trigger="click"
         >
           <a

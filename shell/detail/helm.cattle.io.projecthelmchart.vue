@@ -160,7 +160,7 @@ export default {
               offset="-10"
               trigger="manual"
               :delay="{show: 0, hide: 0}"
-              :popper-options="{modifiers: { flip: { enabled: false } } }"
+              :flip="false"
               :container="false"
             >
               <div class="meta-title">

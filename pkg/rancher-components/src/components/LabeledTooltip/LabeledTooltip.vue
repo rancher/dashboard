@@ -146,9 +146,9 @@ export default defineComponent({
 }
 
 // Ensure code blocks inside tootips don't look awful
-.tooltip {
-  .tooltip-inner {
-    > pre {
+.v-popper__popper.v-popper--theme-tooltip {
+  .v-popper__inner {
+    pre {
       padding: 2px;
       vertical-align: middle;
     }

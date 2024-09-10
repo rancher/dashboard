@@ -623,6 +623,7 @@ export default {
           <v-dropdown
             trigger="click"
             placement="top"
+            popperClass="containerLogsDropdown"
           >
             <button class="btn bg-primary btn-cog">
               <i class="icon icon-gear" />

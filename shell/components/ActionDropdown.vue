@@ -66,7 +66,7 @@ export default {
         placement="bottom"
         :container="false"
         :disabled="disableButton"
-        :popper-options="{modifiers: { flip: { enabled: false } } }"
+        :flip="false"
       >
         <slot
           name="button-content"
