@@ -1,28 +1,9 @@
 <script>
-import { createApp } from 'vue';
+import { h, computed } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-const vueApp = createApp({});
 
-const component = vueApp.component('InputOrDisplay', {
-  render(h) {
-    if (this.isView) {
-      return h('div',
-        { attrs: { class: 'label' } },
-        [
-          h('div',
-            { attrs: { class: 'text-label' } },
-            this.$slots.name ? this.$slots.name : this.name
-          ),
-          h('div',
-            { attrs: { class: 'value' } },
-            this.$slots.value ? this.$slots.value : this.displayValue
-          )
-        ]
-      );
-    } else {
-      return this.$slots.default;
-    }
-  },
+export default {
+  name:  'InputOrDisplay',
   props: {
     name: {
       type:     String,
@@ -37,22 +18,29 @@ const component = vueApp.component('InputOrDisplay', {
       default: 'edit'
     }
   },
-  computed: {
-    isView() {
-      return this.mode === _VIEW;
-    },
+  setup(props, { slots }) {
+    const isView = computed(() => props.mode === _VIEW);
 
-    displayValue() {
-      if (Array.isArray(this.value) && this.value.length === 0) {
+    const displayValue = computed(() => {
+      if (Array.isArray(props.value) && props.value.length === 0) {
         return '';
       } else {
-        return this.value;
+        return props.value;
       }
-    }
-  }
-});
+    });
 
-export default component;
+    return () => {
+      if (isView.value) {
+        return h('div', { class: 'label' }, [
+          h('div', { class: 'text-label' }, slots.name ? slots.name : props.name),
+          h('div', { class: 'value' }, slots.value ? slots.value : displayValue.value)
+        ]);
+      } else {
+        return slots.default;
+      }
+    };
+  }
+};
 </script>
 
 <style lang="scss" scoped>

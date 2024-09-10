@@ -1,6 +1,3 @@
-import { createApp } from 'vue';
-const vueApp = createApp({});
-
 /**
  * Add error handler debugging capabilities
  * @param {*} vueApp Vue instance
@@ -47,8 +44,6 @@ export const loadDebugger = (vueApp) => {
     };
   }
 };
-
-export const globalHandleError = (error) => vueApp.config.errorHandler && vueApp.config.errorHandler(error);
 
 /**
  * Mounts the Vue app to the DOM element
