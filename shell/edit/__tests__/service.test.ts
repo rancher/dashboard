@@ -1,8 +1,20 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
-import { _CLONE } from '@shell/config/query-params';
+import { _CLONE, _CREATE } from '@shell/config/query-params';
 import ServicePage from '@shell/edit/service.vue';
 
 const createEditViewMock = {
+  props: {
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+    realMode: {
+      type:    String,
+      default: _CREATE
+    },
+  },
   data() {
     return { errors: [] };
   },
@@ -35,7 +47,7 @@ const createEditViewMock = {
 
 const formValidationMock = {};
 
-describe.skip('(Vue3 Skip) service edit', () => {
+describe('service edit', () => {
   let wrapper: VueWrapper<InstanceType<typeof ServicePage>>;
 
   const createComponent = (propsData: any) => {

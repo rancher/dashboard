@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Namespace from '@shell/edit/namespace.vue';
 
-describe.skip('(Vue3 Skip) view Namespace should', () => {
+describe('view Namespace should', () => {
   it('retrieve resource limits from project', () => {
     const name = 'my project name';
     const limits = 'whatever';
@@ -34,18 +34,16 @@ describe.skip('(Vue3 Skip) view Namespace should', () => {
         },
 
         stubs: {
-          CruResource:            { template: '<div><slot></slot></div>' }, // Required to render the slot content
-          ContainerResourceLimit: { template: '<div data-testid="limits"></div>' }, // Ensure value to be added to component
-          NameNsDescription:      true,
-          Tab:                    true,
-          ResourceTabs:           true
+          CruResource:       { template: '<div><slot></slot></div>' }, // Required to render the slot content
+          NameNsDescription: true,
+          Tab:               { template: '<div><slot></slot></div>' },
+          ResourceTabs:      { template: '<div><slot></slot></div>' },
         },
       },
     });
 
-    // TODO: Stubs are overwriting child component content. What is this actually testing?
-    const limitsUi = wrapper.find('[data-testid="limits"]');
+    const limitsUi = wrapper.findComponent('[data-testid="namespace-container-resource-limit"]');
 
-    expect(limitsUi.vm.$attrs.value).toStrictEqual(limits);
+    expect(limitsUi.props().value).toStrictEqual(limits);
   });
 });

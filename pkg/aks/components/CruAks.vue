@@ -1431,7 +1431,7 @@ export default defineComponent({
                   :tooltip="t('aks.privateDnsZone.tooltip')"
                   :disabled="!isNewOrUnprovisioned"
                   :rules="fvGetAndReportPathRules('privateDnsZone')"
-                  data-testid="cruaks-privateDnsZone"
+                  data-testid="cruaks-private-dns-zone"
                 />
               </div>
               <div class="col span-4">
@@ -1441,7 +1441,7 @@ export default defineComponent({
                   label-key="aks.userAssignedIdentity.label"
                   :tooltip="t('aks.userAssignedIdentity.tooltip')"
                   :disabled="!isNewOrUnprovisioned"
-                  data-testid="cruaks-userAssignedIdentity"
+                  data-testid="cruaks-user-assigned-identity"
                 />
               </div>
               <div class="col span-4">
@@ -1449,7 +1449,7 @@ export default defineComponent({
                   v-model:value="config.managedIdentity"
                   :mode="mode"
                   label-key="aks.managedIdentity.label"
-                  data-testid="cruaks-managedIdentity"
+                  data-testid="cruaks-managed-identity"
                 />
               </div>
             </div>

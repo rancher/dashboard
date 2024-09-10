@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import Job from '@shell/edit/workload/Job.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { WORKLOAD_TYPES } from '@shell/config/types';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 describe('component: Job', () => {
   describe('given CronJob types', () => {
@@ -23,10 +24,10 @@ describe('component: Job', () => {
       expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
 
-    it.skip.each([
+    it.each([
       'concurrencyPolicy',
       'suspend',
-    ])('(Vue3 Skip) should emit an update on %p radio option change', (field) => {
+    ])('should emit an update on %p radio option change', async(field) => {
       const wrapper = mount(Job, {
         props: {
           mode: _EDIT,
@@ -35,10 +36,9 @@ describe('component: Job', () => {
       });
       const radioOption = wrapper
         .find(`[data-testid="input-job-${ field }"]`)
-        .find('label');
+        .findComponent(RadioGroup);
 
-      radioOption.trigger('click');
-
+      radioOption.vm.$emit('update:value', true);
       expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
   });

@@ -72,9 +72,9 @@ describe('gke Config', () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
-  it.skip.each([
+  it.each([
     ['<=1.27.x', 13], ['<=1.29.x', 24]
-  ])('(Vue3 Skip) should filter the version dropdown according to the supportedVersionRange setting', async(versionRange: string, numVersionsAvailable: number) => {
+  ])('should filter the version dropdown according to the supportedVersionRange setting', async(versionRange: string, numVersionsAvailable: number) => {
     const setup = requiredSetup({ value: versionRange });
 
     const wrapper = shallowMount(Config, {
@@ -90,15 +90,15 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const versionDropdown = wrapper.find('[data-testid="gke-version-select"]');
+    const versionDropdown = wrapper.getComponent('[data-testid="gke-version-select"]');
 
     expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
   });
 
-  it.skip.each([
+  it.each([
     [{ zone: 'us-east1-c', region: '' }, false],
     [{ zone: '', region: 'us-east1' }, true]
-  ])('(Vue3 Skip) should detect whether a zone or region is configured and flip the  location  mode radio button accordingly', async({ zone, region }, isUsingRegion) => {
+  ])('should detect whether a zone or region is configured and flip the  location  mode radio button accordingly', async({ zone, region }, isUsingRegion) => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
@@ -114,7 +114,7 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const locationModeRadio = wrapper.find('[data-testid="gke-location-mode-radio"]');
+    const locationModeRadio = wrapper.getComponent('[data-testid="gke-location-mode-radio"]');
 
     expect(locationModeRadio.props().value).toBe(isUsingRegion);
   });
@@ -170,11 +170,11 @@ describe('gke Config', () => {
     });
   });
 
-  it.skip.each([
+  it.each([
     [['us-east1-b', 'us-east1-c', 'us-east1-f']],
     [['us-east1-b', 'us-east1-c']],
     [[]]
-  ])('(Vue3 Skip) should populate extra zones with any zones already configured in locations', async(locations: string[]) => {
+  ])('should populate extra zones with any zones already configured in locations', async(locations: string[]) => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Config, {
@@ -193,7 +193,7 @@ describe('gke Config', () => {
 
     // verify that each location has a checkbox and it is checked
     locations.forEach((location) => {
-      const extraZonesCheckbox = wrapper.find(`[data-testid="gke-extra-zones-${ location }"]`);
+      const extraZonesCheckbox = wrapper.findComponent(`[data-testid="gke-extra-zones-${ location }"]`);
 
       expect(extraZonesCheckbox.exists()).toBe(true);
       expect(extraZonesCheckbox.props().value).toBe(true);
@@ -203,7 +203,7 @@ describe('gke Config', () => {
 
     // verify that there are no checked zone checkboxes NOT in locations
     const checkedNotInLocations = allExtraZoneCheckboxes.filter((zoneCheckbox) => {
-      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().name);
+      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().label);
     });
 
     expect(Object.keys(checkedNotInLocations)).toHaveLength(0);

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Mount from '@shell/edit//workload/storage/Mount.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 describe('component: Mount', () => {
   it('should display alway at least 1 mount point input', () => {
@@ -65,7 +66,7 @@ describe('component: Mount', () => {
     expect(inputs).toHaveLength(0);
   });
 
-  it.skip('(Vue3 Skip) should map the mount point with the new name', async() => {
+  it('should map the mount point with the new name', async() => {
     const name = 'test';
     const mountPath = './';
     const wrapper = mount(Mount, {
@@ -73,7 +74,10 @@ describe('component: Mount', () => {
       global: { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } },
     });
 
-    await wrapper.find('[id^="mount-path-"]').setValue(mountPath);
+    const pathComponent = wrapper.get('[data-testid="mount-path-0"]').getComponent(LabeledInput);
+
+    pathComponent.vm.$emit('update:value', mountPath);
+    await wrapper.vm.$nextTick();
     const result = wrapper.props('container');
 
     expect(result).toStrictEqual({ volumeMounts: [{ name, mountPath }] });

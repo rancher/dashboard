@@ -22,7 +22,7 @@ describe('page: LonghornOverview', () => {
     $store:      {
       dispatch: () => jest.fn,
       getters:  {
-        currentCluster:      () => ({ id: '_' }),
+        currentCluster:      { id: '_' },
         currentProduct:      () => 'cluster',
         'cluster/findAll':   () => jest.fn(),
         'cluster/schemaFor': () => jest.fn(),
@@ -30,6 +30,7 @@ describe('page: LonghornOverview', () => {
         'i18n/t':            () => jest.fn(),
       },
     },
+    $route: { params: { cluster: '_' } }
   };
 
   const createWrapper = (overrides?: any) => {
@@ -51,7 +52,7 @@ describe('page: LonghornOverview', () => {
     expect(wrapper.vm.externalLinks).toStrictEqual([]);
   });
 
-  it.skip('(Vue3 Skip) populates externalLinks proxy link correctly when uiServices contain service', async() => {
+  it('populates externalLinks proxy link correctly when uiServices contain service', async() => {
     const proxyUrl = `/k8s/clusters/_/api/v1/namespaces/${ longhornFrontend.metadata.namespace }/services/http:longhorn-frontend:80/proxy/`;
 
     interface LinkConfig {

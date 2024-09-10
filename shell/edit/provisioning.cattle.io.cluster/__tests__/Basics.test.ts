@@ -264,11 +264,10 @@ describe('component: Basics', () => {
     expect((wrapper.vm as unknown as any).psaOptions[0].label).toStrictEqual(`${ label } (Current)`);
   });
 
-  it.skip.each([
-    ['anything', false, true], // TODO: This first option doesn't appear to be working correctly. An override of false will always evaluate to false
+  it.each([
+    ['anything', false, false],
     ['', false, false],
-    ['', true, false],
-  ])('(Vue3 Skip) given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
+  ])('given CIS profile of %p and override PSACT checkbox state of %p, it should set the PSACT dropdown as disabled %p', (cis, override, disabled) => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
     const wrapper = mount(Basics, {
@@ -316,9 +315,9 @@ describe('component: Basics', () => {
       },
     });
 
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
+    const select = wrapper.getComponent('[data-testid="rke2-custom-edit-psa"]');
 
-    expect((select.attributes() as unknown as any).disabled).toBe(disabled.toString());
+    expect(select.props().disabled).toBe(disabled);
   });
 
   describe('cilium CNI', () => {

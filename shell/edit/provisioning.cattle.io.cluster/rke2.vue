@@ -2002,9 +2002,12 @@ export default {
     handleCisChanged() {
       this.handleCisChange();
     },
+
     handlePsaDefaultChanged() {
+      this.cisOverride = !this.cisOverride;
       this.togglePsaDefault();
     },
+
     handleMachinePoolError(error) {
       this.machinePoolErrors = merge(this.machinePoolErrors, error);
 

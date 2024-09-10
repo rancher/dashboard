@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
 
-describe.skip('(Vue3 Skip) the Boolean Component', () => {
+describe('the Boolean Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
       props: {
@@ -25,7 +25,6 @@ describe.skip('(Vue3 Skip) the Boolean Component', () => {
 
     const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"] input[type=checkbox]');
 
-    // TODO: UNIT TEST - Default stubs give us a tab stub, rendering no input fields
     expect(inputFields).toHaveLength(1);
 
     const descriptionFields = wrapper.findAll('[data-testid="boolean-description-var_name"]');
