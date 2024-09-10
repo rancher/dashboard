@@ -92,38 +92,9 @@ export default defineComponent({
         z-index: z-index(hoverOverContent);
      }
 
-    // I DON'T THINK iT NEEDS FiXING... I think we delete it... CHECK EDIT->PODS->GENERAL TAB-> PULL SECRETS ::TODO-ALEX
-    .tooltip {
-        position: absolute;
-        width: calc(100% + 2px);
-        top: calc(100% + 6px);
-
-        .tooltip-arrow {
-            right: 30px;
-        }
-
-        .tooltip-inner {
-            padding: 10px;
-        }
-    }
-
     @mixin tooltipColors($color) {
         .status-icon {
             color: $color;
-        }
-        .tooltip {
-            .tooltip-inner {
-                color: var(--input-bg);
-                background: $color;
-                border-color: $color;
-            }
-
-            .tooltip-arrow {
-                border-bottom-color: $color;
-                &:after {
-                    border: none;
-                }
-            }
         }
     }
 
