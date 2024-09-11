@@ -1,7 +1,7 @@
 import { Ref, ComputedRef, ref, computed } from 'vue';
+import { useStore } from 'vuex';
 
 import { SETTING } from '@shell/config/settings';
-import { useStore } from '@shell/composables/useStore';
 import { useI18n } from '@shell/composables/useI18n';
 import type { Setting } from '@shell/types/resources/settings';
 
