@@ -614,8 +614,8 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div
-                      class="cluster-name"
                       v-tooltip="getTooltipConfig(c)"
+                      class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
                       <p
