@@ -56,7 +56,7 @@ export default {
           placement="top"
           distance="8"
           skidding="12"
-          trigger="click"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"

@@ -158,7 +158,7 @@ export default {
               ref="popover"
               placement="bottom-end"
               offset="-10"
-              trigger="manual"
+              :triggers="[]"
               :delay="{show: 0, hide: 0}"
               :flip="false"
               :container="false"

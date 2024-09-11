@@ -33,7 +33,7 @@ export default {
     class="text-center hand machine-summary-graph"
     placement="top"
     :open-group="row.id"
-    trigger="click"
+    :triggers="['click']"
     offset="1"
   >
     <template #popper>

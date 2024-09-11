@@ -86,7 +86,7 @@ export default {
     :class="{'hand': canAdjust}"
     placement="top"
     :open-group="row.id"
-    :trigger="canAdjust ? 'click' : 'manual'"
+    :triggers="canAdjust ? ['click'] : []"
     offset="1"
     @apply-show="onShown"
   >

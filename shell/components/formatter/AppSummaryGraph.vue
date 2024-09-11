@@ -90,7 +90,7 @@ export default {
     class="text-center hand"
     placement="top"
     :open-group="row.id"
-    :trigger="show ? 'click' : 'manual'"
+    :triggers="show ? ['click'] : []"
     offset="1"
   >
     <ProgressBarMulti

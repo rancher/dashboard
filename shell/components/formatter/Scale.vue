@@ -53,7 +53,7 @@ export default {
     :class="{'hand': showHover}"
     placement="top"
     :open-group="row.id"
-    :trigger="showHover ? 'click' : 'manual'"
+    :triggers="showHover ? ['click'] : []"
     offset="1"
   >
     <span>
