@@ -615,6 +615,7 @@ export default {
                     />
                     <div
                       class="cluster-name"
+                      v-tooltip="getTooltipConfig(c)"
                     >
                       <p>{{ c.label }}</p>
                       <p
