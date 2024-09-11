@@ -67,7 +67,7 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model.number="port"
+          v-model:value.number="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
@@ -81,7 +81,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.db_number"
+          v-model:value.number="value.db_number"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -90,7 +90,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.ttl"
+          v-model:value.number="value.ttl"
           :mode="mode"
           :disabled="disabled"
           type="number"

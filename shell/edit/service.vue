@@ -369,7 +369,7 @@ export default {
             <LabeledInput
               v-else
               ref="external-name"
-              v-model.number="value.spec.externalName"
+              v-model:value.number="value.spec.externalName"
               :mode="mode"
               :label="t('servicesPage.externalName.input.label')"
               :placeholder="t('servicesPage.externalName.placeholder')"

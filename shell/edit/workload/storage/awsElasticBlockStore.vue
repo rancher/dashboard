@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.awsElasticBlockStore.partition"
+          v-model:value.number="value.awsElasticBlockStore.partition"
           :mode="mode"
           :label="t('workload.storage.csi.partition')"
         />

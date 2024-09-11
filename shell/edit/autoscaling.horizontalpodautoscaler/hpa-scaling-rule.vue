@@ -74,7 +74,7 @@ export default {
               </div>
               <div class="col span-4">
                 <LabeledInput
-                  v-model.number="props.row.value.value"
+                  v-model:value.number="props.row.value.value"
                   :mode="mode"
                   type="number"
                   min="1"
@@ -85,7 +85,7 @@ export default {
               </div>
               <div class="col span-4">
                 <LabeledInput
-                  v-model.number="props.row.value.periodSeconds"
+                  v-model:value.number="props.row.value.periodSeconds"
                   :mode="mode"
                   type="number"
                   min="1"
@@ -115,7 +115,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.spec.behavior[type].stabilizationWindowSeconds"
+          v-model:value.number="value.spec.behavior[type].stabilizationWindowSeconds"
           :mode="mode"
           type="number"
           min="0"

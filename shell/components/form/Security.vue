@@ -198,7 +198,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model.number="runAsUser"
+          v-model:value.number="runAsUser"
           :label="t('workload.container.security.runAsUser')"
           :mode="mode"
           @update:value="update"

@@ -102,9 +102,8 @@ export default {
   },
 
   methods: {
-
     focus() {
-      if ( this.$refs.codeMirrorRef ) {
+      if ( this.$refs.codeMirrorRef && this.$refs.codeMirrorRef.codemirror ) {
         this.$refs.codeMirrorRef.codemirror.focus();
       }
     },

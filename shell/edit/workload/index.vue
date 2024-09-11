@@ -126,7 +126,7 @@ export default {
           class="col span-3"
         >
           <LabeledInput
-            v-model.number="spec.replicas"
+            v-model:value.number="spec.replicas"
             type="number"
             min="0"
             required
@@ -442,7 +442,7 @@ export default {
                   <div class="row">
                     <div class="col span-6">
                       <LabeledInput
-                        v-model.number="podTemplateSpec.priority"
+                        v-model:value.number="podTemplateSpec.priority"
                         :mode="mode"
                         :label="t('workload.scheduling.priority.priority')"
                       />
@@ -511,7 +511,7 @@ export default {
                 <div class="row">
                   <div class="col span-6">
                     <LabeledInput
-                      v-model.number="podFsGroup"
+                      v-model:value.number="podFsGroup"
                       type="number"
                       :mode="mode"
                       :label="t('workload.container.security.fsGroup')"

@@ -213,7 +213,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model.number="successfulJobsHistoryLimit"
+            v-model:value.number="successfulJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.successfulJobsHistoryLimit.label"
             tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
@@ -225,7 +225,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model.number="failedJobsHistoryLimit"
+            v-model:value.number="failedJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.failedJobsHistoryLimit.label"
             tooltip-key="workload.job.failedJobsHistoryLimit.tip"
