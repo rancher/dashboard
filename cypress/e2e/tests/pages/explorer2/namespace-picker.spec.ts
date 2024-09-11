@@ -12,6 +12,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   beforeEach('set up', () => {
+    HomePagePo.goTo();
     ClusterDashboardPagePo.navTo();
 
     // reset namespace picker to default state

@@ -69,7 +69,8 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       projectsNamespacesPage.bannerError(1).should('have.length', 0);
     });
 
-    it('displays the most recent error after resolving a single error in a form with multiple errors', () => {
+    // https://github.com/rancher/dashboard/issues/11881
+    it.skip('displays the most recent error after resolving a single error in a form with multiple errors', () => {
       projectsNamespacesPage.createProjectButtonClick();
 
       // Create the first error

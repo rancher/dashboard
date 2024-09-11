@@ -5,7 +5,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   toggle() {
-    return this.self().click({ force: true });
+    return this.namespaceDropdown().click({ force: true });
   }
 
   getOptions(): Cypress.Chainable {
