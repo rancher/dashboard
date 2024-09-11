@@ -689,6 +689,7 @@ export default {
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
+    @mousedown.prevent
     @focus="open()"
   >
     <div
