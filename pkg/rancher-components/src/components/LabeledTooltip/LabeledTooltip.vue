@@ -49,7 +49,7 @@ export default defineComponent({
   >
     <template v-if="hover">
       <i
-        v-clean-tooltip="isObject(value) ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
+        v-clean-tooltip="isObject(value) ? { ...{content: value.content, popperClass: [`tooltip-${status}`]}, ...value } : value"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
       />
