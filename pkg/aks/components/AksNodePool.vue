@@ -175,6 +175,10 @@ export default defineComponent({
 
     availabilityZonesSupport() {
       return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
+    },
+
+    poolCountValidator() {
+      return (val: number) => this.validationRules?.count?.[0](val, this.pool.enableAutoScaling);
     }
   },
 });
@@ -305,7 +309,7 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="[val=>validationRules.count[0](val, pool.enableAutoScaling)]"
+          :rules="[poolCountValidator]"
           :min="pool.enableAutoScaling ? 0 : 1"
           :max="1000"
         />
