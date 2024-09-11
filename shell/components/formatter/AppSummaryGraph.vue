@@ -89,7 +89,7 @@ export default {
     v-if="show"
     class="text-center hand"
     placement="top"
-    :open-group="row.id"
+    :show-group="row.id"
     :triggers="show ? ['click'] : []"
     offset="1"
   >
