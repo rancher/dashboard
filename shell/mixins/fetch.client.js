@@ -6,7 +6,8 @@ export const addLifecycleHook = (vm, hook, fn) => {
   if (!vm.$options[hook]) {
     vm.$options[hook] = [];
   }
-  if (!vm.$options[hook].includes(fn)) {
+
+  if (Array.isArray(vm.$options[hook]) && !vm.$options[hook].includes(fn)) {
     vm.$options[hook].push(fn);
   }
 };

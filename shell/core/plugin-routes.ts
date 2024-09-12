@@ -66,6 +66,10 @@ export class PluginRoutes {
     // execute many times (nuxt middleware boils down to route.beforeEach). This issue was seen refreshing in a harvester cluster with a
     // dynamically loaded cluster
 
+    if (newRoutes.length === 0) {
+      return;
+    }
+
     const orderedPluginRoutes: RouteRecordRaw[] = [];
 
     // separate plugin routes that have parent and not, you want to push the new routes in REVERSE order to the front of the existing list so that the order of routes specified by the extension is preserved
@@ -85,10 +89,6 @@ export class PluginRoutes {
         orderedPluginRoutes.unshift(routeInfo.route);
       }
     });
-
-    if ( orderedPluginRoutes.length === 0) {
-      return;
-    }
 
     // Remove all existing routes. Once we upgrade our router version we'll have access to clearRoutes() https://router.vuejs.org/api/interfaces/Router.html#clearRoutes
     this.router.getRoutes().forEach((route: any) => this.router.removeRoute(route));
