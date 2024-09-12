@@ -15,10 +15,6 @@ export default {
       type:     Boolean,
       required: true,
     },
-    $t: {
-      type:     Function,
-      required: true,
-    }
   },
 
   data() {
@@ -97,7 +93,7 @@ export default {
       v-if="fields.length"
       class="title"
     >
-      {{ $t('kubectl-explain.fields') }}
+      {{ t('kubectl-explain.fields') }}
     </div>
     <div
       v-for="(field, i) in fields"
@@ -152,7 +148,7 @@ export default {
             v-else
             class="field-type"
           >
-            {{ $t('kubectl-explain.object') }}
+            {{ t('kubectl-explain.object') }}
           </div>
         </div>
       </div>
@@ -184,7 +180,6 @@ export default {
           v-if="expanded[field.name]"
           :expand-all="expandAll"
           :definition="field.$$ref"
-          :$t="$t"
           class="embedded"
           @navigate="navigate"
         />
