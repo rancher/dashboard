@@ -245,101 +245,99 @@ export default {
     @finish="saveScan"
     @error="e=>errors = e"
   >
-    <template>
-      <Banner
-        v-if="!validProfiles.length"
-        color="warning"
-        :label="t('cis.noProfiles')"
-      />
+    <Banner
+      v-if="!validProfiles.length"
+      color="warning"
+      :label="t('cis.noProfiles')"
+    />
 
+    <div
+      v-else
+      class="row mb-20"
+    >
+      <div class="col span-6">
+        <LabeledSelect
+          v-model:value="value.spec.scanProfileName"
+          :mode="mode"
+          :label="t('cis.profile')"
+          :options="validProfiles"
+        />
+      </div>
       <div
-        v-else
-        class="row mb-20"
+        v-if="canBeScheduled"
+        class="col span-6"
       >
-        <div class="col span-6">
-          <LabeledSelect
-            v-model:value="value.spec.scanProfileName"
-            :mode="mode"
-            :label="t('cis.profile')"
-            :options="validProfiles"
-          />
-        </div>
-        <div
-          v-if="canBeScheduled"
-          class="col span-6"
-        >
-          <span>{{ t('cis.scoreWarning.label') }}</span> <i
-            v-clean-tooltip="t('cis.scoreWarning.protip')"
-            class="icon icon-info"
-          />
+        <span>{{ t('cis.scoreWarning.label') }}</span> <i
+          v-clean-tooltip="t('cis.scoreWarning.protip')"
+          class="icon icon-info"
+        />
+        <RadioGroup
+          v-model:value="value.spec.scoreWarning"
+          :mode="mode"
+          name="scoreWarning"
+          :options="['pass', 'fail']"
+          :labels="[t('cis.scan.pass'), t('cis.scan.fail')]"
+        />
+      </div>
+    </div>
+    <template v-if="canBeScheduled">
+      <h3>Scheduling</h3>
+      <div class="row mb-20">
+        <div class="col">
           <RadioGroup
-            v-model:value="value.spec.scoreWarning"
+            v-model:value="isScheduled"
             :mode="mode"
-            name="scoreWarning"
-            :options="['pass', 'fail']"
-            :labels="[t('cis.scan.pass'), t('cis.scan.fail')]"
+            name="scheduling"
+            :options="[ {value: false, label: t('cis.scheduling.disable')}, {value: true, label: t('cis.scheduling.enable')}]"
           />
         </div>
       </div>
-      <template v-if="canBeScheduled">
-        <h3>Scheduling</h3>
+      <template v-if="isScheduled">
         <div class="row mb-20">
-          <div class="col">
-            <RadioGroup
-              v-model:value="isScheduled"
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="scheduledScanConfig.cronSchedule"
+              required
               :mode="mode"
-              name="scheduling"
-              :options="[ {value: false, label: t('cis.scheduling.disable')}, {value: true, label: t('cis.scheduling.enable')}]"
+              :label="t('cis.cronSchedule.label')"
+              :placeholder="t('cis.cronSchedule.placeholder')"
+              type="cron"
+            />
+          </div>
+          <div class="col span-6">
+            <UnitInput
+              v-model.number="scheduledScanConfig.retentionCount"
+              :suffix="t('cis.reports')"
+              type="number"
+              :mode="mode"
+              :label="t('cis.retention')"
             />
           </div>
         </div>
-        <template v-if="isScheduled">
-          <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="scheduledScanConfig.cronSchedule"
-                required
-                :mode="mode"
-                :label="t('cis.cronSchedule.label')"
-                :placeholder="t('cis.cronSchedule.placeholder')"
-                type="cron"
-              />
-            </div>
-            <div class="col span-6">
-              <UnitInput
-                v-model.number="scheduledScanConfig.retentionCount"
-                :suffix="t('cis.reports')"
-                type="number"
-                :mode="mode"
-                :label="t('cis.retention')"
-              />
-            </div>
+        <h3>
+          Alerting
+        </h3>
+        <div class="row mb-20">
+          <div class="col span-12">
+            <Banner
+              v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete"
+              class="mt-0"
+              :color="hasAlertManager ? 'info' : 'warning'"
+            >
+              <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+            </banner>
+            <Checkbox
+              v-model:value="scanAlertRule.alertOnComplete"
+              :mode="mode"
+              :label="t('cis.alertOnComplete')"
+            />
+            <Checkbox
+              v-model:value="scanAlertRule.alertOnFailure"
+              :mode="mode"
+              :label="t('cis.alertOnFailure')"
+            />
           </div>
-          <h3>
-            Alerting
-          </h3>
-          <div class="row mb-20">
-            <div class="col span-12">
-              <Banner
-                v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete"
-                class="mt-0"
-                :color="hasAlertManager ? 'info' : 'warning'"
-              >
-                <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
-              </banner>
-              <Checkbox
-                v-model:value="scanAlertRule.alertOnComplete"
-                :mode="mode"
-                :label="t('cis.alertOnComplete')"
-              />
-              <Checkbox
-                v-model:value="scanAlertRule.alertOnFailure"
-                :mode="mode"
-                :label="t('cis.alertOnFailure')"
-              />
-            </div>
-          </div>
-        </template>
+        </div>
       </template>
     </template>
   </CruResource>

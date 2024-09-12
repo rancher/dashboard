@@ -137,12 +137,10 @@ export default {
         :label="t('monitoring.overview.alertsList.label')"
         :weight="2"
       >
-        <template>
-          <AlertTable
-            :monitoring-namespace="monitoringNamespace"
-            :alert-service-endpoint="alertServiceEndpoint"
-          />
-        </template>
+        <AlertTable
+          :monitoring-namespace="monitoringNamespace"
+          :alert-service-endpoint="alertServiceEndpoint"
+        />
       </Tab>
       <template #tab-row-extras>
         <div class="tab-row-footer">
