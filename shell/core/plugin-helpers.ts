@@ -1,3 +1,6 @@
+import { RouteLocation } from 'vue-router';
+import { ComponentOptionsMixin } from 'vue';
+
 import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
@@ -7,7 +10,16 @@ import {
 import { getProductFromRoute } from '@shell/utils/router';
 import { isEqual } from '@shell/utils/object';
 
-function checkRouteProduct($route, locationConfigParam) {
+/* eslint-disable no-unused-vars */
+enum LocationConfigParams {
+  _CONFIG = 'config',
+  _CREATE = 'create',
+  _DETAIL = 'detail',
+  _EDIT = 'edit',
+  _LIST = 'list',
+}
+
+function checkRouteProduct($route: RouteLocation, locationConfigParam: string) {
   const product = getProductFromRoute($route);
 
   // alias for the homepage
@@ -20,7 +32,7 @@ function checkRouteProduct($route, locationConfigParam) {
   return false;
 }
 
-function checkRouteMode({ name, query }, locationConfigParam) {
+function checkRouteMode({ name, query }: {name: string, query: any}, locationConfigParam: LocationConfigParams) {
   if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT && !query.as) {
     return true;
   } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
@@ -38,7 +50,7 @@ function checkRouteMode({ name, query }, locationConfigParam) {
   return false;
 }
 
-function checkExtensionRouteBinding($route, locationConfig, context) {
+function checkExtensionRouteBinding($route: any, locationConfig: any, context: any) {
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
     return true;
@@ -124,14 +136,20 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
   return res;
 }
 
-export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, context) {
-  const extensionEnhancements = [];
+export function getApplicableExtensionEnhancements<T>(
+  pluginCtx: ComponentOptionsMixin,
+  actionType: ExtensionPoint,
+  uiArea: CardLocation | ActionLocation,
+  currRoute: RouteLocation,
+  translationCtx = pluginCtx,
+  context?: ComponentOptionsMixin): T[] {
+  const extensionEnhancements: T[] = [];
 
   // gate it so that we prevent errors on older versions of dashboard
   if (pluginCtx.$plugin?.getUIConfig) {
     const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
 
-    actions.forEach((action, i) => {
+    actions.forEach((action: any, i: number) => {
       if (checkExtensionRouteBinding(currRoute, action.locationConfig, context || {})) {
         // ADD CARD PLUGIN UI ENHANCEMENT
         if (actionType === ExtensionPoint.CARD) {
@@ -172,7 +190,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
               const keyboardCombo = isMac ? actions[i].shortcut.mac : actions[i].shortcut.windows ? actions[i].shortcut.windows : [];
               let scLabel = '';
 
-              keyboardCombo.forEach((key, i) => {
+              keyboardCombo.forEach((key: string, i: number) => {
                 if (i < keyboardCombo.length - 1) {
                   if (key === 'meta') {
                     key = '\u2318';
