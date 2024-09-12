@@ -4,7 +4,7 @@ import { useRouter, onBeforeRouteUpdate } from 'vue-router';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
 import Footer from '@shell/components/form/Footer.vue';
-import { useStore } from '@shell/composables/useStore';
+import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { useUserRetentionValidation } from '@shell/composables/useUserRetentionValidation';
 import { MANAGEMENT } from '@shell/config/types';

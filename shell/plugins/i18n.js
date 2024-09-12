@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { escapeHtml } from '../utils/string';
 import { watchEffect, ref, h } from 'vue';
-import { useStore } from '../composables/useStore';
+import { useStore } from 'vuex';
 
 export function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
