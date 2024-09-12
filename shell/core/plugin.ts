@@ -15,6 +15,7 @@ import {
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
+import { defineAsyncComponent, markRaw, Component } from 'vue';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -161,21 +162,47 @@ export class Plugin implements IPlugin {
    * Adds a tab to the UI
    */
   addTab(where: string, when: LocationConfig | string, tab: Tab): void {
-    this._addUIConfig(ExtensionPoint.TAB, where, when, tab);
+    this._addUIConfig(ExtensionPoint.TAB, where, when, this._createAsyncComponent(tab));
   }
 
   /**
    * Adds a panel/component to the UI
    */
   addPanel(where: string, when: LocationConfig | string, panel: Panel): void {
-    this._addUIConfig(ExtensionPoint.PANEL, where, when, panel);
+    this._addUIConfig(ExtensionPoint.PANEL, where, when, this._createAsyncComponent(panel));
   }
 
   /**
    * Adds a card to the to the UI
    */
   addCard( where: string, when: LocationConfig | string, card: Card): void {
-    this._addUIConfig(ExtensionPoint.CARD, where, when, card);
+    this._addUIConfig(ExtensionPoint.CARD, where, when, this._createAsyncComponent(card));
+  }
+
+  /**
+   * Wraps a component from an extensionConfig with defineAsyncComponent and
+   * markRaw. This prepares the component to be loaded dynamically and prevents
+   * Vue from making the component reactive.
+   *
+   * @param extensionConfig The extension configuration containing a component
+   * to render.
+   * @returns A new object with the same properties as the extension
+   * configuration, but with the component property wrapped in
+   * defineAsyncComponent and markRaw. If the extension configuration doesn't
+   * have a component property, it returns the extension configuration
+   * unchanged.
+   */
+  private _createAsyncComponent(extensionConfig: Card | Panel | Tab) {
+    const { component } = extensionConfig;
+
+    if (!component) {
+      return extensionConfig;
+    }
+
+    return {
+      ...extensionConfig,
+      component: markRaw(defineAsyncComponent(component as () => Promise<Component>)),
+    };
   }
 
   /**
