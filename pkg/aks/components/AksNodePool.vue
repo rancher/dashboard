@@ -178,7 +178,9 @@ export default defineComponent({
     },
 
     poolCountValidator() {
-      return (val: number) => this.validationRules?.count?.[0](val, this.pool.enableAutoScaling);
+      const canBeZero: boolean = this.pool.mode === 'User';
+
+      return (val: number) => this.validationRules?.count?.[0](val, canBeZero);
     }
   },
 });
@@ -309,9 +311,10 @@ export default defineComponent({
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="[poolCountValidator]"
-          :min="pool.enableAutoScaling ? 0 : 1"
+          :rules="[poolCountValidator()]"
+          :min="pool.mode === 'User' ? 0 : 1"
           :max="1000"
+          data-testid="aks-pool-count-input"
         />
       </div>
       <div class="col span-3">

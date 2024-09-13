@@ -227,4 +227,39 @@ describe('aks node pool component', () => {
 
     expect(wrapper.props().pool.nodeLabels).toStrictEqual(newLabels);
   });
+
+  it('should validate pool count using the provided count validator function', async() => {
+    const countValidator = jest.fn();
+
+    mount(AksNodePool, {
+      propsData: {
+        pool:            { ...defaultPool, count: -1 },
+        validationRules: { count: [countValidator] }
+      },
+      ...requiredSetup()
+
+    });
+
+    expect(countValidator).toHaveBeenCalledWith(-1, false);
+  });
+
+  it.each([
+    ['System', false],
+    ['User', true],
+  ])('should validate node pool count differently if the pool mode is User', async(mode, allowZeroCount) => {
+    const countValidator = jest.fn();
+
+    mount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, count: -1, mode
+        },
+        validationRules: { count: [countValidator] }
+      },
+      ...requiredSetup()
+
+    });
+
+    expect(countValidator).toHaveBeenCalledWith(-1, allowZeroCount);
+  });
 });
