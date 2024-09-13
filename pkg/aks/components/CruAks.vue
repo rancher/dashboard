@@ -52,7 +52,8 @@ import {
   outboundTypeUserDefined,
   privateDnsZone,
   nodePoolNames,
-  nodePoolNamesUnique
+  nodePoolNamesUnique,
+  nodePoolCount
 } from '../util/validators';
 
 export const defaultNodePool = {
@@ -342,6 +343,7 @@ export default defineComponent({
         privateDnsZone:          privateDnsZone(this, 'aks.privateDnsZone.label', 'aksConfig.privateDnsZone'),
         poolNames:               nodePoolNames(this),
         poolNamesUnique:         nodePoolNamesUnique(this),
+        poolCount:               nodePoolCount(this),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -431,40 +433,6 @@ export default defineComponent({
           }
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
-        },
-
-        poolCount: (count?: number, autoscale = false) => {
-          let min = 1;
-          let errMsg = this.t('aks.errors.poolCount');
-
-          if (autoscale) {
-            min = 0;
-            errMsg = this.t('aks.errors.poolAutoscaleCount');
-          }
-          if (count || count === 0) {
-            return count >= min ? undefined : errMsg;
-          } else {
-            let allValid = true;
-
-            this.nodePools.forEach((pool: AKSNodePool) => {
-              const { count = 0, enableAutoScaling } = pool;
-
-              if (enableAutoScaling) {
-                min = 0;
-              } else {
-                min = 1;
-              }
-
-              if (count < min) {
-                this.$set(pool._validation, '_validCount', false);
-                allValid = false;
-              } else {
-                this.$set(pool._validation, '_validCount', true);
-              }
-            });
-
-            return allValid ? undefined : this.t('aks.errors.poolCount');
-          }
         },
 
         poolMin: (min?:number) => {
