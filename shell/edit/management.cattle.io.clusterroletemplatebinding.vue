@@ -12,6 +12,7 @@ export default {
     CruResource,
     Loading,
   },
+  inheritAttrs: false,
 
   mixins: [CreateEditView],
   async fetch() {

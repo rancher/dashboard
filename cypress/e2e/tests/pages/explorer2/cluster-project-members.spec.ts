@@ -1,5 +1,6 @@
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -7,13 +8,13 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe.skip('[Vue3 Skip]: Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, () => {
+  beforeEach(() => {
+    cy.login();
+  });
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
     const usersAdmin = new UsersPo('_');
     const userCreate = usersAdmin.createEdit();
-
-    // this will login as admin
-    cy.login();
 
     // create a standard user
     usersAdmin.goTo();
@@ -53,5 +54,17 @@ describe.skip('[Vue3 Skip]: Cluster Project and Members', { tags: ['@explorer2',
         expect(sanitizedName).to.equal(username);
       });
     });
+  });
+  it('Clicking cancel should return to Cluster and Project members ', () => {
+    HomePagePo.goTo();
+    const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
+
+    clusterMembership.navToClusterMenuEntry('local');
+    // if we do not wait for the cluster page to load, then we get the old side nav from Users & Authentication
+    clusterMembership.waitForPageWithSpecificUrl('/c/local/explorer');
+    clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
+    clusterMembership.triggerAddClusterOrProjectMemberAction();
+    clusterMembership.cancelCreateForm().click();
+    clusterMembership.waitForPageWithExactUrl();
   });
 });
