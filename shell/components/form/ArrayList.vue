@@ -375,7 +375,7 @@ export default {
     .value {
       flex: 1;
       INPUT {
-        height: $input-height;
+        height: $unlabeled-input-height;
       }
     }
   }
