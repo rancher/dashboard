@@ -17,6 +17,7 @@ import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
+import { markRaw } from 'vue';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -153,7 +154,7 @@ export default {
     this.username = this.firstLogin ? 'admin' : this.username;
 
     this.providerComponents = this.providers.map((name) => {
-      return this.$store.getters['type-map/importLogin'](configType[name] || name);
+      return markRaw(this.$store.getters['type-map/importLogin'](configType[name] || name));
     });
 
     this.$nextTick(() => {
