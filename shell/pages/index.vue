@@ -3,7 +3,7 @@ import { SEEN_WHATS_NEW } from '@shell/store/prefs';
 import { getVersionInfo } from '@shell/utils/version';
 
 const validRoute = (route, router) => {
-  return !!route && !!router.resolve(route)?.resolved?.matched?.length;
+  return !!route && !!router.resolve(route)?.matched?.length;
 };
 
 export default {
