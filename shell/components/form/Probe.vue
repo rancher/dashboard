@@ -335,6 +335,7 @@ export default {
             <div class="col span-12">
               <KeyValue
                 v-model:value="httpGet.httpHeaders"
+                data-testid="input-probe-http-headers"
                 key-name="name"
                 :mode="mode"
                 :as-map="false"
