@@ -90,8 +90,7 @@ export class PluginRoutes {
       }
     });
 
-    // Remove all existing routes. Once we upgrade our router version we'll have access to clearRoutes() https://router.vuejs.org/api/interfaces/Router.html#clearRoutes
-    this.router.getRoutes().forEach((route: any) => this.router.removeRoute(route));
+    this.router.clearRoutes();
 
     const allRoutesToAdd = [...orderedPluginRoutes, ...allRoutes];
 

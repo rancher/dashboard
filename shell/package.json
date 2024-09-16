@@ -124,7 +124,7 @@
     "url-parse": "1.5.10",
     "vue": "~3.2.13",
     "vue-resize": "0.4.5",
-    "vue-router": "~4.0.3",
+    "vue-router": "4.4.3",
     "vue-select": "4.0.0-beta.6",
     "vue-server-renderer": "2.7.16",
     "vue-template-compiler": "2.7.16",
