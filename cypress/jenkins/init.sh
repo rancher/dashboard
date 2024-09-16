@@ -122,7 +122,9 @@ create_initial_clusters() {
   corral config vars set server_count "${SERVER_COUNT:-3}"
   corral config vars set agent_count "${AGENT_COUNT:-0}"
   corral config vars delete rancher_host
-  RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  fi
 
   K3S_KUBERNETES_VERSION="${K3S_KUBERNETES_VERSION//+/-}"
   make init
@@ -147,8 +149,10 @@ create_initial_clusters() {
   corral config vars set imported_kubeconfig $(corral vars importcluster kubeconfig)
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   corral config vars set server_count "${SERVER_COUNT:-3}"
-  corral create --skip-cleanup --recreate --debug rancher \
-    "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    corral create --skip-cleanup --recreate --debug rancher \
+      "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  fi
 }
 
 
@@ -169,7 +173,7 @@ fi
 echo "Rancher type: ${RANCHER_TYPE}"
 
 override_node=$(semver lt "${RANCHER_VERSION}" "2.9.99")
-if [[ ${override_node} -eq 0 && RANCHER_IMAGE_TAG != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
+if [[ ${override_node} -eq 0 && "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
 
 corral config vars set rancher_type "${RANCHER_TYPE}"
 corral config vars set nodejs_version "${NODEJS_VERSION}"
