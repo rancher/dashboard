@@ -4,7 +4,7 @@ import { getVersionInfo } from '@shell/utils/version';
 
 const resolveRoute = (route, router) => {
   try {
-    return route ? router.resolve(route) : null; 
+    return route ? router.resolve(route) : null;
   } catch (e) {
     return null;
   }
