@@ -390,7 +390,7 @@ export default {
 
       let contentText = '';
       let content;
-      let classes = '';
+      let popperClass = '';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -415,7 +415,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+        popperClass = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -427,7 +427,7 @@ export default {
           content = this.shown ? contentText : null;
 
           // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
-          classes += ' description-tooltip-pos-adjustment';
+          popperClass += ' description-tooltip-pos-adjustment';
         }
       }
 
@@ -435,7 +435,7 @@ export default {
         content,
         placement:     'right',
         popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
-        classes
+        popperClass
       };
     },
   }

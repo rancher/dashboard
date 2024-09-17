@@ -178,7 +178,7 @@ export default {
     v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
-      classes: ['select-principal-tooltip']
+      popperClass: ['select-principal-tooltip']
     }"
     :mode="mode"
     :label="label"

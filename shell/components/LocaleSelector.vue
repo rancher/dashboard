@@ -52,9 +52,11 @@ export default {
     <div v-if="mode === 'login'">
       <div v-if="showLocale">
         <v-dropdown
-          popover-class="localeSelector"
+          popperClass="localeSelector"
           placement="top"
-          trigger="click"
+          distance="8"
+          skidding="12"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"

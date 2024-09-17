@@ -131,6 +131,15 @@ HEADER {
     outline: 0;
   }
 
+  &[data-popper-placement^="top"] {
+    .v-popper__arrow-container {
+      .v-popper__arrow-inner {
+        top: 0;
+        border-color: var(--tooltip-bg);
+      }
+    }
+  }
+
   li {
     padding: 8px 20px;
 

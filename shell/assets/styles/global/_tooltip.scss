@@ -123,7 +123,6 @@
     color: var(--popover-text);
     padding: 10px;
     border-radius: var(--border-radius);
-    box-shadow: 0 5px 20px var(--shadow);
     border: none;
 
     a {
@@ -133,6 +132,19 @@
 
   .v-popper__arrow-container {
     border-color: transparent;
+    .v-popper__arrow-outer {
+      border-color: transparent;
+    }
+  }
+}
+
+.v-popper__popper.v-popper--theme-dropdown {
+  z-index: z-index('tooltip');
+
+  &.containerLogsDropdown {
+    .v-popper__arrow-container {
+      display: none;
+    }
   }
 }
 

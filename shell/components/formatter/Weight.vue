@@ -85,8 +85,8 @@ export default {
   <v-dropdown
     :class="{'hand': canAdjust}"
     placement="top"
-    :open-group="row.id"
-    :trigger="canAdjust ? 'click' : 'manual'"
+    :show-group="row.id"
+    :triggers="canAdjust ? ['click'] : []"
     offset="1"
     @apply-show="onShown"
   >

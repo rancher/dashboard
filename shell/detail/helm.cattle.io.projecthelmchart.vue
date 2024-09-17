@@ -156,9 +156,9 @@ export default {
               ref="popover"
               placement="bottom-end"
               offset="-10"
-              trigger="manual"
+              :triggers="[]"
               :delay="{show: 0, hide: 0}"
-              :popper-options="{modifiers: { flip: { enabled: false } } }"
+              :flip="false"
               :container="false"
             >
               <div class="meta-title">

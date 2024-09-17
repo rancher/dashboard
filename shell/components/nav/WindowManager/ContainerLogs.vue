@@ -621,8 +621,9 @@ export default {
 
         <div class="log-action log-action-group ml-5">
           <v-dropdown
-            trigger="click"
+            :triggers="['click']"
             placement="top"
+            popperClass="containerLogsDropdown"
           >
             <button class="btn bg-primary btn-cog">
               <i class="icon icon-gear" />
