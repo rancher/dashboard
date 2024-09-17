@@ -38,21 +38,19 @@ export default {
       -
     </template>
     /
-    <template>
-      <template v-if="internalSameAsExternal && isIp(row.internalIp)">
-        {{ t('tableHeaders.internalIpSameAsExternal') }}
-      </template>
-      <template v-else-if="isIp(row.internalIp)">
-        {{ row.internalIp }}<CopyToClipboard
-          label-as="tooltip"
-          :text="row.internalIp"
-          class="icon-btn"
-          action-color="bg-transparent"
-        />
-      </template>
-      <template v-else>
-        -
-      </template>
+    <template v-if="internalSameAsExternal && isIp(row.internalIp)">
+      {{ t('tableHeaders.internalIpSameAsExternal') }}
+    </template>
+    <template v-else-if="isIp(row.internalIp)">
+      {{ row.internalIp }}<CopyToClipboard
+        label-as="tooltip"
+        :text="row.internalIp"
+        class="icon-btn"
+        action-color="bg-transparent"
+      />
+    </template>
+    <template v-else>
+      -
     </template>
   </span>
 </template>

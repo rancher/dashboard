@@ -112,39 +112,37 @@ export default {
         />
       </div>
     </div>
-    <template>
-      <div
-        v-if="showCustomRegistryInput"
-        class="row"
+    <div
+      v-if="showCustomRegistryInput"
+      class="row"
+    >
+      <AdvancedSection
+        class="col span-12 advanced"
+        :is-open-by-default="showCustomRegistryAdvancedInput"
+        :mode="mode"
+        data-testid="registries-advanced-section"
       >
-        <AdvancedSection
-          class="col span-12 advanced"
-          :is-open-by-default="showCustomRegistryAdvancedInput"
+        <Banner
+          :closable="false"
+          class="cluster-tools-tip"
+          color="info"
+          :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
+        />
+        <RegistryMirrors
+          :value="value"
+          class="mt-20"
           :mode="mode"
-          data-testid="registries-advanced-section"
-        >
-          <Banner
-            :closable="false"
-            class="cluster-tools-tip"
-            color="info"
-            :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
-          />
-          <RegistryMirrors
-            :value="value"
-            class="mt-20"
-            :mode="mode"
-            @update:value="$emit('input', $event)"
-          />
-          <RegistryConfigs
-            :value="value"
-            class="mt-20"
-            :mode="mode"
-            :cluster-register-before-hook="registerBeforeHook"
-            @update:value="$emit('input', $event)"
-            @updateConfigs="$emit('update-configs-changed', $event)"
-          />
-        </AdvancedSection>
-      </div>
-    </template>
+          @update:value="$emit('input', $event)"
+        />
+        <RegistryConfigs
+          :value="value"
+          class="mt-20"
+          :mode="mode"
+          :cluster-register-before-hook="registerBeforeHook"
+          @update:value="$emit('input', $event)"
+          @updateConfigs="$emit('update-configs-changed', $event)"
+        />
+      </AdvancedSection>
+    </div>
   </div>
 </template>
