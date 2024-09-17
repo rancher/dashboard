@@ -31,4 +31,11 @@ describe('Workloads', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     workload.mastheadTitle().should('contain', podName);
   });
+  it('Validation errors should not be shown when form is just opened', () => {
+    const workload = new WorkloadPagePo('local');
+
+    workload.goTo();
+    workload.clickCreate();
+    workload.createWorkloadsForm().errorBanner().should('not.exist');
+  });
 });

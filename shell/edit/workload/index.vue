@@ -18,7 +18,16 @@ export default {
     },
   },
   data() {
-    return { selectedName: null };
+    return { selectedName: null, closedErrorMessages: [] };
+  },
+  computed: {
+    errorMessages() {
+      if (!this.type) {
+        return [];
+      }
+
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
+    }
   },
   methods: {
     changed(tab) {
@@ -49,7 +58,7 @@ export default {
         const policy = match[1];
 
         return {
-          message: `Pod ${ name } Security Policy Violation ${ policy }`,
+          message: this.t('workload.error', { name, policy }),
           icon:    'icon-pod_security'
         };
       }
@@ -85,7 +94,7 @@ export default {
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="fvUnreportedValidationErrors"
+      :errors="errorMessages"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -93,9 +102,8 @@ export default {
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
-      @error="e=>errors = e"
+      @error="(_, closedError) => closedErrorMessages.push(closedError)"
     >
-      <!-- <pre>{{ JSON.stringify(allContainers, null, 2) }}</pre> -->
       <NameNsDescription
         :value="value"
         :mode="mode"
@@ -177,7 +185,6 @@ export default {
             >
               <template
                 #tab-header-right
-                class="tab-content-controls"
               >
                 <button
                   v-if="allContainers.length > 1 && !isView"
