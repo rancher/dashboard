@@ -262,7 +262,7 @@ export default {
 
   methods: {
     addMatch(include) {
-      this.matches.push(emptyMatch(include));
+      this.matches = [...this.matches, emptyMatch(include)];
     },
 
     removeMatch(idx) {
