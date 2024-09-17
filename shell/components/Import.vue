@@ -140,7 +140,6 @@ export default {
             <div class="col span-6">
               <LabeledSelect
                 :value="defaultNamespace"
-                class="pull-right"
                 :options="namespaceOptions"
                 label-key="import.defaultNamespace.label"
                 mode="edit"
