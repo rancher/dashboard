@@ -933,12 +933,12 @@ export default {
     },
 
     updateVGpu() {
-      /**
-       * We are assigning the first vGpu profile found for each vGpu type selected by the user.
-       * This will not work if we will remove the limit of only one vGpu assignable to each cluster.
-       */
       const vGPURequests = this.vGpus?.filter((f) => f).map((deviceName) => ({
-        name: Object.values(this.vGpuDevices).filter((f) => f.type === deviceName)?.[0]?.id || '',
+        /**
+         * 'provisioned' is a placeholder.
+         * The real vGpu name is assigned to the provisioned VM by the backend and saved in 'harvesterhci.io/deviceAllocationDetails' annotation.
+         */
+        name: 'provisioned',
         deviceName,
       })) || [];
 
