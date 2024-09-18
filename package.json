@@ -71,7 +71,7 @@
     "cache-loader": "4.1.0",
     "clipboard-polyfill": "4.0.1",
     "codemirror": "5.65.17",
-    "codemirror-editor-vue3": "2.7.0",
+    "codemirror-editor-vue3": "2.7.1",
     "color": "4.2.3",
     "cookie": "0.5.0",
     "cookie-universal": "2.2.2",
