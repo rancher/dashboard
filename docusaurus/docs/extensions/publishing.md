@@ -11,7 +11,7 @@ As discussed in the [Getting Started](./extensions-getting-started#creating-a-re
 
 ## Automatic Approach - Triggering a Github Workflow on Tagged Release
 
-If your extensions repository doesn't include a github workflow to automate the publishing procedure (igore this step if you have it already), you can create one in `.github/workflows/build.yaml` on your extension folder, with the following content:
+If your extensions repository doesn't include a github workflow to automate the publishing procedure (ignore this step if you have it already), you can create one in `.github/workflows/build.yaml` on your extension folder, with the following content:
 
 ```yaml
 name: Build and Release Extension Charts
