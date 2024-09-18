@@ -184,6 +184,7 @@ export default {
         v-for="(header, index) in value.httpGet.httpHeaders"
         :key="index"
         class="var-row"
+        data-testid="hookoption-header-row"
       >
         <LabeledInput
           v-model:value="value.httpGet.httpHeaders[index].name"
@@ -221,6 +222,7 @@ export default {
           type="button"
           class="btn role-link mb-20"
           :disabled="mode === 'view'"
+          data-testid="hookoption-add-header-button"
           @click.stop="addHeader"
         >
           Add Header
