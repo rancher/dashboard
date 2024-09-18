@@ -17,7 +17,7 @@ import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
-import { InstallCodemirro } from 'codemirror-editor-vue3';
+import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -38,7 +38,7 @@ export async function installPlugins(vueApp) {
   vueApp.use(VueResize);
   vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  vueApp.use(InstallCodemirro);
+  vueApp.use(InstallCodeMirror);
   vueApp.component('v-select', vSelect);
 }
 
