@@ -501,10 +501,10 @@ export default {
     <MoveModal @moving="clearSelection" />
   </div>
 </template>
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
 .project-namespaces {
-  & :deep( ) {
+  :deep(&) {
     .project-namespaces-table table {
       table-layout: fixed;
     }
@@ -569,7 +569,7 @@ export default {
   }
 }
 </style>
-<style lang="scss"> 
+<style lang="scss">
 // TODO #11952: Correct deep statement
   .psa-tooltip {
     // These could pop up a lot as the mouse moves around, keep them as small and unintrusive as possible

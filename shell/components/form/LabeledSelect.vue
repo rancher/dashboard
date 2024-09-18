@@ -419,7 +419,7 @@ export default {
   </div>
 </template>
 
-<style lang='scss' scoped> 
+<style lang='scss' scoped>
 // TODO #11952: Correct deep statement
 
 .labeled-select {
@@ -559,7 +559,7 @@ export default {
     }
   }
 
-  .no-label :deep( ) {
+  :deep(.no-label) {
     &.v-select:not(.vs--single) {
       min-height: 33px;
     }

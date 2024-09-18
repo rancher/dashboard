@@ -505,7 +505,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
 button {
   all: unset;
@@ -527,7 +527,7 @@ button {
     max-height: $input-height;
   }
 
-  .namespace-select :deep( ) {
+  :deep(.namespace-select) {
     .labeled-select {
       min-width: 40%;
 

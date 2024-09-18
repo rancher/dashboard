@@ -190,7 +190,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   .main {
     overflow: auto;
@@ -302,24 +302,22 @@ export default {
     }
   }
 </style>
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
-  .markdown {
-    :deep( ) {
-      P {
-        line-height: 1.25;
-        margin-bottom: 10px;
-      }
-
-      LI:not(:last-child) {
-        margin-bottom: 10px;
-      }
-
-      code {
-        font-size: 12.5px;
-        line-height: normal;
-        padding: 0;
-      }
-    }
+:deep(.markdown)  {
+  P {
+    line-height: 1.25;
+    margin-bottom: 10px;
   }
+
+  LI:not(:last-child) {
+    margin-bottom: 10px;
+  }
+
+  code {
+    font-size: 12.5px;
+    line-height: normal;
+    padding: 0;
+  }
+}
 </style>

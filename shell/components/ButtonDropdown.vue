@@ -226,7 +226,7 @@ export default {
   </v-select>
 </template>
 
-<style lang='scss' scoped> 
+<style lang='scss' scoped>
 // TODO #11952: Correct deep statement
 .button-dropdown.btn-sm {
   :deep( > .vs__dropdown-toggle ) {
@@ -252,7 +252,7 @@ export default {
   color: var(--link);
   padding: 0;
 
-  &.vs--open :deep( ) {
+  &:deep( .vs--open) {
     outline: none;
     box-shadow: none;
   }
@@ -273,7 +273,7 @@ export default {
     }
   }
 
-  :deep( > .vs__dropdown-toggle ) {
+   > :deep(.vs__dropdown-toggle ) {
     width: 100%;
     display: grid;
     grid-template-columns: 75% 25%;

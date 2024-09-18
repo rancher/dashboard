@@ -473,12 +473,10 @@ export default {
   />
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
-:deep( ) {
-  .icon-info {
-    margin-top: -3px;
-    margin-right: 4px;
-  }
+:deep(.icon-info) {
+  margin-top: -3px;
+  margin-right: 4px;
 }
 </style>

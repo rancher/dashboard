@@ -366,10 +366,12 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
-  .advanced :deep() >.vue-portal-target:empty,
-  .advanced :deep( >.vue-portal-target:empty + .spacer ) {
+:deep(
+  .advanced >.vue-portal-target:empty,
+  .advanced  >.vue-portal-target:empty + .spacer
+) {
     display: none;
   }
 </style>

@@ -52,7 +52,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   .chart-readmes {
     & > h1 {
@@ -64,13 +64,14 @@ export default {
     max-width: 100%;
     line-height: 1.6;
 
-    :deep( ) {
+    :deep(
       * + H1,
       * + H2,
       * + H3,
       * + H4,
       * + H5,
-      * + H6 {
+      * + H6
+    ) {
         margin-top: 20px;
       }
     }
@@ -89,13 +90,11 @@ export default {
       word-break: break-word;
     }
 
-    :deep(  > h1:first-of-type ) {
+    > :deep(h1:first-of-type ) {
       display: none;
     }
 
     :deep( p ) {
       margin-bottom: 0.5em;
     }
-  }
-
 </style>

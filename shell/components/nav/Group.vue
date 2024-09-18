@@ -282,7 +282,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   .header {
     position: relative;
@@ -398,8 +398,10 @@ export default {
     }
   }
 
-  .body :deep() > .child.router-link-active,
-  .header :deep( > .child.router-link-exact-active ) {
+  :deep(
+    .body > .child.router-link-active,
+    .header  > .child.router-link-exact-active
+  ) {
     padding: 0;
 
     A, A I {
@@ -413,7 +415,7 @@ export default {
     }
   }
 
-  .body :deep( > .child ) {
+  :deep(.body  > .child ) {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;

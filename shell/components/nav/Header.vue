@@ -779,7 +779,7 @@ export default {
   </header>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   // It would be nice to grab this from `Group.vue`, but there's margin, padding and border, which is overkill to var
   $side-menu-group-padding-left: 16px;
@@ -814,8 +814,10 @@ export default {
     }
 
     .filter {
-      :deep() .labeled-select,
-      :deep( .unlabeled-select ) {
+      :deep(
+        .labeled-select,
+        .unlabeled-select
+      ) {
         .vs__search::placeholder {
           color: var(--body-text) !important;
         }
@@ -977,7 +979,7 @@ export default {
         width: 40px;
       }
 
-      :deep( > div > .btn.role-tertiary ) {
+      :deep(div > .btn.role-tertiary ) {
         border: 1px solid var(--header-btn-bg);
         border: none;
         background: var(--header-btn-bg);

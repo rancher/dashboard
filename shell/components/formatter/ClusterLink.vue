@@ -84,7 +84,7 @@ export default {
   </span>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   .cluster-link {
     display: flex;
@@ -94,15 +94,13 @@ export default {
     color: var(--error);
     margin-left: 4px;
   }
-  :deep( ) {
-    .labeled-tooltip, .status-icon {
-      position: relative;
-      display: inline;
-      left: auto;
-      right: auto;
-      top: 2px;
-      bottom: auto;
-    }
+  :deep(.labeled-tooltip, .status-icon) {
+    position: relative;
+    display: inline;
+    left: auto;
+    right: auto;
+    top: 2px;
+    bottom: auto;
   }
   .mytooltip ul {
     outline: 1px dashed red;

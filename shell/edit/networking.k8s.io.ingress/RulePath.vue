@@ -180,11 +180,11 @@ export default {
     </button>
   </div>
 </template>
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
 $row-height: 40px;
 
-.labeled-input :deep(, :deep() .labeled-input ) {
+:deep(.labeled-input), :deep(.labeled-input ) {
   padding: 0 !important;
   height: 100%;
   input.no-label {
@@ -192,7 +192,7 @@ $row-height: 40px;
     padding: 10px;
   }
 }
-.rule-path :deep( ) {
+:deep(.rule-path ) {
   .col, INPUT {
     height: $row-height;
   }

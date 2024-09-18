@@ -639,13 +639,13 @@ export default defineComponent({
   }
 }
 
-:deep( ) {
-  .labeled-input INPUT.no-label,
-  .labeled-input INPUT:hover.no-label,
-  .labeled-input INPUT:focus.no-label {
+:deep(.labeled-input) {
+  INPUT.no-label,
+  INPUT:hover.no-label,
+  INPUT:focus.no-label {
     padding: 1px 0px 0px 0px;
   }
-  .labeled-input.compact-input {
+  &.compact-input {
     min-height: 0;
   }
 }

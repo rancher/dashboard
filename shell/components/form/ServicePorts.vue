@@ -273,7 +273,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
  $remove: 75;
   $checkbox: 75;
@@ -320,7 +320,7 @@ export default {
       height: 100%;
     }
 
-    .port-protocol :deep( ) {
+    :deep(.port-protocol) {
       .unlabeled-select {
         .v-select.inline {
           margin-top: 2px;

@@ -240,10 +240,10 @@ export default {
   </ResourceTabs>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
 .hpa-metrics-table {
-  .info-box :deep( ) {
+  :deep(.info-box  ) {
     background-color: var(--simple-box-bg);
   }
   .row {

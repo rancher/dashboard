@@ -797,34 +797,32 @@ export default {
   </CruResource>
 </template>
 
-<style lang="scss" scoped> 
+<style lang="scss" scoped>
 // TODO #11952: Correct deep statement
   .required {
     color: var(--error);
   }
 
-  :deep( ) {
-    .column-headers {
-      margin-right: 75px;
-      margin-bottom: 5px;
+  :deep(.column-headers)  {
+    margin-right: 75px;
+    margin-bottom: 5px;
+  }
+
+  :deep(.box)  {
+    align-items: initial;
+
+    .remove {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
     }
+  }
 
-    .box {
-      align-items: initial;
-
-      .remove {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-end;
-      }
-    }
-
-    .columns {
-      .col > .unlabeled-select:not(.taggable) {
-        // override the odd padding-top from shell/assets/styles/global/_select.scss
-        padding: $unlabaled-select-padding
-      }
+  :deep(.columns)  {
+    .col > .unlabeled-select:not(.taggable) {
+      // override the odd padding-top from shell/assets/styles/global/_select.scss
+      padding: $unlabaled-select-padding
     }
   }
 </style>
