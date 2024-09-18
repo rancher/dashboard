@@ -131,7 +131,7 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.value-from :deep() {
+.value-from :deep( ) {
   .v-select {
     height: 50px;
   }

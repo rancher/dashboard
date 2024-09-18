@@ -313,7 +313,7 @@ export default {
     }
   }
 
-  .prompt-restore :deep() .card-wrap .card-actions {
+  .prompt-restore :deep( .card-wrap .card-actions ) {
     display: block;
 
     button:not(:last-child) {

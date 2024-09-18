@@ -317,7 +317,7 @@ export default {
 <style lang="scss" scoped>
 $detailSize: 11px;
 
-:deep() .type-description {
+:deep( .type-description ) {
     font-size: $detailSize;
 }
 
@@ -332,7 +332,7 @@ label.radio {
     grid-template-columns: 1fr 1fr;
   }
 
-  :deep() .checkbox-label {
+  :deep( .checkbox-label ) {
     margin-right: 0;
   }
 }

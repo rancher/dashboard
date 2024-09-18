@@ -814,7 +814,7 @@ export default {
 
     .filter {
       :deep() .labeled-select,
-      :deep() .unlabeled-select {
+      :deep( .unlabeled-select ) {
         .vs__search::placeholder {
           color: var(--body-text) !important;
         }
@@ -976,7 +976,7 @@ export default {
         width: 40px;
       }
 
-      :deep() > div > .btn.role-tertiary {
+      :deep( > div > .btn.role-tertiary ) {
         border: 1px solid var(--header-btn-bg);
         border: none;
         background: var(--header-btn-bg);
@@ -1031,7 +1031,7 @@ export default {
 
         .v-popper {
           display: flex;
-          :deep() .trigger{
+          :deep( .trigger) {
           .user-image {
               display: flex;
             }
@@ -1045,7 +1045,7 @@ export default {
 
         &:focus {
           .v-popper {
-            :deep() .trigger {
+            :deep( .trigger ) {
               line-height: 0;
               .user-image {
                 max-height: 40px;
@@ -1114,27 +1114,27 @@ export default {
   }
 
   #page-actions {
-    :deep() .v-popper__arrow-container {
+    :deep( .v-popper__arrow-container ) {
       display: none;
     }
   }
 
   .user-menu {
-    :deep() .v-popper__arrow-container {
+    :deep( .v-popper__arrow-container ) {
       display: none;
     }
     // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
-    :deep() .v-popper__inner {
+    :deep( .v-popper__inner ) {
       padding: 0 0 10px 0;
     }
 
-    :deep() .v-popper {
+    :deep( .v-popper ) {
       display: flex;
     }
   }
 
   .actions {
-    :deep() .v-popper:focus {
+    :deep( .v-popper:focus ) {
       outline: 0;
     }
 

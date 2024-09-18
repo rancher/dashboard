@@ -802,7 +802,7 @@ export default {
     color: var(--error);
   }
 
-  :deep() {
+  :deep( ) {
     .column-headers {
       margin-right: 75px;
       margin-bottom: 5px;

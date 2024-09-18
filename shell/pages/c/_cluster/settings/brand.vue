@@ -600,7 +600,7 @@ export default {
   }
 }
 
-:deep().preview-container {
+:deep(.preview-container ) {
   display: flex;
   flex-direction: column;
 

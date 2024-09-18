@@ -171,13 +171,13 @@ export default {
         padding-left: 3px;
       }
 
-      :deep() .highlight {
+      :deep( .highlight ) {
         background: var(--diff-ins-bg);
         color: var(--body-text);
         padding: 2px;
       }
 
-      :deep() .icon {
+      :deep( .icon ) {
         position: relative;
         color: var(--muted);
       }
@@ -202,7 +202,7 @@ export default {
         background: var(--nav-hover);
         text-decoration: none;
 
-        :deep() .icon {
+        :deep( .icon ) {
           color: var(--body-text);
         }
       }
@@ -229,7 +229,7 @@ export default {
         padding-left: 16px;
       }
 
-      :deep() .label I {
+      :deep( .label I ) {
         padding-right: 2px;
       }
     }

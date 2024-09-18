@@ -429,7 +429,7 @@ export default {
   padding-bottom: 1px;
 
   &.no-label.compact-input {
-    :deep() .vs__actions:after {
+    :deep( .vs__actions:after ) {
       top: -2px;
     }
 
@@ -442,7 +442,7 @@ export default {
     height: $input-height;
     padding-top: 4px;
 
-    :deep() .vs__actions:after {
+    :deep( .vs__actions:after ) {
       top: 0;
     }
   }
@@ -478,21 +478,21 @@ export default {
 
   &.taggable.compact-input {
     min-height: $unlabeled-input-height;
-    :deep() .vs__selected-options {
+    :deep( .vs__selected-options ) {
       padding-top: 8px !important;
     }
   }
 
   &.taggable:not(.compact-input) {
     min-height: $input-height;
-    :deep() .vs__selected-options {
+    :deep( .vs__selected-options ) {
       // Need to adjust margin when there is a label in the control to add space between the label and the tags
       margin-top: 0px;
     }
   }
 
   &:not(.taggable) {
-    :deep() .vs__selected-options {
+    :deep( .vs__selected-options ) {
       // Ensure whole select is clickable to close the select when open
       .vs__selected {
         width: 100%;
@@ -501,7 +501,7 @@ export default {
   }
 
   &.taggable {
-    :deep() .vs__selected-options {
+    :deep( .vs__selected-options ) {
       padding: 3px 0;
       .vs__selected {
         border-color: var(--accent-btn);
@@ -526,30 +526,30 @@ export default {
     }
   }
 
-  :deep() .vs__selected-options {
+  :deep( .vs__selected-options ) {
     margin-top: -5px;
   }
 
-  :deep() .v-select:not(.vs--single) {
+  :deep( .v-select:not(.vs--single) ) {
     .vs__selected-options {
       padding: 5px 0;
     }
   }
 
-  :deep() .vs__actions {
+  :deep( .vs__actions ) {
     &:after {
       position: relative;
       top: -10px;
     }
   }
 
-  :deep() .v-select.vs--open {
+  :deep( .v-select.vs--open ) {
     .vs__dropdown-toggle {
       color: var(--outline) !important;
     }
   }
 
-  :deep() &.disabled {
+  :deep( &.disabled ) {
     .labeled-container,
     .vs__dropdown-toggle,
     input,
@@ -558,7 +558,7 @@ export default {
     }
   }
 
-  .no-label :deep() {
+  .no-label :deep( ) {
     &.v-select:not(.vs--single) {
       min-height: 33px;
     }

@@ -1451,15 +1451,15 @@ export default {
   }
 
   .localeSelector {
-    :deep() .v-popper__inner {
+    :deep( .v-popper__inner ) {
       padding: 50px 0;
     }
 
-    :deep() .v-popper__arrow-container {
+    :deep( .v-popper__arrow-container ) {
       display: none;
     }
 
-    :deep() .v-popper:focus {
+    :deep( .v-popper:focus ) {
       outline: 0;
     }
 

@@ -287,7 +287,7 @@ export default {
   min-height: 100%;
   min-width: 100%;
 
-  & :deep() .content {
+  & :deep( .content ) {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -298,7 +298,7 @@ export default {
     padding: 0;
   }
 
-  & :deep() .overlay {
+  & :deep( .overlay ) {
     position: static;
     background-color: initial;
   }

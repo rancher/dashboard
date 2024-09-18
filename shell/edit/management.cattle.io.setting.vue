@@ -256,7 +256,7 @@ export default {
     }
   }
 
-  :deep() .edit-help code {
+  :deep( .edit-help code ) {
     padding: 1px 5px;
   }
 </style>

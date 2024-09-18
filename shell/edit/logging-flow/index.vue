@@ -474,7 +474,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-:deep() {
+:deep( ) {
   .icon-info {
     margin-top: -3px;
     margin-right: 4px;

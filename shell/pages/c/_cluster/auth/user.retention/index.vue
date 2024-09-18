@@ -293,7 +293,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
     margin-top: 20px;
     padding: 10px 20px;
 
-    :deep() .spacer-small {
+    :deep( .spacer-small ) {
       padding: 0;
     }
   }

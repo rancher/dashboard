@@ -398,7 +398,7 @@ export default {
   }
 
   .body :deep() > .child.router-link-active,
-  .header :deep() > .child.router-link-exact-active {
+  .header :deep( > .child.router-link-exact-active ) {
     padding: 0;
 
     A, A I {
@@ -412,7 +412,7 @@ export default {
     }
   }
 
-  .body :deep() > .child {
+  .body :deep( > .child ) {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;

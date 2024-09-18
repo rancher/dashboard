@@ -1880,7 +1880,7 @@ export default {
     // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
     // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
     &.windowsIncompatible {
-      :deep() .header {
+      :deep( .header ) {
         padding-bottom: 15px;
       }
     }
@@ -1922,7 +1922,7 @@ export default {
       &__content {
         flex: 1;
 
-        :deep() .tab-container {
+        :deep( .tab-container ) {
           overflow: auto;
         }
       }
@@ -1982,7 +1982,7 @@ export default {
 
       padding-bottom: 10px;
 
-      :deep() .chart-readmes {
+      :deep( .chart-readmes ) {
         flex: 1;
         overflow: auto;
       }
@@ -2010,7 +2010,7 @@ export default {
     }
   }
 
-  :deep() .yaml-editor {
+  :deep( .yaml-editor ) {
     flex: 1
   }
 

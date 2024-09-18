@@ -424,7 +424,7 @@ export default {
 
         padding-bottom: 10px;
 
-        :deep() .chart-readmes {
+        :deep( .chart-readmes ) {
           flex: 1;
           overflow: auto;
         }

@@ -503,7 +503,7 @@ export default {
 </template>
 <style lang="scss" scoped>
 .project-namespaces {
-  & :deep() {
+  & :deep( ) {
     .project-namespaces-table table {
       table-layout: fixed;
     }

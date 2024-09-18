@@ -78,7 +78,7 @@ export default {
 
 <style lang="scss">
 
-:deep() {
+:deep( ) {
   P {
     font-size: initial;
     line-height: initial;

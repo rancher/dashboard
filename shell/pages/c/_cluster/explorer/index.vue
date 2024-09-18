@@ -869,7 +869,7 @@ export default {
   align-items: center;
 }
 
-.etcd-metrics :deep() .external-link {
+.etcd-metrics :deep( .external-link ) {
   top: -107px;
 }
 

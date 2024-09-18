@@ -522,7 +522,7 @@ export default {
     }
 
     .setup-title {
-      :deep() code {
+      :deep( code ) {
         font-size: 12px;
         padding: 0;
       }

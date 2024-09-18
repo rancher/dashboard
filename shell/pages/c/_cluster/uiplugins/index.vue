@@ -1218,11 +1218,11 @@ export default {
       }
     }
   }
-  :deep() .checkbox-label {
+  :deep( .checkbox-label ) {
     font-weight: normal !important;
   }
 
-  :deep() .add-repos-banner .banner__content {
+  :deep( .add-repos-banner .banner__content ) {
     display: flex;
     justify-content: space-between;
     align-items: center;

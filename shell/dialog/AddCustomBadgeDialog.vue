@@ -413,7 +413,7 @@ export default {
       padding: 2px 10px;
     }
 
-    :deep() .badge-icon-text input {
+    :deep( .badge-icon-text input ) {
       text-transform: uppercase;
     }
   }

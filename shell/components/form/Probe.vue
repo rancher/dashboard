@@ -367,7 +367,7 @@ export default {
   .title {
     margin-bottom: 10px;
   }
-  :deep() .labeled-select {
+  :deep( .labeled-select ) {
     height: auto;
   }
 

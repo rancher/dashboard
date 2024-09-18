@@ -60,7 +60,7 @@ export default {
 </template>
 
 <style scoped>
-.apps :deep() .state-description{
+.apps :deep( .state-description) {
   color: var(--error)
 }
 </style>

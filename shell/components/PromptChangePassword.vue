@@ -88,7 +88,7 @@ export default {
 
 <style lang="scss" scoped>
   .prompt-password {
-    :deep() .card-wrap {
+    :deep( .card-wrap ) {
       display: flex;
       flex-direction: column;
 

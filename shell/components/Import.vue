@@ -231,7 +231,7 @@ export default {
     min-height: $min;
     max-height: $max;
 
-    :deep() .code-mirror {
+    :deep( .code-mirror ) {
       .CodeMirror {
         position: initial;
       }

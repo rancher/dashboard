@@ -100,7 +100,7 @@ export default {
 
 <style lang="scss" scoped>
 .dashboard-metrics {
-  & :deep() {
+  & :deep( ) {
     .external-link {
       position: absolute;
       left: 200px;
@@ -114,7 +114,7 @@ export default {
 }
 
 .dashboard-metrics.external-link-pull-left {
-  & :deep() {
+  & :deep( ) {
     .external-link {
       position: absolute;
       left: 10px;

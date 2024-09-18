@@ -277,7 +277,7 @@ export default {
 .prompt-rollback {
   margin: 0;
 
-  & :deep() .card-actions {
+  & :deep( .card-actions ) {
     display: grid;
   }
 }
@@ -285,7 +285,7 @@ export default {
 .yaml-editor {
   max-height: 70vh;
 
-  & :deep().root {
+  & :deep(.root ) {
     max-height: 65vh;
   }
 }
@@ -300,7 +300,7 @@ export default {
   }
 }
 
-:deep() .card-body {
+:deep( .card-body ) {
   max-height: calc(95vh - 135px);
   overflow: hidden;
 }

@@ -63,7 +63,7 @@ export default {
     max-width: 100%;
     line-height: 1.6;
 
-    :deep() {
+    :deep( ) {
       * + H1,
       * + H2,
       * + H3,
@@ -74,7 +74,7 @@ export default {
       }
     }
 
-    :deep() code {
+    :deep( code ) {
       font-size: 13.5px;
       white-space: break-spaces;
       word-wrap: break-word;
@@ -83,16 +83,16 @@ export default {
       border: 0;
     }
 
-    :deep() pre {
+    :deep( pre ) {
       white-space: break-spaces;
       word-break: break-word;
     }
 
-    :deep()  > h1:first-of-type {
+    :deep(  > h1:first-of-type ) {
       display: none;
     }
 
-    :deep() p {
+    :deep( p ) {
       margin-bottom: 0.5em;
     }
   }

@@ -93,7 +93,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-:deep() .unlabeled-select {
+:deep(.unlabeled-select) {
   height: 61px;
-  }
+}
 </style>

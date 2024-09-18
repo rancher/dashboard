@@ -558,7 +558,7 @@ export default {
         margin-bottom: 0;
         border-left: 0;
 
-        :deep() code {
+        :deep( code ) {
           font-size: 12px;
           padding: 0;
         }

@@ -638,7 +638,7 @@ export default defineComponent({
   }
 }
 
-:deep() {
+:deep( ) {
   .labeled-input INPUT.no-label,
   .labeled-input INPUT:hover.no-label,
   .labeled-input INPUT:focus.no-label {

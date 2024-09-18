@@ -261,7 +261,7 @@ export default {
   .banner {
     display: block;
 
-    &:deep() code {
+    &:deep( code ) {
       padding: 0 3px;
       margin: 0 3px;
     }

@@ -167,7 +167,7 @@ export default {
     table-layout: initial;
   }
 
-   :deep() .box {
+   :deep( .box ) {
     display: grid;
     grid-template-columns: 25% 25% 25% 15%;
     column-gap: 1.75%;

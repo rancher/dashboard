@@ -1501,7 +1501,7 @@ export default {
 <style lang="scss" scoped>
 $yaml-height: 200px;
 
-:deep() .yaml-editor {
+:deep( .yaml-editor ) {
   flex: 1;
   min-height: $yaml-height;
   & .code-mirror .CodeMirror {
@@ -1511,7 +1511,7 @@ $yaml-height: 200px;
   }
 }
 
-:deep() .info-box {
+:deep( .info-box ) {
   margin-bottom: 10px;
 }
 

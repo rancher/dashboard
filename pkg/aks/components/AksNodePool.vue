@@ -479,7 +479,7 @@ export default defineComponent({
 }
 .taints {
   width: 100%;
-  th,:deep() td{
+  th,:deep( td) {
     text-align: left;
     padding-right: 10px;
     font-weight: inherit;

@@ -518,7 +518,7 @@ export default {
   }
 
   .set-login-page, .whats-new {
-    > :deep() .banner__content {
+    > :deep( .banner__content ) {
       display: flex;
 
       > div {

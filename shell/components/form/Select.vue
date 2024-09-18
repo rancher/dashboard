@@ -300,22 +300,22 @@ export default {
   .unlabeled-select {
     position: relative;
 
-    :deep() .v-select.select-input-view {
+    :deep( .v-select.select-input-view ) {
       .vs__actions {
         visibility: hidden;
       }
     }
 
-    & .vs--multiple :deep() .vs__selected-options .vs__selected {
+    & .vs--multiple :deep( .vs__selected-options .vs__selected ) {
       width: auto;
     }
 
-    :deep() .labeled-tooltip.error .status-icon {
+    :deep( .labeled-tooltip.error .status-icon ) {
       top: 7px;
       right: 2px;
     }
 
-    :deep() .vs__selected-options {
+    :deep( .vs__selected-options ) {
       display: flex;
       margin: 3px;
 
@@ -324,13 +324,13 @@ export default {
       }
     }
 
-    :deep() .v-select.vs--open {
+    :deep( .v-select.vs--open ) {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }
     }
 
-    :deep() .v-select.vs--open {
+    :deep( .v-select.vs--open ) {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }

@@ -505,10 +505,10 @@ $checkbox: 75;
   }
 }
 .ports-row .protocol :deep() .unlabeled-select,
-.ports-row .protocol :deep() .unlabeled-select .v-select {
+.ports-row .protocol :deep( .unlabeled-select .v-select ) {
   height: 100%;
 }
-.ports-row .protocol :deep() .unlabeled-select .vs__dropdown-toggle {
+.ports-row .protocol :deep( .unlabeled-select .vs__dropdown-toggle ) {
   padding-top: 12px;
 }
 </style>

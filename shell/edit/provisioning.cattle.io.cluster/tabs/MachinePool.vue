@@ -368,7 +368,7 @@ export default {
 
 <style lang="scss" scoped>
   .advanced :deep() >.vue-portal-target:empty,
-  .advanced :deep() >.vue-portal-target:empty + .spacer {
+  .advanced :deep( >.vue-portal-target:empty + .spacer ) {
     display: none;
   }
 </style>

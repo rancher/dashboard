@@ -526,7 +526,7 @@ button {
     max-height: $input-height;
   }
 
-  .namespace-select :deep() {
+  .namespace-select :deep( ) {
     .labeled-select {
       min-width: 40%;
 

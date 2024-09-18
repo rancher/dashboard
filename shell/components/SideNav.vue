@@ -507,7 +507,7 @@ export default {
     overflow-y: auto;
 
     // h6 is used in Group element
-    :deep() h6 {
+    :deep( h6 ) {
       margin: 0;
       letter-spacing: normal;
       line-height: 15px;

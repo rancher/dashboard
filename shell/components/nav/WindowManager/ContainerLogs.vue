@@ -732,11 +732,11 @@ export default {
       opacity: 0.25;
     }
 
-    &.wrap-lines :deep() .msg {
+    &.wrap-lines :deep( .msg ) {
       white-space: pre-wrap;
     }
 
-    &.show-times :deep() .time {
+    &.show-times :deep( .time ) {
       display: initial;
       width: auto;
     }
@@ -744,7 +744,7 @@ export default {
   }
 
   .containerPicker {
-    :deep() &.unlabeled-select {
+    :deep( &.unlabeled-select ) {
       display: inline-block;
       min-width: 200px;
       height: 30px;

@@ -323,7 +323,7 @@ export default {
       box-shadow: none;
     }
 
-    :deep() .card-actions {
+    :deep( .card-actions ) {
       display: flex;
       justify-content: center;
     }

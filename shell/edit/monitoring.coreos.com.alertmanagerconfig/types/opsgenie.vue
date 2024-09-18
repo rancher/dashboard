@@ -270,7 +270,7 @@ export default {
       width: 100%;
     }
 
-    .target-container :deep() .unlabeled-select {
+    .target-container :deep( .unlabeled-select ) {
       min-width: 35%;
       height: 100%;
     }
