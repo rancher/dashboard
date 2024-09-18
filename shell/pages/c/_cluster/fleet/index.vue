@@ -394,7 +394,6 @@ export default {
         </template>
         <template v-slot:content>
           <ResourceTable
-            v-bind="$attrs"
             :schema="schema"
             :headers="headers"
             :rows="ws.repos"
