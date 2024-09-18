@@ -56,7 +56,7 @@
     "browser-env": "3.3.0",
     "clipboard-polyfill": "4.0.1",
     "codemirror": ">=5.64.0 <6",
-    "codemirror-editor-vue3": "^2.7.0",
+    "codemirror-editor-vue3": "2.7.1",
     "cookie": "0.5.0",
     "cookie-universal": "2.2.2",
     "core-js": "3.25.3",

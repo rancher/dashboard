@@ -5704,10 +5704,10 @@ co@^4.6.0:
   resolved "https://registry.npmjs.org/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
-codemirror-editor-vue3@2.7.0:
-  version "2.7.0"
-  resolved "https://registry.npmjs.org/codemirror-editor-vue3/-/codemirror-editor-vue3-2.7.0.tgz#873e0d971d9016c9328b16d3eb0c818c96af59b6"
-  integrity sha512-mAx2CPCshARMXjIb9Bl/jhSzcVGAjh9JqLCB9+9hGPPW/lObHWLJD7DgNd0xJnw2Vrm9shHIS/ch74MwmDGrtA==
+codemirror-editor-vue3@2.7.1:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/codemirror-editor-vue3/-/codemirror-editor-vue3-2.7.1.tgz#48d41515cb3c47e2c84200414c2bf0f267dac15e"
+  integrity sha512-nUlSUPu22ugrvNNy86w4GhUswZk0qi0DsPGC8srG88LllJahXlZslHD8ikaLwp8Y1Ho6gW2STiYZe8ilW2rPLg==
   dependencies:
     "@unocss/transformer-directives" "^0.58.8"
     "@wdns/vue-code-block" "^2.3.2"
