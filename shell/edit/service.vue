@@ -107,7 +107,8 @@ export default {
         SESSION_AFFINITY_ACTION_VALUES
       ),
       fvFormRuleSets:            [],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      closedErrorMessages:       []
     };
   },
 
@@ -207,6 +208,13 @@ export default {
 
       return out;
     },
+    errorMessages() {
+      if (!this.serviceType) {
+        return [];
+      }
+
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
+    }
   },
 
   watch: {
@@ -340,7 +348,7 @@ export default {
     :selected-subtype="serviceType"
     :subtypes="defaultServiceTypes"
     :validation-passed="fvFormIsValid"
-    :errors="fvUnreportedValidationErrors"
+    :errors="errorMessages"
     :apply-hooks="applyHooks"
     :description="t('servicesPage.serviceListDescription')"
     @error="(e) => (errors = e)"

@@ -6287,6 +6287,7 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+  error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
     running: Running

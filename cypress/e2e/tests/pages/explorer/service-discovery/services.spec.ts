@@ -79,6 +79,12 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
       servicesPagePo.list().resourceTable().sortableTable().checkRowCount(false, 3);
     });
 
+    it('validation errors should not be shown when form is just opened', () => {
+      servicesPagePo.goTo();
+      servicesPagePo.clickCreate();
+      servicesPagePo.createServicesForm().errorBanner().should('not.exist');
+    });
+
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
