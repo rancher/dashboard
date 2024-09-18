@@ -597,10 +597,13 @@ export default {
     open() {
       this.isOpen = true;
       this.$nextTick(() => {
-        this.$refs.filter.focus();
+        this.focusFilter();
       });
       this.addCloseKeyHandler();
       this.layout();
+    },
+    focusFilter() {
+      this.$refs.filter.focus();
     },
     close() {
       this.isOpen = false;
@@ -798,6 +801,7 @@ export default {
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
+            @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <i
