@@ -4,6 +4,8 @@ import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 export default {
+  emits: ['update:value'],
+
   components: { ArrayList, ArrayListGrouped },
 
   props: {

@@ -12,6 +12,8 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI, SERVICE } from '@shell/config/types';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput,
     LabeledSelect,

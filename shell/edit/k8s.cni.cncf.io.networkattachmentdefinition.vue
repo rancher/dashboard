@@ -10,6 +10,8 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { set } from '@shell/utils/object';
 
 export default {
+  emits: ['input'],
+
   components: {
     Tab,
     Tabbed,

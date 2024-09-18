@@ -14,6 +14,8 @@ import { POD } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTable,
     ResourceTabs,

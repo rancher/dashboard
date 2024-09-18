@@ -14,7 +14,10 @@ import throttle from 'lodash/throttle';
 import { allHash } from '@shell/utils/promise';
 
 export default {
-  name:         'CruClusterGroup',
+  name: 'CruClusterGroup',
+
+  emits: ['input'],
+
   inheritAttrs: false,
   components:   {
     Banner,

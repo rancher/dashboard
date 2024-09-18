@@ -13,6 +13,8 @@ import { mapGetters } from 'vuex';
 import { STORAGE } from '@shell/config/labels-annotations';
 
 export default {
+  emits: ['valid'],
+
   components: {
     Tab,
     Tabbed,

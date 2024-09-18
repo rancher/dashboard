@@ -98,6 +98,8 @@ const initialState = () => {
 };
 
 export default {
+  emits: ['closed', 'refresh'],
+
   components: {
     AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, AppModal,
   },

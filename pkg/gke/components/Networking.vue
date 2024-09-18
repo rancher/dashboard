@@ -20,6 +20,8 @@ const GKE_NONE_OPTION = 'none';
 export default defineComponent({
   name: 'GKENetworking',
 
+  emits: ['update:network', 'update:subnetwork', 'update:servicesSecondaryRangeName', 'update:servicesIpv4CidrBlock', 'update:clusterSecondaryRangeName', 'update:clusterIpv4CidrBlock', 'update:enableMasterAuthorizedNetwork', 'update:enablePrivateEndpoint', 'update:masterIpv4CidrBlock', 'update:masterAuthorizedNetworkCidrBlocks', 'update:createSubnetwork', 'error', 'update:networkPolicyEnabled', 'update:networkPolicyConfig', 'update:enableNetworkPolicy', 'update:subnetwork', 'update:clusterSecondaryRangeName', 'update:clusterIpv4CidrBlock', 'update:servicesSecondaryRangeName', 'update:servicesIpv4CidrBlock', 'update:clusterIpv4Cidr', 'update:subnetworkName', 'update:nodeIpv4CidrBlock', 'update:useIpAliases', 'update:enablePrivateNodes', 'update:masterIpv4CidrBlock'],
+
   components: {
     LabeledSelect, Checkbox, Banner, LabeledInput, KeyValue
   },

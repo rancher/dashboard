@@ -96,6 +96,8 @@ const storageTypes = [
 ];
 
 export default {
+  emits: ['expandAdvanced', 'error'],
+
   components: {
     ArrayList,
     Banner,

@@ -7,6 +7,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { random32 } from '@shell/utils/string';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput,
     Select,

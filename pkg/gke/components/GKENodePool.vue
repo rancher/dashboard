@@ -18,6 +18,8 @@ import type { GKEMachineTypeOption } from '../types/index.d.ts';
 export default defineComponent({
   name: 'GKENodePool',
 
+  emits: ['update:version', 'update:minNodeCount', 'update:maxNodeCount', 'update:minNodeCount', '1', 'update:maxNodeCount', '3', 'update:imageType', 'update:machineType', 'update:diskType', 'update:serviceAccount', 'update:name', 'update:initialNodeCount', 'update:maxPodsConstraint', 'update:autoscaling', 'update:autoRepair', 'update:autoUpgrade', 'update:diskSizeGb', 'update:localSsdCount', 'update:preemptible', 'update:taints', 'update:labels', 'update:tags', 'update:oauthScopes'],
+
   components: {
     Checkbox,
     LabeledSelect,

@@ -7,6 +7,8 @@ import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
+  emits: ['closed'],
+
   components: {
     AsyncButton,
     Checkbox,

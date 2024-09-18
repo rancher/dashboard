@@ -6,6 +6,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     ResourceTabs,

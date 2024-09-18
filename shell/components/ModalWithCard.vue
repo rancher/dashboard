@@ -7,6 +7,8 @@ import AppModal from '@shell/components/AppModal.vue';
 export default {
   name: 'ModalWithCard',
 
+  emits: ['close', 'finish'],
+
   components: {
     Card, Banner, AsyncButton, AppModal
   },

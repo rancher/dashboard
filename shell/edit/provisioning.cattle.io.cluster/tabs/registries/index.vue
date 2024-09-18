@@ -8,6 +8,7 @@ import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/reg
 import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
 
 export default {
+  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed'],
   components: {
     LabeledInput,
     Banner,

@@ -18,7 +18,10 @@ import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 
 export default {
-  name:         'FleetCruWorkspace',
+  name: 'FleetCruWorkspace',
+
+  emits: ['input'],
+
   inheritAttrs: false,
   components:   {
     CruResource,

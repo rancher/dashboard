@@ -3,6 +3,8 @@ import Labels from '@shell/components/form/Labels';
 import Tab from '@shell/components/Tabbed/Tab';
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: { Labels, Tab },
 
   props: {

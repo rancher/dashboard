@@ -6,6 +6,8 @@ import { mapGetters } from 'vuex';
 const carouselSeenStorageKey = `carousel-seen`;
 
 export default {
+  emits: ['clicked'],
+
   components: { BadgeState },
   name:       'Carousel',
   props:      {

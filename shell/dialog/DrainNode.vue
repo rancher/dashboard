@@ -9,6 +9,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
+  emits: ['close'],
+
   components: {
     AsyncButton,
     Banner,

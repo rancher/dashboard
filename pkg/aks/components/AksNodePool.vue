@@ -18,6 +18,8 @@ import { randomStr } from '@shell/utils/string';
 export default defineComponent({
   name: 'AKSNodePool',
 
+  emits: ['vmSizeSet', 'update:value', 'validationChanged'],
+
   components: {
     LabeledInput,
     LabeledSelect,

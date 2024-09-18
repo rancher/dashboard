@@ -9,6 +9,8 @@ import { mapGetters } from 'vuex';
 import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/taints';
 
 export default defineComponent({
+  emits: ['update:value', 'remove'],
+
   components: { Select, LabeledInput },
 
   props: {

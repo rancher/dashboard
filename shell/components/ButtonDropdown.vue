@@ -5,6 +5,8 @@ import isString from 'lodash/isString';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 
 export default {
+  emits: ['dd-button-action', 'click-action'],
+
   mixins: [VueSelectOverrides],
   props:  {
     buttonLabel: {

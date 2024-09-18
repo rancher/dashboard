@@ -6,6 +6,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits:      ['update:value'],
   components: {
     UnitInput, LabeledInput, RadioGroup
   },

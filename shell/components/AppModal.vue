@@ -2,7 +2,10 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name:         'AppModal',
+  name: 'AppModal',
+
+  emits: ['close'],
+
   inheritAttrs: false,
   props:        {
     /**

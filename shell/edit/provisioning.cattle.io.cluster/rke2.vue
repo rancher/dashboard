@@ -92,6 +92,8 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: {
     AgentEnv,
     BadgeState,

@@ -39,6 +39,8 @@ async function getYaml(store, model) {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     DetailTop,

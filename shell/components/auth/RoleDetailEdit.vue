@@ -53,6 +53,8 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *   - Should show only namespace scoped resources
  */
 export default {
+  emits: ['set-subtype', 'input'],
+
   components: {
     ArrayList,
     CruResource,

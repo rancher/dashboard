@@ -2,6 +2,8 @@
 export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
+  emits: ['active'],
+
   props: {
     label: {
       default: null,

@@ -4,6 +4,8 @@ import Markdown from '@shell/components/Markdown';
 export default {
   name: 'ExplainPanel',
 
+  emits: ['navigate'],
+
   components: { Markdown },
 
   props: {

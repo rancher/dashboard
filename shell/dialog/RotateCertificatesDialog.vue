@@ -10,6 +10,8 @@ import { get, set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
+  emits: ['close'],
+
   components: {
     Select,
     RadioGroup,

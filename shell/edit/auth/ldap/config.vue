@@ -11,6 +11,8 @@ const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
 
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledInput,

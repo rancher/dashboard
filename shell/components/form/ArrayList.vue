@@ -8,6 +8,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
+  emits: ['add', 'remove', 'update:value'],
+
   components: { TextAreaAutoGrow, LabeledInput },
   props:      {
     value: {

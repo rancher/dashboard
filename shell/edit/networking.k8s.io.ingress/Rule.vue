@@ -4,6 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { random32 } from '@shell/utils/string';
 
 export default {
+  emits:      ['update:value', 'remove'],
   components: { RulePath, LabeledInput },
   props:      {
     value: {

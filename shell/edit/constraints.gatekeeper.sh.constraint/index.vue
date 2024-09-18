@@ -31,6 +31,8 @@ function findConstraintTypesIds(schemas) {
 const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
 
 export default {
+  emits: ['update:value', 'set-subtype'],
+
   components: {
     CruResource,
     MatchKinds,

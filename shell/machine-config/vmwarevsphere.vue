@@ -137,6 +137,8 @@ const errorActions = Object.freeze({
 });
 
 export default {
+  emits: ['error'],
+
   components: {
     ArrayListSelect, Card, KeyValue, Loading, LabeledInput, LabeledSelect, Banner, UnitInput, RadioGroup, YamlEditor
   },

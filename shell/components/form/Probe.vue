@@ -16,6 +16,8 @@ const KINDS = [
 ];
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput, LabeledSelect, UnitInput, ShellInput, KeyValue,
   },

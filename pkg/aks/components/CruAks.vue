@@ -105,6 +105,8 @@ const _NONE = 'none';
 export default defineComponent({
   name: 'CruAKS',
 
+  emits: ['validationChanged'],
+
   components: {
     SelectCredential,
     CruResource,

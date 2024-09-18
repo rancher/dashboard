@@ -4,6 +4,8 @@ import { NORMAN } from '@shell/config/types';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
   mixins:     [Question],
 

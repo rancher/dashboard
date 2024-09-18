@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import { get, set } from '@shell/utils/object';
 
 export default {
+  emits:      ['update:value'],
   components: {
     LabeledInput, LabeledSelect, Banner
   },

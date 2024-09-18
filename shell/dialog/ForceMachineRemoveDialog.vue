@@ -8,6 +8,8 @@ import { Card } from '@components/Card';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {
+  emits: ['close'],
+
   components: {
     AsyncButton,
     Banner,

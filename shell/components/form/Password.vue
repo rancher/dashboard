@@ -5,6 +5,8 @@ import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 export default {
+  emits: ['update:value', 'blur'],
+
   components: { LabeledInput },
   props:      {
     value: {

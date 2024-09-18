@@ -2,6 +2,8 @@
 import Loading from '@shell/components/Loading';
 
 export default {
+  emits: ['loaded'],
+
   components: { Loading },
 
   props: {

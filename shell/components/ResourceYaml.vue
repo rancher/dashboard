@@ -19,6 +19,8 @@ import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
+  emits: ['error'],
+
   components: {
     Footer,
     FileSelector,

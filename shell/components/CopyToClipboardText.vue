@@ -2,6 +2,8 @@
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
+  emits: ['error'],
+
   props: {
     text: {
       type:     String,

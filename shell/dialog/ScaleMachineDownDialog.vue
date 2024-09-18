@@ -4,6 +4,8 @@ import { MANAGEMENT, CAPI } from '@shell/config/types';
 import GenericPrompt from './GenericPrompt';
 
 export default {
+  emits: ['close'],
+
   components: { GenericPrompt },
 
   props: {

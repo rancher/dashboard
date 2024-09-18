@@ -16,6 +16,8 @@ import isEqual from 'lodash/isEqual';
 export default {
   name: 'KeyValue',
 
+  emits: ['focusKey', 'update:value'],
+
   components: {
     CodeMirror,
     Select,

@@ -2,6 +2,8 @@
 import KeyValue from '@shell/components/form/KeyValue';
 
 export default {
+  emits: ['update:value'],
+
   components: { KeyValue },
 
   props: {

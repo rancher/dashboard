@@ -87,6 +87,8 @@ const CLUSTER_TYPES = [
 ];
 
 export default {
+  emits: ['onClusterTypeChanged'],
+
   components: { LabeledSelect },
   props:      {
     value: {

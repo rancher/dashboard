@@ -8,6 +8,8 @@ import Loading from '@shell/components/Loading';
 import { NAME } from '@shell/config/table-headers';
 
 export default {
+  emits: ['input'],
+
   components: {
     Tab,
     ResourceTabs,

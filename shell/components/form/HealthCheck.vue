@@ -3,6 +3,8 @@ import Probe from '@shell/components/form/Probe';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { Probe },
   props:      {
     value: {

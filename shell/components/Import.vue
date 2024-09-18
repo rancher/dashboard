@@ -14,6 +14,8 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
+  emits: ['close'],
+
   components: {
     AsyncButton,
     Banner,

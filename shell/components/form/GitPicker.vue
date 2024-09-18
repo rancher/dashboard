@@ -57,6 +57,7 @@ const provideProps: NonReactiveProps = {
 };
 
 export default defineComponent({
+  emits: ['change'],
 
   components: {
     LabeledSelect,

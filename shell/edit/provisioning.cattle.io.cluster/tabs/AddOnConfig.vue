@@ -7,6 +7,8 @@ import { camelToTitle } from '@shell/utils/string';
 import { _EDIT } from '@shell/config/query-params';
 
 export default {
+  emits: ['additional-manifest-changed', 'update-questions', 'update-values'],
+
   components: {
     Banner,
     Questions,

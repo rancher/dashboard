@@ -11,6 +11,8 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 // 2) isCreate - New password is for a new user
 // 3) isEdit - New password is for an existing user
 export default {
+  emits: ['valid', 'update:value'],
+
   components: {
     Checkbox, Banner, Password
   },

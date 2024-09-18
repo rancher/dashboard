@@ -41,6 +41,7 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
 export default {
+  emits:        ['set-subtype'],
   // Props are found in CreateEditView
   // props: {},
   inheritAttrs: false,

@@ -9,6 +9,8 @@ import Loading from '@shell/components/Loading';
 import { PROJECT } from '@shell/config/labels-annotations';
 
 export default {
+  emits: ['moving'],
+
   components: {
     AsyncButton, Card, LabeledSelect, Loading, AppModal
   },

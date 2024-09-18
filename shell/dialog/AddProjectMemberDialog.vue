@@ -6,6 +6,8 @@ import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     ProjectMemberEditor,

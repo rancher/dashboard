@@ -11,6 +11,7 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 
 export default {
+  emits: ['createUniqueId', 'removePvcForm', 'update:value'],
 
   components: {
     LabeledSelect, UnitInput, RadioGroup, Checkbox, LabeledInput

@@ -26,6 +26,8 @@ const getExemptionControl = (): PSAExemptionControl => ({
 });
 
 export default defineComponent({
+  emits: ['updateLabels', 'updateExemptions'],
+
   components: {
     Checkbox, LabeledSelect, LabeledInput
   },

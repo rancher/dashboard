@@ -16,6 +16,8 @@ export function canViewMembershipEditor(store, needsProject = false) {
 }
 
 export default {
+  emits: ['membership-update'],
+
   components: { ArrayList, Loading },
 
   props: {

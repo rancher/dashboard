@@ -6,6 +6,8 @@ import { clone } from '@shell/utils/object';
 import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
+  emits: ['update:value'],
+
   components: { Checkbox },
   props:      {
     value: {

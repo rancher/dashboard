@@ -16,6 +16,8 @@ const LOGGING_OPTION = 'logging.googleapis.com/kubernetes';
 export default defineComponent({
   name: 'GKEAdvancedOptions',
 
+  emits: ['update:loggingService', 'update:monitoringService', 'update:httpLoadBalancing', 'update:horizontalPodAutoscaling', 'update:enableKubernetesAlpha', 'update:maintenanceWindow'],
+
   components: {
     LabeledSelect,
     Checkbox,

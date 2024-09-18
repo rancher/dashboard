@@ -9,6 +9,8 @@ import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE'
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
 export default {
+  emits: ['update:value', 'truncate-hostname', 'input'],
+
   components: {
     LabeledInput,
     Banner,

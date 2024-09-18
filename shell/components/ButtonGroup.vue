@@ -1,5 +1,7 @@
 <script>
 export default {
+  emits: ['update:value'],
+
   props: {
     value: {
       type:     [String, Number, Boolean, Object],

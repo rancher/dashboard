@@ -49,6 +49,8 @@ const defaultOverlayFile = `#apiVersion: install.istio.io/v1alpha1
 `;
 
 export default {
+  emits: ['update:value'],
+
   components: {
     Checkbox,
     FileSelector,
