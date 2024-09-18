@@ -103,7 +103,7 @@ export default {
         mode:            'yaml',
         lint:            !readOnly,
         lineNumbers:     !readOnly,
-        styleActiveLine: true,
+        styleActiveLine: false,
         tabSize:         2,
         indentWithTabs:  false,
         cursorBlinkRate: ( readOnly ? -1 : 530 ),
