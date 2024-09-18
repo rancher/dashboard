@@ -41,7 +41,7 @@ jobs:
 
 This will leverage the usage of our reusable workflow and give your Github extension repo the ability to publish to the `gh-pages` branch via a **Tagged Release**. 
 
-It's mandatory that release type is **Tagged Release**, otherwise the `build-extension-charts.yml` workflow won't run properly, which is crucial for the success of the publish operation
+It's mandatory that release type is **Tagged Release**, otherwise the `build-extension-charts.yml` workflow won't run properly, which is crucial for the success of the publish operation.
 
 When creating a Tagged Release, the tag name **_MUST_** match the proper Extension name depending on the type of build. As it was mentioned above, the Extension Charts (published in the specified branch) and ECI (published in the specified registry) are determined by different versions.
 
