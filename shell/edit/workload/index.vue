@@ -2,6 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
+import { mapGetters } from 'vuex';
 
 export default {
   name:   'Workload',
@@ -21,11 +22,11 @@ export default {
     return { selectedName: null, closedErrorMessages: [] };
   },
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     errorMessages() {
       if (!this.type) {
         return [];
       }
-
       return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
     }
   },
@@ -59,7 +60,6 @@ export default {
 
         return {
           message: this.t('workload.error', { name, policy }),
-          icon:    'icon-pod_security'
         };
       }
       default:
