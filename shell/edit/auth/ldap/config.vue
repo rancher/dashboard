@@ -5,10 +5,12 @@ import { Checkbox } from '@components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
-import { OKTA, SHIBBOLETH } from '../saml';
 
 const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
+
+export const SHIBBOLETH = 'shibboleth';
+export const OKTA = 'okta';
 
 export default {
   components: {

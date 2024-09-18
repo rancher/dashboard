@@ -9,12 +9,9 @@ import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import config from '@shell/edit/auth/ldap/config';
+import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-
-export const SHIBBOLETH = 'shibboleth';
-export const OKTA = 'okta';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
