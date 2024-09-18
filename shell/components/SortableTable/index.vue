@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { defineAsyncComponent } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -682,7 +683,7 @@ export default {
                 const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
-                  component = pluginFormatter;
+                  component = defineAsyncComponent(pluginFormatter);
                   needRef = true;
                 }
               }
