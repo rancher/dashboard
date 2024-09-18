@@ -3,10 +3,10 @@ import ContainerResourceLimit from '@shell/components/ContainerResourceLimit.vue
 
 describe('component: ContainerResourceLimit', () => {
   it.skip.each([
-    ['limitsCpu', 'cpu-reservation', '111m', '111'],
-    ['limitsMemory', 'memory-reservation', '111Mi', '111'],
-    ['requestsCpu', 'cpu-limit', '111m', '111'],
-    ['requestsMemory', 'memory-limit', '111Mi', '111'],
+    ['limitsCpu', 'cpu-limit', '111m', '111'],
+    ['limitsMemory', 'memory-limit', '111Mi', '111'],
+    ['requestsCpu', 'cpu-reservation', '111m', '111'],
+    ['requestsMemory', 'memory-reservation', '111Mi', '111'],
     // ['limitsGpu', 'gpu-limit', 1000], // Input does not work atm
   ])('given value prop key %p as %p should display value %p', (key, id, value, expectation) => {
     const wrapper = mount(ContainerResourceLimit, { propsData: { value: { [key]: value } } });
