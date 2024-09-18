@@ -36,7 +36,7 @@ jobs:
       pages: write
     with:
       target_branch: gh-pages
-
+      tagged_release: ${{ github.ref_name }}
 ```
 
 This will leverage the usage of our reusable workflow and give your Github extension repo the ability to publish to the `gh-pages` branch via a **Tagged Release**. 
