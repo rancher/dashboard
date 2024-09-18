@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { UNITS } from '@shell/utils/units';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { defineComponent } from 'vue';
 
 describe('component: UnitInput', () => {
   it('should renders', () => {
@@ -183,5 +184,72 @@ describe('component: UnitInput', () => {
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
     expect(wrapper.emitted('update:value')[4][0]).toBe(value);
+  });
+
+  describe.each([
+    ['123m', -1, 1000, 'CPUs', true],
+    // ['123Mi', 2, 1024, '', true],
+  ])('given real use case with value %p, exponent %p, increment %p, baseUnit %p, modifier %p', (value, inputExponent, increment, baseUnit, outputModifier) => {
+    it('should display input value 123', () => {
+      const wrapper = mount(UnitInput, {
+        props: {
+          value,
+          inputExponent,
+          increment,
+          outputModifier,
+          baseUnit
+        }
+      });
+
+      const inputElement = wrapper.find('input').element as HTMLInputElement;
+
+      expect(inputElement.value).toBe('123');
+    });
+
+    it.each(['input', 'blur'])('on %p 123 should display input value 123', async(trigger) => {
+      const wrapper = mount(UnitInput, {
+        props: {
+          value: '0',
+          inputExponent,
+          increment,
+          outputModifier,
+          baseUnit
+        }
+      });
+      const input = wrapper.find('input');
+
+      await input.setValue('123');
+      await input.trigger(trigger);
+
+      expect(wrapper.emitted('update:value')).toBeTruthy();
+      expect(input.element.value).toBe('123');
+    });
+
+    it('should keep parent value to 123 on input', async() => {
+      const ParentComponent = defineComponent({
+        components: { UnitInput },
+        template:   `
+          <UnitInput
+            :value="value"
+            :input-exponent="inputExponent"
+            :output-modifier="outputModifier"
+            :base-unit="baseUnit"
+            @update:value="event => value = event.target.value"
+          />
+        `,
+        data() {
+          return {
+            value, inputExponent, outputModifier, baseUnit
+          };
+        }
+      });
+      const wrapper = mount(ParentComponent);
+      const input = wrapper.find('input');
+
+      await input.trigger('update:value');
+      await input.trigger('input');
+
+      expect(input.element.value).toBe('123');
+    });
   });
 });
