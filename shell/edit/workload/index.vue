@@ -27,6 +27,7 @@ export default {
       if (!this.type) {
         return [];
       }
+
       return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
     }
   },
@@ -58,9 +59,7 @@ export default {
         const name = match[0];
         const policy = match[1];
 
-        return {
-          message: this.t('workload.error', { name, policy }),
-        };
+        return { message: this.t('workload.error', { name, policy }) };
       }
       default:
         break;

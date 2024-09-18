@@ -12,13 +12,11 @@ describe('component: Workload', () => {
   ])('should map error message into object', (oldMessage, newMessage) => {
     const mockedValidationMixin = {
       methods: {
-        fvFormIsValid:                jest.fn(),
-        type:                         jest.fn(),
-        fvGetAndReportPathRules:      jest.fn(),
+        fvFormIsValid:           jest.fn(),
+        type:                    jest.fn(),
+        fvGetAndReportPathRules: jest.fn(),
       },
-      computed:{
-        fvUnreportedValidationErrors: jest.fn().mockReturnValue([]),
-      }
+      computed: { fvUnreportedValidationErrors: jest.fn().mockReturnValue([]) }
     };
     const mockedCREMixin = {};
     const mockedWorkloadMixin = {
@@ -72,7 +70,7 @@ describe('component: Workload', () => {
             getters: {
               'cluster/schemaFor': jest.fn(),
               'type-map/labelFor': jest.fn(),
-              'i18n/t': (text: string, v: {[key:string]: string}) => {
+              'i18n/t':            (text: string, v: {[key:string]: string}) => {
                 return `${ text }, ${ Object.values(v || {}) }`;
               },
             },
