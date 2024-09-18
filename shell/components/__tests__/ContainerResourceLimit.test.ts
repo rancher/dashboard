@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit.vue';
 
 describe('component: ContainerResourceLimit', () => {
-  it.skip.each([
+  it.each([
     ['limitsCpu', 'cpu-limit', '111m', '111'],
     ['limitsMemory', 'memory-limit', '111Mi', '111'],
     ['requestsCpu', 'cpu-reservation', '111m', '111'],
