@@ -84,7 +84,8 @@ export default {
   </span>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" scoped> 
+// TODO #11952: Correct deep statement
   .cluster-link {
     display: flex;
     align-items: center;

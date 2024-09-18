@@ -180,7 +180,8 @@ export default {
     </button>
   </div>
 </template>
-<style lang="scss" scoped>
+<style lang="scss" scoped> 
+// TODO #11952: Correct deep statement
 $row-height: 40px;
 
 .labeled-input :deep(, :deep() .labeled-input ) {

@@ -198,7 +198,8 @@ export default {
   </div>
 </template>
 
-<style lang='scss' scoped>
+<style lang='scss' scoped> 
+// TODO #11952: Correct deep statement
 .input-container {
   display: flex;
 

@@ -52,7 +52,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" scoped> 
+// TODO #11952: Correct deep statement
   .chart-readmes {
     & > h1 {
        border-top: var(--header-border-size) solid var(--header-border);

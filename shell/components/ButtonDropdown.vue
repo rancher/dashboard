@@ -226,7 +226,8 @@ export default {
   </v-select>
 </template>
 
-<style lang='scss' scoped>
+<style lang='scss' scoped> 
+// TODO #11952: Correct deep statement
 .button-dropdown.btn-sm {
   :deep( > .vs__dropdown-toggle ) {
     .vs__actions {

@@ -529,7 +529,8 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" scoped> 
+// TODO #11952: Correct deep statement
 
 .string-list {
   display: flex;

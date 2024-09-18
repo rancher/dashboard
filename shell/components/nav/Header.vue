@@ -779,7 +779,8 @@ export default {
   </header>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss" scoped> 
+// TODO #11952: Correct deep statement
   // It would be nice to grab this from `Group.vue`, but there's margin, padding and border, which is overkill to var
   $side-menu-group-padding-left: 16px;
 

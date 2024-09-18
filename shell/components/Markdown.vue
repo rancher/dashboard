@@ -76,7 +76,8 @@ export default {
   <Loading v-else />
 </template>
 
-<style lang="scss">
+<style lang="scss"> 
+// TODO #11952: Correct deep statement
 
 :deep( ) {
   P {
