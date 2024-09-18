@@ -111,6 +111,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
   });
 
   describe('CLI Downloads', () => {
+    // Shouldn't be needed with https://github.com/rancher/dashboard/issues/11393
+    const expectedLinkStatusCode = 404;
+
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
       aboutPage.goTo();
@@ -125,7 +128,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
+          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
           expect(request.url).includes(macOsVersion);
         });
       });
@@ -139,7 +142,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
+          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
           expect(request.url).includes(linuxVersion);
         });
       });
@@ -153,7 +156,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
+          expect(response?.statusCode).to.eq(expectedLinkStatusCode);
           expect(request.url).includes(windowsVersion);
         });
       });
