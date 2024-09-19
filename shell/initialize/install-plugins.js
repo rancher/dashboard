@@ -2,7 +2,7 @@ import PortalVue from 'portal-vue';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
-import 'vue3-resize/dist/vue3-resize.css'
+import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
