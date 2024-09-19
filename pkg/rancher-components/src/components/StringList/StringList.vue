@@ -1,5 +1,4 @@
 <script lang="ts">
-// @ts-nocheck
 import { PropType, defineComponent } from 'vue';
 
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
