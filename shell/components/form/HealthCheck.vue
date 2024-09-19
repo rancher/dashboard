@@ -52,7 +52,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.healthCheck.readinessProbe')"
           :description="t('workload.container.healthCheck.readinessTip')"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>
@@ -66,7 +66,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.healthCheck.livenessProbe')"
           :description="t('workload.container.healthCheck.livenessTip')"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>
@@ -79,7 +79,7 @@ export default {
         :mode="mode"
         :label="t('workload.container.healthCheck.startupProbe')"
         :description="t('workload.container.healthCheck.startupTip')"
-        @input="update"
+        @update:value="update"
       />
     </div>
   </div>

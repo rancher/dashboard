@@ -164,7 +164,7 @@ export default {
             :mode="mode"
           />
           <LabeledInput
-            v-model.number="value.httpGet.port"
+            v-model:value.number="value.httpGet.port"
             type="number"
             :label="t('workload.container.lifecycleHook.httpGet.port.label')"
             :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
@@ -186,24 +186,25 @@ export default {
         v-for="(header, index) in value.httpGet.httpHeaders"
         :key="index"
         class="var-row"
+        data-testid="hookoption-header-row"
       >
-        <template @update:value="update">
-          <LabeledInput
-            v-model:value="value.httpGet.httpHeaders[index].name"
-            :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpHeaders.name.placeholder')"
-            class="single-value"
-            :mode="mode"
-            required
-          />
-          <LabeledInput
-            v-model:value="value.httpGet.httpHeaders[index].value"
-            :label="t('workload.container.lifecycleHook.httpHeaders.value.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpHeaders.value.placeholder')"
-            class="single-value"
-            :mode="mode"
-          />
-        </template>
+        <LabeledInput
+          v-model:value="value.httpGet.httpHeaders[index].name"
+          :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpHeaders.name.placeholder')"
+          class="single-value"
+          :mode="mode"
+          required
+          @update:value="update"
+        />
+        <LabeledInput
+          v-model:value="value.httpGet.httpHeaders[index].value"
+          :label="t('workload.container.lifecycleHook.httpHeaders.value.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpHeaders.value.placeholder')"
+          class="single-value"
+          :mode="mode"
+          @update:value="update"
+        />
         <div class="remove">
           <button
             v-if="!isView"
@@ -223,6 +224,7 @@ export default {
           type="button"
           class="btn role-link mb-20"
           :disabled="mode === 'view'"
+          data-testid="hookoption-add-header-button"
           @click.stop="addHeader"
         >
           Add Header

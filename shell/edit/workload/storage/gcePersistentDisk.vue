@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.gcePersistentDisk.partition"
+          v-model:value.number="value.gcePersistentDisk.partition"
           :mode="mode"
           :label="t('workload.storage.csi.partition')"
         />

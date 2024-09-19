@@ -116,7 +116,7 @@ export default {
       >
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
-          v-model.number="servicePort"
+          v-model:value.number="servicePort"
           :mode="mode"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"

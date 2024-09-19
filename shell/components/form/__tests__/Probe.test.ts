@@ -59,4 +59,16 @@ describe('component: Probe', () => {
 
     expect(wrapper.emitted('update:value')).toHaveLength(2);
   });
+
+  it('should emit an update when http headers are modified', () => {
+    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT, value: { httpGet: { scheme: 'https' } } } });
+
+    const httpHeaders = wrapper.getComponent('[data-testid="input-probe-http-headers"]');
+
+    httpHeaders.vm.$emit('update:value', [{ name: 'abc', value: 'def' }]);
+
+    expect(wrapper.emitted()?.['update:value']?.[0]?.[0]).toStrictEqual({
+      exec: null, httpGet: { httpHeaders: [{ name: 'abc', value: 'def' }], scheme: 'HTTPS' }, tcpSocket: null
+    });
+  });
 });
