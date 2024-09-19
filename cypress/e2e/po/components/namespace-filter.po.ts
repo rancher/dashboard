@@ -30,7 +30,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   searchByName(label: string) {
-    return this.self().find('.ns-controls > .ns-input').clear().type(label);
+    return this.self().find('.ns-controls > .ns-input > .ns-filter-input').clear().type(label);
   }
 
   clearSearchFilter() {

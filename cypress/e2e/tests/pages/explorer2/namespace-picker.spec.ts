@@ -154,6 +154,18 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
+  it('can filter after making a selection', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+    namespacePicker.toggle();
+
+    // Select 'Project: Default'
+    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.isChecked('Project: Default');
+    namespacePicker.checkIcon().should('have.length', 1);
+
+    namespacePicker.searchByName('default');
+    namespacePicker.getOptions().find('.ns-option').should('have.length.gte', 2);
+  });
+
   it('can filter options by name', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
     namespacePicker.toggle();
 
