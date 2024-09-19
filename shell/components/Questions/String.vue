@@ -3,6 +3,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledInput },
   mixins:     [Question],
 

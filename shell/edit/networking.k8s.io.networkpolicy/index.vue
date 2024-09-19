@@ -22,6 +22,7 @@ const POLICY_TYPES = {
 };
 
 export default {
+  emits:        ['input'],
   // Props are found in CreateEditView
   // props: {},
   inheritAttrs: false,

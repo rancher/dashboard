@@ -7,6 +7,8 @@ import PersistentVolumeClaim from '@shell/edit/workload/storage/persistentVolume
 import { PVC } from '@shell/config/types';
 
 export default {
+  emits: ['removePvcForm'],
+
   components: {
     LabeledInput,
     LabeledSelect,

@@ -2,6 +2,8 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   props: {
     value: {
       type:    String,

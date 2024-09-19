@@ -5,6 +5,8 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput,
     Checkbox,

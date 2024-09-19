@@ -10,6 +10,8 @@ import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 
 export default {
+  emits: ['input'],
+
   components: {
     InfoBox,
     ResourceTabs,

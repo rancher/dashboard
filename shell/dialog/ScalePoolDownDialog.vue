@@ -5,6 +5,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 
 export default {
+  emits: ['close'],
+
   components: { Card, Checkbox },
 
   props: {

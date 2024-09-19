@@ -8,6 +8,8 @@ import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update:value', 'remove'],
+
   components: { Select, LabeledSelect },
   props:      {
     // Array of actual match expressions

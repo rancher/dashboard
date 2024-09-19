@@ -20,6 +20,8 @@ const NAMESPACE_SELECTION_OPTION_VALUES = {
 };
 
 export default {
+  emits: ['update'],
+
   components: {
     ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
   },

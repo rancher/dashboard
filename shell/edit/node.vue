@@ -8,6 +8,8 @@ import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 export default {
+  emits: ['input'],
+
   components: {
     CruResource,
     Labels,

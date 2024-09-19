@@ -5,6 +5,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 export default {
   name: 'DefaultLinksEditor',
 
+  emits: ['update:value'],
+
   components: { Checkbox },
 
   props: {

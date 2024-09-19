@@ -23,7 +23,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'update:validation'],
+  emits: ['on-open', 'on-close', 'selecting', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {

@@ -7,6 +7,8 @@ import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Con
 import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
+  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed'],
+
   components: {
     LabeledInput,
     RadioGroup,

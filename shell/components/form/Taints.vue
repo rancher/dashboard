@@ -10,6 +10,8 @@ const DEFAULT_EFFECT_VALUES = {
 };
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: { KeyValue, Select },
 
   props: {

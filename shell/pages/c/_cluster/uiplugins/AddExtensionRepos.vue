@@ -13,6 +13,8 @@ import {
 import { isRancherPrime } from '@shell/config/version';
 
 export default {
+  emits: ['done'],
+
   components: {
     Checkbox,
     Dialog,

@@ -3,6 +3,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
   mixins:     [Question],
   computed:   {

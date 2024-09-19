@@ -9,6 +9,8 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
+  emits: ['updateConfigs'],
+
   components: {
     ArrayListGrouped,
     LabeledInput,

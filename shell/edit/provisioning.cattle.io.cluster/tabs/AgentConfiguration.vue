@@ -16,6 +16,8 @@ const CUSTOM = 'custom';
 // This is the form for Agent Configuration
 // Used for both Cluster Agent and Fleet Agent configuration
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     ContainerResourceLimit,

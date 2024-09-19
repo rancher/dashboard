@@ -16,6 +16,8 @@ const DEFAULTS = {
 };
 
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup, Checkbox, UnitInput
   },

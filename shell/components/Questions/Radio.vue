@@ -3,6 +3,8 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { RadioGroup },
   mixins:     [Question]
 };

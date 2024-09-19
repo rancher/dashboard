@@ -3,6 +3,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { Checkbox },
   mixins:     [Question]
 };

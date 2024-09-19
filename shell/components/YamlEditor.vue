@@ -13,6 +13,8 @@ export const EDITOR_MODES = {
 };
 
 export default {
+  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges'],
+
   components: {
     CodeMirror,
     FileDiff

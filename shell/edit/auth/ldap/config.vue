@@ -13,6 +13,8 @@ export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledInput,

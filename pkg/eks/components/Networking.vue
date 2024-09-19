@@ -14,6 +14,8 @@ import { AWS } from '../types';
 export default defineComponent({
   name: 'EKSNetworking',
 
+  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources'],
+
   components: {
     LabeledSelect,
     ArrayList,

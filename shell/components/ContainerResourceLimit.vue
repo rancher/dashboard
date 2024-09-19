@@ -6,6 +6,8 @@ import { cleanUp } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { UnitInput },
 
   props: {

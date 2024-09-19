@@ -4,6 +4,8 @@ import Select from '@shell/components/form/Select';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['remove'],
+
   components: {
     KeyValue, Select, LabeledSelect
   },

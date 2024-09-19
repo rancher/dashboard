@@ -9,7 +9,10 @@ const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
-  name:       'ActionMenu',
+  name: 'ActionMenu',
+
+  emits: ['close'],
+
   components: { IconOrSvg },
   props:      {
     customActions: {

@@ -11,6 +11,8 @@ import { MANAGEMENT } from '@shell/config/types';
 import { sanitizeKey, sanitizeIP, sanitizeValue } from '@shell/utils/string';
 
 export default {
+  emits: ['copied-windows'],
+
   components: {
     Banner, Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints
   },

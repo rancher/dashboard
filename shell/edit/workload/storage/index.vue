@@ -11,6 +11,8 @@ import { uniq } from '@shell/utils/array';
 export default {
   name: 'Storage',
 
+  emits: ['removePvcForm'],
+
   components: {
     ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
   },

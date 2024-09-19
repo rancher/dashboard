@@ -59,7 +59,6 @@ module.exports = {
     '@typescript-eslint/no-var-requires':         'off',
     'vue/one-component-per-file':                 'off',
     'vue/no-deprecated-slot-attribute':           'off',
-    'vue/require-explicit-emits':                 'off',
     'vue/v-on-event-hyphenation':                 'off'
   },
   overrides: [

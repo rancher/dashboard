@@ -20,6 +20,8 @@ import { rke1Supports } from '@shell/store/plugins';
 export default {
   name: 'CruCloudCredential',
 
+  emits: ['set-subtype', 'input'],
+
   components: {
     Loading,
     NameNsDescription,

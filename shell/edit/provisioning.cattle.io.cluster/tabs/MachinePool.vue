@@ -13,6 +13,8 @@ export default {
 
   name: 'MachinePool',
 
+  emits: ['validationChanged', 'error'],
+
   components: {
     LabeledInput,
     Checkbox,

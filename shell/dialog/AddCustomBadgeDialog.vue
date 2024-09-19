@@ -17,7 +17,9 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 
 export default {
-  name:       'AddCustomBadgeDialog',
+  name:  'AddCustomBadgeDialog',
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

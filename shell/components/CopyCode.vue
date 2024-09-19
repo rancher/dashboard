@@ -18,6 +18,8 @@ function flatten(node) {
 }
 
 export default {
+  emits: ['copied', 'error'],
+
   data() {
     return { copied: false };
   },

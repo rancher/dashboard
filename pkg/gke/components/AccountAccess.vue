@@ -10,6 +10,8 @@ import { getGKEZones } from '../util/gcp';
 export default defineComponent({
   name: 'GKEAccountAccess',
 
+  emits: ['update:isAuthenticated', 'error', 'update:project', 'cancel-credential', 'update:credential'],
+
   components: {
     LabeledInput,
     SelectCredential,

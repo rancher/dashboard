@@ -3,6 +3,8 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Select from '@shell/components/form/Select';
 
 export default {
+  emits: ['update:value'],
+
   components: { ArrayList, Select },
   props:      {
     value: {

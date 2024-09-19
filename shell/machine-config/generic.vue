@@ -6,6 +6,8 @@ import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading, Banner, Questions
   },

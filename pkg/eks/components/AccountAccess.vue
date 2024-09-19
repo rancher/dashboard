@@ -10,6 +10,8 @@ import { AWS } from 'types';
 export default defineComponent({
   name: 'EKSAccountAccess',
 
+  emits: ['update-region', 'error', 'cancel-credential', 'update-credential'],
+
   components: {
     LabeledSelect,
     SelectCredential

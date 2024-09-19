@@ -5,6 +5,8 @@ import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update-cols-options', 'on-toggle-all', 'group-value-change', 'on-sort-change', 'col-visibility-change'],
+
   components: { Checkbox, LabeledSelect },
   props:      {
     columns: {

@@ -33,6 +33,8 @@ function emptyMatch(include = true) {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     CruResource,

@@ -7,6 +7,8 @@ import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

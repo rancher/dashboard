@@ -14,6 +14,8 @@ const _NEW = '_NEW';
 const _NONE = '_NONE';
 
 export default {
+  emits: ['update:value', 'credential-created'],
+
   components: {
     Loading, LabeledSelect, CruResource, NameNsDescription, Banner
   },

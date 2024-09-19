@@ -7,6 +7,8 @@ import Select from '@shell/components/form/Select';
 import Error from '@shell/components/form/Error';
 
 export default {
+  emits: ['update:value'],
+
   components: { Select, Error },
   props:      {
     value: {

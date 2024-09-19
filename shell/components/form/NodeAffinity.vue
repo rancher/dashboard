@@ -11,6 +11,8 @@ import { randomStr } from '@shell/utils/string';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     ArrayListGrouped, MatchExpressions, LabeledSelect, LabeledInput
   },

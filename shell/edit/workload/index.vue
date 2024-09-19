@@ -6,6 +6,7 @@ import { mapGetters } from 'vuex';
 
 export default {
   name:   'Workload',
+  emits:  ['input'],
   mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:  {
     value: {

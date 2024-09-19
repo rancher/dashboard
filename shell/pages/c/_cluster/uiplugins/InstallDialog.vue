@@ -11,6 +11,8 @@ import { SETTING } from '@shell/config/settings';
 // Note: This dialog handles installation and update of a plugin
 
 export default {
+  emits: ['closed', 'update'],
+
   components: {
     AsyncButton,
     Banner,

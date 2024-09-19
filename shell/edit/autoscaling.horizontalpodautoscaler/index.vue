@@ -26,6 +26,8 @@ const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
 export default {
   name: 'CruHPA',
 
+  emits: ['input'],
+
   components: {
     HpaScalingRule,
     ArrayListGrouped,

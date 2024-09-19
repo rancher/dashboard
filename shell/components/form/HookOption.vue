@@ -8,6 +8,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 
 export default {
+  emits: ['update:value'],
+
   props: {
     mode: {
       type:     String,

@@ -6,6 +6,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import EnvVars from '@shell/components/form/EnvVars';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput,
     ShellInput,

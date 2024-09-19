@@ -3,7 +3,10 @@ import { Card } from '@components/Card';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {
-  name:       'PromptRemove',
+  name: 'PromptRemove',
+
+  emits: ['disable'],
+
   components: { Card, AppModal },
   props:      {
     /**

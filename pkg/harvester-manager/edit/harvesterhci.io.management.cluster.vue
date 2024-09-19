@@ -17,6 +17,8 @@ import { createYaml } from '@shell/utils/create-yaml';
 const REAL_TYPE = CAPI.RANCHER_CLUSTER;
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     ClusterMembershipEditor,

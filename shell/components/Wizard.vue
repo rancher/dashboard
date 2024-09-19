@@ -23,6 +23,8 @@ Wizard will emit these events:
 export default {
   name: 'Wizard',
 
+  emits: ['next', 'cancel', 'finish'],
+
   components: {
     AsyncButton,
     Banner,

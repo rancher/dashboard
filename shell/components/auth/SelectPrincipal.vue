@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['add'],
+
   components: {
     LabeledSelect,
     Principal,

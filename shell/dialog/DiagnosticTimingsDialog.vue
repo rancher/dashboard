@@ -6,6 +6,8 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

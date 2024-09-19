@@ -7,6 +7,8 @@ import { isEmpty } from 'lodash';
 export default {
   name: 'PromptRemovePodDialog',
 
+  emits: ['errors'],
+
   components: {
     Banner,
     Checkbox

@@ -8,6 +8,8 @@ import findIndex from 'lodash/findIndex';
 export default {
   name: 'Tabbed',
 
+  emits: ['changed', 'addTab', 'removeTab'],
+
   props: {
     defaultTab: {
       type:    String,

@@ -6,6 +6,8 @@ import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledInput,

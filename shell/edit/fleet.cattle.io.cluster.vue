@@ -11,6 +11,8 @@ import { FLEET } from '@shell/config/labels-annotations';
 export default {
   name: 'CruFleetCluster',
 
+  emits: ['input'],
+
   components: {
     CruResource,
     Labels,

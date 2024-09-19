@@ -4,6 +4,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { base64Encode } from '@shell/utils/crypto';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput },
   mixins:     [CreateEditView],
 

@@ -10,6 +10,7 @@ import { LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
 const NONE = '__[[NONE]]__';
 
 export default {
+  emits:      ['update:value'],
   components: { LabeledSelect, ResourceLabeledSelect },
 
   props: {

@@ -3,6 +3,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

@@ -5,6 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Select from '@shell/components/form/Select';
 export default {
   name:       'InputWithSelect',
+  emits:      ['update:value'],
   components: {
     LabeledInput,
     LabeledSelect,

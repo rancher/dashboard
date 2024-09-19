@@ -20,6 +20,7 @@ import Labels from '@shell/components/form/Labels';
 import { randomStr } from '@shell/utils/string';
 
 export default {
+  emits:      ['input'],
   components: {
     ContainerResourceLimit,
     CruResource,

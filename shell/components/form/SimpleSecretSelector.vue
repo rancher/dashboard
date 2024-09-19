@@ -28,6 +28,8 @@ import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 const NONE = '__[[NONE]]__';
 
 export default {
+  emits: ['updateSecretName', 'updateSecretKey'],
+
   components: { LabeledSelect, ResourceLabeledSelect },
 
   props: {

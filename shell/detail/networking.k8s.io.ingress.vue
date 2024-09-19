@@ -10,6 +10,7 @@ import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination
 
 export default {
   name:       'CRUIngress',
+  emits:      ['input'],
   components: {
     ResourceTabs,
     Rules,

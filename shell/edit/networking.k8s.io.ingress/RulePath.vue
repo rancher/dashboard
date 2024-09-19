@@ -6,6 +6,7 @@ import { get, set } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 
 export default {
+  emits:      ['update:value', 'remove'],
   components: {
     InputWithSelect, LabeledInput, Select
   },

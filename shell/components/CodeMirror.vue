@@ -3,7 +3,10 @@ import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
-  name:  'CodeMirror',
+  name: 'CodeMirror',
+
+  emits: ['onReady', 'onInput', 'onChanges', 'onFocus'],
+
   props: {
     /**
      * Sets the edit mode for Text Area.

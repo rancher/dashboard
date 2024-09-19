@@ -6,6 +6,8 @@ import Mount from '@shell/edit/workload/storage/Mount';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits: ['remove'],
+
   components: {
     LabeledSelect, LabeledInput, Checkbox, Mount
   },

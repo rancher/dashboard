@@ -4,6 +4,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { ROW_COMPUTED } from './shared';
 
 export default {
+  emits: ['type-change'],
+
   components: { Select, UnitInput },
 
   props: {

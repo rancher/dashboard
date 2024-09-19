@@ -12,6 +12,8 @@ const LEGACY_MAP = {
 };
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledInput, LabeledSelect },
   mixins:     [Question],
 

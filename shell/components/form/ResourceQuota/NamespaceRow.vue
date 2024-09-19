@@ -6,6 +6,8 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { ROW_COMPUTED } from './shared';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     Select, PercentageBar, UnitInput
   },

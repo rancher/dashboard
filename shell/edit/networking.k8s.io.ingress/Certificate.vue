@@ -5,6 +5,8 @@ import ArrayList from '@shell/components/form/ArrayList';
 const DEFAULT_CERT_VALUE = '__[[DEFAULT_CERT]]__';
 
 export default {
+  emits: ['update:value'],
+
   components: { ArrayList, LabeledSelect },
   props:      {
     value: {

@@ -9,6 +9,8 @@ const CLUSTER_FIRST = 'ClusterFirst';
 const CLUSTER_FIRST_HOST = 'ClusterFirstWithHostNet';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     ArrayList, KeyValue, LabeledInput, LabeledSelect
   },

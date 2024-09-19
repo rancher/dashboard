@@ -10,7 +10,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
 
 export default {
-  name:       'NameNsDescription',
+  name: 'NameNsDescription',
+
+  emits: ['update:value', 'isNamespaceNew'],
+
   components: {
     LabeledInput,
     LabeledSelect,

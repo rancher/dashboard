@@ -27,6 +27,8 @@ const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/se
 export default {
   name: 'DetailNode',
 
+  emits: ['input'],
+
   components: {
     Alert,
     ConsumptionGauge,

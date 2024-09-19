@@ -3,7 +3,10 @@ import KeyValue from '@shell/components/form/KeyValue';
 import Question from './Question';
 
 export default {
-  name:       'QuestionMap',
+  name: 'QuestionMap',
+
+  emits: ['update:value'],
+
   components: { KeyValue },
   mixins:     [Question],
 

@@ -13,6 +13,8 @@ import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
 export default {
   name: 'CruCatalogRepo',
 
+  emits: ['input'],
+
   components: {
     Footer,
     RadioGroup,

@@ -6,6 +6,8 @@ import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
 
 export default {
+  emits: ['closeSearch'],
+
   components: { Group },
 
   data() {

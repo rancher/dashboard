@@ -39,7 +39,10 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 // --> index.vue displayedRows
 
 export default {
-  name:       'SortableTable',
+  name: 'SortableTable',
+
+  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change'],
+
   components: {
     THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
   },

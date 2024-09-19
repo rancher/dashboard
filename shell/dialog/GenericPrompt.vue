@@ -6,6 +6,8 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { decodeHtml } from '@shell/utils/string';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

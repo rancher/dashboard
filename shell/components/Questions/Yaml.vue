@@ -4,6 +4,8 @@ import Question from './Question';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { YamlEditor },
   mixins:     [Question],
   data() {

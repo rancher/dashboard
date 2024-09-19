@@ -6,6 +6,8 @@ import SortableTable from '@shell/components/SortableTable';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
+  emits: ['error'],
+
   components: { SortableTable },
   props:      {
     resource: {

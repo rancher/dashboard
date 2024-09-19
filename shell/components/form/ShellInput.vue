@@ -2,6 +2,8 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledInput },
 
   props: {

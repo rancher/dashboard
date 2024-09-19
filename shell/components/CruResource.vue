@@ -23,6 +23,8 @@ export default {
 
   name: 'CruResource',
 
+  emits: ['select-type', 'error', 'cancel', 'finish'],
+
   components: {
     AsyncButton,
     Banner,
