@@ -127,7 +127,6 @@ export default {
   <div
     :class="{ 'select-after': !selectBeforeText }"
     class="input-container row"
-    @update:value="change"
   >
     <LabeledSelect
       v-if="selectLabel"
@@ -177,6 +176,7 @@ export default {
       :mode="mode"
       :rules="textRules"
       v-bind="$attrs"
+      @update:value="change"
     >
       <template #label>
         <slot name="label" />
@@ -193,6 +193,7 @@ export default {
       :disabled="isView"
       :placeholder="placeholder"
       autocomplete="off"
+      @input="change"
     >
   </div>
 </template>
