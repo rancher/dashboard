@@ -3,8 +3,9 @@ import { h, computed } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
-  name:  'InputOrDisplay',
-  props: {
+  name:         'InputOrDisplay',
+  inheritAttrs: false,
+  props:        {
     name: {
       type:     String,
       required: true
@@ -16,7 +17,7 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
-    }
+    },
   },
   setup(props, { slots }) {
     const isView = computed(() => props.mode === _VIEW);
@@ -36,7 +37,7 @@ export default {
           h('div', { class: 'value' }, slots.value ? slots.value : displayValue.value)
         ]);
       } else {
-        return slots.default;
+        return slots.default();
       }
     };
   }
