@@ -38,7 +38,7 @@ describe('Nodes list', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off
     // Wait for loading indicator to go
     nodeList.sortableTable().checkLoadingIndicatorNotVisible();
 
-    // Check table has 2 tows
+    // Check table has 2 rows
     cy.get<number>('@count').then((count) => {
       nodeList.sortableTable().rowElements({ timeout: 2500 }).should((rows: any) => {
         expect(rows).not.to.equal(undefined);
