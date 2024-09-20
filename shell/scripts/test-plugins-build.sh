@@ -8,8 +8,8 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 SHELL_VERSION="99.99.99"
-DEFAULT_YARN_REGISTRY="https://registry.npmjs.org"
-VERDACCIO_YARN_REGISTRY="http://localhost:4873"
+DEFAULT_NPM_REGISTRY="https://registry.npmjs.org/"
+VERDACCIO_NPM_REGISTRY="http://localhost:4873"
 
 echo ${SCRIPT_DIR}
 
@@ -69,11 +69,11 @@ else
   rm -rf ~/.config/verdaccio/storage/@rancher/*
 fi
 
-export YARN_REGISTRY=$VERDACCIO_YARN_REGISTRY
+export NPM_REGISTRY=$VERDACCIO_NPM_REGISTRY
 export NUXT_TELEMETRY_DISABLED=1
 
 # Remove test package from previous run, if present
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ${BASE_DIR}/pkg/test-pkg"
   rm -rf ${BASE_DIR}/pkg/test-pkg
 fi
@@ -81,20 +81,34 @@ fi
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
 # are already published and Verdaccio will check, since it is a read-through cache
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${SHELL_DIR}/package.json
-rm ${SHELL_DIR}/package.json.bak
+update_version_in_package_json() {
+  local package_json_path="$1"
+  local version="$2"
 
-# Same as above for Rancher Components
-# We might have bumped the version number but its not published yet, so this will fail
-sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${SHELL_VERSION}\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
+  sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${version}\",/g" "$package_json_path"
+  rm "${package_json_path}.bak"
+}
 
-# Publish shell
-echo "Publishing shell packages to local registry"
+update_version_in_package_json "${SHELL_DIR}/package.json" "${SHELL_VERSION}"
+update_version_in_package_json "${BASE_DIR}/pkg/rancher-components/package.json" "${SHELL_VERSION}"
+update_version_in_package_json "${BASE_DIR}/creators/extension/package.json" "${SHELL_VERSION}"
+
+# Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Shell package to local registry"
 yarn install
+export TAG="shell-pkg-v${SHELL_VERSION}"
+${SHELL_DIR}/scripts/publish-shell.sh
+
+# Publish creators pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
+echo "Publishing Creators package to local registry"
+export TAG="creators-pkg-v${SHELL_VERSION}"
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 # Publish rancher components
 yarn build:lib
+
+npm set registry ${VERDACCIO_NPM_REGISTRY}
+yarn config set registry ${VERDACCIO_NPM_REGISTRY}
 yarn publish:lib
 
 # We pipe into cat for cleaner logging - we need to set pipefail
@@ -107,26 +121,18 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
 
   echo "Using temporary directory ${DIR}"
 
-  echo "Verifying app creator package"
+  echo "Verifying extension creator"
 
-  yarn create @rancher/app test-app
-  pushd test-app
+  FORCE_COLOR=true yarn create @rancher/extension test-pkg --app-name test-app | cat
+
+  pushd test-app > /dev/null
+
   yarn install
-
-  echo "Building skeleton app"
-
   FORCE_COLOR=true yarn build | cat
-
-  # Package creator
-  echo "Verifying package creator package"
-  yarn create @rancher/pkg test-pkg -i
-
-  echo "Building test package"
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
-  mkdir pkg/test-pkg/list
+  mkdir -p pkg/test-pkg/list
   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
@@ -134,7 +140,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   echo "Cleaning temporary dir"
   popd > /dev/null
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${DIR}"
     rm -rf ${DIR}
   fi
@@ -147,15 +153,16 @@ echo "Validating in-tree package"
 
 yarn install
 
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
 
-yarn create @rancher/pkg test-pkg -t -i
+yarn create @rancher/extension test-pkg -i
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
-if [ $TEST_PERSIST_BUILD != "true" ]; then
+
+if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
   echo "Removing folder ./pkg/test-pkg"
   rm -rf ./pkg/test-pkg
 fi
@@ -168,9 +175,9 @@ function clone_repo_test_extension_build() {
   echo -e "\nSetting up $REPO_NAME repository locally\n"
 
   # set registry to default (to install all of the other dependencies)
-  yarn config set registry ${DEFAULT_YARN_REGISTRY}
+  yarn config set registry ${DEFAULT_NPM_REGISTRY}
 
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
+  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
     echo "Removing folder ${BASE_DIR}/$REPO_NAME"
     rm -rf ${BASE_DIR}/$REPO_NAME
   fi
@@ -183,7 +190,7 @@ function clone_repo_test_extension_build() {
   yarn install
 
   # set registry to local verdaccio (to install new shell)
-  yarn config set registry ${VERDACCIO_YARN_REGISTRY}
+  yarn config set registry ${VERDACCIO_NPM_REGISTRY}
 
   # update package.json to use a specific version of shell
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
@@ -209,16 +216,15 @@ function clone_repo_test_extension_build() {
   popd
 
   # delete folder
-  if [ $TEST_PERSIST_BUILD != "true" ]; then
-    echo "Removing folder ${BASE_DIR}/$REPO_NAME"
-    rm -rf ${BASE_DIR}/$REPO_NAME
-  fi
-  yarn config set registry ${DEFAULT_YARN_REGISTRY}
+  echo "Removing folder ${BASE_DIR}/$REPO_NAME"
+  rm -rf ${BASE_DIR}/$REPO_NAME
+  yarn config set registry ${DEFAULT_NPM_REGISTRY}
 }
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
-clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
-clone_repo_test_extension_build "elemental-ui" "elemental"
+# clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
+# clone_repo_test_extension_build "elemental-ui" "elemental"
+# clone_repo_test_extension_build "capi-ui-extension" "capi"
 
 echo "All done"

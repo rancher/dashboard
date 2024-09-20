@@ -1,17 +1,19 @@
 {
-  "name": "@rancher/create-app",
-  "description": "Rancher UI Application generator",
-  "version": "0.0.0",
+  "name": "@rancher/create-extension",
+  "description": "Rancher UI Extension generator",
+  "version": "0.2.1-rc.1",
   "license": "Apache-2.0",
   "author": "SUSE",
-  "private": false,
-  "bin": "./init",
+  "packageManager": "yarn@4.4.1",
+  "bin": {
+    "create-extension": "./init"
+  },
   "files": [
-    "**/*.*",
+    "**/*",
     "init"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=16"
   },
   "_requires": [
     "core-js",

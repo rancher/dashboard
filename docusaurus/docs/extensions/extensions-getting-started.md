@@ -66,13 +66,18 @@ Also for consideration:
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
 
-#### ___Extension Options___
+#### **_Extension Options_**
 
 There is one option available to be passed as an argument to the `@rancher/app` script:
 
-| Option | Description |
-| :---: | ------ |
-| `-l` | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/shell/creators/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab |
+|          Option           | Description                                                                                                                                                                                                                                                                             |
+| :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     `--update \| -u`      | This will update all dependencies within the extension to match the declared versions in the shell. Update can be ran independently or along with creating an extension (e.g. `yarn create @rancher/extension my-extension --update`                                                    |
+| `--app-name \| -a <name>` | Allows specifying a different name for the skeleton application instead of using the extension name.                                                                                                                                                                                    |
+|  `--skeleton-only \| -s`  | Installs only the skeleton application without creating the extension package.                                                                                                                                                                                                          |
+|           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
+|           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
+|           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
 
 ---
 
@@ -102,14 +107,14 @@ yarn create @rancher/pkg test [OPTIONS]
 
 This will create a new UI Package in the `./pkg/test` folder.
 
-#### ___Extension Package Options___
+#### **_Extension Package Options_**
 
 There are two options that can be passed to the `@rancher/pkg` script:
 
-| Option | Description |
-| :---: | ------ |
-| `-t` | Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'. |
-| `-w` | Creates the workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) to be used as Github actions. This will automatically build your extension and release a Helm chart and Extension Catalog Image. |
+| Option | Description                                                                                                                                                                                                                                                                                                            |
+| :----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  `-t`  | Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'.                                                                                                                                                                                                       |
+|  `-w`  | Creates the workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) to be used as Github actions. This will automatically build your extension and release a Helm chart and Extension Catalog Image. |
 
 > Note: Using the `-w` option to create an automated workflow will require additonal prequesites, see the [Release](#creating-a-release) section.
 
@@ -123,7 +128,7 @@ import { IPlugin } from '@shell/core/types';
 import extensionRouting from './routing/extension-routing';
 
 // Init the package
-export default function(plugin: IPlugin) {
+export default function (plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 
@@ -151,18 +156,18 @@ export function init($plugin: IPlugin, store: any) {
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
-    icon:    'gear',
+    icon: 'gear',
     inStore: 'management',
-    weight:  100,
-    to:      {
-      name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
-      path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/dashboard`,
-      params:      {
+    weight: 100,
+    to: {
+      name: `${YOUR_PRODUCT_NAME}-c-cluster`,
+      path: `/${YOUR_PRODUCT_NAME}/c/:cluster/dashboard`,
+      params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER,
-        pkg:     YOUR_PRODUCT_NAME
-      }
-    }
+        pkg: YOUR_PRODUCT_NAME,
+      },
+    },
   });
 }
 ```
@@ -178,15 +183,15 @@ const YOUR_PRODUCT_NAME = 'myProductName';
 
 const routes = [
   {
-    name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
-    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster`,
+    name: `${YOUR_PRODUCT_NAME}-c-cluster`,
+    path: `/${YOUR_PRODUCT_NAME}/c/:cluster`,
     component: Dashboard,
-    meta:      {
+    meta: {
       product: YOUR_PRODUCT_NAME,
       cluster: BLANK_CLUSTER,
-      pkg:     YOUR_PRODUCT_NAME
-    }
-  }
+      pkg: YOUR_PRODUCT_NAME,
+    },
+  },
 ];
 
 export default routes;
@@ -204,6 +209,7 @@ API=<Rancher Backend URL> yarn dev
 ```
 
 Open a web browser to https://127.0.0.1:8005 and you'll see a new 'MyProductName' nav item in the top-level slide-in menu.
+
 <div style={{textAlign: 'center'}}>
 
 ![MyProductName Nav Item](./screenshots/global-nav.png)
@@ -241,7 +247,6 @@ const config = require('@rancher/shell/vue.config');
 module.exports = config(__dirname, {
   excludes: ['test'],
 });
-
 ```
 
 Now restart your app by running the UI again with:
@@ -253,7 +258,6 @@ API=<Rancher Backend URL> yarn dev
 Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav item is not present - since the extension was not loaded.
 
 > Note: You need to be an admin user to test Extensions in the Rancher UI
-
 
 ### Test built extension by doing a Developer load
 
@@ -299,12 +303,11 @@ This illustrates dynamically loading an extension.
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
 
-
 ## Creating a Release
 
 Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
 
-We have created [workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
+We have created [workflows](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
 
 > **Note:** GitLab support is offered through leverging the ECI build. For configuration instructions, follow the setps in the [Gitlab Integration](./publishing#gitlab-integration) section.
 
@@ -352,7 +355,7 @@ This will create a `.github` directory within the root folder of your app which 
 
 ### Consuming the Helm chart
 
-After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment. 
+After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment.
 
 The URL should be listed as: `https://<organization>.github.io/<repository>`
 

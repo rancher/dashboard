@@ -28,9 +28,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Configure Git
         run: |
@@ -42,19 +45,14 @@ jobs:
         with:
           version: v3.8.0
 
-      - name: Setup Nodejs and npm
-        uses: actions/setup-node@v3
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v4
         with:
+          cache: yarn
           node-version: '16'
 
       - name: Setup yarn
         run: npm install -g yarn
-
-      - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn
@@ -76,7 +74,7 @@ jobs:
           if [[ -n "${{ inputs.tagged_release }}" ]]; then
             publish="$publish -t ${{ inputs.tagged_release }}"
           fi
-          
+
           $publish
 
       - name: Upload charts artifact
@@ -98,9 +96,9 @@ jobs:
       pages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.target_branch }}"
+          ref: '${{ inputs.target_branch }}'
 
       - name: Configure Git
         run: |
@@ -125,4 +123,3 @@ jobs:
         env:
           CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           CR_SKIP_EXISTING: true
-
