@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       tagged_release:
-        required: false
+        required: true
         type: string
 
 env:
