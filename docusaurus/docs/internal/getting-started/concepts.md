@@ -22,7 +22,7 @@ It may be helpful to start with the [official Kubernetes glossary.](https://kube
 
 ## 2. Containers
 
-The most fundamental concept in the Rancher world is the concept of a container. A container is an is a discrete environment set up within an operating system in which one or more applications may be run, typically assigned only those resources necessary for the application to function correctly.
+The most fundamental concept in the Rancher world is the concept of a container. A container is a discrete environment set up within an operating system in which one or more applications may be run, typically assigned only those resources necessary for the application to function correctly.
 
 Containers became more popular in recent years because they solve a big problem with deploying software, which is that it is difficult to get software to reliably run when it is moved or rebuilt in different computing environments. When the process to deploy software in production is done manually, it is prone to errors. Containers solve that problem by making it so that the computing environment is identical wherever the software is run.
 
