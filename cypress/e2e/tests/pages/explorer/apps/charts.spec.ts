@@ -91,6 +91,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.getChartByName(chartName).should('exist').and('be.visible').click();
 
     const chartPage = new ChartPage();
+
     chartPage.waitForPage();
 
     // Set up intercept for the network request triggered by $fetch
@@ -107,6 +108,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.getChartByName(chartName).should('exist').and('be.visible').click();
 
     const chartPage = new ChartPage();
+
     chartPage.waitForPage();
 
     // Set up intercept for the network request triggered by $fetch
