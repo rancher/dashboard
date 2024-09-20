@@ -474,20 +474,14 @@ export default {
   .shell-body {
     padding: calc(2 * var(--outline-width));
     height: 100%;
-
-    & > .terminal.focus {
-      outline: var(--outline-width) solid var(--outline);
-    }
   }
 
-  .containerPicker {
-    :deep() &.unlabeled-select {
-      display: inline-block;
-      min-width: 200px;
-      height: 30px;
-      min-height: 30px;
-      width: initial;
-    }
+  .containerPicker.unlabeled-select {
+    display: inline-block;
+    min-width: 200px;
+    height: 30px;
+    min-height: 30px;
+    width: initial;
   }
 
   .status {

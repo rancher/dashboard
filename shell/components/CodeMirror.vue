@@ -107,7 +107,7 @@ export default {
   methods: {
     focus() {
       if ( this.$refs.codeMirrorRef ) {
-        this.$refs.codeMirrorRef.codemirror.focus();
+        this.$refs.codeMirrorRef.cminstance.focus();
       }
     },
 
@@ -143,7 +143,7 @@ export default {
 
     updateValue(value) {
       if ( this.$refs.codeMirrorRef ) {
-        this.$refs.codeMirrorRef.codemirror.doc.setValue(value);
+        this.$refs.codeMirrorRef.cminstance.doc.setValue(value);
       }
     },
 

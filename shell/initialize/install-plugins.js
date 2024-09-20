@@ -1,8 +1,8 @@
 import PortalVue from 'portal-vue';
-import VueResize from 'vue-resize';
+import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
-import 'vue-resize/dist/vue-resize.css';
+import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
@@ -35,7 +35,7 @@ import { floatingVueOptions } from '@shell/plugins/floating-vue';
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
-  vueApp.use(VueResize);
+  vueApp.use(Vue3Resize);
   vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.use(InstallCodeMirror);
