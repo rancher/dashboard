@@ -602,7 +602,8 @@ export default {
     }
 
     .live-data {
-      color: var(--body-text)
+      color: var(--body-text);
+      margin-left: 3px;
     }
   }
 
