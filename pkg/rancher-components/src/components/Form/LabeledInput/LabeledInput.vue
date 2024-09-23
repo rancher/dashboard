@@ -181,7 +181,7 @@ export default defineComponent({
         return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value.toString());
+        const hint = cronstrue.toString(this.value || '');
 
         return hint;
       } catch (e) {
@@ -332,7 +332,7 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
-        :value="value.toString()"
+        :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"

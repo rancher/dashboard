@@ -1,8 +1,7 @@
 <script lang="ts">
 import { PropType, defineComponent } from 'vue';
-
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 type Error = 'duplicate';
 type ErrorMessages = Record<Error, string>;
@@ -30,19 +29,15 @@ const CLASS = {
  * Manage a list of strings
  */
 export default defineComponent({
-
   name:       'StringList',
   components: { LabeledInput },
-
-  props: {
+  props:      {
     /**
      * The items source
      */
     items: {
-      type: Array as PropType<string[]>,
-      default() {
-        return [];
-      },
+      type:    Array as PropType<string[]>,
+      default: () => [],
     },
     /**
      * Determines if items with same text will be treated differently, depending on the letters case
@@ -77,10 +72,8 @@ export default defineComponent({
      * Custom Error messages
      */
     errorMessages: {
-      type: Object as PropType<ErrorMessages>,
-      default() {
-        return {} as ErrorMessages;
-      },
+      type:    Object as PropType<ErrorMessages>,
+      default: () => ({} as ErrorMessages),
     },
     /**
      * Enables bulk addition and defines the delimiter to split the input string.
@@ -415,7 +408,6 @@ export default defineComponent({
       this.$emit('change', items);
     },
   },
-
 });
 </script>
 
