@@ -3,6 +3,10 @@
 set -x
 set -e
 
+if cat /etc/os-release | grep -iq "Alpine Linux"; then
+ apk update && apk add --no-cache gcompat g++ make
+fi
+
 OS="$(uname -s)"
 case "${OS}" in
     Linux*)     MACHINE=amd64;;
@@ -55,8 +59,11 @@ mv semver "${WORKSPACE}/bin"
 
 ls -al "${WORKSPACE}"
 export PATH=$PATH:"${WORKSPACE}/go/bin:${WORKSPACE}/bin"
+export GOROOT="${WORKSPACE}/go"
 echo "${PATH}"
 
+
+ls -al "${WORKSPACE}/go"
 go version
 
 
