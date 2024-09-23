@@ -1,5 +1,4 @@
 <script>
-import { h, computed } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
@@ -18,30 +17,36 @@ export default {
       default: 'edit'
     }
   },
-  setup(props, { slots }) {
-    const isView = computed(() => props.mode === _VIEW);
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
 
-    const displayValue = computed(() => {
-      if (Array.isArray(props.value) && props.value.length === 0) {
+    displayValue() {
+      if (Array.isArray(this.value) && this.value.length === 0) {
         return '';
       } else {
-        return props.value;
+        return this.value;
       }
-    });
-
-    return () => {
-      if (isView.value) {
-        return h('div', { class: 'label' }, [
-          h('div', { class: 'text-label' }, slots.name ? slots.name : props.name),
-          h('div', { class: 'value' }, slots.value ? slots.value : displayValue.value)
-        ]);
-      } else {
-        return slots.default;
-      }
-    };
+    }
   }
 };
 </script>
+
+<template>
+  <div
+    v-if="isView"
+    class="label"
+  >
+    <div class="text-label">
+      {{ $slots.name || name }}
+    </div>
+    <div class="value">
+      {{ $slots.value || displayValue }}
+    </div>
+  </div>
+  <slot v-else />
+</template>
 
 <style lang="scss" scoped>
 .label {
