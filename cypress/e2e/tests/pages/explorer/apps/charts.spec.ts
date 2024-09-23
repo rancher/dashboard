@@ -88,7 +88,11 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should call fetch when route query changes with valid parameters', () => {
     const chartName = 'Logging';
 
-    chartsPage.getChartByName(chartName).should('exist').and('be.visible').click();
+    chartsPage.getChartByName(chartName)
+      .should('exist')
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
 
     const chartPage = new ChartPage();
 
@@ -105,7 +109,11 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should not call fetch when navigating back to charts page', () => {
     const chartName = 'Logging';
 
-    chartsPage.getChartByName(chartName).should('exist').and('be.visible').click();
+    chartsPage.getChartByName(chartName)
+      .should('exist')
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
 
     const chartPage = new ChartPage();
 
