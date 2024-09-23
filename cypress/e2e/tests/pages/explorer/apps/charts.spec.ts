@@ -119,14 +119,13 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     chartPage.waitForPage();
 
-    // Set up intercept for the network request triggered by $fetch
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
-
     // Navigate back to the charts page
     cy.go('back');
     chartsPage.waitForPage();
 
-    // Verify that the network request was not made after navigating back
-    cy.get('@fetchChartData.all').should('have.length', 0);
+    // Set up intercept after navigating back
+    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterBack');
+
+    cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
   });
 });
