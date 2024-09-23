@@ -104,8 +104,11 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
   const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+  const parsedRancherVersion = semver.coerce(rancherVersion)?.version || rancherVersion;
 
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(parsedUiExtensionsApiVersion, requiredAPI)) {
     return 'plugins.error.api';
   }
 
@@ -117,10 +120,10 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   }
 
   // Rancher version
-  if (rancherVersion) {
+  if (parsedRancherVersion) {
     const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
 
-    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+    if (requiredRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
     }
   }
@@ -145,8 +148,11 @@ export function isSupportedChartVersion(versionsData) {
 
   // Plugin specified a required extension API version
   const requiredAPI = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+  const parsedRancherVersion = semver.coerce(rancherVersion)?.version || rancherVersion;
 
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(parsedUiExtensionsApiVersion, requiredAPI)) {
     return false;
   }
 
@@ -158,10 +164,10 @@ export function isSupportedChartVersion(versionsData) {
   }
 
   // Rancher version
-  if (rancherVersion) {
+  if (parsedRancherVersion) {
     const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
 
-    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+    if (requiredRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       return false;
     }
   }
@@ -181,9 +187,8 @@ export function isSupportedChartVersion(versionsData) {
 export function isChartVersionAvailableForInstall(versionsData, returnObj = false) {
   const { version, rancherVersion, kubeVersion } = versionsData;
 
-  const parsedRancherVersion = rancherVersion.split('-')?.[0];
-  const regexHashString = new RegExp('^[A-Za-z0-9]{9}$');
-  const isRancherVersionHashStringOrHead = regexHashString.test(rancherVersion) || rancherVersion.includes('head');
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedRancherVersion = semver.coerce(rancherVersion)?.version || rancherVersion;
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
@@ -191,8 +196,7 @@ export function isChartVersionAvailableForInstall(versionsData, returnObj = fals
   versionObj.isCompatibleWithUi = true;
   versionObj.isCompatibleWithKubeVersion = true;
 
-  // if it's a head version of Rancher, then we skip the validation and enable them all
-  if (!isRancherVersionHashStringOrHead && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
+  if (!requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
