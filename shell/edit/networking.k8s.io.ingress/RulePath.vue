@@ -181,36 +181,27 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+// TODO #11952: Correct deep statement
 $row-height: 40px;
-
-.labeled-input :deep(), :deep() .labeled-input {
-  padding: 0 !important;
-  height: 100%;
-  input.no-label {
-    height: calc($row-height - 2px);
-    padding: 10px;
-  }
-}
-.rule-path :deep() {
-  .col, INPUT {
-    height: $row-height;
-  }
-
-  .unlabeled-select {
+.rule-path {
+  :deep(.labeled-input), :deep(.labeled-input) {
+    padding: 0 !important;
     height: 100%;
-  }
 
-  .path-type {
-    .unlabeled-select {
-      min-width: 200px;
+    input.no-label {
+      height: calc($row-height - 2px);
+      padding: 10px;
     }
   }
 
-  &, .input-container {
+  :deep(.col), INPUT {
+    height: $row-height;
+  }
+  &, :deep(.input-container) {
     height: $row-height;
   }
 
-  .input-container .in-input.unlabeled-select {
+  :deep(.input-container) :deep(.in-input.unlabeled-select) {
     width: initial;
   }
 
@@ -218,11 +209,16 @@ $row-height: 40px;
     line-height: $row-height;
   }
 
-  .v-select INPUT {
+  :deep(.v-select) INPUT {
     height: 50px;
   }
-  .labeled-input {
+  :deep(.labeled-input) {
     padding-top: 6px;
+  }
+
+  :deep(.unlabeled-select) {
+    height: 100%;
+    min-width: 200px;
   }
 }
 </style>
