@@ -6,9 +6,14 @@ import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
+  emits: ['update:value', 'createdListItem'],
+
   components: { LabeledTooltip },
-  mixins:     [LabeledFormElement, VueSelectOverrides],
-  props:      {
+  mixins:     [
+    LabeledFormElement,
+    VueSelectOverrides,
+  ],
+  props: {
     appendToBody: {
       default: true,
       type:    Boolean,
@@ -76,6 +81,11 @@ export default {
     closeOnSelect: {
       type:    Boolean,
       default: true
+    },
+
+    compact: {
+      type:    Boolean,
+      default: null
     },
   },
 
@@ -199,6 +209,14 @@ export default {
       } else {
         return undefined;
       }
+    },
+    canPaginate() {
+      return false;
+    },
+    deClassedAttrs() {
+      const { class: _, ...rest } = this.$attrs;
+
+      return rest;
     }
   }
 };
@@ -215,12 +233,14 @@ export default {
       [status]: status,
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
+      'compact-input': compact,
+      [$attrs.class]: $attrs.class
     }"
     @focus="focusSearch"
   >
     <v-select
       ref="select-input"
-      v-bind="$attrs"
+      v-bind="deClassedAttrs"
       class="inline"
       :class="{'select-input-view': mode === 'view'}"
       :autoscroll="true"
@@ -237,8 +257,9 @@ export default {
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null ? value : ''"
-      v-on="$listeners"
+      :modelValue="value != null ? value : ''"
+
+      @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
@@ -251,7 +272,8 @@ export default {
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
-        v-for="(_, slot) of $scopedSlots"
+        v-for="(_, slot) of $slots"
+        :key="slot"
         v-slot:[slot]="scope"
       >
         <slot
@@ -278,22 +300,22 @@ export default {
   .unlabeled-select {
     position: relative;
 
-    ::v-deep .v-select.select-input-view {
+    :deep() .v-select.select-input-view {
       .vs__actions {
         visibility: hidden;
       }
     }
 
-    & .vs--multiple ::v-deep .vs__selected-options .vs__selected {
+    & .vs--multiple :deep() .vs__selected-options .vs__selected {
       width: auto;
     }
 
-    ::v-deep .labeled-tooltip.error .status-icon {
+    :deep() .labeled-tooltip.error .status-icon {
       top: 7px;
       right: 2px;
     }
 
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       display: flex;
       margin: 3px;
 
@@ -302,18 +324,23 @@ export default {
       }
     }
 
-    ::v-deep .v-select.vs--open {
+    :deep() .v-select.vs--open {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }
     }
 
-    ::v-deep .v-select.vs--open {
+    :deep() .v-select.vs--open {
       .vs__dropdown-toggle {
         color: var(--outline) !important;
       }
     }
 
     @include input-status-color;
+
+    &.compact-input {
+      min-height: $unlabeled-input-height;
+      line-height: $input-line-height;
+    }
   }
 </style>

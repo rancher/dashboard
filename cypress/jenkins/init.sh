@@ -34,7 +34,7 @@ HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
-KUBECTL_VERSION="${KUBECTL_VERSION:-v1.27.10}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-v1.29.8}"
 YQ_BIN="mikefarah/yq/releases/latest/download/yq_linux_amd64"
 
 mkdir -p "${WORKSPACE}/bin"
@@ -48,9 +48,13 @@ chmod +x "${CORRAL}"
 curl -L -o "${GO_PKG_FILENAME}" "${GO_DL_PACKAGE}"
 tar -C "${WORKSPACE}" -xzf "${GO_PKG_FILENAME}"
 
+curl -sSL https://raw.githubusercontent.com/parleer/semver-bash/latest/semver -o semver
+chmod +x semver
+mv semver "${WORKSPACE}/bin"
+
 ls -al "${WORKSPACE}"
 export PATH=$PATH:"${WORKSPACE}/go/bin:${WORKSPACE}/bin"
-echo $PATH
+echo "${PATH}"
 
 go version
 
@@ -65,36 +69,38 @@ ls -al "${WORKSPACE}/.ssh/"
 corral config --public_key "${PRIV_KEY}.pub" --user_id jenkins
 corral config vars set corral_user_public_key "$(cat ${PRIV_KEY}.pub)"
 corral config vars set corral_user_id jenkins
-corral config vars set aws_ssh_user ${AWS_SSH_USER}
-corral config vars set aws_access_key ${AWS_ACCESS_KEY_ID}
-corral config vars set aws_secret_key ${AWS_SECRET_ACCESS_KEY}
-corral config vars set aws_ami ${AWS_AMI}
-corral config vars set aws_region ${AWS_REGION}
-corral config vars set aws_security_group ${AWS_SECURITY_GROUP}
-corral config vars set aws_subnet ${AWS_SUBNET}
-corral config vars set aws_vpc ${AWS_VPC}
-corral config vars set aws_volume_size ${AWS_VOLUME_SIZE}
-corral config vars set aws_volume_type ${AWS_VOLUME_TYPE}
-corral config vars set volume_type ${AWS_VOLUME_TYPE}
-corral config vars set volume_iops ${AWS_VOLUME_IOPS}
-corral config vars set azure_subscription_id ${AZURE_AKS_SUBSCRIPTION_ID}
-corral config vars set azure_client_id ${AZURE_CLIENT_ID}
-corral config vars set azure_client_secret ${AZURE_CLIENT_SECRET}
+corral config vars set aws_ssh_user "${AWS_SSH_USER}"
+corral config vars set aws_access_key "${AWS_ACCESS_KEY_ID}"
+corral config vars set aws_secret_key "${AWS_SECRET_ACCESS_KEY}"
+corral config vars set aws_ami "${AWS_AMI}"
+corral config vars set aws_region "${AWS_REGION}"
+corral config vars set aws_security_group "${AWS_SECURITY_GROUP}"
+corral config vars set aws_subnet "${AWS_SUBNET}"
+corral config vars set aws_vpc "${AWS_VPC}"
+corral config vars set aws_volume_size "${AWS_VOLUME_SIZE}"
+corral config vars set aws_volume_type "${AWS_VOLUME_TYPE}"
+corral config vars set volume_type "${AWS_VOLUME_TYPE}"
+corral config vars set volume_iops "${AWS_VOLUME_IOPS}"
+corral config vars set azure_subscription_id "${AZURE_AKS_SUBSCRIPTION_ID}"
+corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
+corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
+corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
 
-if [[ "${JOB_TYPE}" == "recurring" ]]; then 
-  RANCHER_TYPE="recurring"
+create_initial_clusters() {
+  shopt -u nocasematch
   if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
     TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
-    curl -L -o ${TARFILE} "https://get.helm.sh/${TARFILE}"
-    tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf ${TARFILE}
+    curl -L -o "${TARFILE}" "https://get.helm.sh/${TARFILE}"
+    tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf "${TARFILE}"
     helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
     helm repo update
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
-    RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep ${version_string} | head -n 1 | cut -f2 | tr -d '[:space:]')
-    if [[ -z "${RANCHER_VERSION}" ]]; then
+    if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
         RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
+    else
+        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
     fi
-    corral config vars set rancher_image_tag ${RANCHER_IMAGE_TAG}
+    corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
   fi
   cd "${WORKSPACE}/corral-packages"
   yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-k3s.yaml
@@ -111,12 +117,14 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
 
   prefix_random=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
 
-  corral config vars set bootstrap_password ${BOOTSTRAP_PASSWORD:-password}
-  corral config vars set aws_route53_zone ${AWS_ROUTE53_ZONE}
-  corral config vars set server_count ${SERVER_COUNT:-3}
-  corral config vars set agent_count ${AGENT_COUNT:-0}
+  corral config vars set bootstrap_password "${BOOTSTRAP_PASSWORD:-password}"
+  corral config vars set aws_route53_zone "${AWS_ROUTE53_ZONE}"
+  corral config vars set server_count "${SERVER_COUNT:-3}"
+  corral config vars set agent_count "${AGENT_COUNT:-0}"
   corral config vars delete rancher_host
-  RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  fi
 
   K3S_KUBERNETES_VERSION="${K3S_KUBERNETES_VERSION//+/-}"
   make init
@@ -131,7 +139,7 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set custom_node_ip "$(corral vars customnode first_node_ip)"
   corral config vars set custom_node_key "$(corral vars customnode corral_private_key | base64 -w 0)"
 
-  corral config vars set instance_type ${AWS_INSTANCE_TYPE}
+  corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
@@ -140,40 +148,64 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
     "dist/aws-k3s-${K3S_KUBERNETES_VERSION}"
   corral config vars set imported_kubeconfig $(corral vars importcluster kubeconfig)
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
-  corral config vars set server_count ${SERVER_COUNT:-3}
-  corral create --skip-cleanup --recreate --debug rancher \
-    "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  corral config vars set server_count "${SERVER_COUNT:-3}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    corral create --skip-cleanup --recreate --debug rancher \
+      "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  fi
+}
+
+
+if [[ "${JOB_TYPE}" == "recurring" ]]; then 
+  RANCHER_TYPE="recurring"
+  create_initial_clusters
 fi
 
 if [[ "${JOB_TYPE}" == "existing" ]]; then
   RANCHER_TYPE="existing"
+  shopt -s nocasematch
+  if [[ "${CREATE_INITIAL_CLUSTERS}" == "yes" ]]; then
+    create_initial_clusters
+  fi
+  shopt -u nocasematch
 fi
 
 echo "Rancher type: ${RANCHER_TYPE}"
 
-corral config vars set rancher_type ${RANCHER_TYPE}
-corral config vars set nodejs_version ${NODEJS_VERSION}
-corral config vars set dashboard_repo ${DASHBOARD_REPO}
-corral config vars set dashboard_branch ${DASHBOARD_BRANCH}
-corral config vars set cypress_tags ${CYPRESS_TAGS}
-corral config vars set cypress_version ${CYPRESS_VERSION}
-corral config vars set yarn_version ${YARN_VERSION}
-corral config vars set kubectl_version ${KUBECTL_VERSION}
+override_node=$(semver lt "${RANCHER_VERSION}" "2.9.99")
+if [[ ${override_node} -eq 0 && "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
+
+corral config vars set rancher_type "${RANCHER_TYPE}"
+corral config vars set nodejs_version "${NODEJS_VERSION}"
+corral config vars set dashboard_repo "${DASHBOARD_REPO}"
+corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
+
+# Disable vai where it doesn't exist or is turn off by default
+case "${RANCHER_IMAGE_TAG}" in
+    "v2.7-head" | "v2.8-head" | "v2.9-head" )
+        CYPRESS_TAGS="${CYPRESS_TAGS}+-@vai"
+        ;;
+    *)
+esac
+corral config vars set cypress_tags "${CYPRESS_TAGS}"
+corral config vars set cypress_version "${CYPRESS_VERSION}"
+corral config vars set yarn_version "${YARN_VERSION}"
+corral config vars set kubectl_version "${KUBECTL_VERSION}"
 
 if [[ -n "${RANCHER_USERNAME}" ]]; then
-   corral config vars set rancher_username ${RANCHER_USERNAME}
+   corral config vars set rancher_username "${RANCHER_USERNAME}"
 fi
 
 if [[ -n "${RANCHER_PASSWORD}" ]]; then
-   corral config vars set rancher_password ${RANCHER_PASSWORD}
+   corral config vars set rancher_password "${RANCHER_PASSWORD}"
 fi
 
 if [[ -n "${RANCHER_HOST}" ]]; then
-   corral config vars set rancher_host ${RANCHER_HOST}
+   corral config vars set rancher_host "${RANCHER_HOST}"
 fi
 
 if [[ -n "${CHROME_VERSION}" ]]; then
-   corral config vars set chrome_version ${CHROME_VERSION}
+   corral config vars set chrome_version "${CHROME_VERSION}"
 fi
 
 cd "${WORKSPACE}/corral-packages"
@@ -189,5 +221,5 @@ corral create --skip-cleanup --recreate --debug ci dist/aws-dashboard-tests-t3a.
 corral config vars -o yaml
 corral vars ci corral_private_key -o yaml
 NODE_EXTERNAL_IP="$(corral vars ci first_node_ip)"
-cd ${WORKSPACE}
+cd "${WORKSPACE}"
 echo "${PWD}"

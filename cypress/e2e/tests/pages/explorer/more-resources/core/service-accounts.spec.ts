@@ -8,7 +8,7 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

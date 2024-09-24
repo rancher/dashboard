@@ -12,6 +12,8 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,
@@ -122,60 +124,59 @@ export default {
     class="prompt-rotate"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      v-clean-html="t('promptRotateEncryptionKey.title')"
-      class="text-default-text"
-    />
-
-    <div
-      slot="body"
-      class="pl-10 pr-10"
-    >
-      <Banner
-        color="warning"
-        label-key="promptRotateEncryptionKey.warning"
+    <template #title>
+      <h4
+        v-clean-html="t('promptRotateEncryptionKey.title')"
+        class="text-default-text"
       />
+    </template>
 
-      <div v-if="!$fetchState.pending">
-        <p
-          v-if="latestBackup"
-          class="pt-10 pb-10"
-        >
-          {{ t('promptRotateEncryptionKey.description', latestBackup, true) }}
-        </p>
+    <template #body>
+      <div class="pl-10 pr-10">
         <Banner
-          v-else
+          color="warning"
+          label-key="promptRotateEncryptionKey.warning"
+        />
+
+        <div v-if="!$fetchState.pending">
+          <p
+            v-if="latestBackup"
+            class="pt-10 pb-10"
+          >
+            {{ t('promptRotateEncryptionKey.description', latestBackup, true) }}
+          </p>
+          <Banner
+            v-else
+            color="error"
+            label-key="promptRotateEncryptionKey.error"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #actions>
+      <div class="buttons">
+        <button
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+
+        <AsyncButton
+          mode="rotate"
+          :disabled="$fetchState.pending || !latestBackup"
+          @click="apply"
+        />
+
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
           color="error"
-          label-key="promptRotateEncryptionKey.error"
+          :label="err"
         />
       </div>
-    </div>
-
-    <div
-      slot="actions"
-      class="buttons"
-    >
-      <button
-        class="btn role-secondary mr-10"
-        @click="close"
-      >
-        {{ t('generic.cancel') }}
-      </button>
-
-      <AsyncButton
-        mode="rotate"
-        :disabled="$fetchState.pending || !latestBackup"
-        @click="apply"
-      />
-
-      <Banner
-        v-for="(err, i) in errors"
-        :key="i"
-        color="error"
-        :label="err"
-      />
-    </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>

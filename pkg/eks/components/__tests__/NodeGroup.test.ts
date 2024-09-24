@@ -34,15 +34,18 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mixins: [mockedValidationMixin],
+      mocks:  {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
 
+// eslint-disable-next-line jest/no-disabled-tests
 describe('eKS Node Groups: create', () => {
   it('should load template-controlled fields when a template version is selected', async() => {
     const setup = requiredSetup();
@@ -60,7 +63,7 @@ describe('eKS Node Groups: create', () => {
 
     await wrapper.vm.$nextTick();
 
-    const instanceType = wrapper.find('[data-testid="eks-instance-type-dropdown"]');
+    const instanceType = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceType.vm.value).toBeDefined();
   });
@@ -80,7 +83,7 @@ describe('eKS Node Groups: create', () => {
     });
 
     await wrapper.vm.$nextTick();
-    const imageId = wrapper.find('[data-testid="eks-image-id-input"]');
+    const imageId = wrapper.getComponent('[data-testid="eks-image-id-input"]');
 
     expect(imageId.vm.disabled).toBe(true);
   });
@@ -101,7 +104,7 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const banner = wrapper.find('[data-testid="eks-spot-instance-banner"]');
+    const banner = wrapper.findComponent('[data-testid="eks-spot-instance-banner"]');
 
     expect(banner.exists()).toBe(true);
 
@@ -128,7 +131,7 @@ describe('eKS Node Groups: create', () => {
     await wrapper.vm.$nextTick();
     await wrapper.vm.$nextTick();
 
-    const gpuInput = wrapper.find('[data-testid="eks-gpu-input"]');
+    const gpuInput = wrapper.getComponent('[data-testid="eks-gpu-input"]');
 
     expect(gpuInput.vm.disabled).toBe(true);
   });
@@ -147,7 +150,7 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const instanceType = wrapper.find('[data-testid="eks-instance-type-dropdown"]');
+    const instanceType = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
 
     expect(instanceType.vm.disabled).toBe(true);
 
@@ -171,7 +174,7 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const spotInstanceType = wrapper.find('[data-testid="eks-spot-instance-type-dropdown"]');
+    const spotInstanceType = wrapper.findComponent('[data-testid="eks-spot-instance-type-dropdown"]');
 
     expect(spotInstanceType.exists()).toBe(true);
 
@@ -224,9 +227,9 @@ describe('eKS Node Groups: create', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="eks-version-display"]');
-    const upgradeVersionBanner = wrapper.find('[data-testid="eks-version-upgrade-banner"]');
-    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
+    const upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
+    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(versionDisplay.props().value).toBe('1.23');
@@ -246,11 +249,11 @@ describe('eKS Node Groups: create', () => {
       ...setup
     });
 
-    const tagsInput = wrapper.find('[data-testid="eks-resource-tags-input"]');
+    const tagsInput = wrapper.getComponent('[data-testid="eks-resource-tags-input"]');
 
     expect(tagsInput.props().value).toStrictEqual({});
 
-    tagsInput.vm.$emit('input', { abc: 'def' });
+    tagsInput.vm.$emit('update:value', { abc: 'def' });
 
     await wrapper.vm.$nextTick();
 
@@ -263,6 +266,7 @@ describe('eKS Node Groups: create', () => {
   });
 });
 
+// eslint-disable-next-line jest/no-disabled-tests
 describe('eks node groups: edit', () => {
   it('should show an info banner telling the user they can upgrade the node version after the cluster upgrade finishes', async() => {
     const setup = requiredSetup();
@@ -280,9 +284,9 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="eks-version-display"]');
-    let upgradeVersionBanner = wrapper.find('[data-testid="eks-version-upgrade-banner"]');
-    let upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
+    let upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
+    let upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(upgradeVersionBanner.exists()).toBe(false);
@@ -292,8 +296,8 @@ describe('eks node groups: edit', () => {
 
     await wrapper.vm.$nextTick();
 
-    upgradeVersionBanner = wrapper.find('[data-testid="eks-version-upgrade-banner"]');
-    upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
+    upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.isVisible()).toBe(true);
     expect(versionDisplay.props().value).toBe('1.23');
@@ -318,9 +322,9 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="eks-version-display"]');
-    const upgradeVersionBanner = wrapper.find('[data-testid="eks-version-upgrade-banner"]');
-    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="eks-version-display"]');
+    const upgradeVersionBanner = wrapper.findComponent('[data-testid="eks-version-upgrade-banner"]');
+    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
     expect(versionDisplay.exists()).toBe(false);
     expect(upgradeVersionBanner.exists()).toBe(false);
@@ -343,12 +347,69 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.findComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
-    upgradeVersionCheckbox.vm.$emit('input', true);
+    upgradeVersionCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.24');
+  });
+
+  it('should report that a pool is being upgraded when the upgrade checkbox is checked', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        version:                '1.23',
+        clusterVersion:         '1.24',
+        originalClusterVersion: '1.24',
+        isNewOrUnprovisioned:   false
+      },
+      ...setup
+    });
+
+    expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
+
+    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
+
+    upgradeVersionCheckbox.vm.$emit('update:value', true);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(true);
+  });
+
+  it('should report that a pool is NOT being upgraded when the upgrade checkbox is unchecked', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        version:                '1.23',
+        clusterVersion:         '1.24',
+        originalClusterVersion: '1.24',
+        isNewOrUnprovisioned:   false
+      },
+      ...setup
+    });
+
+    expect(wrapper.emitted('update:poolIsUpgrading')).toBeUndefined();
+
+    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
+
+    wrapper.setProps({ version: '1.24' });
+    await wrapper.vm.$nextTick();
+
+    expect(upgradeVersionCheckbox.props().value).toBe(true);
+
+    upgradeVersionCheckbox.vm.$emit('update:value', false);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:poolIsUpgrading')?.[0]?.[0]).toBe(false);
   });
 
   it('should revert the node version to its original version when the upgrade checkbox is unchecked', async() => {
@@ -367,14 +428,14 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const upgradeVersionCheckbox = wrapper.find('[data-testid="eks-version-upgrade-checkbox"]');
+    const upgradeVersionCheckbox = wrapper.getComponent('[data-testid="eks-version-upgrade-checkbox"]');
 
     wrapper.setProps({ version: '1.24' });
     await wrapper.vm.$nextTick();
 
     expect(upgradeVersionCheckbox.props().value).toBe(true);
 
-    upgradeVersionCheckbox.vm.$emit('input', false);
+    upgradeVersionCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:version')?.[0]?.[0]).toBe('1.23');
@@ -395,7 +456,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const nameInput = wrapper.find('[data-testid="eks-nodegroup-name"]');
+    const nameInput = wrapper.getComponent('[data-testid="eks-nodegroup-name"]');
 
     expect(nameInput.props().disabled).toBe(false);
   });
@@ -414,7 +475,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const nameInput = wrapper.find('[data-testid="eks-nodegroup-name"]');
+    const nameInput = wrapper.getComponent('[data-testid="eks-nodegroup-name"]');
 
     expect(nameInput.props().disabled).toBe(true);
   });
@@ -433,7 +494,7 @@ describe('eks node groups: edit', () => {
       ...setup
     });
 
-    const ec2KeyDropdown = wrapper.find('[data-testid="eks-nodegroup-ec2-key-select"]');
+    const ec2KeyDropdown = wrapper.findComponent('[data-testid="eks-nodegroup-ec2-key-select"]');
 
     expect(ec2KeyDropdown.exists()).toBe(true);
     expect(ec2KeyDropdown.props().options).toHaveLength(0);
@@ -441,7 +502,7 @@ describe('eks node groups: edit', () => {
     await wrapper.vm.$nextTick();
     expect(ec2KeyDropdown.props().options).toHaveLength(2);
 
-    ec2KeyDropdown.vm.$emit('input', '123-abc');
+    ec2KeyDropdown.vm.$emit('update:value', '123-abc');
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:ec2SshKey')?.[1]?.[0]).toBe('123-abc');

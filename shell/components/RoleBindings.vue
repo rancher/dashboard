@@ -349,7 +349,7 @@ export default {
 
     remove(row) {
       if ( row.existing ) {
-        this.$set(row, 'remove', true);
+        row['remove'] = true;
       } else {
         removeObject(this.rows, row);
       }
@@ -389,7 +389,7 @@ export default {
     >
       <div class="subject">
         <LabeledSelect
-          v-model="row.subject"
+          v-model:value="row.subject"
           label-key="rbac.roleBinding.user.label"
           :mode="mode"
           :searchable="true"
@@ -399,7 +399,7 @@ export default {
       </div>
       <div class="binding">
         <LabeledSelect
-          v-model="row.role"
+          v-model:value="row.role"
           label-key="rbac.roleBinding.role.label"
           :mode="mode"
           :searchable="true"

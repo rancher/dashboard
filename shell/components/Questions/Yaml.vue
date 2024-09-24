@@ -4,6 +4,8 @@ import Question from './Question';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { YamlEditor },
   mixins:     [Question],
   data() {
@@ -32,7 +34,7 @@ export default {
         :disabled="disabled"
         :value="value"
         :data-testid="`yaml-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

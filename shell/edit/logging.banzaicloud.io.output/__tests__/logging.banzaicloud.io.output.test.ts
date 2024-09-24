@@ -110,33 +110,35 @@ describe('view: logging.banzaicloud.io.output', () => {
     ['not a proper URL', ['logging.loki.urlInvalid']],
   ])('should validate Loki URL on save', (url, expectation) => {
     const wrapper = mount(Banzai, {
-      data:      () => ({ selectedProvider: 'loki' }),
-      propsData: {
+      data:  () => ({ selectedProvider: 'loki' }),
+      props: {
         value: {
           save: jest.fn(),
           spec: { loki: { url } }
         }
       },
-      mocks: {
-        $fetchState: { pending: false },
-        $store:      {
-          dispatch: jest.fn(),
-          getters:  {
-            currentStore:              () => 'current_store',
-            'management/schemaFor':    jest.fn(),
-            'current_store/all':       jest.fn(),
-            'current_store/schemaFor': jest.fn(),
-            'cluster/all':             jest.fn(),
-            'type-map/isSpoofed':      jest.fn(),
-            'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
-            namespaces:                () => ({}),
-          }
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:              () => 'current_store',
+              'management/schemaFor':    jest.fn(),
+              'current_store/all':       jest.fn(),
+              'current_store/schemaFor': jest.fn(),
+              'cluster/all':             jest.fn(),
+              'type-map/isSpoofed':      jest.fn(),
+              'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
+              namespaces:                () => ({}),
+            }
+          },
+          $route: {
+            name:  'whatever',
+            query: { AS: '' }
+          },
+          $router: { replace: jest.fn() },
         },
-        $route: {
-          name:  'whatever',
-          query: { AS: '' }
-        },
-        $router: { replace: jest.fn() },
       }
     });
     const fakeDone = jest.fn();
@@ -148,40 +150,42 @@ describe('view: logging.banzaicloud.io.output', () => {
 
   it('should load the default YAML data for output buffer config (from schema) in a CREATE scenario', async() => {
     const wrapper = mount(Banzai, {
-      data:      () => ({ selectedProvider: 'awsElasticsearch' }),
-      propsData: {
+      data:  () => ({ selectedProvider: 'awsElasticsearch' }),
+      props: {
         value: {
           save: jest.fn(),
           spec: {}
         }
       },
-      mocks: {
-        $fetchState: { pending: false },
-        $store:      {
-          dispatch(arg: any) {
-            if (arg === 'cluster/find') {
-              return outputSchema;
-            }
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $store:      {
+            dispatch(arg: any) {
+              if (arg === 'cluster/find') {
+                return outputSchema;
+              }
 
-            return jest.fn();
+              return jest.fn();
+            },
+            getters: {
+              currentStore:              () => 'current_store',
+              'management/schemaFor':    jest.fn(),
+              'current_store/all':       jest.fn(),
+              'current_store/schemaFor': jest.fn(),
+              'cluster/all':             () => [outputSchema],
+              'cluster/byId':            () => outputSchema,
+              'type-map/isSpoofed':      jest.fn(),
+              'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
+              namespaces:                () => ({}),
+            }
           },
-          getters: {
-            currentStore:              () => 'current_store',
-            'management/schemaFor':    jest.fn(),
-            'current_store/all':       jest.fn(),
-            'current_store/schemaFor': jest.fn(),
-            'cluster/all':             () => [outputSchema],
-            'cluster/byId':            () => outputSchema,
-            'type-map/isSpoofed':      jest.fn(),
-            'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
-            namespaces:                () => ({}),
-          }
+          $route: {
+            name:  'whatever',
+            query: { AS: '' }
+          },
+          $router: { replace: jest.fn() },
         },
-        $route: {
-          name:  'whatever',
-          query: { AS: '' }
-        },
-        $router: { replace: jest.fn() },
       }
     });
 
@@ -227,40 +231,42 @@ describe('view: logging.banzaicloud.io.output', () => {
 
   it('should load current output buffer config in an EDIT scenario', async() => {
     const wrapper = mount(Banzai, {
-      data:      () => ({ selectedProvider: 'awsElasticsearch' }),
-      propsData: {
+      data:  () => ({ selectedProvider: 'awsElasticsearch' }),
+      props: {
         value: {
           save: jest.fn(),
           spec: { awsElasticsearch: { buffer: '#chunk_limit_records: int' } }
         }
       },
-      mocks: {
-        $fetchState: { pending: false },
-        $store:      {
-          dispatch(arg: any) {
-            if (arg === 'cluster/find') {
-              return outputSchema;
-            }
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $store:      {
+            dispatch(arg: any) {
+              if (arg === 'cluster/find') {
+                return outputSchema;
+              }
 
-            return jest.fn();
+              return jest.fn();
+            },
+            getters: {
+              currentStore:              () => 'current_store',
+              'management/schemaFor':    jest.fn(),
+              'current_store/all':       jest.fn(),
+              'current_store/schemaFor': jest.fn(),
+              'cluster/all':             jest.fn(),
+              'cluster/byId':            () => outputSchema,
+              'type-map/isSpoofed':      jest.fn(),
+              'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
+              namespaces:                () => ({}),
+            }
           },
-          getters: {
-            currentStore:              () => 'current_store',
-            'management/schemaFor':    jest.fn(),
-            'current_store/all':       jest.fn(),
-            'current_store/schemaFor': jest.fn(),
-            'cluster/all':             jest.fn(),
-            'cluster/byId':            () => outputSchema,
-            'type-map/isSpoofed':      jest.fn(),
-            'i18n/t':                  jest.fn().mockImplementation((key: string) => key),
-            namespaces:                () => ({}),
-          }
+          $route: {
+            name:  'whatever',
+            query: { AS: '' }
+          },
+          $router: { replace: jest.fn() },
         },
-        $route: {
-          name:  'whatever',
-          query: { AS: '' }
-        },
-        $router: { replace: jest.fn() },
       }
     });
 

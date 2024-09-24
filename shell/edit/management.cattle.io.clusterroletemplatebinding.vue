@@ -12,6 +12,7 @@ export default {
     CruResource,
     Loading,
   },
+  inheritAttrs: false,
 
   mixins: [CreateEditView],
   async fetch() {
@@ -63,7 +64,7 @@ export default {
     @cancel="done"
   >
     <ClusterPermissionsEditor
-      v-model="bindings"
+      v-model:value="bindings"
       :cluster-name="$store.getters['currentCluster'].id"
     />
   </CruResource>

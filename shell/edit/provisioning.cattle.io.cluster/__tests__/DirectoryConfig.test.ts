@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount, Wrapper } from '@vue/test-utils';
 import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
@@ -90,7 +91,7 @@ describe('component: DirectoryConfig', () => {
     const commonInput = wrapper.find('[data-testid="rke2-directory-config-common-data-dir"]');
 
     commonInput.setValue(inputPath);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.value.systemAgent).toStrictEqual(inputPath);
     expect(wrapper.vm.value.provisioning).toStrictEqual(inputPath);
@@ -107,8 +108,8 @@ describe('component: DirectoryConfig', () => {
     const checkbox = wrapper.find('[data-testid="rke2-directory-config-individual-config-checkbox"]');
 
     await checkbox.find('label').trigger('click');
-    await checkbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     expect(wrapper.vm.isSettingCommonConfig).toBe(false);
 
@@ -119,7 +120,7 @@ describe('component: DirectoryConfig', () => {
     systemAgentInput.setValue(inputPath);
     provisioningInput.setValue(inputPath);
     k8sDistroInput.setValue(inputPath);
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.value.systemAgent).toStrictEqual(inputPath);
     expect(wrapper.vm.value.provisioning).toStrictEqual(inputPath);
@@ -218,7 +219,7 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(false);
 
     expect(checkbox.find('label').classes('disabled')).toBe(true);
-    expect(commonInput.attributes('disabled')).toBe('disabled');
+    expect(commonInput.attributes('disabled')).toBe('');
   });
 
   it('on a mode different than _CREATE all visible inputs should be disabled (with different values)', () => {
@@ -250,8 +251,8 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(true);
 
     expect(checkbox.find('label').classes('disabled')).toBe(true);
-    expect(systemAgentInput.attributes('disabled')).toBe('disabled');
-    expect(provisioningInput.attributes('disabled')).toBe('disabled');
-    expect(k8sDistroInput.attributes('disabled')).toBe('disabled');
+    expect(systemAgentInput.attributes('disabled')).toBe('');
+    expect(provisioningInput.attributes('disabled')).toBe('');
+    expect(k8sDistroInput.attributes('disabled')).toBe('');
   });
 });

@@ -8,7 +8,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
   const fleetTokensPage = new FleetClusterRegistrationTokenListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

@@ -203,16 +203,16 @@ export default {
           <span v-clean-html="osWarning" />
         </Banner>
         <Banner
-          v-for="msg in requires"
-          :key="msg"
+          v-for="(msg, i) in requires"
+          :key="i"
           color="error"
         >
           <span v-clean-html="msg" />
         </Banner>
 
         <Banner
-          v-for="msg in warnings"
-          :key="msg"
+          v-for="(msg, i) in warnings"
+          :key="i"
           color="warning"
         >
           <span v-clean-html="msg" />

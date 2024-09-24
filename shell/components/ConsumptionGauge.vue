@@ -114,7 +114,7 @@ export default {
     </div>
     <div class="mt-10">
       <PercentageBar
-        :value="percentageBarValue"
+        :modelValue="percentageBarValue"
         :color-stops="colorStops"
       />
     </div>

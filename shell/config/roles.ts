@@ -1,3 +1,17 @@
+export const enum SCOPED_RESOURCE_GROUPS {
+  GLOBAL = 'globalScopedApiGroups', // eslint-disable-line no-unused-vars
+  CLUSTER = 'clusterScopedApiGroups', // eslint-disable-line no-unused-vars
+  PROJECT_NAMESPACE = 'projectScopedApiGroups', // eslint-disable-line no-unused-vars
+}
+
+/**
+ * Resources users can select when creating grants when managing global, cluster and project/namespace roles
+ *
+ * **************NOTE*****************
+ * Global roles will show ALL entries
+ * Cluster roles will show cluster AND project/namespace entries
+ * Project/Namespace roles will show ONLY project/namespace entries
+ */
 export const SCOPED_RESOURCES = {
   // With this hardcoded list, it will be easier to curate a more useful
   // and human-understandable list of resources to choose from
@@ -13,7 +27,7 @@ export const SCOPED_RESOURCES = {
   // the global scoped list, and the project role creation form includes a
   // subset of the cluster scoped list.
 
-  globalScopedApiGroups: {
+  [SCOPED_RESOURCE_GROUPS.GLOBAL]: {
     // Global scoped resources are resources for
     // Rancher's global apps, mainly Cluster
     // Management and Continuous Delivery.
@@ -130,9 +144,9 @@ export const SCOPED_RESOURCES = {
       resources: [
         'Clusters'
       ]
-    }
+    },
   },
-  clusterScopedApiGroups: {
+  [SCOPED_RESOURCE_GROUPS.CLUSTER]: {
     // Cluster scoped resources are for non-namespaced
     // resources at the cluster level, for example,
     // storage resources.
@@ -201,15 +215,16 @@ export const SCOPED_RESOURCES = {
     },
     neuvectorApi: {
       resources: [
-        'nv-perm.admctrl',
-        'nv-perm.authentication',
-        'nv-perm.ci-scan',
-        'nv-perm.fed',
-        'nv-perm.vulnerability'
+        'AdmissionControl',
+        'Authentication',
+        'CIScan',
+        'Cluster',
+        'Federation',
+        'Vulnerability',
       ]
     }
   },
-  projectScopedApiGroups: {
+  [SCOPED_RESOURCE_GROUPS.PROJECT_NAMESPACE]: {
     // Project scoped resources include all other namespaced
     // resources.
     coreKubernetesApi: {
@@ -378,16 +393,16 @@ export const SCOPED_RESOURCES = {
     },
     neuvectorApi: {
       resources: [
-        'nv-perm.all-permissions',
-        'nv-perm.audit-events',
-        'nv-perm.authorization',
-        'nv-perm.compliance',
-        'nv-perm.events',
-        'nv-perm.reg-scan',
-        'nv-perm.rt-policy',
-        'nv-perm.rt-scan',
-        'nv-perm.security-events',
-        'nv-perm.config',
+        'AuditEvents',
+        'Authorization',
+        'Compliance',
+        'Events',
+        'Namespace',
+        'RegistryScan',
+        'RuntimePolicy',
+        'RuntimeScan',
+        'SecurityEvents',
+        'SystemConfig',
       ]
     }
   }

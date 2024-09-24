@@ -2,7 +2,22 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
 
+function updateUserRetentionSetting(settingId, newValue) {
+  cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
+    const retentionSetting = data.body.data.find((setting) => setting.id === settingId);
+
+    retentionSetting.value = newValue;
+
+    cy.setRancherResource('v1', 'management.cattle.io.settings', settingId, retentionSetting);
+  });
+}
+
 describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+  const runTimestamp = +new Date();
+  const usernameBlock = `user_to_block_${ runTimestamp }`;
+  const usernameRetention = `user_retention_access_${ runTimestamp }`;
+  const userIdsList = [];
+
   before(() => {
     cy.login();
   });
@@ -48,7 +63,7 @@ describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser']
     const userRetentionPo = new UserRetentionPo();
 
     userRetentionPo.disableAfterPeriodCheckbox().set();
-    userRetentionPo.disableAfterPeriodInput().set('30d');
+    userRetentionPo.disableAfterPeriodInput().set('300h');
     userRetentionPo.userRetentionCron().set('0 0 1 1 *');
 
     userRetentionPo.saveButton().expectToBeEnabled();
@@ -66,7 +81,6 @@ describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser']
     userRetentionPo.deleteAfterPeriodCheckbox().set();
     userRetentionPo.deleteAfterPeriodInput().set('600h');
     userRetentionPo.userRetentionCron().set('0 0 1 1 *');
-    // userRetentionPo.userRetentionDryRun().set('true');
     userRetentionPo.userLastLoginDefault().set('1718744536000');
 
     userRetentionPo.saveButton().expectToBeEnabled();
@@ -86,5 +100,90 @@ describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser']
     userRetentionPo.deleteAfterPeriodInput().value().should('equal', '600h');
     userRetentionPo.userRetentionCron().value().should('equal', '0 0 1 1 *');
     userRetentionPo.userLastLoginDefault().value().should('equal', '1718744536000');
+  });
+
+  it('setup a user account that will be blocked', () => {
+    const usersPo = new UsersPo();
+
+    cy.createUser({
+      username:    usernameBlock,
+      globalRole:  { role: 'user' },
+      projectRole: {
+        clusterId:   'local',
+        projectName: 'Default',
+        role:        'project-member',
+      }
+    }).then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.id;
+
+      userIdsList.push(userId);
+    });
+
+    // Initialize the retention settings in case they are not.
+
+    updateUserRetentionSetting('disable-inactive-user-after', '50h');
+
+    updateUserRetentionSetting('user-retention-cron', '* * * * *');
+
+    updateUserRetentionSetting('delete-inactive-user-after', '500h');
+
+    usersPo.goTo();
+
+    usersPo.waitForPage();
+
+    // login as test user once to activate the retention
+    cy.login(usernameBlock, Cypress.env('password'), false);
+  });
+
+  it('verify the user account has countdown timers', () => {
+    const usersPo = new UsersPo();
+
+    cy.logout();
+    cy.login();
+
+    usersPo.goTo();
+    usersPo.waitForPage();
+
+    // Disable After
+    usersPo.list().resourceTable().sortableTable().rowWithPartialName(usernameBlock)
+      .column(7)
+      .should('not.eq', '-');
+
+    // Delete After
+    usersPo.list().resourceTable().sortableTable().rowWithPartialName(usernameBlock)
+      .column(8)
+      .should('not.eq', '-');
+  });
+
+  it('standard user should not have access to user retention page', () => {
+    const usersPo = new UsersPo();
+
+    cy.createUser({
+      username:    usernameRetention,
+      globalRole:  { role: 'user' },
+      projectRole: {
+        clusterId:   'local',
+        projectName: 'Default',
+        role:        'project-member',
+      }
+    }).then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.id;
+
+      userIdsList.push(userId);
+    });
+    // logout from admin
+    cy.logout();
+
+    cy.url().should('includes', `${ Cypress.config().baseUrl }/auth/login`);
+
+    // login as test user
+    cy.login(usernameRetention, Cypress.env('password'));
+    usersPo.goTo();
+    usersPo.waitForPage();
+    usersPo.userRetentionLink().checkNotExists();
+  });
+
+  after(() => {
+    userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
   });
 });

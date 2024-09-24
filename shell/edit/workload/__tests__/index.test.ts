@@ -1,4 +1,4 @@
-import { createLocalVue, shallowMount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import Workload from '@shell/edit/workload/index.vue';
 
 jest.mock('@shell/models/secret', () => ({ onmessage: jest.fn() }));
@@ -7,16 +7,16 @@ describe('component: Workload', () => {
   it.each([
     [
       `pods \"test\" is forbidden: violates PodSecurity \"restricted:latest\": allowPrivilegeEscalation != false (container \"container-0\" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container \"container-0\" must set securityContext.capabilities.drop=[\"ALL\"]), runAsNonRoot != true (container \"container-0\" must not set securityContext.runAsNonRoot=false), seccompProfile (pod or container \"container-0\" must set securityContext.seccompProfile.type to \"RuntimeDefault\" or \"Localhost\")`,
-      `Pod "test" Security Policy Violation "restricted:latest"`
+      `workload.error, \"test\",\"restricted:latest\"`
     ]
   ])('should map error message into object', (oldMessage, newMessage) => {
     const mockedValidationMixin = {
       methods: {
-        fvFormIsValid:                jest.fn(),
-        type:                         jest.fn(),
-        fvUnreportedValidationErrors: jest.fn(),
-        fvGetAndReportPathRules:      jest.fn(),
-      }
+        fvFormIsValid:           jest.fn(),
+        type:                    jest.fn(),
+        fvGetAndReportPathRules: jest.fn(),
+      },
+      computed: { fvUnreportedValidationErrors: jest.fn().mockReturnValue([]) }
     };
     const mockedCREMixin = {};
     const mockedWorkloadMixin = {
@@ -52,43 +52,48 @@ describe('component: Workload', () => {
         // tabWeightMap:     jest.fn(),
       }
     };
-    const localVue = createLocalVue();
+
     const MockedWorkload = { ...Workload, mixins: [mockedValidationMixin, mockedCREMixin, mockedWorkloadMixin] };
     const wrapper = shallowMount(MockedWorkload, {
-      localVue,
-      propsData: {
+      props: {
         value:         { metadata: {}, spec: { template: {} } },
         params:        {},
         fvFormIsValid: {}
       },
-      mocks: {
-        $route:      { params: {}, query: {} },
-        $router:     { applyQuery: jest.fn() },
-        $fetchState: { pending: false },
-        $store:      {
-          getters: {
-            'cluster/schemaFor': jest.fn(),
-            'type-map/labelFor': jest.fn(),
-            'i18n/t':            jest.fn(),
+
+      global: {
+        mocks: {
+          $route:      { params: {}, query: {} },
+          $router:     { applyQuery: jest.fn() },
+          $fetchState: { pending: false },
+          $store:      {
+            getters: {
+              'cluster/schemaFor': jest.fn(),
+              'type-map/labelFor': jest.fn(),
+              'i18n/t':            (text: string, v: {[key:string]: string}) => {
+                return `${ text }, ${ Object.values(v || {}) }`;
+              },
+            },
           },
         },
+
+        stubs: {
+          Tab:                 true,
+          LabeledInput:        true,
+          VolumeClaimTemplate: true,
+          Networking:          true,
+          Job:                 true,
+          NodeScheduling:      true,
+          PodAffinity:         true,
+          Tolerations:         true,
+          Storage:             true,
+          Tabbed:              true,
+          LabeledSelect:       true,
+          NameNsDescription:   true,
+          CruResource:         true,
+          KeyValue:            true
+        },
       },
-      stubs: {
-        Tab:                 true,
-        LabeledInput:        true,
-        VolumeClaimTemplate: true,
-        Networking:          true,
-        Job:                 true,
-        NodeScheduling:      true,
-        PodAffinity:         true,
-        Tolerations:         true,
-        Storage:             true,
-        Tabbed:              true,
-        LabeledSelect:       true,
-        NameNsDescription:   true,
-        CruResource:         true,
-        KeyValue:            true
-      }
     });
 
     const result = (wrapper.vm as any).mapError(oldMessage).message;

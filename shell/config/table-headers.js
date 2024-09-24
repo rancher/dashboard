@@ -331,16 +331,6 @@ export const SIMPLE_SCALE = {
   sort:     ['scale']
 };
 
-export const WEIGHT = {
-  name:      'weight',
-  labelKey:  'tableHeaders.weight',
-  value:     'status.computedWeight',
-  sort:      'status.computedWeight',
-  formatter: 'Weight',
-  width:     60,
-  align:     'center',
-};
-
 export const SUCCESS = {
   name:     'success',
   labelKey: 'tableHeaders.success',

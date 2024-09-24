@@ -488,6 +488,34 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     });
 });
 
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal) => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
+  let retries = 20;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+    })
+      .then((resp) => {
+        if (resp.body.count === expectedResourcesTotal) return resp;
+        else {
+          retries = retries - 1;
+          if (retries === 0) return resp;
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(3000);
+          retry();
+        }
+      });
+  };
+
+  return retry();
+});
+
 /**
  * delete a node template
  */
@@ -853,4 +881,31 @@ Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string
         expect(resp.status).to.eq(201);
       }
     });
+});
+
+/**
+ * Fetch the steve `revision` / timestamp of request
+ */
+Cypress.Commands.add('fetchRevision', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, 200)
+    .then((res) => {
+      return res.body.revision;
+    });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.data[0].id.trim();
+
+    cy.setRancherResource('v1', `userpreferences`, userId, {
+      id:   `${ userId }`,
+      type: 'userpreference',
+      data: {
+        cluster:         clusterName,
+        'per-page':      `${ rows }`,
+        'group-by':      groupBy,
+        'ns-by-cluster': namespaceFilter
+      }
+    });
+  });
 });

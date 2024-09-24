@@ -3,6 +3,8 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput },
   mixins:     [CreateEditView],
 
@@ -37,7 +39,7 @@ export default {
       placeholder-key="cluster.credential.linode.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('token', $event);"
+      @update:value="value.setData('token', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.linode.accessToken.help', {}, true)"

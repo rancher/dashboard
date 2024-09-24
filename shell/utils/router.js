@@ -1,3 +1,5 @@
+import { INSTALL_REDIRECT_META_KEY } from '@shell/config/router/navigation-guards/install-redirect';
+
 export function queryParamsFor(current, qp, defaults = {}) {
   const query = Object.assign({}, current || {});
 
@@ -98,7 +100,11 @@ export const routeRequiresAuthentication = (to) => {
   return routeMatched(to, (matched) => matched.meta?.requiresAuthentication);
 };
 
-function findMeta(route, key) {
+export const routeRequiresInstallRedirect = (to) => {
+  return routeMatched(to, (matched) => matched.meta?.[INSTALL_REDIRECT_META_KEY]);
+};
+
+export function findMeta(route, key) {
   if (route?.meta) {
     const meta = Array.isArray(route.meta) ? route.meta : [route.meta];
 

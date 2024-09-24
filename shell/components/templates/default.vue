@@ -64,10 +64,6 @@ export default {
   },
 
   // Note - These will run on route change
-  middleware: [
-    'authenticated'
-  ],
-
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['clusterId', 'currentProduct', 'rootProduct', 'isRancherInHarvester', 'showTopLevelMenu']),

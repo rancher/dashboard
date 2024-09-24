@@ -4,26 +4,31 @@ const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
-const configHelper = require('./vue-config-helper.js');
+const {
+  dev, devPorts, api, proxyWsOpts, proxyOpts, proxyMetaOpts, proxyPrimeOpts
+} = require('./vue-config-helper.js');
 const har = require('./server/har-file');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
 const oldInfoLogger = console.info; // eslint-disable-line no-console
 
-// TODO: Add explanation of this logic
 console.info = () => {}; // eslint-disable-line no-console
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+// TODO: Add explanation of this logic
 console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
 const STANDARD = 1;
-const { dev, devPorts, api } = configHelper;
-const dashboardVersion = process.env.DASHBOARD_VERSION; // semver rancher dashboard in about page
+
+// human readable version used on rancher dashboard about page
+const dashboardVersion = process.env.DASHBOARD_VERSION;
+
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
@@ -58,26 +63,26 @@ const getShellPaths = (dir) => {
 
 const getProxyConfig = (proxyConfig) => ({
   ...proxyConfig,
-  '/k8s':            configHelper.proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-  '/pp':             configHelper.proxyWsOpts(api), // For (epinio) standalone API
-  '/api':            configHelper.proxyWsOpts(api), // Management k8s API
-  '/apis':           configHelper.proxyWsOpts(api), // Management k8s API
-  '/v1':             configHelper.proxyWsOpts(api), // Management Steve API
-  '/v3':             configHelper.proxyWsOpts(api), // Rancher API
-  '/v3-public':      configHelper.proxyOpts(api), // Rancher Unauthed API
-  '/api-ui':         configHelper.proxyOpts(api), // Browser API UI
-  '/meta':           configHelper.proxyMetaOpts(api), // Browser API UI
-  '/v1-*':           configHelper.proxyOpts(api), // SAML, KDM, etc
-  '/rancherversion': configHelper.proxyPrimeOpts(api), // Rancher version endpoint
+  '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+  '/pp':             proxyWsOpts(api), // For (epinio) standalone API
+  '/api':            proxyWsOpts(api), // Management k8s API
+  '/apis':           proxyWsOpts(api), // Management k8s API
+  '/v1':             proxyWsOpts(api), // Management Steve API
+  '/v3':             proxyWsOpts(api), // Rancher API
+  '/v3-public':      proxyOpts(api), // Rancher Unauthed API
+  '/api-ui':         proxyOpts(api), // Browser API UI
+  '/meta':           proxyMetaOpts(api), // Browser API UI
+  '/v1-*':           proxyOpts(api), // SAML, KDM, etc
+  '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
   // These are for Ember embedding
-  '/c/*/edit':       configHelper.proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/g/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/n/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/p/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/assets':         configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/translations':   configHelper.proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist':   configHelper.proxyOpts('https://127.0.0.1:8000'),
+  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+  '/k/':             proxyOpts('https://127.0.0.1:8000'),
+  '/g/':             proxyOpts('https://127.0.0.1:8000'),
+  '/n/':             proxyOpts('https://127.0.0.1:8000'),
+  '/p/':             proxyOpts('https://127.0.0.1:8000'),
+  '/assets':         proxyOpts('https://127.0.0.1:8000'),
+  '/translations':   proxyOpts('https://127.0.0.1:8000'),
+  '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 });
 
 /**
@@ -101,8 +106,12 @@ const getPackageImport = (dir) => new webpack.NormalModuleReplacementPlugin(/^@p
   }
 });
 
-const getLoaders = (SHELL_ABS) => {
-  const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); // Instrument code for code coverage in e2e tests
+/**
+ * Instrument code for code coverage in e2e tests
+ */
+const instrumentCode = () => {
+  const instrumentedCode = (process.env.TEST_INSTRUMENT === 'true');
+
   // Instrument code for tests
   const babelPlugins = [
     // TODO: Browser support; also add explanation to this TODO
@@ -111,104 +120,87 @@ const getLoaders = (SHELL_ABS) => {
     ['@babel/plugin-proposal-class-properties', { loose: true }]
   ];
 
-  if (instrumentCode) {
+  if (instrumentedCode) {
     babelPlugins.push([
       'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
     ]);
 
     console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
   }
-
-  return [
-    // Ensure there is a fallback for browsers that don't support web workers
-    {
-      test:    /web-worker.[a-z-]+.js/i,
-      loader:  'worker-loader',
-      options: { inline: 'fallback' },
-    },
-    // Handler for csv files (e.g. ec2 instance data)
-    {
-      test:    /\.csv$/i,
-      loader:  'csv-loader',
-      options: {
-        dynamicTyping:  true,
-        header:         true,
-        skipEmptyLines: true
-      },
-    },
-    // Handler for yaml files (used for i18n files, for example)
-    {
-      test:    /\.ya?ml$/i,
-      loader:  'js-yaml-loader',
-      options: { name: '[path][name].[ext]' },
-    },
-    {
-      test:    /\.m?[tj]sx?$/,
-      // This excludes no modules except for node_modules/@rancher/... so that plugins can properly compile
-      // when referencing @rancher/shell
-      exclude: /node_modules\/(?!(@rancher)\/).*/,
-      use:     [
-        {
-          loader:  'cache-loader',
-          options: {
-            cacheDirectory:  'node_modules/.cache/babel-loader',
-            cacheIdentifier: 'e93f32da'
-          }
-        },
-        {
-          loader:  'babel-loader',
-          options: {
-            presets: [
-              [
-                require.resolve('@nuxt/babel-preset-app'),
-                {
-                  corejs:  { version: 3 },
-                  targets: { browsers: ['last 2 versions'] },
-                  modern:  true
-                }
-              ],
-              '@babel/preset-typescript',
-            ],
-            plugins: babelPlugins
-          }
-        }
-      ]
-    },
-    {
-      test: /\.tsx?$/,
-      use:  [
-        {
-          loader:  'cache-loader',
-          options: {
-            cacheDirectory:  'node_modules/.cache/ts-loader',
-            cacheIdentifier: '3596741e'
-          }
-        },
-        {
-          loader:  'ts-loader',
-          options: {
-            transpileOnly:     true,
-            happyPackMode:     false,
-            appendTsxSuffixTo: [
-              '\\.vue$'
-            ],
-            configFile: path.join(SHELL_ABS, 'tsconfig.json')
-          }
-        }
-      ]
-    },
-    // Prevent warning in log with the md files in the content folder
-    {
-      test: /\.md$/,
-      use:  [
-        {
-          loader:  'frontmatter-markdown-loader',
-          options: { mode: ['body'] }
-        }
-      ]
-    },
-  ];
 };
+
+const getLoaders = (SHELL_ABS) => [
+  // Ensure there is a fallback for browsers that don't support web workers
+  {
+    test:    /web-worker.[a-z-]+.js/i,
+    loader:  'worker-loader',
+    options: { inline: 'fallback' },
+  },
+  // Handler for csv files (e.g. ec2 instance data)
+  {
+    test:    /\.csv$/i,
+    loader:  'csv-loader',
+    options: {
+      dynamicTyping:  true,
+      header:         true,
+      skipEmptyLines: true
+    },
+  },
+  // Handler for yaml files (used for i18n files, for example)
+  {
+    test:    /\.ya?ml$/i,
+    loader:  'js-yaml-loader',
+    options: { name: '[path][name].[ext]' },
+  },
+  {
+    test:    /\.m?[tj]sx?$/,
+    // This excludes no modules except for node_modules/@rancher/... so that plugins can properly compile
+    // when referencing @rancher/shell
+    exclude: /node_modules\/(?!(@rancher)\/).*/,
+    use:     [
+      {
+        loader:  'cache-loader',
+        options: {
+          cacheDirectory:  'node_modules/.cache/babel-loader',
+          cacheIdentifier: 'e93f32da'
+        }
+      },
+    ]
+  },
+  {
+    test: /\.tsx?$/,
+    use:  [
+      {
+        loader:  'cache-loader',
+        options: {
+          cacheDirectory:  'node_modules/.cache/ts-loader',
+          cacheIdentifier: '3596741e'
+        }
+      },
+      {
+        loader:  'ts-loader',
+        options: {
+          transpileOnly:     true,
+          happyPackMode:     false,
+          appendTsxSuffixTo: [
+            '\\.vue$'
+          ],
+          configFile: path.join(SHELL_ABS, 'tsconfig.json')
+        }
+      }
+    ]
+  },
+  // Prevent warning in log with the md files in the content folder
+  {
+    test: /\.md$/,
+    use:  [
+      {
+        loader:  'frontmatter-markdown-loader',
+        options: { mode: ['body'] }
+      }
+    ]
+  },
+];
 
 const getDevServerConfig = (proxy) => {
   const harFile = process.env.HAR_FILE;
@@ -216,19 +208,31 @@ const getDevServerConfig = (proxy) => {
   const harData = harFile ? har.loadFile(harFile, devPorts ? 8005 : 80, '') : undefined;
 
   return {
-    https: (devPorts ? {
-      key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
-    } : null),
-    port:   (devPorts ? 8005 : 80),
-    host:   '0.0.0.0',
-    public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
-    before(app, server) {
+    client: { webSocketURL: { hostname: '0.0.0.0', port: devPorts ? 8005 : 80 } },
+    server: {
+      type:    'https',
+      options: {
+        key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
+        cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
+      }
+    },
+    port: (devPorts ? 8005 : 80),
+    host: '0.0.0.0',
+    setupMiddlewares(middlewares, devServer) {
       const socketProxies = {};
+
+      if (!devServer) {
+        // eslint-disable-next-line no-console
+        console.error('webpack-dev-server is not defined');
+
+        return middlewares;
+      }
+
+      const app = devServer.app;
 
       // Close down quickly in response to CTRL + C
       process.once('SIGINT', () => {
-        server.close();
+        devServer.close();
         console.log('\n'); // eslint-disable-line no-console
         process.exit(1);
       });
@@ -239,7 +243,7 @@ const getDevServerConfig = (proxy) => {
         console.log('Installing HAR file middleware'); // eslint-disable-line no-console
         app.use(har.harProxy(harData, process.env.HAR_DIR));
 
-        server.websocketProxies.push({
+        devServer.webSocketProxies.push({
           upgrade(req, socket, head) {
             const responseHeaders = ['HTTP/1.1 101 Web Socket Protocol Handshake', 'Upgrade: WebSocket', 'Connection: Upgrade'];
 
@@ -260,7 +264,8 @@ const getDevServerConfig = (proxy) => {
         app.use(p, px);
       });
 
-      server.websocketProxies.push({
+      // TODO: Verify after migration completed
+      devServer.webSocketProxies.push({
         upgrade(req, socket, head) {
           const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
@@ -277,7 +282,9 @@ const getDevServerConfig = (proxy) => {
           }
         }
       });
-    },
+
+      return middlewares;
+    }
   };
 };
 
@@ -355,16 +362,11 @@ const getVirtualModulesAutoImport = (dir) => {
   return new VirtualModulesPlugin(autoImportTypes);
 };
 
-// Get current shell version
-const shellPkgRawData = fs.readFileSync(path.join(__dirname, 'package.json'));
-const shellPkgData = JSON.parse(shellPkgRawData);
-
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
  */
 const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.DefinePlugin({
-  'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
   'process.env.commit':                    JSON.stringify(commit),
   'process.env.version':                   JSON.stringify(dashboardVersion),
   'process.env.dev':                       JSON.stringify(dev),
@@ -377,18 +379,19 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.api':                       JSON.stringify(api),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
+  __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
 });
 
 /**
  * Ensure we process files in the @rancher/shell folder
  */
 const processShellFiles = (config, SHELL_ABS) => {
-  config.module.rules.forEach((r) => {
-    if ('test.js'.match(r.test)) {
-      if (r.exclude) {
-        const orig = r.exclude;
+  config.module.rules.forEach((rule) => {
+    if ('test.js'.match(rule.test)) {
+      if (rule.exclude) {
+        const orig = rule.exclude;
 
-        r.exclude = function(modulePath) {
+        rule.exclude = function(modulePath) {
           if (modulePath.indexOf(SHELL_ABS) === 0 || typeof orig !== 'function') {
             return false;
           }
@@ -410,7 +413,7 @@ const preserveWhitespace = (config) => {
     if (loader.use) {
       loader.use.forEach((use) => {
         if (use.loader.includes('vue-loader')) {
-          use.options.compilerOptions.whitespace = 'preserve';
+          use.options.compilerOptions = { ...use.options.compilerOptions, whitespace: 'preserve' };
         }
       });
     }
@@ -440,6 +443,28 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
 };
 
 /**
+ * Add ignored paths based on env var configuration and known cases
+ * TODO: Verify after migration completed
+ * In Webpack5 only RegExp, string and [string] types are accepted
+ * https://webpack.js.org/configuration/watch/#watchoptionsignored
+ * Example conversion:
+ * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
+ * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
+ */
+const getWatcherIgnored = (excludes) => {
+  const paths = [
+    /node_modules/,
+    /dist-pkg/,
+    /scripts\/standalone/,
+  ];
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+  const pathsCombined = [...paths, ...pathExcludedPkg];
+  const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
+
+  return regexCombined;
+};
+
+/**
  * Expose a function that can be used by an app to provide a nuxt configuration for building an application
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
@@ -451,12 +476,6 @@ module.exports = function(dir, _appConfig) {
   const { SHELL_ABS, COMPONENTS_DIR } = getShellPaths(dir);
   const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
-  const watcherIgnores = [
-    /.shell/,
-    /dist-pkg/,
-    /scripts\/standalone/,
-    ...excludes.map((e) => new RegExp(`/pkg.${ e }`))
-  ];
 
   const includePkg = (name) => {
     if (name.startsWith('.') || name === 'node_modules') {
@@ -504,6 +523,9 @@ module.exports = function(dir, _appConfig) {
       }
     },
     configureWebpack(config) {
+      // TODO VUE3: We may want to look into what we want the value to actually be. For the time being this was causing a warning in our CLI because it would set process.env.NODE_ENV to 'development' even thought it was
+      //            already set to 'dev' and we're using 'dev' in other locations so I don't think we want to do that. Config details found here: https://webpack.js.org/configuration/optimization/#optimizationnodeenv.
+      config.optimization.nodeEnv = false;
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
       config.resolve.alias['~assets'] = path.join(__dirname, 'assets');
@@ -512,20 +534,23 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', dev ? 'vue.js' : 'vue.min.js');
+      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
       config.plugins.push(getVirtualModulesAutoImport(dir));
       config.plugins.push(getPackageImport(dir));
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
+      config.plugins.push(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
-      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
+      config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
-      config.watchOptions = config.watchOptions || {};
-      config.watchOptions.ignored = watcherIgnores;
+      config.watchOptions = {
+        ...(config.watchOptions || {}),
+        ignored: getWatcherIgnored(excludes)
+      };
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
@@ -535,6 +560,7 @@ module.exports = function(dir, _appConfig) {
 
       config.resolve.symlinks = false;
       processShellFiles(config, SHELL_ABS);
+      instrumentCode();
       config.module.rules.push(...getLoaders(SHELL_ABS));
       preserveWhitespace(config);
     },

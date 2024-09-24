@@ -1,27 +1,8 @@
 <script>
-import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 
-const component = Vue.component('InputOrDisplay', {
-  render(h) {
-    if (this.isView) {
-      return h('div',
-        { attrs: { class: 'label' } },
-        [
-          h('div',
-            { attrs: { class: 'text-label' } },
-            this.$slots.name ? this.$slots.name : this.name
-          ),
-          h('div',
-            { attrs: { class: 'value' } },
-            this.$slots.value ? this.$slots.value : this.displayValue
-          )
-        ]
-      );
-    } else {
-      return this.$slots.default;
-    }
-  },
+export default {
+  name:  'InputOrDisplay',
   props: {
     name: {
       type:     String,
@@ -49,10 +30,23 @@ const component = Vue.component('InputOrDisplay', {
       }
     }
   }
-});
-
-export default component;
+};
 </script>
+
+<template>
+  <div
+    v-if="isView"
+    class="label"
+  >
+    <div class="text-label">
+      {{ $slots.name || name }}
+    </div>
+    <div class="value">
+      {{ $slots.value || displayValue }}
+    </div>
+  </div>
+  <slot v-else />
+</template>
 
 <style lang="scss" scoped>
 .label {

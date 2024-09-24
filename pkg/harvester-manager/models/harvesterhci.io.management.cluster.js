@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { DEFAULT_WORKSPACE, HCI, MANAGEMENT } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
@@ -11,8 +10,8 @@ export default class HciCluster extends ProvCluster {
 
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { agentEnvVars: [] });
-      Vue.set(this, 'metadata', { namespace: DEFAULT_WORKSPACE });
+      this['spec'] = { agentEnvVars: [] };
+      this['metadata'] = { namespace: DEFAULT_WORKSPACE };
     }
   }
 

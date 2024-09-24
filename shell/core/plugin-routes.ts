@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import Router, { RouteConfig } from 'vue-router';
+import { RouteRecordRaw, Router } from 'vue-router';
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 interface RouteInfo {
   parent?: string;
-  route: RouteConfig;
+  route: RouteRecordRaw;
 }
 
 export class PluginRoutes {
@@ -13,12 +13,12 @@ export class PluginRoutes {
     this.router = router;
   }
 
-  public logRoutes(r: any, indent = 0) {
+  public logRoutes(routes: RouteRecordRaw[], indent = 0) {
     const spaces = Array(indent).join(' ');
 
-    r.forEach((s: any) => {
-      console.log(`${ spaces }${ s.name } -> ${ s.path }`); // eslint-disable-line no-console
-      this.logRoutes(s.children || [], indent + 2);
+    routes.forEach((route: RouteRecordRaw) => {
+      console.log(`${ spaces }${ route.name?.toString() } -> ${ route.path }`); // eslint-disable-line no-console
+      this.logRoutes(route.children || [], indent + 2);
     });
   }
 
@@ -32,15 +32,15 @@ export class PluginRoutes {
     // Remove all routes that are being replaced
     const newRoutes = newRouteInfos.map((ri) => ri.route);
 
-    this.forEachNestedRoutes(newRoutes, (r: RouteConfig) => {
+    this.forEachNestedRoutes(newRoutes, (route: RouteRecordRaw) => {
       // Patch colliding legacy routes that start /:product
-      if (r.path?.startsWith('/:product')) {
+      if (route.path?.startsWith('/:product')) {
         // Legacy pattern used by extensions - routes may collide, so modify them not to
         let productName;
 
         // If the route has a name (which is always the case for the extensions we have written), use it to get the product name
-        if (r.name) {
-          const nameParts = r.name.split('-');
+        if (route.name && typeof route.name === 'string') {
+          const nameParts = route.name.split('-');
 
           // First part of the route name is the product name
           productName = nameParts[0];
@@ -50,48 +50,51 @@ export class PluginRoutes {
         productName = productName || plugin.name;
 
         // Replace the path - removing :product and using the actual product name instead - this avoids route collisions
-        r.path = `/${ productName }${ r.path.substr(9) }`;
-        r.meta = r.meta || {};
+        route.path = `/${ productName }${ route.path.substr(9) }`;
+        route.meta = route.meta || {};
 
-        r.meta.product = r.meta.product || productName;
+        route.meta.product = route.meta.product || productName;
       }
     });
 
     this.updateMatcher(newRouteInfos, allRoutes);
   }
 
-  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteRecordRaw[]) {
     // Note - Always use a new router and replace the existing router's matching
     // Using the existing router and adding routes to it will force nuxt middleware to
-    // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
+    // execute many times (nuxt middleware boils down to route.beforeEach). This issue was seen refreshing in a harvester cluster with a
     // dynamically loaded cluster
 
-    const orderedPluginRoutes: any[] = [];
+    if (newRoutes.length === 0) {
+      return;
+    }
+
+    const orderedPluginRoutes: RouteRecordRaw[] = [];
 
     // separate plugin routes that have parent and not, you want to push the new routes in REVERSE order to the front of the existing list so that the order of routes specified by the extension is preserved
-    newRoutes.reverse().forEach((r: any) => {
+    newRoutes.reverse().forEach((routeInfo: RouteInfo) => {
       let foundParentRoute;
 
-      if (r.parent) {
-        foundParentRoute = this.findInNestedRoutes(allRoutes, (route: RouteConfig) => route.name === r.parent);
+      if (routeInfo.parent) {
+        foundParentRoute = this.findInNestedRoutes(allRoutes, (route: RouteRecordRaw) => route.name === routeInfo.parent);
 
         if (foundParentRoute) {
           foundParentRoute.children = foundParentRoute?.children || [];
-          foundParentRoute.children.unshift(r.route);
+          foundParentRoute.children.unshift(routeInfo.route);
         }
       }
 
       if (!foundParentRoute) {
-        orderedPluginRoutes.unshift(r.route);
+        orderedPluginRoutes.unshift(routeInfo.route);
       }
     });
 
-    const newRouter: Router = new Router({
-      mode:   'history',
-      routes: [...orderedPluginRoutes, ...allRoutes]
-    });
+    this.router.clearRoutes();
 
-    (this.router as any).matcher = (newRouter as any).matcher;
+    const allRoutesToAdd = [...orderedPluginRoutes, ...allRoutes];
+
+    allRoutesToAdd.forEach((route) => this.router.addRoute(route));
   }
 
   /**
@@ -101,7 +104,10 @@ export class PluginRoutes {
    * @param fn -> Return true if you'd like to break the loop early (small)
    * @returns {@boolean} -> Returns true if breaking early
    */
-  private forEachNestedRoutes(routes: RouteConfig[] = [], fn: (route: RouteConfig) => boolean | undefined | void) {
+  private forEachNestedRoutes(
+    routes: RouteRecordRaw[] = [],
+    fn: (route: RouteRecordRaw) => boolean | undefined | void
+  ) {
     for (let i = 0; i < routes.length; ++i) {
       const route = routes[i];
       const result = fn(route);
@@ -119,8 +125,11 @@ export class PluginRoutes {
    * @param fn -> Returns true if the passed in route matches the expected criteria
    * @returns The found route or undefined
    */
-  private findInNestedRoutes(routes: RouteConfig[] = [], fn: (route: RouteConfig) => boolean): RouteConfig | undefined {
-    let found: any;
+  private findInNestedRoutes(
+    routes: RouteRecordRaw[] = [],
+    fn: (route: RouteRecordRaw) => boolean
+  ): RouteRecordRaw | undefined {
+    let found: RouteRecordRaw | undefined;
 
     this.forEachNestedRoutes(routes, (route) => {
       if (fn(route)) {

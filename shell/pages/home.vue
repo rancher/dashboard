@@ -34,7 +34,7 @@ export default {
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
-    TabTitle
+    TabTitle,
   },
 
   mixins: [PageHeaderActions],
@@ -82,7 +82,10 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS,
+      fullVersion,
+      pageActions,
+      vendor: getVendor(),
     };
   },
 
@@ -90,10 +93,6 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
-
-    mgmtClusters() {
-      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-    },
 
     provClusters() {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
@@ -211,15 +210,7 @@ export default {
     },
 
     kubeClusters() {
-      const filteredClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
-
-      return filteredClusters.map((provCluster) => {
-        const mgmtCluster = this.mgmtClusters?.find((c) => provCluster.mgmt?.id === c.id);
-
-        provCluster.description = provCluster.description || mgmtCluster?.description;
-
-        return provCluster;
-      });
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 
@@ -230,7 +221,7 @@ export default {
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
@@ -527,7 +518,7 @@ export default {
   }
 
   .set-login-page, .whats-new {
-    > ::v-deep .banner__content {
+    > :deep() .banner__content {
       display: flex;
 
       > div {

@@ -1,8 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import PercentageBar, { PreferredDirection } from '@shell/components/PercentageBar.vue';
 import Bar from '@shell/components/graph/Bar.vue';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
 
 const colorStops = {
   0: '--success', 30: '--warning', 70: '--error'
@@ -10,14 +8,16 @@ const colorStops = {
 
 describe('component: PercentageBar', () => {
   it('should render component with the correct data applied', () => {
-    const wrapper = shallowMount(PercentageBar as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      propsData: {
-        value:              25,
-        preferredDirection: PreferredDirection.MORE,
-        showPercentage:     true,
-        colorStops
-      }
-    });
+    const wrapper = shallowMount(
+      PercentageBar,
+      {
+        props: {
+          modelValue:         25,
+          preferredDirection: PreferredDirection.MORE,
+          showPercentage:     true,
+          colorStops
+        }
+      });
 
     const container = wrapper.find('.percentage-bar');
     const barComponent = wrapper.findComponent(Bar);

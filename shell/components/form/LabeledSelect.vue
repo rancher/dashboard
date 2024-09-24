@@ -13,8 +13,17 @@ import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSe
 export default {
   name: 'LabeledSelect',
 
+  inheritAttrs: false,
+
   components: { LabeledTooltip },
-  mixins:     [CompactInput, LabeledFormElement, VueSelectOverrides, LabeledSelectPagination],
+  mixins:     [
+    CompactInput,
+    LabeledFormElement,
+    VueSelectOverrides,
+    LabeledSelectPagination
+  ],
+
+  emits: ['on-open', 'on-close', 'selecting', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {
@@ -240,17 +249,20 @@ export default {
   <div
     ref="select"
     class="labeled-select"
-    :class="{
-      disabled: isView || disabled,
-      focused,
-      [mode]: true,
-      [status]: status,
-      taggable: $attrs.taggable,
-      taggable: $attrs.multiple,
-      hoverable: hoverTooltip,
-      'compact-input': isCompact,
-      'no-label': !hasLabel,
-    }"
+    :class="[
+      $attrs.class,
+      {
+        disabled: isView || disabled,
+        focused,
+        [mode]: true,
+        [status]: status,
+        taggable: $attrs.taggable,
+        taggable: $attrs.multiple,
+        hoverable: hoverTooltip,
+        'compact-input': isCompact,
+        'no-label': !hasLabel
+      }
+    ]"
     @click="focusSearch"
     @focus="focusSearch"
   >
@@ -290,9 +302,10 @@ export default {
       :filterable="isFilterable"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null && !loading ? value : ''"
+      :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
-      v-on="$listeners"
+
+      @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
@@ -338,7 +351,8 @@ export default {
       </template>
       <!-- Pass down templates provided by the caller -->
       <template
-        v-for="(_, slot) of $scopedSlots"
+        v-for="(_, slot) of $slots"
+        :key="slot"
         #[slot]="scope"
       >
         <slot
@@ -347,28 +361,29 @@ export default {
         />
       </template>
 
-      <div
-        v-if="canPaginate && totalResults"
-        slot="list-footer"
-        class="pagination-slot"
-      >
-        <div class="load-more">
-          <i
-            v-if="paginating"
-            class="icon icon-spinner icon-spin"
-          />
-          <div v-else>
-            <a
-              v-if="canLoadMore"
-              @click="loadMore"
-            > {{ t('labelSelect.pagination.more') }}</a>
+      <template #list-footer>
+        <div
+          v-if="canPaginate && totalResults"
+          class="pagination-slot"
+        >
+          <div class="load-more">
+            <i
+              v-if="paginating"
+              class="icon icon-spinner icon-spin"
+            />
+            <div v-else>
+              <a
+                v-if="canLoadMore"
+                @click="loadMore"
+              > {{ t('labelSelect.pagination.more') }}</a>
+            </div>
+          </div>
+
+          <div class="count">
+            {{ optionCounts }}
           </div>
         </div>
-
-        <div class="count">
-          {{ optionCounts }}
-        </div>
-      </div>
+      </template>
       <template #no-options="{ search }">
         <div class="no-options-slot">
           <div
@@ -414,7 +429,7 @@ export default {
   padding-bottom: 1px;
 
   &.no-label.compact-input {
-    ::v-deep .vs__actions:after {
+    :deep() .vs__actions:after {
       top: -2px;
     }
 
@@ -427,7 +442,7 @@ export default {
     height: $input-height;
     padding-top: 4px;
 
-    ::v-deep .vs__actions:after {
+    :deep() .vs__actions:after {
       top: 0;
     }
   }
@@ -463,21 +478,21 @@ export default {
 
   &.taggable.compact-input {
     min-height: $unlabeled-input-height;
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       padding-top: 8px !important;
     }
   }
 
   &.taggable:not(.compact-input) {
     min-height: $input-height;
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       // Need to adjust margin when there is a label in the control to add space between the label and the tags
       margin-top: 0px;
     }
   }
 
   &:not(.taggable) {
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       // Ensure whole select is clickable to close the select when open
       .vs__selected {
         width: 100%;
@@ -486,7 +501,7 @@ export default {
   }
 
   &.taggable {
-    ::v-deep .vs__selected-options {
+    :deep() .vs__selected-options {
       padding: 3px 0;
       .vs__selected {
         border-color: var(--accent-btn);
@@ -511,30 +526,30 @@ export default {
     }
   }
 
-  ::v-deep .vs__selected-options {
+  :deep() .vs__selected-options {
     margin-top: -5px;
   }
 
-  ::v-deep .v-select:not(.vs--single) {
+  :deep() .v-select:not(.vs--single) {
     .vs__selected-options {
       padding: 5px 0;
     }
   }
 
-  ::v-deep .vs__actions {
+  :deep() .vs__actions {
     &:after {
       position: relative;
       top: -10px;
     }
   }
 
-  ::v-deep .v-select.vs--open {
+  :deep() .v-select.vs--open {
     .vs__dropdown-toggle {
       color: var(--outline) !important;
     }
   }
 
-  ::v-deep &.disabled {
+  :deep() &.disabled {
     .labeled-container,
     .vs__dropdown-toggle,
     input,
@@ -543,7 +558,7 @@ export default {
     }
   }
 
-  .no-label ::v-deep {
+  .no-label :deep() {
     &.v-select:not(.vs--single) {
       min-height: 33px;
     }

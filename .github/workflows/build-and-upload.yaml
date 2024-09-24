@@ -27,9 +27,9 @@ jobs:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '14.x'
+          node-version-file: '.nvmrc'
           cache: 'yarn'
 
         # Build a directory containing the dashboard that can be used with ui-dashboard-index
@@ -74,9 +74,9 @@ jobs:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '14.x'
+          node-version-file: '.nvmrc'
           cache: 'yarn'
 
         # Build a tar that will be picked up by rancher builds and embedded into it

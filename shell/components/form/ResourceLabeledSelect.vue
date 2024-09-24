@@ -126,11 +126,17 @@ export default defineComponent({
 
   computed: {
     labelSelectAttributes() {
+      // This component is a wrapper for LabelSelect, so pass through everything
+      const allAttrs = {
+        ...this.$attrs, // Attributes (other than props)
+        ...this.$props, // Attributes that are props
+      };
+
       return this.paginate ? {
-        ...this.$attrs,
+        ...allAttrs,
         ...this.paginatedResourceSettings?.labelSelectOptions || {}
       } : {
-        ...this.$attrs,
+        ...allAttrs,
         ...this.allResourcesSettings?.labelSelectOptions || {}
       };
     },
@@ -156,7 +162,9 @@ export default defineComponent({
       }
 
       const { filter } = opts;
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({
+        field: 'metadata.name', value: filter, exact: false
+      })] : [];
       const defaultOptions: LabelSelectPaginationFunctionOptions = {
         opts,
         filters,
@@ -182,6 +190,5 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
-    v-on="$listeners"
   />
 </template>

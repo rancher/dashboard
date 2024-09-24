@@ -163,8 +163,10 @@ aks:
     availabilityZones: Availability zones are not available in the selected region.
     privateDnsZone: Private DNS Zone Resource ID must be in the format /subscriptions/SUBSCRIPTION_ID/resourceGroups/RESOURCEGROUP_NAME/providers/Microsoft.Network/privateDnsZones/PRIVATE_DNS_ZONE_NAME. The Private DNS Zone Resource Name must be in the format privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io
     poolName: Node pool names must be 1-12 characters long, consist only of lowercase letters and numbers, and start with a letter.
-    poolCount: Node count must be at least one.
+    poolCount: Node count must be at least one in System pools.
+    poolUserCount: Node count cannot be less than zero.
     poolMinMax: The minimum number of nodes must be less than or equal to the maximum number of nodes, and the node count must be between or equal to the minimum and maximum.
-    poolMin: The minimum number of nodes must be greater than 0 and at most 100.
-    poolMax: The maximum number of nodes must be greater than 0 and at most 100.
+    poolMin: The minimum number of nodes must be greater than 0 and at most 1000.
+    poolMax: The maximum number of nodes must be greater than 0 and at most 1000.
     poolTaints: Taints must have both a key and value defined.
+    poolNamesUnique: Node pool names must be unique.

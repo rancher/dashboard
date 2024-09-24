@@ -30,10 +30,14 @@ eks:
   errors:
     fetchingRegions: 'Error fetching regions: {err}'
     greaterThanZero: '{key} must be greater than zero.'
+    atLeastZero: '{key} must be at least zero.'
     minimumSubnets: You must use at least two subnets, and they should be in different availability zones.
     nodeGroups:
       nameUnique: Node group names must be unique within a cluster.
     publicOrPrivate: At least one of public or private access must be enabled.
+    minMaxDesired: The node group desired size may not be less than the minimum size nor greater than the maximum size.
+    minLessThanMax: The node group minimum size may not be greater than the maximum size.
+    nodeGroupsRequired: Clusters must have at least one node group.
   label: Amazon EKS
   nodeGroups:
     desiredSize:
@@ -67,7 +71,7 @@ eks:
     maxSize:
       label: Maximum ASG Size
     minSize:
-      label: Minumum ASG Size
+      label: Minimum ASG Size
     name:
       label: Node Group Name
     nodeRole:
@@ -116,6 +120,7 @@ eks:
     label: Tags
   version:
     label: Kubernetes Version
-    upgradeWarning: (minor versio n >1 not allowed by EKS)
+    upgradeWarning: (minor version >1 not allowed by EKS)
+    upgradeDisallowed: "EKS only allows upgrades of one minor version: you must upgrade all node group versions before upgrading the cluster version."
   vpcSubnet:
     label: VPC and Subnet

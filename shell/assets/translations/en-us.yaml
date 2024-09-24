@@ -507,6 +507,11 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -1782,7 +1787,9 @@ cluster:
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
-    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the Amazon Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the <b>Amazon</b> Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderUnsupportedAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
+    cloudProviderMigrateAzure: 'On Kubernetes 1.30 or greater, the <b>Azure</b> Cloud Provider has been removed. To upgrade Kubernetes, the cluster should be migrated to External provider first.<br> See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/azure" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
     machinePoolError: |-
       {count, plural,
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
@@ -3263,6 +3270,7 @@ login:
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
+  loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
   serverError:
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
@@ -3287,6 +3295,10 @@ login:
 
 logout:
   message: Logging Out...
+  error: 'An error occurred logging out: {msg}'
+  specificError:
+    unknown: Unknown.\n\nPlease contact your system administrator.
+    500: "Server-side error.\n\nPlease contact your system administrator."
 
 managementNode:
   customName: Custom Name
@@ -4645,6 +4657,15 @@ promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
+
+promptSlo:
+  title: "Log out"
+  text: "Log out of only Rancher, or all {name} applications."
+  rancher:
+    active: Only log out of Rancher
+  all:
+    active: Log out of {name}
+    waiting: Logging Out
 
 promptRemove:
   title: Are you sure?
@@ -6266,6 +6287,7 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+  error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
     running: Running
@@ -7402,7 +7424,7 @@ performance:
       When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
-    incompatibleDescription: "Incremental Loading is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
+    incompatibleDescription: "Incremental Loading is incompatible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   manualRefresh:
     label: Manual Refresh
     setting: You can configure a threshold above which manual refresh will be enabled.
@@ -7411,7 +7433,7 @@ performance:
       When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable manual refresh of data for lists
     inputLabel: Resource Threshold
-    incompatibleDescription: "Manual Refresh is incomaptible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
+    incompatibleDescription: "Manual Refresh is incompatible with Namespace/Project filtering and Server-side Pagination. Enabling this will disable them."
   websocketNotification:
     label: Websocket Notifications
     description: |-
@@ -7442,7 +7464,7 @@ performance:
     label: Require Namespace / Project Filtering
     description: Require the user to select namespaces and/or projects. This restricts the number of resources fetched when viewing lists and should help the responsiveness of the UI in systems with a lot of resources.
     checkboxLabel: Enable Required Namespace / Project Filtering
-    incompatibleDescription: "Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
+    incompatibleDescription: "Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
   advancedWorker:
     label: Websocket Web Worker
     description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
@@ -7459,7 +7481,7 @@ performance:
     description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Change this setting to enable pagination server-side. This should help the responsiveness of the UI in systems with a lot of resources.
     checkboxLabel: Enable Server-side Pagination
     applicable: "This applies to the following resource types"
-    incompatibleDescription: "Server-side Pagination is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them."
+    incompatibleDescription: "Server-side Pagination is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
     featureFlag: The&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache` must be enabled to use this feature
     resources:
       generic: most resources in the cluster's 'More Resources' section

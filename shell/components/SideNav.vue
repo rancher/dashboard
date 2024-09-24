@@ -400,10 +400,12 @@ export default {
   <nav class="side-nav">
     <!-- Actual nav -->
     <div class="nav">
-      <template v-for="(g) in groups">
+      <template
+        v-for="(g) in groups"
+        :key="g.name"
+      >
         <Group
           ref="groups"
-          :key="g.name"
           id-prefix=""
           class="package"
           :group="g"
@@ -436,10 +438,10 @@ export default {
 
       <!-- locale selector -->
       <span v-if="isSingleProduct">
-        <v-popover
-          popover-class="localeSelector"
+        <v-dropdown
+          popperClass="localeSelector"
           placement="top"
-          trigger="click"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"
@@ -448,7 +450,7 @@ export default {
             {{ locale }}
           </a>
 
-          <template slot="popover">
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"
@@ -463,7 +465,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </span>
     </div>
     <!-- SideNav footer alternative -->
@@ -505,7 +507,7 @@ export default {
     overflow-y: auto;
 
     // h6 is used in Group element
-    ::v-deep h6 {
+    :deep() h6 {
       margin: 0;
       letter-spacing: normal;
       line-height: 15px;

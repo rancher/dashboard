@@ -3,14 +3,14 @@ import { shallowMount } from '@vue/test-utils';
 import GKENodePool from '@pkg/gke/components/GKENodePool.vue';
 import { _EDIT } from '@shell/config/query-params';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+// const mockedValidationMixin = {
+//   computed: {
+//     fvFormIsValid:                jest.fn(),
+//     type:                         jest.fn(),
+//     fvUnreportedValidationErrors: jest.fn(),
+//   },
+//   methods: { fvGetAndReportPathRules: jest.fn() }
+// };
 
 const mockedStore = () => {
   return {
@@ -26,11 +26,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -50,7 +52,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const serviceAccountSelect = wrapper.find('[data-testid="gke-service-account-select"]');
+    const serviceAccountSelect = wrapper.getComponent('[data-testid="gke-service-account-select"]');
 
     expect(serviceAccountSelect.props().value).toStrictEqual(serviceAccountOptions[0]);
 
@@ -77,7 +79,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(true);
 
@@ -99,11 +101,11 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(false);
 
-    const versionUpgradeCheckbox = wrapper.find('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.findComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
 
     expect(versionUpgradeCheckbox.exists()).toBe(true);
 
@@ -127,14 +129,14 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const versionUpgradeCheckbox = wrapper.find('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.getComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
 
-    versionUpgradeCheckbox.vm.$emit('input', true);
+    versionUpgradeCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted()?.['update:version']?.[0][0]).toBe('1.23.4');
 
-    versionUpgradeCheckbox.vm.$emit('input', false);
+    versionUpgradeCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted()?.['update:version']?.[1][0]).toBe('1.20.4');
@@ -151,7 +153,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    const taints = wrapper.find('[data-testid="gke-taints-comp"]');
+    const taints = wrapper.getComponent('[data-testid="gke-taints-comp"]');
 
     // the effectValues prop functionality is tested in the Taints component's unit tests
     expect(taints.props().effectValues).toStrictEqual({

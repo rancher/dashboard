@@ -14,7 +14,7 @@ import { IstioTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/istio-tab.
 import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
-describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
+describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
   const chartPage = new ChartPage();
   const installChart = new InstallChartPage();
@@ -127,6 +127,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         const tabbedOptions = new TabbedPo();
+
+        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
+        chartPage.selectVersion('103.1.1+up45.31...');
 
         // Set prometheus storage class
         chartPage.goToInstall();

@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { defineAsyncComponent } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -20,14 +21,10 @@ import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
+import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
-
-// Its quicker to render if we directly supply the components for the formatters
-// rather than just the name of a global component - so create a map of the formatter comoponents
-// NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
-export const FORMATTERS = {};
 
 // @TODO:
 // Fixed header/scrolling
@@ -42,7 +39,10 @@ export const FORMATTERS = {};
 // --> index.vue displayedRows
 
 export default {
-  name:       'SortableTable',
+  name: 'SortableTable',
+
+  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change'],
+
   components: {
     THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
   },
@@ -382,7 +382,7 @@ export default {
     this.debouncedPaginationChanged();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._altLoadingDelayTimer);
@@ -549,9 +549,9 @@ export default {
     showHeaderRow() {
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+        this.$slots['header-left']?.() ||
+        this.$slots['header-middle']?.() ||
+        this.$slots['header-right']?.();
     },
 
     columns() {
@@ -686,7 +686,7 @@ export default {
                 const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
-                  component = pluginFormatter;
+                  component = defineAsyncComponent(pluginFormatter);
                   needRef = true;
                 }
               }
@@ -1017,7 +1017,7 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                v-for="act in availableActions"
+                v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
@@ -1056,9 +1056,9 @@ export default {
                 <template #popover-content>
                   <ul class="list-unstyled menu">
                     <li
-                      v-for="act in hiddenActions"
-                      :key="act.action"
-                      v-close-popover
+                      v-for="(act, i) in hiddenActions"
+                      :key="i"
+                      v-close-popper
                       v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
@@ -1088,14 +1088,14 @@ export default {
           </slot>
         </div>
         <div
-          v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)"
+          v-if="!hasAdvancedFiltering && $slots['header-middle']"
           class="middle"
         >
           <slot name="header-middle" />
         </div>
 
         <div
-          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
+          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
           class="search row"
           data-testid="search-box-filter-row"
         >
@@ -1148,7 +1148,7 @@ export default {
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
                 <LabeledSelect
-                  v-model="advFilterSelectedProp"
+                  v-model:value="advFilterSelectedProp"
                   class="filter-select"
                   :clearable="true"
                   :options="advFilterSelectOptions"
@@ -1265,7 +1265,7 @@ export default {
         </slot>
       </tbody>
       <tbody
-        v-for="groupedRows in displayRows"
+        v-for="(groupedRows) in displayRows"
         v-else
         :key="groupedRows.key"
         :class="{ group: groupBy }"
@@ -1292,7 +1292,10 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in groupedRows.rows">
+        <template
+          v-for="(row, i) in groupedRows.rows"
+          :key="i"
+        >
           <slot
             name="main-row"
             :row="row.row"
@@ -1305,7 +1308,6 @@ export default {
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
               <tr
-                :key="row.key"
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
                 :class="{ 'has-sub-row': row.showSubRow}"
@@ -1339,7 +1341,10 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="(col, j) in row.columns">
+                <template
+                  v-for="(col, j) in row.columns"
+                  :key="j"
+                >
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"

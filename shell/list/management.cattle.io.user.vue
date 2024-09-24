@@ -123,7 +123,7 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <AsyncButton
           v-if="canRefreshAccess"
           mode="refresh"

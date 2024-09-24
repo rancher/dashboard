@@ -10,6 +10,7 @@ import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination
 
 export default {
   name:       'CRUIngress',
+  emits:      ['input'],
   components: {
     ResourceTabs,
     Rules,
@@ -91,9 +92,10 @@ export default {
 </script>
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     mode="view"
     class="mt-20"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       :label="t('ingress.rules.title')"
@@ -101,10 +103,11 @@ export default {
       :weight="1"
     >
       <Rules
-        v-model="value"
+        :value="value"
         :mode="mode"
         :service-targets="serviceTargets"
         :certificates="certificates"
+        @update:value="$emit('input', $event)"
       />
     </Tab>
   </ResourceTabs>

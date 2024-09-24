@@ -15,8 +15,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'azureFile', this.value.spec.azureFile || {});
-    this.$set(this.value.spec.azureFile, 'readOnly', this.value.spec.azureFile.readOnly || false);
+    this.value.spec['azureFile'] = this.value.spec.azureFile || {};
+    this.value.spec.azureFile['readOnly'] = this.value.spec.azureFile.readOnly || false;
 
     const readOnlyOptions = [
       {
@@ -39,7 +39,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureFile.shareName"
+          v-model:value="value.spec.azureFile.shareName"
           :mode="mode"
           :label="t('persistentVolume.azureFile.shareName.label')"
           :placeholder="t('persistentVolume.azureFile.shareName.placeholder')"
@@ -47,7 +47,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureFile.secretName"
+          v-model:value="value.spec.azureFile.secretName"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -57,7 +57,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureFile.secretNamespace"
+          v-model:value="value.spec.azureFile.secretNamespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -65,7 +65,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureFile.readOnly"
+          v-model:value="value.spec.azureFile.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

@@ -5,26 +5,28 @@ import { SETTING } from '@shell/config/settings';
 describe('view: management.cattle.io.setting should', () => {
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  jest.fn(),
-          'i18n/exists':             jest.fn(),
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+          },
+          dispatch: jest.fn(),
         },
-        dispatch: jest.fn(),
-      },
-      $route:  { query: { AS: '' } },
-      $router: { applyQuery: jest.fn() },
+        $route:  { query: { AS: '' } },
+        $router: { applyQuery: jest.fn() },
+      }
     }
   });
 
   it('allowing to save if no rules in settings', () => {
     const wrapper = mount(Settings, {
-      propsData: { value: { value: 'anything' } },
-      data:      () => ({ setting: { } }),
+      props: { value: { value: 'anything' } },
+      data:  () => ({ setting: { } }),
       ...requiredSetup()
     });
     const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -38,7 +40,7 @@ describe('view: management.cattle.io.setting should', () => {
     describe('validate input with provided settings', () => {
       it('allowing to save if pass', () => {
         const wrapper = mount(Settings, {
-          propsData: { value: { id, value: '3' } },
+          props: { value: { id, value: '3' } },
           ...requiredSetup()
         });
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -50,7 +52,7 @@ describe('view: management.cattle.io.setting should', () => {
       // eslint-disable-next-line jest/no-disabled-tests
       it.skip('preventing to save if any error', () => {
         const wrapper = mount(Settings, {
-          propsData: { value: { id, value: '1' } },
+          props: { value: { id, value: '1' } },
           ...requiredSetup()
         });
         const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -61,7 +63,7 @@ describe('view: management.cattle.io.setting should', () => {
 
     it('retrieve correct rules based on settings', () => {
       const wrapper = mount(Settings, {
-        propsData: { value: { id, value: '' } },
+        props: { value: { id, value: '' } },
         ...requiredSetup()
       });
       const expectation = [{
@@ -74,7 +76,7 @@ describe('view: management.cattle.io.setting should', () => {
 
     it('generate extra rules based on settings', () => {
       const wrapper = mount(Settings, {
-        propsData: { value: { id, value: '' } },
+        props: { value: { id, value: '' } },
         ...requiredSetup()
       });
       const expectation = ['betweenValues', 'isInteger', 'isPositive', 'isOctal'];

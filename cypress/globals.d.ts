@@ -86,8 +86,11 @@ declare global {
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
+      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
+
+      tableRowsPerPageAndNamespaceFilter(rows: number, cluster: string, groupBy: string, namespacefilter: string)
 
       /**
        * update namespace filter
@@ -145,6 +148,11 @@ declare global {
 
       // Check css var
       shouldHaveCssVar(name: string, value: string);
+
+      /**
+       * Fetch the steve `revision` / timestamp of request
+       */
+      fetchRevision(): Chainable<string>;
     }
   }
 }

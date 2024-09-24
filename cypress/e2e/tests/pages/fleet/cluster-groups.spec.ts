@@ -6,7 +6,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   const fleetClusterGroups = new FleetClusterGroupsListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
@@ -45,6 +45,19 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
         });
+    });
+  });
+  describe('Edit', { tags: ['@vai', '@adminUser'] }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('can open "Edit as YAML"', () => {
+      FleetClusterGroupsListPagePo.navTo();
+      fleetClusterGroups.waitForPage();
+      fleetClusterGroups.clickCreate();
+      fleetClusterGroups.createFleetClusterGroupsForm().editAsYaml().click();
+      fleetClusterGroups.createFleetClusterGroupsForm().yamlEditor().checkExists();
     });
   });
 });

@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -248,9 +248,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 markRaw(undefined),
-    $route:                  markRaw(undefined),
-    $plugin:                 markRaw(undefined),
+    $router:                 markRaw({}),
+    $route:                  markRaw({}),
+    $plugin:                 markRaw({}),
   };
 };
 
@@ -696,6 +696,11 @@ export const mutations = {
   },
 
   setError(state, { error: obj, locationError }) {
+    // We don't want to clobber one error with another, doing so can hide the original cause of an error
+    if (obj && state.error) {
+      return;
+    }
+
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
@@ -729,15 +734,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = markRaw(router);
+    state.$router = markRaw(router || {});
   },
 
   setRoute(state, route) {
-    state.$route = markRaw(route);
+    state.$route = markRaw(route || {});
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = markRaw(pluginDefinition);
+    state.$plugin = markRaw(pluginDefinition || {});
   }
 };
 
@@ -1137,7 +1142,7 @@ export const actions = {
     commit('catalog/reset');
 
     const router = state.$router;
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
 
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
@@ -1155,6 +1160,9 @@ export const actions = {
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
+
+      // adds IS_SLO query param to login route if logout came with an auth provider with Single Logout enabled
+      QUERY += (IS_SLO in route.query) ? `&${ IS_SLO }` : '';
 
       // Go back to login and force a full page reload, this ensures we unload any dangling resources the user is no longer authorized to use (like extensions).
       // We use document instead of router because router does a clunky job of visiting a new page and reloading. In this case it would cause the login page to flash before actually reloading.

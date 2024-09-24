@@ -35,10 +35,11 @@ The above linked installation docs cover two methods confirmed to work with the 
 - [Single Docker Container](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker)
 - [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster)
 
-To use the most recent version of Rancher that is actively in development, use the version tag `v2.6-head` when installing Rancher. For example, the Docker installation command would look like this:
+To use the most recent version of Rancher that is actively in development, use the version tag `head` when installing Rancher or check head tags [here](https://hub.docker.com/r/rancher/rancher/tags?page_size=&ordering=&name=head).
+For example, the Docker installation command would look like this:
 
 ```bash
-sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.6-head
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:head
 ```
 
 Dashboard provides convenience methods to start and stop Rancher in a single docker container
@@ -89,7 +90,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 
 ### Running the Dashboard
 
-See the [Running For Development](https://github.com/rancher/dashboard/blob/master/README.md#running-for-development) section on how to bring up the Dashboard locally
+See the [Quickstart](https://extensions.rancher.io/internal/getting-started/quickstart) section on how to bring up the Dashboard locally.
 
 > Troubleshooting: Multiple `Could not freeze errors` in `yarn dev` terminal
 >
@@ -121,7 +122,7 @@ The GitHub CLI installation instructions are [here.](https://github.com/cli/cli#
 
 ## Working with Different Rancher Versions
 
-Most of the time, you will be working with the Docker install because when you pull a Docker image such as `v2.6-head`, it will be based on the newest version of the `master` branch. By contrast, the Helm chart installs only work with released Rancher versions.
+Most of the time, you will be working with the Docker install because when you pull a Docker image such as `v2.9-head`, it will be based on the newest version of the `master` branch. By contrast, the Helm chart installs only work with released Rancher versions.
 
 To find the version or age of the Rancher instance that you are working with, click the hamburger menu in the top left corner. At the bottom of the side nav that appears, there is a commit hash. If you click the commit hash, you will see more details that you can use to make sure you are working with the correct Rancher version.
 

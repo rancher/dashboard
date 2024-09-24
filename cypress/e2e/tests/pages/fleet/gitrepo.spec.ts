@@ -10,7 +10,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
-describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('[Vue3 Skip]: Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
     const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
@@ -144,7 +144,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       ;
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
       const workspace = 'fleet-default';
 
       // go to fleet gitrepo

@@ -45,8 +45,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });
@@ -65,8 +65,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });
@@ -86,8 +86,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });
@@ -107,8 +107,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });

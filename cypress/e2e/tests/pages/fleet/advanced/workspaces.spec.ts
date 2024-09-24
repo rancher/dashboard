@@ -1,6 +1,7 @@
 import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
 import FleetWorkspaceDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.fleetworkspace.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
+import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
@@ -12,7 +13,9 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+    let initialCount: number;
+
     it('check table headers are available in list and details view', () => {
       FleetWorkspaceListPagePo.navTo();
       fleetWorkspacesPage.waitForPage();
@@ -70,10 +73,13 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     const uniqueWorkspaceName = 'aaa-e2e-test-name';
 
     before('set up', () => {
+      cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {
+        initialCount = resp.body.count;
+      });
       // create workspaces
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const workspaceName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
         const workspaceDesc = `e2e-desc-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
@@ -92,11 +98,16 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         workspaceNameList.push(wsId);
       });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+      cy.reload();
     });
 
     it('pagination is visible and user is able to navigate through workspace data', () => {
-      // get fleet workspace count
-      cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {
+      HomePagePo.goTo();
+      const count = initialCount + 26;
+
+      // check fleet workspace count
+      cy.waitForRancherResources('v1', 'management.cattle.io.fleetworkspaces', count).then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
         FleetWorkspaceListPagePo.navTo();
@@ -113,7 +124,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text before navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
 
         // navigate to next page - right button
@@ -121,7 +132,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isEnabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isEnabled();
@@ -131,7 +142,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isDisabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isDisabled();
@@ -140,11 +151,11 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         fleetWorkspacesPage.sortableTable().pagination().endButton().click();
 
         // check row count on last page
-        fleetWorkspacesPage.sortableTable().checkRowCount(false, count - 100);
+        fleetWorkspacesPage.sortableTable().checkRowCount(false, count - 20);
 
         // check text after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`21 - ${ count } of ${ count } Workspaces`);
         });
 
         // navigate to first page - beginning button
@@ -152,7 +163,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
         // check text and buttons after navigation
         fleetWorkspacesPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Workspaces`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } Workspaces`);
         });
         fleetWorkspacesPage.sortableTable().pagination().beginningButton().isDisabled();
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isDisabled();
@@ -165,7 +176,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
       fleetWorkspacesPage.sortableTable().checkVisible();
       fleetWorkspacesPage.sortableTable().checkLoadingIndicatorNotVisible();
-      fleetWorkspacesPage.sortableTable().checkRowCount(false, 100);
+      fleetWorkspacesPage.sortableTable().checkRowCount(false, 10);
 
       // filter by name
       fleetWorkspacesPage.sortableTable().filter(workspaceNameList[0]);
@@ -218,6 +229,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
     after(() => {
       workspaceNameList.forEach((r) => cy.deleteRancherResource('v3', 'fleetWorkspaces', r, false));
+      // Ensure the default rows per page value is set after running the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
   });
 });

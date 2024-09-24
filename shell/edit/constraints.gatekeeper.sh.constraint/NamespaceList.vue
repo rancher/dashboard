@@ -11,6 +11,8 @@ export const NAMESPACE_FILTERS_HELPER = {
 };
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
 
   props: {
@@ -71,6 +73,6 @@ export default {
     :label="label"
     :tooltip="tooltip"
     :hover-tooltip="!!tooltip"
-    @input="(e) => $emit('input', e)"
+    @update:value="(e) => $emit('update:value', e)"
   />
 </template>

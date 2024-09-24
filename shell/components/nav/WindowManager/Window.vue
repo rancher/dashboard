@@ -45,7 +45,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if ( this.beforeClose ) {
       this.beforeClose.apply(this);
     }

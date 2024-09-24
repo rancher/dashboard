@@ -85,6 +85,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    canViewYaml: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -503,12 +508,12 @@ export default {
               icon-size="lg"
               :options="sensitiveOptions"
               class="mr-10"
-              @input="toggleSensitiveData"
+              @update:value="toggleSensitiveData"
             />
 
             <ButtonGroup
               v-if="viewOptions && isView"
-              v-model="currentView"
+              v-model:value="currentView"
               :options="viewOptions"
               class="mr-10"
             />

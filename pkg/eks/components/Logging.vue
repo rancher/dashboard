@@ -10,6 +10,8 @@ import { removeObject } from '@shell/utils/array';
 export default defineComponent({
   name: 'EKSLogging',
 
+  emits: ['update:loggingTypes'],
+
   components: { Checkbox },
 
   props: {

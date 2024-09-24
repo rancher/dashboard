@@ -29,7 +29,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -37,7 +37,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.awsElasticBlockStore.readOnly"
+          v-model:value="value.awsElasticBlockStore.readOnly"
           :mode="mode"
           :label="t('workload.storage.readOnly')"
         />
@@ -46,7 +46,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.awsElasticBlockStore.volumeID"
+          v-model:value="value.awsElasticBlockStore.volumeID"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.csi.volumeID')"
@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.awsElasticBlockStore.partition"
+          v-model:value.number="value.awsElasticBlockStore.partition"
           :mode="mode"
           :label="t('workload.storage.csi.partition')"
         />
@@ -63,7 +63,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.awsElasticBlockStore.fsType"
+          v-model:value="value.awsElasticBlockStore.fsType"
           :mode="mode"
           :label="t('workload.storage.csi.fsType')"
         />

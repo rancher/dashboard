@@ -109,7 +109,7 @@ export async function labelSelectPaginationFunction<T>({
 
     return {
       page:  resPage,
-      pages: res.pages,
+      pages: res.pages || Math.ceil(res.count / (pageSize || Number.MAX_SAFE_INTEGER)),
       total: res.count
     };
   } catch (err) {

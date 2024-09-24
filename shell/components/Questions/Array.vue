@@ -3,12 +3,14 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { ArrayList },
   mixins:     [Question],
 
   methods: {
     update(val) {
-      this.$emit('input', val);
+      this.$emit('update:value', val);
     }
   }
 };
@@ -18,13 +20,12 @@ export default {
   <div class="row">
     <div class="col span-6">
       <ArrayList
-        :key="question.variable"
-        v-model="value"
+        :value="value"
         :title="question.label"
         :mode="mode"
         :disabled="disabled"
         :protip="displayTooltip"
-        @input="update"
+        @update:value="update"
       />
     </div>
     <div

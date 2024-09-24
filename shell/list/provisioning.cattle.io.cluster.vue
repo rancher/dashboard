@@ -174,7 +174,7 @@ export default {
     >
       <template
         v-if="canImport"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="importLocation"

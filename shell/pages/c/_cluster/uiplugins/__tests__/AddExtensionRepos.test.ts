@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import {
   UI_PLUGINS_REPO_URL,
@@ -33,64 +34,46 @@ describe('component: AddExtensionRepos', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(AddExtensionRepos, {
-      ...requiredSetup(),
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
+      global: {
+        ...requiredSetup(),
+        stubs: { Dialog: { template: '<span><slot/></span>' } },
+      }
     });
 
     wrapper.vm.showDialog();
 
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
-    jest.advanceTimersByTime(1);
-
-    await wrapper.vm.$nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
+    const rancherCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-official-repo"]');
+    const partnersCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
 
     expect(rancherCheckbox.exists()).toBe(false);
     expect(partnersCheckbox.exists()).toBe(true);
 
-    jest.clearAllTimers();
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('should SHOW a checkbox to install official Rancher repo if IS prime', async() => {
     jest.useFakeTimers();
 
     const wrapper = mount(AddExtensionRepos, {
-      ...requiredSetup(),
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
+      global: {
+        ...requiredSetup(),
+        stubs: { Dialog: { template: '<span><slot/></span>' } },
+      }
     });
 
     wrapper.vm.prime = true;
     wrapper.vm.showDialog();
 
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
-    jest.advanceTimersByTime(1);
-
-    await wrapper.vm.$nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
+    const rancherCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-official-repo"]');
+    const partnersCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
 
     expect(rancherCheckbox.exists()).toBe(true);
     expect(partnersCheckbox.exists()).toBe(true);
 
-    jest.clearAllTimers();
-    wrapper.destroy();
+    wrapper.unmount();
   });
 });

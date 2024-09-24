@@ -6,18 +6,18 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
-const roles = new RolesPo('_');
-const usersPo = new UsersPo('_');
+const roles = new RolesPo(BLANK_CLUSTER);
+const usersPo = new UsersPo(BLANK_CLUSTER);
 const userCreate = usersPo.createEdit();
 const sideNav = new ProductNavPo();
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-let runTimestamp;
-let runPrefix;
-let globalRoleName;
+let runTimestamp: number;
+let runPrefix: string;
+let globalRoleName: string;
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -25,9 +25,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
       cy.viewport(1280, 720);
     });
+
     it('can create a Global Role', () => {
-    // We want to define these here because if this test fails after it created the global role all subsequent
-    // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
+      // We want to define these here because if this test fails after it created the global role all subsequent
+      // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
       runTimestamp = +new Date();
       runPrefix = `e2e-test-${ runTimestamp }`;
       globalRoleName = `${ runPrefix }-my-global-role`;
@@ -121,21 +122,25 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       createClusterRole.waitForPage('roleContext=CLUSTER', 'grant-resources');
       createClusterRole.name().set(clusterRoleName);
-      createClusterRole.description().set('e2e-description');
+      createClusterRole.description().set('e2e-create-cluster-role');
       createClusterRole.selectCreatorDefaultRadioBtn(0);
       createClusterRole.selectLockedRadioBtn(0);
       createClusterRole.selectVerbs(0, 3);
       createClusterRole.selectVerbs(0, 4);
       createClusterRole.selectResourcesByLabelValue(0, 'ClusterRoles');
-      createClusterRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
-        const clusterRoleId = res.response?.body.id;
 
-        // view role details
-        roles.waitForPage(undefined, fragment);
-        roles.list('CLUSTER').checkDefault(clusterRoleName, true);
-        roles.list('CLUSTER').details(clusterRoleName, 2).find('a').click();
+      const clusterRoleId = createClusterRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
+        return res.response?.body.id;
+      });
 
-        const clusterRoleDetails = roles.detailRole(clusterRoleId);
+      // view role details
+      roles.waitForPage(undefined, fragment);
+      roles.list('CLUSTER').resourceTable().sortableTable().filter(`${ clusterRoleName }{enter}`);
+      roles.list('CLUSTER').checkDefault(clusterRoleName, true);
+      roles.list('CLUSTER').details(clusterRoleName, 2).find('a').click();
+
+      clusterRoleId.then((id) => {
+        const clusterRoleDetails = roles.detailRole(id);
 
         clusterRoleDetails.waitForPage();
         cy.contains(`Cluster - ${ clusterRoleName }`);
@@ -161,15 +166,18 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       createProjectRole.selectVerbs(0, 3);
       createProjectRole.selectVerbs(0, 4);
       createProjectRole.selectResourcesByLabelValue(0, 'Namespaces');
-      createProjectRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
-        const projectRoleId = res.response?.body.id;
+      const projectRoleId = createProjectRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
+        return res.response?.body.id;
+      });
 
-        // view role details
-        roles.waitForPage(undefined, fragment);
-        roles.list('NAMESPACE').checkDefault(projectRoleName, true);
-        roles.list('NAMESPACE').details(projectRoleName, 2).find('a').click();
+      // view role details
+      roles.waitForPage(undefined, fragment);
+      roles.list('NAMESPACE').resourceTable().sortableTable().filter(`${ projectRoleName }{enter}`);
+      roles.list('NAMESPACE').checkDefault(projectRoleName, true);
+      roles.list('NAMESPACE').details(projectRoleName, 2).find('a').click();
 
-        const projectRoleDetails = roles.detailRole(projectRoleId);
+      projectRoleId.then((id) => {
+        const projectRoleDetails = roles.detailRole(id);
 
         projectRoleDetails.waitForPage();
         cy.contains(`Project/Namespaces - ${ projectRoleName }`);
@@ -221,18 +229,23 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     const uniqueRoleName = 'aaa-e2e-test-name';
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
+    const paginatedRoleTab = roles.paginatedTab('GLOBAL');
+    let initialCount: number;
 
     before('set up', () => {
       cy.login();
+      cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
+        initialCount = resp.body.count;
+      });
 
       // create global roles
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         const globalRoleName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
         cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
@@ -250,113 +263,11 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
         globalRolesIdsList.push(roleId);
       });
-    });
-
-    it('pagination is visible and user is able to navigate through global roles data', () => {
-      // get global roles count
-      cy.getRancherResource('v1', 'management.cattle.io.globalroles').then((resp: Cypress.Response<any>) => {
-        const count = resp.body.count;
-
-        RolesPo.navTo();
-        roles.waitForPage();
-
-        // pagination is visible
-        rolesList.resourceTable().sortableTable().pagination()
-          .checkVisible();
-
-        // basic checks on navigation buttons
-        rolesList.resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
-
-        // check text before navigation
-        rolesList.resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
-          });
-
-        // navigate to next page - right button
-        rolesList.resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
-
-        // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } GlobalRoles`);
-          });
-        rolesList.resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
-
-        // navigate to first page - left button
-        rolesList.resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
-
-        // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
-          });
-        rolesList.resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-
-        // navigate to last page - end button
-        rolesList.resourceTable().sortableTable().pagination()
-          .endButton()
-          .click();
-
-        // check row count on last page
-        rolesList.resourceTable().sortableTable().checkRowCount(false, count - 100);
-
-        // check text after navigation
-        rolesList.resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } GlobalRoles`);
-          });
-
-        // navigate to first page - beginning button
-        rolesList.resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
-
-        // check text and buttons after navigation
-        rolesList.resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } GlobalRoles`);
-          });
-        rolesList.resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        rolesList.resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });
 
     it('filter global roles', () => {
+      usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
 
@@ -381,6 +292,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('sorting changes the order of paginated global roles data', () => {
+      usersPo.goTo();
       RolesPo.navTo();
       roles.waitForPage();
 
@@ -399,9 +311,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       // navigate to last page
-      rolesList.resourceTable().sortableTable().pagination()
-        .endButton()
-        .click();
+      paginatedRoleTab.endButton().click();
 
       // global role should NOT be visible on last page (sorted in ASC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -418,9 +328,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('not.exist');
 
       // navigate to last page
-      rolesList.resourceTable().sortableTable().pagination()
-        .endButton()
-        .click();
+      paginatedRoleTab.endButton().click();
 
       // global role should be visible on last page (sorted in DESC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -428,21 +336,96 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
     });
 
+    it('pagination is visible and user is able to navigate through global roles data', () => {
+      const count = initialCount + 26;
+
+      cy.waitForRancherResources('v1', 'management.cattle.io.globalroles', count).then((resp: Cypress.Response<any>) => {
+        usersPo.goTo(); // This is needed for the @vai only world
+        RolesPo.navTo();
+        roles.waitForPage();
+
+        // pagination is visible
+        paginatedRoleTab.checkVisible().scrollIntoView();
+
+        // basic checks on navigation buttons
+        paginatedRoleTab.leftButton().isDisabled();
+        paginatedRoleTab.rightButton().isEnabled();
+        paginatedRoleTab.endButton().isEnabled();
+
+        // check text before navigation
+        paginatedRoleTab.paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
+          });
+
+        // navigate to next page - right button
+        paginatedRoleTab.rightButton().click();
+
+        // check text and buttons after navigation
+        paginatedRoleTab.paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } GlobalRoles`);
+          });
+        paginatedRoleTab.beginningButton().isEnabled();
+        paginatedRoleTab.leftButton().isEnabled();
+
+        // navigate to first page - left button
+        paginatedRoleTab.leftButton().click();
+
+        // check text and buttons after navigation
+        paginatedRoleTab.paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
+          });
+        paginatedRoleTab.beginningButton().isDisabled();
+        paginatedRoleTab.leftButton().isDisabled();
+
+        // navigate to last page - end button
+        paginatedRoleTab.endButton().click();
+
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
+        // check text after navigation
+        paginatedRoleTab.paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } GlobalRoles`);
+          });
+
+        // navigate to first page - beginning button
+        paginatedRoleTab.beginningButton().click();
+
+        // check text and buttons after navigation
+        paginatedRoleTab.paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } GlobalRoles`);
+          });
+        paginatedRoleTab.beginningButton().isDisabled();
+        paginatedRoleTab.leftButton().isDisabled();
+      });
+    });
+
     it('pagination is hidden', () => {
       generateGlobalRolesDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
+      usersPo.goTo(); // this is needed here for the intercept to work
       RolesPo.navTo();
+      roles.waitForPage();
       cy.wait('@globalRolesDataSmall');
 
       rolesList.resourceTable().sortableTable().checkVisible();
       rolesList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       rolesList.resourceTable().sortableTable().checkRowCount(false, 2);
-      rolesList.resourceTable().sortableTable().pagination()
-        .checkNotExists();
+      paginatedRoleTab.checkNotExists();
     });
 
     after(() => {
       globalRolesIdsList.forEach((r) => cy.deleteRancherResource('v3', 'globalRoles', r, false));
+      // Ensure the default rows per page value is set after running the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
   });
 

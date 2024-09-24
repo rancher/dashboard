@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ServicesCreateEditPo from '@/cypress/e2e/po/edit/services.po';
 
 export class ServicesPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -36,5 +37,9 @@ export class ServicesPagePo extends PagePo {
 
   clickCreate() {
     return this.list().masthead().create();
+  }
+
+  createServicesForm(id? : string): ServicesCreateEditPo {
+    return new ServicesCreateEditPo(id);
   }
 }

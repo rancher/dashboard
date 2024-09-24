@@ -5,6 +5,8 @@ import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 export default {
+  emits: ['update:value', 'blur'],
+
   components: { LabeledInput },
   props:      {
     value: {
@@ -46,7 +48,7 @@ export default {
         return this.value;
       },
       set(val) {
-        this.$emit('input', val);
+        this.$emit('update:value', val);
       }
     },
     attributes() {
@@ -94,7 +96,7 @@ export default {
   <div class="password">
     <LabeledInput
       ref="input"
-      v-model="password"
+      v-model:value="password"
       v-bind="attributes"
       :type="isRandom || reveal ? 'text' : 'password'"
       :readonly="isRandom"

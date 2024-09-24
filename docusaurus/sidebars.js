@@ -30,7 +30,15 @@ const sidebars = {
       },
       items: [
         'extensions/introduction',
-        'extensions/rancher-2.9-support',
+        {
+          type:  'category',
+          label: 'Changelog',
+          link:  {
+            type: 'doc',
+            id:   'extensions/changelog',
+          },
+          items: ['extensions/rancher-2.9-support', 'extensions/rancher-2.10-support']
+        },
         'extensions/support-matrix',
         'extensions/extensions-getting-started',
         'extensions/extensions-configuration',
@@ -112,6 +120,7 @@ const sidebars = {
                 'extensions/usecases/node-driver/about-drivers',
                 'extensions/usecases/node-driver/cloud-credential',
                 'extensions/usecases/node-driver/machine-config',
+                'extensions/usecases/node-driver/node-driver-icon',
                 'extensions/usecases/node-driver/advanced',
                 'extensions/usecases/node-driver/proxying',
                 'extensions/usecases/node-driver/about-example',

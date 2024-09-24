@@ -153,8 +153,8 @@ export default {
         storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
       }
 
-      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
-      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+      storageSpec.selector['matchLabels'] = matchLabels;
+      storageSpec.selector['matchExpressions'] = matchExpressions;
 
       // Remove an empty selector object if present
       // User can add a selector and then remove the selector - this will leave an empty structure as above
@@ -193,8 +193,8 @@ export default {
           :raw="true"
         />
         <div
-          v-for="wl in mappedFilteredWorkloads"
-          :key="wl.id"
+          v-for="(wl, i) in mappedFilteredWorkloads"
+          :key="i"
           class="mt-10"
         >
           <router-link
@@ -210,13 +210,13 @@ export default {
       <div class="row">
         <div class="col span-6 col-full-height">
           <Checkbox
-            v-model="value.prometheus.prometheusSpec.enableAdminAPI"
+            v-model:value="value.prometheus.prometheusSpec.enableAdminAPI"
             :label="t('monitoring.prometheus.config.adminApi')"
           />
         </div>
         <div class="col span-6 col-full-height">
           <RadioGroup
-            v-model="value.prometheus.prometheusSpec.ignoreNamespaceSelectors"
+            v-model:value="value.prometheus.prometheusSpec.ignoreNamespaceSelectors"
             :mode="mode"
             name="ignoreNamespaceSelectors"
             label-key="monitoring.prometheus.config.ignoreNamespaceSelectors.label"
@@ -229,14 +229,14 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.scrapeInterval"
+            v-model:value="value.prometheus.prometheusSpec.scrapeInterval"
             :label="t('monitoring.prometheus.config.scrape')"
             :mode="mode"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.evaluationInterval"
+            v-model:value="value.prometheus.prometheusSpec.evaluationInterval"
             :label="t('monitoring.prometheus.config.evaluation')"
             :mode="mode"
           />
@@ -245,14 +245,14 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.retention"
+            v-model:value="value.prometheus.prometheusSpec.retention"
             :label="t('monitoring.prometheus.config.retention')"
             :mode="mode"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.retentionSize"
+            v-model:value="value.prometheus.prometheusSpec.retentionSize"
             :label="t('monitoring.prometheus.config.retentionSize')"
             :mode="mode"
           />
@@ -268,14 +268,14 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.resources.requests.cpu"
+            v-model:value="value.prometheus.prometheusSpec.resources.requests.cpu"
             :label="t('monitoring.prometheus.config.requests.cpu')"
             :mode="mode"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.resources.requests.memory"
+            v-model:value="value.prometheus.prometheusSpec.resources.requests.memory"
             :label="t('monitoring.prometheus.config.requests.memory')"
             :mode="mode"
           />
@@ -284,14 +284,14 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.resources.limits.cpu"
+            v-model:value="value.prometheus.prometheusSpec.resources.limits.cpu"
             :label="t('monitoring.prometheus.config.limits.cpu')"
             :mode="mode"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.resources.limits.memory"
+            v-model:value="value.prometheus.prometheusSpec.resources.limits.memory"
             :label="t('monitoring.prometheus.config.limits.memory')"
             :mode="mode"
           />
@@ -303,7 +303,7 @@ export default {
       >
         <div class="col span-6">
           <Checkbox
-            v-model="enablePersistentStorage"
+            v-model:value="enablePersistentStorage"
             data-testid="checkbox-chart-enable-persistent-storage"
             :label="t('monitoring.prometheus.storage.label')"
           />
@@ -313,7 +313,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+              v-model:value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
               :label="t('monitoring.prometheus.storage.size')"
               :mode="mode"
             />
@@ -336,7 +336,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes"
+              v-model:value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes"
               :label="t('monitoring.prometheus.storage.mode')"
               :localized-label="true"
               :mode="mode"
@@ -362,7 +362,7 @@ export default {
               :mode="mode"
               :value="matchExpressions"
               :show-remove="false"
-              @input="matchChanged($event)"
+              @update:value="matchChanged($event)"
             />
           </div>
         </div>

@@ -34,7 +34,7 @@ export default {
         return this.value.endpoint.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value.endpoint, 'port', value), port);
+        updatePort((value) => (this.value.endpoint['port'] = value), port);
       }
     }
   }
@@ -51,7 +51,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.endpoint.url"
+          v-model:value="value.endpoint.url"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.logz.url')"
@@ -59,7 +59,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="port"
+          v-model:value="port"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -78,7 +78,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.endpoint.token"
+          v-model:value="value.endpoint.token"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -96,7 +96,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <Checkbox
-          v-model="value.gzip"
+          v-model:value="value.gzip"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.logz.enableCompression')"

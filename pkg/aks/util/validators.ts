@@ -4,7 +4,7 @@
  * Due to current limitations of the fv mixin
  */
 
-import { get } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 import { LoadBalancerSku, OutboundType, AKSNodePool } from '../types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
@@ -152,16 +152,64 @@ export const nodePoolNames = (ctx: any) => {
         const name = pool.name || '';
 
         if (!isValid(name)) {
-          ctx.$set(pool._validation, '_validName', false);
+          set(pool._validation, '_validName', false);
 
           allAvailable = false;
         } else {
-          ctx.$set(pool._validation, '_validName', true);
+          set(pool._validation, '_validName', true);
         }
       });
       if (!allAvailable) {
         return ctx.t('aks.errors.poolName');
       }
+    }
+  };
+};
+
+export const nodePoolNamesUnique = (ctx: any) => {
+  return () :string | undefined => {
+    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+
+    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+
+    if (hasDuplicates) {
+      return ctx.t('aks.errors.poolNamesUnique');
+    }
+  };
+};
+
+export const nodePoolCount = (ctx:any) => {
+  return (count?: number, canBeZero = false) => {
+    let min = 1;
+    let errMsg = ctx.t('aks.errors.poolCount');
+
+    if (canBeZero) {
+      min = 0;
+      errMsg = ctx.t('aks.errors.poolUserCount');
+    }
+    if (count || count === 0) {
+      return count >= min ? undefined : errMsg;
+    } else {
+      let allValid = true;
+
+      ctx.nodePools.forEach((pool: AKSNodePool) => {
+        const { count = 0, mode } = pool;
+
+        if (mode === 'User') {
+          min = 0;
+        } else {
+          min = 1;
+        }
+
+        if (count < min) {
+          pool._validation['_validCount'] = false;
+          allValid = false;
+        } else {
+          pool._validation['_validCount'] = true;
+        }
+      });
+
+      return allValid ? undefined : ctx.t('aks.errors.poolCount');
     }
   };
 };

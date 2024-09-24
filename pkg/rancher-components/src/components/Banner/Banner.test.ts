@@ -25,9 +25,9 @@ describe('component: Banner', () => {
   it('should not display an icon', () => {
     const wrapper = mount(Banner);
 
-    const element = wrapper.find(`[data-testid="banner-icon"]`).element;
+    const iconElement = wrapper.find('[data-testid="banner-icon"]');
 
-    expect(element).not.toBeDefined();
+    expect(iconElement.exists()).toBe(false);
   });
 
   it('should emit close event', () => {

@@ -1,5 +1,4 @@
 <script>
-import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
@@ -428,7 +427,7 @@ export default {
           const active = op.metadata.state?.transitioning;
           const error = op.metadata.state?.error;
 
-          Vue.set(this.errors, plugin.name, error);
+          this.errors[plugin.name] = error;
 
           if (active) {
             // Can use the status directly, apart from upgrade, which maps to install
@@ -470,13 +469,13 @@ export default {
       });
 
       if (changes > 0) {
-        Vue.set(this, 'reloadRequired', true);
+        this['reloadRequired'] = true;
       }
     }
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', UI_PLUGIN);
     this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
     this.$store.dispatch('management/forgetType', CATALOG.APP);
@@ -504,7 +503,7 @@ export default {
         this.refreshCharts(forceChartsUpdate);
       }
 
-      Vue.set(this, 'hasFeatureFlag', hasFeatureFlag);
+      this['hasFeatureFlag'] = hasFeatureFlag;
 
       return hasFeatureFlag;
     },
@@ -576,7 +575,7 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      Vue.set(this.installing, name, status);
+      this.installing[name] = status;
     },
 
     setMenu(event) {
@@ -771,200 +770,198 @@ export default {
             :weight="17"
           />
         </Tabbed>
-        <template>
-          <div
-            v-if="loading"
-            class="data-loading"
-          >
-            <i class="icon-spin icon icon-spinner" />
-            <t
-              k="generic.loading"
-              :raw="true"
-            />
-          </div>
-          <div
-            v-else
-            class="plugin-list"
-            :class="{'v-margin': !list.length}"
-          >
-            <IconMessage
-              v-if="list.length === 0"
-              :vertical="true"
-              :subtle="true"
-              icon="icon-extension"
-              :message="emptyMessage"
-            />
-            <template v-else>
+        <div
+          v-if="loading"
+          class="data-loading"
+        >
+          <i class="icon-spin icon icon-spinner" />
+          <t
+            k="generic.loading"
+            :raw="true"
+          />
+        </div>
+        <div
+          v-else
+          class="plugin-list"
+          :class="{'v-margin': !list.length}"
+        >
+          <IconMessage
+            v-if="list.length === 0"
+            :vertical="true"
+            :subtle="true"
+            icon="icon-extension"
+            :message="emptyMessage"
+          />
+          <template v-else>
+            <div
+              v-for="(plugin, i) in list"
+              :key="i"
+              class="plugin"
+              :data-testid="`extension-card-${plugin.name}`"
+              @click="showPluginDetail(plugin)"
+            >
+              <!-- plugin icon -->
               <div
-                v-for="(plugin, i) in list"
-                :key="plugin.name + i"
-                class="plugin"
-                :data-testid="`extension-card-${plugin.name}`"
-                @click="showPluginDetail(plugin)"
+                class="plugin-icon"
+                :class="applyDarkModeBg"
               >
-                <!-- plugin icon -->
-                <div
-                  class="plugin-icon"
-                  :class="applyDarkModeBg"
+                <LazyImage
+                  v-if="plugin.icon"
+                  :initial-src="defaultIcon"
+                  :error-src="defaultIcon"
+                  :src="plugin.icon"
+                  class="icon plugin-icon-img"
+                />
+                <img
+                  v-else
+                  :src="defaultIcon"
+                  class="icon plugin-icon-img"
                 >
-                  <LazyImage
-                    v-if="plugin.icon"
-                    :initial-src="defaultIcon"
-                    :error-src="defaultIcon"
-                    :src="plugin.icon"
-                    class="icon plugin-icon-img"
-                  />
-                  <img
-                    v-else
-                    :src="defaultIcon"
-                    class="icon plugin-icon-img"
-                  >
+              </div>
+              <!-- plugin card -->
+              <div class="plugin-metadata">
+                <!-- plugin basic info -->
+                <div class="plugin-name">
+                  {{ plugin.label }}
                 </div>
-                <!-- plugin card -->
-                <div class="plugin-metadata">
-                  <!-- plugin basic info -->
-                  <div class="plugin-name">
-                    {{ plugin.label }}
-                  </div>
-                  <div>{{ plugin.description }}</div>
-                  <div class="plugin-version">
+                <div>{{ plugin.description }}</div>
+                <div class="plugin-version">
+                  <span
+                    v-if="plugin.installing"
+                    class="plugin-installing"
+                  >
+                    -
+                  </span>
+                  <span v-else>
+                    <span>{{ plugin.displayVersion }}</span>
                     <span
-                      v-if="plugin.installing"
-                      class="plugin-installing"
+                      v-if="plugin.upgrade"
+                      v-clean-tooltip="t('plugins.upgradeAvailable')"
+                    > -> {{ plugin.upgrade }}</span>
+                    <p
+                      v-if="plugin.installedError"
+                      class="incompatible"
                     >
-                      -
-                    </span>
-                    <span v-else>
-                      <span>{{ plugin.displayVersion }}</span>
-                      <span
-                        v-if="plugin.upgrade"
-                        v-clean-tooltip="t('plugins.upgradeAvailable')"
-                      > -> {{ plugin.upgrade }}</span>
-                      <p
-                        v-if="plugin.installedError"
-                        class="incompatible"
-                      >
-                        <i class="icon icon-warning icon-lg text-warning" />
-                        <span>{{ plugin.installedError }}</span>
-                      </p>
-                      <p
-                        v-else-if="plugin.incompatibleRancherVersion"
-                        class="incompatible"
-                      >{{ plugin.incompatibleRancherVersion }}</p>
-                      <p
-                        v-else-if="plugin.incompatibleKubeVersion"
-                        class="incompatible"
-                      >{{ plugin.incompatibleKubeVersion }}</p>
-                    </span>
+                      <i class="icon icon-warning icon-lg text-warning" />
+                      <span>{{ plugin.installedError }}</span>
+                    </p>
+                    <p
+                      v-else-if="plugin.incompatibleRancherVersion"
+                      class="incompatible"
+                    >{{ plugin.incompatibleRancherVersion }}</p>
+                    <p
+                      v-else-if="plugin.incompatibleKubeVersion"
+                      class="incompatible"
+                    >{{ plugin.incompatibleKubeVersion }}</p>
+                  </span>
+                </div>
+                <!-- plugin badges -->
+                <div
+                  v-if="plugin.builtin"
+                  class="plugin-badges"
+                >
+                  <div class="plugin-builtin">
+                    {{ t('plugins.labels.builtin') }}
                   </div>
-                  <!-- plugin badges -->
+                </div>
+                <div
+                  v-else
+                  class="plugin-badges"
+                >
                   <div
-                    v-if="plugin.builtin"
-                    class="plugin-badges"
+                    v-if="!plugin.certified"
+                    v-clean-tooltip="t('plugins.descriptions.third-party')"
                   >
-                    <div class="plugin-builtin">
-                      {{ t('plugins.labels.builtin') }}
-                    </div>
+                    {{ t('plugins.labels.third-party') }}
                   </div>
                   <div
-                    v-else
-                    class="plugin-badges"
+                    v-if="plugin.experimental"
+                    v-clean-tooltip="t('plugins.descriptions.experimental')"
                   >
-                    <div
-                      v-if="!plugin.certified"
-                      v-clean-tooltip="t('plugins.descriptions.third-party')"
-                    >
-                      {{ t('plugins.labels.third-party') }}
-                    </div>
-                    <div
-                      v-if="plugin.experimental"
-                      v-clean-tooltip="t('plugins.descriptions.experimental')"
-                    >
-                      {{ t('plugins.labels.experimental') }}
-                    </div>
+                    {{ t('plugins.labels.experimental') }}
                   </div>
-                  <div class="plugin-spacer" />
-                  <!-- plugin badges -->
-                  <div class="plugin-actions">
-                    <template v-if="plugin.error">
-                      <div
-                        v-clean-tooltip="plugin.error"
-                        class="plugin-error"
-                      >
-                        <i class="icon icon-warning" />
-                      </div>
-                    </template>
-                    <!-- plugin status -->
+                </div>
+                <div class="plugin-spacer" />
+                <!-- plugin badges -->
+                <div class="plugin-actions">
+                  <template v-if="plugin.error">
                     <div
-                      v-if="plugin.helmError"
-                      v-clean-tooltip="t('plugins.helmError')"
+                      v-clean-tooltip="plugin.error"
                       class="plugin-error"
                     >
                       <i class="icon icon-warning" />
                     </div>
+                  </template>
+                  <!-- plugin status -->
+                  <div
+                    v-if="plugin.helmError"
+                    v-clean-tooltip="t('plugins.helmError')"
+                    class="plugin-error"
+                  >
+                    <i class="icon icon-warning" />
+                  </div>
 
-                    <div class="plugin-spacer" />
+                  <div class="plugin-spacer" />
 
-                    <div
-                      v-if="plugin.installing"
-                      class="plugin-installing"
-                    >
-                      <i class="version-busy icon icon-spin icon-spinner" />
-                      <div v-if="plugin.installing ==='install'">
-                        {{ t('plugins.labels.installing') }}
-                      </div>
-                      <div v-else>
-                        {{ t('plugins.labels.uninstalling') }}
-                      </div>
+                  <div
+                    v-if="plugin.installing"
+                    class="plugin-installing"
+                  >
+                    <i class="version-busy icon icon-spin icon-spinner" />
+                    <div v-if="plugin.installing ==='install'">
+                      {{ t('plugins.labels.installing') }}
                     </div>
-                    <!-- plugin buttons -->
-                    <div
-                      v-else-if="plugin.installed"
-                      class="plugin-buttons"
-                    >
-                      <button
-                        v-if="!plugin.builtin"
-                        class="btn role-secondary"
-                        :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
-                        @click="showUninstallDialog(plugin, $event)"
-                      >
-                        {{ t('plugins.uninstall.label') }}
-                      </button>
-                      <button
-                        v-if="plugin.upgrade"
-                        class="btn role-secondary"
-                        :data-testid="`extension-card-update-btn-${plugin.name}`"
-                        @click="showInstallDialog(plugin, 'update', $event)"
-                      >
-                        {{ t('plugins.update.label') }}
-                      </button>
-                      <button
-                        v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
-                        class="btn role-secondary"
-                        :data-testid="`extension-card-rollback-btn-${plugin.name}`"
-                        @click="showInstallDialog(plugin, 'rollback', $event)"
-                      >
-                        {{ t('plugins.rollback.label') }}
-                      </button>
+                    <div v-else>
+                      {{ t('plugins.labels.uninstalling') }}
                     </div>
-                    <div
-                      v-else-if="plugin.installableVersions && plugin.installableVersions.length"
-                      class="plugin-buttons"
+                  </div>
+                  <!-- plugin buttons -->
+                  <div
+                    v-else-if="plugin.installed"
+                    class="plugin-buttons"
+                  >
+                    <button
+                      v-if="!plugin.builtin"
+                      class="btn role-secondary"
+                      :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
+                      @click="showUninstallDialog(plugin, $event)"
                     >
-                      <button
-                        class="btn role-secondary"
-                        :data-testid="`extension-card-install-btn-${plugin.name}`"
-                        @click="showInstallDialog(plugin, 'install', $event)"
-                      >
-                        {{ t('plugins.install.label') }}
-                      </button>
-                    </div>
+                      {{ t('plugins.uninstall.label') }}
+                    </button>
+                    <button
+                      v-if="plugin.upgrade"
+                      class="btn role-secondary"
+                      :data-testid="`extension-card-update-btn-${plugin.name}`"
+                      @click="showInstallDialog(plugin, 'update', $event)"
+                    >
+                      {{ t('plugins.update.label') }}
+                    </button>
+                    <button
+                      v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
+                      class="btn role-secondary"
+                      :data-testid="`extension-card-rollback-btn-${plugin.name}`"
+                      @click="showInstallDialog(plugin, 'rollback', $event)"
+                    >
+                      {{ t('plugins.rollback.label') }}
+                    </button>
+                  </div>
+                  <div
+                    v-else-if="plugin.installableVersions && plugin.installableVersions.length"
+                    class="plugin-buttons"
+                  >
+                    <button
+                      class="btn role-secondary"
+                      :data-testid="`extension-card-install-btn-${plugin.name}`"
+                      @click="showInstallDialog(plugin, 'install', $event)"
+                    >
+                      {{ t('plugins.install.label') }}
+                    </button>
                   </div>
                 </div>
               </div>
-            </template>
-          </div>
-        </template>
+            </div>
+          </template>
+        </div>
       </template>
     </div>
 
@@ -1221,11 +1218,11 @@ export default {
       }
     }
   }
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     font-weight: normal !important;
   }
 
-  ::v-deep .add-repos-banner .banner__content {
+  :deep() .add-repos-banner .banner__content {
     display: flex;
     justify-content: space-between;
     align-items: center;

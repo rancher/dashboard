@@ -8,7 +8,7 @@ describe('ClusterRoleBindings', { testIsolation: 'off', tags: ['@explorer', '@ad
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('validate cluster role bindings table in empty state', () => {
       clusterRoleBindingNoData();
       clusterRoleBindingsPage.goTo();

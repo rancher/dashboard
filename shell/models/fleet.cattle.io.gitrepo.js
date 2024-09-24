@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import { escapeHtml, randomStr } from '@shell/utils/string';
@@ -36,7 +35,7 @@ export default class GitRepo extends SteveModel {
     spec.paths = spec.paths || [];
     spec.clientSecretName = spec.clientSecretName || null;
 
-    Vue.set(spec, 'correctDrift', { enabled: false });
+    spec['correctDrift'] = { enabled: false };
 
     set(this, 'spec', spec);
     set(this, 'metadata', meta);

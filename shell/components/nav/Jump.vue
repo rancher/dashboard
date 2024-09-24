@@ -6,6 +6,8 @@ import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
 
 export default {
+  emits: ['closeSearch'],
+
   components: { Group },
 
   data() {
@@ -91,7 +93,7 @@ export default {
           :fixed-open="true"
           @close="$emit('closeSearch')"
         >
-          <template slot="accordion">
+          <template #accordion>
             <h6>{{ g.label }}</h6>
           </template>
         </Group>

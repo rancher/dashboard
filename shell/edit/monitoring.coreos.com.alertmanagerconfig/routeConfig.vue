@@ -29,8 +29,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value, 'matchers', this.value.matchers || []);
-    this.$set(this.value, 'groupBy', this.value.groupBy || []);
+    this.value['matchers'] = this.value.matchers || [];
+    this.value['groupBy'] = this.value.groupBy || [];
 
     return {
       isView:     _VIEW,
@@ -60,7 +60,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.receiver"
+          v-model:value="value.receiver"
           :mode="mode"
           :options="receiverOptions"
         />
@@ -77,7 +77,7 @@ export default {
           />
         </span>
         <ArrayList
-          v-model="value.groupBy"
+          v-model:value="value.groupBy"
           class="mt-10"
           :mode="mode"
           :initial-empty-row="true"
@@ -88,14 +88,14 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.groupWait"
+          v-model:value="value.groupWait"
           :label="t('monitoringRoute.wait.label')"
           :mode="mode"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.groupInterval"
+          v-model:value="value.groupInterval"
           :label="t('monitoringRoute.interval.label')"
           :mode="mode"
         />
@@ -104,7 +104,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.repeatInterval"
+          v-model:value="value.repeatInterval"
           :label="t('monitoringRoute.repeatInterval.label')"
           :mode="mode"
         />
@@ -113,7 +113,7 @@ export default {
 
     <h3>Matchers</h3>
     <ArrayListGrouped
-      v-model="value.matchers"
+      v-model:value="value.matchers"
       class="mt-20"
       :mode="mode"
       :add-label="t('monitoringRoute.matching.addMatcher')"
@@ -123,7 +123,7 @@ export default {
         <div class="row mt-20 mb-20">
           <div class="col span-4">
             <LabeledInput
-              v-model="props.row.value.name"
+              v-model:value="props.row.value.name"
               :label="t('monitoringRoute.matching.name')"
               :tooltip="t('monitoringRoute.matching.nameTooltip')"
               :mode="mode"
@@ -131,7 +131,7 @@ export default {
           </div>
           <div class="col span-4">
             <LabeledInput
-              v-model="props.row.value.value"
+              v-model:value="props.row.value.value"
               :label="t('monitoringRoute.matching.value')"
               :tooltip="t('monitoringRoute.matching.valueTooltip')"
               :mode="mode"
@@ -139,7 +139,7 @@ export default {
           </div>
           <div class="col span-4">
             <LabeledSelect
-              v-model="props.row.value.matchType"
+              v-model:value="props.row.value.matchType"
               :label="t('monitoringRoute.matching.matchType')"
               :mode="mode"
               :options="matchTypes"

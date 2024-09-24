@@ -318,7 +318,7 @@ export default {
     document.addEventListener('keyup', this.handler);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
   },
 
@@ -390,7 +390,7 @@ export default {
 
       let contentText = '';
       let content;
-      let classes = '';
+      let popperClass = '';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -415,7 +415,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+        popperClass = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -427,7 +427,7 @@ export default {
           content = this.shown ? contentText : null;
 
           // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
-          classes += ' description-tooltip-pos-adjustment';
+          popperClass += ' description-tooltip-pos-adjustment';
         }
       }
 
@@ -435,7 +435,7 @@ export default {
         content,
         placement:     'right',
         popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
-        classes
+        popperClass
       };
     },
   }
@@ -561,8 +561,8 @@ export default {
               </a>
             </div>
             <div
-              v-for="a in appBar.hciApps"
-              :key="a.label"
+              v-for="(a, i) in appBar.hciApps"
+              :key="i"
               @click="hide()"
             >
               <router-link
@@ -593,7 +593,7 @@ export default {
               >
                 <div
                   v-for="(c, index) in appBar.pinFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`pinned-ready-cluster-${index}`"
                   @click="hide()"
                 >
@@ -668,7 +668,7 @@ export default {
               <div class="clustersList">
                 <div
                   v-for="(c, index) in appBar.clustersFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
@@ -692,6 +692,7 @@ export default {
                       v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
+                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -773,8 +774,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.multiClusterApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.multiClusterApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -801,8 +802,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.legacyApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.legacyApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -831,8 +832,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.configurationApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.configurationApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -903,15 +904,15 @@ export default {
   }
 
   .localeSelector {
-    .popover-inner {
+    .v-popper__inner {
       padding: 10px 0;
     }
 
-    .popover-arrow {
+    .v-popper__arrow-container {
       display: none;
     }
 
-    .popover:focus {
+    .v-popper:focus {
       outline: 0;
     }
   }
@@ -1450,15 +1451,15 @@ export default {
   }
 
   .localeSelector {
-    ::v-deep .popover-inner {
+    :deep() .v-popper__inner {
       padding: 50px 0;
     }
 
-    ::v-deep .popover-arrow {
+    :deep() .v-popper__arrow-container {
       display: none;
     }
 
-    ::v-deep .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 

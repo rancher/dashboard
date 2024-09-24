@@ -83,7 +83,7 @@ gke:
     clusterNameStartEnd: Cluster name must startd and end with a letter or number.
     diskSizeGb: Disk Size must be at least 10GB.
     genericKey: Value
-    initialNodeCount: Initial Node Count must be at least 1.
+    initialNodeCount: Initial Node Count must be at least 0, and no greater than 1000.
     ipv4Cidr: '{key} must be a valid ipv4 cidr range.'
     ipv4oripv6: '{key} must be a valid ipv6 or ipv4 CIDR address'
     minMaxNodeCount: Minimum Node Count cannot exceed Maximum Node Count.

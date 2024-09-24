@@ -37,7 +37,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popover .popover .popover-inner`);
+    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
   }
 
   /**
@@ -106,7 +106,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElementWithName(name: string, options?: GetOptions) {
-    return this.self().contains('tbody tr', new RegExp(` ${ name } `), options);
+    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string) {
@@ -242,6 +242,10 @@ export default class SortableTablePo extends ComponentPo {
   // Check that the sortable table loading indicator does not exist (data loading complete)
   checkLoadingIndicatorNotVisible() {
     cy.get('tbody', { timeout: 10000 }).find('.data-loading').should('not.exist');
+  }
+
+  checkNoRowsNotVisible() {
+    cy.get('tbody', { timeout: 10000 }).find('.no-rows').should('not.exist');
   }
 
   // pagination

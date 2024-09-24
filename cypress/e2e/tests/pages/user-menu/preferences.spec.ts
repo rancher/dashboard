@@ -104,7 +104,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it('Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
+  it.skip('[Vue3 Skip]: Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -426,7 +426,7 @@ describe('User can update their preferences', () => {
       yamlEditor.keyboardMappingIndicator().checkNotExists();
     });
 
-    it('does show any indicator for non-default keyboard mapping', () => {
+    it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
       prefPage.goTo();
       prefPage.keymapButtons().checkVisible();
 

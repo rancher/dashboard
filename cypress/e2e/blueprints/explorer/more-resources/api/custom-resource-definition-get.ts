@@ -5,7 +5,7 @@ const crdsGetResponseSmallSet = {
   createTypes:  { 'apiextensions.k8s.io.customresourcedefinition': 'https://yonasb29head.qa.rancher.space/v1/apiextensions.k8s.io.customresourcedefinitions' },
   actions:      {},
   resourceType: 'apiextensions.k8s.io.customresourcedefinition',
-  revision:     '123',
+  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   count:        2,
   data:         [
     {

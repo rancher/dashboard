@@ -1,18 +1,24 @@
-const getElement = (vnode) => {
-  const { componentInstance, componentOptions: { tag } } = vnode;
+const getElement = (el, _binding, vnode) => {
+  const component = vnode.component;
+
+  if (!component) {
+    return el;
+  }
+
+  const tag = component.type.__name;
 
   if (tag === 'LabeledInput') {
-    return componentInstance.$refs.value;
+    return component.$refs.value;
   }
 
   if (tag === 'LabeledSelect') {
-    componentInstance.shouldOpen = false;
+    component.shouldOpen = false;
 
-    return componentInstance.$refs['select-input'].$refs.search;
+    return component.$refs['select-input'].$refs.search;
   }
 
   if (tag === 'SelectPrincipal') {
-    const labeledSelect = componentInstance.$refs['labeled-select'];
+    const labeledSelect = component.$refs['labeled-select'];
 
     labeledSelect.shouldOpen = false;
 
@@ -20,22 +26,22 @@ const getElement = (vnode) => {
   }
 
   if (tag === 'TextAreaAutoGrow') {
-    return componentInstance.$refs.ta;
+    return component.$refs.ta;
   }
 
   if (tag === 'Password') {
-    return componentInstance.$refs.input.$refs.value;
+    return component.$refs.input.$refs.value;
   }
 };
 
-function inserted(_el, _binding, vnode) {
-  const element = getElement(vnode);
+function mounted(el, binding, vnode) {
+  const element = getElement(el, binding, vnode);
 
   if (element) {
     element.focus();
   }
 }
 
-const focusDirective = { inserted };
+const focusDirective = { mounted };
 
 export default focusDirective;

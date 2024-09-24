@@ -7,6 +7,8 @@ import { isEmpty } from 'lodash';
 export default {
   name: 'PromptRemovePodDialog',
 
+  emits: ['errors'],
+
   components: {
     Banner,
     Checkbox
@@ -122,7 +124,7 @@ export default {
     </div>
     <div class="mb-30">
       <Checkbox
-        v-model="forceDelete"
+        v-model:value="forceDelete"
         :label="t('promptForceRemove.forceDelete')"
       />
     </div>

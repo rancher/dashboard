@@ -14,6 +14,8 @@ import { AWS } from '../types';
 export default defineComponent({
   name: 'EKSNetworking',
 
+  emits: ['update:subnets', 'update:securityGroups', 'error', 'update:publicAccess', 'update:privateAccess', 'update:publicAccessSources'],
+
   components: {
     LabeledSelect,
     ArrayList,
@@ -267,13 +269,13 @@ export default defineComponent({
           :value="publicAccess"
           :mode="mode"
           label-key="eks.publicAccess.label"
-          @input="$emit('update:publicAccess', $event)"
+          @update:value="$emit('update:publicAccess', $event)"
         />
         <Checkbox
           :value="privateAccess"
           :mode="mode"
           label-key="eks.privateAccess.label"
-          @input="$emit('update:privateAccess', $event)"
+          @update:value="$emit('update:privateAccess', $event)"
         />
       </div>
     </div>
@@ -286,7 +288,7 @@ export default defineComponent({
           :add-allowed="publicAccess"
           :add-label="t('eks.publicAccessSources.addEndpoint')"
           data-testid="eks-public-access-sources"
-          @input="$emit('update:publicAccessSources', $event)"
+          @update:value="$emit('update:publicAccessSources', $event)"
         >
           <template #title>
             {{ t('eks.publicAccessSources.label') }}
@@ -300,7 +302,7 @@ export default defineComponent({
         class="col span-6"
       >
         <RadioGroup
-          v-model="chooseSubnet"
+          v-model:value="chooseSubnet"
           name="subnet-mode"
           :mode="mode"
           :options="[{label: t('eks.subnets.default'), value: false},{label: t('eks.subnets.useCustom'), value: true}]"
@@ -317,7 +319,7 @@ export default defineComponent({
         class="col span-6"
       >
         <LabeledSelect
-          v-model="displaySubnets"
+          v-model:value="displaySubnets"
           :disabled="!isNew"
           :mode="mode"
           label-key="eks.vpcSubnet.label"
@@ -347,7 +349,7 @@ export default defineComponent({
           :value="securityGroups"
           :loading="loadingSecurityGroups"
           data-testid="eks-security-groups-dropdown"
-          @input="$emit('update:securityGroups', $event)"
+          @update:value="$emit('update:securityGroups', $event)"
         />
       </div>
     </div>

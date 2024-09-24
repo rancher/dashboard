@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';
 
@@ -8,7 +7,7 @@ interface LabeledFormElement {
   blurred: number | null;
 }
 
-export default Vue.extend({
+export default {
   inheritAttrs: false,
 
   props: {
@@ -155,6 +154,8 @@ export default Vue.extend({
         const message = requiredRule(value);
 
         if (!!message) {
+          this.$emit('update:validation', false);
+
           return message;
         }
       }
@@ -167,8 +168,12 @@ export default Vue.extend({
         }
       }
       if (ruleMessages.length > 0 && (this.blurred || this.focused || !this.requireDirty)) {
+        this.$emit('update:validation', false);
+
         return ruleMessages.join(', ');
       } else {
+        this.$emit('update:validation', true);
+
         return undefined;
       }
     }
@@ -215,4 +220,4 @@ export default Vue.extend({
       this.blurred = Date.now();
     }
   }
-});
+};

@@ -57,6 +57,8 @@ class EmptyCapiMachineDeployment extends CapiMachineDeployment {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     Banner,
@@ -194,7 +196,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if ( this.logSocket ) {
       this.logSocket.disconnect();
       this.logSocket = null;
@@ -737,13 +739,14 @@ export default {
       :label="$fetchState.error"
     />
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
       :extension-params="extCustomParams"
       :needRelated="extDetailTabsRelated"
       :needEvents="extDetailTabsEvents"
       :needConditions="extDetailTabsConditions"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="showMachines"
@@ -942,16 +945,14 @@ export default {
           <tbody class="logs-body">
             <template v-if="logs.length">
               <tr
-                v-for="line in logs"
-                :key="line.id"
+                v-for="(line, i) in logs"
+                :key="i"
               >
                 <td
-                  :key="line.id + '-time'"
                   v-clean-html="format(line.time)"
                   class="time"
                 />
                 <td
-                  :key="line.id + '-msg'"
                   v-clean-html="line.msg"
                   class="msg"
                 />
@@ -1112,7 +1113,7 @@ export default {
   }
 }
 
-.snapshots ::v-deep .state-description{
+.snapshots :deep() .state-description{
   font-size: .8em;
   color: var(--error);
 }

@@ -52,7 +52,7 @@ export default {
 
   methods: {
     update() {
-      this.$set(this.value, 'volumeClaimTemplates', this.templates);
+      this.value['volumeClaimTemplates'] = this.templates;
     },
 
     updatePVC(pvc) {
@@ -69,7 +69,7 @@ export default {
 
     addPVC() {
       if (!this.value.volumeClaimTemplates) {
-        this.$set(this.value, 'volumeClaimTemplates', []);
+        this.value['volumeClaimTemplates'] = [];
       }
       this.templates = this.value.volumeClaimTemplates;
 
@@ -93,7 +93,7 @@ export default {
   <div>
     <div>
       <ArrayListGrouped
-        v-model="templates"
+        v-model:value="templates"
         class="mb-20"
         @input="update()"
       >

@@ -8,7 +8,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     cy.login();
   });
 
-  describe('List', { tags: ['@vai'] }, () => {
+  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });
@@ -77,6 +77,12 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
         .scrollIntoView()
         .should('be.visible');
       servicesPagePo.list().resourceTable().sortableTable().checkRowCount(false, 3);
+    });
+
+    it('validation errors should not be shown when form is just opened', () => {
+      servicesPagePo.goTo();
+      servicesPagePo.clickCreate();
+      servicesPagePo.createServicesForm().errorBanner().should('not.exist');
     });
 
     after('clean up', () => {

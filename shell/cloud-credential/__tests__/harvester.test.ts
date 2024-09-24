@@ -5,8 +5,8 @@ const mockStore = { getters: { 'i18n/t': jest.fn() } };
 
 describe('cloud credentials: Harvester', () => {
   const wrapper = mount(HarvesterCloudCreds, {
-    propsData: { value: {} },
-    mocks:     { $store: mockStore }
+    props:  { value: {} },
+    global: { mocks: { $store: mockStore } }
   });
 
   it('should display the warning banner for token expiration', async() => {

@@ -44,6 +44,8 @@ echo "Running custom user data script"
 export default defineComponent({
   name: 'EKSNodePool',
 
+  emits: ['update:instanceType', 'update:spotInstanceTypes', 'update:ec2SshKey', 'update:launchTemplate', 'update:nodeRole', 'update:nodeRole', 'update:version', 'update:poolIsUpgrading', 'error', 'update:resourceTags', 'update:diskSize', 'update:nodegroupName', 'update:desiredSize', 'update:minSize', 'update:maxSize', 'update:labels', 'update:tags', 'update:imageId', 'update:gpu', 'update:requestSpotInstances', 'update:userData', 'update:ec2SshKey'],
+
   components: {
     LabeledInput,
     LabeledSelect,
@@ -197,6 +199,11 @@ export default defineComponent({
     normanCluster: {
       type:    Object,
       default: null
+    },
+
+    poolIsUpgrading: {
+      type:    Boolean,
+      default: false
     },
 
     loadingInstanceTypes: {
@@ -408,10 +415,28 @@ export default defineComponent({
       set(neu: boolean) {
         if (neu) {
           this.$emit('update:version', this.clusterVersion);
+          this.$emit('update:poolIsUpgrading', true);
         } else {
           this.$emit('update:version', this.originalNodeVersion);
+          this.$emit('update:poolIsUpgrading', false);
         }
       }
+    },
+
+    minMaxDesiredErrors() {
+      const errs = (this.rules?.minMaxDesired || []).reduce((errs: string[], rule: Function) => {
+        const err = rule({
+          minSize: this.minSize, maxSize: this.maxSize, desiredSize: this.desiredSize
+        });
+
+        if (err) {
+          errs.push(err);
+        }
+
+        return errs;
+      }, [] as string[]);
+
+      return errs.length ? errs.join(' ') : null;
     },
 
     isView() {
@@ -524,13 +549,13 @@ export default defineComponent({
           :rules="rules.nodegroupName"
           data-testid="eks-nodegroup-name"
           required
-          @input="$emit('update:nodegroupName', $event)"
+          @update:value="$emit('update:nodegroupName', $event)"
         />
       </div>
 
       <div class="col span-6">
         <LabeledSelect
-          v-model="displayNodeRole"
+          v-model:value="displayNodeRole"
           :mode="mode"
           label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
@@ -549,7 +574,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.desiredSize.label"
           :mode="mode"
           :rules="rules.desiredSize"
-          @input="$emit('update:desiredSize', $event)"
+          @update:value="$emit('update:desiredSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -559,7 +584,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.minSize.label"
           :mode="mode"
           :rules="rules.minSize"
-          @input="$emit('update:minSize', $event)"
+          @update:value="$emit('update:minSize', parseInt($event))"
         />
       </div>
       <div class="col span-4">
@@ -569,10 +594,15 @@ export default defineComponent({
           label-key="eks.nodeGroups.maxSize.label"
           :mode="mode"
           :rules="rules.maxSize"
-          @input="$emit('update:maxSize', $event)"
+          @update:value="$emit('update:maxSize', parseInt($event))"
         />
       </div>
     </div>
+    <Banner
+      v-if="!!minMaxDesiredErrors"
+      color="error"
+      :label="minMaxDesiredErrors"
+    />
     <div class="row mb-10">
       <div class="col span-6">
         <KeyValue
@@ -581,7 +611,7 @@ export default defineComponent({
           :read-allowed="false"
           :value="labels"
           :as-map="true"
-          @input="$emit('update:labels', $event)"
+          @update:value="$emit('update:labels', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.groupLabels.label') }}</label>
@@ -596,7 +626,7 @@ export default defineComponent({
           :as-map="true"
           :value="tags"
           data-testid="eks-resource-tags-input"
-          @input="$emit('update:tags', $event)"
+          @update:value="$emit('update:tags', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.groupTags.label') }}</label>
@@ -623,7 +653,7 @@ export default defineComponent({
         />
         <Checkbox
           v-else
-          v-model="willUpgrade"
+          v-model:value="willUpgrade"
           :label="t('eks.nodeGroups.kubernetesVersion.upgrade', {from: originalNodeVersion, to: clusterVersion})"
           data-testid="eks-version-upgrade-checkbox"
           :disabled="isView"
@@ -631,7 +661,7 @@ export default defineComponent({
       </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="selectedLaunchTemplate"
+          v-model:value="selectedLaunchTemplate"
           :mode="mode"
           label-key="eks.nodeGroups.launchTemplate.label"
           :options="launchTemplateOptions"
@@ -650,7 +680,7 @@ export default defineComponent({
           label-key="eks.nodeGroups.launchTemplate.version"
           :options="launchTemplateVersionOptions"
           data-testid="eks-launch-template-version-dropdown"
-          @input="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
+          @update:value="$emit('update:launchTemplate', {...launchTemplate, version: $event})"
         />
       </div>
     </div>
@@ -666,7 +696,7 @@ export default defineComponent({
           :value="imageId"
           :disabled="hasUserLaunchTemplate"
           data-testid="eks-image-id-input"
-          @input="$emit('update:imageId', $event)"
+          @update:value="$emit('update:imageId', $event)"
         />
       </div>
       <div class="col span-4">
@@ -681,7 +711,7 @@ export default defineComponent({
           :tooltip="(requestSpotInstances && !templateValue('instanceType')) ? t('eks.nodeGroups.instanceType.tooltip'): ''"
           :rules="!requestSpotInstances ? rules.instanceType : []"
           data-testid="eks-instance-type-dropdown"
-          @input="$emit('update:instanceType', $event)"
+          @update:value="$emit('update:instanceType', $event)"
         />
       </div>
 
@@ -696,7 +726,7 @@ export default defineComponent({
           :disabled="!!templateValue('diskSize') || loadingSelectedVersion"
           :rules="rules.diskSize"
           data-testid="eks-disksize-input"
-          @input="$emit('update:diskSize', $event)"
+          @update:value="$emit('update:diskSize', $event)"
         />
       </div>
     </div>
@@ -715,7 +745,7 @@ export default defineComponent({
           :disabled="!!templateValue('imageId') || hasRancherLaunchTemplate"
           :tooltip="templateValue('imageId') ? t('eks.nodeGroups.gpu.tooltip') : ''"
           data-testid="eks-gpu-input"
-          @input="$emit('update:gpu', $event)"
+          @update:value="$emit('update:gpu', $event)"
         />
       </div>
       <div class="col span-4">
@@ -724,7 +754,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.nodeGroups.requestSpotInstances.label"
           :disabled="hasRancherLaunchTemplate"
-          @input="$emit('update:requestSpotInstances', $event)"
+          @update:value="$emit('update:requestSpotInstances', $event)"
         />
       </div>
     </div>
@@ -743,7 +773,7 @@ export default defineComponent({
           :multiple="true"
           :loading="loadingSelectedVersion || loadingInstanceTypes"
           data-testid="eks-spot-instance-type-dropdown"
-          @input="$emit('update:spotInstanceTypes', $event)"
+          @update:value="$emit('update:spotInstanceTypes', $event)"
         />
       </div>
     </div>
@@ -757,7 +787,7 @@ export default defineComponent({
           :disabled="hasUserLaunchTemplate"
           :placeholder="userDataPlaceholder"
           :sub-label="t('eks.nodeGroups.userData.tooltip', {}, true)"
-          @input="$emit('update:userData', $event)"
+          @update:value="$emit('update:userData', $event)"
         />
         <FileSelector
           :mode="mode"
@@ -777,21 +807,20 @@ export default defineComponent({
           :taggable="true"
           :searchable="true"
           data-testid="eks-nodegroup-ec2-key-select"
-          @input="$emit('update:ec2SshKey', $event)"
+          @update:value="$emit('update:ec2SshKey', $event)"
         />
       </div>
     </div>
     <div row="mb-10">
       <div class="col span-12">
         <KeyValue
-          :key="resourceTagKey"
           :mode="mode"
           label-key="eks.nodeGroups.resourceTags.label"
           :value="resourceTags"
           :disabled="hasUserLaunchTemplate"
           :read-allowed="false"
           :as-map="true"
-          @input="$emit('update:resourceTags', $event)"
+          @update:value="$emit('update:resourceTags', $event)"
         >
           <template #title>
             <label class="text-label">{{ t('eks.nodeGroups.resourceTags.label') }}</label>

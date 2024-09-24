@@ -14,8 +14,9 @@ import Tabbed from '@shell/components/Tabbed';
 import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
-import { SCOPED_RESOURCES } from '@shell/config/roles';
+import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import { Banner } from '@components/Banner';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -52,6 +53,8 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *   - Should show only namespace scoped resources
  */
 export default {
+  emits: ['set-subtype', 'input'],
+
   components: {
     ArrayList,
     CruResource,
@@ -63,7 +66,8 @@ export default {
     SortableTable,
     Loading,
     Error,
-    Banner
+    Banner,
+    LabeledInput
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -122,10 +126,10 @@ export default {
   },
 
   created() {
-    this.$set(this.value, 'rules', this.value.rules || []);
+    this.value['rules'] = this.value.rules || [];
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
-        this.$set(rule, 'verbs', [...VERBS]);
+        rule['verbs'] = [...VERBS];
       }
     });
 
@@ -142,8 +146,8 @@ export default {
     switch (this.value.subtype) {
     case CLUSTER:
     case NAMESPACE:
-      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
-      this.$set(this.value, 'locked', !!this.value.locked);
+      this.value['roleTemplateNames'] = this.value.roleTemplateNames || [];
+      this.value['locked'] = !!this.value.locked;
       break;
     }
 
@@ -156,7 +160,7 @@ export default {
     }
 
     if (this.value?.metadata?.name && !this.value.displayName) {
-      this.$set(this.value, 'displayName', this.value.metadata.name);
+      this.value['displayName'] = this.value.metadata.name;
     }
 
     this.$nextTick(() => {
@@ -195,16 +199,17 @@ export default {
       const scopes = Object.keys(this.scopedResources);
 
       scopes.forEach((scope) => {
-        if (scope === 'globalScopedApiGroups' && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
+        if (scope === SCOPED_RESOURCE_GROUPS.GLOBAL && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
           // If we are not in the global role creation form,
           // skip adding the global-scoped resources.
           return;
         }
-        if (scope === 'clusterScopedApiGroups' && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
+        if (scope === SCOPED_RESOURCE_GROUPS.CLUSTER && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
           // If we are in a project/namespace role creation form,
           // additionally skip adding the cluster-scoped resources.
           return;
         }
+
         const apiGroupsInScope = this.scopedResources[scope];
 
         const apiGroupNames = Object.keys(apiGroupsInScope);
@@ -237,7 +242,7 @@ export default {
             const labelForNamespaceScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelNamespaceScoped');
 
             apiGroupLabel = scope.includes('cluster') ? labelForClusterScoped : labelForNamespaceScoped;
-            apiGroupValue = 'api.neuvector.com';
+            apiGroupValue = 'permission.neuvector.com';
           }
 
           options.push({
@@ -414,7 +419,7 @@ export default {
       case 'apiGroups':
 
         if (event || (event === '')) {
-          this.$set(rule, 'apiGroups', [event]);
+          rule['apiGroups'] = [event];
         }
 
         break;
@@ -422,9 +427,9 @@ export default {
       case 'verbs':
 
         if (event) {
-          this.$set(rule, 'verbs', [event]);
+          rule['verbs'] = [event];
         } else {
-          this.$set(rule, 'verbs', []);
+          rule['verbs'] = [];
         }
         break;
 
@@ -433,10 +438,10 @@ export default {
           // If we are updating the resources defined in a rule,
           // the event will be an object with the
           // properties apiGroupValue and resourceName.
-          this.$set(rule, 'resources', [event.resourceName]);
+          rule['resources'] = [event.resourceName];
           // Automatically fill in the API group of the
           // selected resource.
-          this.$set(rule, 'apiGroups', [event.apiGroupValue]);
+          rule['apiGroups'] = [event.apiGroupValue];
         } else if (event?.label) {
           // When the user creates a new resource name in the resource
           // field instead of selecting an existing one,
@@ -444,18 +449,18 @@ export default {
           // is shaped like {"label":"something"} instead of
           // the same format as the other options:
           // { resourceName: "something", apiGroupValue: "" }
-          this.$set(rule, 'resources', [event.label]);
+          rule['resources'] = [event.label];
         } else {
-          this.$set(rule, 'resources', []);
-          this.$set(rule, 'apiGroups', []);
+          rule['resources'] = [];
+          rule['apiGroups'] = [];
         }
         break;
 
       case 'nonResourceURLs':
         if (event) {
-          this.$set(rule, 'nonResourceURLs', [event]);
+          rule['nonResourceURLs'] = [event];
         } else {
-          this.$set(rule, 'nonResourceURLs', []);
+          rule['nonResourceURLs'] = [];
         }
         break;
 
@@ -469,7 +474,7 @@ export default {
     updateSelectValue(row, key, event) {
       const value = event.label ? event.value : event;
 
-      this.$set(row, key, value);
+      row[key] = value;
     },
     cancel() {
       this.done();
@@ -599,13 +604,14 @@ export default {
     </template>
     <template v-else>
       <NameNsDescription
-        v-model="value"
+        :value="value"
         :namespaced="isNamespaced"
         :mode="mode"
         name-key="displayName"
         description-key="description"
         label="Name"
         :rules="{ name: fvGetAndReportPathRules('displayName') }"
+        @update:value="$emit('input', $event)"
       />
       <div
         v-if="isRancherType"
@@ -613,7 +619,7 @@ export default {
       >
         <div class="col span-6">
           <RadioGroup
-            v-model="defaultValue"
+            v-model:value="defaultValue"
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
@@ -627,7 +633,7 @@ export default {
           class="col span-6"
         >
           <RadioGroup
-            v-model="value.locked"
+            v-model:value="value.locked"
             name="storageSource"
             :label="t('rbac.roletemplate.locked.label')"
             class="mb-10"
@@ -650,7 +656,7 @@ export default {
             as-banner
           />
           <ArrayList
-            v-model="value.rules"
+            v-model:value="value.rules"
             label="Resources"
             :disabled="isBuiltin"
             :remove-allowed="!isBuiltin"
@@ -704,8 +710,9 @@ export default {
                     :options="verbOptions"
                     :multiple="true"
                     :mode="mode"
+                    :compact="true"
                     :data-testid="`grant-resources-verbs${props.i}`"
-                    @input="updateSelectValue(props.row.value, 'verbs', $event)"
+                    @update:value="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
                 </div>
                 <div :class="ruleClass">
@@ -717,31 +724,32 @@ export default {
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
+                    :compact="true"
                     :data-testid="`grant-resources-resources${props.i}`"
-                    @input="setRule('resources', props.row.value, $event)"
+                    @update:value="setRule('resources', props.row.value, $event)"
                     @createdListItem="setRule('resources', props.row.value, $event)"
                   />
                 </div>
                 <div :class="ruleClass">
-                  <input
+                  <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-api-groups${props.i}`"
                     @input="setRule('apiGroups', props.row.value, $event.target.value)"
-                  >
+                  />
                 </div>
                 <div
                   v-if="!isNamespaced"
                   :class="ruleClass"
                 >
-                  <input
+                  <LabeledInput
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-non-resource-urls${props.i}`"
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
-                  >
+                  />
                 </div>
               </div>
             </template>
@@ -754,7 +762,7 @@ export default {
           :weight="0"
         >
           <ArrayList
-            v-model="value.roleTemplateNames"
+            v-model:value="value.roleTemplateNames"
             :disabled="isBuiltin"
             :remove-allowed="!isBuiltin"
             :add-allowed="!isBuiltin"
@@ -766,7 +774,7 @@ export default {
               <div class="columns row mr-20">
                 <div class="col span-12">
                   <Select
-                    v-model="props.row.value"
+                    v-model:value="props.row.value"
                     class="lg"
                     :taggable="false"
                     :disabled="isBuiltin"
@@ -775,6 +783,7 @@ export default {
                     option-key="value"
                     option-label="label"
                     :mode="mode"
+                    :compact="true"
                     @on-focus="selectFocused = props.i"
                     @on-blur="selectFocused = null"
                   />
@@ -793,7 +802,7 @@ export default {
     color: var(--error);
   }
 
-  ::v-deep {
+  :deep() {
     .column-headers {
       margin-right: 75px;
       margin-bottom: 5px;
@@ -811,18 +820,9 @@ export default {
     }
 
     .columns {
-      & > .col {
-        &:not(:first-of-type) {
-          height: $input-height;
-        }
-
-        &:first-of-type {
-          min-height: $input-height;
-        }
-
-        & > * {
-          height: 100%;
-        }
+      .col > .unlabeled-select:not(.taggable) {
+        // override the odd padding-top from shell/assets/styles/global/_select.scss
+        padding: $unlabaled-select-padding
       }
     }
   }

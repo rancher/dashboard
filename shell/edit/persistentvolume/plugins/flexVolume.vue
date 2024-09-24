@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'flexVolume', this.value.spec.flexVolume || {});
-    this.$set(this.value.spec.flexVolume, 'readOnly', this.value.spec.flexVolume.readOnly || false);
-    this.$set(this.value.spec.flexVolume, 'secretRef', this.value.spec.flexVolume.secretRef || {});
+    this.value.spec['flexVolume'] = this.value.spec.flexVolume || {};
+    this.value.spec.flexVolume['readOnly'] = this.value.spec.flexVolume.readOnly || false;
+    this.value.spec.flexVolume['secretRef'] = this.value.spec.flexVolume.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -43,7 +43,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flexVolume.driver"
+          v-model:value="value.spec.flexVolume.driver"
           :mode="mode"
           :label="t('persistentVolume.flexVolume.driver.label')"
           :placeholder="t('persistentVolume.flexVolume.driver.placeholder')"
@@ -53,7 +53,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flexVolume.secretRef.name"
+          v-model:value="value.spec.flexVolume.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -61,7 +61,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flexVolume.secretRef.namespace"
+          v-model:value="value.spec.flexVolume.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -71,7 +71,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.flexVolume.fsType"
+          v-model:value="value.spec.flexVolume.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -79,7 +79,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.flexVolume.readOnly"
+          v-model:value="value.spec.flexVolume.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"
@@ -91,7 +91,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <KeyValue
-          v-model="value.spec.flexVolume.options"
+          v-model:value="value.spec.flexVolume.options"
           :add-label="t('persistentVolume.flexVolume.options.add')"
           :mode="mode"
           :read-allowed="false"

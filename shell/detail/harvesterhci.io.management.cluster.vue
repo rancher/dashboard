@@ -6,6 +6,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     ResourceTabs,
@@ -70,8 +72,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs
     v-else
-    v-model="value"
+    :value="value"
     :default-tab="defaultTab"
+    @input="$emit('input', $event)"
   >
     <Tab
       v-if="showRegistration"

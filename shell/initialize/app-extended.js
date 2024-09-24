@@ -1,10 +1,6 @@
-// Taken from @nuxt/vue-app/template/index.js
-// This file was generated during Nuxt migration
-import AppView from '@shell/initialize/App';
 import { setContext, getRouteData } from '@shell/initialize/entry-helpers';
 import { extendRouter } from '@shell/config/router';
 import { extendStore } from '@shell/config/store';
-import { UPGRADED, _FLAGGED, _UNFLAG } from '@shell/config/query-params';
 import { installInjectedPlugins } from '@shell/initialize/install-plugins.js';
 import { normalizeURL } from 'ufo';
 
@@ -51,7 +47,6 @@ async function extendApp(vueApp) {
   const appPartials = {
     store,
     router,
-    ...AppView
   };
 
   // Make app available into store via this.app
@@ -61,30 +56,33 @@ async function extendApp(vueApp) {
   // Resolve route
 
   const path = getLocation(router.options.base, router.options.mode);
-  const route = router.resolve(path).route;
+  const route = router.resolve(path);
 
   // Set context to app.context
-  await setContext(appPartials, {
-    store,
-    route,
-    next,
-    payload: undefined,
-    req:     undefined,
-    res:     undefined
-  });
+  await setContext(
+    appPartials,
+    {
+      store,
+      route,
+      next,
+      payload: undefined,
+      req:     undefined,
+      res:     undefined
+    },
+  );
 
   await installInjectedPlugins(appPartials, vueApp);
 
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
-    const { route } = router.resolve(appPartials.context.route.fullPath);
+    const route = router.resolve(appPartials.context.route.fullPath);
 
     if (!route.matched.length) {
       return resolve();
     }
 
-    router.replace(appPartials.context.route.fullPath, resolve, (err) => {
+    router.replace(appPartials.context.route.fullPath).then(resolve, (err) => {
       // https://github.com/vuejs/vue-router/blob/v3.4.3/src/util/errors.js
       if (!err._isRouter) {
         return reject(err);
@@ -101,20 +99,6 @@ async function extendApp(vueApp) {
         unregister();
         resolve();
       });
-    });
-
-    router.afterEach((to) => {
-      const upgraded = to.query[UPGRADED] === _FLAGGED;
-
-      if ( upgraded ) {
-        router.applyQuery({ [UPGRADED]: _UNFLAG });
-
-        store.dispatch('growl/success', {
-          title:   store.getters['i18n/t']('serverUpgrade.title'),
-          message: store.getters['i18n/t']('serverUpgrade.message'),
-          timeout: 0,
-        });
-      }
     });
   });
 

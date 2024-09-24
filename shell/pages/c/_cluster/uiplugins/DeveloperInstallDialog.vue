@@ -7,6 +7,8 @@ import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
+  emits: ['closed'],
+
   components: {
     AsyncButton,
     Checkbox,
@@ -163,24 +165,24 @@ export default {
       <div class="custom mt-10">
         <div class="fields">
           <LabeledInput
-            v-model="location"
+            v-model:value="location"
             v-focus
             label-key="plugins.developer.fields.url"
-            @input="updateLocation"
+            @update:value="updateLocation"
           />
         </div>
       </div>
       <div class="custom mt-10">
         <div class="fields">
           <LabeledInput
-            v-model="name"
+            v-model:value="name"
             label-key="plugins.developer.fields.name"
-            @input="updateName"
+            @update:value="updateName"
           />
         </div>
         <div class="fields mt-10">
           <Checkbox
-            v-model="persist"
+            v-model:value="persist"
             label-key="plugins.developer.fields.persist"
           />
         </div>
