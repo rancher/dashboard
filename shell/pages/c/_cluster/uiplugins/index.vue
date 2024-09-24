@@ -31,12 +31,12 @@ import {
   uiPluginAnnotation,
   uiPluginHasAnnotation,
   isSupportedChartVersion,
-  isChartVersionAvailableForInstall,
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
   UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL
+  UI_PLUGINS_PARTNERS_REPO_URL,
+  UI_PLUGIN_HOST_APP
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -260,12 +260,12 @@ export default {
         item.chart = chart;
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({ version, kubeVersion: this.kubeVersion }) && isChartVersionAvailableForInstall({
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall({
+        item.versions = item.versions.map((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }, true));
 
@@ -285,6 +285,8 @@ export default {
             item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
           } else if (!item.isCompatibleWithKubeVersion) {
             item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
+          } else if (!item.isCompatibleWithHost) {
+            item.incompatibleHost = this.t('plugins.incompatibleHost', { version: latestNotCompatible.version, host: UI_PLUGIN_HOST_APP }, true);
           }
         }
 
@@ -855,6 +857,10 @@ export default {
                         v-else-if="plugin.incompatibleKubeVersion"
                         class="incompatible"
                       >{{ plugin.incompatibleKubeVersion }}</p>
+                      <p
+                        v-else-if="plugin.incompatibleHost"
+                        class="incompatible"
+                      >{{ plugin.incompatibleHost }}</p>
                     </span>
                   </div>
                   <!-- plugin badges -->
