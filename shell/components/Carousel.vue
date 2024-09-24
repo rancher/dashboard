@@ -293,6 +293,7 @@ export default {
     height: 100%;
 
     .slide-img {
+      align-self: flex-start;
       width: 150px;
       background: var(--card-badge-text);
       border-radius: calc(2 * var(--border-radius));
