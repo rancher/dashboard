@@ -91,6 +91,22 @@ export function uiPluginAnnotation(chart, name) {
   return undefined;
 }
 
+/**
+ * Parse the rancher version string
+ */
+function parseRancherVersion(v) {
+  let parsedRancherVersion = semver.coerce(v)?.version
+
+  // this is a scenario where we are on a "head" version of some sort... we can't infer the patch version from it
+  // so we apply a big patch version number to make sure we follow through with the minor 
+  if (v.includes('-') && parsedRancherVersion.split('.')?.length === 3 && parsedRancherVersion.split('.')?.[2] === '0') {
+    const splitArr = parsedRancherVersion.split('.');
+    parsedRancherVersion = `${splitArr[0]}.${splitArr[1]}.999`;
+  }
+
+  return parsedRancherVersion;
+}
+
 // i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
 
 // Should we load a plugin, based on the metadata returned by the backend?
@@ -106,16 +122,7 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
   const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
-  let parsedRancherVersion = semver.coerce(rancherVersion)?.version || rancherVersion;
-
-  // By considering that parsedRancherVersion !== rancherVersion we are stating that 
-  // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
-  // on a "head" world, we need to apply a proper patch version, otherwise a check for > 2.9.5 with
-  // rancher 2.9-head, which will be coerced to 2.9.0, will not reflect it's true value (which might be 2.9.10)
-  // fallback is to apply a large patch numbering
-  if (parsedRancherVersion !== rancherVersion && parsedRancherVersion.split('.')?.length === 3 && parsedRancherVersion.split('.')?.[2] === '0') {
-    parsedRancherVersion = `${splitArr[0]}.${splitArr[1]}.999`;
-  }
+  const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
 
   if (requiredAPI && !semver.satisfies(parsedUiExtensionsApiVersion, requiredAPI)) {
     return 'plugins.error.api';
@@ -156,7 +163,7 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
   const { version, rancherVersion, kubeVersion } = versionsData;
 
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
-  let parsedRancherVersion = semver.coerce(rancherVersion)?.version || rancherVersion;
+  const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
@@ -164,22 +171,13 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
   versionObj.isCompatibleWithUi = true;
   versionObj.isCompatibleWithKubeVersion = true;
 
-  // By considering that parsedRancherVersion !== rancherVersion we are stating that 
   // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
-  if (parsedRancherVersion !== rancherVersion) {
-    // on a "head" world, we need to apply a proper patch version, otherwise a check for > 2.9.5 with
-    // rancher 2.9-head, which will be coerced to 2.9.0, will not reflect it's true value (which might be 2.9.10)
-    // fallback is to apply a large patch numbering
-    if (parsedRancherVersion.split('.')?.length === 3 && parsedRancherVersion.split('.')?.[2] === '0') {
-      const splitArr = parsedRancherVersion.split('.');
-      parsedRancherVersion = `${splitArr[0]}.${splitArr[1]}.999`;
-    }
-    
+  // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
+  // we need to enforce that check if we are on a HEAD world
+  if (rancherVersion && rancherVersion.includes('-')) {    
     const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
-
-    // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
-    // we need to enforce that check if we are on a HEAD world
-    if (!semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
+ 
+    if (parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       if (!returnObj) {
         return false;
       }
@@ -208,7 +206,7 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
   }
 
   // check "catalog.cattle.io/ui-version" (backend doesn't limit the loading as "available", but dashboard will disable version for install)
-  if (requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
+  if (requiredUiVersion && parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
