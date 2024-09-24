@@ -78,6 +78,12 @@ export default {
           icon:    null
         }
       }), {});
+    },
+
+    refreshYamls() {
+      // if (this.$refs.storage) {
+      //   this.$refs.storage.refresh();
+      // }
     }
   }
 };
@@ -409,8 +415,10 @@ export default {
               :label="t('workload.storage.title')"
               name="storage"
               :weight="tabWeightMap['storage']"
+              @active="$refs.storage.refresh()"
             >
               <Storage
+                ref="storage"
                 v-model:value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"

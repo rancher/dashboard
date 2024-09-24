@@ -126,6 +126,15 @@ export default {
   //   }
   // },
 
+  watch: {
+    '$route.hash': {
+      deep: true,
+      handler() {
+        this.refresh();
+      }
+    }
+  },
+
   methods: {
     /**
      * Initialize missing values for the container
@@ -223,8 +232,10 @@ export default {
 
     // codemirror needs to refresh if it is in a tab that wasn't visible on page load
     refresh() {
-      if (this.$refs.cm) {
-        this.$refs.cm.forEach((component) => component.refresh());
+      if (this.$refs) {
+        const cmRefs = Object.keys(this.$refs).filter((ref) => ref.startsWith('cm-'));
+
+        cmRefs.forEach((r) => this.$refs[r].refresh());
       }
     },
 
@@ -262,11 +273,13 @@ export default {
             :loading="loading"
             @removePvcForm="removePvcForm"
           />
-          <div v-else-if="isView">
+          <div
+            v-else
+          >
             <CodeMirror
-              ref="cm"
+              :ref="`cm-${props.i}`"
               :value="yamlDisplay(props.row.value)"
-              :options="{ readOnly: true, cursorBlinkRate: -1 }"
+              :options="{ readOnly: isView, cursorBlinkRate: -1 }"
             />
           </div>
         </div>
