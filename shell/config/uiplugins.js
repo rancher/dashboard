@@ -95,13 +95,14 @@ export function uiPluginAnnotation(chart, name) {
  * Parse the rancher version string
  */
 function parseRancherVersion(v) {
-  let parsedRancherVersion = semver.coerce(v)?.version
+  let parsedRancherVersion = semver.coerce(v)?.version;
 
   // this is a scenario where we are on a "head" version of some sort... we can't infer the patch version from it
-  // so we apply a big patch version number to make sure we follow through with the minor 
-  if (v.includes('-') && parsedRancherVersion.split('.')?.length === 3 && parsedRancherVersion.split('.')?.[2] === '0') {
+  // so we apply a big patch version number to make sure we follow through with the minor
+  if (v.includes('-') && parsedRancherVersion.split('.')?.length === 3) {
     const splitArr = parsedRancherVersion.split('.');
-    parsedRancherVersion = `${splitArr[0]}.${splitArr[1]}.999`;
+
+    parsedRancherVersion = `${ splitArr[0] }.${ splitArr[1] }.999`;
   }
 
   return parsedRancherVersion;
@@ -174,16 +175,16 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
   // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
   // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
   // we need to enforce that check if we are on a HEAD world
-  if (rancherVersion && rancherVersion.includes('-')) {    
+  if (rancherVersion && rancherVersion.includes('-')) {
     const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
- 
+
     if (parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       if (!returnObj) {
         return false;
       }
       versionObj.isCompatibleWithUi = false;
       versionObj.requiredUiVersion = requiredRancherVersion;
-  
+
       if (returnObj) {
         return versionObj;
       }
