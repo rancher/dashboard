@@ -41,7 +41,7 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 export default {
   name: 'SortableTable',
 
-  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change'],
+  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change', 'selection', 'rowClick'],
 
   components: {
     THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
