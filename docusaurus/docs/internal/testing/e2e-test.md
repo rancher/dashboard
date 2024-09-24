@@ -141,32 +141,76 @@ new LoginPagePo().username().set('admin')
 ```
 
 POs all inherit a root `component.po`. Common component functionality can be added there. They also expose their core cypress (chainable) element.
-### Best Practices to keep in mind when writing tests
 
-- When selecting an element be sure to use the attribute `data-testid` if it exists, even in case of lists where elements are distinguished by an index suffix.
-- Utilize the `afterAll()` hook to clean up so that subsequent tests are not affected by resources created during test execution.
-- We should not add locators for DOM elements in the test files directly, we should instead create a class in a PO file for a given dashboard page which contains the locators that identify the page elements. From there, call the methods in the test file.
-For example, let’s say we wanted to automate the dashboard login page.
-The login page uses the common component for `LabeledInput` so first we create a `LabeledInputPo` which contains methods for actions to perform on a given input box such as `clear()`, `set()`, etc.
-Then we create the `LoginPagePo` which contains methods such as `username()`. For the `username()` method we create an instance of `LabeledInputPo` object and pass in the locator for the page element.
+### Best Practices
 
-```ts
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+#### data-testid
+When selecting an element priority should be given to the attribute `data-testid`, if this does not exist using a specific css selector can be used.
+- In some cases, including lists, the data-testid is dynamically created with a context prefix or index, so check the DOM even if it code it's not obvious
 
-username(): LabeledInputPo {
-  return new LabeledInputPo('[data-testid="local-login-username"]');
-  }
+#### Keep it clean
+Utilize the `beforeAll` and `afterAll` hooks to setup the test, and then clean up afterwards. Be careful though, these won't run again if Cypress retries individual failed tests
+
+Returning the environment to it's original state via afterAll is important to avoid subsequent tests being affected, for example by resources created during test execution.
+
+#### Where's my Page Object?
+
+Page Objects (POs) generally represent UI components or pages.
+
+A UI component could be
+- quite core
+  - `LabeledInput`
+- intermediate
+  - `ArrayList` (contains `LabeledInput`s),
+  - `shell/edit/networking.k8s.io.ingress/Certificate.vue` (contains `ArrayList`)
+- singular at the page level
+  - `shell/edit/networking.k8s.io.ingress/index.vue` (contains `networking.k8s.io.ingress/Certificate.vue`)
+- generic, and singular at the page level
+  - `shell/components/ResourceDetail/index.vue` (contains `shell/edit/networking.k8s.io.ingress/index.vue`)
+
+A Page component could be more conceptual, for example the `Edit Service` page (which under the hood is `shell/pages/c/_cluster/_product/_resource/_id`).
+
+**When writing tests start by first searching at the page level and then working further down the stack towards the core component. Once a PO is found work back up the stack, implementing POs as required.**
+
+##### Example
+Considering the chain above, if we were to test the Create/Edit Ingress's page's Certificate tabs Hosts list consider the DOM
+
+```
+<div data-v-9b95c6bc="" data-testid="array-list-box0" class="box">
+  <div data-v-9b95c6bc="" class="value">
+    <div data-v-33afc918="" data-v-9b95c6bc="" class="labeled-input edit compact-input">
+      <input data-v-33afc918="" type="text" placeholder="e.g. bar" autocomplete="off" autocapitalize="off" data-testid="labeled-input-0" class="no-label">
+        <div data-v-33afc918="" class="labeled-tooltip error hoverable"><i class="icon status-icon icon-warning has-tooltip" data-original-title="null"></i></div>
+      </input>
+    </div>
+  </div>
+  <div data-v-9b95c6bc="" class="remove">
+    <button data-v-9b95c6bc="" type="button"  data-testid="remove-item-0" class="btn role-link">
+        Remove
+    </button>
+  </div>
+</div>
 ```
 
-Lastly, we create a test file and call the `username()` method to utilize it in the test.
+- 1/10 - Not great
+  - in the spec file create a LabeledInput PO to access the first entry using the selector `data-testid="labeled-input-0"`
+- 2/10 - Not much better
+  - in the spec file create a ArrayList PO to to access the first entry using the selector `data-testid="array-list-box0"`
+- 3/10 - Still not there
+  - in `cypress/e2e/po/edit/ingress.po.ts` create functions that directly return either of above
+- 10/10 - Top of the class
+  - find the page level PO for the Ingress edit page `cypress/e2e/po/edit/ingress.po.ts`
+    - this is where the access chain should start
+  - discover it has no way to access the Certificates component, so create a `cypress/e2e/po/edit/ingress/certificates.po.ts` called `IngressCertificatesPo`
+    - Expose the new PO in `cypress/e2e/po/edit/ingress.po.ts` as a new method `.certificates(): IngressCertificatesPo`
+  - in `IngressCertificatesPo` create a new method `hostsArrayList` that returns an `ArrayList`
+  - in `IngressCertificatesPo` create a method `hosts(index: number)` that returns a new LabelSelect given `.hostsArrayList(index)`
+  - this all means in the spec file we can do `<page po instance>.certificates.hosts(x)...`
 
-```ts
-import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+The best case scenario means future test creates will be able to easily
+- understand the ingress test
+- write new or expands tests around external addresses, or other features on the page
 
-const loginPage = new LoginPagePo();
-
-loginPage.username().set(TEST_USERNAME);
-```
 ## Tips
 
 The Cypress UI is very much your friend. There you can click pick tests to run, easily visually track the progress of the test, see the before/after state of each cypress command (specifically good for debugging failed steps), see https requests, etc.
