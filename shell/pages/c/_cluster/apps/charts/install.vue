@@ -931,6 +931,7 @@ export default {
     },
 
     async loadChartStep(customStep) {
+      // Broken in 2.10, see https://github.com/rancher/dashboard/issues/11898
       const loaded = await customStep.component();
       const withFallBack = this.$store.getters['i18n/withFallback'];
 
