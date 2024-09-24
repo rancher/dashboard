@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
+import { markRaw } from 'vue';
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
@@ -931,19 +932,20 @@ export default {
     },
 
     async loadChartStep(customStep) {
-      // Broken in 2.10, see https://github.com/rancher/dashboard/issues/11898
-      const loaded = await customStep.component();
+      const importer = customStep;
+
+      const loaded = await importer.component.__asyncLoader();
       const withFallBack = this.$store.getters['i18n/withFallback'];
 
       return {
         name:      customStep.name,
-        label:     withFallBack(loaded?.default?.label, null, customStep.name),
-        subtext:   withFallBack(loaded?.default?.subtext, null, ''),
-        weight:    loaded?.default?.weight,
+        label:     withFallBack(loaded?.label, null, customStep.name),
+        subtext:   withFallBack(loaded?.subtext, null, ''),
+        weight:    loaded?.weight,
         ready:     false,
         hidden:    true,
         loading:   true,
-        component: customStep.component,
+        component: markRaw(customStep.component),
       };
     },
 
