@@ -54,6 +54,13 @@ export default {
       const inStore = this.$store.getters['currentStore'](this.type.name);
 
       return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
+    },
+
+    isActive() {
+      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
+      const pageFullPath = this.$route.fullPath?.toLowerCase();
+
+      return (pageFullPath.indexOf(typeFullPath) >= 0);
     }
 
   },
@@ -81,7 +88,7 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate, isActive, isExactActive }"
+    v-slot="{ href, navigate,isExactActive }"
     custom
     :to="type.route"
   >
