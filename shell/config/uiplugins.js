@@ -143,7 +143,6 @@ function parseRancherVersion(v) {
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
  * @returns String || Boolean
  */
-//
 export function shouldNotLoadPlugin(UIPluginResource, rancherVersion, loadedPlugins) {
   if (!UIPluginResource.name || !UIPluginResource.version || !UIPluginResource.endpoint) {
     return 'plugins.error.generic';

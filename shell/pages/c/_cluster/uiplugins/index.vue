@@ -487,7 +487,7 @@ export default {
   },
 
   // Forget the types when we leave the page
-  beforeUnmount() {
+  beforeDestroy() {
     this.$store.dispatch('management/forgetType', UI_PLUGIN);
     this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
     this.$store.dispatch('management/forgetType', CATALOG.APP);
