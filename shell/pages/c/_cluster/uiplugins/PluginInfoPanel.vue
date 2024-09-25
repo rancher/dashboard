@@ -5,6 +5,7 @@ import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { EXTENSIONS_INCOMPATIBILITY_TYPES, UI_PLUGIN_HOST_APP } from '@shell/config/uiplugins';
 
 export default {
   async fetch() {
@@ -65,10 +66,9 @@ export default {
     async loadPluginVersionInfo(version) {
       const versionName = version || this.info.displayVersion;
 
-      const isVersionNotCompatibleWithUi = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithUi);
-      const isVersionNotCompatibleWithKubeVersion = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithKubeVersion);
+      const isVersionNotCompatible = this.info.versions?.find((v) => v.version === versionName && !v.isVersionCompatible);
 
-      if (!this.info.chart || isVersionNotCompatibleWithUi || isVersionNotCompatibleWithKubeVersion) {
+      if (!this.info.chart || isVersionNotCompatible) {
         return;
       }
 
@@ -107,18 +107,15 @@ export default {
     },
 
     handleVersionBtnTooltip(version) {
-      if (version.requiredUiVersion) {
-        return this.t('plugins.info.requiresRancherVersion', { version: version.requiredUiVersion });
-      }
-      if (version.requiredKubeVersion) {
-        return this.t('plugins.info.requiresKubeVersion', { version: version.requiredKubeVersion });
+      if (!version.isVersionCompatible && Object.keys(version.versionIncompatibilityData).length) {
+        return this.t(version.versionIncompatibilityData?.tooltipKey, { required: version.versionIncompatibilityData?.type === EXTENSIONS_INCOMPATIBILITY_TYPES.HOST ? UI_PLUGIN_HOST_APP : version.versionIncompatibilityData?.required });
       }
 
       return '';
     },
 
     handleVersionBtnClass(version) {
-      return { 'version-active': version.version === this.infoVersion, disabled: !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion };
+      return { 'version-active': version.version === this.infoVersion, disabled: !version.isVersionCompatible };
     }
   }
 };
@@ -219,7 +216,7 @@ export default {
         <div class="plugin-versions mb-10">
           <div
             v-for="v in info.versions"
-            :key="v.version"
+            :key="`${v.name}-${v.version}`"
           >
             <a
               v-clean-tooltip="handleVersionBtnTooltip(v)"

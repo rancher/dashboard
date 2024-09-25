@@ -68,6 +68,36 @@ export const UI_PLUGIN_METADATA = {
   DISPLAY_NAME:      'displayName',
 };
 
+export const EXTENSIONS_INCOMPATIBILITY_TYPES = {
+  UI:             'uiVersion',
+  EXTENSIONS_API: 'extensionsApiVersion',
+  KUBE:           'kubeVersion',
+  HOST:           'host'
+};
+
+export const EXTENSIONS_INCOMPATIBILITY_DATA = {
+  UI: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.UI,
+    cardMessageKey: 'plugins.incompatibleRancherVersion',
+    tooltipKey:     'plugins.info.requiresRancherVersion',
+  },
+  EXTENSIONS_API: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API,
+    cardMessageKey: 'plugins.incompatibleUiExtensionsApiVersion',
+    tooltipKey:     'plugins.info.requiresExtensionApiVersion',
+  },
+  KUBE: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.KUBE,
+    cardMessageKey: 'plugins.incompatibleKubeVersion',
+    tooltipKey:     'plugins.info.requiresKubeVersion',
+  },
+  HOST: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.HOST,
+    cardMessageKey: 'plugins.incompatibleHost',
+    tooltipKey:     'plugins.info.requiresHost',
+  }
+};
+
 export function isUIPlugin(chart) {
   return !!chart?.versions.find((v) => {
     return v.annotations && v.annotations[UI_PLUGIN_ANNOTATION_NAME] === UI_PLUGIN_ANNOTATION_VALUE;
@@ -109,27 +139,30 @@ function parseRancherVersion(v) {
 
 // i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
 
-// Should we load a plugin, based on the metadata returned by the backend?
-// Returns error key string or false
-export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
-  if (!plugin.name || !plugin.version || !plugin.endpoint) {
+/**
+ * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
+ * @returns String || Boolean
+ */
+//
+export function shouldNotLoadPlugin(UIPluginResource, rancherVersion, loadedPlugins) {
+  if (!UIPluginResource.name || !UIPluginResource.version || !UIPluginResource.endpoint) {
     return 'plugins.error.generic';
   }
 
-  // Plugin specified a required extension API version
+  // Extension chart specified a required extension API version
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
-  const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const requiredUiExtensionsVersion = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
   const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
 
-  if (requiredAPI && !semver.satisfies(parsedUiExtensionsApiVersion, requiredAPI)) {
+  if (requiredUiExtensionsVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
     return 'plugins.error.api';
   }
 
   // Host application
-  const requiredHost = plugin.metadata?.[UI_PLUGIN_METADATA.EXTENSIONS_HOST];
+  const requiredHost = UIPluginResource.metadata?.[UI_PLUGIN_METADATA.EXTENSIONS_HOST];
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return 'plugins.error.host';
@@ -137,7 +170,7 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
 
   // Rancher version
   if (parsedRancherVersion) {
-    const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
+    const requiredRancherVersion = UIPluginResource.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
 
     if (requiredRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
@@ -145,22 +178,26 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   }
 
   // check if a builtin extension has been loaded before - improve developer experience
-  const checkLoaded = loadedPlugins.find((p) => p?.name === plugin?.name);
+  const checkLoaded = loadedPlugins.find((p) => p?.name === UIPluginResource?.name);
 
   if (checkLoaded && checkLoaded.builtin) {
     return 'plugins.error.developerPkg';
   }
 
-  if (plugin.metadata?.[UI_PLUGIN_LABELS.CATALOG]) {
+  if (UIPluginResource.metadata?.[UI_PLUGIN_LABELS.CATALOG]) {
     return true;
   }
 
   return false;
 }
 
-// Can a chart version be used for this Rancher (based on the annotations on the chart)?
-export function isSupportedChartVersion(versionsData, returnObj = false) {
-  const { version, rancherVersion, kubeVersion } = versionsData;
+/**
+ * Wether an extension version is available to be installed, based on the annotations present in the Helm chart version
+ * backend may not automatically "limit" a particular version but dashboard will disable that version for install with this check
+ * @returns Boolean || Object
+ */
+export function isSupportedChartVersion(versionData, returnObj = false) {
+  const { version, rancherVersion, kubeVersion } = versionData;
 
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
@@ -168,9 +205,9 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
   const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
 
-  versionObj.isCompatibleWithUi = true;
-  versionObj.isCompatibleWithKubeVersion = true;
-  versionObj.isCompatibleWithHost = true;
+  // reset compatibility property
+  versionObj.isVersionCompatible = true;
+  versionObj.versionIncompatibilityData = {};
 
   // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
   // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
@@ -182,54 +219,70 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
       if (!returnObj) {
         return false;
       }
-      versionObj.isCompatibleWithUi = false;
-      versionObj.requiredUiVersion = requiredRancherVersion;
 
-      if (returnObj) {
-        return versionObj;
-      }
+      versionObj.isVersionCompatible = false;
+      versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.UI);
+      versionObj.versionIncompatibilityData.required = requiredRancherVersion;
+
+      return versionObj;
     }
   }
 
-  // Host application
+  // check host application
   const requiredHost = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     if (!returnObj) {
       return false;
     }
-    versionObj.isCompatibleWithHost = false;
-    versionObj.requiredHost = requiredHost;
 
-    if (returnObj) {
-      return versionObj;
-    }
+    versionObj.isVersionCompatible = false;
+    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.HOST);
+    versionObj.versionIncompatibilityData.required = requiredHost;
+
+    return versionObj;
   }
 
-  // check "catalog.cattle.io/ui-version" (backend doesn't limit the loading as "available", but dashboard will disable version for install)
+  // check "catalog.cattle.io/ui-extensions-version" annotation
+  const requiredUiExtensionsApiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+
+  if (requiredUiExtensionsApiVersion && parsedUiExtensionsApiVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsApiVersion)) {
+    if (!returnObj) {
+      return false;
+    }
+
+    versionObj.isVersionCompatible = false;
+    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.EXTENSIONS_API);
+    versionObj.versionIncompatibilityData.required = requiredUiExtensionsApiVersion;
+
+    return versionObj;
+  }
+
+  // check "catalog.cattle.io/ui-version" annotation
   if (requiredUiVersion && parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
-    versionObj.isCompatibleWithUi = false;
-    versionObj.requiredUiVersion = requiredUiVersion;
 
-    if (returnObj) {
-      return versionObj;
-    }
+    versionObj.isVersionCompatible = false;
+    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.UI);
+    versionObj.versionIncompatibilityData.required = requiredUiVersion;
+
+    return versionObj;
   }
 
-  // check kube version
+  // check "catalog.cattle.io/kube-version" annotation
   if (kubeVersion && requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
     if (!returnObj) {
       return false;
     }
-    versionObj.isCompatibleWithKubeVersion = false;
-    versionObj.requiredKubeVersion = requiredKubeVersion;
 
-    if (returnObj) {
-      return versionObj;
-    }
+    versionObj.isVersionCompatible = false;
+    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.KUBE);
+    versionObj.versionIncompatibilityData.required = requiredKubeVersion;
+
+    return versionObj;
   }
 
   if (returnObj) {
