@@ -208,6 +208,21 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
   versionObj.isVersionCompatible = true;
   versionObj.versionIncompatibilityData = {};
 
+  // check "catalog.cattle.io/kube-version" annotation
+  // we keep it as first check since there is a card notification to be displayed
+  // in case an extension version installed has an incompatibility with the kube version and is not loaded
+  if (kubeVersion && requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
+    if (!returnObj) {
+      return false;
+    }
+
+    versionObj.isVersionCompatible = false;
+    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.KUBE);
+    versionObj.versionIncompatibilityData.required = requiredKubeVersion;
+
+    return versionObj;
+  }
+
   // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
   // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
   // we need to enforce that check if we are on a HEAD world
@@ -267,19 +282,6 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
     versionObj.isVersionCompatible = false;
     versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.UI);
     versionObj.versionIncompatibilityData.required = requiredUiVersion;
-
-    return versionObj;
-  }
-
-  // check "catalog.cattle.io/kube-version" annotation
-  if (kubeVersion && requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
-    if (!returnObj) {
-      return false;
-    }
-
-    versionObj.isVersionCompatible = false;
-    versionObj.versionIncompatibilityData = Object.assign({}, EXTENSIONS_INCOMPATIBILITY_DATA.KUBE);
-    versionObj.versionIncompatibilityData.required = requiredKubeVersion;
 
     return versionObj;
   }

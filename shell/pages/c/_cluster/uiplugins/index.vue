@@ -409,8 +409,9 @@ export default {
 
           if (versionInstalledData) {
             const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+            const versionSupportedData = isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion });
 
-            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
+            if (this.kubeVersion && !versionSupportedData.isVersionCompatible && versionSupportedData.versionIncompatibilityData?.type === EXTENSIONS_INCOMPATIBILITY_TYPES.KUBE) {
               plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
             }
           }
