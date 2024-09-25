@@ -4248,9 +4248,10 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
-  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
-  incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ host }" which is not compatible with this application "{ mainHost }".'
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
+  incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
+  incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
@@ -4288,8 +4289,10 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresRancherVersion: "Requires Rancher {version}"
-    requiresKubeVersion: "Requires Kube version {version}"
+    requiresRancherVersion: "Requires Rancher {required}"
+    requiresKubeVersion: "Requires Kube version {required}"
+    requiresExtensionApiVersion: "Requires Extensions API version {required}"
+    requiresHost: 'Requires a host that matches "{required}"'
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available

@@ -36,7 +36,8 @@ import {
   UI_PLUGIN_CHART_ANNOTATIONS,
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_PARTNERS_REPO_URL,
-  UI_PLUGIN_HOST_APP
+  UI_PLUGIN_HOST_APP,
+  EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -258,6 +259,7 @@ export default {
 
         item.versions = [...chart.versions];
         item.chart = chart;
+        item.incompatibilityMessage = '';
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
         item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
@@ -270,7 +272,7 @@ export default {
         }, true));
 
         const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion);
+        const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
@@ -280,15 +282,20 @@ export default {
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
 
+        // add message of extension card if there's a newer version of the extension, but it's not available to be installed
         if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          if (!item.isCompatibleWithUi) {
-            item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
-          } else if (!item.isCompatibleWithKubeVersion) {
-            item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
-          } else if (!item.isCompatibleWithHost) {
-            item.incompatibleHost = this.t('plugins.incompatibleHost', {
-              version: latestNotCompatible.version, host: latestNotCompatible.requiredHost, mainHost: UI_PLUGIN_HOST_APP
+          switch (latestNotCompatible.versionIncompatibilityData?.type) {
+          case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: UI_PLUGIN_HOST_APP
             }, true);
+            break;
+          default:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version:  latestNotCompatible.version,
+              required: latestNotCompatible.versionIncompatibilityData?.required
+            }, true);
+            break;
           }
         }
 
@@ -480,7 +487,7 @@ export default {
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', UI_PLUGIN);
     this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
     this.$store.dispatch('management/forgetType', CATALOG.APP);
@@ -852,17 +859,9 @@ export default {
                         <span>{{ plugin.installedError }}</span>
                       </p>
                       <p
-                        v-else-if="plugin.incompatibleRancherVersion"
+                        v-else-if="plugin.incompatibilityMessage"
                         class="incompatible"
-                      >{{ plugin.incompatibleRancherVersion }}</p>
-                      <p
-                        v-else-if="plugin.incompatibleKubeVersion"
-                        class="incompatible"
-                      >{{ plugin.incompatibleKubeVersion }}</p>
-                      <p
-                        v-else-if="plugin.incompatibleHost"
-                        class="incompatible"
-                      >{{ plugin.incompatibleHost }}</p>
+                      >{{ plugin.incompatibilityMessage }}</p>
                     </span>
                   </div>
                   <!-- plugin badges -->
