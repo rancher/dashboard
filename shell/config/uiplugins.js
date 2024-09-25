@@ -97,6 +97,7 @@ export function uiPluginAnnotation(chart, name) {
 function parseRancherVersion(v) {
   let parsedRancherVersion = semver.coerce(v)?.version;
   const splitArr = parsedRancherVersion.split('.');
+
   // this is a scenario where we are on a "head" version of some sort... we can't infer the patch version from it
   // so we apply a big patch version number to make sure we follow through with the minor
   if (v.includes('-') && splitArr?.length === 3) {
