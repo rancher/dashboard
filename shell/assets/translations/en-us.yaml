@@ -1927,6 +1927,7 @@ cluster:
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
+    ovhcloudmks: OVHcloud MKS
     packet: Equinix Metal
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
