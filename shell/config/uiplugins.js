@@ -91,6 +91,22 @@ export function uiPluginAnnotation(chart, name) {
   return undefined;
 }
 
+/**
+ * Parse the rancher version string
+ */
+function parseRancherVersion(v) {
+  let parsedRancherVersion = semver.coerce(v)?.version;
+  const splitArr = parsedRancherVersion.split('.');
+
+  // this is a scenario where we are on a "head" version of some sort... we can't infer the patch version from it
+  // so we apply a big patch version number to make sure we follow through with the minor
+  if (v.includes('-') && splitArr?.length === 3) {
+    parsedRancherVersion = `${ splitArr[0] }.${ splitArr[1] }.999`;
+  }
+
+  return parsedRancherVersion;
+}
+
 // i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
 
 // Should we load a plugin, based on the metadata returned by the backend?
@@ -104,8 +120,11 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
   const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+  const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
 
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(parsedUiExtensionsApiVersion, requiredAPI)) {
     return 'plugins.error.api';
   }
 
@@ -117,10 +136,10 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   }
 
   // Rancher version
-  if (rancherVersion) {
+  if (parsedRancherVersion) {
     const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
 
-    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+    if (requiredRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
     }
   }
@@ -140,59 +159,55 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
 }
 
 // Can a chart version be used for this Rancher (based on the annotations on the chart)?
-export function isSupportedChartVersion(versionsData) {
+export function isSupportedChartVersion(versionsData, returnObj = false) {
   const { version, rancherVersion, kubeVersion } = versionsData;
 
-  // Plugin specified a required extension API version
-  const requiredAPI = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
-
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
-    return false;
-  }
-
-  // Host application
-  const requiredHost = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
-
-  if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
-    return false;
-  }
-
-  // Rancher version
-  if (rancherVersion) {
-    const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
-
-    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
-      return false;
-    }
-  }
-
-  // Kube version
-  if (kubeVersion) {
-    const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
-
-    if (requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-export function isChartVersionAvailableForInstall(versionsData, returnObj = false) {
-  const { version, rancherVersion, kubeVersion } = versionsData;
-
-  const parsedRancherVersion = rancherVersion.split('-')?.[0];
-  const regexHashString = new RegExp('^[A-Za-z0-9]{9}$');
-  const isRancherVersionHashStringOrHead = regexHashString.test(rancherVersion) || rancherVersion.includes('head');
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
 
   versionObj.isCompatibleWithUi = true;
   versionObj.isCompatibleWithKubeVersion = true;
+  versionObj.isCompatibleWithHost = true;
 
-  // if it's a head version of Rancher, then we skip the validation and enable them all
-  if (!isRancherVersionHashStringOrHead && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
+  // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
+  // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
+  // we need to enforce that check if we are on a HEAD world
+  if (rancherVersion && rancherVersion.includes('-')) {
+    const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
+
+    if (parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
+      if (!returnObj) {
+        return false;
+      }
+      versionObj.isCompatibleWithUi = false;
+      versionObj.requiredUiVersion = requiredRancherVersion;
+
+      if (returnObj) {
+        return versionObj;
+      }
+    }
+  }
+
+  // Host application
+  const requiredHost = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
+
+  if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
+    if (!returnObj) {
+      return false;
+    }
+    versionObj.isCompatibleWithHost = false;
+    versionObj.requiredHost = requiredHost;
+
+    if (returnObj) {
+      return versionObj;
+    }
+  }
+
+  // check "catalog.cattle.io/ui-version" (backend doesn't limit the loading as "available", but dashboard will disable version for install)
+  if (requiredUiVersion && parsedRancherVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
