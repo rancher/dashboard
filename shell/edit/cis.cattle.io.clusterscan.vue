@@ -43,7 +43,7 @@ export default {
     // in the clusterscan edit/create views the "canBeScheduled" won't run properly
     await this.schema.fetchResourceFields();
 
-    if (this.mode === _CREATE || this.mode === _EDIT) {
+    if (this.realMode === _CREATE || this.realMode === _EDIT) {
       const includeScheduling = this.value.canBeScheduled();
       const spec = this.value.spec || {};
 
