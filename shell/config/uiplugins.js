@@ -96,12 +96,10 @@ export function uiPluginAnnotation(chart, name) {
  */
 function parseRancherVersion(v) {
   let parsedRancherVersion = semver.coerce(v)?.version;
-
+  const splitArr = parsedRancherVersion.split('.');
   // this is a scenario where we are on a "head" version of some sort... we can't infer the patch version from it
   // so we apply a big patch version number to make sure we follow through with the minor
-  if (v.includes('-') && parsedRancherVersion.split('.')?.length === 3) {
-    const splitArr = parsedRancherVersion.split('.');
-
+  if (v.includes('-') && splitArr?.length === 3) {
     parsedRancherVersion = `${ splitArr[0] }.${ splitArr[1] }.999`;
   }
 
@@ -171,6 +169,7 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
 
   versionObj.isCompatibleWithUi = true;
   versionObj.isCompatibleWithKubeVersion = true;
+  versionObj.isCompatibleWithHost = true;
 
   // we aren't on a "published" version of Rancher and therefore in a "-head" or similar
   // Backend will NOT block an extension version from being available IF we are on HEAD versions!!
@@ -199,7 +198,7 @@ export function isSupportedChartVersion(versionsData, returnObj = false) {
       return false;
     }
     versionObj.isCompatibleWithHost = false;
-    versionObj.requiredHost = UI_PLUGIN_HOST_APP;
+    versionObj.requiredHost = requiredHost;
 
     if (returnObj) {
       return versionObj;

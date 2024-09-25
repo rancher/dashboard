@@ -4250,7 +4250,7 @@ inactivity:
 plugins:
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
-  incompatibleHost: 'The latest version of this extension ({ version }) does not have a host matching with "{ host }".'
+  incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ host }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in

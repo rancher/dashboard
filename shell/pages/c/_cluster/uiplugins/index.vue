@@ -286,7 +286,7 @@ export default {
           } else if (!item.isCompatibleWithKubeVersion) {
             item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
           } else if (!item.isCompatibleWithHost) {
-            item.incompatibleHost = this.t('plugins.incompatibleHost', { version: latestNotCompatible.version, host: UI_PLUGIN_HOST_APP }, true);
+            item.incompatibleHost = this.t('plugins.incompatibleHost', { version: latestNotCompatible.version, host: latestNotCompatible.requiredHost, mainHost: UI_PLUGIN_HOST_APP }, true);
           }
         }
 
