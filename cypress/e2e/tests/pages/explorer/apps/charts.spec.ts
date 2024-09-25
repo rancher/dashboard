@@ -84,4 +84,48 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // checking the warning banner to be visible
     chartPage.deprecationAndExperimentalWarning().banner().should('exist').and('be.visible');
   });
+
+  it('should call fetch when route query changes with valid parameters', () => {
+    const chartName = 'Logging';
+
+    chartsPage.getChartByName(chartName)
+      .should('exist')
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
+
+    const chartPage = new ChartPage();
+
+    chartPage.waitForPage();
+
+    // Set up intercept for the network request triggered by $fetch
+    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
+
+    chartPage.selectVersion('103.1.1+up4.4.0');
+
+    cy.wait('@fetchChartData').its('response.statusCode').should('eq', 200);
+  });
+
+  it('should not call fetch when navigating back to charts page', () => {
+    const chartName = 'Logging';
+
+    chartsPage.getChartByName(chartName)
+      .should('exist')
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
+
+    const chartPage = new ChartPage();
+
+    chartPage.waitForPage();
+
+    // Navigate back to the charts page
+    cy.go('back');
+    chartsPage.waitForPage();
+
+    // Set up intercept after navigating back
+    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterBack');
+
+    cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
+  });
 });

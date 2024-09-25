@@ -115,7 +115,9 @@ export default {
 
   watch: {
     '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) ) {
+      // If the query changes, refetch the chart
+      // When going back to app list, the query is empty and we don't want to refetch
+      if ( !isEqual(neu, old) && Object.keys(neu).length > 0 ) {
         this.$fetch();
       }
     },
