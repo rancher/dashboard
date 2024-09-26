@@ -30,6 +30,7 @@ DASHBOARD_REPO="${DASHBOARD_REPO:-rancher/dashboard.git}"
 DASHBOARD_BRANCH="${DASHBOARD_BRANCH:-master}"
 GITHUB_URL="https://github.com/"
 RANCHER_TYPE="${RANCHER_TYPE:-local}"
+RANCHER_HELM_REPO="${RANCHER_HELM_REPO:-latest}"
 HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
@@ -92,13 +93,46 @@ create_initial_clusters() {
     TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
     curl -L -o "${TARFILE}" "https://get.helm.sh/${TARFILE}"
     tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf "${TARFILE}"
-    helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-    helm repo update
+    if [[ -n "${RANCHER_HELM_REPO}" ]]; then
+      if [[ "${RANCHER_HELM_REPO}" == "prime" ]]; then
+        RANCHER_CHART_URL=https://charts.rancher.com/server-charts/prime
+        helm repo add rancher-prime "${RANCHER_CHART_URL}"
+        helm repo update
+        corral config vars set rancher_image "registry.suse.com/rancher/rancher"
+        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|registry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG}', RANCHER_PRIME|true, CATTLE_UI_BRAND|suse"]'
+      elif [[ "${RANCHER_HELM_REPO}" == "optimus_prime" ]]; then
+        RANCHER_HELM_REPO=optimus
+        RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/latest
+        helm repo add rancher-optimus "${RANCHER_CHART_URL}"
+        helm repo update
+        corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
+        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|stgregistry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG}', RANCHER_PRIME|true, CATTLE_UI_BRAND|suse"]'
+      elif [[ "${RANCHER_HELM_REPO}" == "alpha" ]]; then
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/alpha
+        helm repo add rancher-alpha "${RANCHER_CHART_URL}"
+        helm repo update
+      elif [[ "${RANCHER_HELM_REPO}" == "stable" ]]; then
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/stable
+        helm repo add rancher-stable "${RANCHER_CHART_URL}"
+        helm repo update
+      else
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/latest
+        helm repo add rancher-latest "${RANCHER_CHART_URL}"
+        helm repo update
+      fi
+      corral config vars set rancher_chart_repo "${RANCHER_HELM_REPO}"
+      if [[ "${RANCHER_HELM_REPO}" == "optimus" ]]; then
+        corral config vars set rancher_chart_url "${RANCHER_CHART_URL}"
+      else
+        url_string=$(echo "${RANCHER_CHART_URL}" | grep -o '.*server-charts')
+        corral config vars set rancher_chart_url "${url_string}"
+      fi
+    fi
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
     if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
-        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
+      RANCHER_VERSION=$(helm search repo "rancher-${RANCHER_HELM_REPO}" --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
     else
-        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
+      RANCHER_VERSION=$(helm search repo "rancher-${RANCHER_HELM_REPO}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
     fi
     corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
   fi

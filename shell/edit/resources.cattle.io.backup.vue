@@ -13,7 +13,7 @@ import S3 from '@shell/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { NAMESPACE, _VIEW } from '@shell/config/query-params';
+import { NAMESPACE, _VIEW, _CREATE } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
 import { get } from '@shell/utils/object';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
@@ -88,7 +88,7 @@ export default {
       this.value['spec'] = { retentionCount: 10 };
     }
     let s3 = {};
-    let useEncryption = false;
+    let useEncryption = this.mode === _CREATE;
     let setSchedule = false;
     let storageSource = 'useDefault';
 
