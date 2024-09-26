@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export class FleetDashboardPagePo extends PagePo {
     static url: string;
@@ -21,6 +22,11 @@ export class FleetDashboardPagePo extends PagePo {
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
       return super.goTo(FleetDashboardPagePo.createPath(clusterId));
+    }
+
+    static navTo() {
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.burgerMenuNavToMenubyLabel('Continuous Delivery');
     }
 
     constructor(clusterId: string) {
