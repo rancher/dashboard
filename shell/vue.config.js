@@ -362,6 +362,10 @@ const getVirtualModulesAutoImport = (dir) => {
   return new VirtualModulesPlugin(autoImportTypes);
 };
 
+// Get current shell version
+const shellPkgRawData = fs.readFileSync(path.join(__dirname, 'package.json'));
+const shellPkgData = JSON.parse(shellPkgRawData);
+
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
@@ -377,6 +381,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.rancherEnv':                JSON.stringify(rancherEnv),
   'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
   'process.env.api':                       JSON.stringify(api),
+  'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',

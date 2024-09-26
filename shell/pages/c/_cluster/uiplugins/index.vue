@@ -888,6 +888,7 @@ export default {
                     <div
                       v-clean-tooltip="plugin.error"
                       class="plugin-error"
+                      :data-testid="`extension-card-error-${plugin.name}`"
                     >
                       <i class="icon icon-warning" />
                     </div>

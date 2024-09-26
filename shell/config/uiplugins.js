@@ -91,6 +91,13 @@ export function uiPluginAnnotation(chart, name) {
   return undefined;
 }
 
+/**
+ * Coerce the UI_EXTENSIONS_API_VERSION to remove any pre-release identifiers
+ */
+export function coerceCurrentExtensionsVersion() {
+  return semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
+}
+
 // i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host
 
 // Should we load a plugin, based on the metadata returned by the backend?
@@ -104,8 +111,12 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
   const requiredAPI = plugin.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const currentVersion = coerceCurrentExtensionsVersion();
 
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
+  // If an extension does not contain the `catalog.cattle.io/ui-extensions-version`
+  // annotation, it is considered as a legacy extension.
+  // Otherwise, the ui-extensions-version is compared with the current shell version.
+  if (!requiredAPI || !semver.satisfies(currentVersion, requiredAPI)) {
     return 'plugins.error.api';
   }
 
@@ -145,8 +156,9 @@ export function isSupportedChartVersion(versionsData) {
 
   // Plugin specified a required extension API version
   const requiredAPI = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const currentVersion = coerceCurrentExtensionsVersion();
 
-  if (requiredAPI && !semver.satisfies(UI_EXTENSIONS_API_VERSION, requiredAPI)) {
+  if (requiredAPI && !semver.satisfies(currentVersion, requiredAPI)) {
     return false;
   }
 

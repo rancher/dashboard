@@ -441,4 +441,162 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
   });
+
+  it.skip('[Vue3 Skip]: Should display error for installed extension without required API version annotation', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
+
+    // Intercept the request fetching chart data to modify the 'clock' extension
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos*', (req) => {
+      req.continue((res) => {
+        if (res.body && res.body.data) {
+          res.body.data.forEach((chart) => {
+            if (chart.metadata.name === 'clock') {
+              // Remove the required API annotation to simulate the missing condition
+              delete chart.versions[0].annotations['catalog.cattle.io/ui-extensions-version'];
+            }
+          });
+        }
+      });
+    });
+
+    extensionsPo.goTo();
+    extensionsPo.extensionTabAvailableClick();
+
+    extensionsPo.extensionCardInstallClick('clock');
+    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModalInstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+
+    // Verify that the 'clock' extension card displays an error icon with tooltip
+    extensionsPo.extensionCardErrorTooltip('clock').should('exist');
+    extensionsPo.extensionCardErrorTooltipContent('clock').should('contain', 'This Extension is not compatible with the current Extensions API version');
+
+    extensionsPo.extensionCardClick('clock');
+
+    // Verify that the extension details display an error banner with the correct message
+    extensionsPo.extensionDetailsErrorBanner().should('contain', 'This Extension is not compatible with the current Extensions API version');
+
+    extensionsPo.extensionDetailsCloseClick();
+
+    extensionsPo.extensionCardUninstallClick('clock');
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCard('clock').should('not.exist');
+  });
+
+  it.skip('[Vue3 Skip]: Should display error for installed extension with outdated required API version', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
+
+    // Intercept the request fetching chart data to modify the 'clock' extension
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos*', (req) => {
+      req.continue((res) => {
+        if (res.body && res.body.data) {
+          res.body.data.forEach((chart) => {
+            if (chart.metadata.name === 'clock') {
+              // Set the required API version to a value less than UI_EXTENSIONS_API_VERSION
+              chart.versions[0].annotations['catalog.cattle.io/ui-extensions-version'] = '>=2.0.0';
+            }
+          });
+        }
+      });
+    });
+
+    extensionsPo.goTo();
+    extensionsPo.extensionTabAvailableClick();
+
+    extensionsPo.extensionCardInstallClick('clock');
+    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModalInstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+
+    // Verify that the 'clock' extension card displays an error icon with tooltip
+    extensionsPo.extensionCardErrorTooltip('clock').should('exist');
+    extensionsPo.extensionCardErrorTooltipContent('clock').should('contain', 'This Extension is not compatible with the current Extensions API version');
+
+    extensionsPo.extensionCardClick('clock');
+
+    // Verify that the extension details display an error banner with the correct message
+    extensionsPo.extensionDetailsErrorBanner().should('contain', 'This Extension is not compatible with the current Extensions API version');
+
+    extensionsPo.extensionDetailsCloseClick();
+
+    extensionsPo.extensionCardUninstallClick('clock');
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCard('clock').should('not.exist');
+  });
+
+  it.skip('[Vue3 Skip]: Should successfully install extension with satisfying required API version', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
+
+    // Intercept the request fetching chart data to modify the 'clock' extension
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos*', (req) => {
+      req.continue((res) => {
+        if (res.body && res.body.data) {
+          res.body.data.forEach((chart) => {
+            if (chart.metadata.name === 'clock') {
+              // Set the required API version to a value that satisfies the UI version
+              chart.versions[0].annotations['catalog.cattle.io/ui-extensions-version'] = '>=3.0.0';
+            }
+          });
+        }
+      });
+    });
+
+    extensionsPo.goTo();
+    extensionsPo.extensionTabAvailableClick();
+
+    extensionsPo.extensionCardInstallClick('clock');
+    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModalInstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+
+    // Verify that the 'clock' extension card does not display an error icon
+    extensionsPo.extensionCardErrorTooltip('clock').should('not.exist');
+
+    extensionsPo.extensionCardClick('clock');
+
+    // Verify that the extension details do not display an error banner
+    extensionsPo.extensionDetailsErrorBanner().should('not.exist');
+
+    extensionsPo.extensionDetailsCloseClick();
+
+    extensionsPo.extensionCardUninstallClick('clock');
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCard('clock').should('not.exist');
+  });
 });

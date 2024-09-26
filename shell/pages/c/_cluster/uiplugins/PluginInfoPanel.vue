@@ -189,6 +189,7 @@ export default {
             v-if="info.error"
             color="error"
             :label="info.error"
+            data-testid="extension-details-error"
             class="mt-10"
           />
           <Banner

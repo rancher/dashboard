@@ -142,6 +142,20 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionCard(extensionName).getId(`extension-card-uninstall-btn-${ extensionName }`).click();
   }
 
+  extensionCardErrorTooltip(extensionName: string): Cypress.Chainable {
+    return this.extensionCard(extensionName).getId(`extension-card-error-${ extensionName }`);
+  }
+
+  extensionCardErrorTooltipContent(extensionName: string): Cypress.Chainable {
+    return this.extensionCardErrorTooltip(extensionName).trigger('mouseenter').then(() => {
+      return cy.get('.v-popper__popper.v-popper--theme-tooltip .v-popper__inner');
+    });
+  }
+
+  extensionCardInstallButton(extensionName: string): Cypress.Chainable {
+    return this.extensionCard(extensionName).getId(`extension-card-install-btn-${ extensionName }`);
+  }
+
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
     return this.self().get('[data-modal="installPluginDialog"]');
@@ -203,6 +217,10 @@ export default class ExtensionsPagePo extends PagePo {
 
   extensionDetailsCloseClick(): Cypress.Chainable {
     return this.extensionDetails().getId('extension-details-close').click();
+  }
+
+  extensionDetailsErrorBanner(): Cypress.Chainable {
+    return this.extensionDetails().getId('extension-details-error');
   }
 
   // ------------------ extension tabs ------------------
