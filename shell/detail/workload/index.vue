@@ -197,7 +197,7 @@ export default {
     },
 
     podHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => h !== NAMESPACE_COL);
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
 
     graphVarsWorkload() {
