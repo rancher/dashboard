@@ -46,7 +46,7 @@ describe('Cluster Explorer', () => {
       const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
 
-      beforeEach(() => {
+      before(() => {
         cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
         cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
 
@@ -57,9 +57,27 @@ describe('Cluster Explorer', () => {
         e2eWorkloads.push({ name: workloadName, namespace });
       });
 
+      // TODO nb remove or actually test something here
       it('Should be able to scale the number of pods', () => {
         workloadDetailsPage.goTo();
         workloadDetailsPage.mastheadTitle().should('contain', workloadName);
+      });
+
+      it('Should be able to view and edit configuration of volumes with no custom component', () => {
+        deploymentsListPage.goTo();
+        deploymentsListPage.goToEditConfigPage(workloadName);
+
+        const deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
+
+        // open the pod tab
+        deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
+
+        // open the pod storage tab
+        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage');
+
+        // check that there is a component rendered for each workload volume and that that component has rendered some information about the volume
+        deploymentEditConfigPage.podStorage().nthVolumeComponent(0).should('contain', 'name: test-vol');
+        deploymentEditConfigPage.podStorage().nthVolumeComponent(1).should('contain', 'name: test-vol1');
       });
     });
 
