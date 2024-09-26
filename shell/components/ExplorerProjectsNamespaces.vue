@@ -10,6 +10,7 @@ import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
+import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -18,7 +19,11 @@ import DOMPurify from 'dompurify';
 export default {
   name:       'ListProjectNamespace',
   components: {
-    ExtensionPanel, Masthead, MoveModal, ResourceTable
+    ExtensionPanel,
+    Masthead,
+    MoveModal,
+    ResourceTable,
+    ButtonMultiAction,
   },
   mixins: [ResourceFetch],
 
@@ -430,14 +435,12 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </router-link>
-            <button
-              type="button"
-              class="project-action btn btn-sm role-multi-action actions mr-10"
-              :class="{invisible: !showProjectActionButton(group.group)}"
+            <ButtonMultiAction
+              class="project-action mr-10"
+              :borderless="true"
+              :invisible="!showProjectActionButton(group.group)"
               @click="showProjectAction($event, group.group)"
-            >
-              <i class="icon icon-actions" />
-            </button>
+            />
           </div>
         </div>
       </template>
