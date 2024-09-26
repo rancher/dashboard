@@ -17,6 +17,11 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      
+      - name: Setup target Node.js to enable Corepack
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.x'
 
       - name: Enable Corepack
         run: corepack enable
