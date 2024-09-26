@@ -261,14 +261,6 @@ export default {
     }
 
     /*
-      Check if the Helm chart has indicated
-      that the user should fill out the chart values
-      through a wizard-style workflow. If so, load
-      the chart steps.
-    */
-    await this.loadChartSteps();
-
-    /*
       this.loadedVersion will only be true if you select a non-defalut
       option from the "Version" dropdown menu in Apps & Marketplace
       when updating a previously installed app.
@@ -450,10 +442,6 @@ export default {
         ready:          true,
         weight:         10
       },
-
-      customSteps: [
-
-      ],
 
       isPlainLayout: isPlainLayout(this.$route.query),
 
@@ -674,7 +662,6 @@ export default {
         steps.push(
           this.stepBasic,
           this.stepValues,
-          ...this.customSteps
         );
       }
 
@@ -826,10 +813,6 @@ export default {
     // for editing values
     await this.loadValuesComponent();
 
-    // Load Helm chart info used for showing
-    // wizard steps
-    await this.loadChartSteps();
-
     window.scrollTop = 0;
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
@@ -920,33 +903,6 @@ export default {
         this.valuesComponent = null;
         this.showValuesComponent = false;
       }
-    },
-
-    async loadChartSteps() {
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
-
-      if ( component ) {
-        const steps = await this.$store.getters['catalog/chartSteps'](component);
-
-        this.customSteps = await Promise.all( steps.map((cs) => this.loadChartStep(cs)));
-      }
-    },
-
-    async loadChartStep(customStep) {
-      // Broken in 2.10, see https://github.com/rancher/dashboard/issues/11898
-      const loaded = await customStep.component();
-      const withFallBack = this.$store.getters['i18n/withFallback'];
-
-      return {
-        name:      customStep.name,
-        label:     withFallBack(loaded?.default?.label, null, customStep.name),
-        subtext:   withFallBack(loaded?.default?.subtext, null, ''),
-        weight:    loaded?.default?.weight,
-        ready:     false,
-        hidden:    true,
-        loading:   true,
-        component: customStep.component,
-      };
     },
 
     selectChart(chart) {
@@ -1348,17 +1304,6 @@ export default {
       @cancel="cancel"
       @finish="finish"
     >
-      <template
-        v-for="customStep of customSteps"
-        v-slot:[customStep.name]
-        :key="customStep.name"
-      >
-        <component
-          :is="customStep.component"
-          @update="updateStep(customStep.name, $event)"
-          @errors="e=>errors.push(...e)"
-        />
-      </template>
       <template #bannerTitleImage>
         <div>
           <div class="logo-bg">
