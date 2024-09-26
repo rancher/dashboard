@@ -10,10 +10,11 @@ import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/feature
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
+import CloudCredExpired from '@shell/components/formatter/CloudCredExpired';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead, BadgeState
+    Banner, ResourceTable, Masthead, BadgeState, CloudCredExpired
   },
   mixins: [ResourceFetch],
   props:  {
@@ -40,6 +41,8 @@ export default {
       normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
       mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
+
+    this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
@@ -141,6 +144,29 @@ export default {
       // This will be used when there's clusters from extension based provisioners
       // We should re-visit this for scaling reasons
       return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
+    },
+
+    expiredData() {
+      const counts = this.rows.reduce((res, provCluster) => {
+        const expireData = provCluster.cloudCredential?.expireData;
+
+        if (expireData?.expiring) {
+          res.expiring++;
+        }
+        if (expireData?.expired) {
+          res.expired++;
+        }
+
+        return res;
+      }, {
+        expiring: 0,
+        expired:  0
+      });
+
+      return {
+        expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
+        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expired }) : '',
+      };
     }
   },
 
@@ -186,6 +212,18 @@ export default {
       </template>
     </Masthead>
 
+    <Banner
+      v-if="expiredData.expiring"
+      data-testid="cert-expiring-banner"
+      color="warning"
+      :label="expiredData.expiring"
+    />
+    <Banner
+      v-if="expiredData.expired"
+      color="error"
+      :label="expiredData.expired"
+    />
+
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
@@ -216,6 +254,19 @@ export default {
         >
           <td>&nbsp;</td>
           <td
+            v-if="row.cloudCredentialWarning"
+            :colspan="fullColspan - 1"
+          >
+            <CloudCredExpired
+              :value="row.cloudCredential.expires"
+              :row="row.cloudCredential"
+              :verbose="true"
+              class="mb-10"
+            />
+            {{ row.stateDescription }}
+          </td>
+          <td
+            v-else
             :colspan="fullColspan - 1"
             :class="{ 'text-error' : row.stateObj.error }"
           >

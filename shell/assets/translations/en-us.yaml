@@ -1822,6 +1822,14 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
+  cloudCredentials:
+    renew: Renew Cloud Credentials
+    expired: Cloud Credential expired, please Renew Cloud Credentials
+    expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
+    banners:
+      expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
+      # expiring: "{count} {count, plural, =1 { Cloud Credentials expires soon} other { Cloud Credential expire soon}}"
+      expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
 
   architecture:
     label:
@@ -5655,7 +5663,6 @@ tableHeaders:
   createdAt: Created At
   customVerbs: Custom Verbs
   description: Description
-  expires: Expires
   cpu: CPU
   currentReplicas: Current Replicas
   date: Date
@@ -5672,6 +5679,7 @@ tableHeaders:
   distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
+  expires: Expires
   firstSeen: First Seen
   fleetBundleType: Type
   flow: Flow
@@ -7751,6 +7759,7 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
+    renew: Renew
   drivers:
     label: Drivers
   rkeTemplates:
