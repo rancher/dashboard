@@ -2,7 +2,7 @@ import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/perfor
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const performancePage = new PerformancePagePo();
-const performanceSettingsOrginal = [];
+const performanceSettingsOriginal = [];
 
 describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   before('get default performance settings', () => {
@@ -12,7 +12,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      performanceSettingsOrginal.push(body);
+      performanceSettingsOriginal.push(body);
     });
   });
 
@@ -32,7 +32,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       cy.reload();
 
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(6000); // We wait for the modal to show
+      cy.wait(7000); // We wait for the modal to show // FIXME: should wait for modal to open
 
       expect(performancePage.inactivityModalCard().getModal().should('exist'));
 
@@ -228,8 +228,8 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       const response = resp.body.metadata;
 
       // update original data before sending request
-      performanceSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
-      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+      performanceSettingsOriginal[0].metadata.resourceVersion = response.resourceVersion;
+      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOriginal[0]);
     });
   });
 });
