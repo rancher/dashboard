@@ -5,6 +5,7 @@ import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
+import { markRaw } from 'vue';
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
@@ -893,7 +894,7 @@ export default {
         const hasChartComponent = this.$store.getters['type-map/hasCustomChart'](component);
 
         if ( hasChartComponent ) {
-          this.valuesComponent = this.$store.getters['type-map/importChart'](component);
+          this.valuesComponent = markRaw(this.$store.getters['type-map/importChart'](component));
           this.showValuesComponent = true;
         } else {
           this.valuesComponent = null;
