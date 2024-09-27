@@ -203,6 +203,23 @@ jobs:
           # Falure won't fail the job (remove -x when all current issues are fixed)
           ./scripts/check-i18n -s -x
 
+  check-i18n-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      
+      - name: Install packages
+        run: yarn install:ci
+      
+      - name: Run check of all http links in the i18n files (broken lnk check)
+        run: |
+          # Falure won't fail the job (remove -x when all current issues are fixed)
+          ./scripts/check-i18n-links -x
 
   # coverage:
   #   runs-on: ubuntu-latest

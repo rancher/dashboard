@@ -23,9 +23,7 @@ const pkgFolder = path.resolve(base, 'pkg');
 const reset = "\x1b[0m";
 const cyan = `\x1b[96m`;
 const yellow = `\x1b[33m`;
-const white = `\x1b[97m`;
 const bold = `\x1b[1m`;
-const bg_red = `\x1b[41m`;
 
 const DOCS_BASE_REGEX = /export const DOCS_BASE = '([^']*)';/;
 
@@ -46,9 +44,7 @@ const CATEGORIES = [
 
 let docsBaseUrl = '';
 
-// -s flag will show the details of all of the unused strings
 // -x flag will cause script to return 0, even if there are errors
-let showUnused = false;
 let doNotReturnError = false;
 
 // Simple arg parsing
@@ -57,9 +53,7 @@ if (process.argv.length > 2) {
   process.argv.shift();
 
   process.argv.forEach((arg) => {
-    if (arg === '-s') {
-      showUnused = true;
-    } else if (arg === '-x') {
+    if (arg === '-x') {
       doNotReturnError = true;
     }
   });
@@ -71,52 +65,6 @@ const docsBaseFileMatches = docsBaseFile.match(DOCS_BASE_REGEX);
 
 if (docsBaseFileMatches && docsBaseFileMatches.length === 2) {
   docsBaseUrl = docsBaseFileMatches[1];
-}
-
-function parseReference(ref) {
-  if (!ref.includes('$') || ref.startsWith('${')) {
-    return ref;
-  }
-
-  let out = '';
-  let inVar = false;
-  let variable = '';
-  let vars = 0;
-
-  for (let i=0;i<ref.length;i++) {
-    if (inVar) {
-      if (ref[i] === '}') {
-        inVar = false;
-      } else {
-        variable += ref[i];
-      }
-    } else if (ref[i] === '{') {
-      inVar = true;
-      vars++;
-      variable = '';
-    } else {
-      out += ref[i];
-    }
-  }
-
-  let p = out.replaceAll('"', '').split('.');
-
-  // Check for patterns like this: resourceDetail.detailTop.${annotationsVisible? 'hideAnnotations' : 'showAnnotations'}
-  if (vars === 1 && variable.includes('?')) {
-    const options = variable.substr(variable.indexOf('?') + 1);
-    const opts = options.split(':').map((o) => o.trim().replaceAll('\'', ''));
-
-    if (opts.length === 2) {
-      const a  = p.map((o) => o === '$' ? opts[0] : o).join('.');
-      const b  = p.map((o) => o === '$' ? opts[1] : o).join('.');
-
-      return [a, b];
-    }
-  }
-
-  p = p.map((a) => a.startsWith('$') ? `.*${ a.substr(1) }` : a);
-
-  return new RegExp(p.join('\\.'), 'g');
 }
 
 function readAndParseTranslations(filePath) {
@@ -182,30 +130,6 @@ function parseLinks(str) {
   return links;
 }
 
-function makeRegex(str) {
-  if (str.startsWith('/') && str.endsWith('/')) {
-    return new RegExp(str.substr(1, str.length - 2), 'g');
-  } else {
-    // String
-    // Support .* for a simple wildcard match
-    if (str.includes('*')) {
-      const parts = str.split('.');
-      const p = parts.map((s, i) => s === '*' ? (i === parts.length -1 ? '.*' : '[^\.]*') : s);
-
-      return new RegExp(`^${ p.join('\\.') }$`);
-    } else {
-      return str;
-    }
-  }
-}
-
-function doesMatch(stringOrRegex, str) {
-  if (typeof stringOrRegex === 'string') {
-    return str === stringOrRegex;
-  } else {
-    return str.match(stringOrRegex);
-  }
-}
 function loadI18nFiles(folder) {
   let res = {};
 
@@ -247,11 +171,6 @@ i18n = { ...i18n, ...loadI18nFiles(pkgFolder) };
 
 console.log(`Read  ${cyan}${ Object.keys(i18n).length }${reset} translations`); // eslint-disable-line no-console
 
-//..console.log(`Found ${cyan}${ Object.keys(references).length }${reset} i18n references in code`); // eslint-disable-line no-console
-
-let unused = 0;
-const unusedKeys = [];
-
 const links = [];
 
 // Look for translations that are not used
@@ -291,7 +210,7 @@ function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
   });
 
   CATEGORIES.forEach((category) => {
-    if (byCategory[category.name].length) {
+    if (byCategory[category.name]?.length) {
       console.log(`${color}${prefixLabel} ${category.name}${reset}`); // eslint-disable-line no-console
       byCategory[category.name].forEach((link) => console.log(`  ${link}`)); // eslint-disable-line no-console
     }
@@ -304,7 +223,7 @@ function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
 }
 
 async function check(links) {
-  const badLinks = [];
+  const brokenLinks = [];
 
   for(let i =0; i<links.length; i++) {
     const link = links[i];
@@ -332,23 +251,28 @@ async function check(links) {
 
       console.log(`  ${ link } : ${ sc } ${ statusMessage ? statusMessage : '' }`); // eslint-disable-line no-console
 
-      badLinks.push(link);
+      brokenLinks.push(link);
     }
   };
 
   console.log(''); // eslint-disable-line no-console
 
-  if (badLinks.length === 0) {
+  if (brokenLinks.length === 0) {
     console.log(`${cyan}${bold}Links Checked - all links could be fetched okay${reset}`); // eslint-disable-line no-console
   } else {
-    console.log(`${yellow}${bold}Found ${badLinks.length} link(s) that could not be fetched${reset}`); // eslint-disable-line no-console
+    console.log(`${yellow}${bold}Found ${brokenLinks.length} link(s) that could not be fetched${reset}`); // eslint-disable-line no-console
   }
 
   console.log(''); // eslint-disable-line no-console
 
-  showByCategory(badLinks, 'Broken links in', 'Other Broken links', yellow);
+  showByCategory(brokenLinks, 'Broken links in', 'Other Broken links', yellow);
 
   console.log(''); // eslint-disable-line no-console
+
+  // Return with error code if broken links found
+  if (!doNotReturnError && brokenLinks.length > 0) {
+    process.exit(1);
+  }
 }
 
 console.log(`${cyan}Checking doc links ...${reset}`); // eslint-disable-line no-console
