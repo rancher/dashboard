@@ -30,12 +30,13 @@ import {
   uiPluginAnnotation,
   uiPluginHasAnnotation,
   isSupportedChartVersion,
-  isChartVersionAvailableForInstall,
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
   UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL
+  UI_PLUGINS_PARTNERS_REPO_URL,
+  UI_PLUGIN_HOST_APP,
+  EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
 
@@ -257,19 +258,20 @@ export default {
 
         item.versions = [...chart.versions];
         item.chart = chart;
+        item.incompatibilityMessage = '';
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({ version, kubeVersion: this.kubeVersion }) && isChartVersionAvailableForInstall({
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall({
+        item.versions = item.versions.map((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }, true));
 
         const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion);
+        const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
@@ -279,11 +281,20 @@ export default {
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
 
+        // add message of extension card if there's a newer version of the extension, but it's not available to be installed
         if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          if (!item.isCompatibleWithUi) {
-            item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
-          } else if (!item.isCompatibleWithKubeVersion) {
-            item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
+          switch (latestNotCompatible.versionIncompatibilityData?.type) {
+          case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: UI_PLUGIN_HOST_APP
+            }, true);
+            break;
+          default:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version:  latestNotCompatible.version,
+              required: latestNotCompatible.versionIncompatibilityData?.required
+            }, true);
+            break;
           }
         }
 
@@ -397,8 +408,9 @@ export default {
 
           if (versionInstalledData) {
             const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+            const versionSupportedData = isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion });
 
-            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
+            if (this.kubeVersion && !versionSupportedData.isVersionCompatible && versionSupportedData.versionIncompatibilityData?.type === EXTENSIONS_INCOMPATIBILITY_TYPES.KUBE) {
               plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
             }
           }
@@ -846,13 +858,9 @@ export default {
                       <span>{{ plugin.installedError }}</span>
                     </p>
                     <p
-                      v-else-if="plugin.incompatibleRancherVersion"
+                      v-else-if="plugin.incompatibilityMessage"
                       class="incompatible"
-                    >{{ plugin.incompatibleRancherVersion }}</p>
-                    <p
-                      v-else-if="plugin.incompatibleKubeVersion"
-                      class="incompatible"
-                    >{{ plugin.incompatibleKubeVersion }}</p>
+                    >{{ plugin.incompatibilityMessage }}</p>
                   </span>
                 </div>
                 <!-- plugin badges -->
