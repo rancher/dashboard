@@ -1,0 +1,356 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads and parses all of the source code files, reads the US English
+ * translation files and compares the two to identify referenced strings that
+ * do not have a corresponding translation.
+ * 
+ * This script is used in the PR gate to ensure code is not added without the
+ * corresponding translations.
+ *
+ */
+
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+const request = require('request-promise-native');
+
+const base = path.resolve(__dirname, '..');
+const srcFolder = path.resolve(base, 'shell');
+const pkgFolder = path.resolve(base, 'pkg');
+
+// Simple shell colors
+const reset = "\x1b[0m";
+const cyan = `\x1b[96m`;
+const yellow = `\x1b[33m`;
+const white = `\x1b[97m`;
+const bold = `\x1b[1m`;
+const bg_red = `\x1b[41m`;
+
+const DOCS_BASE_REGEX = /export const DOCS_BASE = '([^']*)';/;
+
+const CATEGORIES = [
+  {
+    name: 'Rancher Manager Documentation',
+    regex: /^https:\/\/.*rancher\.com\/.*/
+  },
+  {
+    name: 'RKE2 Documentation',
+    regex: /^https:\/\/.*rke2\.io\/.*/
+  },
+  {
+    name: 'K3S Documentation',
+    regex: /^https:\/\/.*k3s\.io\/.*/
+  }
+];
+
+let docsBaseUrl = '';
+
+// -s flag will show the details of all of the unused strings
+// -x flag will cause script to return 0, even if there are errors
+let showUnused = false;
+let doNotReturnError = false;
+
+// Simple arg parsing
+if (process.argv.length > 2) {
+  process.argv.shift();
+  process.argv.shift();
+
+  process.argv.forEach((arg) => {
+    if (arg === '-s') {
+      showUnused = true;
+    } else if (arg === '-x') {
+      doNotReturnError = true;
+    }
+  });
+}
+
+// Read file to parse out the docs base
+const docsBaseFile = fs.readFileSync(path.join(srcFolder, 'config', 'private-label.js'), 'utf8');
+const docsBaseFileMatches = docsBaseFile.match(DOCS_BASE_REGEX);
+
+if (docsBaseFileMatches && docsBaseFileMatches.length === 2) {
+  docsBaseUrl = docsBaseFileMatches[1];
+}
+
+function parseReference(ref) {
+  if (!ref.includes('$') || ref.startsWith('${')) {
+    return ref;
+  }
+
+  let out = '';
+  let inVar = false;
+  let variable = '';
+  let vars = 0;
+
+  for (let i=0;i<ref.length;i++) {
+    if (inVar) {
+      if (ref[i] === '}') {
+        inVar = false;
+      } else {
+        variable += ref[i];
+      }
+    } else if (ref[i] === '{') {
+      inVar = true;
+      vars++;
+      variable = '';
+    } else {
+      out += ref[i];
+    }
+  }
+
+  let p = out.replaceAll('"', '').split('.');
+
+  // Check for patterns like this: resourceDetail.detailTop.${annotationsVisible? 'hideAnnotations' : 'showAnnotations'}
+  if (vars === 1 && variable.includes('?')) {
+    const options = variable.substr(variable.indexOf('?') + 1);
+    const opts = options.split(':').map((o) => o.trim().replaceAll('\'', ''));
+
+    if (opts.length === 2) {
+      const a  = p.map((o) => o === '$' ? opts[0] : o).join('.');
+      const b  = p.map((o) => o === '$' ? opts[1] : o).join('.');
+
+      return [a, b];
+    }
+  }
+
+  p = p.map((a) => a.startsWith('$') ? `.*${ a.substr(1) }` : a);
+
+  return new RegExp(p.join('\\.'), 'g');
+}
+
+function readAndParseTranslations(filePath) {
+  const data = fs.readFileSync(filePath, 'utf8');
+
+  try {
+    const i18n = yaml.load(fs.readFileSync(filePath), 'utf8');
+
+    return parseTranslations(i18n);
+  } catch (e) {
+    console.log('Can not read i18n file');  // eslint-disable-line no-console
+    console.log(e);  // eslint-disable-line no-console
+    process.exit(1);
+  }
+}
+
+function parseTranslations(obj, parent) {
+  let res = {};
+  Object.keys(obj).forEach((key) => {
+    const v = obj[key];
+    const pKey = parent ? `${parent}.${key}` : key;
+
+    if (v === null) {
+      // ignore
+    } else if (typeof v === 'object') {
+      res = {
+        ...res,
+        ...parseTranslations(v, pKey)
+      }
+    } else {
+      // Ensure empty strings work
+      res[pKey] = v.length === 0 ? '[empty]' : v;
+    }
+  });
+
+  return res;
+}
+
+const LINK_REGEX = /<[aA]\s[^>]*>/g;
+const ATTR_REGEX = /(([a-zA-Z]*)=["']([^"']*))/g;
+
+function parseLinks(str) {
+  const a = [...str.matchAll(LINK_REGEX)];
+
+  const links = [];
+
+  if (a && a.length) {
+    a.forEach((m) => {
+      const attrs = [...m[0].matchAll(ATTR_REGEX)];
+
+      attrs.forEach((attr) => {
+        if (attr.length === 4 && attr[2] === 'href') {
+          const link = attr[3].replace('{docsBase}', docsBaseUrl);
+
+          if (link.startsWith('http')) {
+            links.push(link);
+          }
+        }
+      });
+    });
+  }
+
+  return links;
+}
+
+function makeRegex(str) {
+  if (str.startsWith('/') && str.endsWith('/')) {
+    return new RegExp(str.substr(1, str.length - 2), 'g');
+  } else {
+    // String
+    // Support .* for a simple wildcard match
+    if (str.includes('*')) {
+      const parts = str.split('.');
+      const p = parts.map((s, i) => s === '*' ? (i === parts.length -1 ? '.*' : '[^\.]*') : s);
+
+      return new RegExp(`^${ p.join('\\.') }$`);
+    } else {
+      return str;
+    }
+  }
+}
+
+function doesMatch(stringOrRegex, str) {
+  if (typeof stringOrRegex === 'string') {
+    return str === stringOrRegex;
+  } else {
+    return str.match(stringOrRegex);
+  }
+}
+function loadI18nFiles(folder) {
+  let res = {};
+
+  // Find all of the test files
+  fs.readdirSync(folder).forEach((file) => {
+    const filePath = path.resolve(folder, file)
+    const isFolder = fs.lstatSync(filePath).isDirectory();
+
+    if (isFolder) {
+      res = {
+        ...res,
+        ...loadI18nFiles(filePath)
+      };
+    } else if (file === 'en-us.yaml') {
+      console.log(` ... ${ path.relative(base, filePath) }`);
+
+      const translations = readAndParseTranslations(filePath);
+
+      res = {
+        ...res,
+        ...translations
+      };
+    }
+  });
+
+  return res;
+}
+
+console.log('======================================'); // eslint-disable-line no-console
+console.log(`${cyan}Checking source files for i18n strings${reset}`); // eslint-disable-line no-console
+console.log('======================================'); // eslint-disable-line no-console
+
+console.log(''); // eslint-disable-line no-console
+console.log('Reading translation files:'); // eslint-disable-line no-console
+
+let i18n = loadI18nFiles(srcFolder);
+
+i18n = { ...i18n, ...loadI18nFiles(pkgFolder) };
+
+console.log(`Read  ${cyan}${ Object.keys(i18n).length }${reset} translations`); // eslint-disable-line no-console
+
+//..console.log(`Found ${cyan}${ Object.keys(references).length }${reset} i18n references in code`); // eslint-disable-line no-console
+
+let unused = 0;
+const unusedKeys = [];
+
+const links = [];
+
+// Look for translations that are not used
+Object.keys(i18n).forEach((str) => {
+  const link = parseLinks(i18n[str]);
+
+ links.push(...link);
+});
+
+console.log(`Discoverd ${cyan}${links.length}${reset} links`); // eslint-disable-line no-console
+
+console.log(`${cyan}Links:${reset}`); // eslint-disable-line no-console
+console.log(`${cyan}======${reset}`); // eslint-disable-line no-console
+
+showByCategory(links, 'Links in', 'Other Links', cyan);
+
+console.log(''); // eslint-disable-line no-console
+
+function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
+  const others = [];
+  const byCategory = {};
+
+  linksToShow.forEach((link) => {
+    let found = false;
+    CATEGORIES.forEach((category) => {
+      byCategory[category.name] = byCategory[category.name] || [];
+
+      if (!found && category.regex.test(link)) {
+        byCategory[category.name].push(link);
+        found = true;
+      }
+    });
+
+    if (!found) {
+      others.push(link);
+    }
+  });
+
+  CATEGORIES.forEach((category) => {
+    if (byCategory[category.name].length) {
+      console.log(`${color}${prefixLabel} ${category.name}${reset}`); // eslint-disable-line no-console
+      byCategory[category.name].forEach((link) => console.log(`  ${link}`)); // eslint-disable-line no-console
+    }
+  });
+
+  if (others.length) {
+    console.log(`${color}${otherLabel}${reset}`); // eslint-disable-line no-console
+    others.forEach((link) => console.log(`  ${link}`));
+  }
+}
+
+async function check(links) {
+  const badLinks = [];
+
+  for(let i =0; i<links.length; i++) {
+    const link = links[i];
+    let statusCode;
+    let statusMessage;
+
+    try {
+      const headers = {
+        'User-Agent':      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept':          'text/html',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+      };
+
+      const r = await request(link, { resolveWithFullResponse: true, headers });
+
+      statusCode = r.statusCode;
+      statusMessage = r.statusMessage;
+    } catch (e) {
+      statusCode = e.statusCode;
+      statusMessage = e.statusMessage;
+    }
+
+    if (statusCode !== 200) {
+      const sc = `${ statusCode }`.padEnd(5);
+
+      console.log(`  ${ link } : ${ sc } ${ statusMessage ? statusMessage : '' }`); // eslint-disable-line no-console
+
+      badLinks.push(link);
+    }
+  };
+
+  console.log(''); // eslint-disable-line no-console
+
+  if (badLinks.length === 0) {
+    console.log(`${cyan}${bold}Links Checked - all links could be fetched okay${reset}`); // eslint-disable-line no-console
+  } else {
+    console.log(`${yellow}${bold}Found ${badLinks.length} link(s) that could not be fetched${reset}`); // eslint-disable-line no-console
+  }
+
+  console.log(''); // eslint-disable-line no-console
+
+  showByCategory(badLinks, 'Broken links in', 'Other Broken links', yellow);
+
+  console.log(''); // eslint-disable-line no-console
+}
+
+console.log(`${cyan}Checking doc links ...${reset}`); // eslint-disable-line no-console
+
+check(links);
