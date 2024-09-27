@@ -1546,7 +1546,7 @@ export default {
             versionName: entry.version,
           });
 
-          this.versionInfo.chartName = res;
+          this.versionInfo[chartName] = res;
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
