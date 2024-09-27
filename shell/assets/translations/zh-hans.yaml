@@ -1803,6 +1803,7 @@ cluster:
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: 其他
+    ovhcloudmks: OVHcloud MKS
     packet: Equinix Metal
     pinganyunecs: 平安云 ECS
     pnap: phoenixNAP
