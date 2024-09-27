@@ -105,7 +105,7 @@ export default class User extends HybridModel {
    * @returns {number}
    */
   get userLastLogin() {
-    return this.metadata?.labels?.['cattle.io/last-login'] * 1000;
+    return this.metadata?.labels?.['cattle.io/last-login'] * 1000 || 0;
   }
 
   /**
@@ -113,7 +113,7 @@ export default class User extends HybridModel {
    * @returns {number}
    */
   get userDisabledIn() {
-    return this.metadata?.labels?.['cattle.io/disable-after'] * 1000;
+    return this.metadata?.labels?.['cattle.io/disable-after'] * 1000 || 0;
   }
 
   /**
@@ -129,7 +129,7 @@ export default class User extends HybridModel {
    * @returns {number}
    */
   get userDeletedIn() {
-    return this.metadata?.labels?.['cattle.io/delete-after'] * 1000;
+    return this.metadata?.labels?.['cattle.io/delete-after'] * 1000 || 0;
   }
 
   get state() {
