@@ -54,6 +54,26 @@ export default {
       const inStore = this.$store.getters['currentStore'](this.type.name);
 
       return this.$store.getters[`${ inStore }/count`]({ name: this.type.name });
+    },
+
+    isActive() {
+      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
+      const pageFullPath = this.$route.fullPath?.toLowerCase();
+
+      if ( !this.type.exact) {
+        const typeSplit = typeFullPath.split('/');
+        const pageSplit = pageFullPath.split('/');
+
+        for (let index = 0; index < typeSplit.length; ++index) {
+          if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      return typeFullPath === pageFullPath;
     }
 
   },
@@ -81,7 +101,7 @@ export default {
   <router-link
     v-if="type.route"
     :key="type.name"
-    v-slot="{ href, navigate, isActive, isExactActive }"
+    v-slot="{ href, navigate,isExactActive }"
     custom
     :to="type.route"
   >
