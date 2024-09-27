@@ -2080,7 +2080,7 @@ cluster:
       s3: s3
   tabs:
     ace: Authorized Endpoint
-    addons: Add-On Config
+    addOnAdditionalManifest: Additional Manifest
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
