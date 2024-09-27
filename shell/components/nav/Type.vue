@@ -60,15 +60,16 @@ export default {
       const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
       const pageFullPath = this.$route.fullPath?.toLowerCase();
 
-      if( !this.type.exact) {
+      if ( !this.type.exact) {
         const typeSplit = typeFullPath.split('/');
         const pageSplit = pageFullPath.split('/');
 
         for (let index = 0; index < typeSplit.length; ++index) {
-            if( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ){
-                return false;
-            }
+          if ( index >= pageSplit.length || typeSplit[index] !== pageSplit[index] ) {
+            return false;
+          }
         }
+
         return true;
       }
 
