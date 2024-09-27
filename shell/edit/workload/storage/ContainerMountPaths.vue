@@ -1,5 +1,5 @@
 <script>
-import { clone } from '@shell/utils/object';
+import { clone, set } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 import { randomStr } from '@shell/utils/string';
 
@@ -8,7 +8,10 @@ import ButtonDropdown from '@shell/components/ButtonDropdown';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 export default {
-  name:       'ContainerMountPaths',
+  name: 'ContainerMountPaths',
+
+  emits: ['update:value', 'update:container'],
+
   components: {
     ArrayListGrouped, ButtonDropdown, Mount
   },
@@ -77,14 +80,24 @@ export default {
       }, []);
 
       this.container.volumeMounts = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
+      // this.$emit('update:container', this.container);
     },
 
-    selectedContainerVolumes(neu, old) {
-      // removeObjects(this.value.volumes, old);
-      // addObjects(this.value.volumes, neu);
-      const names = neu.map((item) => item.name);
+    selectedContainerVolumes: {
+      deep: true,
+      handler(neu, old) {
+        console.log('*** container updating', neu);
+        // removeObjects(this.value.volumes, old);
+        // addObjects(this.value.volumes, neu);
+        const names = neu.map((item) => item.name);
+        const onlyNeuNames = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
 
-      this.container.volumeMounts = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
+        console.log(names, onlyNeuNames);
+        // set(this.container, 'volumeMounts', onlyNeuNames );
+        this.container.volumeMounts = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
+        console.log('this.container', this.container);
+        // this.$emit('update:container', this.container);
+      }
     }
 
   },
@@ -133,6 +146,7 @@ export default {
     },
 
     selectVolume(event) {
+      debugger;
       const selectedVolume = this.value.volumes.find((vol) => vol.name === event.value);
 
       this.selectedContainerVolumes.push(selectedVolume);
@@ -140,6 +154,7 @@ export default {
       const { name } = selectedVolume;
 
       this.container.volumeMounts.push(name);
+      this.$emit('update:container', this.container);
     },
 
     addVolume(type) {

@@ -194,6 +194,18 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new TabbedPo('[data-testid="workload-pod-tabs"]');
   }
 
+  /**
+   *
+   * @param containerIndex
+   * @returns po for vertical tabs used to configure nth container
+   */
+  nthContainerTabs(containerIndex: number) {
+    // first two tabs are general and pod, so the nth container is the n+2 tab
+    this.horizontalTabs().clickNthTab(containerIndex + 2);
+
+    return new TabbedPo(`[data-testid="workload-container-tabs-${ containerIndex }"]`);
+  }
+
   podStorage(): WorkloadPodStoragePo {
     return new WorkloadPodStoragePo();
   }

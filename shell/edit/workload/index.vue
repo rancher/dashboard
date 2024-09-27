@@ -356,12 +356,12 @@ export default {
             >
               <ContainerMountPaths
                 v-model:value="podTemplateSpec"
+                v-model:container="allContainers[i]"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"
                 :secrets="namespacedSecrets"
                 :config-maps="namespacedConfigMaps"
-                :container="allContainers[i]"
                 :save-pvc-hook-name="savePvcHookName"
                 @removePvcForm="clearPvcFormState"
               />
