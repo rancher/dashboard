@@ -6,33 +6,32 @@ import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 
 describe('page: cluster dashboard', () => {
   const mountOptions = {
-    computed: {
-      monitoringStatus: () => ({ v2: true }),
-      nodes:            () => []
-    },
-    stubs: {
-      'router-link': true,
-      LiveDate:      true
-    },
-    mocks: {
-      $store: {
-        dispatch: jest.fn(),
-        getters:  {
-          currentCluster: {
-            id:                         'cluster',
-            metadata:                   { creationTimestamp: Date.now() },
-            status:                     { provider: 'foo' },
-            kubernetesVersionBase:      '0.0.0',
-            kubernetesVersionExtension: 'k3s'
-          },
-          'cluster/inError':   () => false,
-          'cluster/schemaFor': jest.fn(),
-          'cluster/all':       jest.fn(),
-          'i18n/exists':       jest.fn(),
-          'i18n/t':            jest.fn(),
+    global: {
+      stubs: {
+        'router-link': true,
+        LiveDate:      true
+      },
+      mocks: {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentCluster: {
+              id:                         'cluster',
+              metadata:                   { creationTimestamp: Date.now() },
+              status:                     { provider: 'foo' },
+              kubernetesVersionBase:      '0.0.0',
+              kubernetesVersionExtension: 'k3s',
+            },
+            'cluster/inError':   () => false,
+            'cluster/schemaFor': jest.fn(),
+            'cluster/canList':   jest.fn(),
+            'cluster/all':       jest.fn(),
+            'i18n/exists':       jest.fn(),
+            'i18n/t':            (label: string) => label === 'generic.provisioning' ? '—' : jest.fn()(),
+          }
         }
-      }
-    },
+      },
+    }
   };
 
   describe.each([
@@ -48,7 +47,7 @@ describe('page: cluster dashboard', () => {
     ])('should show %p status', (status, iconClass, name, conditions) => {
       const options = clone(mountOptions);
 
-      options.mocks.$store.getters.currentCluster.status = {
+      options.global.mocks.$store.getters.currentCluster.status = {
         provider:          'provider',
         componentStatuses: [{
           name,
@@ -99,7 +98,7 @@ describe('page: cluster dashboard', () => {
     it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = clone(mountOptions);
 
-      options.mocks.$store.getters.currentCluster.isLocal = isLocal;
+      options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
       const resources = agentResources.reduce((acc, r) => {
         const agent = {
@@ -139,7 +138,7 @@ describe('page: cluster dashboard', () => {
   it('local cluster - cattle agent health box - should be hidden', () => {
     const options = clone(mountOptions);
 
-    options.mocks.$store.getters.currentCluster.isLocal = true;
+    options.global.mocks.$store.getters.currentCluster.isLocal = true;
 
     const wrapper = shallowMount(Dashboard, {
       ...options,
@@ -152,22 +151,23 @@ describe('page: cluster dashboard', () => {
 
     const box = wrapper.find(`[data-testid="k8s-service-cattle"]`);
 
-    expect(box.element).toBeUndefined();
+    expect(box.exists()).toBe(false);
   });
 
   describe('cluster details', () => {
     it.each([
-      ['clusterProvider', [], 'other'],
-      ['kubernetesVersion', [], '0.0.0 k3s'],
-      ['created', [], 'glance.created'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }], 'mixed'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }], 'mixed'],
-      ['architecture', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }], 'Amd64'],
-      ['architecture', [{ labels: { } }], 'unknown'],
-    ])('should show %p label', (label, nodes, text) => {
+      ['clusterProvider', 'other', []],
+      ['kubernetesVersion', 'glance.version', []],
+      ['created', 'glance.created', []],
+      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }]],
+      ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }]],
+      ['architecture', 'Amd64', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }]],
+      ['architecture', 'unknown', [{ labels: { } }]],
+      ['architecture', 'glance.architecture', [{ metadata: { state: { transitioning: true } } }]],
+    ])('should show %p label %p', (label, text, nodes) => {
       const options = clone(mountOptions);
 
-      options.computed.nodes = () => nodes;
+      options.global.mocks.$store.getters['cluster/all'] = () => nodes;
 
       const wrapper = shallowMount(Dashboard, options);
 

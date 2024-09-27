@@ -4,6 +4,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { base64Encode } from '@shell/utils/crypto';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput },
   mixins:     [CreateEditView],
 
@@ -56,7 +58,7 @@ export default {
           placeholder-key="cluster.credential.pnap.clientIdentifier.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientIdentifier', $event);"
+          @update:value="value.setData('clientIdentifier', $event);"
         />
       </div>
       <div class="col span-6">
@@ -66,7 +68,7 @@ export default {
           placeholder-key="cluster.credential.pnap.clientSecret.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientSecret', $event);"
+          @update:value="value.setData('clientSecret', $event);"
         />
       </div>
     </div>

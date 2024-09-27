@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils';
 import EtcdInfoBanner from '../EtcdInfoBanner.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 import { CATALOG } from '@shell/config/types';
 
 describe('component: EtcdInfoBanner', () => {
@@ -11,18 +10,19 @@ describe('component: EtcdInfoBanner', () => {
     const wrapper = mount(
       EtcdInfoBanner,
       {
-        directives: { cleanHtmlDirective },
-        mocks:      {
-          $store: {
-            getters: {
-              'i18n/t':          () => 'Test',
-              currentProduct:    { inStore: 'cluster' },
-              'cluster/canList': mockCanList,
-              currentCluster:    { id: 'local' },
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/t':          () => 'Test',
+                currentProduct:    { inStore: 'cluster' },
+                'cluster/canList': mockCanList,
+                currentCluster:    { id: 'local' },
+              },
+              dispatch: mockDispatch,
             },
-            dispatch: mockDispatch,
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 

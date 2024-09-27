@@ -1,6 +1,9 @@
 <script>
 export default {
-  name:  'CollapsibleCard',
+  name: 'CollapsibleCard',
+
+  emits: ['toggleCollapse', 'titleClick'],
+
   props: {
     isCollapsed: {
       type:    Boolean,

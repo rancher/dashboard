@@ -17,7 +17,7 @@ export default class UserMenuPo extends ComponentPo {
    *
    */
   private userMenuContainer() {
-    return this.self().get('.tooltip.popover.vue-popover-theme');
+    return this.self().get('.user-menu');
   }
 
   /**

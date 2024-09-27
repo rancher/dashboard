@@ -1,7 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const createProxyMiddleware = require('http-proxy-middleware');
 const express = require('express');
 
 const base = path.resolve(__dirname, '.');

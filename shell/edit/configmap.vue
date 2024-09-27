@@ -8,9 +8,9 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
 export default {
-  name: 'CruConfigMap',
-
-  components: {
+  name:         'CruConfigMap',
+  inheritAttrs: false,
+  components:   {
     CruResource,
     NameNsDescription,
     KeyValue,
@@ -61,18 +61,24 @@ export default {
   },
 
   methods: {
-    async saveConfigMap() {
+    async saveConfigMap(saveCb) {
+      this.errors = [];
       const yaml = await this.$refs.cru.createResourceYaml(this.yamlModifiers);
 
-      await this.value.saveYaml(yaml);
-      this.done();
+      try {
+        await this.value.saveYaml(yaml);
+        this.done();
+      } catch (err) {
+        this.errors.push(err);
+        saveCb(false);
+      }
     },
 
     updateValue(val, type) {
-      this.$set(this.value, type, {});
+      this.value[type] = {};
 
       Object.keys(val).forEach((key) => {
-        this.$set(this.value[type], key, val[key]);
+        this.value[type][key] = val[key];
       });
     },
   }
@@ -107,7 +113,7 @@ export default {
       >
         <KeyValue
           key="data"
-          v-model="data"
+          v-model:value="data"
           :mode="mode"
           :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
@@ -125,7 +131,7 @@ export default {
       >
         <KeyValue
           key="binaryData"
-          v-model="binaryData"
+          v-model:value="binaryData"
           :initial-empty-row="true"
           :handle-base64="true"
           :add-allowed="true"

@@ -32,8 +32,16 @@ export default class CloudCredential extends NormanModel {
     };
   }
 
+  get secretName() {
+    return this.id.replace(':', '/');
+  }
+
   get secret() {
-    return this.$rootGetters['management/byId'](SECRET, this.id.replace(':', '/'));
+    return this.$rootGetters['management/byId'](SECRET, this.secretName);
+  }
+
+  async getSecret() {
+    await this.$dispatch('management/find', { type: SECRET, id: this.secretName }, { root: true });
   }
 
   get configKey() {

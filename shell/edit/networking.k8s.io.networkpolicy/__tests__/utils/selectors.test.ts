@@ -40,6 +40,6 @@ export class PolicyRuleTargetSelectors {
   }
 
   get ruleType() {
-    return this.wrapper.find('[data-testid=labeled-select-type-selector]');
+    return this.wrapper.find('[data-testid="policy-rule-target-type-labeled-select"]');
   }
 }

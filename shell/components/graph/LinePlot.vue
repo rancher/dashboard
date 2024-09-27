@@ -139,13 +139,12 @@ export default {
       :class="`lines--${i}`"
     >
       <path
-        :key="i"
         :d="lines[i]"
         class="line"
       />
       <circle
         v-for="(point, index) in set.points"
-        :key="`${index}--circle`"
+        :key="index"
         class="data-circle"
         r="4"
         :cx="scaleX([0, 10], index)"

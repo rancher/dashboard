@@ -49,7 +49,7 @@ export default class V2MonitoringPo extends PagePo {
   }
 
   addPagerDutyReceiver() {
-    return cy.get('div[add-label="Add PagerDuty"] button').click();
+    return cy.get('div[data-testid="array-list-button"] button').click();
   }
 
   receiverName() {

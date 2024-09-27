@@ -6,6 +6,8 @@ import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['input'],
+
   components: {
     Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },
@@ -24,8 +26,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
-    this.$set(this.value, 'requireTLS', this.value.requireTLS || false);
+    this.value['sendResolved'] = this.value.sendResolved || false;
+    this.value['requireTLS'] = this.value.requireTLS || false;
 
     return {
       view:                          _VIEW,
@@ -84,7 +86,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.to"
+          v-model:value="value.to"
           :mode="mode"
           label="Default Recipient Address"
           placeholder="e.g. admin@example.com"
@@ -92,7 +94,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.sendResolved"
+          v-model:value="value.sendResolved"
           :mode="mode"
           class="mt-20"
           label="Enable send resolved alerts"
@@ -105,7 +107,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.from"
+          v-model:value="value.from"
           :mode="mode"
           label="Sender"
           placeholder="e.g. admin@example.com"
@@ -115,7 +117,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.smarthost"
+          v-model:value="value.smarthost"
           :mode="mode"
           label="Host"
           placeholder="e.g. 192.168.1.121:587"
@@ -123,7 +125,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.requireTLS"
+          v-model:value="value.requireTLS"
           :mode="mode"
           class="mt-20"
           label="Use TLS"
@@ -136,7 +138,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.authUsername"
+          v-model:value="value.authUsername"
           :mode="mode"
           :label="t('monitoring.alertmanagerConfig.email.username')"
           placeholder="e.g. John"
@@ -163,10 +165,11 @@ export default {
       </Banner>
     </div>
     <TLS
-      v-model="value"
+      :value="value"
       class="mb-20"
       :mode="mode"
       :namespace="namespace"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

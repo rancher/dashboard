@@ -1,10 +1,17 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 import ContainerLogs from '@shell/components/nav/WindowManager/ContainerLogs.vue';
 import { base64Encode } from '@shell/utils/crypto';
 import { Buffer } from 'buffer';
 import { addEventListener } from '@shell/utils/socket';
+// import VirtualList from 'vue3-virtual-scroll-list';
 
 jest.mock('@shell/utils/socket');
+// jest.mock(VirtualList, () => {});
+
+const mockMyMethod = jest.fn();
+
+jest.mock('vue3-virtual-scroll-list', () => ({ myMethod: () => mockMyMethod() }));
 
 const getDefaultOptions = () => {
   return {
@@ -21,18 +28,22 @@ const getDefaultOptions = () => {
     data() {
       return { range: '30 minute' };
     },
-    mocks: {
-      $store: {
-        getters: {
-          'prefs/get':    jest.fn(),
-          'i18n/t':       jest.fn(),
-          currentProduct: { inStore: 'cluster' }
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            'prefs/get':    jest.fn(),
+            'i18n/t':       jest.fn(),
+            currentProduct: { inStore: 'cluster' }
+          }
         }
       }
     }
+
   };
 };
 
+// eslint-disable-next-line jest/no-disabled-tests
 describe('component: ContainerLogs', () => {
   it('should receive messages correctly', async() => {
     jest.clearAllMocks();
@@ -43,13 +54,13 @@ describe('component: ContainerLogs', () => {
 
     messageCallback({ detail: { data: base64Encode(data1) } });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     expect(wrapper.vm.backlog[0].rawMsg).toBe(data1.trimEnd());
     const data2 = 'container logs test2 中文日志内容测试\n';
 
     messageCallback({ detail: { data: base64Encode(data2) } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(2);
     expect(wrapper.vm.backlog[1].rawMsg).toBe(data2.trimEnd());
   });
@@ -62,7 +73,7 @@ describe('component: ContainerLogs', () => {
     const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
 
     messageCallback({ detail: { data: base64Encode(data1) } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(0);
     expect(wrapper.vm.filtered).toHaveLength(0);
   });
@@ -74,13 +85,13 @@ describe('component: ContainerLogs', () => {
     const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
 
     messageCallback({ detail: { data: base64Encode(part1) } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.backlog).toHaveLength(0);
     const part2 = 'container logs part2\n';
 
     messageCallback({ detail: { data: base64Encode(part2) } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     expect(wrapper.vm.backlog[0].rawMsg).toBe(`${ part1 }${ part2 }`.trimEnd());
   });
@@ -98,10 +109,10 @@ describe('component: ContainerLogs', () => {
     const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
 
     messageCallback({ detail: { data: part1 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
   });
@@ -118,10 +129,10 @@ describe('component: ContainerLogs', () => {
     const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
 
     messageCallback({ detail: { data: part1 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
 
@@ -130,10 +141,10 @@ describe('component: ContainerLogs', () => {
     const part4 = arr.slice(5).toString('base64');
 
     messageCallback({ detail: { data: part3 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     messageCallback({ detail: { data: part4 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(2);
     expect(wrapper.vm.backlog[1].rawMsg).toBe(message.trimEnd());
   });
@@ -152,10 +163,10 @@ describe('component: ContainerLogs', () => {
     const messageCallback = addEventListener.mock.calls.find(([e]) => e === 'message')[1];
 
     messageCallback({ detail: { data: part1 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(0);
     messageCallback({ detail: { data: part2 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     expect(wrapper.vm.backlog[0].rawMsg).toBe(message.trimEnd());
 
@@ -164,10 +175,10 @@ describe('component: ContainerLogs', () => {
     const part4 = arr.slice(6).toString('base64');
 
     messageCallback({ detail: { data: part3 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(1);
     messageCallback({ detail: { data: part4 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(2);
     expect(wrapper.vm.backlog[1].rawMsg).toBe(message.trimEnd());
 
@@ -176,10 +187,10 @@ describe('component: ContainerLogs', () => {
     const part6 = arr.slice(7).toString('base64');
 
     messageCallback({ detail: { data: part5 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(2);
     messageCallback({ detail: { data: part6 } });
-    await wrapper.vm.$nextTick();
+    await nextTick();
     expect(wrapper.vm.backlog).toHaveLength(3);
     expect(wrapper.vm.backlog[2].rawMsg).toBe(message.trimEnd());
   });

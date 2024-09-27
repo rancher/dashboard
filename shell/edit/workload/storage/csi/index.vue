@@ -53,7 +53,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -61,7 +61,7 @@ export default {
         </div>
         <div class="col span-6">
           <Checkbox
-            v-model="value.csi.readOnly"
+            v-model:value="value.csi.readOnly"
             :mode="mode"
             :label="t('workload.storage.readOnly')"
           />
@@ -70,7 +70,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.csi.driver"
+            v-model:value="value.csi.driver"
             :mode="mode"
             :label="t('workload.storage.driver')"
             :options="driverOpts"
@@ -85,7 +85,7 @@ export default {
       >
         <component
           :is="driverComponent"
-          v-model="value.csi.volumeAttributes"
+          v-model:value="value.csi.volumeAttributes"
           :mode="mode"
         />
       </div>

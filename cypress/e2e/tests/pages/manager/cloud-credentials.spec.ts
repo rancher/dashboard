@@ -8,6 +8,14 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
 
   before(() => {
     cy.login();
+
+    cy.getRancherResource('v3', 'cloudCredentials').then((resp: Cypress.Response<any>) => {
+      const credentials = resp.body.data;
+
+      credentials.forEach( (credential) => {
+        cy.deleteRancherResource('v3', 'cloudCredentials', credential.id.trim(), false);
+      });
+    });
   });
 
   beforeEach(() => {

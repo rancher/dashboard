@@ -9,11 +9,12 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name: 'ServiceAccount',
-
-  components: {
+  name:         'ServiceAccount',
+  inheritAttrs: false,
+  components:   {
     CruResource,
     NameNsDescription,
     Checkbox,
@@ -36,27 +37,67 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch(`cluster/findAll`, { type: SECRET });
+    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](SECRET);
+
+    if (this.filterByApi) {
+      this.filteredSecrets = await this.filterSecretsByApi();
+    } else {
+      this.allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
   },
 
   mixins: [CreateEditView],
-  data() {
-    this.$set(this.value, 'automountServiceAccountToken', this.value.automountServiceAccountToken || false);
 
-    return { allSecrets: [] };
+  data() {
+    this.value['automountServiceAccountToken'] = this.value.automountServiceAccountToken || false;
+
+    return {
+      allSecrets:      [],
+      filteredSecrets: null,
+      secretTypes:     [SECRET_TYPES.DOCKER, SECRET_TYPES.DOCKER_JSON]
+    };
+  },
+
+  watch: {
+    async 'value.metadata.namespace'() {
+      if (this.filterByApi) {
+        this.filteredSecrets = await this.filterSecretsByApi();
+      }
+    }
+  },
+
+  methods: {
+    filterSecretsByApi() {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.value.metadata.namespace,
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
+            field:  'metadata.fields.1',
+            value:  t,
+            equals: true
+          })))
+        }),
+      };
+
+      return this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
+    },
   },
 
   computed: {
     namespacedSecrets() {
+      if (this.filterByApi) {
+        return this.filteredSecrets;
+      }
+
       const namespace = this.value?.metadata?.namespace;
 
-      return this.allSecrets.filter((secret) => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+      return this.allSecrets.filter((secret) => secret.metadata.namespace === namespace && this.secretTypes.includes(secret._type));
     },
 
     imagePullSecrets: {
       get() {
         if (!this.value.imagePullSecrets) {
-          this.$set(this.value, 'imagePullSecrets', []);
+          this.value['imagePullSecrets'] = [];
         }
         const { imagePullSecrets } = this.value;
 
@@ -110,7 +151,7 @@ export default {
         <div class="row">
           <div class="col mt-20">
             <Checkbox
-              v-model="value.automountServiceAccountToken"
+              v-model:value="value.automountServiceAccountToken"
               :label="t('serviceAccount.automount')"
               type="checkbox"
               :mode="mode"
@@ -122,8 +163,9 @@ export default {
             <h3>{{ t('serviceAccount.imagePullSecrets') }}</h3>
 
             <LabeledSelect
-              v-model="imagePullSecrets"
-              :label="t('workload.container.imagePullSecrets')"
+              v-model:value="imagePullSecrets"
+              label-key="workload.container.imagePullSecrets.label"
+              :tooltip="t('workload.container.imagePullSecrets.tooltip')"
               :multiple="true"
               :options="namespacedSecrets"
               :mode="mode"

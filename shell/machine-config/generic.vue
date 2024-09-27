@@ -6,6 +6,8 @@ import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading, Banner, Questions
   },
@@ -88,13 +90,14 @@ export default {
   </div>
   <div v-else>
     <Questions
-      v-model="value"
+      :value="value"
       :mode="mode"
       :tabbed="false"
       :source="fields"
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
       :disabled="disabled"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

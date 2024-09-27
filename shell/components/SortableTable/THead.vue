@@ -5,6 +5,8 @@ import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update-cols-options', 'on-toggle-all', 'group-value-change', 'on-sort-change', 'col-visibility-change'],
+
   components: { Checkbox, LabeledSelect },
   props:      {
     columns: {
@@ -136,6 +138,9 @@ export default {
     isIndeterminate() {
       return this.howMuchSelected === SOME;
     },
+    hasColumnWithSubLabel() {
+      return this.columns.some((col) => col.subLabel);
+    }
   },
 
   methods: {
@@ -206,14 +211,13 @@ export default {
 
 <template>
   <thead>
-    <tr :class="{'loading': loading}">
+    <tr :class="{'loading': loading, 'top-aligned': hasColumnWithSubLabel}">
       <th
         v-if="tableActions"
         :width="checkWidth"
-        align="middle"
       >
         <Checkbox
-          v-model="isAll"
+          v-model:value="isAll"
           class="check"
           data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
@@ -225,7 +229,7 @@ export default {
         :width="expandWidth"
       />
       <th
-        v-for="col in columns"
+        v-for="(col) in columns"
         v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
         :key="col.name"
         :align="col.align || 'left'"
@@ -300,7 +304,7 @@ export default {
             >
               <span class="table-options-col-subtitle">{{ t('sortableTable.tableHeader.groupBy') }}:</span>
               <LabeledSelect
-                v-model="advGroup"
+                v-model:value="advGroup"
                 class="table-options-grouping-select"
                 :clearable="true"
                 :options="groupOptions"
@@ -323,10 +327,10 @@ export default {
               >
                 <Checkbox
                   v-show="!col.preventColToggle"
-                  v-model="col.isColVisible"
+                  v-model:value="col.isColVisible"
                   class="table-options-checkbox"
                   :label="col.label"
-                  @input="tableOptionsCheckbox($event, col.label)"
+                  @update:value="tableOptionsCheckbox($event, col.label)"
                 />
               </li>
             </ul>
@@ -399,6 +403,11 @@ export default {
         text-decoration: underline;
         color: var(--body-text);
       }
+    }
+
+    .top-aligned th {
+      vertical-align: top;
+      padding-top: 10px;
     }
 
     thead {

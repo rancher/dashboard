@@ -2,27 +2,28 @@ import { mount } from '@vue/test-utils';
 import FormValidation from '@shell/mixins/form-validation';
 import Monitoring from '@shell/edit/monitoring.coreos.com.prometheusrule/index.vue';
 import { _EDIT } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('edit: management.cattle.io.setting should', () => {
   const MOCKED_ERRORS = ['error1', 'error2', 'error3', 'error4', 'error5'];
   const ERROR_BANNER_SELECTOR = '[data-testid="banner-close"]';
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks: {
-      $store: {
-        dispatch: jest.fn(),
-        getters:  {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  jest.fn(),
-          'i18n/exists':             jest.fn(),
-          namespaces:                () => ({})
-        }
-      },
-      $route:  { query: { AS: '' }, name: '' },
-      $router: { applyQuery: jest.fn() }
+    global: {
+      mocks: {
+        $store: {
+          dispatch: jest.fn(),
+          getters:  {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+            namespaces:                () => ({})
+          }
+        },
+        $route:  { query: { AS: '' }, name: '' },
+        $router: { applyQuery: jest.fn() }
+      }
     }
   });
 
@@ -30,14 +31,13 @@ describe('edit: management.cattle.io.setting should', () => {
     jest.spyOn(FormValidation.computed, 'fvUnreportedValidationErrors').mockReturnValue(MOCKED_ERRORS);
 
     const wrapper = mount(Monitoring, {
-      propsData: {
+      props: {
         canYaml:  false,
         mode:     _EDIT,
         resource: {},
         value:    { value: 'anything' },
         name:     ''
       },
-      directives: { cleanHtmlDirective },
       ...requiredSetup()
     });
 

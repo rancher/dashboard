@@ -42,8 +42,8 @@ export default {
     matchChanged(expressions) {
       const { matchLabels, matchExpressions } = simplify(expressions);
 
-      this.$set(this.value.selector, 'matchLabels', matchLabels);
-      this.$set(this.value.selector, 'matchExpressions', matchExpressions);
+      this.value.selector['matchLabels'] = matchLabels;
+      this.value.selector['matchExpressions'] = matchExpressions;
     },
   },
 };
@@ -54,7 +54,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :mode="mode"
           :label="t('hpa.metricIdentifier.name.label')"
           :required="true"

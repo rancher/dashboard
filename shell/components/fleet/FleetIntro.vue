@@ -1,31 +1,25 @@
 <script>
-import { AS, _YAML } from '@shell/config/query-params';
 import { FLEET } from '@shell/config/types';
+import { NAME } from '@shell/config/product/fleet';
 
 export default {
 
   name: 'FleetIntro',
 
   data() {
-    const params = { ...this.$route.params };
-
-    const formRoute = { name: `${ this.$route.name }-create`, params };
-
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
-
-    const yamlRoute = {
-      name:  `${ this.$route.name }-create`,
-      params,
-      query: { [AS]: _YAML },
+    const gitRepoRoute = {
+      name:   'c-cluster-product-resource-create',
+      params: {
+        product:  NAME,
+        resource: FLEET.GIT_REPO
+      },
     };
 
     const gitRepoSchema = this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
     const canCreateRepos = gitRepoSchema && gitRepoSchema.resourceMethods.includes('PUT');
 
     return {
-      formRoute,
-      yamlRoute,
-      hasEditComponent,
+      gitRepoRoute,
       canCreateRepos
     };
   },
@@ -42,7 +36,7 @@ export default {
       class="actions"
     >
       <router-link
-        :to="formRoute"
+        :to="gitRepoRoute"
         class="btn role-secondary"
       >
         {{ t('fleet.gitRepo.repo.addRepo') }}

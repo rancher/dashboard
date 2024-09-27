@@ -2,6 +2,8 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import BasicsRke2 from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/tabs/basics-tab-rke2.po';
+import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 
 /**
  * Covers core functionality that's common to the dashboard's import or create cluster pages
@@ -23,6 +25,12 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
     cloudCredSelect.clickOptionWithLabel(label);
   }
 
+  selectTab(options: TabbedPo, selector: string) {
+    options.clickTabWithSelector(selector);
+
+    return this;
+  }
+
   create() {
     return this.resourceDetail().createEditView().create();
   }
@@ -33,5 +41,9 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
 
   saveAndWait() {
     return this.resourceDetail().createEditView().saveAndWait();
+  }
+
+  basicsTab(): BasicsRke2 {
+    return new BasicsRke2();
   }
 }

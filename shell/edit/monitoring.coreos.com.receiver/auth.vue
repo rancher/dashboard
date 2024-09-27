@@ -24,7 +24,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'basic_auth', this.value.basic_auth || {});
+    this.value['basic_auth'] = this.value.basic_auth || {};
 
     const authOptions = [
       {
@@ -62,9 +62,9 @@ export default {
     initializeType(authOptions, type) {
       authOptions.forEach((authOption) => {
         if (authOption.value === type && type !== 'none') {
-          this.$set(this.value, authOption.value, this.value[authOption.value] || authOption.default);
+          this.value[authOption.value] = this.value[authOption.value] || authOption.default;
         } else if (typeof this.value[authOption.value] !== 'undefined') {
-          this.$delete(this.value, authOption.value);
+          delete this.value[authOption.value];
         }
       });
     },
@@ -82,10 +82,10 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledSelect
-          v-model="authType"
+          v-model:value="authType"
           :options="authOptions"
           label="Auth Type"
-          @input="initializeType(authOptions, authType)"
+          @update:value="initializeType(authOptions, authType)"
         />
       </div>
     </div>
@@ -95,14 +95,14 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.basic_auth.username"
+          v-model:value="value.basic_auth.username"
           :mode="mode"
           :label="t('monitoringReceiver.auth.username')"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.basic_auth.password"
+          v-model:value="value.basic_auth.password"
           :mode="mode"
           :label="t('monitoringReceiver.auth.password')"
           type="password"
@@ -116,7 +116,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.bearer_token"
+          v-model:value="value.bearer_token"
           :mode="mode"
           :label="t('monitoringReceiver.auth.bearerToken.label')"
           :placeholder="t('monitoringReceiver.auth.bearerToken.placeholder')"
@@ -131,7 +131,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.bearer_token_file"
+          v-model:value="value.bearer_token_file"
           :mode="mode"
           :label="t('monitoringReceiver.auth.bearerTokenFile.label')"
           :placeholder="t('monitoringReceiver.auth.bearerTokenFile.placeholder')"

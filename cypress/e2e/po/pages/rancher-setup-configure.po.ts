@@ -4,6 +4,7 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 export class RancherSetupConfigurePage extends PagePo {
   static url = '/auth/setup'
@@ -29,6 +30,14 @@ export class RancherSetupConfigurePage extends PagePo {
 
   serverUrl(): LabeledInputPo {
     return new LabeledInputPo(cy.getId('setup-server-url'));
+  }
+
+  serverUrlLocalhostWarningBanner(): BannersPo {
+    return new BannersPo('[data-testid="setup-serverurl-localhost-warning"]');
+  }
+
+  errorBannerContent(label: string): Cypress.Chainable {
+    return new BannersPo('[data-testid="setup-error-banner"]', this.self()).banner().contains(label);
   }
 
   termsAgreement(): CheckboxInputPo {

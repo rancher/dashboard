@@ -1,6 +1,6 @@
 # Concepts
 
-## Overview on routing structure for a top-level Extension product
+## Overview on routing structure for Rancher Dashboard
 
 To become familiar with routing on VueJS and route definition we recommend that you should give a read about the [Essentials on Vue Router](https://v3.router.vuejs.org/guide/) and also the definition of a [Vue Router route](https://v3.router.vuejs.org/api/#routes).
 
@@ -21,6 +21,10 @@ const clusterManagerRoute = {
   params: {
     cluster: '_',
     product: 'fleet'
+  },
+  meta: {
+    cluster: '_',
+    product: 'fleet'
   }
 }
 ```
@@ -36,6 +40,10 @@ const baseRouteForATopLevelProduct = {
   name: `${ YOUR_EXT_PRODUCT_NAME }-c-cluster`,
   path: `/${ YOUR_EXT_PRODUCT_NAME }/c/:cluster`,
   params: {
+    cluster: '_',
+    product: YOUR_EXT_PRODUCT_NAME
+  },
+  meta: {
     cluster: '_',
     product: YOUR_EXT_PRODUCT_NAME
   }
@@ -56,13 +64,15 @@ const routeForATopLevelProductResource = {
     cluster: '_',
     product: YOUR_EXT_PRODUCT_NAME
     resource: RESOURCE_NAME
+  },
+  meta: {
+    cluster: '_',
+    product: YOUR_EXT_PRODUCT_NAME
   }
 }
 ```
 
-With this quick guide on routing for top-level Extension products, we should be ready to cover the registration of custom pages, resource pages and general route definition. For more detailed information, check this page about [top-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product).
+With this overview on how routing works in Rancher Dashboard, we should be ready to cover the registration of custom pages, resource pages and general route definition. For more detailed information on **top-level product routing**, check this page [here](./nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product).
 
-## Overview on routing structure for a cluster-level Extension product
-
-The previous chapter covers the basics on routing, which should be more than enough to get you started, but if you are looking for detailed information on routing for a cluster-level product, check this page about [cluster-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product).
+If you are interested in **cluster-level product routing**, check this page [here](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product).
 

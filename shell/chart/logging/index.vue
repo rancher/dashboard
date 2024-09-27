@@ -28,10 +28,10 @@ export default {
       // Save a note so that form -> yaml -> form doesn't reset these
       Object.defineProperty(this.value, '_setSources', { enumerable: false, value: true });
 
-      this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
-      this.$set(this.value.additionalLoggingSources, provider, this.value.additionalLoggingSources[provider] || {});
-      this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
-      this.$set(this.value, 'global', this.value.global || {});
+      this.value['additionalLoggingSources'] = this.value.additionalLoggingSources || {};
+      this.value.additionalLoggingSources[provider] = this.value.additionalLoggingSources[provider] || {};
+      this.value.additionalLoggingSources[provider]['enabled'] = true;
+      this.value['global'] = this.value.global || {};
     }
   },
 };
@@ -45,7 +45,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.additionalLoggingSources.k3s.container_engine"
+          v-model:value="value.additionalLoggingSources.k3s.container_engine"
           :label="t('logging.install.k3sContainerEngine')"
         />
       </div>
@@ -53,7 +53,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.global.dockerRootDirectory"
+          v-model:value="value.global.dockerRootDirectory"
           :label="t('logging.install.dockerRootDirectory')"
         />
       </div>
@@ -61,7 +61,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.systemdLogPath"
+          v-model:value="value.systemdLogPath"
           :placeholder="t('logging.install.default')"
           :label="t('logging.install.systemdLogPath')"
           :tooltip="t('logging.install.tooltip', {}, true)"
@@ -75,7 +75,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
-          v-model="value.additionalLoggingSources[provider].enabled"
+          v-model:value="value.additionalLoggingSources[provider].enabled"
           :label="t('logging.install.enableAdditionalLoggingSources')"
         />
       </div>

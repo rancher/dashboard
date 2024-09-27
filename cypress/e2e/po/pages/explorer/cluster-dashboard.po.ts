@@ -2,6 +2,10 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog.po';
 import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
+import { HeaderPo } from '~/cypress/e2e/po/components/header.po';
+
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer`;
@@ -22,27 +26,41 @@ export default class ClusterDashboardPagePo extends PagePo {
     burgerMenu.clusters().contains(clusterId).click();
   }
 
-  clusterToolsButton(): Cypress.Chainable {
-    return cy.get('.tools-button').contains('Cluster Tools');
-  }
-
-  addCustomBadge(label: string) {
-    return cy.getId('add-custom-cluster-badge').contains(label);
+  customizeAppearanceButton() {
+    return cy.getId('add-custom-cluster-badge');
   }
 
   customBadge(): CustomBadgeDialogPo {
     return new CustomBadgeDialogPo();
   }
 
-  eventslist(): EventsListPo {
+  eventsList(): EventsListPo {
     return new EventsListPo('[data-testid="sortable-table-list-container"]');
+  }
+
+  certificates(): CertificatesPo {
+    return new CertificatesPo();
+  }
+
+  clickCertificatesTab() {
+    this.tabs().self().scrollIntoView();
+
+    return this.tabs().clickNthTab(2);
+  }
+
+  tabs() {
+    return new TabbedPo('[data-testid="tabbed"]');
   }
 
   fullEventsLink() {
     return cy.get('.events-table-link').contains('Full events list');
   }
 
-  resourceSearchButton(): Cypress.Chainable {
-    return cy.get('[data-testid="header-resource-search"]');
+  fullSecretsList() {
+    return cy.get('.cert-table-link').contains('Full secrets list');
+  }
+
+  clusterActionsHeader() {
+    return new HeaderPo();
   }
 }

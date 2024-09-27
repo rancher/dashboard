@@ -25,6 +25,10 @@ export default class ConfigMapPo extends CreateEditViewPo {
     return LabeledInputPo.byLabel(this.self(), 'Description');
   }
 
+  errorBanner() {
+    return cy.get('#cru-errors');
+  }
+
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }

@@ -1,5 +1,7 @@
 <script>
 export default {
+  emits: ['update:value'],
+
   props: {
     value: {
       type:     [String, Number, Boolean, Object],
@@ -61,7 +63,7 @@ export default {
 
   methods: {
     change(value) {
-      this.$emit('input', value);
+      this.$emit('update:value', value);
     }
   }
 };

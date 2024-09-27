@@ -44,7 +44,7 @@ export default {
         return this.value.emptyDir.medium ?? '';
       },
       set(v) {
-        this.$set(this.value.emptyDir, 'medium', v);
+        this.value.emptyDir['medium'] = v;
       }
     },
   },
@@ -55,7 +55,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -63,7 +63,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-model="medium"
+          v-model:value="medium"
           :mode="mode"
           :label="t('workload.storage.emptyDir.medium.label')"
           :options="mediumOpts"
@@ -74,7 +74,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <UnitInput
-          v-model="value.emptyDir.sizeLimit"
+          v-model:value="value.emptyDir.sizeLimit"
           :mode="mode"
           :label="t('workload.storage.emptyDir.sizeLimit.label')"
           :increment="1024"

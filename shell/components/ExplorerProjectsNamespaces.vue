@@ -358,7 +358,7 @@ export default {
 </script>
 
 <template>
-  <div class="project-namespaces">
+  <div class="project-namespaces outlet">
     <Masthead
       :schema="projectSchema"
       :type-display="t('projectNamespaces.label')"
@@ -372,7 +372,7 @@ export default {
     >
       <template
         v-if="showCreateNsButton"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="createNamespaceLocationFlatList()"
@@ -391,8 +391,8 @@ export default {
     />
     <ResourceTable
       ref="table"
+      v-bind="{...$attrs, class: null }"
       class="table project-namespaces-table"
-      v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
@@ -401,7 +401,6 @@ export default {
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
-      v-on="$listeners"
     >
       <template #group-by="group">
         <div
@@ -473,11 +472,11 @@ export default {
         </div>
       </template>
       <template
-        v-for="project in projectsWithoutNamespaces"
+        v-for="(project, i) in projectsWithoutNamespaces"
+        :key="i"
         v-slot:[slotName(project)]
       >
         <tr
-          :key="project.id"
           class="main-row"
         >
           <td
@@ -504,7 +503,7 @@ export default {
 </template>
 <style lang="scss" scoped>
 .project-namespaces {
-  & ::v-deep {
+  & :deep() {
     .project-namespaces-table table {
       table-layout: fixed;
     }

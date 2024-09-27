@@ -37,8 +37,8 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     this.self().find('.toggle-container').should(assertion);
   }
 
-  gridElementExistance(groupIndex = 0, itemIndex = 0, assertion: string) {
-    this.self().find(`[data-testid="cluster-manager-create-grid-${ groupIndex }-${ itemIndex }"]`).should(assertion);
+  gridElementExistanceByName(name: string, assertion: string) {
+    return this.self().contains('.grid .name', name, { timeout: 10000 }).should(assertion);
   }
 
   selectKubeProvider(index: number) {

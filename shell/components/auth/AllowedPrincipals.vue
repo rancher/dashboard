@@ -4,7 +4,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Principal from '@shell/components/auth/Principal';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { _EDIT } from '@shell/config/query-params';
-import { addObject } from '@shell/utils/array';
+import uniq from 'lodash/uniq';
 
 export default {
   components: {
@@ -48,15 +48,15 @@ export default {
 
   created() {
     if ( !this.authConfig.accessMode ) {
-      this.$set(this.authConfig, 'accessMode', 'restricted');
+      this.authConfig['accessMode'] = 'restricted';
     } if (!this.authConfig.allowedPrincipalIds) {
-      this.$set(this.authConfig, 'allowedPrincipalIds', []);
+      this.authConfig['allowedPrincipalIds'] = [];
     }
   },
 
   methods: {
     addPrincipal(id) {
-      addObject(this.authConfig.allowedPrincipalIds, id);
+      this.authConfig.allowedPrincipalIds = uniq([...this.authConfig.allowedPrincipalIds, id]);
     },
   }
 };
@@ -69,7 +69,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="authConfig.accessMode"
+          v-model:value="authConfig.accessMode"
           name="accessMode"
           :mode="mode"
           :options="accessModeOptions"
@@ -85,14 +85,13 @@ export default {
         <ArrayList
           v-if="accessMode!=='unrestricted'"
           key="allowedPrincipalIds"
-          v-model="authConfig.allowedPrincipalIds"
+          v-model:value="authConfig.allowedPrincipalIds"
           title-key="authConfig.allowedPrincipalIds.label"
           :mode="mode"
           :protip="false"
         >
           <template #value="{row}">
             <Principal
-              :key="row.value"
               :value="row.value"
             />
           </template>

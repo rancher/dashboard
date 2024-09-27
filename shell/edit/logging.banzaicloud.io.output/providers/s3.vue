@@ -33,7 +33,7 @@ export default {
         return this.value.overwrite === 'true';
       },
       set(value) {
-        this.$set(this.value, 'overwrite', value.toString());
+        this.value['overwrite'] = value.toString();
       }
     }
   }
@@ -50,7 +50,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.s3_endpoint"
+          v-model:value="value.s3_endpoint"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.s3.endpoint')"
@@ -58,7 +58,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.s3_bucket"
+          v-model:value="value.s3_bucket"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.s3.bucket')"
@@ -68,7 +68,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.path"
+          v-model:value="value.path"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.s3.path')"
@@ -76,7 +76,7 @@ export default {
       </div>
       <div class="col span-6 overwrite">
         <Checkbox
-          v-model="overwrite"
+          v-model:value="overwrite"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.s3.overwriteExistingPath')"
@@ -92,7 +92,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_key_id"
+          v-model:value="value.aws_key_id"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -102,7 +102,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_sec_key"
+          v-model:value="value.aws_sec_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

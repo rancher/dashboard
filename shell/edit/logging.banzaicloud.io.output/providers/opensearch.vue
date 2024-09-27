@@ -38,17 +38,17 @@ export default {
 
       // Require SSL verification by default
       if (typeof this.value.ssl_verify === 'undefined') {
-        this.$set(this.value, 'ssl_verify', true);
+        this.value['ssl_verify'] = true;
       }
 
       // Use the SSL version TLSv1_2 by default to match Ember
       if (typeof this.value.ssl_version === 'undefined') {
-        this.$set(this.value, 'ssl_version', sslVersions[0]);
+        this.value['ssl_version'] = sslVersions[0];
       }
 
       // Suppress type name by default
       if (typeof this.value.suppress_type_name === 'undefined') {
-        this.$set(this.value, 'suppress_type_name', true);
+        this.value['suppress_type_name'] = true;
       }
     }
 
@@ -60,7 +60,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value, 'port', value), port);
+        updatePort((value) => (this.value['port'] = value), port);
       }
     }
   }
@@ -77,7 +77,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-2">
         <LabeledSelect
-          v-model="value.scheme"
+          v-model:value="value.scheme"
           :mode="mode"
           :disabled="disabled"
           class="scheme"
@@ -87,7 +87,7 @@ export default {
       </div>
       <div class="col span-8">
         <LabeledInput
-          v-model="value.host"
+          v-model:value="value.host"
           :mode="mode"
           :disabled="disabled"
           class="host"
@@ -96,7 +96,7 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model.number="port"
+          v-model:value.number="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
@@ -110,7 +110,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.index_name"
+          v-model:value="value.index_name"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.elasticsearch.indexName')"
@@ -126,7 +126,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.user"
+          v-model:value="value.user"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.elasticsearch.user')"
@@ -134,7 +134,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.password"
+          v-model:value="value.password"
           :secret-name-label="t('logging.elasticsearch.password')"
           :mode="mode"
           :namespace="namespace"
@@ -152,7 +152,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ca_file"
+          v-model:value="value.ca_file"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -163,7 +163,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.client_cert"
+          v-model:value="value.client_cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -176,7 +176,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.client_key"
+          v-model:value="value.client_key"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -187,7 +187,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.client_key_pass"
+          v-model:value="value.client_key_pass"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -199,13 +199,13 @@ export default {
     <div class="row mb-10">
       <div class="col span-6 vertically-center">
         <Checkbox
-          v-model="value.ssl_verify"
+          v-model:value="value.ssl_verify"
           :label="t('logging.elasticsearch.verifySsl')"
           :disabled="disabled"
           :mode="mode"
         />
         <Checkbox
-          v-model="value.suppress_type_name"
+          v-model:value="value.suppress_type_name"
           :label="t('logging.elasticsearch.suppressTypeName.label')"
           :tooltip="t('logging.elasticsearch.suppressTypeName.openSearchTips')"
           :disabled="disabled"

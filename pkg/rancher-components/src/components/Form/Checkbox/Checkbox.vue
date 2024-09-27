@@ -173,15 +173,15 @@ export default defineComponent({
         } else {
           addObject(value, this.valueWhenTrue);
         }
-        this.$emit('input', value);
+        this.$emit('update:value', value);
       } else if (this.isString(this.valueWhenTrue)) {
         if (this.isChecked) {
-          this.$emit('input', null);
+          this.$emit('update:value', null);
         } else {
-          this.$emit('input', this.valueWhenTrue);
+          this.$emit('update:value', this.valueWhenTrue);
         }
       } else {
-        this.$emit('input', !value);
+        this.$emit('update:value', !value);
         this.$el.dispatchEvent(click);
       }
     },

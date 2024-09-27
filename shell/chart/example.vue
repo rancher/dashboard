@@ -14,5 +14,5 @@ export default {
 </script>
 
 <template>
-  <LabeledInput v-model="value.foo" />
+  <LabeledInput v-model:value="value.foo" />
 </template>

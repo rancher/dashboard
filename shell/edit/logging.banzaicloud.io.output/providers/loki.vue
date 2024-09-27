@@ -43,7 +43,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.url"
+          v-model:value="value.url"
           :mode="mode"
           :disabled="disabled"
           class="url"
@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tenant"
+          v-model:value="value.tenant"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.loki.tenant')"
@@ -70,7 +70,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.username"
+          v-model:value="value.username"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -80,7 +80,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.password"
+          v-model:value="value.password"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -98,7 +98,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ca_cert"
+          v-model:value="value.ca_cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -109,7 +109,7 @@ export default {
       </div>
       <div class="col span-6 mb-10">
         <SecretSelector
-          v-model="value.cert"
+          v-model:value="value.cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -122,7 +122,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.key"
+          v-model:value="value.key"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -141,7 +141,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-12">
         <Checkbox
-          v-model="value.configure_kubernetes_labels"
+          v-model:value="value.configure_kubernetes_labels"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.loki.configureKubernetesLabels')"
@@ -151,7 +151,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-12">
         <Checkbox
-          v-model="value.extract_kubernetes_labels"
+          v-model:value="value.extract_kubernetes_labels"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.loki.extractKubernetesLabels')"
@@ -161,7 +161,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-12">
         <Checkbox
-          v-model="value.drop_single_key"
+          v-model:value="value.drop_single_key"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.loki.dropSingleKey')"

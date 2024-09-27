@@ -56,10 +56,10 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'azureDisk', this.value.spec.azureDisk || {});
-    this.$set(this.value.spec.azureDisk, 'readOnly', this.value.spec.azureDisk.readOnly || false);
-    this.$set(this.value.spec.azureDisk, 'cachingMode', this.value.spec.azureDisk.cachingMode || cachingModeOptions[0].value);
-    this.$set(this.value.spec.azureDisk, 'kind', this.value.spec.azureDisk.kind || kindOptions[2].value);
+    this.value.spec['azureDisk'] = this.value.spec.azureDisk || {};
+    this.value.spec.azureDisk['readOnly'] = this.value.spec.azureDisk.readOnly || false;
+    this.value.spec.azureDisk['cachingMode'] = this.value.spec.azureDisk.cachingMode || cachingModeOptions[0].value;
+    this.value.spec.azureDisk['kind'] = this.value.spec.azureDisk.kind || kindOptions[2].value;
 
     return {
       kindOptions, readOnlyOptions, cachingModeOptions
@@ -73,7 +73,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureDisk.diskName"
+          v-model:value="value.spec.azureDisk.diskName"
           :required="true"
           :mode="mode"
           :label="t('persistentVolume.azureDisk.diskName.label')"
@@ -82,7 +82,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureDisk.diskURI"
+          v-model:value="value.spec.azureDisk.diskURI"
           :required="true"
           :mode="mode"
           :label="t('persistentVolume.azureDisk.diskURI.label')"
@@ -94,7 +94,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureDisk.kind"
+          v-model:value="value.spec.azureDisk.kind"
           name="kind"
           :mode="mode"
           :label="t('persistentVolume.azureDisk.kind.label')"
@@ -103,7 +103,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureDisk.cachingMode"
+          v-model:value="value.spec.azureDisk.cachingMode"
           name="cachingMode"
           :mode="mode"
           :label="t('persistentVolume.azureDisk.cachingMode.label')"
@@ -115,7 +115,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.azureDisk.fsType"
+          v-model:value="value.spec.azureDisk.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -123,7 +123,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureDisk.readOnly"
+          v-model:value="value.spec.azureDisk.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

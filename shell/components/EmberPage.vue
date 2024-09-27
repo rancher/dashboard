@@ -43,6 +43,8 @@ const INTERCEPTS = {
 };
 
 export default {
+  emits: ['before-nav'],
+
   components: { Loading },
 
   props: {
@@ -138,7 +140,7 @@ export default {
     this.initFrame();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('message', this.receiveMessage);
 
     if (this.heightSync) {

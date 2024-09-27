@@ -1,10 +1,10 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import { MonitoringTab } from './monitoring-tab.po';
 
-export class PrometheusTab extends ComponentPo {
-  constructor(selector = '.dashboard-root') {
-    super(selector);
+export class PrometheusTab extends MonitoringTab {
+  tabID(): string {
+    return 'prometheus';
   }
 
   persistentStorage(): CheckboxInputPo {

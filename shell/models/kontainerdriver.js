@@ -8,19 +8,21 @@ export default class KontainerDriver extends Driver {
   get _availableActions() {
     const out = [
       {
-        action:   'activate',
-        label:    'Activate',
-        icon:     'icon icon-play',
-        bulkable: true,
-        enabled:  !!this.links.update && !this.active
+        action:     'activate',
+        label:      this.t('action.activate'),
+        icon:       'icon icon-play',
+        bulkable:   true,
+        bulkAction: 'activateBulk',
+        enabled:    !!this.links.update && !this.active
       },
       {
-        action:   'deactivate',
-        label:    'Deactivate',
-        icon:     'icon icon-pause',
-        bulkable: true,
-        enabled:  !!this.links.update && !!this.active,
-        weight:   -1
+        action:     'deactivate',
+        label:      this.t('action.deactivate'),
+        icon:       'icon icon-pause',
+        bulkable:   true,
+        bulkAction: 'deactivateBulk',
+        enabled:    !!this.links.update && !!this.active,
+        weight:     -1
       },
       { divider: true },
       {
@@ -52,9 +54,16 @@ export default class KontainerDriver extends Driver {
     return out;
   }
 
-  deactivate() {
+  deactivate(resources = [this]) {
     this.$dispatch('promptModal', {
-      componentProps: { url: `v3/kontainerDrivers/${ escape(this.id) }?action=deactivate`, name: this.nameDisplay },
+      componentProps: { drivers: resources, driverType: 'kontainerDrivers' },
+      component:      'DeactivateDriverDialog'
+    });
+  }
+
+  deactivateBulk(resources) {
+    this.$dispatch('promptModal', {
+      componentProps: { drivers: resources, driverType: 'kontainerDrivers' },
       component:      'DeactivateDriverDialog'
     });
   }
@@ -64,5 +73,13 @@ export default class KontainerDriver extends Driver {
       url:    `v3/kontainerDrivers/${ escape(this.id) }?action=activate`,
       method: 'post',
     }, { root: true });
+  }
+
+  async activateBulk(resources) {
+    await Promise.all(resources.map((resource) => this.$dispatch('rancher/request', {
+      url:    `v3/kontainerDrivers/${ escape(resource.id) }?action=activate`,
+      method: 'post',
+    }, { root: true }
+    )));
   }
 }

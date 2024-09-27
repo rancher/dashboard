@@ -1,16 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
-
-import InstallRedirect from '@shell/utils/install-redirect';
-
-import { NAME, CHART_NAME, NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
+import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 import LazyImage from '@shell/components/LazyImage';
+import Loading from '@shell/components/Loading';
 
 export default {
-  components: { LazyImage },
-
-  middleware: InstallRedirect(NAME, CHART_NAME, undefined, false),
+  components: { LazyImage, Loading },
 
   data() {
     return {
@@ -37,7 +33,8 @@ export default {
 </script>
 
 <template>
-  <section>
+  <Loading v-if="$fetchState.pending" />
+  <section v-else>
     <header class="row">
       <div class="col span-12">
         <h1>
@@ -53,8 +50,8 @@ export default {
     </header>
     <div class="links">
       <div
-        v-for="fel in externalLinks"
-        :key="fel.label"
+        v-for="(fel, i) in externalLinks"
+        :key="i"
         class="link-container"
       >
         <a

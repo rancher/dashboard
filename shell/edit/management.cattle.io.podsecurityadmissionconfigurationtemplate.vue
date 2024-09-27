@@ -5,13 +5,14 @@ import CruResource from '@shell/components/CruResource.vue';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission.vue';
 import Loading from '@shell/components/Loading.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
-import { PSA, PSAConfig, PSADefaults, PSAExemptions } from '@shell/types/pod-security-admission';
+import { PSA, PSAConfig, PSADefaults, PSAExemptions } from '@shell/types/resources/pod-security-admission';
 import { PSADimensions } from '@shell/config/pod-security-admission';
 import { MANAGEMENT } from '@shell/config/types';
 
 export default defineComponent({
-  mixins:     [CreateEditView],
-  components: {
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
+  components:   {
     CruResource,
     Loading,
     NameNsDescription,

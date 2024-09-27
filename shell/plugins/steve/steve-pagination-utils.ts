@@ -3,7 +3,9 @@ import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespa
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, NODE, POD } from '@shell/config/types';
+import {
+  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+} from '@shell/config/types';
 import { Schema } from 'plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -105,7 +107,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      { field: 'metadata.state.name' },
+      // { field: 'id' }, // Pending API support
+      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -116,8 +120,26 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.nodeName' },
     ],
     [MANAGEMENT.NODE]: [
-      { field: 'status.nodeName' }
+      { field: 'status.nodeName' },
+    ],
+    [CONFIG_MAP]: [
+      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    ],
+    [NAMESPACE]: [
+      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ]
+  }
+
+  private convertArrayPath(path: string): string {
+    if (path.startsWith('metadata.fields.')) {
+      return `metadata.fields[${ path.substring(16) }]`;
+    }
+
+    return path;
+  }
+
+  public createSortForPagination(sortByPath: string): string {
+    return this.convertArrayPath(sortByPath);
   }
 
   /**
@@ -217,8 +239,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     if (opt.pagination.page) {
       params.push(`page=${ opt.pagination.page }`);
-    } else {
-      throw new Error(`A pagination request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
     }
 
     if (opt.pagination.pageSize) {
@@ -226,11 +246,24 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     if (opt.pagination.sort?.length) {
+      const validateFields = {
+        checked: new Array<string>(),
+        invalid: new Array<string>(),
+      };
+
       const joined = opt.pagination.sort
-        .map((s) => `${ s.asc ? '' : '-' }${ s.field }`)
+        .map((s) => {
+          this.validateField(validateFields, schema, s.field);
+
+          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+        })
         .join(',');
 
       params.push(`sort=${ joined }`);
+
+      if (validateFields.invalid.length) {
+        console.warn(`Pagination API does not support sorting '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+      }
     }
 
     if (opt.pagination.filters?.length) {
@@ -296,7 +329,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       checked: new Array<string>(),
       invalid: new Array<string>(),
     };
-    const res = filters
+    const filterStrings = filters
       .filter((filter) => !!filter.fields.length)
       .map((filter) => {
         const joined = filter.fields
@@ -305,7 +338,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              return `${ field.field }${ field.equals ? '=' : '!=' }${ field.value }`;
+              const exactPartial = field.exact ? `'${ field.value }'` : field.value;
+
+              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
             }
 
             return field.value;
@@ -313,7 +348,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
           .join(','); // This means OR
 
         return `${ filter.param }${ filter.equals ? '=' : '!=' }${ joined }`;
-      }).join('&'); // This means AND
+      });
+    const unique = filterStrings.reduce((res, s) => {
+      res[s] = true;
+
+      return res;
+    }, { } as {[filterString: string] : boolean });
+
+    const res = Object.keys(unique).join('&'); // This means AND
 
     if (validateFields.invalid.length) {
       console.warn(`Pagination API does not support filtering '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console

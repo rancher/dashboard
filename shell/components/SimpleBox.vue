@@ -4,6 +4,8 @@ import Closeable from '@shell/mixins/closeable';
 export default {
   name: 'SimpleBox',
 
+  emits: ['close'],
+
   mixins: [Closeable],
 
   props: {
@@ -32,7 +34,6 @@ export default {
     v-if="shown"
     class="simple-box"
     data-testid="simple-box-container"
-    v-on="$listeners"
   >
     <div
       v-if="title || canClose || $slots.title"

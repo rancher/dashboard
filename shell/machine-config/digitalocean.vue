@@ -130,7 +130,7 @@ export default {
     },
 
     updateTags() {
-      this.$set(this.value, 'tags', this.tags.join());
+      this.value.tags = this.tags.join();
     }
   },
 };
@@ -156,7 +156,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.region"
+          v-model:value="value.region"
           :mode="mode"
           :options="regionOptions"
           :searchable="true"
@@ -167,7 +167,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.size"
+          v-model:value="value.size"
           :mode="mode"
           :options="instanceOptions"
           :searchable="true"
@@ -181,7 +181,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.image"
+          v-model:value="value.image"
           :mode="mode"
           :options="imageOptions"
           :searchable="true"
@@ -193,19 +193,19 @@ export default {
       <div class="col span-6 pt-5">
         <h3>Additional DigitalOcean Options</h3>
         <Checkbox
-          v-model="value.monitoring"
+          v-model:value="value.monitoring"
           :mode="mode"
           :disabled="disabled"
           label="Monitoring"
         />
         <Checkbox
-          v-model="value.ipv6"
+          v-model:value="value.ipv6"
           :mode="mode"
           :disabled="disabled"
           label="IPv6"
         />
         <Checkbox
-          v-model="value.privateNetworking"
+          v-model:value="value.privateNetworking"
           :mode="mode"
           :disabled="disabled"
           label="Private Networking"
@@ -215,7 +215,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <ArrayList
-          v-model="tags"
+          v-model:value="tags"
           :mode="mode"
           :protip="false"
           :title="t('cluster.machineConfig.digitalocean.tags.label')"

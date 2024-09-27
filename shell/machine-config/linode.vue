@@ -142,7 +142,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.region"
+          v-model:value="value.region"
           :mode="mode"
           :options="regionOptions"
           :searchable="true"
@@ -153,7 +153,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.instanceType"
+          v-model:value="value.instanceType"
           :mode="mode"
           :options="instanceOptions"
           :searchable="true"
@@ -166,7 +166,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.image"
+          v-model:value="value.image"
           :mode="mode"
           :options="imageOptions"
           :searchable="true"
@@ -178,7 +178,7 @@ export default {
       <div class="col span-6 pt-5">
         <h3>Additional Linode Options</h3>
         <Checkbox
-          v-model="value.createPrivateIp"
+          v-model:value="value.createPrivateIp"
           :mode="mode"
           :disabled="disabled"
           label="Private Networking"

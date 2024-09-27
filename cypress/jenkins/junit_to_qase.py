@@ -244,10 +244,12 @@ def create_testcases_under_suite(case_entities, suite_title_from_junit, suite_id
             # if the result from junit has a description, add it
             # This part is where the error message goes if we want it in the Test Case description
             testcase_value = results[suite_title_from_junit][ct]
-            req_body = {'title': ct,
-                        'is_flaky': 0,
-                        'automation': 1,
-                        'custom_field': {
+            req_body = {"title": ct,
+                        "is_flaky": 0,
+                        "automation": 0,
+                        "isManual": 1,
+                        "isToBeAutomated": False,
+                        "custom_field": {
                             "14": TEST_SOURCE,
                             "15": "{0}/{1}".format(suite_title_from_junit, ct)},
                         "suite_id": suite_id}
@@ -268,6 +270,9 @@ def create_testcases_under_suite(case_entities, suite_title_from_junit, suite_id
             case_id_from_title = case_title_and_id[ct]
             cases_ids.append(case_id_from_title)
             req_body = {"suite_id": suite_id,
+                        "automation": 0,
+                        "isManual": 1,
+                        "isToBeAutomated": False,
                         "custom_field": {
                                 "14": TEST_SOURCE,
                                 "15": "{0}/{1}".format(suite_title_from_junit, ct)

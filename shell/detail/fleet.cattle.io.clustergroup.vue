@@ -10,6 +10,8 @@ import { allHash } from '@shell/utils/promise';
 export default {
   name: 'DetailClusterGroup',
 
+  emits: ['input'],
+
   components: {
     Loading,
     ResourceTabs,
@@ -51,9 +53,10 @@ export default {
     <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       mode="view"
       class="mt-20"
+      @input="$emit('input', $event)"
     >
       <Tab
         label="Clusters"

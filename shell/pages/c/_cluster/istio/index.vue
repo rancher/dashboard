@@ -1,12 +1,9 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NAME, CHART_NAME } from '@shell/config/product/istio';
-import InstallRedirect from '@shell/utils/install-redirect';
 import { SERVICE } from '@shell/config/types';
+import Loading from '@shell/components/Loading';
 export default {
-  components: {},
-
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  components: { Loading },
 
   async fetch() {
     try {
@@ -70,7 +67,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <h1>Overview</h1>
     <h4 v-clean-html="t('istio.poweredBy', {}, true)" />
     <div class="links">
@@ -88,7 +86,7 @@ export default {
           <div class="link-content">
             <a
               ref="kiali"
-              :disabled="!kialiUrl"
+              :disabled="!kialiUrl ? true : null"
               :href="kialiUrl"
               :target="target"
               :rel="rel"
@@ -124,7 +122,7 @@ export default {
           <div class="link-content">
             <a
               ref="jaeger"
-              :disabled="!jaegerUrl"
+              :disabled="!jaegerUrl ? true : null"
               :href="jaegerUrl"
               :target="target"
               :rel="rel"

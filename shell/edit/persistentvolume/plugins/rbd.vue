@@ -29,9 +29,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'rbd', this.value.spec.rbd || {});
-    this.$set(this.value.spec.rbd, 'readOnly', this.value.spec.rbd.readOnly || false);
-    this.$set(this.value.spec.rbd, 'secretRef', this.value.spec.rbd.secretRef || {});
+    this.value.spec['rbd'] = this.value.spec.rbd || {};
+    this.value.spec.rbd['readOnly'] = this.value.spec.rbd.readOnly || false;
+    this.value.spec.rbd['secretRef'] = this.value.spec.rbd.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -43,7 +43,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.user"
+          v-model:value="value.spec.rbd.user"
           :mode="mode"
           :label="t('persistentVolume.rbd.user.label')"
           :placeholder="t('persistentVolume.rbd.user.placeholder')"
@@ -51,7 +51,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.keyring"
+          v-model:value="value.spec.rbd.keyring"
           :mode="mode"
           :label="t('persistentVolume.rbd.keyRing.label')"
           :placeholder="t('persistentVolume.rbd.keyRing.placeholder')"
@@ -61,7 +61,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.pool"
+          v-model:value="value.spec.rbd.pool"
           :mode="mode"
           :label="t('persistentVolume.rbd.pool.label')"
           :placeholder="t('persistentVolume.rbd.pool.placeholder')"
@@ -69,7 +69,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.image"
+          v-model:value="value.spec.rbd.image"
           :mode="mode"
           :label="t('persistentVolume.rbd.image.label')"
           :placeholder="t('persistentVolume.rbd.image.placeholder')"
@@ -79,7 +79,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.secretRef.name"
+          v-model:value="value.spec.rbd.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -87,7 +87,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.secretRef.namespace"
+          v-model:value="value.spec.rbd.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -97,7 +97,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.rbd.fsType"
+          v-model:value="value.spec.rbd.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -105,7 +105,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.rbd.readOnly"
+          v-model:value="value.spec.rbd.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"
@@ -117,7 +117,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <ArrayList
-          v-model="value.spec.rbd.monitors"
+          v-model:value="value.spec.rbd.monitors"
           :add-label="t('persistentVolume.shared.monitors.add')"
           :mode="mode"
         />

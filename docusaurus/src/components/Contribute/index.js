@@ -17,15 +17,15 @@ const ContributeList = [
     ),
   },
   {
-    title:       'Components & Design kit',
-    link:        'https://github.com/rancher',
+    title:       'GitHub',
+    link:        'https://github.com/rancher/dashboard',
     target:      '_blank',
     imgDark:     'img/GitHub-logo.svg',
     imgLight:    'img/GitHub-logo-light.svg',
     atlText:     'GitHub-logo',
     description: (
       <>
-        Check all <strong>Rancher repos</strong> on GitHub.
+        Check out the Rancher Dashboard repository on GitHub.
       </>
     ),
   },

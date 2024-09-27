@@ -6,6 +6,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['validationChanged'],
+
   components: {
     Loading, Checkbox, LabeledInput, LabeledSelect
   },
@@ -74,7 +76,7 @@ export default {
           placeholder-key="cluster.credential.s3.accessKey.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('accessKey', $event);"
+          @update:value="value.setData('accessKey', $event);"
         />
       </div>
       <div class="col span-6">
@@ -85,7 +87,7 @@ export default {
           placeholder-key="cluster.credential.s3.secretKey.placeholder"
           type="password"
           :mode="mode"
-          @input="value.setData('secretKey', $event);"
+          @update:value="value.setData('secretKey', $event);"
         />
       </div>
     </div>
@@ -97,7 +99,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultBucket.label"
           placeholder-key="cluster.credential.s3.defaultBucket.placeholder"
-          @input="value.setData('defaultBucket', $event)"
+          @update:value="value.setData('defaultBucket', $event)"
         />
       </div>
       <div class="col span-6">
@@ -106,7 +108,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultFolder.label"
           placeholder-key="cluster.credential.s3.defaultFolder.placeholder"
-          @input="value.setData('defaultFolder', $event)"
+          @update:value="value.setData('defaultFolder', $event)"
         />
       </div>
     </div>
@@ -120,7 +122,7 @@ export default {
           :mode="mode"
           :taggable="true"
           :options="knownRegions"
-          @input="value.setData('defaultRegion', $event);"
+          @update:value="value.setData('defaultRegion', $event);"
         />
       </div>
       <div class="col span-6">
@@ -129,7 +131,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultEndpoint.label"
           placeholder-key="cluster.credential.s3.defaultEndpoint.placeholder"
-          @input="value.setData('defaultEndpoint', $event)"
+          @update:value="value.setData('defaultEndpoint', $event)"
         />
       </div>
     </div>
@@ -139,7 +141,7 @@ export default {
         :value="value.decodedData.defaultSkipSSLVerify"
         :mode="mode"
         label-key="cluster.credential.s3.defaultSkipSSLVerify.label"
-        @input="value.setData('defaultSkipSSLVerify', $event)"
+        @update:value="value.setData('defaultSkipSSLVerify', $event)"
       />
 
       <LabeledInput
@@ -148,7 +150,7 @@ export default {
         type="multiline"
         label-key="cluster.credential.s3.defaultEndpointCA.label"
         placeholder-key="cluster.credential.s3.defaultEndpointCA.placeholder"
-        @input="value.setData('defaultEndpointCA', $event)"
+        @update:value="value.setData('defaultEndpointCA', $event)"
       />
     </div>
   </div>

@@ -62,7 +62,7 @@ export default {
       this.addIdleListeners();
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeEventListener();
     this.clearAllTimeouts();
   },
@@ -198,7 +198,7 @@ export default {
       <PercentageBar
         v-if="!isInactive"
         class="mt-20"
-        :value="timerPercentageLeft"
+        :modelValue="timerPercentageLeft"
         :color-stops="colorStops"
       />
     </template>

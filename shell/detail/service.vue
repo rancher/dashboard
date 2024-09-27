@@ -14,6 +14,8 @@ import { POD } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTable,
     ResourceTabs,
@@ -110,7 +112,7 @@ export default {
         metadata: { annotations = {} },
         spec,
       } = this.value;
-      const ports = spec.ports;
+      const ports = spec.ports ?? [];
       const publicPorts = this.hasPublic ? JSON.parse(annotations[CATTLE_PUBLIC_ENDPOINTS]) : null;
 
       return ports.map((port) => {
@@ -143,8 +145,9 @@ export default {
 
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     :mode="mode"
+    @input="$emit('input', $event)"
   >
     <Tab
       name="pods"

@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import { get, set } from '@shell/utils/object';
 
 export default {
+  emits:      ['update:value'],
   components: {
     LabeledInput, LabeledSelect, Banner
   },
@@ -75,7 +76,7 @@ export default {
       set(backend, this.value.servicePortPath, this.servicePort);
       set(this.value.spec, this.value.defaultBackendPath, backend);
 
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     }
   },
   watch: {
@@ -97,7 +98,7 @@ export default {
     >
       <div class="col span-4">
         <LabeledSelect
-          v-model="serviceName"
+          v-model:value="serviceName"
           :taggable="true"
           :mode="mode"
           :label="t('ingress.defaultBackend.targetService.label')"
@@ -106,7 +107,7 @@ export default {
           :status="serviceTargetStatus"
           :tooltip="serviceTargetTooltip"
           :rules="rules.name"
-          @input="update(); servicePort = ''"
+          @update:value="update(); servicePort = ''"
         />
       </div>
       <div
@@ -115,22 +116,22 @@ export default {
       >
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
-          v-model.number="servicePort"
+          v-model:value.number="servicePort"
           :mode="mode"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:value="update"
         />
         <LabeledSelect
           v-else
-          v-model="servicePort"
+          v-model:value="servicePort"
           :mode="mode"
           :options="portOptions"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           :rules="rules.port"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>

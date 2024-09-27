@@ -9,6 +9,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {
+  emits: ['closed', 'refresh', 'update'],
+
   components: { AsyncButton, AppModal },
 
   async fetch() {

@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import HorizontalPodAutoScaler from '@shell/detail/autoscaling.horizontalpodautoscaler/index.vue';
 
 describe('view: autoscaling.horizontalpodautoscaler', () => {
@@ -23,7 +23,15 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
           return false;
         },
       },
+      hash: ''
     },
+  };
+
+  const stubs = {
+    ResourceTable: true,
+    Tab:           { template: '<span><slot/></span>' },
+    ResoruceTabs:  { template: '<span><slot/></span>' },
+
   };
 
   const value = {
@@ -87,9 +95,9 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
   const metricsValue = Object.values(value.spec.metrics);
   const currentMetrics = Object.values(value.status.currentMetrics);
 
-  const wrapper = shallowMount(HorizontalPodAutoScaler, {
-    mocks,
-    propsData: { value },
+  const wrapper = mount(HorizontalPodAutoScaler, {
+    props:  { value },
+    global: { mocks, stubs },
   });
 
   describe.each(value.spec.metrics)('should display metrics for each resource:', (metric) => {
@@ -97,13 +105,13 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
 
     it(`${ name }:`, () => {
       // Resource metrics
-      const resourceValue = wrapper.find(`[data-testid="resource-metrics-value-${ name }"]`);
-      const resourceName = wrapper.find(`[data-testid="resource-metrics-name-${ name }"]`);
+      const resourceValue = wrapper.get(`[data-testid="resource-metrics-value-${ name }"]`);
+      const resourceName = wrapper.get(`[data-testid="resource-metrics-name-${ name }"]`);
       const metricValue = metricsValue.find((f) => f.resource.name === name)?.resource;
 
       // Current Metrics
-      const averageUtilization = wrapper.find(`[data-testid="current-metrics-Average Utilization-${ name }"]`);
-      const averageValue = wrapper.find(`[data-testid="current-metrics-Average Value-${ name }"]`);
+      const averageUtilization = wrapper.get(`[data-testid="current-metrics-Average Utilization-${ name }"]`);
+      const averageValue = wrapper.get(`[data-testid="current-metrics-Average Value-${ name }"]`);
       const currentResource = currentMetrics.find((f) => f.resource.name === name)?.resource.current;
 
       // Resource metrics

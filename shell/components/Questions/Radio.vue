@@ -3,6 +3,8 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { RadioGroup },
   mixins:     [Question]
 };
@@ -20,7 +22,7 @@ export default {
         :disabled="disabled"
         :label="displayLabel"
         :tooltip="displayTooltip"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

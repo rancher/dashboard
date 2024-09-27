@@ -6,22 +6,30 @@ interface ResourceField {
   type: string,
   description: string,
 }
-type ResourceFields = { [id: string]: ResourceField}
+type ResourceFields = { [id: string]: ResourceField }
 
 interface SchemaDefinition {
   type: string,
   description: string,
   resourceFields: ResourceFields
 }
+type SchemaDefinitions = { [definitionId: string]: SchemaDefinition }
 
-type SchemaDefinitions = { [id: string]: SchemaDefinition}
+type SchemaId = {
+  self: string;
+  others: string[];
+}
+type SchemaIds = { [schemaId: string]: SchemaId }
 
 interface SchemaDefinitionResponse {
   definitions: SchemaDefinitions,
   definitionType: string,
 }
 
-const SchemaDefinitionCache: { [store: string]: SchemaDefinitions } = {};
+const SchemaDefinitionCache: { [store: string]: {
+  ids: SchemaIds,
+  definitions: SchemaDefinitions,
+} } = {};
 
 /**
  * Steve Schema specific functionality
@@ -38,14 +46,11 @@ export default class SteveSchema extends Schema {
    */
   requiresResourceFields: boolean;
 
-  /**
-   * The name (namespace) of the vuex store this schema lives in (i.e. cluster, management, etc)
-   */
-  store: string;
-
+  // These are just for typing, eventually we'll get them when Schema is fully converted to typescript
   id?: string;
   type?: string;
   links?: any;
+  $ctx?: any;
 
   /**
    * This should match the root Schema ctor (...args throws ts error)
@@ -53,9 +58,11 @@ export default class SteveSchema extends Schema {
   constructor(data: unknown, ctx: unknown, rehydrateNamespace?: null | undefined, setClone?: boolean) {
     super(data, ctx, rehydrateNamespace, setClone);
 
-    this.store = (ctx as any).state?.config?.namespace;
     if (!SchemaDefinitionCache[this.store]) {
-      SchemaDefinitionCache[this.store] = {};
+      SchemaDefinitionCache[this.store] = {
+        ids:         {},
+        definitions: {}
+      };
     }
 
     this.requiresResourceFields = this._resourceFields === null; // This is set pre ctor via `set'er, but TS complains that it's not initialised
@@ -92,7 +99,7 @@ export default class SteveSchema extends Schema {
    */
   get resourceFields(): ResourceFields {
     if (this.requiresResourceFields) {
-      if (!this._schemaDefinitionsIds) {
+      if (!this.schemaDefinitionsIds) {
         throw new Error(`Cannot find resourceFields for Schema ${ this.id } (schemaDefinitions have not been fetched) `);
       }
 
@@ -165,7 +172,7 @@ export default class SteveSchema extends Schema {
       return;
     }
 
-    this._cacheSchemaDefinitionResponse(res);
+    this.cacheSchemaDefinitionResponse(res);
 
     return this.schemaDefinition;
   }
@@ -175,12 +182,13 @@ export default class SteveSchema extends Schema {
    *
    * Split out for unit testing purposes
    */
-  _cacheSchemaDefinitionResponse(res: SchemaDefinitionResponse): void {
+  private cacheSchemaDefinitionResponse(res: SchemaDefinitionResponse): void {
     const { [res.definitionType]: self, ...others } = res.definitions;
+    const store = this.store;
 
-    this._schemaDefinitionsIds = { self: self.type, others: Object.keys(others) };
+    SchemaDefinitionCache[store].ids[this.id as string] = { self: self.type, others: Object.keys(others) };
     Object.entries(res.definitions).forEach(([type, sd]) => {
-      SchemaDefinitionCache[this.store][type] = sd;
+      SchemaDefinitionCache[store].definitions[type] = sd;
     });
   }
 
@@ -191,32 +199,28 @@ export default class SteveSchema extends Schema {
   /**
    * Store this schema's definition and a collection of associated definitions (all ids)
    */
-  _schemaDefinitionsIds?: {
-    self: string,
-    others: string[]
-  };
 
   /**
    * The schema definition for this schema
    */
   get schemaDefinition(): SchemaDefinition | null {
-    if (!this._schemaDefinitionsIds) {
+    if (!this.schemaDefinitionsIds) {
       return null;
     }
 
-    return SchemaDefinitionCache[this.store][this._schemaDefinitionsIds.self];
+    return SchemaDefinitionCache[this.store].definitions[this.schemaDefinitionsIds.self];
   }
 
   /**
    * The schema definitions for this schema definition's resourceFields
    */
   get schemaDefinitions(): SchemaDefinitions | null {
-    if (!this._schemaDefinitionsIds) {
+    if (!this.schemaDefinitionsIds) {
       return null;
     }
 
-    return this._schemaDefinitionsIds.others.reduce((res, d) => {
-      res[d] = SchemaDefinitionCache[this.store][d];
+    return this.schemaDefinitionsIds.others.reduce((res, d) => {
+      res[d] = SchemaDefinitionCache[this.store].definitions[d];
 
       return res;
     }, {} as SchemaDefinitions);
@@ -227,5 +231,24 @@ export default class SteveSchema extends Schema {
    */
   get schemaDefinitionUrl(): string {
     return this.links?.self?.replace('/schemas/', '/schemaDefinitions/');
+  }
+
+  /*********************
+   * Local Properties
+   *
+   * This could be set in the ctor, however are removed in `replaceResource` when there are socket updates..
+   * ... so use getters instead
+   *
+   *********************/
+
+  /**
+   * The name (namespace) of the vuex store this schema lives in (i.e. cluster, management, etc)
+   */
+  private get store(): string {
+    return this.$ctx.state?.config?.namespace;
+  }
+
+  private get schemaDefinitionsIds(): SchemaId | undefined {
+    return SchemaDefinitionCache[this.store]?.ids[this.id as string];
   }
 }

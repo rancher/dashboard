@@ -35,7 +35,7 @@ export default ({
           :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
-          @input="e=>$set(value, 'showMessage', e.toString())"
+          @update:value="value.showMessage = $event.toString()"
         />
       </div>
     </div>
@@ -44,7 +44,7 @@ export default ({
         <div class="row">
           <div class="col span-12">
             <LabeledInput
-              v-model="value.message"
+              v-model:value="value.message"
               :mode="mode"
               :disabled="value.showMessage === 'false'"
               :label="t('notifications.loginError.messageLabel')"

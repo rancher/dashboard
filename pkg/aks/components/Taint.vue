@@ -1,13 +1,17 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 
-const EFFECT_OPTIONS = ['PreferNoSchedule', 'NoExecute', 'NoSchedule'];
+import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/taints';
 
 export default defineComponent({
-  components: { Select },
+  emits: ['update:value', 'remove'],
+
+  components: { Select, LabeledInput },
 
   props: {
     mode: {
@@ -17,12 +21,15 @@ export default defineComponent({
     taint: {
       type:     String,
       required: true
+    },
+    rules: {
+      type:    Array,
+      default: () => []
     }
   },
 
   data() {
-    // taints are stored as an array of strings in the format key=value:effect
-    const { key = '', value = '', effect = EFFECT_OPTIONS[0] } = (this.taint.match(/^(?<key>([A-Z]|[a-z]|[0-9])*)=(?<value>([A-Z]|[a-z]|[0-9])*):(?<effect>([A-Z]|[a-z]|[0-9])*)$/g)?.groups || {});
+    const { key, effect, value } = parseTaint(this.taint);
 
     return {
       key, effect, value
@@ -43,20 +50,32 @@ export default defineComponent({
 
   methods: {
     update() {
-      const out = `${ this.key }=${ this.value }:${ this.effect }`;
+      const out = formatTaint(this.key, this.value, this.effect);
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     }
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
     isEdit() {
       return this.mode !== _VIEW;
     },
 
     effectOptions() {
       return EFFECT_OPTIONS;
+    },
+
+    validationMessage() {
+      const taint = formatTaint(this.key, this.value, this.effect);
+      const rule = this.rules[0];
+
+      if (rule && typeof rule === 'function') {
+        return rule(taint);
+      } else {
+        return undefined;
+      }
     }
   },
 });
@@ -65,26 +84,30 @@ export default defineComponent({
 <template>
   <tr class="taint">
     <td :style="{'width': '40%'}">
-      <input
-        v-model="key"
-        label="key"
+      <LabeledInput
+        v-model:value="key"
         :mode="mode"
-      >
+        :rules="[()=>validationMessage]"
+        type="text"
+        data-testid="aks-taint-key-input"
+      />
     </td>
     <td :style="{'width': '40%'}">
-      <input
-        v-model="value"
-        label="value"
+      <LabeledInput
+        v-model:value="value"
         :mode="mode"
         type="text"
-      >
+        :rules="[()=>validationMessage]"
+        data-testid="aks-taint-value-input"
+      />
     </td>
     <td :style="{'width': '15%'}">
       <Select
-        v-model="effect"
+        v-model:value="effect"
         :mode="mode"
         :options="effectOptions"
         label="effect"
+        data-testid="aks-taint-effect-select"
       />
     </td>
     <td>

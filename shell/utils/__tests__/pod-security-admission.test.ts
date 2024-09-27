@@ -1,4 +1,4 @@
-import { PSA } from '@shell/types/pod-security-admission';
+import { PSA } from '@shell/types/resources/pod-security-admission';
 import { getPSATooltipsDescription } from '@shell/utils/pod-security-admission';
 
 describe('fX: getPSATooltipsDescription', () => {

@@ -1,5 +1,6 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
+import { PaginationSettings } from '@shell/types/resources/settings';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -19,7 +20,8 @@ interface GlobalSetting {
     /**
      * Function used from the form validation
      */
-     ruleSet?: GlobalSettingRuleset[],
+    ruleSet?: GlobalSettingRuleset[],
+    warning?: string
   };
 }
 
@@ -95,9 +97,18 @@ export const SETTING = {
   FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
   /**
    * manage rancher repositories in extensions (official, partners repos)
+  */
+  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner',
+  AGENT_TLS_MODE:                       'agent-tls-mode',
+  /**
+   * User retention settings
    */
-  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner'
-};
+  USER_RETENTION_CRON:                  'user-retention-cron',
+  USER_RETENTION_DRY_RUN:               'user-retention-dry-run',
+  USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
+  DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
+  DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
+} as const;
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
@@ -149,6 +160,11 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     options: ['prompt', 'in', 'out']
   },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:     {
+    kind:    'enum',
+    options: ['strict', 'system-store'],
+    warning: 'agent-tls-mode'
+  },
 };
 
 /**
@@ -189,6 +205,7 @@ export interface PerfSettings {
   forceNsFilterV2: any;
   advancedWorker: {};
   kubeAPI: PerfSettingsKubeApi;
+  serverPagination: PaginationSettings;
 }
 
 export const DEFAULT_PERF_SETTING: PerfSettings = {
@@ -224,5 +241,20 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
        */
       notificationBlockList: ['299 - unknown field']
     }
+  },
+  serverPagination: {
+    enabled: false,
+    stores:  {
+      cluster: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: ['configmap', 'secret', 'pod', 'node'],
+            generic: true,
+          }
+        }
+      }
+    }
   }
+
 };

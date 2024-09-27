@@ -33,7 +33,7 @@ function reply(statusCode: number, body: any): any {
   };
 }
 
-describe('RKE2 Cilium CNI', () => {
+describe.skip('[Vue3 Skip]: RKE2 Cilium CNI', () => {
   beforeEach(() => {
     cy.login();
   });

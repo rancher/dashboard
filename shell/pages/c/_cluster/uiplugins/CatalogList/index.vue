@@ -10,6 +10,8 @@ import { UI_PLUGIN_CATALOG } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
 
 export default {
+  emits: ['showCatalogUninstallDialog', 'showCatalogLoadDialog'],
+
   name: 'CatalogList',
 
   components: { ResourceTable },

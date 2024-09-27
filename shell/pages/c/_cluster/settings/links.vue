@@ -99,7 +99,7 @@ export default {
     </div>
     <div class="mt-20">
       <KeyValue
-        v-model="value.custom"
+        v-model:value="value.custom"
         :title="'Custom Links'"
         :as-map="false"
         key-name="label"
@@ -113,13 +113,15 @@ export default {
     </div>
     <div class="ui-links-setting mt-20">
       <DefaultLinksEditor
-        v-model="value.defaults"
+        v-model:value="value.defaults"
         :mode="mode"
       />
     </div>
-    <template v-for="err in errors">
+    <template
+      v-for="(err, i) in errors"
+      :key="i"
+    >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />

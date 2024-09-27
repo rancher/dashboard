@@ -19,8 +19,8 @@ export default {
       return this.$router.replace(authProvs.enabledLocation);
     }
 
-    this.$set(this, 'enabled', authProvs.enabled);
-    this.$set(this, 'nonLocal', authProvs.nonLocal);
+    this['enabled'] = authProvs.enabled;
+    this['nonLocal'] = authProvs.nonLocal;
   },
 
   data() {

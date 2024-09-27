@@ -23,7 +23,17 @@ export default {
     },
 
     showPaging() {
-      return !this.loading && this.paging && this.totalPages > 1;
+      if (!this.paging) {
+        return false;
+      }
+
+      const havePages = this.totalPages > 1;
+
+      if (this.altLoading) {
+        return havePages;
+      }
+
+      return !this.loading && havePages;
     },
 
     pagingDisplay() {

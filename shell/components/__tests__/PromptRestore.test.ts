@@ -1,6 +1,7 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils';
+import { nextTick } from 'vue';
+import { shallowMount } from '@vue/test-utils';
 import PromptRestore from '@shell/components/PromptRestore.vue';
-import Vuex from 'vuex';
+import { createStore } from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 import { CAPI, NORMAN } from '@shell/config/types';
@@ -59,10 +60,6 @@ const RKE1_WITH_ERROR_SNAPSHOT = {
 };
 
 describe('component: PromptRestore', () => {
-  const localVue = createLocalVue();
-
-  localVue.use(Vuex);
-
   const rke2TestCases = [
     [[], 0],
     [[RKE2_FAILED_SNAPSHOT], 0],
@@ -72,7 +69,7 @@ describe('component: PromptRestore', () => {
   ];
 
   it.each(rke2TestCases)('should list RKE2 snapshots properly', async(snapShots, expected) => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         'action-menu': {
           namespaced: true,
@@ -91,13 +88,13 @@ describe('component: PromptRestore', () => {
       actions: { 'management/findAll': jest.fn().mockResolvedValue(snapShots), 'rancher/findAll': jest.fn().mockResolvedValue([]) }
     });
 
-    const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      localVue
-    });
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });
@@ -111,7 +108,7 @@ describe('component: PromptRestore', () => {
   ];
 
   it.each(rke1TestCases)('should list RKE1 snapshots properly', async(snapShots, expected) => {
-    const store = new Vuex.Store({
+    const store = createStore({
       modules: {
         'action-menu': {
           namespaced: true,
@@ -129,13 +126,13 @@ describe('component: PromptRestore', () => {
       actions: { 'rancher/findAll': jest.fn().mockResolvedValue(snapShots) }
     });
 
-    const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-      store,
-      localVue
-    });
+    const wrapper = shallowMount(
+      PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+      { global: { mocks: { $store: store } } }
+    );
 
     await wrapper.vm.fetchSnapshots();
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.vm.clusterSnapshots).toHaveLength(expected);
   });

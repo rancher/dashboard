@@ -6,17 +6,31 @@ module.exports = {
   ],
   parserOptions: { ecmaVersion: 2020 },
   rules:         {
-    'vue/no-mutating-props':                    'warn',
-    '@typescript-eslint/no-empty-function':     ['error', { allow: ['arrowFunctions'] }],
+    'vue/no-mutating-props':                'warn',
+    '@typescript-eslint/no-empty-function': [
+      'error',
+      {
+        allow: [
+          'arrowFunctions'
+        ]
+      }
+    ],
     '@typescript-eslint/no-non-null-assertion': 'off',
-    'vue/multi-word-component-names':           'off', // As we want to define basic components and we use no prefixes
+    'vue/multi-word-component-names':           'off',
     '@typescript-eslint/ban-ts-comment':        [
       'error',
-      { 'ts-nocheck': false },
+      { 'ts-nocheck': false }
     ],
-
+    'vue/one-component-per-file':       'off',
+    'vue/no-deprecated-slot-attribute': 'off',
+    'vue/require-explicit-emits':       'off',
+    'vue/v-on-event-hyphenation':       'off'
   },
-  settings:  { 'import/ignore': ['vue'] },
+  settings: {
+    'import/ignore': [
+      'vue'
+    ]
+  },
   overrides: [
     {
       files: [
@@ -28,5 +42,8 @@ module.exports = {
       env: { jest: true }
     }
   ],
-  ignorePatterns: ['src/shim-tsx.d.ts', 'src/shim-vue.d.ts']
+  ignorePatterns: [
+    'src/shim-tsx.d.ts',
+    'src/shim-vue.d.ts'
+  ]
 };

@@ -29,7 +29,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :required="true"
           :mode="mode"
           :label="t('workload.storage.volumeName')"
@@ -37,7 +37,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.azureFile.readOnly"
+          v-model:value="value.azureFile.readOnly"
           :mode="mode"
           :label="t('workload.storage.readOnly')"
         />
@@ -46,7 +46,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azureFile.shareName"
+          v-model:value="value.azureFile.shareName"
           :mode="mode"
           :required="true"
           :label="t('workload.storage.csi.shareName')"
@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azureFile.secretName"
+          v-model:value="value.azureFile.secretName"
           :mode="mode"
           :required="true"
           :label="t('workload.storage.csi.secretName')"
@@ -64,7 +64,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azureFile.fsType"
+          v-model:value="value.azureFile.fsType"
           :mode="mode"
           :label="t('workload.storage.csi.fsType')"
         />

@@ -24,6 +24,7 @@
     color: var(--input-label);
     pointer-events: none;
     width: calc(100% - 20px);
+
     i {
       pointer-events: initial;
     }
@@ -43,7 +44,8 @@
     color: var(--error);
   }
 
-  INPUT, SELECT {
+  INPUT,
+  SELECT {
     position: relative;
     font-size: 14px;
     display: block;
@@ -59,9 +61,15 @@
     user-select: none;
   }
 
-  INPUT, INPUT:hover, INPUT:focus,
-  TEXTAREA, TEXTAREA:hover, TEXTAREA:focus,
-  SELECT, SELECT:hover, SELECT:focus {
+  INPUT,
+  INPUT:hover,
+  INPUT:focus,
+  TEXTAREA,
+  TEXTAREA:hover,
+  TEXTAREA:focus,
+  SELECT,
+  SELECT:hover,
+  SELECT:focus {
     border: none;
     background-color: transparent;
     outline: 0;
@@ -74,18 +82,19 @@
     }
   }
 
-  &.view > DIV:not(.addon) {
+  &.view>DIV:not(.addon) {
     font-size: 14px;
     padding: $input-padding-lg 0 0 0;
 
     &.no-label {
-      padding-top:0px;
+      padding-top: 0px;
     }
   }
 
   &.create,
   &.edit,
   &.view {
+
     .addon,
     .addon.btn {
       display: table-cell;
@@ -110,24 +119,27 @@
     padding-right: 8px;
   }
 
-  &.suffix.has-tooltip INPUT {
+  &.suffix.v-popper--has-tooltip INPUT {
     width: calc(100% - 30px);
   }
 
-  &.suffix.has-tooltip INPUT {
+  &.suffix.v-popper--has-tooltip INPUT {
     width: calc(100% - 30px);
   }
 
-  .cron-label, .sub-label {
+  .cron-label,
+  .sub-label {
     position: absolute;
     top: 100%;
+    width: 100%;
     padding-top: 5px;
     left: 0;
     color: var(--input-label);
     pointer-events: initial;
   }
 
-  .validation-message, .sub-label.validation-message {
+  .validation-message,
+  .sub-label.validation-message {
     color: var(--error);
   }
 

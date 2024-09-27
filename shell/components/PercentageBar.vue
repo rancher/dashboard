@@ -16,7 +16,7 @@ export default {
     /**
      * A value representing the percentage to be displayed. *Must be a value between 0 and 100*.
      */
-    value: {
+    modelValue: {
       type:     Number,
       required: true,
       validator(value) {
@@ -68,7 +68,7 @@ export default {
         if (isLess) {
           let i = thresholds.length - 1;
 
-          while (this.value < thresholds[i]) {
+          while (this.modelValue < thresholds[i]) {
             i--;
           }
 
@@ -76,7 +76,7 @@ export default {
         } else {
           let i = 0;
 
-          while (this.value > thresholds[i]) {
+          while (this.modelValue > thresholds[i]) {
             i++;
           }
 
@@ -85,8 +85,8 @@ export default {
       }
       const threshold = isLess ? 80 : 20;
 
-      const left = isLess ? this.value : threshold;
-      const right = isLess ? threshold : this.value;
+      const left = isLess ? this.modelValue : threshold;
+      const right = isLess ? threshold : this.modelValue;
 
       if (left <= right) {
         return '--primary';
@@ -95,7 +95,7 @@ export default {
       return '--error';
     },
     formattedPercentage() {
-      return formatPercent(this.value);
+      return formatPercent(this.modelValue);
     }
   },
 };
@@ -104,7 +104,7 @@ export default {
 <template>
   <span class="percentage-bar">
     <Bar
-      :percentage="value"
+      :percentage="modelValue"
       :primary-color="primaryColor"
       :slices="slices"
     />

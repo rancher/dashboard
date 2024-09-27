@@ -2,6 +2,8 @@
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {
+  emits: ['cancel-cancel', 'confirm-cancel'],
+
   components: { AppModal },
 
   props: {

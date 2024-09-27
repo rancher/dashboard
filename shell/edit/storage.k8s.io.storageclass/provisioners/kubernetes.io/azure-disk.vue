@@ -38,7 +38,7 @@ export default {
     }
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'kind', this.value.parameters.kind || kindOptions[0].value);
+      this.value.parameters['kind'] = this.value.parameters.kind || kindOptions[0].value;
     }
 
     return { kindOptions };
@@ -50,7 +50,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.storageaccounttype"
+          v-model:value="value.parameters.storageaccounttype"
           :placeholder="t('storageClass.azure-disk.storageAccountType.placeholder')"
           :label="t('storageClass.azure-disk.storageAccountType.label')"
           :mode="mode"
@@ -58,7 +58,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="value.parameters.kind"
+          v-model:value="value.parameters.kind"
           :options="kindOptions"
           :label="t('storageClass.azure-disk.kind.label')"
           :mode="mode"

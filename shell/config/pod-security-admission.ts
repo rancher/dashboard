@@ -1,4 +1,4 @@
-import { PSADimension, PSALevel, PSAMode } from '@shell/types/pod-security-admission';
+import { PSADimension, PSALevel, PSAMode } from '@shell/types/resources/pod-security-admission';
 
 /**
  * All the PSA labels are created with this prefix, so we can use this to identify them

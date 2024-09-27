@@ -10,6 +10,8 @@ import { get, set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
+  emits: ['close'],
+
   components: {
     Select,
     RadioGroup,
@@ -141,7 +143,7 @@ export default {
       />
       <div class="options">
         <RadioGroup
-          v-model="rotateAllServices"
+          v-model:value="rotateAllServices"
           name="service-mode"
           :options="[
             {
@@ -155,29 +157,28 @@ export default {
           ]"
         />
         <Select
-          v-model="selectedService"
+          v-model:value="selectedService"
           :options="serviceOptions"
           class="service-select"
           :class="{'invisible': rotateAllServices}"
         />
       </div>
     </template>
-    <div
-      slot="actions"
-      class="buttons"
-    >
-      <button
-        class="btn role-secondary mr-20"
-        @click="close"
-      >
-        {{ t('generic.cancel') }}
-      </button>
-      <AsyncButton
-        mode="rotate"
-        :disabled="!rotateAllServices && !selectedService"
-        @click="rotate"
-      />
-    </div>
+    <template #actions>
+      <div class="buttons">
+        <button
+          class="btn role-secondary mr-20"
+          @click="close"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          mode="rotate"
+          :disabled="!rotateAllServices && !selectedService"
+          @click="rotate"
+        />
+      </div>
+    </template>
   </Card>
 </template>
 

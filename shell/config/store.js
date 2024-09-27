@@ -1,7 +1,4 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-
-Vue.use(Vuex);
+import { createStore } from 'vuex';
 
 const VUEX_PROPERTIES = ['state', 'getters', 'actions', 'mutations'];
 
@@ -75,9 +72,9 @@ let store = {};
   }
 })();
 
-// createStore
-export const createStore = store instanceof Function ? store : () => {
-  return new Vuex.Store(Object.assign({ strict: (process.env.NODE_ENV !== 'production') }, store));
+// extendStore
+export const extendStore = store instanceof Function ? store : () => {
+  return createStore(Object.assign({ strict: (process.env.NODE_ENV !== 'production') }, store));
 };
 
 function normalizeRoot(moduleData, filePath) {

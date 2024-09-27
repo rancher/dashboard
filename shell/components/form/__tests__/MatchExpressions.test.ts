@@ -1,13 +1,13 @@
 import { mount } from '@vue/test-utils';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { _CREATE } from '@shell/config/query-params';
-import Vue from 'vue';
+import { nextTick } from 'vue';
 
 describe('component: MatchExpressions', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
-      data:      () => ({
+      props: { mode: _CREATE },
+      data:  () => ({
         rules: [
           {
             id:       '123',
@@ -29,8 +29,8 @@ describe('component: MatchExpressions', () => {
     'values',
   ])('should emit an update on %p input', async(field) => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
-      data:      () => ({
+      props: { mode: _CREATE },
+      data:  () => ({
         rules: [
           {
             id:       '123',
@@ -45,17 +45,17 @@ describe('component: MatchExpressions', () => {
     const newValue = 123;
 
     input.setValue(newValue);
-    await Vue.nextTick();
+    await nextTick();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
     'operator',
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(MatchExpressions, {
-      propsData: { mode: _CREATE },
-      data:      () => ({
+      props: { mode: _CREATE },
+      data:  () => ({
         rules: [
           {
             id:       '123',
@@ -73,6 +73,6 @@ describe('component: MatchExpressions', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });

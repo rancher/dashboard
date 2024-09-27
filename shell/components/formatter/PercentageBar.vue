@@ -35,7 +35,7 @@ export default {
   </p>
   <PercentageBarComponent
     v-else
-    :value="percentage"
+    :modelValue="percentage"
     :show-percentage="true"
   />
 </template>

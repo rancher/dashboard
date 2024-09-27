@@ -7,9 +7,11 @@ import LazyImage from '@shell/components/LazyImage';
 import DateFormatter from '@shell/components/formatter/Date';
 import isEqual from 'lodash/isEqual';
 import { CHART, REPO, REPO_TYPE, VERSION } from '@shell/config/query-params';
+import { ZERO_TIME } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
 import TypeDescription from '@shell/components/TypeDescription';
+
 export default {
   components: {
     Banner,
@@ -30,6 +32,7 @@ export default {
 
   data() {
     return {
+      ZERO_TIME,
       showLastVersions: 10,
       showMoreVersions: false,
     };
@@ -51,8 +54,18 @@ export default {
       return this.isChartTargeted ? this.t('catalog.chart.errors.clusterToolExists', { url }, true) : '';
     },
 
+    appVersion() {
+      return this.version.appVersion || this.versionInfo?.chart?.appVersion;
+    },
+
+    home() {
+      return this.version.home || this.versionInfo?.chart?.home;
+    },
+
     maintainers() {
-      return this.version.maintainers.map((m) => {
+      const maintainers = this.version.maintainers || this.versionInfo?.chart?.maintainers || [];
+
+      return maintainers.map((m) => {
         return {
           id:   m.name,
           text: m.name,
@@ -79,13 +92,32 @@ export default {
       }
 
       return false;
+    },
+
+    warningMessage() {
+      const {
+        deprecated, experimental, chartName: name, chartNameDisplay
+      } = this.chart;
+      const chartName = chartNameDisplay || name;
+
+      if (deprecated && experimental) {
+        return this.t('catalog.chart.deprecatedAndExperimentalWarning', { chartName });
+      } else if (deprecated) {
+        return this.t('catalog.chart.deprecatedWarning', { chartName });
+      } else if (experimental) {
+        return this.t('catalog.chart.experimentalWarning', { chartName });
+      }
+
+      return '';
     }
 
   },
 
   watch: {
     '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) ) {
+      // If the query changes, refetch the chart
+      // When going back to app list, the query is empty and we don't want to refetch
+      if ( !isEqual(neu, old) && Object.keys(neu).length > 0 ) {
         this.$fetch();
       }
     },
@@ -116,10 +148,21 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <TypeDescription resource="chart" />
+    <Banner
+      v-if="versionInfoError"
+      color="error"
+      :label="versionInfoError"
+    />
     <div
       v-if="chart"
       class="chart-header"
     >
+      <Banner
+        v-if="warningMessage"
+        color="warning"
+        :label="warningMessage"
+        data-testid="deprecation-and-experimental-banner"
+      />
       <div class="name-logo-install">
         <div class="name-logo">
           <div class="logo-bg">
@@ -162,16 +205,16 @@ export default {
           <span v-clean-html="osWarning" />
         </Banner>
         <Banner
-          v-for="msg in requires"
-          :key="msg"
+          v-for="(msg, i) in requires"
+          :key="i"
           color="error"
         >
           <span v-clean-html="msg" />
         </Banner>
 
         <Banner
-          v-for="msg in warnings"
-          :key="msg"
+          v-for="(msg, i) in warnings"
+          :key="i"
           color="warning"
         >
           <span v-clean-html="msg" />
@@ -230,6 +273,7 @@ export default {
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
             </a>
             <DateFormatter
+              v-if="vers.created !== ZERO_TIME"
               :value="vers.created"
               :show-time="false"
             />
@@ -245,25 +289,28 @@ export default {
             </button>
           </div>
         </div>
-        <div class="chart-content__right-bar__section">
+        <div
+          v-if="appVersion"
+          class="chart-content__right-bar__section"
+        >
           <h3 t>
             {{ t('catalog.chart.info.appVersion') }}
           </h3>
-          {{ version.appVersion }}
+          {{ appVersion }}
         </div>
         <div
-          v-if="version.home"
+          v-if="home"
           class="chart-content__right-bar__section"
         >
           <h3>{{ t('catalog.chart.info.home') }}</h3>
           <a
-            :href="version.home"
+            :href="home"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ version.home }}</a>
+          >{{ home }}</a>
         </div>
         <div
-          v-if="version.maintainers"
+          v-if="maintainers.length"
           class="chart-content__right-bar__section"
         >
           <h3>{{ t('catalog.chart.info.maintainers') }}</h3>

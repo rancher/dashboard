@@ -31,7 +31,7 @@ export default {
         return this.value.servers[0].port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value.servers[0], 'port', value), port);
+        updatePort((value) => (this.value.servers[0]['port'] = value), port);
       }
     }
   }
@@ -48,7 +48,7 @@ export default {
     <div class="row">
       <div class="col span-10">
         <LabeledInput
-          v-model="value.servers[0].host"
+          v-model:value="value.servers[0].host"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.forward.host')"
@@ -56,7 +56,7 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model="port"
+          v-model:value="port"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -75,7 +75,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.servers[0].username"
+          v-model:value="value.servers[0].username"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -85,7 +85,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.servers[0].password"
+          v-model:value="value.servers[0].password"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -97,7 +97,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.servers[0].shared_key"
+          v-model:value="value.servers[0].shared_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -115,7 +115,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.tls_client_cert_path"
+          v-model:value="value.tls_client_cert_path"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -126,7 +126,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.tls_client_private_key_path"
+          v-model:value="value.tls_client_private_key_path"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -139,7 +139,7 @@ export default {
     <div class="row mt-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.tls_client_private_key_passphrase"
+          v-model:value="value.tls_client_private_key_passphrase"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

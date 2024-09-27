@@ -9,6 +9,8 @@ import Loading from '@shell/components/Loading';
 import { PROJECT } from '@shell/config/labels-annotations';
 
 export default {
+  emits: ['moving'],
+
   components: {
     AsyncButton, Card, LabeledSelect, Loading, AppModal
   },
@@ -99,30 +101,29 @@ export default {
       class="move-modal-card"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t('moveModal.title') }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t('moveModal.title') }}
+        </h4>
+      </template>
+      <template #body>
         <div>
           {{ t('moveModal.description') }}
           <ul class="namespaces">
             <li
-              v-for="namespace in toMove"
-              :key="namespace.id"
+              v-for="(namespace, i) in toMove"
+              :key="i"
             >
               {{ namespace.nameDisplay }}
             </li>
           </ul>
         </div>
         <LabeledSelect
-          v-model="targetProject"
+          v-model:value="targetProject"
           :options="projectOptions"
           :label="t('moveModal.targetProject')"
         />
-      </div>
+      </template>
       <template #actions>
         <button
           class="btn role-secondary"

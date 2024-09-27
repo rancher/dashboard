@@ -104,7 +104,7 @@ export default {
       class="text-small"
     >
       <Endpoints
-        v-model="parsed"
+        v-model:value="parsed"
         :row="{}"
         :col="{}"
       />

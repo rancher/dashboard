@@ -16,6 +16,7 @@ import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@shell/config/query-params';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
 export default {
+  emits:      ['input'],
   components: {
     ActionMenu,
     CruResource,
@@ -194,9 +195,10 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      @input="$emit('input', $event)"
     />
 
     <Tabbed>

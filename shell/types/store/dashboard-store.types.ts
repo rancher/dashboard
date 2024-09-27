@@ -16,6 +16,12 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
   incremental?: boolean,
   hasManualRefresh?: boolean,
   limit?: number,
+  /**
+   * Iterate over all pages and return all resources.
+   *
+   * This is done via the native kube pagination api, not steve
+   */
+  depaginate?: boolean,
 }
 
 /**

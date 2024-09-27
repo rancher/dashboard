@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 export default {
   components: { LabeledInput },
 
+  emits: ['update:value'],
+
   props: {
     /**
      * Convert output to string
@@ -202,7 +204,7 @@ export default {
         out = this.unit ? parseSi(`${ out }${ this.unit }`) : parseInt(out);
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   }
 };

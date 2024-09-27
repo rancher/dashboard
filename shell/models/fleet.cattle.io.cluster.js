@@ -119,17 +119,6 @@ export default class FleetCluster extends SteveModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
-  get nodeInfo() {
-    const ready = this.status?.agent?.readyNodes || 0;
-    const unready = this.status?.agent?.nonReadyNodes || 0;
-
-    return {
-      ready,
-      unready,
-      total: ready + unready,
-    };
-  }
-
   get repoInfo() {
     const ready = this.status?.readyGitRepos || 0;
     const total = this.status?.desiredReadyGitRepos || 0;
@@ -139,6 +128,29 @@ export default class FleetCluster extends SteveModel {
       unready: total - ready,
       total,
     };
+  }
+
+  get bundleInfo() {
+    const bundlesData = {
+      ready: 0,
+      total: 0
+    };
+    const readyBundles = this.status?.display?.readyBundles;
+
+    if (readyBundles && readyBundles.includes('/')) {
+      const dataArr = readyBundles.split('/');
+
+      if (dataArr.length === 2 && parseInt(dataArr[0]) >= 0 && parseInt(dataArr[1]) >= 0) {
+        bundlesData.ready = parseInt(dataArr[0]);
+        bundlesData.total = parseInt(dataArr[1]);
+
+        return bundlesData;
+      }
+    }
+
+    bundlesData.noValidData = true;
+
+    return bundlesData;
   }
 
   get mgmt() {

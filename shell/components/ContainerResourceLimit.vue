@@ -6,6 +6,8 @@ import { cleanUp } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { UnitInput },
 
   props: {
@@ -97,7 +99,7 @@ export default {
         limitsGpu
       } = this;
 
-      this.$emit('input', cleanUp({
+      this.$emit('update:value', cleanUp({
         limitsCpu,
         limitsMemory,
         requestsCpu,
@@ -178,7 +180,7 @@ export default {
     <div class="row mb-20">
       <span class="col span-6">
         <UnitInput
-          v-model="requestsCpu"
+          v-model:value="requestsCpu"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.requestsCpu')"
           :mode="mode"
@@ -186,12 +188,12 @@ export default {
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
           data-testid="cpu-reservation"
-          @input="updateLimits"
+          @update:value="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
-          v-model="requestsMemory"
+          v-model:value="requestsMemory"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.requestsMemory')"
           :mode="mode"
@@ -199,7 +201,7 @@ export default {
           :increment="1024"
           :output-modifier="true"
           data-testid="memory-reservation"
-          @input="updateLimits"
+          @update:value="updateLimits"
         />
       </span>
     </div>
@@ -207,7 +209,7 @@ export default {
     <div class="row mb-20">
       <span class="col span-6">
         <UnitInput
-          v-model="limitsCpu"
+          v-model:value="limitsCpu"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.limitsCpu')"
           :mode="mode"
@@ -215,12 +217,12 @@ export default {
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
           data-testid="cpu-limit"
-          @input="updateLimits"
+          @update:value="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
-          v-model="limitsMemory"
+          v-model:value="limitsMemory"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.limitsMemory')"
           :mode="mode"
@@ -228,7 +230,7 @@ export default {
           :increment="1024"
           :output-modifier="true"
           data-testid="memory-limit"
-          @input="updateLimits"
+          @update:value="updateLimits"
         />
       </span>
     </div>
@@ -238,13 +240,13 @@ export default {
     >
       <span class="col span-6">
         <UnitInput
-          v-model="limitsGpu"
+          v-model:value="limitsGpu"
           :placeholder="t('containerResourceLimit.gpuPlaceholder')"
           :label="t('containerResourceLimit.limitsGpu')"
           :mode="mode"
           :base-unit="t('suffix.gpus')"
           data-testid="gpu-limit"
-          @input="updateLimits"
+          @update:value="updateLimits"
         />
       </span>
     </div>

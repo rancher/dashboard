@@ -38,6 +38,9 @@
       "last 1 safari version"
     ]
   },
+  "resolutions": {
+    "cheerio": "1.0.0-rc.12"
+  },
   "engines": {
     "node": ">=16.14"
   }

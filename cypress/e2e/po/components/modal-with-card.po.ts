@@ -14,6 +14,10 @@ export default class ModalWithCardPo {
     return cy.get(this.modalSelector).should('exist');
   }
 
+  shouldNotExist(): CypressChainable {
+    return cy.get(this.modalSelector).should('not.exist');
+  }
+
   getCardTitle(): CypressChainable {
     return this.card.getTitle().should('exist');
   }

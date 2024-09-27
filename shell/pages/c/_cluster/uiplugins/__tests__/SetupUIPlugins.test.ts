@@ -1,128 +1,77 @@
-import { mount, createLocalVue } from '@vue/test-utils';
-import Vuex from 'vuex';
-import {
-  UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL,
-} from '@shell/config/uiplugins';
+import { nextTick } from 'vue';
+import { mount } from '@vue/test-utils';
+
 import SetupUIPlugins from '@shell/pages/c/_cluster/uiplugins/SetupUIPlugins.vue';
 
-describe('component: SetupUIPlugins', () => {
-  const localVue = createLocalVue();
+const mockedStore = () => {
+  return {
+    getters: {
+      'i18n/t':               (text: string) => text,
+      'i18n/exists':          (text: string) => text,
+      t:                      (text: string) => text,
+      'management/schemaFor': jest.fn().mockResolvedValue(true)
+    }
+  };
+};
 
-  localVue.use(Vuex);
-
-  it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
-    const store = new Vuex.Store({
-      modules: {
-        catalog: {
-          namespaced: true,
-          getters:    {
-            repos: () => [
-              { urlDisplay: UI_PLUGINS_REPO_URL },
-              { urlDisplay: UI_PLUGINS_PARTNERS_REPO_URL },
-            ],
-            repo:      () => {},
-            rawCharts: () => [],
-          }
-        }
-      },
-      getters: {
-        'i18n/t':               () => jest.fn(),
-        'i18n/exists':          () => jest.fn(),
-        t:                      () => jest.fn(),
-        'management/schemaFor': () => true,
-        'management/findAll':   () => [],
-        'management/find':      () => {}
+const requiredSetup = () => {
+  return {
+    global: {
+      mocks: {
+        $store:  mockedStore(),
+        $router: { push: jest.fn() }
       }
-    });
+    }
+  };
+};
 
-    jest.useFakeTimers();
-
+describe('setupUIPlugins.vue', () => {
+  it('should show the features button when hasFeatureFlag is false and schema exists', async() => {
     const wrapper = mount(SetupUIPlugins, {
-      store,
-      localVue,
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
+      ...requiredSetup(),
+      props: { hasFeatureFlag: false }
     });
 
-    wrapper.vm.enable();
+    await nextTick();
+    expect(wrapper.vm.$data.showFeaturesButton).toBe(true);
 
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
+    const button = wrapper.find('[data-testid="extension-feature-button"]');
 
-    jest.advanceTimersByTime(1);
-
-    await wrapper.vm.$nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="extension-enable-operator-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="extension-enable-operator-partners-repo"]');
-
-    expect(rancherCheckbox.exists()).toBe(false);
-    expect(partnersCheckbox.exists()).toBe(true);
-
-    jest.clearAllTimers();
-    wrapper.destroy();
+    expect(button.exists()).toBe(true);
   });
 
-  it('should SHOW a checkbox to install official Rancher repo if IS prime', async() => {
-    const store = new Vuex.Store({
-      modules: {
-        catalog: {
-          namespaced: true,
-          getters:    {
-            repos: () => [
-              { urlDisplay: UI_PLUGINS_REPO_URL },
-              { urlDisplay: UI_PLUGINS_PARTNERS_REPO_URL },
-            ],
-            repo:      () => {},
-            rawCharts: () => [],
-          }
-        }
-      },
-      getters: {
-        'i18n/t':               () => jest.fn(),
-        'i18n/exists':          () => jest.fn(),
-        t:                      () => jest.fn(),
-        'management/schemaFor': () => true,
-        'management/findAll':   () => [],
-        'management/find':      () => {}
+  it('should not show the features button when hasFeatureFlag is true', async() => {
+    const wrapper = mount(SetupUIPlugins, {
+      ...requiredSetup(),
+      props: { hasFeatureFlag: true }
+    });
+
+    await nextTick();
+    const button = wrapper.find('[data-testid="extension-feature-button"]');
+
+    expect(button.exists()).toBe(false);
+  });
+
+  it('should render the button and handle click event', async() => {
+    const wrapper = mount(SetupUIPlugins, {
+      ...requiredSetup(),
+      props: { hasFeatureFlag: false }
+    });
+
+    await nextTick();
+    const button = wrapper.find('[data-testid="extension-feature-button"]');
+
+    expect(button.exists()).toBe(true);
+
+    await button.trigger('click');
+
+    expect(wrapper.vm.$router.push).toHaveBeenCalledWith({
+      path:   '/c/local/settings/management.cattle.io.feature',
+      params: {
+        product:  'settings',
+        resource: 'management.cattle.io.feature',
+        cluster:  'local',
       }
     });
-
-    jest.useFakeTimers();
-
-    const wrapper = mount(SetupUIPlugins, {
-      store,
-      localVue,
-      // since vue-js-modal uses transitions, we need disable
-      // the default behaviour of transition-stubbing that vue-test-utils has...
-      stubs: { transition: false }
-    });
-
-    wrapper.vm.prime = true;
-    wrapper.vm.enable();
-
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
-    await wrapper.vm.$nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    await wrapper.vm.$nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="extension-enable-operator-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="extension-enable-operator-partners-repo"]');
-
-    expect(rancherCheckbox.exists()).toBe(true);
-    expect(partnersCheckbox.exists()).toBe(true);
-
-    jest.clearAllTimers();
-    wrapper.destroy();
   });
 });

@@ -10,6 +10,8 @@ import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 export default {
   name: 'FleetDetailCluster',
 
+  emits: ['input'],
+
   components: {
     Loading,
     ResourcesSummary,
@@ -75,9 +77,10 @@ export default {
     <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       mode="view"
       class="mt-20"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         label="Git Repos"

@@ -92,7 +92,7 @@ export default {
   <span>
     <span
       v-for="(gateway, i) in gateways"
-      :key="gateway"
+      :key="i"
     >
       <template v-if="i < 5">
         <router-link :to="gatewayLinks(gateway)">

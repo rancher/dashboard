@@ -30,7 +30,7 @@ export default {
       set(values) {
         const crdInfo = this.autoInstallInfo.find((info) => info.chart.name.includes('crd'));
 
-        this.$set(crdInfo, 'allValues', values);
+        crdInfo['allValues'] = values;
       }
     }
   }
@@ -41,7 +41,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <UnitInput
-          v-model="value.auditInterval"
+          v-model:value="value.auditInterval"
           :label="t('gatekeeperInstall.auditInterval')"
           :suffix="t('suffix.seconds', {count: value.auditInterval})"
         />
@@ -50,7 +50,7 @@ export default {
     <div class="row mt-10">
       <div class="col span-6">
         <UnitInput
-          v-model="value.constraintViolationsLimit"
+          v-model:value="value.constraintViolationsLimit"
           :label="t('gatekeeperInstall.constraintViolationsLimit')"
           :suffix="t('gatekeeperIndex.violations')"
         />
@@ -61,7 +61,7 @@ export default {
       <!-- gatekeeper versions <1.0.2 do not have this option -->
       <Checkbox
         v-if="crdValues.enableRuntimeDefaultSeccompProfile ||crdValues.enableRuntimeDefaultSeccompProfile === false"
-        v-model="crdValues.enableRuntimeDefaultSeccompProfile"
+        v-model:value="crdValues.enableRuntimeDefaultSeccompProfile"
         :label="t('gatekeeperInstall.runtimeDefaultSeccompProfile')"
       />
     </template>

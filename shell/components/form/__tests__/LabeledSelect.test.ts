@@ -7,7 +7,7 @@ describe('component: LabeledSelect', () => {
       const label = 'Foo';
       const value = 'foo';
       const wrapper = mount(LabeledSelect, {
-        propsData: {
+        props: {
           value,
           options: [
             { label, value },
@@ -22,7 +22,7 @@ describe('component: LabeledSelect', () => {
     it('using value as label if no options', () => {
       const value = 'foo';
       const wrapper = mount(LabeledSelect, {
-        propsData: {
+        props: {
           value,
           options: [],
         }
@@ -37,7 +37,7 @@ describe('component: LabeledSelect', () => {
       const label = 'Foo';
       const customLabelKey = 'bananas';
       const wrapper = mount(LabeledSelect, {
-        propsData: {
+        props: {
           value,
           optionLabel: customLabelKey,
           options:     [{
@@ -55,12 +55,12 @@ describe('component: LabeledSelect', () => {
       const value = 'foo';
       const translation = 'bananas';
       const wrapper = mount(LabeledSelect, {
-        propsData: {
+        props: {
           localizedLabel: true,
           value,
           options:        [{ label: 'whatever', value }],
         },
-        mocks: { $store: { getters: { 'i18n/t': () => translation } } }
+        global: { mocks: { $store: { getters: { 'i18n/t': () => translation } } } }
       });
 
       // Component is from a library and class is not going to be changed
@@ -73,7 +73,7 @@ describe('component: LabeledSelect', () => {
         const oldLabel = 'Foo';
         const newLabel = 'Baz';
         const wrapper = mount(LabeledSelect, {
-          propsData: {
+          props: {
             value,
             options: [
               { label: oldLabel, value },
@@ -95,7 +95,7 @@ describe('component: LabeledSelect', () => {
         const value = 'foo';
         const newValue = 'bananas';
         const wrapper = mount(LabeledSelect, {
-          propsData: {
+          props: {
             value,
             options: [value],
           }
@@ -114,14 +114,14 @@ describe('component: LabeledSelect', () => {
         const translation = 'bananas';
         const i18nMap: Record<string, string> = { [newLabel]: translation };
         const wrapper = mount(LabeledSelect, {
-          propsData: {
+          props: {
             value,
             localizedLabel: true,
             options:        [
               { label: oldLabel, value },
             ],
           },
-          mocks: { $store: { getters: { 'i18n/t': (text: string) => i18nMap[text] } } }
+          global: { mocks: { $store: { getters: { 'i18n/t': (text: string) => i18nMap[text] } } } }
         });
 
         await wrapper.setProps({

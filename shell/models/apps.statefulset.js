@@ -1,6 +1,5 @@
 import Workload from './workload';
-import { WORKLOAD_TYPES, POD } from '@shell/config/types';
-import { WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/detail/workload/index';
+import { WORKLOAD_TYPES, POD, WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/config/types';
 
 export default class StatefulSet extends Workload {
   async rollBack(cluster, statefulSet, revision) {

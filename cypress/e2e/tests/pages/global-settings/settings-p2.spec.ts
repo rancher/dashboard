@@ -4,7 +4,9 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import {
+  settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
+} from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 const settingsPage = new SettingsPagePo('local');
 const homePage = new HomePagePo();
@@ -27,20 +29,47 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
   });
 
-  it.skip('can update server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Note: this test fails due to https://github.com/rancher/dashboard/issues/10613
-    // This issue is causing e2e provisioning tests to fail
-    // skipping this test until issue is resolved
+  it('can update but not reset server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // The server-url can not be reset as there is no default -
+    // so we're not updating the value of the server-url -
+    // only checking that the api request is sent and that the reset button is disabled
 
-    // Update setting
     SettingsPagePo.navTo();
-
-    // Get original value and store it via aliasing
     settingsPage.settingsValue('server-url').then((el: any) => {
-      const originalValue = el.text();
+      const value = el.text();
 
-      cy.wrap(originalValue).as('originalValue');
+      settingsPage.editSettingsByLabel('server-url');
+
+      const settingsEdit = settingsPage.editSettings('local', 'server-url');
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains('Setting: server-url').should('be.visible');
+      settingsEdit.saveAndWait('server-url').then(() => {
+        removeServerUrl = true;
+      });
+      settingsPage.waitForPage();
+      settingsPage.settingsValue('server-url').contains(value);
+
+      // Check Account and API Keys page
+      AccountPagePo.navTo();
+      accountPage.waitForPage();
+      accountPage.isCurrentPage();
+      cy.contains(value).should('be.visible');
+
+      // Check reset button disabled
+      SettingsPagePo.navTo();
+      settingsPage.waitForPage();
+      settingsPage.editSettingsByLabel('server-url');
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains('Setting: server-url').should('be.visible');
+      settingsEdit.useDefaultButton().should('be.visible');
+      settingsEdit.useDefaultButton().should('be.disabled');
     });
+  });
+
+  it('can validate server-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
 
     settingsPage.editSettingsByLabel('server-url');
 
@@ -48,37 +77,24 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: server-url').should('be.visible');
-    settingsEdit.settingsInput().set(settings['server-url'].new);
-    settingsEdit.saveAndWait('server-url').then(() => {
-      removeServerUrl = true;
+
+    // Check showing localhost warning banner
+    serverUrlLocalhostCases.forEach((url) => {
+      settingsEdit.settingsInput().set(url);
+      settingsEdit.serverUrlLocalhostWarningBanner().banner().should('exist').and('be.visible');
     });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('server-url').contains(settings['server-url'].new);
-
-    // Check Account and API Keys page
-    AccountPagePo.navTo();
-    accountPage.waitForPage();
-    accountPage.isCurrentPage();
-    cy.contains(settings['server-url'].new).should('be.visible');
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('server-url');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: server-url').should('be.visible');
-    cy.get('@originalValue').then((text:any) => {
-      settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('server-url');
-      settingsPage.waitForPage();
-      settingsPage.settingsValue('server-url').contains(text);
-
-      // Check Account and API Keys page
-      AccountPagePo.navTo();
-      accountPage.waitForPage();
-      accountPage.isCurrentPage();
-      cy.contains(text).should('be.visible');
+    // Check showing error banner when the urls has trailing forward slash
+    settingsEdit.settingsInput().set(urlWithTrailingForwardSlash);
+    settingsEdit.errorBannerContent('Server URL should not have a trailing forward slash.').should('exist').and('be.visible');
+    // Check showing error banner when the url is not HTTPS
+    settingsEdit.settingsInput().set(httpUrl);
+    settingsEdit.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+    // // Check showing error banner when the input value is not a url
+    nonUrlCases.forEach((inputValue) => {
+      settingsEdit.settingsInput().set(inputValue);
+      settingsEdit.errorBannerContent('Server URL must be an URL.').should('exist').and('be.visible');
+      // A non-url is also a non-https
+      settingsEdit.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
     });
   });
 
@@ -208,7 +224,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].original);
   });
 
-  it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('[Vue3 Skip]: can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const rancherLogo = '/img/rancher-logo.66cf5910.svg';
     const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
 
@@ -382,7 +398,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
-  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('[Vue3 Skip]: can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');

@@ -40,7 +40,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.host"
+          v-model:value="value.host"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.datadog.host')"
@@ -56,7 +56,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.api_key"
+          v-model:value="value.api_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -74,7 +74,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.use_ssl"
+          v-model:value="value.use_ssl"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.datadog.useSSL')"
@@ -84,7 +84,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.use_compression"
+          v-model:value="value.use_compression"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.datadog.useCompression')"

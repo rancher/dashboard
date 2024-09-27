@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['add'],
+
   components: {
     LabeledSelect,
     Principal,
@@ -19,7 +21,7 @@ export default {
 
     showMyGroupTypes: {
       type: Array,
-      default() {
+      default(props) {
         return ['group', 'user'];
       },
     },
@@ -174,11 +176,11 @@ export default {
 <template>
   <LabeledSelect
     ref="labeled-select"
-    v-model="newValue"
+    v-model:value="newValue"
     v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
-      classes: ['select-principal-tooltip']
+      popperClass: ['select-principal-tooltip']
     }"
     :mode="mode"
     :label="label"
@@ -188,7 +190,7 @@ export default {
     :filterable="false"
     class="select-principal"
     :class="{'retain-selection': retainSelection}"
-    @input="add"
+    @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
     @on-close="setTooltipContent()"
@@ -208,7 +210,6 @@ export default {
 
     <template #option="option">
       <Principal
-        :key="option.label"
         :value="option.label"
         :use-muted="false"
       />
@@ -219,7 +220,6 @@ export default {
       #selected-option="option"
     >
       <Principal
-        :key="option.label"
         :value="option.label"
         :use-muted="false"
         class="mt-10 mb-10"

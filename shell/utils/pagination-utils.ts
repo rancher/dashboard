@@ -12,33 +12,30 @@ import {
 import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
-
-// This are hardcoded atm, but will be changed via the `Performance` settings
-const settings: PaginationSettings = {
-  enabled: false,
-  stores:  {
-    cluster: {
-      resources: {
-        enableAll:  false,
-        enableSome: {
-          enabled: ['configmap', 'secret', 'pod', 'node'],
-          generic: true,
-        }
-      }
-    }
-  }
-};
+import { STEVE_CACHE } from '@shell/store/features';
+import { getPerformanceSetting } from '@shell/utils/settings';
 
 /**
  * Helper functions for server side pagination
  */
 class PaginationUtils {
   /**
-   * When a ns filter isn't one or more projects/namespaces... what the the valid values?
+   * When a ns filter isn't one or more projects/namespaces... what are the valid values?
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */
   validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
+
+  private getSettings({ rootGetters }: any): PaginationSettings {
+    const perf = getPerformanceSetting(rootGetters);
+
+    return perf.serverPagination;
+  }
+
+  isSteveCacheEnabled({ rootGetters }: any): boolean {
+    // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
+    return rootGetters['features/get']?.(STEVE_CACHE);
+  }
 
   /**
    * Is pagination enabled at a global level or for a specific resource
@@ -49,6 +46,13 @@ class PaginationUtils {
       id: string,
     }
   }) {
+    // Cache must be enabled to support pagination api
+    if (!this.isSteveCacheEnabled({ rootGetters })) {
+      return false;
+    }
+
+    const settings = this.getSettings({ rootGetters });
+
     // No setting, not enabled
     if (!settings?.enabled) {
       return false;

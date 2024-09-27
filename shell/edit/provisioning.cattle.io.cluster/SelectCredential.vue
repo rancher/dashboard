@@ -8,11 +8,14 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
+import cloneDeep from 'lodash/cloneDeep';
 
 const _NEW = '_NEW';
 const _NONE = '_NONE';
 
 export default {
+  emits: ['update:value', 'credential-created'],
+
   components: {
     Loading, LabeledSelect, CruResource, NameNsDescription, Banner
   },
@@ -161,9 +164,9 @@ export default {
   watch: {
     credentialId(val) {
       if ( val === _NEW || val === _NONE ) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
       } else {
-        this.$emit('input', val);
+        this.$emit('update:value', val);
       }
     },
   },
@@ -177,6 +180,7 @@ export default {
       if ( this.errors ) {
         clear(this.errors);
       }
+      const fullCredential = cloneDeep(this.newCredential);
 
       if ( typeof this.$refs.create?.test === 'function' ) {
         try {
@@ -204,6 +208,8 @@ export default {
         const res = await this.newCredential.save();
 
         this.credentialId = res.id;
+        // full cloud credential data is not stored in the cloud credentail CRD, but consuming components may want to use it
+        this.$emit('credential-created', fullCredential);
         btnCb(true);
       } catch (e) {
         this.errors = [e];
@@ -246,7 +252,7 @@ export default {
       />
 
       <NameNsDescription
-        v-model="newCredential"
+        v-model:value="newCredential"
         :namespaced="false"
         :description-hidden="true"
         name-key="name"
@@ -259,7 +265,7 @@ export default {
       <component
         :is="createComponent"
         ref="create"
-        v-model="newCredential"
+        v-model:value="newCredential"
         mode="create"
         :driver-name="driverName"
         @validationChanged="createValidationChanged"
@@ -273,7 +279,7 @@ export default {
       />
 
       <LabeledSelect
-        v-model="credentialId"
+        v-model:value="credentialId"
         :label="t('cluster.credential.label')"
         :options="options"
         option-key="value"

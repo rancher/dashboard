@@ -144,7 +144,7 @@ export default {
 
     if (mode === _CREATE) {
       RECEIVERS_TYPES.forEach((receiverType) => {
-        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+        currentReceiver[receiverType.key] = currentReceiver[receiverType.key] || [];
       });
     }
 
@@ -206,7 +206,7 @@ export default {
         // We need this step so we don't just keep adding new keys when modifying the custom field
         Object.keys(this.value).forEach((key) => {
           if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value, key);
+            delete this.value[key];
           }
         });
 
@@ -284,7 +284,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :is-disabled="receiverNameDisabled"
           :label="t('generic.name')"
           :required="true"
@@ -340,13 +340,13 @@ export default {
         <YamlEditor
           v-if="receiverType.name === 'custom'"
           ref="customEditor"
-          v-model="suffixYaml"
+          v-model:value="suffixYaml"
           :scrolling="false"
           :editor-mode="editorMode"
         />
         <div v-else>
           <ArrayListGrouped
-            v-model="value[receiverType.key]"
+            v-model:value="value[receiverType.key]"
             class="namespace-list"
             :mode="mode"
             :default-add-value="{}"

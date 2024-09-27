@@ -16,7 +16,6 @@
  * and then injecting custom css into the document so that any icons included via svg will
  * show with the desired colors for the theme.
  */
-import Vue from 'vue';
 import { Solver } from '@shell/utils/svg-filter';
 import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
 
@@ -153,7 +152,7 @@ export default {
         cssCache[className] = true;
       }
 
-      Vue.set(this, 'className', className);
+      this['className'] = className;
     }
   }
 };

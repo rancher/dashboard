@@ -10,8 +10,9 @@ export default {
     Loading,
     LabeledInput
   },
-  mixins: [createEditView],
-  props:  {
+  inheritAttrs: false,
+  mixins:       [createEditView],
+  props:        {
     value: {
       type:     Object,
       required: true,
@@ -63,7 +64,7 @@ export default {
     @finish="save"
   >
     <LabeledInput
-      v-model="name"
+      v-model:value="name"
       :label="t('managementNode.customName')"
       :mode="mode"
     />

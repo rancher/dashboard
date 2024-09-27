@@ -46,7 +46,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.name"
+          v-model:value="value.name"
           :mode="mode"
           :label="t('hpa.metrics.headers.resource')"
           :options="resourceTypes"
@@ -55,7 +55,7 @@ export default {
     </div>
     <div class="row">
       <MetricTarget
-        v-model="value.target"
+        v-model:value="value.target"
         :mode="mode"
         metric-resource="resource"
         :resource-name="value.name"

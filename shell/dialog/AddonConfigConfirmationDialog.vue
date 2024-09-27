@@ -3,6 +3,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,
@@ -49,37 +51,35 @@ export default {
     class="prompt-restore"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      class="text-default-text"
-    >
-      {{ t('addonConfigConfirmation.title') }}
-    </h4>
+    <template #title>
+      <h4 class="text-default-text">
+        {{ t('addonConfigConfirmation.title') }}
+      </h4>
+    </template>
 
-    <template slot="body">
+    <template #body>
       <slot name="body">
         {{ t('addonConfigConfirmation.body') }}
       </slot>
     </template>
 
-    <div
-      slot="actions"
-      class="bottom"
-    >
-      <div class="buttons">
-        <button
-          type="button"
-          class="btn role-secondary mr-10"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          mode="continue"
-          @click="apply"
-        />
+    <template #actions>
+      <div class="bottom">
+        <div class="buttons">
+          <button
+            type="button"
+            class="btn role-secondary mr-10"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <AsyncButton
+            mode="continue"
+            @click="apply"
+          />
+        </div>
       </div>
-    </div>
+    </template>
   </Card>
 </template>
 <style lang='scss' scoped>

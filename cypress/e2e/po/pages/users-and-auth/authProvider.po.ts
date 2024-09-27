@@ -27,6 +27,6 @@ export default class AuthProviderPo extends PagePo {
   }
 
   selectAzureAd() {
-    return this.self().find('[data-testid="select-icon-grid-3"]').click();
+    return this.self().find('[data-testid="select-icon-grid-AzureAD"]').click();
   }
 }

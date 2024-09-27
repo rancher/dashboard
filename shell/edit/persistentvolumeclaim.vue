@@ -20,9 +20,10 @@ import ResourceManager from '@shell/mixins/resource-manager';
 const DEFAULT_STORAGE = '10Gi';
 
 export default {
-  name: 'PersistentVolumeClaim',
-
-  components: {
+  name:         'PersistentVolumeClaim',
+  emits:        ['input'],
+  inheritAttrs: false,
+  components:   {
     Banner,
     Checkbox,
     CruResource,
@@ -48,7 +49,7 @@ export default {
     this.storageClassOptions = storageClasses.map((s) => s.name).sort();
     this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
 
-    this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
+    this.value.spec['storageClassName'] = this.value.spec.storageClassName || this.storageClassOptions[0];
   },
   data() {
     const canListPersistentVolumes = this.$store.getters['cluster/canList'](PV);
@@ -66,12 +67,12 @@ export default {
 
     const defaultAccessModes = ['ReadWriteOnce'];
 
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'resources', this.value.spec.resources || {});
-    this.$set(this.value.spec.resources, 'requests', this.value.spec.resources.requests || {});
-    this.$set(this.value.spec.resources.requests, 'storage', this.value.spec.resources.requests.storage || DEFAULT_STORAGE);
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['resources'] = this.value.spec.resources || {};
+    this.value.spec.resources['requests'] = this.value.spec.resources.requests || {};
+    this.value.spec.resources.requests['storage'] = this.value.spec.resources.requests.storage || DEFAULT_STORAGE;
     if (this.realMode === _CREATE) {
-      this.$set(this.value.spec, 'accessModes', defaultAccessModes);
+      this.value.spec['accessModes'] = defaultAccessModes;
     }
 
     const defaultTab = this.$route.query[FOCUS] || null;
@@ -121,16 +122,16 @@ export default {
       set(value) {
         const persistentVolume = this.persistentVolumes.find((pv) => pv.metadata.name === value);
 
-        this.$set(this.value.spec, 'storageClassName', '');
+        this.value.spec['storageClassName'] = '';
 
         if (persistentVolume) {
-          this.$set(this.value.spec.resources.requests, 'storage', persistentVolume.spec.capacity?.storage);
+          this.value.spec.resources.requests['storage'] = persistentVolume.spec.capacity?.storage;
           if (persistentVolume.spec?.storageClassName) {
-            this.$set(this.value.spec, 'storageClassName', persistentVolume.spec?.storageClassName );
+            this.value.spec['storageClassName'] = persistentVolume.spec?.storageClassName ;
           }
         }
 
-        this.$set(this.value.spec, 'volumeName', value);
+        this.value.spec['volumeName'] = value;
       }
     },
     storageAmountMode() {
@@ -184,7 +185,7 @@ export default {
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
-        this.$set(this.value, 'accessModes', uniq(this.value.spec.accessModes));
+        this.value['accessModes'] = uniq(this.value.spec.accessModes);
       } else {
         const indexOf = this.value.spec.accessModes.indexOf(key);
 
@@ -200,14 +201,14 @@ export default {
     },
     updateDefaults(source) {
       if (source === 'new') {
-        this.$set(this.value.spec.resources.requests, 'storage', DEFAULT_STORAGE);
+        this.value.spec.resources.requests['storage'] = DEFAULT_STORAGE;
       }
 
-      this.$set(this, 'persistentVolume', null);
+      this['persistentVolume'] = null;
     },
     willSave() {
       if (this.value.spec.storageClassName === this.t('persistentVolumeClaim.useDefault')) {
-        this.$delete(this.value.spec, 'storageClassName');
+        delete this.value.spec['storageClassName'];
       }
     }
   }
@@ -234,10 +235,11 @@ export default {
     />
 
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
       :side-tabs="true"
       :default-tab="defaultTab"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="volumeclaim"
@@ -247,12 +249,12 @@ export default {
         <div class="row">
           <div class="col span-6">
             <RadioGroup
-              v-model="source"
+              v-model:value="source"
               name="source"
               :mode="immutableMode"
               :label="t('persistentVolumeClaim.source.label')"
               :options="sourceOptions"
-              @input="updateDefaults"
+              @update:value="updateDefaults"
             />
           </div>
           <div class="col span-6">
@@ -263,14 +265,14 @@ export default {
               >
                 <LabeledSelect
                   v-if="canListStorageClasses"
-                  v-model="value.spec.storageClassName"
+                  v-model:value="value.spec.storageClassName"
                   :options="storageClassOptions"
                   :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
                   :mode="immutableMode"
                 />
                 <LabeledInput
                   v-else
-                  v-model="value.spec.storageClassName"
+                  v-model:value="value.spec.storageClassName"
                   :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
                   :mode="immutableMode"
                   :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noStorageClass')"
@@ -282,7 +284,7 @@ export default {
               >
                 <LabeledSelect
                   v-if="canListPersistentVolumes"
-                  v-model="persistentVolume"
+                  v-model:value="persistentVolume"
                   :options="persistentVolumeOptions"
                   :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
                   :selectable="isPersistentVolumeSelectable"
@@ -291,7 +293,7 @@ export default {
                 />
                 <LabeledInput
                   v-else
-                  v-model="persistentVolume"
+                  v-model:value="persistentVolume"
                   :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
                   :mode="immutableMode"
                   :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noPersistentVolume')"
@@ -302,7 +304,7 @@ export default {
               <div class="col span-12 mt-10">
                 <UnitInput
                   ref="volumeSize"
-                  v-model="value.spec.resources.requests.storage"
+                  v-model:value="value.spec.resources.requests.storage"
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
                   :mode="storageAmountMode"
                   :input-exponent="3"
@@ -341,21 +343,21 @@ export default {
         </div>
         <div>
           <Checkbox
-            v-model="readWriteOnce"
+            v-model:value="readWriteOnce"
             :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')"
             :mode="immutableMode"
           />
         </div>
         <div>
           <Checkbox
-            v-model="readOnlyMany"
+            v-model:value="readOnlyMany"
             :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')"
             :mode="immutableMode"
           />
         </div>
         <div>
           <Checkbox
-            v-model="readWriteMany"
+            v-model:value="readWriteMany"
             :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')"
             :mode="immutableMode"
           />

@@ -1,11 +1,12 @@
 import { RancherSetupLoginPagePo } from '@/cypress/e2e/po/pages/rancher-setup-login.po';
-import { RancherSetupConfigurePage } from '~/cypress/e2e/po/pages/rancher-setup-configure.po';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
-import { PARTIAL_SETTING_THRESHOLD } from '~/cypress/support/utils/settings-utils';
+import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-configure.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
+import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
-describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths'] }, () => {
+describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@setup', '@components', '@navigation', '@charts', '@explorer', '@explorer2', '@extensions', '@fleet', '@generic', '@globalSettings', '@manager', '@userMenu', '@usersAndAuths', '@elemental', '@vai'] }, () => {
   const rancherSetupLoginPage = new RancherSetupLoginPagePo();
   const rancherSetupConfigurePage = new RancherSetupConfigurePage();
   const homePage = new HomePagePo();
@@ -13,6 +14,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   it('Requires initial setup', () => {
     homePage.goTo();
 
+    rancherSetupLoginPage.goTo();
     rancherSetupLoginPage.waitForPage();
     rancherSetupLoginPage.hasInfoMessage();
   });
@@ -33,7 +35,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     // Second request (after user is logged in) will return the full list
     cy.wait('@settingsReq').then((interception) => {
-      expect(interception.response.body.count).greaterThan(PARTIAL_SETTING_THRESHOLD);
+      expect(interception.response.body.count).gte(PARTIAL_SETTING_THRESHOLD);
     });
     rancherSetupConfigurePage.waitForPage();
 
@@ -58,6 +60,30 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     rancherSetupConfigurePage.waitForPage();
     rancherSetupConfigurePage.canSubmit().should('eq', false);
+    // Check server url validation
+    rancherSetupConfigurePage.serverUrl().self().should('be.visible');
+    rancherSetupConfigurePage.serverUrl().self().invoke('val').then((initialServerUrl) => {
+    // Check showing localhost warning banner
+      serverUrlLocalhostCases.forEach((url) => {
+        rancherSetupConfigurePage.serverUrl().set(url);
+        rancherSetupConfigurePage.serverUrlLocalhostWarningBanner().banner().should('exist').and('be.visible');
+      });
+      // Check showing error banner when the urls has trailing forward slash
+      rancherSetupConfigurePage.serverUrl().set(urlWithTrailingForwardSlash);
+      rancherSetupConfigurePage.errorBannerContent('Server URL should not have a trailing forward slash.').should('exist').and('be.visible');
+      // Check showing error banner when the url is not HTTPS
+      rancherSetupConfigurePage.serverUrl().set(httpUrl);
+      rancherSetupConfigurePage.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+      // // Check showing error banner when the input value is not a url
+      nonUrlCases.forEach((inputValue) => {
+        rancherSetupConfigurePage.serverUrl().set(inputValue);
+        rancherSetupConfigurePage.errorBannerContent('Server URL must be an URL.').should('exist').and('be.visible');
+        // A non-url is also a non-https
+        rancherSetupConfigurePage.errorBannerContent('Server URL must be https.').should('exist').and('be.visible');
+      });
+      rancherSetupConfigurePage.serverUrl().set(initialServerUrl);
+    });
+
     rancherSetupConfigurePage.termsAgreement().set();
     rancherSetupConfigurePage.canSubmit().should('eq', true);
     rancherSetupConfigurePage.submit();

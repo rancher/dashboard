@@ -26,10 +26,10 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'scaleIO', this.value.spec.scaleIO || {});
-    this.$set(this.value.spec.scaleIO, 'readOnly', this.value.spec.scaleIO.readOnly || false);
-    this.$set(this.value.spec.scaleIO, 'secretRef', this.value.spec.scaleIO.secretRef || {});
-    this.$set(this.value.spec.scaleIO, 'sslEnabled', this.value.spec.scaleIO.sslEnabled || false);
+    this.value.spec['scaleIO'] = this.value.spec.scaleIO || {};
+    this.value.spec.scaleIO['readOnly'] = this.value.spec.scaleIO.readOnly || false;
+    this.value.spec.scaleIO['secretRef'] = this.value.spec.scaleIO.secretRef || {};
+    this.value.spec.scaleIO['sslEnabled'] = this.value.spec.scaleIO.sslEnabled || false;
 
     return { yesNoOptions };
   },
@@ -41,7 +41,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.volumeName"
+          v-model:value="value.spec.scaleIO.volumeName"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.volumeName.label')"
           :placeholder="t('persistentVolume.scaleIO.volumeName.placeholder')"
@@ -49,7 +49,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.gateway"
+          v-model:value="value.spec.scaleIO.gateway"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.gateway.label')"
           :placeholder="t('persistentVolume.scaleIO.gateway.placeholder')"
@@ -59,7 +59,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.protectionDomain"
+          v-model:value="value.spec.scaleIO.protectionDomain"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.protectionDomain.label')"
           :placeholder="t('persistentVolume.scaleIO.protectionDomain.placeholder')"
@@ -67,7 +67,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.storageMode"
+          v-model:value="value.spec.scaleIO.storageMode"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.storageMode.label')"
           :placeholder="t('persistentVolume.scaleIO.storageMode.placeholder')"
@@ -77,7 +77,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.storagePool"
+          v-model:value="value.spec.scaleIO.storagePool"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.storagePool.label')"
           :placeholder="t('persistentVolume.scaleIO.storagePool.placeholder')"
@@ -85,7 +85,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.system"
+          v-model:value="value.spec.scaleIO.system"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.system.label')"
           :placeholder="t('persistentVolume.scaleIO.system.placeholder')"
@@ -95,7 +95,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.scaleIO.sslEnabled"
+          v-model:value="value.spec.scaleIO.sslEnabled"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.scaleIO.sslEnabled.label')"
@@ -107,7 +107,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.secretRef.name"
+          v-model:value="value.spec.scaleIO.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -115,7 +115,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.secretRef.namespace"
+          v-model:value="value.spec.scaleIO.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -125,7 +125,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.scaleIO.fsType"
+          v-model:value="value.spec.scaleIO.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -133,7 +133,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.scaleIO.readOnly"
+          v-model:value="value.spec.scaleIO.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

@@ -1,16 +1,12 @@
 import { mount } from '@vue/test-utils';
 import { Banner } from './index';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: Banner', () => {
   it('should display text based on label', () => {
     const label = 'test';
     const wrapper = mount(
       Banner,
-      {
-        directives: { cleanHtmlDirective },
-        propsData:  { label }
-      });
+      { propsData: { label } });
 
     const element = wrapper.find('span').element;
 
@@ -29,9 +25,9 @@ describe('component: Banner', () => {
   it('should not display an icon', () => {
     const wrapper = mount(Banner);
 
-    const element = wrapper.find(`[data-testid="banner-icon"]`).element;
+    const iconElement = wrapper.find('[data-testid="banner-icon"]');
 
-    expect(element).not.toBeDefined();
+    expect(iconElement.exists()).toBe(false);
   });
 
   it('should emit close event', () => {

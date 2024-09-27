@@ -49,7 +49,7 @@ export default {
     ];
 
     if (this.mode === _CREATE) {
-      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
+      this.value.parameters['type'] = this.value.parameters.type || volumeTypeOptions[0].value;
     }
 
     return {
@@ -71,14 +71,14 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.parameters.type"
+          v-model:value="value.parameters.type"
           name="volumeType"
           :label="t('storageClass.gce-pd.volumeType.label')"
           :mode="mode"
           :options="volumeTypeOptions"
         />
         <LabeledInput
-          v-model="value.parameters.fsType"
+          v-model:value="value.parameters.fsType"
           class="mt-10"
           :placeholder="t('storageClass.gce-pd.filesystemType.placeholder')"
           :label="t('storageClass.gce-pd.filesystemType.label')"
@@ -87,7 +87,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="availabilityZone"
+          v-model:value="availabilityZone"
           name="availabilityZone"
           :label="t('storageClass.gce-pd.availabilityZone.label')"
           :mode="mode"
@@ -95,7 +95,7 @@ export default {
         />
         <LabeledInput
           v-if="availabilityZone === 'manual'"
-          v-model="value.parameters.zones"
+          v-model:value="value.parameters.zones"
           class="mt-10"
           :placeholder="t('storageClass.gce-pd.availabilityZone.placeholder')"
           :mode="mode"
@@ -105,7 +105,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.parameters['replication-type']"
+          v-model:value="value.parameters['replication-type']"
           name="replicationType"
           :label="t('storageClass.gce-pd.replicationType.label')"
           :mode="mode"

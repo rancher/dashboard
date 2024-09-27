@@ -9,7 +9,7 @@ describe('component: FileSelector', () => {
     jest.restoreAllMocks();
   });
   afterEach(() => {
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   const binaryString = Buffer.from('/9j/4AAQSkZJRgABAQAASABIAAD/4QCARXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAKgAgAEAAAAAQAAADmgAwAEAAAAAQAAAFEAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/iAihJQ0NfUFJPRklMRQABAQAAAhgAAAAABDAAAG1udHJSR0IgWFlaIAAAAAAAAAAAAAAAAGFjc3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD21gABAAAAANMtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWRlc2MAAADwAAAAdHJYWVoAAAFkAAAAFGdYWVoAAAF4AAAAFGJYWVoAAAGMAAAAFHJUUkMAAAGgAAAAKGdUUkMAAAGgAAAAKGJUUkMAAAGgAAAAKHd0cHQAAAHIAAAAFGNwcnQAAAHcAAAAPG1sdWMAAAAAAAAAAQAAAAxlblVTAAAAWAAAABwAcwBSAEcAQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWFlaIAAAAAAAAG+iAAA49QAAA5BYWVogAAAAAAAAYpkAALeFAAAY2lhZWiAAAAAAAAAkoAAAD4QAALbPcGFyYQAAAAAABAAAAAJmZgAA8qcAAA1ZAAAT0AAAClsAAAAAAAAAAFhZWiAAAAAAAAD21gABAAAAANMtbWx1YwAAAAAAAAABAAAADGVuVVMAAAAgAAAAHABHAG8AbwBnAGwAZQAgAEkAbgBjAC4AIAAyADAAMQA2/8AAEQgAUQA5AwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAEAsMDgwKEA4NDhIREBMYKBoYFhYYMSMlHSg6Mz08OTM4N0BIXE5ARFdFNzhQbVFXX2JnaGc+TXF5cGR4XGVnY//bAEMBERISGBUYLxoaL2NCOEJjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY//dAAQABP/aAAwDAQACEQMRAD8AdRRRX0B4gUUUUAFFFFABRRRQB//QdRRRX0B4gUUUUAFFFFABRRRQB//RdRRRX0B4gUUUUAFFFFABRRRQB//SdRRRX0B4gUUUUAFFFFABRRRQB//TdRRRX0B4gUUUUAFFFFAwooooA//UdRRRX0B4gUUUUAFFFFAwooooA//Z', 'base64'); // Binary data string
@@ -19,9 +19,9 @@ describe('component: FileSelector', () => {
 
   it('should render', () => {
     wrapper = mount(FileSelector, {
-      propsData: { label: 'upload' },
-      mocks:     {},
-      methods:   {},
+      props:   { label: 'upload' },
+      methods: {},
+      global:  { mocks: {} },
     });
 
     const uploadButton = wrapper.find('.btn');
@@ -32,9 +32,9 @@ describe('component: FileSelector', () => {
 
   it('should succeed when loading an image', async() => {
     wrapper = mount(FileSelector, {
-      propsData: { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml' },
-      mocks:     {},
-      methods:   {},
+      props:   { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml' },
+      methods: {},
+      global:  { mocks: {} },
     });
     const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 
@@ -53,11 +53,11 @@ describe('component: FileSelector', () => {
 
   it('should fail when file is too big', async() => {
     wrapper = mount(FileSelector, {
-      propsData: {
+      props: {
         label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', byteLimit: 10
       },
-      mocks:   {},
       methods: {},
+      global:  { mocks: {} },
     });
     const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 

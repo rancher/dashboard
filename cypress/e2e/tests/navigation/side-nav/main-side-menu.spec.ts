@@ -4,6 +4,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -34,8 +35,8 @@ describe('Side Menu: main', () => {
       cy.get('body').focus().type('{alt}', { release: false });
 
       // assert that icons are displayed for the key combo
-      BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(0);
-      BurgerMenuPo.burguerMenuNavClusterKeyComboIconCheck(1);
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(0);
+      BurgerMenuPo.burgerMenuNavClusterKeyComboIconCheck(1);
 
       // nav to local
       pagePoFake.navToClusterMenuEntry('local');
@@ -47,6 +48,8 @@ describe('Side Menu: main', () => {
 
     // testing https://github.com/rancher/dashboard/issues/10192
     it('"documentation" link in editing a cluster should open in a new tab', { tags: ['@navigation', '@adminUser'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
       const page = new PagePo('');
       const clusterList = new ClusterManagerListPagePo('_');
 
@@ -66,7 +69,7 @@ describe('Side Menu: main', () => {
         })
         .click();
 
-      cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.8/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
+      cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.9/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
     });
 
     it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {

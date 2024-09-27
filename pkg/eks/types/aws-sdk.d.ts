@@ -103,3 +103,10 @@ export interface EKSAddon {
 export interface EC2Region {
   RegionName: string
 }
+
+// ec2 describeSecurityGroups
+export interface SecurityGroup {
+  GroupId: string,
+  GroupName: string,
+  VpcId: string
+}

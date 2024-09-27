@@ -19,7 +19,6 @@ export default {
 
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
-
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
     if (spoofedRes) {

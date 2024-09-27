@@ -45,13 +45,16 @@ export default {
   },
 
   async fetch() {
-    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
+    if (!this.$store.getters[`cluster/paginationEnabled`]()) {
+      // This is only used by shell/models/networking.k8s.io.ingress.js `targetTo`, where we do some dodgy matching of workloads with name 'ingress-'
+      await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
+    }
   },
 
   beforeUpdate() {
     for (const rule of this.value.spec.rules) {
       if (!rule.vKey) {
-        this.$set(rule, 'vKey', random32(1));
+        rule['vKey'] = random32(1);
       }
     }
   },
@@ -75,8 +78,10 @@ export default {
           name:          'target',
           label:         this.t('ingress.rules.headers.target'),
           formatter:     'Link',
-          formatterOpts: { options: { internal: true }, urlKey: 'targetLink.to' },
-          value:         'targetLink',
+          formatterOpts: {
+            options: { internal: true }, urlKey: 'targetLink.to', labelKey: 'serviceName'
+          },
+          value: 'targetLink',
         },
         {
           name:  'port',
@@ -129,7 +134,7 @@ export default {
   </div>
   <div v-else>
     <ArrayListGrouped
-      v-model="value.spec.rules"
+      v-model:value="value.spec.rules"
       :add-label="t('ingress.rules.addRule')"
       :default-add-value="{}"
       :mode="mode"
@@ -139,7 +144,7 @@ export default {
         <Rule
           ref="lastRule"
           :key="props.row.value.vKey"
-          v-model="props.row.value"
+          v-model:value="props.row.value"
           :service-targets="serviceTargets"
           :ingress="value"
           :rules="rules"

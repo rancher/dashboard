@@ -3,13 +3,16 @@ import KeyValue from '@shell/components/form/KeyValue';
 import Question from './Question';
 
 export default {
-  name:       'QuestionMap',
+  name: 'QuestionMap',
+
+  emits: ['update:value'],
+
   components: { KeyValue },
   mixins:     [Question],
 
   methods: {
     update(val) {
-      this.$emit('input', val);
+      this.$emit('update:value', val);
     }
   }
 };
@@ -28,14 +31,13 @@ export default {
     <div class="row">
       <div class="col span-12 mt-10">
         <KeyValue
-          :key="question.variable"
-          v-model="value"
+          :value="value"
           :title="question.label"
           :mode="mode"
           :protip="false"
           :disabled="disabled"
           :title-protip="displayTooltip"
-          @input="update"
+          @update:value="update"
         />
       </div>
     </div>

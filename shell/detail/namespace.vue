@@ -15,6 +15,8 @@ import {
 } from 'lodash';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourcesSummary,
     ResourceTable,
@@ -232,8 +234,9 @@ export default {
       />
     </div>
     <ResourceTabs
-      v-model="value"
+      :value="value"
       :mode="mode"
+      @input="$emit('input', $event)"
     >
       <Tab :name="t('namespace.resources')">
         <SortableTable

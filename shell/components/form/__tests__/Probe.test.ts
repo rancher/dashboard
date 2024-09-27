@@ -16,8 +16,8 @@ describe('component: Probe', () => {
       'failureThreshold',
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        propsData: { mode: _EDIT },
-        data:      () => ({ kind })
+        props: { mode: _EDIT },
+        data:  () => ({ kind })
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
@@ -33,8 +33,8 @@ describe('component: Probe', () => {
       'timeoutSeconds',
     ])('should emit an update on %p input and blur', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        propsData: { mode: _EDIT },
-        data:      () => ({ kind })
+        props: { mode: _EDIT },
+        data:  () => ({ kind })
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
@@ -49,7 +49,7 @@ describe('component: Probe', () => {
   it.each([
     'kind',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT } });
 
     const select = wrapper.find(`[data-testid="input-probe-${ field }"]`);
 
@@ -57,6 +57,18 @@ describe('component: Probe', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(2);
+    expect(wrapper.emitted('update:value')).toHaveLength(2);
+  });
+
+  it('should emit an update when http headers are modified', () => {
+    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT, value: { httpGet: { scheme: 'https' } } } });
+
+    const httpHeaders = wrapper.getComponent('[data-testid="input-probe-http-headers"]');
+
+    httpHeaders.vm.$emit('update:value', [{ name: 'abc', value: 'def' }]);
+
+    expect(wrapper.emitted()?.['update:value']?.[0]?.[0]).toStrictEqual({
+      exec: null, httpGet: { httpHeaders: [{ name: 'abc', value: 'def' }], scheme: 'HTTPS' }, tcpSocket: null
+    });
   });
 });

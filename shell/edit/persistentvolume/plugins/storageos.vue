@@ -26,9 +26,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'storageos', this.value.spec.storageos || {});
-    this.$set(this.value.spec.storageos, 'readOnly', this.value.spec.storageos.readOnly || false);
-    this.$set(this.value.spec.storageos, 'secretRef', this.value.spec.storageos.secretRef || {});
+    this.value.spec['storageos'] = this.value.spec.storageos || {};
+    this.value.spec.storageos['readOnly'] = this.value.spec.storageos.readOnly || false;
+    this.value.spec.storageos['secretRef'] = this.value.spec.storageos.secretRef || {};
 
     return { yesNoOptions };
   },
@@ -40,7 +40,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.storageos.volumeName"
+          v-model:value="value.spec.storageos.volumeName"
           :mode="mode"
           :label="t('persistentVolume.storageos.volumeName.label')"
           :placeholder="t('persistentVolume.storageos.volumeName.placeholder')"
@@ -48,7 +48,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.storageos.volumeNamespace"
+          v-model:value="value.spec.storageos.volumeNamespace"
           :mode="mode"
           :label="t('persistentVolume.storageos.volumeNamespace.label')"
           :placeholder="t('persistentVolume.storageos.volumeNamespace.placeholder')"
@@ -58,7 +58,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.storageos.secretRef.name"
+          v-model:value="value.spec.storageos.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -66,7 +66,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.storageos.secretRef.namespace"
+          v-model:value="value.spec.storageos.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -77,7 +77,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.storageos.fsType"
+          v-model:value="value.spec.storageos.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -85,7 +85,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.storageos.readOnly"
+          v-model:value="value.spec.storageos.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import PodAffinity from '@shell/components/form/PodAffinity.vue';
 import { _CREATE } from '@shell/config/query-params';
@@ -12,7 +13,7 @@ describe('component: PodAffinity', () => {
       requiredDuringSchedulingIgnoredDuringExecution: [{ topologyKey: 'test topology key 2' }]
     };
     const wrapper = mount(PodAffinity, {
-      propsData: {
+      props: {
         mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
       }
     });
@@ -30,7 +31,7 @@ describe('component: PodAffinity', () => {
     };
 
     const wrapper = mount(PodAffinity, {
-      propsData: {
+      props: {
         mode: _CREATE, field: 'overrideAffinity', value: { overrideAffinity: { podAffinity } }
       }
     });
@@ -39,7 +40,7 @@ describe('component: PodAffinity', () => {
 
     weightInput.setValue('');
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     expect(wrapper.find('[data-testid="pod-affinity-weight-index0"]').exists()).toBeTruthy();
   });

@@ -163,7 +163,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.type"
+          v-model:value="value.type"
           :reduce="(val) => val.label"
           :mode="mode"
           :label="t('hpa.metrics.source')"
@@ -173,25 +173,25 @@ export default {
     </div>
     <div v-if="isPodMetric">
       <PodMetric
-        v-model="value.pods"
+        v-model:value="value.pods"
         :mode="mode"
       />
     </div>
     <div v-else-if="isExternalMetric">
       <ExternalMetric
-        v-model="value.external"
+        v-model:value="value.external"
         :mode="mode"
       />
     </div>
     <div v-else-if="isObjectMetric">
       <ObjectMetric
-        v-model="value.object"
+        v-model:value="value.object"
         :mode="mode"
       />
     </div>
     <div v-else-if="isResourceMetric">
       <ResourceMetric
-        v-model="value.resource"
+        v-model:value="value.resource"
         :mode="mode"
       />
     </div>

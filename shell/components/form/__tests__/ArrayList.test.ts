@@ -7,7 +7,7 @@ import { DefaultProps } from 'vue/types/options';
 describe('the ArrayList', () => {
   it('is empty', () => {
     const wrapper = mount(ArrayList, {
-      propsData: {
+      props: {
         value: [],
         mode:  _EDIT
       },
@@ -19,7 +19,7 @@ describe('the ArrayList', () => {
 
   it('shows an initial empty row', () => {
     const wrapper = mount(ArrayList, {
-      propsData: {
+      props: {
         value:           [],
         mode:            _EDIT,
         initialEmptyRow: true
@@ -32,7 +32,7 @@ describe('the ArrayList', () => {
 
   it('expands when the add button is clicked', async() => {
     const wrapper = mount(ArrayList, {
-      propsData: {
+      props: {
         value: [],
         mode:  _EDIT,
       },
@@ -49,7 +49,7 @@ describe('the ArrayList', () => {
 
   it('contracts when a delete button is clicked', async() => {
     const wrapper = mount(ArrayList, {
-      propsData: {
+      props: {
         value: ['string 1', 'string 2'],
         mode:  _EDIT,
       },
@@ -64,7 +64,7 @@ describe('the ArrayList', () => {
 
   it('add button is hidden in read-only mode', () => {
     const wrapper = mount(ArrayList, {
-      propsData: {
+      props: {
         value: ['read-only example'],
         mode:  _VIEW,
       },
@@ -78,16 +78,19 @@ describe('the ArrayList', () => {
     it('should emit value with updated row text', () => {
       const text = 'test';
       const expectation = [text];
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { propsData: { value: [''] } });
+      const wrapper = mount(
+        ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>,
+        { props: { value: [''] } }
+      );
       const event = { preventDefault: jest.fn(), clipboardData: { getData: jest.fn().mockReturnValue(text) } } as any;
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should emit value with multiple rows', () => {
-      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { propsData: { value: [''] } });
+      const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { value: [''] } });
       const text = `multiline
       rows`;
       const expectation = ['multiline', 'rows'];
@@ -95,12 +98,12 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should allow emit multiline pasted values if enabled', () => {
       const wrapper = mount(ArrayList as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        propsData: {
+        props: {
           value:          [''],
           valueMultiline: true,
         }
@@ -112,7 +115,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted().input?.[0][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
   });
 });

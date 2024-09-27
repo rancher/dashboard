@@ -30,10 +30,14 @@ eks:
   errors:
     fetchingRegions: 'Error fetching regions: {err}'
     greaterThanZero: '{key} must be greater than zero.'
+    atLeastZero: '{key} must be at least zero.'
     minimumSubnets: You must use at least two subnets, and they should be in different availability zones.
     nodeGroups:
       nameUnique: Node group names must be unique within a cluster.
     publicOrPrivate: At least one of public or private access must be enabled.
+    minMaxDesired: The node group desired size may not be less than the minimum size nor greater than the maximum size.
+    minLessThanMax: The node group minimum size may not be greater than the maximum size.
+    nodeGroupsRequired: Clusters must have at least one node group.
   label: Amazon EKS
   nodeGroups:
     desiredSize:
@@ -45,6 +49,7 @@ eks:
     gpu:
       label: GPU Enabled Instance
       tooltip: This setting is ignored when using a launch template with a custom AMI defined.
+    groupDetails: Group Details
     groupLabels:
       label: Group Labels
     groupTags:
@@ -55,6 +60,10 @@ eks:
     instanceType:
       label: Instance Type
       tooltip: Instance Type will not be sent when requesting spot instances. You must include Spot Instance Types instead.
+    kubernetesVersion:
+      clusterWillUpgrade: A new control plane Kubernetes version has been selected. Once that upgrade is complete, you can come back and upgrade the node group.
+      label: Node Kubernetes Version
+      upgrade: Upgrade the node Kubernetes version from {from} to {to}
     launchTemplate:
       label: Launch Template
       rancherManaged: '{name} (Rancher-managed)'
@@ -62,7 +71,7 @@ eks:
     maxSize:
       label: Maximum ASG Size
     minSize:
-      label: Minumum ASG Size
+      label: Minimum ASG Size
     name:
       label: Node Group Name
     nodeRole:
@@ -74,7 +83,9 @@ eks:
       label: Instance Resource Tags
     spotInstanceTypes:
       label: Spot Instance Types
+    templateDetails: Template Details
     title: Node Groups
+    unnamed: Unnamed Node Group
     userData:
       label: User Data
       tooltip: Pass user data to <a href="https://docs.aws.amazon.com/eks/latest/userguide/launch-templates.html#launch-template-user-data" target="_blank">Amazon using cloud-init</a> to automate common operations.
@@ -93,6 +104,9 @@ eks:
   scheduler:
     label: Scheduler
     tooltip: The scheduler component manages when and where to run pods in your cluster.
+  securityGroups:
+    label: Additional Security Groups
+    tooltip: EKS creates a security group for your cluster by default. You may choose additional security groups that will be applied to your EKS cluster. Only the default security group will be set on the nodes unless the launch template specified contains security groups to override them.
   serviceRole:
     label: Service Role
     options:
@@ -106,5 +120,7 @@ eks:
     label: Tags
   version:
     label: Kubernetes Version
+    upgradeWarning: (minor version >1 not allowed by EKS)
+    upgradeDisallowed: "EKS only allows upgrades of one minor version: you must upgrade all node group versions before upgrading the cluster version."
   vpcSubnet:
     label: VPC and Subnet

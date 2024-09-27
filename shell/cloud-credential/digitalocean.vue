@@ -3,6 +3,8 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput },
   mixins:     [CreateEditView],
 
@@ -37,7 +39,7 @@ export default {
       placeholder-key="cluster.credential.digitalocean.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('accessToken', $event);"
+      @update:value="value.setData('accessToken', $event);"
     />
     <p
       v-clean-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)"

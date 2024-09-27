@@ -27,6 +27,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
+import Loading from '@shell/components/Loading.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
@@ -34,9 +35,10 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/
 import {
   getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
-} from '@pkg/aks/util/aks';
+} from '../util/aks';
+import { parseTaint } from '../util/taints';
 
-import { diffUpstreamSpec } from '@shell/utils/kontainer';
+import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
 import {
   requiredInCluster,
   clusterNameChars,
@@ -48,10 +50,13 @@ import {
   ipv4WithOrWithoutCidr,
   ipv4WithCidr,
   outboundTypeUserDefined,
-  privateDnsZone
-} from '@pkg/aks/util/validators';
+  privateDnsZone,
+  nodePoolNames,
+  nodePoolNamesUnique,
+  nodePoolCount
+} from '../util/validators';
 
-const defaultNodePool = {
+export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
   count:                 1,
   enableAutoScaling:     false,
@@ -67,6 +72,7 @@ const defaultNodePool = {
   osType:                'Linux',
   vmSize:                'Standard_DS2_v2',
   _isNewOrUnprovisioned: true,
+  _validation:           {}
 };
 
 const defaultAksConfig = {
@@ -99,6 +105,8 @@ const _NONE = 'none';
 export default defineComponent({
   name: 'CruAKS',
 
+  emits: ['validationChanged'],
+
   components: {
     SelectCredential,
     CruResource,
@@ -114,7 +122,8 @@ export default defineComponent({
     Tabbed,
     Tab,
     Accordion,
-    Banner
+    Banner,
+    Loading
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -142,24 +151,30 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+
+      // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
+      if (!this.isNewOrUnprovisioned) {
+        syncUpstreamConfig('aks', this.normanCluster);
+      }
+
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
     if (!this.normanCluster.aksConfig) {
-      this.$set(this.normanCluster, 'aksConfig', { ...defaultAksConfig });
+      this.normanCluster['aksConfig'] = { ...defaultAksConfig };
     }
     if (!this.normanCluster.aksConfig.nodePools) {
-      this.$set(this.normanCluster.aksConfig, 'nodePools', [{ ...defaultNodePool }]);
+      this.normanCluster.aksConfig['nodePools'] = [{ ...defaultNodePool }];
     }
     this.config = this.normanCluster.aksConfig;
     this.nodePools = this.normanCluster.aksConfig.nodePools;
-    this.containerMonitoring = !!(this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.nodePools.forEach((pool: AKSNodePool) => {
-      this.$set(pool, '_id', randomStr());
-      this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
+      pool['_id'] = randomStr();
+      pool['_isNewOrUnprovisioned'] = this.isNewOrUnprovisioned;
+      pool['_validation'] = {};
     });
   },
 
@@ -177,12 +192,12 @@ export default defineComponent({
       originalVersion:  '',
 
       supportedVersionRange,
-      locationOptions:       [] as string[],
-      allAksVersions:        [] as string[],
-      vmSizeOptions:         [] as string[],
-      vmSizeInfo:            {} as any,
-      virtualNetworkOptions: [] as any[],
-      defaultVmSize:         defaultNodePool.vmSize as string,
+      locationOptions:    [] as string[],
+      allAksVersions:     [] as string[],
+      vmSizeOptions:      [] as string[],
+      vmSizeInfo:         {} as any,
+      allVirtualNetworks: [] as any[],
+      defaultVmSize:      defaultNodePool.vmSize as string,
 
       // if the user changes these then switches to a region without them, show a fv error
       // if they change region without having touched these, just update the (default) value
@@ -198,7 +213,6 @@ export default defineComponent({
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      containerMonitoring:    false,
       setAuthorizedIPRanges:  false,
       fvFormRuleSets:         [{
         path:  'name',
@@ -229,8 +243,36 @@ export default defineComponent({
         rules: ['networkPolicyAvailable']
       },
       {
-        path:  'nodePools',
-        rules: ['availabilityZoneSupport', 'poolNames']
+        path:  'poolName',
+        rules: ['poolNames']
+      },
+      {
+        path:  'poolNamesUnique',
+        rules: ['poolNamesUnique']
+      },
+      {
+        path:  'poolAZ',
+        rules: ['availabilityZoneSupport']
+      },
+      {
+        path:  'poolCount',
+        rules: ['poolCount']
+      },
+      {
+        path:  'poolMin',
+        rules: ['poolMin']
+      },
+      {
+        path:  'poolMax',
+        rules: ['poolMax']
+      },
+      {
+        path:  'poolMinMax',
+        rules: ['poolMinMax']
+      },
+      {
+        path:  'poolTaints',
+        rules: ['poolTaints']
       },
       {
         path:  'nodePoolsGeneral',
@@ -268,7 +310,6 @@ export default defineComponent({
     const registerBeforeHook = this.registerBeforeHook as Function;
     const registerAfterHook = this.registerAfterHook as Function;
 
-    registerBeforeHook(this.cleanPoolsForSave);
     registerBeforeHook(this.removeUnchangedConfigFields);
     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
@@ -302,6 +343,9 @@ export default defineComponent({
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
         outboundType:            outboundTypeUserDefined(this, 'aks.outboundType.label', 'aksConfig.outboundType'),
         privateDnsZone:          privateDnsZone(this, 'aks.privateDnsZone.label', 'aksConfig.privateDnsZone'),
+        poolNames:               nodePoolNames(this),
+        poolNamesUnique:         nodePoolNamesUnique(this),
+        poolCount:               nodePoolCount(this),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -310,13 +354,13 @@ export default defineComponent({
 
             this.nodePools.forEach((pool: AKSNodePool) => {
               if (!this.vmSizeOptions.find((opt: String) => opt === pool.vmSize)) {
-                this.$set(pool, '_validSize', false);
+                pool['_validSize'] = false;
                 const { name } = pool;
 
                 badPools.push(name);
                 allAvailable = false;
               } else {
-                this.$set(pool, '_validSize', true);
+                pool['_validSize'] = true;
               }
             });
             if (!allAvailable) {
@@ -325,25 +369,6 @@ export default defineComponent({
           }
 
           return undefined;
-        },
-
-        poolNames: () => {
-          let allAvailable = true;
-
-          this.nodePools.forEach((pool: AKSNodePool) => {
-            const name = pool.name || '';
-
-            if (!name.match(/^[a-z]+[a-z0-9]*$/)) {
-              this.$set(pool, '_validName', false);
-
-              allAvailable = false;
-            } else {
-              this.$set(pool, '_validName', true);
-            }
-          });
-          if (!allAvailable) {
-            return this.t('aks.errors.poolName');
-          }
         },
 
         k8sVersionAvailable: () => {
@@ -358,7 +383,7 @@ export default defineComponent({
 
         networkPolicyAvailable: () => {
           if (this.touchedVirtualNetwork && !!this.config.virtualNetwork) {
-            if (!this.virtualNetworkOptions.find((vn) => {
+            if (!this.allVirtualNetworks.find((vn) => {
               return ( vn.name === this.config.virtualNetwork && vn.resourceGroup === this.config.virtualNetworkResourceGroup);
             })) {
               return this.t('aks.virtualNetwork.notAvailableInRegion');
@@ -374,19 +399,110 @@ export default defineComponent({
           return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
         },
 
-        availabilityZoneSupport: () => {
+        poolMinMax: () => {
+          let allValid = true;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            const {
+              count = 0, minCount = 0, maxCount = 0, enableAutoScaling
+            } = pool;
+
+            if (enableAutoScaling && (minCount > maxCount || count < minCount || count > maxCount) ) {
+              pool._validation['_validMinMax'] = false;
+              allValid = false;
+            } else {
+              pool._validation['_validMinMax'] = true;
+            }
+          });
+
+          return allValid ? undefined : this.t('aks.errors.poolMinMax');
+        },
+
+        availabilityZoneSupport: (zones: string[]) => {
           if (this.canUseAvailabilityZones) {
             return undefined;
           }
           let isUsingAvailabilityZones = false;
 
-          this.nodePools.forEach((pool: AKSNodePool) => {
-            if (pool.availabilityZones && pool.availabilityZones.length) {
-              isUsingAvailabilityZones = true;
-            }
-          });
+          if (zones && zones.length) {
+            isUsingAvailabilityZones = true;
+          } else {
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              if (pool.availabilityZones && pool.availabilityZones.length) {
+                isUsingAvailabilityZones = true;
+              }
+            });
+          }
 
           return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
+        },
+
+        poolMin: (min?:number) => {
+          if (min || min === 0) {
+            return min < 0 || min > 1000 ? this.t('aks.errors.poolMin') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const poolMin = pool.minCount || 0;
+
+              if (pool.enableAutoScaling && (poolMin < 0 || poolMin > 1000)) {
+                pool._validation['_validMin'] = false;
+                allValid = false;
+              } else {
+                pool._validation['_validMin'] = true;
+              }
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolMin');
+          }
+        },
+
+        poolMax: (max?:number) => {
+          if (max || max === 0) {
+            return max < 0 || max > 1000 ? this.t('aks.errors.poolMax') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool: AKSNodePool) => {
+              const poolMax = pool.maxCount || 0;
+
+              if (pool.enableAutoScaling && (poolMax < 0 || poolMax > 1000)) {
+                pool._validation['_validMax'] = false;
+                allValid = false;
+              } else {
+                pool._validation['_validMax'] = true;
+              }
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolMax');
+          }
+        },
+
+        poolTaints: (taint: string) => {
+          if (taint && taint !== '') {
+            const { key, value } = parseTaint(taint);
+
+            return key === '' || value === '' ? this.t('aks.errors.poolTaints') : undefined;
+          } else {
+            let allValid = true;
+
+            this.nodePools.forEach((pool) => {
+              pool._validation['_validTaints'] = true;
+              const taints = pool.nodeTaints || [];
+
+              taints.forEach((taint:string) => {
+                const { key, value } = parseTaint(taint);
+
+                if (key === '' || value === '') {
+                  allValid = false;
+                  pool._validation['_validTaints'] = false;
+                }
+              });
+            });
+
+            return allValid ? undefined : this.t('aks.errors.poolTaints');
+          }
         }
 
       };
@@ -439,7 +555,7 @@ export default defineComponent({
       const sorted = sortBy(filteredAndSortable, 'sort', true);
 
       if (!this.config.kubernetesVersion) {
-        this.$set(this.config, 'kubernetesVersion', sorted[0]?.value);
+        this.config['kubernetesVersion'] = sorted[0]?.value;
       }
 
       return sorted;
@@ -484,15 +600,69 @@ export default defineComponent({
       ];
     },
 
+    // in the labeledselect, networks will be shown as 'groups' with their subnets as selectable options
+    // it is possible for a virtual network to have no subnets defined - they will be excluded from this list
+    virtualNetworkOptions() {
+      const out: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any, key?: string}[] = [{ label: this.t('generic.none') }];
+
+      if (this.loadingVirtualNetworks) {
+        return out;
+      }
+      this.allVirtualNetworks.forEach((network) => {
+        if (!network.subnets) {
+          return;
+        }
+        const groupOpt = {
+          label:    network.name,
+          kind:     'group',
+          disabled: true
+        };
+
+        out.push(groupOpt);
+        network.subnets.forEach((sn) => {
+          const label = sn.addressRange ? `${ sn.name } (${ sn.addressRange })` : sn.name;
+
+          out.push({
+            label,
+            value:          sn.name,
+            virtualNetwork: network,
+            // subnet name and addressRange may not be unique within ALL virtual networks - setting a key here keeps v-select from complaining
+            key:            label + network.name
+          });
+        });
+      });
+
+      return out;
+    },
+
+    virtualNetwork: {
+      get() {
+        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || this.t('generic.none');
+      },
+      set(neu: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any}) {
+        if (neu.label === this.t('generic.none')) {
+          this.config['virtualNetwork'] = null;
+          this.config['virtualNetworkResourceGroup'] = null;
+          this.config['subnet'] = null;
+        } else {
+          const { virtualNetwork, value: subnetName } = neu;
+
+          this.config['virtualNetwork'] = virtualNetwork.name;
+          this.config['virtualNetworkResourceGroup'] = virtualNetwork.resourceGroup;
+          this.config['subnet'] = subnetName;
+        }
+      }
+    },
+
     networkPolicy: {
       get(): String {
         return this.config?.networkPolicy || _NONE;
       },
       set(neu: string): void {
         if (neu === _NONE) {
-          this.$set(this.config, 'networkPolicy', null);
+          this.config['networkPolicy'] = null;
         } else {
-          this.$set(this.config, 'networkPolicy', neu);
+          this.config['networkPolicy'] = neu;
         }
       }
     },
@@ -529,30 +699,32 @@ export default defineComponent({
   watch: {
     canEditLoadBalancerSKU(neu) {
       if (!neu) {
-        this.$set(this.config, 'loadBalancerSku', 'Standard');
+        this.config['loadBalancerSku'] = 'Standard';
       }
     },
 
     hasAzureCNI(neu) {
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
-          this.$set(this.config, 'networkPolicy', undefined);
+          this.config['networkPolicy'] = undefined;
         }
       }
     },
 
-    setAuthorizedIpRanges(neu) {
+    setAuthorizedIPRanges(neu) {
       if (neu) {
-        this.$set(this.config, 'privateCluster', false);
+        this.config['privateCluster'] = false;
         delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
         delete this.config.userAssignedIdentity;
+      } else {
+        this.config['authorizedIpRanges'] = [];
       }
     },
 
     canEnableNetworkPolicy(neu) {
       if (!neu) {
-        this.$set(this.value, 'enableNetworkPolicy', false);
+        this.value['enableNetworkPolicy'] = false;
       }
     },
 
@@ -583,6 +755,11 @@ export default defineComponent({
       if (neu && old) {
         this.touchedVersion = true;
       }
+      this.nodePools.forEach((pool: AKSNodePool) => {
+        if (pool._isNewOrUnprovisioned) {
+          pool['orchestratorVersion'] = neu;
+        }
+      });
     },
 
     'config.privateCluster'(neu) {
@@ -590,6 +767,13 @@ export default defineComponent({
         delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
         delete this.config.userAssignedIdentity;
+      }
+    },
+
+    'config.monitoring'(neu: boolean) {
+      if (!neu) {
+        this.config['logAnalyticsWorkspaceGroup'] = null;
+        this.config['logAnalyticsWorkspaceName'] = null;
       }
     }
   },
@@ -600,9 +784,11 @@ export default defineComponent({
       this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
-      this.virtualNetworkOptions = [];
-      delete this.config?.kubernetesVersion;
-      this.$set(this, 'errors', []);
+      this.allVirtualNetworks = [];
+      if (this.mode === _CREATE) {
+        delete this.config?.kubernetesVersion;
+      }
+      this['errors'] = [];
     },
 
     async getLocations(): Promise<void> {
@@ -611,7 +797,7 @@ export default defineComponent({
       }
       this.loadingLocations = true;
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
-      this.$set(this.config, 'resourceLocation', '');
+      this.config['resourceLocation'] = '';
 
       const { azureCredentialSecret } = this.config;
 
@@ -632,9 +818,9 @@ export default defineComponent({
         this.locationOptions = [{ displayName: this.t('aks.location.withAZ'), kind: 'group' }, ...withAZ, { displayName: this.t('aks.location.withoutAZ'), kind: 'group' }, ...withoutAZ];
         if (!this.config?.resourceLocation) {
           if (res.find((r: any) => r.name === DEFAULT_REGION)) {
-            this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
+            this.config['resourceLocation'] = DEFAULT_REGION;
           } else {
-            this.$set(this.config, 'resourceLocation', res[0]?.name);
+            this.config['resourceLocation'] = res[0]?.name;
           }
         }
         this.loadingLocations = false;
@@ -697,14 +883,14 @@ export default defineComponent({
 
     async getVirtualNetworks(): Promise<void> {
       this.loadingVirtualNetworks = true;
-      this.virtualNetworkOptions = [{ name: this.t('generic.none') }];
+      this.allVirtualNetworks = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (res && isArray(res)) {
-          this.virtualNetworkOptions.push(...res);
+          this.allVirtualNetworks.push(...res);
         }
 
         this.loadingVirtualNetworks = false;
@@ -723,13 +909,13 @@ export default defineComponent({
       const _id = randomStr();
 
       if (!this.nodePools.length) {
-        poolName = 'agentPool';
+        poolName = 'agentpool';
         // there must be at least one System pool so if it's the first pool, default to that
         mode = 'System' as AKSPoolMode;
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : []
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : [], orchestratorVersion: this.config.kubernetesVersion
       });
 
       this.$nextTick(() => {
@@ -745,40 +931,25 @@ export default defineComponent({
       removeObject(this.nodePools, pool);
     },
 
-    selectNetwork(network: any): void {
-      if (network.name === this.t('generic.none') || network === this.t('generic.none')) {
-        this.$set(this.config, 'virtualNetwork', null);
-        this.$set(this.config, 'virtualNetworkResourceGroup', null);
-      } else {
-        this.$set(this.config, 'virtualNetwork', network.name);
-        this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
-      }
+    poolIsValid(pool: AKSNodePool): boolean {
+      const poolValidation = pool?._validation || {};
+
+      return !Object.values(poolValidation).includes(false);
     },
 
     setClusterName(name: string): void {
-      this.$set(this.normanCluster, 'name', name);
-      this.$set(this.config, 'clusterName', name);
+      this.normanCluster['name'] = name;
+      this.config['clusterName'] = name;
     },
 
     onMembershipUpdate(update: any): void {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     async saveRoleBindings(): Promise<void> {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.normanCluster.id);
       }
-    },
-
-    // these fields are used purely in UI, to track individual nodepool components
-    cleanPoolsForSave(): void {
-      this.nodePools.forEach((pool: AKSNodePool) => {
-        Object.keys(pool).forEach((key: string) => {
-          if (key.startsWith('_')) {
-            delete pool[key as keyof AKSNodePool];
-          }
-        });
-      });
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
@@ -788,7 +959,7 @@ export default defineComponent({
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-        this.$set(this.normanCluster, 'aksConfig', diff);
+        this.normanCluster['aksConfig'] = diff;
       }
     },
 
@@ -810,7 +981,10 @@ export default defineComponent({
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
+
   <CruResource
+    v-else
     ref="cruresource"
     :resource="value"
     :mode="mode"
@@ -822,7 +996,7 @@ export default defineComponent({
     @finish="save"
   >
     <SelectCredential
-      v-model="config.azureCredentialSecret"
+      v-model:value="config.azureCredentialSecret"
       data-testid="cruaks-select-credential"
       :mode="mode === VIEW ? VIEW : CREATE"
       provider="azure"
@@ -844,12 +1018,12 @@ export default defineComponent({
             label-key="generic.name"
             required
             :rules="fvGetAndReportPathRules('name')"
-            @input="setClusterName"
+            @update:value="setClusterName"
           />
         </div>
         <div class="col span-3">
           <LabeledInput
-            v-model="normanCluster.description"
+            v-model:value="normanCluster.description"
             :mode="mode"
             label-key="nameNsDescription.description.label"
             :placeholder="t('nameNsDescription.description.placeholder')"
@@ -859,7 +1033,7 @@ export default defineComponent({
           class="col span-3"
         >
           <LabeledSelect
-            v-model="config.resourceLocation"
+            v-model:value="config.resourceLocation"
             data-testid="cruaks-resourcelocation"
             :mode="mode"
             :options="locationOptions"
@@ -876,7 +1050,7 @@ export default defineComponent({
           class="col span-3"
         >
           <LabeledSelect
-            v-model="config.kubernetesVersion"
+            v-model:value="config.kubernetesVersion"
             data-testid="cruaks-kubernetesversion"
             :mode="mode"
             :options="aksVersionOptions"
@@ -907,10 +1081,10 @@ export default defineComponent({
         >
           <Tab
             v-for="(pool, i) in nodePools"
-            :key="pool._id"
-            :name="pool.name"
+            :key="i"
+            :name="pool._id || pool.name"
             :label="pool.name || t('aks.nodePools.notNamed')"
-            :error="pool._validSize === false || pool._validAZ === false || pool._validName===false"
+            :error="!poolIsValid(pool)"
           >
             <AksNodePool
               :mode="mode"
@@ -920,7 +1094,16 @@ export default defineComponent({
               :loading-vm-sizes="loadingVmSizes"
               :isPrimaryPool="i===0"
               :can-use-availability-zones="canUseAvailabilityZones"
-              :rules="fvGetAndReportPathRules('nodePools')"
+              :validation-rules="{name: fvGetAndReportPathRules('poolName'),
+                                  az: fvGetAndReportPathRules('poolAZ'),
+                                  count: fvGetAndReportPathRules('poolCount'),
+                                  min: fvGetAndReportPathRules('poolMin'),
+                                  max: fvGetAndReportPathRules('poolMax'),
+                                  minMax: fvGetAndReportPathRules('poolMinMax'),
+                                  taints: fvGetAndReportPathRules('poolTaints')
+              }"
+              :original-cluster-version="originalVersion"
+              :cluster-version="config.kubernetesVersion"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />
@@ -937,7 +1120,7 @@ export default defineComponent({
           >
             <div class="col span-3">
               <LabeledInput
-                v-model="config.linuxAdminUsername"
+                v-model:value="config.linuxAdminUsername"
                 :mode="mode"
                 label-key="aks.linuxAdminUsername.label"
                 :disabled="!isNewOrUnprovisioned"
@@ -946,7 +1129,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.resourceGroup"
+                v-model:value="config.resourceGroup"
                 :mode="mode"
                 label-key="aks.clusterResourceGroup.label"
                 :disabled="!isNewOrUnprovisioned"
@@ -959,7 +1142,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.nodeResourceGroup"
+                v-model:value="config.nodeResourceGroup"
                 :mode="mode"
                 label-key="aks.nodeResourceGroup.label"
                 :rules="fvGetAndReportPathRules('nodeResourceGroup')"
@@ -970,27 +1153,30 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <Checkbox
-                v-model="containerMonitoring"
+                v-model:value="config.monitoring"
                 :mode="mode"
                 label-key="aks.containerMonitoring.label"
+                data-testid="aks-monitoring-checkbox"
               />
             </div>
           </div>
 
           <div class="row mb-10">
-            <template v-if="containerMonitoring">
+            <template v-if="config.monitoring">
               <div class="col span-3">
                 <LabeledInput
-                  v-model="config.logAnalyticsWorkspaceGroup"
+                  v-model:value="config.logAnalyticsWorkspaceGroup"
                   :mode="mode"
                   label-key="aks.logAnalyticsWorkspaceGroup.label"
+                  data-testid="aks-log-analytics-workspace-group-input"
                 />
               </div>
               <div class="col span-3">
                 <LabeledInput
-                  v-model="config.logAnalyticsWorkspaceName"
+                  v-model:value="config.logAnalyticsWorkspaceName"
                   :mode="mode"
                   label-key="aks.logAnalyticsWorkspaceName.label"
+                  data-testid="aks-log-analytics-workspace-name-input"
                 />
               </div>
             </template>
@@ -999,7 +1185,7 @@ export default defineComponent({
             <div class="col span-6">
               <div class="ssh-key">
                 <LabeledInput
-                  v-model="config.sshPublicKey"
+                  v-model:value="config.sshPublicKey"
                   :mode="mode"
                   label-key="aks.sshPublicKey.label"
                   type="multiline"
@@ -1015,7 +1201,7 @@ export default defineComponent({
             </div>
             <div class="col span-6">
               <KeyValue
-                v-model="config.tags"
+                v-model:value="config.tags"
                 :mode="mode"
                 :title="t('aks.tags.label')"
                 :add-label="t('aks.tags.addLabel')"
@@ -1037,7 +1223,7 @@ export default defineComponent({
           <div class="row mb-10">
             <div class="col span-3">
               <LabeledSelect
-                v-model="config.loadBalancerSku"
+                v-model:value="config.loadBalancerSku"
                 label-key="aks.loadBalancerSku.label"
                 :tooltip="t('aks.loadBalancerSku.tooltip')"
                 :disabled="!canEditLoadBalancerSKU || !isNewOrUnprovisioned"
@@ -1046,7 +1232,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.dnsPrefix"
+                v-model:value="config.dnsPrefix"
                 :mode="mode"
                 label-key="aks.dns.label"
                 :disabled="!isNewOrUnprovisioned"
@@ -1057,7 +1243,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledSelect
-                v-model="config.outboundType"
+                v-model:value="config.outboundType"
                 :mode="mode"
                 label-key="aks.dns.label"
                 :disabled="!isNewOrUnprovisioned"
@@ -1070,7 +1256,7 @@ export default defineComponent({
           <div class="row mb-10">
             <div class="col span-3">
               <LabeledSelect
-                v-model="config.networkPlugin"
+                v-model:value="config.networkPlugin"
                 :mode="mode"
                 :options="networkPluginOptions"
                 label-key="aks.networkPlugin.label"
@@ -1079,7 +1265,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledSelect
-                v-model="networkPolicy"
+                v-model:value="networkPolicy"
                 :mode="mode"
                 :options="networkPolicyOptions"
                 label-key="aks.networkPolicy.label"
@@ -1093,15 +1279,17 @@ export default defineComponent({
               class="col span-3"
             >
               <LabeledSelect
-                :value="config.virtualNetwork || t('generic.none')"
+                :value="virtualNetwork"
                 label-key="aks.virtualNetwork.label"
                 :mode="mode"
                 :options="virtualNetworkOptions"
                 :loading="loadingVirtualNetworks"
-                option-label="name"
+                option-label="label"
+                option-key="key"
                 :disabled="!isNewOrUnprovisioned"
                 :rules="fvGetAndReportPathRules('networkPolicy')"
-                @selecting="selectNetwork($event)"
+                data-testid="aks-virtual-network-select"
+                @selecting="(e)=>virtualNetwork = e"
               />
             </div>
           </div>
@@ -1109,7 +1297,7 @@ export default defineComponent({
           <div class="row mb-10">
             <div class="col span-3">
               <LabeledInput
-                v-model="config.serviceCidr"
+                v-model:value="config.serviceCidr"
                 :mode="mode"
                 label-key="aks.serviceCidr.label"
                 :tooltip="t('aks.serviceCidr.tooltip')"
@@ -1119,7 +1307,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.podCidr"
+                v-model:value="config.podCidr"
                 :mode="mode"
                 label-key="aks.podCidr.label"
                 :disabled="!isNewOrUnprovisioned"
@@ -1128,7 +1316,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.dnsServiceIp"
+                v-model:value="config.dnsServiceIp"
                 :mode="mode"
                 label-key="aks.dnsServiceIp.label"
                 :tooltip="t('aks.dnsServiceIp.tooltip')"
@@ -1137,7 +1325,7 @@ export default defineComponent({
             </div>
             <div class="col span-3">
               <LabeledInput
-                v-model="config.dockerBridgeCidr"
+                v-model:value="config.dockerBridgeCidr"
                 :mode="mode"
                 label-key="aks.dockerBridgeCidr.label"
                 :tooltip="t('aks.dockerBridgeCidr.tooltip')"
@@ -1150,26 +1338,26 @@ export default defineComponent({
           <div class="row mb-10">
             <div class="networking-checkboxes col span-6">
               <Checkbox
-                v-model="value.enableNetworkPolicy"
+                v-model:value="value.enableNetworkPolicy"
                 :mode="mode"
                 label-key="aks.enableNetworkPolicy.label"
                 :disabled="!isNewOrUnprovisioned || !canEnableNetworkPolicy"
                 :tooltip="t('aks.enableNetworkPolicy.tooltip')"
               />
               <Checkbox
-                v-model="config.httpApplicationRouting"
+                v-model:value="config.httpApplicationRouting"
                 :mode="mode"
                 label-key="aks.httpApplicationRouting.label"
               />
               <Checkbox
-                v-model="config.privateCluster"
+                v-model:value="config.privateCluster"
                 :mode="mode"
                 label-key="aks.privateCluster.label"
                 :disabled="!canEditPrivateCluster"
                 data-testid="cruaks-privateCluster"
               />
               <Checkbox
-                v-model="setAuthorizedIPRanges"
+                v-model:value="setAuthorizedIPRanges"
                 :mode="mode"
                 label-key="aks.setAuthorizedIPRanges.label"
                 :disabled="config.privateCluster"
@@ -1180,13 +1368,13 @@ export default defineComponent({
               class="col span-6"
             >
               <ArrayList
-                v-model="config.authorizedIpRanges"
+                v-model:value="config.authorizedIpRanges"
                 :mode="mode"
                 :initial-empty-row="true"
                 value-placeholder="10.0.0.0/14"
                 :label="t('aks.authorizedIpRanges.label')"
                 :rules="fvGetAndReportPathRules('authorizedIpRanges')"
-                @input="$emit('validationChanged')"
+                @update:value="$emit('validationChanged')"
               >
                 <template #title>
                   <div class="text-label">
@@ -1207,31 +1395,31 @@ export default defineComponent({
             <div class="row mb-10 center-inputs">
               <div class="col span-4">
                 <LabeledInput
-                  v-model="config.privateDnsZone"
+                  v-model:value="config.privateDnsZone"
                   :mode="mode"
                   label-key="aks.privateDnsZone.label"
                   :tooltip="t('aks.privateDnsZone.tooltip')"
                   :disabled="!isNewOrUnprovisioned"
                   :rules="fvGetAndReportPathRules('privateDnsZone')"
-                  data-testid="cruaks-privateDnsZone"
+                  data-testid="cruaks-private-dns-zone"
                 />
               </div>
               <div class="col span-4">
                 <LabeledInput
-                  v-model="config.userAssignedIdentity"
+                  v-model:value="config.userAssignedIdentity"
                   :mode="mode"
                   label-key="aks.userAssignedIdentity.label"
                   :tooltip="t('aks.userAssignedIdentity.tooltip')"
                   :disabled="!isNewOrUnprovisioned"
-                  data-testid="cruaks-userAssignedIdentity"
+                  data-testid="cruaks-user-assigned-identity"
                 />
               </div>
               <div class="col span-4">
                 <Checkbox
-                  v-model="config.managedIdentity"
+                  v-model:value="config.managedIdentity"
                   :mode="mode"
                   label-key="aks.managedIdentity.label"
-                  data-testid="cruaks-managedIdentity"
+                  data-testid="cruaks-managed-identity"
                 />
               </div>
             </div>
@@ -1259,7 +1447,7 @@ export default defineComponent({
           title-key="aks.accordions.labels"
         >
           <Labels
-            v-model="normanCluster"
+            v-model:value="normanCluster"
             :mode="mode"
           />
         </Accordion>

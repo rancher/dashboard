@@ -123,7 +123,7 @@ export default {
       :schema="schema"
       :resource="resource"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <AsyncButton
           v-if="canRefreshAccess"
           mode="refresh"

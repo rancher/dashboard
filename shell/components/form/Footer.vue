@@ -5,6 +5,8 @@ import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.
 import Banner from '@components/Banner/Banner.vue';
 
 export default defineComponent({
+  emits: ['save', 'done'],
+
   components: { AsyncButton, Banner },
 
   props: {

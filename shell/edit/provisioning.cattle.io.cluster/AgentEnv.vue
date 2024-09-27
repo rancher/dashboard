@@ -25,7 +25,7 @@ export default {
     label-key="cluster.tabs.agentEnv"
   >
     <KeyValue
-      v-model="value.spec.agentEnvVars"
+      v-model:value="value.spec.agentEnvVars"
       :mode="mode"
       key-name="name"
       :as-map="false"

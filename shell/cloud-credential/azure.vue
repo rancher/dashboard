@@ -6,6 +6,8 @@ import { parseAzureError } from '@shell/utils/azure';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput, LabeledSelect },
   mixins:     [CreateEditView],
 
@@ -86,7 +88,7 @@ export default {
           :required="true"
           :label="t('cluster.credential.azure.environment.label')"
           data-testid="azure-cloud-credentials-environment"
-          @input="value.setData('environment', $event)"
+          @update:value="value.setData('environment', $event)"
         />
       </div>
       <div class="col span-6">
@@ -97,7 +99,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-subscription-id"
-          @input="value.setData('subscriptionId', $event)"
+          @update:value="value.setData('subscriptionId', $event)"
         />
       </div>
     </div>
@@ -110,7 +112,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-id"
-          @input="value.setData('clientId', $event)"
+          @update:value="value.setData('clientId', $event)"
         />
       </div>
       <div class="col span-6">
@@ -121,7 +123,7 @@ export default {
           :mode="mode"
           :required="true"
           data-testid="azure-cloud-credentials-client-secret"
-          @input="value.setData('clientSecret', $event)"
+          @update:value="value.setData('clientSecret', $event)"
         />
       </div>
     </div>

@@ -52,6 +52,12 @@ export default {
       path:  'value',
       rules: this.setting.ruleSet.map(({ name }) => name)
     }] : [];
+
+    // Don't allow the user to reset the server URL if there is no default
+    // helps to ensure that a value is always set
+    if (isServerUrl(this.value.id) && !this.value.default) {
+      this.canReset = false;
+    }
   },
 
   computed: {
@@ -71,6 +77,10 @@ export default {
 
     showLocalhostWarning() {
       return isServerUrl(this.value.id) && isLocalhost(this.value.value);
+    },
+
+    showWarningBanner() {
+      return this.setting?.warning;
     },
 
     validationPassed() {
@@ -135,6 +145,13 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
+    <Banner
+      v-if="showWarningBanner"
+      color="warning"
+      :label="t(`advancedSettings.warnings.${ setting.warning }`)"
+      data-testid="advanced_settings_warning_banner"
+    />
+
     <h4>{{ description }}</h4>
 
     <h5
@@ -160,6 +177,7 @@ export default {
       v-if="showLocalhostWarning"
       color="warning"
       :label="t('validation.setting.serverUrl.localhost')"
+      data-testid="setting-serverurl-localhost-warning"
     />
 
     <Banner
@@ -167,12 +185,13 @@ export default {
       :key="i"
       color="error"
       :label="err"
+      data-testid="setting-error-banner"
     />
 
     <div class="mt-20">
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
-          v-model="value.value"
+          v-model:value="value.value"
           data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
           :rules="fvGetAndReportPathRules('value')"
@@ -184,7 +203,7 @@ export default {
       </div>
       <div v-else-if="setting.kind === 'boolean'">
         <RadioGroup
-          v-model="value.value"
+          v-model:value="value.value"
           data-testid="input-setting-boolean"
           name="settings_value"
           :rules="fvGetAndReportPathRules('value')"
@@ -194,7 +213,7 @@ export default {
       </div>
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
         <TextAreaAutoGrow
-          v-model="value.value"
+          v-model:value="value.value"
           data-testid="input-setting-json"
           :required="true"
           :rules="fvGetAndReportPathRules('value')"
@@ -203,7 +222,7 @@ export default {
       </div>
       <div v-else-if="setting.kind === 'integer'">
         <LabeledInput
-          v-model="value.value"
+          v-model:value="value.value"
           data-testid="input-setting-integer"
           :label="t('advancedSettings.edit.value')"
           :mode="mode"
@@ -214,7 +233,7 @@ export default {
       </div>
       <div v-else>
         <LabeledInput
-          v-model="value.value"
+          v-model:value="value.value"
           data-testid="input-setting-generic"
           :localized-label="true"
           :required="true"
@@ -237,7 +256,7 @@ export default {
     }
   }
 
-  ::v-deep .edit-help code {
+  :deep() .edit-help code {
     padding: 1px 5px;
   }
 </style>

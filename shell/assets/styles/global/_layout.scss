@@ -115,20 +115,29 @@ HEADER {
 .wm {
   grid-area: wm;
   overflow-y: hidden;
-  z-index: 1;
+  z-index: z-index('windowsManager');
 }
 
 .localeSelector {
-  ::v-deep .popover-inner {
+  :deep(.v-popper__inner) {
     padding: 50px 0;
   }
 
-  ::v-deep .popover-arrow {
+  :deep(.v-popper__arrow-container) {
     display: none;
   }
 
-  ::v-deep .popover:focus {
+  :deep(.v-popper:focus) {
     outline: 0;
+  }
+
+  &[data-popper-placement^="top"] {
+    .v-popper__arrow-container {
+      .v-popper__arrow-inner {
+        top: 0;
+        border-color: var(--tooltip-bg);
+      }
+    }
   }
 
   li {

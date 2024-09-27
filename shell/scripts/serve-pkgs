@@ -52,8 +52,6 @@ if (process.env.PORT) {
 const base = `http://127.0.0.1:${ port }`;
 
 console.log('');
-console.log(`Serving catalog on ${ base }`);
-console.log('');
 console.log(`Serving packages:`);
 console.log('');
 fs.readdirSync(pkgs).forEach((f) => {

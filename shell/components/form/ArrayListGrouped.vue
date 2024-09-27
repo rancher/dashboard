@@ -37,7 +37,16 @@ export default {
       type:    String,
       default: _EDIT,
     },
+
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      },
+    },
   },
+
+  emits: ['update:value', 'add', 'remove'],
 
   computed: {
     isView() {
@@ -67,11 +76,12 @@ export default {
 <template>
   <ArrayList
     class="array-list-grouped"
+    :value="value"
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
     :initial-empty-row="initialEmptyRow"
-    @input="$emit('input', $event)"
+    @update:value="$emit('update:value', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
   >
@@ -94,13 +104,16 @@ export default {
     </template>
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
-      v-slot:[slot]="scope"
+      v-for="(_, slot) of $slots"
+      #[slot]="scope"
+      :key="slot"
     >
-      <slot
-        :name="slot"
-        v-bind="scope"
-      />
+      <template v-if="typeof $slots[slot] === 'function'">
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
     </template>
   </ArrayList>
 </template>

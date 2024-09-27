@@ -13,6 +13,8 @@ import {
 import { isRancherPrime } from '@shell/config/version';
 
 export default {
+  emits: ['done'],
+
   components: {
     Checkbox,
     Dialog,
@@ -117,48 +119,46 @@ export default {
     @okay="doAddRepos"
     @closed="isDialogActive = false"
   >
-    <template>
-      <p class="mb-20">
-        {{ t('plugins.addRepos.prompt', {}, true) }}
-      </p>
-      <!-- Official repo -->
+    <p class="mb-20">
+      {{ t('plugins.addRepos.prompt', {}, true) }}
+    </p>
+    <!-- Official repo -->
+    <div
+      v-if="prime"
+      class="mb-15"
+    >
+      <Checkbox
+        v-model:value="addRepos.official"
+        :disabled="hasRancherUIPluginsRepo"
+        :primary="true"
+        label-key="plugins.setup.install.addRancherRepo"
+        data-testid="add-extensions-repos-modal-add-official-repo"
+      />
       <div
-        v-if="prime"
-        class="mb-15"
+        v-if="hasRancherUIPluginsRepo"
+        class="checkbox-info"
       >
-        <Checkbox
-          v-model="addRepos.official"
-          :disabled="hasRancherUIPluginsRepo"
-          :primary="true"
-          label-key="plugins.setup.install.addRancherRepo"
-          data-testid="add-extensions-repos-modal-add-official-repo"
-        />
-        <div
-          v-if="hasRancherUIPluginsRepo"
-          class="checkbox-info"
-        >
-          ({{ t('plugins.setup.installed') }})
-        </div>
+        ({{ t('plugins.setup.installed') }})
       </div>
-      <!-- Partners repo -->
+    </div>
+    <!-- Partners repo -->
+    <div
+      class="mb-15"
+    >
+      <Checkbox
+        v-model:value="addRepos.partners"
+        :disabled="hasRancherUIPartnersPluginsRepo"
+        :primary="true"
+        label-key="plugins.setup.install.addPartnersRancherRepo"
+        data-testid="add-extensions-repos-modal-add-partners-repo"
+      />
       <div
-        class="mb-15"
+        v-if="hasRancherUIPartnersPluginsRepo"
+        class="checkbox-info"
       >
-        <Checkbox
-          v-model="addRepos.partners"
-          :disabled="hasRancherUIPartnersPluginsRepo"
-          :primary="true"
-          label-key="plugins.setup.install.addPartnersRancherRepo"
-          data-testid="add-extensions-repos-modal-add-partners-repo"
-        />
-        <div
-          v-if="hasRancherUIPartnersPluginsRepo"
-          class="checkbox-info"
-        >
-          ({{ t('plugins.setup.installed') }})
-        </div>
+        ({{ t('plugins.setup.installed') }})
       </div>
-    </template>
+    </div>
   </Dialog>
 </template>
 <style lang="scss" scoped>

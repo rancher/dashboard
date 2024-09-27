@@ -1,8 +1,7 @@
 import { insertAt } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
-import { WORKLOAD_TYPES } from '@shell/config/types';
+import { WORKLOAD_TYPES, WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/config/types';
 import Workload from './workload';
-import { WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/detail/workload/index';
 
 export default class CronJob extends Workload {
   get state() {

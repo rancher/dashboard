@@ -16,7 +16,10 @@ export class FleetGitRepoListPagePo extends PagePo {
   }
 
   navTo() {
+    const fleetDashboardPage = new FleetDashboardPagePo('_');
+
     FleetDashboardPagePo.navTo();
+    fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
 
@@ -33,5 +36,9 @@ export class FleetGitRepoListPagePo extends PagePo {
     const resourceTable = new ResourceTablePo(this.self());
 
     return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
+  }
+
+  resourceTable() {
+    return new ResourceTablePo(this.self());
   }
 }

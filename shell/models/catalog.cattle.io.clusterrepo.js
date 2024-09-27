@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
@@ -9,7 +8,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { url: '' });
+      this['spec'] = { url: '' };
     }
   }
 
@@ -42,6 +41,14 @@ export default class ClusterRepo extends SteveModel {
 
   get isGit() {
     return !!this.spec?.gitRepo;
+  }
+
+  get isOciType() {
+    const hasExplicitOciUrl = this.spec.url?.split(':')[0] === 'oci';
+    // insecurePlainHttp is only valid for OCI URL's and allows insecure connections to registries without enforcing TLS checks
+    const hasInsecurePlainHttp = Object.prototype.hasOwnProperty.call(this.spec, ('insecurePlainHttp'));
+
+    return hasExplicitOciUrl || hasInsecurePlainHttp;
   }
 
   get isRancherSource() {
@@ -107,7 +114,7 @@ export default class ClusterRepo extends SteveModel {
     if ( this.spec.gitRepo ) {
       return 'git';
     } else if ( this.spec.url ) {
-      return 'http';
+      return this.isOciType ? 'oci' : 'http';
     } else {
       return '?';
     }

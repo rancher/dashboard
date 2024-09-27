@@ -8,6 +8,7 @@ import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
+import { conditionalDepaginate } from '@shell/store/type-map.utils';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -194,7 +195,7 @@ export default {
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
-    opt.depaginate = typeOptions?.depaginate;
+    opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
     let skipHaveAll = false;
 
@@ -418,7 +419,7 @@ export default {
         },
         result: {
           count:     out.count,
-          pages:     out.pages,
+          pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
           timestamp: new Date().getTime()
         }
       } : undefined,
@@ -461,7 +462,7 @@ export default {
     opt = opt || {};
     opt.labelSelector = selector;
     opt.url = getters.urlFor(type, null, opt);
-    opt.depaginate = typeOptions?.depaginate;
+    opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
     const res = await dispatch('request', { opt, type });
 
@@ -644,7 +645,10 @@ export default {
     const schema = ctx.getters['schemaFor'](userData.type);
 
     if (schema) {
-      await schema.fetchResourceFields();
+      if (schema.fetchResourceFields) {
+        // fetch resourceFields for createYaml
+        await schema.fetchResourceFields();
+      }
       data = ctx.getters['defaultFor'](userData.type, schema);
     }
 

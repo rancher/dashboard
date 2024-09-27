@@ -147,7 +147,7 @@ export default {
         :label="t('catalog.app.section.readme')"
         :weight="2"
       >
-        <Markdown v-model="value.spec.info.readme" />
+        <Markdown v-model:value="value.spec.info.readme" />
       </Tab>
       <Tab
         v-if="hasNotes"
@@ -155,7 +155,7 @@ export default {
         :label="t('catalog.app.section.notes')"
         :weight="1"
       >
-        <Markdown v-model="value.spec.info.notes" />
+        <Markdown v-model:value="value.spec.info.notes" />
       </Tab>
     </Tabbed>
   </div>

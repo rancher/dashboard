@@ -5,12 +5,16 @@ import { Checkbox } from '@components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
-import { OKTA, SHIBBOLETH } from '../saml';
 
 const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
 
+export const SHIBBOLETH = 'shibboleth';
+export const OKTA = 'okta';
+
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledInput,
@@ -94,306 +98,304 @@ export default {
 </script>
 
 <template>
-  <div @input="$emit('input', model)">
-    <template>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="hostname"
-            required
-            :mode="mode"
-            :hoover-tooltip="true"
-            :tooltip="t('authConfig.ldap.hostname.hint')"
-            :label="t('authConfig.ldap.hostname.label')"
-            :placeholder="t('authConfig.ldap.hostname.placeholder')"
-          />
-        </div>
-        <div class="col span-4">
-          <LabeledInput
-            :value="model.port"
-            type="number"
-            required
-            :min="0"
-            :step="1"
-            :mode="mode"
-            :label="t('authConfig.ldap.port')"
-            @input="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
-          />
-        </div>
+  <div @update:value="$emit('update:value', model)">
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="hostname"
+          required
+          :mode="mode"
+          :hoover-tooltip="true"
+          :tooltip="t('authConfig.ldap.hostname.hint')"
+          :label="t('authConfig.ldap.hostname.label')"
+          :placeholder="t('authConfig.ldap.hostname.placeholder')"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          :value="model.port"
+          type="number"
+          required
+          :min="0"
+          :step="1"
+          :mode="mode"
+          :label="t('authConfig.ldap.port')"
+          @update:value="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
+        />
+      </div>
 
-        <div class="col">
-          <Checkbox
-            v-model="model.tls"
-            :mode="mode"
-            class="full-height"
-            :label="t('authConfig.ldap.tls')"
-          />
-        </div>
-        <div class="col span-1">
-          <Checkbox
-            v-model="model.starttls"
-            :tooltip="t('authConfig.ldap.starttls.tip')"
-            :mode="mode"
-            class="full-height"
-            :label="t('authConfig.ldap.starttls.label')"
-          />
-        </div>
+      <div class="col">
+        <Checkbox
+          v-model:value="model.tls"
+          :mode="mode"
+          class="full-height"
+          :label="t('authConfig.ldap.tls')"
+        />
       </div>
-      <div
-        v-if="model.tls || model.starttls"
-        class="row mb-20"
-      >
-        <div class="col span-12">
-          <LabeledInput
-            v-model="model.certificate"
-            required
-            type="multiline"
-            :mode="mode"
-            :label="t('authConfig.ldap.cert')"
-          />
-          <FileSelector
-            class="role-tertiary add mt-5"
-            :label="t('generic.readFromFile')"
-            :mode="mode"
-            @selected="$set(model, 'certificate', $event)"
-          />
-        </div>
+      <div class="col span-1">
+        <Checkbox
+          v-model:value="model.starttls"
+          :tooltip="t('authConfig.ldap.starttls.tip')"
+          :mode="mode"
+          class="full-height"
+          :label="t('authConfig.ldap.starttls.label')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <UnitInput
-            v-model="model.connectionTimeout"
-            required
-            :mode="mode"
-            :label="t('authConfig.ldap.serverConnectionTimeout')"
-            suffix="milliseconds"
-          />
-        </div>
+    </div>
+    <div
+      v-if="model.tls || model.starttls"
+      class="row mb-20"
+    >
+      <div class="col span-12">
+        <LabeledInput
+          v-model:value="model.certificate"
+          required
+          type="multiline"
+          :mode="mode"
+          :label="t('authConfig.ldap.cert')"
+        />
+        <FileSelector
+          class="role-tertiary add mt-5"
+          :label="t('generic.readFromFile')"
+          :mode="mode"
+          @selected="$set(model, 'certificate', $event)"
+        />
       </div>
-      <Banner
-        color="info"
-        :label="t('authConfig.ldap.serviceAccountInfo')"
-      />
-      <div class="row mb-20">
-        <div
-          v-if="type==='activedirectory'"
-          class="col span-6"
-        >
-          <LabeledInput
-            v-model="model.serviceAccountUsername"
-            required
-            :mode="mode"
-            :label="t('authConfig.ldap.serviceAccountDN')"
-          />
-        </div>
-
-        <div
-          v-else
-          class="col span-6"
-        >
-          <LabeledInput
-            v-model="model.serviceAccountDistinguishedName"
-            required
-            :mode="mode"
-            :label="t('authConfig.ldap.serviceAccountDN')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.serviceAccountPassword"
-            required
-            type="password"
-            :mode="mode"
-            :label="t('authConfig.ldap.serviceAccountPassword')"
-          />
-        </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <UnitInput
+          v-model:value="model.connectionTimeout"
+          required
+          :mode="mode"
+          :label="t('authConfig.ldap.serverConnectionTimeout')"
+          suffix="milliseconds"
+        />
       </div>
+    </div>
+    <Banner
+      color="info"
+      :label="t('authConfig.ldap.serviceAccountInfo')"
+    />
+    <div class="row mb-20">
       <div
         v-if="type==='activedirectory'"
-        class="row mb-20"
+        class="col span-6"
       >
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.defaultLoginDomain"
-            :hoover-tooltip="true"
-            :tooltip="t('authConfig.ldap.defaultLoginDomain.hint')"
-            :placeholder="t('authConfig.ldap.defaultLoginDomain.placeholder')"
-            :mode="mode"
-            :label="t('authConfig.ldap.defaultLoginDomain.label')"
-          />
-        </div>
-      </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userSearchBase"
-            required
-            :mode="mode"
-            :label="t('authConfig.ldap.userSearchBase.label')"
-            :placeholder="t('authConfig.ldap.userSearchBase.placeholder')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupSearchBase"
-            :mode="mode"
-            :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')"
-            :label="t('authConfig.ldap.groupSearchBase.label')"
-          />
-        </div>
+        <LabeledInput
+          v-model:value="model.serviceAccountUsername"
+          required
+          :mode="mode"
+          :label="t('authConfig.ldap.serviceAccountDN')"
+        />
       </div>
 
-      <div class="row">
-        <h3>  {{ t('authConfig.ldap.customizeSchema') }}</h3>
+      <div
+        v-else
+        class="col span-6"
+      >
+        <LabeledInput
+          v-model:value="model.serviceAccountDistinguishedName"
+          required
+          :mode="mode"
+          :label="t('authConfig.ldap.serviceAccountDN')"
+        />
       </div>
-      <Banner
-        v-if="type === OKTA && isCreate"
-        class="row"
-        color="info"
-        label-key="authConfig.ldap.oktaSchema"
-      />
-      <div class="row">
-        <div class="col span-6">
-          <h4>{{ t('authConfig.ldap.users') }}</h4>
-        </div>
-        <div class="col span-6">
-          <h4>{{ t('authConfig.ldap.groups') }}</h4>
-        </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.serviceAccountPassword"
+          required
+          type="password"
+          :mode="mode"
+          :label="t('authConfig.ldap.serviceAccountPassword')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userObjectClass"
-            :mode="mode"
-            :label="t('authConfig.ldap.objectClass')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupObjectClass"
-            :mode="mode"
-            :label="t('authConfig.ldap.objectClass')"
-          />
-        </div>
+    </div>
+    <div
+      v-if="type==='activedirectory'"
+      class="row mb-20"
+    >
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.defaultLoginDomain"
+          :hoover-tooltip="true"
+          :tooltip="t('authConfig.ldap.defaultLoginDomain.hint')"
+          :placeholder="t('authConfig.ldap.defaultLoginDomain.placeholder')"
+          :mode="mode"
+          :label="t('authConfig.ldap.defaultLoginDomain.label')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userNameAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.usernameAttribute')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupNameAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.nameAttribute')"
-          />
-        </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userSearchBase"
+          required
+          :mode="mode"
+          :label="t('authConfig.ldap.userSearchBase.label')"
+          :placeholder="t('authConfig.ldap.userSearchBase.placeholder')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userLoginAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.loginAttribute')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupMemberUserAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.groupMemberUserAttribute')"
-          />
-        </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupSearchBase"
+          :mode="mode"
+          :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')"
+          :label="t('authConfig.ldap.groupSearchBase.label')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userMemberAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.userMemberAttribute')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupSearchAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.searchAttribute')"
-          />
-        </div>
+    </div>
+
+    <div class="row">
+      <h3>  {{ t('authConfig.ldap.customizeSchema') }}</h3>
+    </div>
+    <Banner
+      v-if="type === OKTA && isCreate"
+      class="row"
+      color="info"
+      label-key="authConfig.ldap.oktaSchema"
+    />
+    <div class="row">
+      <div class="col span-6">
+        <h4>{{ t('authConfig.ldap.users') }}</h4>
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userSearchAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.searchAttribute')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupSearchFilter"
-            :mode="mode"
-            :label="t('authConfig.ldap.searchFilter')"
-          />
-        </div>
+      <div class="col span-6">
+        <h4>{{ t('authConfig.ldap.groups') }}</h4>
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userSearchFilter"
-            :mode="mode"
-            :label="t('authConfig.ldap.searchFilter')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupMemberMappingAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.groupMemberMappingAttribute')"
-          />
-        </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userObjectClass"
+          :mode="mode"
+          :label="t('authConfig.ldap.objectClass')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.userEnabledAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.userEnabledAttribute')"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.groupDNAttribute"
-            :mode="mode"
-            :label="t('authConfig.ldap.groupDNAttribute')"
-          />
-        </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupObjectClass"
+          :mode="mode"
+          :label="t('authConfig.ldap.objectClass')"
+        />
       </div>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="model.disabledStatusBitmask"
-            :mode="mode"
-            :label="t('authConfig.ldap.disabledStatusBitmask')"
-          />
-        </div>
-        <div
-          v-if="!isSamlProvider"
-          class=" col span-6"
-        >
-          <RadioGroup
-            v-model="model.nestedGroupMembershipEnabled"
-            :mode="mode"
-            name="nested"
-            class="full-height"
-            :options="[true, false]"
-            :labels="[t('authConfig.ldap.nestedGroupMembership.options.nested'), t('authConfig.ldap.nestedGroupMembership.options.direct')]"
-          />
-        </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userNameAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.usernameAttribute')"
+        />
       </div>
-    </template>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupNameAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.nameAttribute')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userLoginAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.loginAttribute')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupMemberUserAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.groupMemberUserAttribute')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userMemberAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.userMemberAttribute')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupSearchAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.searchAttribute')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userSearchAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.searchAttribute')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupSearchFilter"
+          :mode="mode"
+          :label="t('authConfig.ldap.searchFilter')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userSearchFilter"
+          :mode="mode"
+          :label="t('authConfig.ldap.searchFilter')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupMemberMappingAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.groupMemberMappingAttribute')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.userEnabledAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.userEnabledAttribute')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.groupDNAttribute"
+          :mode="mode"
+          :label="t('authConfig.ldap.groupDNAttribute')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="model.disabledStatusBitmask"
+          :mode="mode"
+          :label="t('authConfig.ldap.disabledStatusBitmask')"
+        />
+      </div>
+      <div
+        v-if="!isSamlProvider"
+        class=" col span-6"
+      >
+        <RadioGroup
+          v-model:value="model.nestedGroupMembershipEnabled"
+          :mode="mode"
+          name="nested"
+          class="full-height"
+          :options="[true, false]"
+          :labels="[t('authConfig.ldap.nestedGroupMembership.options.nested'), t('authConfig.ldap.nestedGroupMembership.options.direct')]"
+        />
+      </div>
+    </div>
   </div>
 </template>

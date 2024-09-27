@@ -1,8 +1,7 @@
 <script lang="ts">
-import Vue, { PropType, defineComponent } from 'vue';
-
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { PropType, defineComponent } from 'vue';
 import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 type Error = 'duplicate';
 type ErrorMessages = Record<Error, string>;
@@ -30,19 +29,15 @@ const CLASS = {
  * Manage a list of strings
  */
 export default defineComponent({
-
   name:       'StringList',
   components: { LabeledInput },
-
-  props: {
+  props:      {
     /**
      * The items source
      */
     items: {
-      type: Array as PropType<string[]>,
-      default() {
-        return [];
-      },
+      type:    Array as PropType<string[]>,
+      default: () => [],
     },
     /**
      * Determines if items with same text will be treated differently, depending on the letters case
@@ -77,10 +72,8 @@ export default defineComponent({
      * Custom Error messages
      */
     errorMessages: {
-      type: Object as PropType<ErrorMessages>,
-      default() {
-        return {} as ErrorMessages;
-      },
+      type:    Object as PropType<ErrorMessages>,
+      default: () => ({} as ErrorMessages),
     },
     /**
      * Enables bulk addition and defines the delimiter to split the input string.
@@ -219,7 +212,7 @@ export default defineComponent({
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => (this.getElemByRef(refId) as Vue & HTMLElement)?.focus());
+      this.$nextTick(() => (this.getElemByRef(refId) as HTMLElement)?.focus());
     },
 
     /**
@@ -256,7 +249,7 @@ export default defineComponent({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = (this.getElemByRef(refId) as Vue)?.$el;
+      const input = (this.getElemByRef(refId))?.$el;
 
       if (input) {
         if (val) {
@@ -415,7 +408,6 @@ export default defineComponent({
       this.$emit('change', items);
     },
   },
-
 });
 </script>
 
@@ -433,7 +425,7 @@ export default defineComponent({
     >
       <div
         v-for="(item, index) in items"
-        :key="item"
+        :key="index"
         :ref="item"
         :class="{
           selected: selected === item,
@@ -460,9 +452,9 @@ export default defineComponent({
           :data-testid="`item-edit-${item}`"
           class="edit-input static"
           :value="value != null ? value : item"
-          @input="onChange($event, index)"
+          @update:value="onChange($event, index)"
           @blur.prevent="updateItem(item)"
-          @keydown.native.enter="updateItem(item, !errors.duplicate)"
+          @keydown.enter="updateItem(item, !errors.duplicate)"
         />
       </div>
       <div
@@ -476,9 +468,9 @@ export default defineComponent({
           type="text"
           :value="value"
           :placeholder="placeholder"
-          @input="onChange($event)"
+          @update:value="onChange($event)"
           @blur.prevent="saveItem"
-          @keydown.native.enter="saveItem(!errors.duplicate)"
+          @keydown.enter="saveItem(!errors.duplicate)"
         />
       </div>
     </div>
@@ -637,7 +629,7 @@ export default defineComponent({
   }
 }
 
-::v-deep {
+:deep() {
   .labeled-input INPUT.no-label,
   .labeled-input INPUT:hover.no-label,
   .labeled-input INPUT:focus.no-label {

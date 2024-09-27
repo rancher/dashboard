@@ -32,13 +32,13 @@ export default {
   methods: {
     // This isn't a computed prop because it would trigger a recompute when the $slots changed
     computeTitle() {
-      if (!this.$slots.default || this.$slots.default.length !== 1 || this.$slots.default[0].tag || (typeof this.$slots.default[0].text !== 'string')) {
+      if (!this.$slots.default || (typeof this.$slots.default()[0].children) !== 'string') {
         console.error('The <TabTitle> component only supports text as the child.'); // eslint-disable-line no-console
 
         return [];
       }
 
-      const breadcrumb = [this.$slots.default[0].text.trim()];
+      const breadcrumb = [this.$slots.default()[0].children.trim()];
 
       if (this.breadcrumb === 'full') {
         if (this.currentCluster && (this.isExplorer || this.currentCluster.isHarvester ) ) {
@@ -70,15 +70,9 @@ export default {
   // Using the render function instead of <template> because <template><slot /></template> will yield a compiler error since
   // <slot /> is not allowed to be a root node of a <template> and I don't want to wrap the child to avoid affecting existing styling
   render() {
-    if (this.$slots.default) {
-      this.$slots.default.forEach((e) => {
-        e.text = (e.text || '').trim();
-      });
-    }
-
     this.updatePageTitle();
 
-    return this.showChild ? this.$slots.default : null;
+    return this.showChild ? this.$slots.default() : null;
   }
 };
 </script>

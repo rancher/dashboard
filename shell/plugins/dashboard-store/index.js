@@ -1,6 +1,7 @@
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
+import { markRaw } from 'vue';
 
 export const coreStoreModule = {
   strict:     false,
@@ -23,6 +24,7 @@ export const coreStoreState = (namespace, baseUrl, isClusterStore) => ({
     isClusterStore
   },
   types: {},
+  $ctx:  markRaw({}),
 });
 
 export default (vuexModule, config, init) => {

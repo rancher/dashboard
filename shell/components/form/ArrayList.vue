@@ -8,6 +8,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
+  emits: ['add', 'remove', 'update:value'],
+
   components: { TextAreaAutoGrow, LabeledInput },
   props:      {
     value: {
@@ -54,6 +56,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    addDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     removeLabel: {
       type:    String,
       default: '',
@@ -74,6 +80,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    required: {
+      type:    Boolean,
+      default: false
+    },
     rules: {
       default:   () => [],
       type:      Array,
@@ -82,7 +92,7 @@ export default {
     }
   },
   data() {
-    const input = (this.value || []).slice();
+    const input = (Array.isArray(this.value) ? this.value : []).slice();
     const rows = [];
 
     for ( const value of input ) {
@@ -109,6 +119,9 @@ export default {
     },
     showAdd() {
       return this.addAllowed;
+    },
+    disableAdd() {
+      return this.addDisabled;
     },
     showRemove() {
       return this.removeAllowed;
@@ -185,7 +198,7 @@ export default {
           out.push(value);
         }
       }
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
 
     /**
@@ -221,6 +234,10 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <span
+            v-if="required"
+            class="required"
+          >*</span>
           <i
             v-if="showProtip"
             v-clean-tooltip="protip"
@@ -264,25 +281,25 @@ export default {
               <TextAreaAutoGrow
                 v-if="valueMultiline"
                 ref="value"
-                v-model="row.value"
+                v-model:value="row.value"
                 :data-testid="`textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:value="queueUpdate"
               />
               <LabeledInput
                 v-else-if="rules.length > 0"
                 ref="value"
-                v-model="row.value"
+                v-model:value="row.value"
                 :data-testid="`labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
                 :compact="false"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @update:value="queueUpdate"
               />
               <input
                 v-else
@@ -292,7 +309,6 @@ export default {
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
               >
             </slot>
           </div>
@@ -332,7 +348,7 @@ export default {
     </div>
     <div
       v-if="showAdd && !isView"
-      class="footer"
+      class="footer mt-20"
     >
       <slot
         v-if="showAdd"
@@ -342,7 +358,7 @@ export default {
         <button
           type="button"
           class="btn role-tertiary add"
-          :disabled="loading"
+          :disabled="loading || disableAdd"
           data-testid="array-list-button"
           @click="add()"
         >
@@ -361,6 +377,11 @@ export default {
   .title {
     margin-bottom: 10px;
   }
+
+  .required {
+    color: var(--error);
+  }
+
   .box {
     display: grid;
     grid-template-columns: auto $array-list-remove-margin;
@@ -369,7 +390,7 @@ export default {
     .value {
       flex: 1;
       INPUT {
-        height: $input-height;
+        height: $unlabeled-input-height;
       }
     }
   }

@@ -10,7 +10,10 @@ describe('steve: subscribe', () => {
         inError:       () => false,
         watchStarted:  () => false,
       };
-      const rootGetters = { 'type-map/isSpoofed': () => false };
+      const rootGetters = {
+        'type-map/isSpoofed': () => false,
+        'features/get':       () => false,
+      };
 
       const type = 'test';
       const selector = undefined;

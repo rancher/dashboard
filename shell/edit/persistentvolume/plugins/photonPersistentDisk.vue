@@ -25,9 +25,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'photonPersistentDisk', this.value.spec.photonPersistentDisk || {});
-    this.$set(this.value.spec.photonPersistentDisk, 'readOnly', this.value.spec.photonPersistentDisk.readOnly || false);
-    this.$set(this.value.spec.photonPersistentDisk, 'secretRef', this.value.spec.photonPersistentDisk.secretRef || {});
+    this.value.spec['photonPersistentDisk'] = this.value.spec.photonPersistentDisk || {};
+    this.value.spec.photonPersistentDisk['readOnly'] = this.value.spec.photonPersistentDisk.readOnly || false;
+    this.value.spec.photonPersistentDisk['secretRef'] = this.value.spec.photonPersistentDisk.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -39,7 +39,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.photonPersistentDisk.pdID"
+          v-model:value="value.spec.photonPersistentDisk.pdID"
           :mode="mode"
           :label="t('persistentVolume.photonPersistentDisk.pdId.label')"
           :placeholder="t('persistentVolume.photonPersistentDisk.pdId.placeholder')"
@@ -47,7 +47,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.photonPersistentDisk.fsType"
+          v-model:value="value.spec.photonPersistentDisk.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"

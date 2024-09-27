@@ -25,7 +25,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.apiVersion"
+          v-model:value="value.apiVersion"
           :mode="mode"
           :label="t('hpa.objectReference.api.label')"
           :required="true"
@@ -35,7 +35,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.kind"
+          v-model:value="value.kind"
           :mode="mode"
           :label="t('hpa.objectReference.kind.label')"
           :required="true"
@@ -47,7 +47,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model:value="value.name"
           :mode="mode"
           :label="t('hpa.objectReference.name.label')"
           :required="true"

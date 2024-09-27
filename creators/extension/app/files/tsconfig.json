@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": [
+      "ESNext",
+      "ESNext.AsyncIterable",
+      "DOM"
+    ],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "sourceMap": false,
+    "strict": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./*"
+      ],
+      "@/*": [
+        "./*"
+      ],
+      "@shell/*": [
+        "./node_modules/@rancher/shell/*"
+      ]
+    },
+    "typeRoots": [
+      "./node_modules",
+      "./node_modules/@rancher/shell/types"
+    ],
+    "types": [
+      "@types/node",
+      "cypress",
+      "rancher",
+      "shell"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

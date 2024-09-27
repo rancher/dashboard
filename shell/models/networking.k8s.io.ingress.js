@@ -44,7 +44,8 @@ export default class Ingress extends SteveModel {
     const isTargetsWorkload = serviceName.startsWith('ingress-');
     const id = `${ this.namespace }/${ serviceName }`;
 
-    if ( isTargetsWorkload ) {
+    if (isTargetsWorkload) {
+      // Need to expose workloadId's and fetch specific ones in IngressTarget?
       const workload = workloads.find((w) => w.id === (id));
 
       return workload?.detailLocation || '';

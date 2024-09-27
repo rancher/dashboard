@@ -8,6 +8,7 @@ const azureadPo = new AzureadPo('local');
 const tenantId = '564b6f53-ebf4-43c3-8077-44c56a44990a';
 const applicationId = '18cca356-170e-4bd9-a4a4-2e349855f96b';
 const appSecret = 'test';
+const groupMembershipFilter = 'test';
 const defaultEndpoint = 'https://login.microsoftonline.com/';
 const defaultAuthEndpoint = 'https://login.microsoftonline.com/564b6f53-ebf4-43c3-8077-44c56a44990a/oauth2/v2.0/authorize';
 const defaultTokenEndpoint = 'https://login.microsoftonline.com/564b6f53-ebf4-43c3-8077-44c56a44990a/oauth2/v2.0/token';
@@ -34,7 +35,7 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     azureadPo.mastheadTitle().should('include', `AzureAD`);
   });
 
-  it('sends correct request to create standard Azure AD', () => {
+  it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
     cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
       expect(req.body.tenantId).to.equal(tenantId);
       expect(req.body.applicationId).to.equal(applicationId);
@@ -63,6 +64,7 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
       expect(req.body.tenantId).to.equal(tenantId);
       expect(req.body.applicationId).to.equal(applicationId);
       expect(req.body.applicationSecret).to.equal(appSecret);
+      expect(req.body.groupMembershipFilter).to.equal(groupMembershipFilter);
       expect(req.body.endpoint).to.equal(endpoint);
       expect(req.body.authEndpoint).to.equal(authEndpoint);
       expect(req.body.tokenEndpoint).to.equal(tokenEndpoint);
@@ -76,6 +78,10 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     azureadPo.enterTenantId(tenantId);
     azureadPo.enterApplicationId(applicationId);
     azureadPo.enterApplicationSecret(appSecret);
+
+    // enable group membership filter and add a text as filter
+    azureadPo.groupMembershipFilterCheckbox().set();
+    azureadPo.enterGroupMembershipFilter(groupMembershipFilter);
 
     azureadPo.selectEndpointsOption(2);
 

@@ -41,6 +41,8 @@ export default {
 
   name: 'ResourceTable',
 
+  emits: ['clickedActionButton'],
+
   components: { ButtonGroup, SortableTable },
 
   props: {
@@ -55,6 +57,11 @@ export default {
     },
 
     loading: {
+      type:     Boolean,
+      required: false
+    },
+
+    altLoading: {
       type:     Boolean,
       required: false
     },
@@ -189,7 +196,7 @@ export default {
     window.addEventListener('keyup', this.handleEnterKeyPress);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('keyup', this.handleEnterKeyPress);
   },
 
@@ -532,6 +539,7 @@ export default {
     :headers="_headers"
     :rows="filteredRows"
     :loading="loading"
+    :alt-loading="altLoading"
     :group-by="computedGroupBy"
     :group="group"
     :group-options="groupOptions"
@@ -556,8 +564,6 @@ export default {
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
-
-    v-on="$listeners"
   >
     <template
       v-if="showGrouping"
@@ -566,7 +572,7 @@ export default {
       <slot name="more-header-middle" />
 
       <ButtonGroup
-        v-model="group"
+        v-model:value="group"
         :options="groupOptions"
       />
     </template>
@@ -587,7 +593,8 @@ export default {
 
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
+      v-for="(_, slot) of $slots"
+      :key="slot"
       v-slot:[slot]="scope"
     >
       <slot

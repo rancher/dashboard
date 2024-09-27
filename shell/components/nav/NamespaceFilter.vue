@@ -55,10 +55,7 @@ export default {
     },
 
     paginatedListFilterMode() {
-      return paginationUtils.isEnabled({ rootGetters: this.$store.getters }, {
-        store:    this.currentProduct.inStore,
-        resource: { id: this.$route.params?.resource }
-      }) ? paginationUtils.validNsProjectFilters : null;
+      return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
     filtered() {
@@ -384,7 +381,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeCloseKeyHandler();
   },
 
@@ -600,10 +597,13 @@ export default {
     open() {
       this.isOpen = true;
       this.$nextTick(() => {
-        this.$refs.filter.focus();
+        this.focusFilter();
       });
       this.addCloseKeyHandler();
       this.layout();
+    },
+    focusFilter() {
+      this.$refs.filter.focus();
     },
     close() {
       this.isOpen = false;
@@ -692,6 +692,7 @@ export default {
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
+    @mousedown.prevent
     @focus="open()"
   >
     <div
@@ -800,6 +801,7 @@ export default {
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
+            @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <i
@@ -839,7 +841,7 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
-          :disabled="!opt.enabled"
+          :disabled="opt.enabled ? null : true"
           :class="{
             'ns-selected': opt.selected,
             'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
@@ -1131,7 +1133,7 @@ export default {
   }
 </style>
 <style lang="scss">
-  .tooltip {
+  .v-popper__popper {
     .ns-filter-tooltip {
       background-color: var(--body-bg);
       margin: -6px;

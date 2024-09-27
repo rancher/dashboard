@@ -24,8 +24,8 @@ export default {
     },
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = this.value.send_resolved || false;
 
     if (this.mode === _CREATE) {
       this.$set(
@@ -50,7 +50,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.api_url"
+          v-model:value="value.api_url"
           :mode="mode"
           label="Webhook URL"
           placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
@@ -66,7 +66,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.channel"
+          v-model:value="value.channel"
           :mode="mode"
           label="Default Channel"
           placeholder="e.g. #example"
@@ -74,7 +74,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.http_config.proxy_url"
+          v-model:value="value.http_config.proxy_url"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
@@ -83,7 +83,7 @@ export default {
     </div>
     <div class="row">
       <Checkbox
-        v-model="value.send_resolved"
+        v-model:value="value.send_resolved"
         :mode="mode"
         label="Enable send resolved alerts"
       />

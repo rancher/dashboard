@@ -1,8 +1,8 @@
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { NAME as PRODUCT_NAME } from '@shell/config/product/cis';
 import { CIS } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { downloadFile, generateZip } from '@shell/utils/download';
-import { get, isEmpty, set } from '@shell/utils/object';
+import { get, isEmpty } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import day from 'dayjs';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -75,20 +75,6 @@ export default class ClusterScan extends SteveModel {
     }
 
     return out;
-  }
-
-  applyDefaults(vm, mode) {
-    if (mode === _CREATE || mode === _EDIT) {
-      const includeScheduling = this.canBeScheduled();
-      const spec = this.spec || {};
-
-      spec.scanProfileName = null;
-      if (includeScheduling) {
-        spec.scoreWarning = 'pass';
-        spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
-      }
-      set(this, 'spec', spec);
-    }
   }
 
   canBeScheduled() {
@@ -165,6 +151,21 @@ export default class ClusterScan extends SteveModel {
         downloadFile(`${ this.id }-reports`, zip, 'application/zip');
       });
     }
+  }
+
+  get scanProfileLink() {
+    if (this.status?.lastRunScanProfileName) {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          resource: CIS.CLUSTER_SCAN_PROFILE,
+          product:  PRODUCT_NAME,
+          id:       this.status?.lastRunScanProfileName
+        }
+      };
+    }
+
+    return {};
   }
 }
 

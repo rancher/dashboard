@@ -3,12 +3,12 @@ import { mount } from '@vue/test-utils';
 
 describe('component: Collapse.vue', () => {
   describe('closed', () => {
-    const wrapper = mount(Collapse, { propsData: { open: false } });
+    const wrapper = mount(Collapse, { props: { open: false } });
 
     it('is closed', () => {
       const content = wrapper.find(`[data-testid="collapse-content"]`);
 
-      expect(content.element).toBeUndefined();
+      expect(content.exists()).toBe(false);
     });
 
     it('icon is chevron right', () => {
@@ -19,7 +19,7 @@ describe('component: Collapse.vue', () => {
   });
 
   describe('collapsed', () => {
-    const wrapper = mount(Collapse, { propsData: { open: true } });
+    const wrapper = mount(Collapse, { props: { open: true } });
 
     it('is collapse', () => {
       const content = wrapper.find(`[data-testid="collapse-content"]`);

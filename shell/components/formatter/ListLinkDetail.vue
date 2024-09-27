@@ -21,8 +21,8 @@ export default {
 <template>
   <span>
     <LinkDetail
-      v-for="el in value"
-      :key="el.key"
+      v-for="(el, i) in value"
+      :key="i"
       :row="row"
       v-bind="el"
     />

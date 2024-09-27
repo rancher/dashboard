@@ -18,7 +18,7 @@ describe('component: ApplicationCard', () => {
     const content = '<div>text</div>';
     const ele = mount(ApplicationCard, { slots: { [slot]: content } });
 
-    expect(ele.find(`[data-testid="${ slot }-section`).find('div').html()).toContain(content);
+    expect(ele.find(`[data-testid="${ slot }-section"`).find('div').html()).toContain(content);
   });
 
   it('should have card-icon slot with an icon', () => {

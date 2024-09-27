@@ -58,11 +58,11 @@ export default class ProjectNamespacePagePo extends PagePo {
   }
 
   inputProjectLimit() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="projectrow-project-quota-input"]');
+    return new LabeledInputPo(cy.get('[data-testid="projectrow-project-quota-input"]'));
   }
 
   inputNamespaceDefaultLimit() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="projectrow-namespace-quota-input"]');
+    return new LabeledInputPo(cy.get('[data-testid="projectrow-namespace-quota-input"]'));
   }
 
   buttonSubmit() {
@@ -74,19 +74,19 @@ export default class ProjectNamespacePagePo extends PagePo {
   }
 
   inputCpuReservation() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="cpu-reservation"]');
+    return new LabeledInputPo(cy.get('[data-testid="cpu-reservation"]'));
   }
 
   inputMemoryReservation() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="memory-reservation"]');
+    return new LabeledInputPo(cy.get('[data-testid="memory-reservation"]'));
   }
 
   inputCpuLimit() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="cpu-limit"]');
+    return new LabeledInputPo(cy.get('[data-testid="cpu-limit"]'));
   }
 
   inputMemoryLimit() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="memory-limit"]');
+    return new LabeledInputPo(cy.get('[data-testid="memory-limit"]'));
   }
 
   bannerError(n: number) {

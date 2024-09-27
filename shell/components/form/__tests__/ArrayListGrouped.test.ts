@@ -11,8 +11,8 @@ describe('component: ArrayListGrouped', () => {
 
   it('should add more items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: { propsData: { value: ['a', 'b'] } },
-      slots: { default: '<div id="test"/>' }
+      slots:  { default: '<div id="test"/>' },
+      global: { mocks: { propsData: { value: ['a', 'b'] } } }
     });
     const button = wrapper.find('[data-testid^="array-list-button"]');
 
@@ -25,8 +25,8 @@ describe('component: ArrayListGrouped', () => {
 
   it('should allow to remove items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: { propsData: { value: ['a', 'b'] } },
-      slots: { default: '<div id="test"/>' }
+      slots:  { default: '<div id="test"/>' },
+      global: { mocks: { propsData: { value: ['a', 'b'] } } }
     });
     const button = wrapper.find('[data-testid^="array-list-button"]');
 

@@ -5,6 +5,8 @@ export default {
 
   components: { Type },
 
+  emits: ['expand', 'close'],
+
   props: {
     depth: {
       type:    Number,
@@ -73,7 +75,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath.split('#')[0] === route?.route?.fullPath;
+          return this.$route.fullPath.split('#')[0] === route?.fullPath;
         }
       }
 
@@ -165,7 +167,7 @@ export default {
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
 
-          if (matchesNavLevel || this.$router.resolve(item.route).route.fullPath === withoutQuery) {
+          if (matchesNavLevel || this.$router.resolve(item.route).fullPath === withoutQuery) {
             return true;
           }
         }
@@ -236,7 +238,10 @@ export default {
       class="list-unstyled body"
       v-bind="$attrs"
     >
-      <template v-for="(child, idx) in group[childrenKey]">
+      <template
+        v-for="(child, idx) in group[childrenKey]"
+        :key="idx"
+      >
         <li
           v-if="child.divider"
           :key="idx"
@@ -392,8 +397,8 @@ export default {
     }
   }
 
-  .body ::v-deep > .child.router-link-active,
-  .header ::v-deep > .child.router-link-exact-active {
+  .body :deep() > .child.router-link-active,
+  .header :deep() > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {
@@ -407,7 +412,7 @@ export default {
     }
   }
 
-  .body ::v-deep > .child {
+  .body :deep() > .child {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;

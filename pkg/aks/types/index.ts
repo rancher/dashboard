@@ -7,70 +7,78 @@ export type LoadBalancerSku = 'Standard' | 'Basic'
 export type OutboundType = 'LoadBalancer' | 'UserDefinedRouting'
 
 export interface AKSNodePool {
-  availabilityZones?: String[],
-  count?: Number,
-  enableAutoScaling?: Boolean,
-  maxPods?: Number,
-  maxSurge?: String,
-  minCount?: Number,
-  maxCount?: Number,
+  availabilityZones?: string[],
+  count?: number,
+  enableAutoScaling?: boolean,
+  maxPods?: number,
+  maxSurge?: string,
+  minCount?: number,
+  maxCount?: number,
   mode?: AKSPoolMode,
-  name?: String,
+  name?: string,
   nodeLabels?: Object,
-  nodeTaints?: String[],
-  orchestratorVersion?: String,
-  osDiskSizeGB?: Number,
+  nodeTaints?: string[],
+  orchestratorVersion?: string,
+  osDiskSizeGB?: number,
   osDiskType?: AKSDiskType,
-  osType?: String,
-  type?: String,
-  vmSize?: String,
-  _isNewOrUnprovisioned?: Boolean,
-  _id?: String
-  _validSize?: Boolean
-  _validAZ?: Boolean
+  osType?: string,
+  type?: string,
+  vmSize?: string,
+  _isNewOrUnprovisioned?: boolean,
+  _id?: string
+  _validation: {
+    _validName?: boolean
+    _validSize?: boolean
+    _validAZ?: boolean
+    _validCount?: boolean
+    _validMinMax?: boolean
+    _validMin?: boolean
+    _validMax?: boolean
+    _validTaints?: boolean
+  }
 }
 
 export interface AKSConfig {
-  authBaseUrl?: String,
-  authorizedIpRanges?: String[],
-  azureCredentialSecret?: String,
-  baseUrl?: String,
-  clusterName?: String,
-  dnsPrefix?: String,
-  dnsServiceIp?: String,
-  dockerBridgeCidr?: String,
-  httpApplicationRouting?: Boolean,
-  imported?: Boolean,
-  kubernetesVersion?: String,
-  linuxAdminUsername?: String,
+  authBaseUrl?: string,
+  authorizedIpRanges?: string[],
+  azureCredentialSecret?: string,
+  baseUrl?: string,
+  clusterName?: string,
+  dnsPrefix?: string,
+  dnsServiceIp?: string,
+  dockerBridgeCidr?: string,
+  httpApplicationRouting?: boolean,
+  imported?: boolean,
+  kubernetesVersion?: string,
+  linuxAdminUsername?: string,
   loadBalancerSku?: LoadBalancerSku,
-  logAnalyticsWorkspaceGroup?: String,
-  logAnalyticsWorkspaceName?: String,
-  monitoring?: Boolean,
-  networkPlugin?: String,
-  networkPolicy?: String,
+  logAnalyticsWorkspaceGroup?: string,
+  logAnalyticsWorkspaceName?: string,
+  monitoring?: boolean,
+  networkPlugin?: string,
+  networkPolicy?: string,
   nodePools?: AKSNodePool[],
-  nodeResourceGroup?: String,
+  nodeResourceGroup?: string,
   outboundType?: OutboundType,
-  podCidr?: String,
-  privateCluster?: Boolean,
-  resourceGroup?: String,
-  resourceLocation?: String
-  serviceCidr?: String
-  sshPublicKey?: String
-  subnet?: String,
+  podCidr?: string,
+  privateCluster?: boolean,
+  resourceGroup?: string,
+  resourceLocation?: string
+  serviceCidr?: string
+  sshPublicKey?: string
+  subnet?: string,
   tags?: Map<string, string>,
-  virtualNetwork?: String,
-  virtualNetworkResourceGroup?: String
+  virtualNetwork?: string,
+  virtualNetworkResourceGroup?: string
 }
 
 export interface VirtualNetworkSubnet {
-  name: String,
-  addressRange: String
+  name: string,
+  addressRange: string
 }
 export interface AKSVirtualNetwork {
-  location: String,
-  name: String,
-  resourceGroup: String,
+  location: string,
+  name: string,
+  resourceGroup: string,
   subnets: VirtualNetworkSubnet[]
 }

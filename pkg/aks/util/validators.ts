@@ -4,8 +4,8 @@
  * Due to current limitations of the fv mixin
  */
 
-import { get } from '@shell/utils/object';
-import { LoadBalancerSku, OutboundType } from '@pkg/aks/types';
+import { get, set } from '@shell/utils/object';
+import { LoadBalancerSku, OutboundType, AKSNodePool } from '../types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 export const needsValidation = (ctx: any): Boolean => {
@@ -28,7 +28,7 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
 export const clusterNameChars = (ctx: any ) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
-    const nameIsValid = name.match(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/);
+    const nameIsValid = name.match(/^[a-zA-Z0-9\-_]*$/);
 
     return !needsValidation(ctx) || nameIsValid ? undefined : ctx.t('aks.errors.clusterName.chars');
   };
@@ -52,8 +52,6 @@ export const clusterNameLength = (ctx: any) => {
   };
 };
 
-// letters, numbers, -, _, (, ), ., and unicode UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter
-// https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
 export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
     const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
@@ -64,6 +62,8 @@ export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:strin
   };
 };
 
+// letters, numbers, -, _, (, ), ., and unicode UppercaseLetter, LowercaseLetter, TitlecaseLetter, ModifierLetter, OtherLetter
+// https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
 export const resourceGroupChars = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
     const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
@@ -133,8 +133,83 @@ export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) 
   return () :string | undefined => {
     const toValidate = (get(ctx.normanCluster, clusterPath) || '').toLowerCase();
     const subscriptionRegex = /^\/subscriptions\/.+\/resourcegroups\/.+\/providers\/microsoft\.network\/privatednszones\/([a-zA-Z0-9-]{1,32}\.){0,32}private(link){0,1}\.[a-zA-Z0-9]+\.azmk8s\.io$/;
-    const isValid = toValidate.match(subscriptionRegex);
+    const isValid = toValidate.match(subscriptionRegex) || toValidate === 'system';
 
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.privateDnsZone', {}, true);
+  };
+};
+
+export const nodePoolNames = (ctx: any) => {
+  return (poolName:string) :string | undefined => {
+    let allAvailable = true;
+
+    const isValid = (name:string) => name.match(/^[a-z]+[a-z0-9]*$/) && name.length <= 12;
+
+    if (poolName || poolName === '') {
+      return isValid(poolName) ? undefined : ctx.t('aks.errors.poolName');
+    } else {
+      ctx.nodePools.forEach((pool: AKSNodePool) => {
+        const name = pool.name || '';
+
+        if (!isValid(name)) {
+          set(pool._validation, '_validName', false);
+
+          allAvailable = false;
+        } else {
+          set(pool._validation, '_validName', true);
+        }
+      });
+      if (!allAvailable) {
+        return ctx.t('aks.errors.poolName');
+      }
+    }
+  };
+};
+
+export const nodePoolNamesUnique = (ctx: any) => {
+  return () :string | undefined => {
+    const poolNames = (ctx.nodePools || []).map((pool: AKSNodePool) => pool.name);
+
+    const hasDuplicates = poolNames.some((name: string, idx: number) => poolNames.indexOf(name) !== idx);
+
+    if (hasDuplicates) {
+      return ctx.t('aks.errors.poolNamesUnique');
+    }
+  };
+};
+
+export const nodePoolCount = (ctx:any) => {
+  return (count?: number, canBeZero = false) => {
+    let min = 1;
+    let errMsg = ctx.t('aks.errors.poolCount');
+
+    if (canBeZero) {
+      min = 0;
+      errMsg = ctx.t('aks.errors.poolUserCount');
+    }
+    if (count || count === 0) {
+      return count >= min ? undefined : errMsg;
+    } else {
+      let allValid = true;
+
+      ctx.nodePools.forEach((pool: AKSNodePool) => {
+        const { count = 0, mode } = pool;
+
+        if (mode === 'User') {
+          min = 0;
+        } else {
+          min = 1;
+        }
+
+        if (count < min) {
+          pool._validation['_validCount'] = false;
+          allValid = false;
+        } else {
+          pool._validation['_validCount'] = true;
+        }
+      });
+
+      return allValid ? undefined : ctx.t('aks.errors.poolCount');
+    }
   };
 };

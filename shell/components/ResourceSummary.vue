@@ -148,7 +148,7 @@ export default {
     }
   }
 
-  ::v-deep .content{
+  :deep() .content{
     display: flex;
     justify-content: space-between;
     align-items: center;

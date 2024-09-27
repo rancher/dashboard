@@ -8,17 +8,21 @@ import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
+import { STEVE_CACHE } from '@shell/store/features';
+import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2'],
-  manualRefresh:      ['forceNsFilterV2'],
+  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
+  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
 
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',
   forceNsFilterV2:    'nsFiltering',
+  serverPagination:   'serverPagination'
 };
 
 export default {
@@ -57,13 +61,20 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:              DEFAULT_PERF_SETTING,
+      uiPerfSetting:              null,
       authUserTTL:                null,
       bannerVal:                  {},
       value:                      {},
       errors:                     [],
       gcStartedEnabled:           null,
       isInactivityThresholdValid: false,
+      ffUrl:                      this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  SETTING_PRODUCT,
+          resource: MANAGEMENT.FEATURE
+        }
+      }).href
     };
   },
 
@@ -76,6 +87,33 @@ export default {
 
     canSave() {
       return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
+    },
+
+    steveCacheEnabled() {
+      return this.$store.getters['features/get'](STEVE_CACHE);
+    },
+
+    steveCacheApplicableResources() {
+      const storeResources = [];
+
+      Object.entries(this.value.serverPagination.stores).forEach(([store, settings]) => {
+        const resources = [];
+
+        if (settings.resources.enableAll) {
+          resources.push(this.t('performance.serverPagination.resources.all'));
+        } else {
+          settings.resources.enableSome.enabled.forEach((resource) => {
+            resources.push(resource);
+          });
+          if (settings.resources.enableSome.generic) {
+            resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
+          }
+        }
+
+        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+      });
+
+      return storeResources.join('. ');
     }
   },
 
@@ -123,7 +161,7 @@ export default {
         return;
       }
 
-      // We're enabling a preference. Are there any incomaptible preferences?
+      // We're enabling a preference. Are there any incompatible preferences?
       if ((incompatible[property] || []).every((p) => !this.value[p].enabled)) {
         // No, just set and exit
         this.value[property].enabled = true;
@@ -135,9 +173,11 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode:   'enable',
+          applyMode: 'enable',
+          confirm:   (confirmed) => {
+            this.value[property].enabled = confirmed;
+          },
           applyAction: (buttonDone) => {
-            this.value[property].enabled = true;
             (incompatible[property] || []).forEach((incompatible) => {
               this.value[incompatible].enabled = false;
             });
@@ -151,6 +191,7 @@ export default {
   },
 };
 </script>
+
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
@@ -159,12 +200,41 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
+        <!-- Server Side Pagination -->
+        <div class="mt-40">
+          <h2>{{ t('performance.serverPagination.label') }}</h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Banner
+            v-if="!steveCacheEnabled"
+            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
+            color="warning"
+          />
+          <Checkbox
+            v-model:value="value.serverPagination.enabled"
+            :mode="mode"
+            :label="t('performance.serverPagination.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
+            @update:value="compatibleWarning('serverPagination', $event)"
+          />
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ t('performance.serverPagination.applicable') }}
+          </p>
+          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+            {{ steveCacheApplicableResources }}
+          </p>
+        </div>
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
           <p>{{ t('performance.inactivity.description') }}</p>
           <Checkbox
-            v-model="value.inactivity.enabled"
+            v-model:value="value.inactivity.enabled"
             :mode="mode"
             :label="t('performance.inactivity.checkboxLabel')"
             class="mt-10 mb-20"
@@ -172,7 +242,7 @@ export default {
           />
           <div class="ml-20">
             <LabeledInput
-              v-model="value.inactivity.threshold"
+              v-model:value="value.inactivity.threshold"
               data-testid="inactivity-threshold"
               :mode="mode"
               :label="t('performance.inactivity.inputLabel')"
@@ -193,7 +263,7 @@ export default {
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
-            v-model="value.disableWebsocketNotification"
+            v-model:value="value.disableWebsocketNotification"
             :mode="mode"
             :label="t('performance.websocketNotification.checkboxLabel')"
             class="mt-10 mb-20"
@@ -210,14 +280,14 @@ export default {
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('incrementalLoading', $event)"
+            @update:value="compatibleWarning('incrementalLoading', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
               {{ t('performance.incrementalLoad.setting') }}
             </p>
             <LabeledInput
-              v-model="value.incrementalLoading.threshold"
+              v-model:value="value.incrementalLoading.threshold"
               :mode="mode"
               :label="t('performance.incrementalLoad.inputLabel')"
               :disabled="!value.incrementalLoading.enabled"
@@ -241,14 +311,14 @@ export default {
             :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('manualRefresh', $event)"
+            @update:value="compatibleWarning('manualRefresh', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
               {{ t('performance.manualRefresh.setting') }}
             </p>
             <LabeledInput
-              v-model.number="value.manualRefresh.threshold"
+              v-model:value.number="value.manualRefresh.threshold"
               :mode="mode"
               :label="t('performance.manualRefresh.inputLabel')"
               :disabled="!value.manualRefresh.enabled"
@@ -267,7 +337,7 @@ export default {
             label-key="performance.experimental"
           />
           <Checkbox
-            v-model="value.garbageCollection.enabled"
+            v-model:value="value.garbageCollection.enabled"
             :mode="mode"
             :label="t('performance.gc.checkboxLabel')"
             class="mt-10 mb-20"
@@ -277,7 +347,7 @@ export default {
             <h3>{{ t('performance.gc.whenRun.description') }}</h3>
             <div class="ml-20 mb-10">
               <Checkbox
-                v-model="value.garbageCollection.enabledInterval"
+                v-model:value="value.garbageCollection.enabledInterval"
                 :mode="mode"
                 :class="{ 'text-muted': !value.garbageCollection.enabled }"
                 :label="t('performance.gc.whenRun.intervalCheckBox.label')"
@@ -287,7 +357,7 @@ export default {
               />
               <div class="ml-20">
                 <UnitInput
-                  v-model="value.garbageCollection.interval"
+                  v-model:value="value.garbageCollection.interval"
                   :mode="mode"
                   :suffix="t('suffix.seconds', { count: value.garbageCollection.interval })"
                   :label="t('performance.gc.whenRun.interval.inputLabel')"
@@ -297,7 +367,7 @@ export default {
                 />
               </div>
               <Checkbox
-                v-model="value.garbageCollection.enabledOnNavigate"
+                v-model:value="value.garbageCollection.enabledOnNavigate"
                 :mode="mode"
                 :class="{ 'text-muted': !value.garbageCollection.enabled }"
                 :label="t('performance.gc.whenRun.route.description')"
@@ -312,7 +382,7 @@ export default {
                 {{ t('performance.gc.howRun.age.description', {}, true) }}
               </p>
               <UnitInput
-                v-model="value.garbageCollection.ageThreshold"
+                v-model:value="value.garbageCollection.ageThreshold"
                 :mode="mode"
                 :suffix="t('suffix.seconds', { count: value.garbageCollection.ageThreshold })"
                 :label="t('performance.gc.howRun.age.inputLabel')"
@@ -327,7 +397,7 @@ export default {
                 {{ t('performance.gc.howRun.count.description') }}
               </p>
               <LabeledInput
-                v-model.number="value.garbageCollection.countThreshold"
+                v-model:value.number="value.garbageCollection.countThreshold"
                 :mode="mode"
                 :label="t('performance.gc.howRun.count.inputLabel')"
                 :disabled="!value.garbageCollection.enabled"
@@ -352,7 +422,7 @@ export default {
             :label="t('performance.nsFiltering.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
-            @input="compatibleWarning('forceNsFilterV2', $event)"
+            @update:value="compatibleWarning('forceNsFilterV2', $event)"
           />
         </div>
         <!-- Advanced Websocket Worker -->
@@ -364,7 +434,7 @@ export default {
             label-key="performance.experimental"
           />
           <Checkbox
-            v-model="value.advancedWorker.enabled"
+            v-model:value="value.advancedWorker.enabled"
             :mode="mode"
             :label="t('performance.advancedWorker.checkboxLabel')"
             class="mt-10 mb-20"
@@ -373,9 +443,11 @@ export default {
         </div>
       </div>
     </div>
-    <template v-for="err in errors">
+    <template
+      v-for="(err, i) in errors"
+      :key="i"
+    >
       <Banner
-        :key="err"
         color="error"
         :label="err"
       />
@@ -391,6 +463,7 @@ export default {
     </div>
   </div>
 </template>
+
 <style scoped lang='scss'>
 .overlay {
   width: 100%;

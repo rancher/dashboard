@@ -37,7 +37,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if cluster on a top-level side menu entry by entry index has the appropriate key combo icon
    * @returns {Cypress.Chainable}
    */
-  static burguerMenuNavClusterKeyComboIconCheck(index: number): Cypress.Chainable {
+  static burgerMenuNavClusterKeyComboIconCheck(index: number): Cypress.Chainable {
     return this.sideMenu().should('exist').find(`.clustersList [data-testid="top-level-menu-cluster-${ index }"] .cluster-icon-menu i`).should('have.class', 'icon-keyboard_tab');
   }
 
@@ -60,8 +60,10 @@ export default class BurgerMenuPo extends ComponentPo {
   /**
    * Check if Cluster Top Level Menu link is highlighted
    */
-  static checkIfClusterMenuLinkIsHighlighted(name: string) {
-    return this.burgerMenuGetNavClusterbyLabel(name).parent().parent().should('have.class', 'active-menu-link');
+  static checkIfClusterMenuLinkIsHighlighted(name: string, isHighlightedAssertion = true) {
+    const assertion = isHighlightedAssertion ? 'have.class' : 'not.have.class';
+
+    return this.burgerMenuGetNavClusterbyLabel(name).parent().parent().should(assertion, 'active-menu-link');
   }
 
   /**
@@ -86,11 +88,11 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   static checkIconTooltipOn(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'v-popper--has-tooltip');
   }
 
   static checkIconTooltipOff(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'v-popper--has-tooltip');
   }
 
   /**
@@ -156,7 +158,7 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   getClusterDescriptionTooltipContent(): Cypress.Chainable {
-    return cy.get('.menu-description-tooltip .tooltip-inner');
+    return cy.get('.v-popper__popper .v-popper__inner');
   }
 
   /**
