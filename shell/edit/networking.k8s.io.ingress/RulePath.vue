@@ -184,7 +184,7 @@ export default {
 // TODO #11952: Correct deep statement
 $row-height: 40px;
 .rule-path {
-  :deep(.labeled-input), :deep(.labeled-input) {
+  :deep(.labeled-input) {
     padding: 0 !important;
     height: 100%;
 
