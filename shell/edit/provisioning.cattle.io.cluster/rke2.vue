@@ -1546,7 +1546,7 @@ export default {
             versionName: entry.version,
           });
 
-          this.versionInfo.chartName = res;
+          this.versionInfo[chartName] = res;
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
@@ -1563,7 +1563,7 @@ export default {
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
-        this.userChartValuesTemp.name = chartValues;
+        this.userChartValuesTemp[name] = chartValues;
       });
       this.refreshComponentWithYamls(key);
     },
@@ -1589,7 +1589,7 @@ export default {
     },
 
     updateValues(name, values) {
-      this.userChartValuesTemp.name = values;
+      this.userChartValuesTemp[name] = values;
       this.syncChartValues(name);
     },
 
@@ -1873,7 +1873,7 @@ export default {
         const userValues = this.userChartValues[key];
 
         if (userValues) {
-          rkeConfig.chartValues.name = userValues;
+          rkeConfig.chartValues[name] = userValues;
         }
       });
     },
