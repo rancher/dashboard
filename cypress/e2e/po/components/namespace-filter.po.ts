@@ -16,6 +16,13 @@ export class NamespaceFilterPo extends ComponentPo {
     return this.getOptions().contains( new RegExp(` ${ label } `)).click();
   }
 
+  clickOptionByLabelAndWaitForRequest(label: string) {
+    cy.intercept('PUT', 'v1/userpreferences/*').as('updatePref');
+    this.clickOptionByLabel(label);
+
+    return cy.wait('@updatePref');
+  }
+
   isChecked(label: string) {
     return this.getOptions().contains( new RegExp(` ${ label } `)).find('i')
       .then(($el) => expect($el).have.class('icon-checkmark'));

@@ -3,7 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export default class PromptRemove extends ComponentPo {
   constructor() {
-    super(cy.get('body > #modals > .modal-overlay > .modal-container > .prompt-remove'));
+    super(cy.get('[data-testid="card"].prompt-remove'));
   }
 
   confirmField() {
