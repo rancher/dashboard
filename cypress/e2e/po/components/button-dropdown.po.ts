@@ -1,4 +1,3 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class ButtonDropdownPo extends LabeledSelectPo {

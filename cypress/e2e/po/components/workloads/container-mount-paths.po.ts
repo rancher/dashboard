@@ -1,5 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import ButtonDropdownPo from '~/cypress/e2e/po/components/button-dropdown.po';
+import ButtonDropdownPo from '@/cypress/e2e/po/components/button-dropdown.po';
 import InputPo from '@/cypress/e2e/po/components/input.po';
 
 class ContainerMountPo extends ComponentPo {
