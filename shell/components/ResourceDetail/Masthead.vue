@@ -442,7 +442,7 @@ export default {
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
-              class="mastehead-resource-title"
+              class="masthead-resource-title"
               :k="'resourceDetail.header.' + realMode"
               :subtype="resourceSubtype"
               :name="displayName"
@@ -584,7 +584,7 @@ export default {
       flex-direction: row;
       align-items: center;
 
-      .mastehead-resource-title {
+      .masthead-resource-title {
         padding: 0 8px;
         text-overflow: ellipsis;
         overflow: hidden;
