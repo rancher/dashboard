@@ -216,10 +216,9 @@ jobs:
       - name: Install packages
         run: yarn install:ci
       
-      - name: Run check of all http links in the i18n files (broken lnk check)
+      - name: Run check of all http links in the i18n files (broken link check)
         run: |
-          # Falure won't fail the job (remove -x when all current issues are fixed)
-          ./scripts/check-i18n-links -x
+          ./scripts/check-i18n-links
 
   # coverage:
   #   runs-on: ubuntu-latest

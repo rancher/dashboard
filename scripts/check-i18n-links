@@ -2,11 +2,9 @@
 
 /**
  * This script reads and parses all of the source code files, reads the US English
- * translation files and compares the two to identify referenced strings that
- * do not have a corresponding translation.
+ * translation files, extracts all http/s links and checks for broken links.
  * 
- * This script is used in the PR gate to ensure code is not added without the
- * corresponding translations.
+ * This script is used in the PR gate to check for broken links.
  *
  */
 
@@ -144,7 +142,7 @@ function loadI18nFiles(folder) {
         ...loadI18nFiles(filePath)
       };
     } else if (file === 'en-us.yaml') {
-      console.log(` ... ${ path.relative(base, filePath) }`);
+      console.log(` ... ${ path.relative(base, filePath) }`); // eslint-disable-line no-console
 
       const translations = readAndParseTranslations(filePath);
 
