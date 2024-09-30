@@ -1,9 +1,6 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
-import {
-  UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL,
-} from '@shell/config/uiplugins';
+import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import AddExtensionRepos from '@shell/pages/c/_cluster/uiplugins/AddExtensionRepos.vue';
 const mockedStore = () => {
   return {
@@ -13,8 +10,8 @@ const mockedStore = () => {
       t:                      (text: string) => text,
       'management/schemaFor': () => true,
       'management/findAll':   () => [
-        { urlDisplay: UI_PLUGINS_REPO_URL },
-        { urlDisplay: UI_PLUGINS_PARTNERS_REPO_URL },
+        { urlDisplay: UI_PLUGINS_REPOS.OFFICIAL.URL },
+        { urlDisplay: UI_PLUGINS_REPOS.PARTNERS.URL },
       ]
     }
   };
