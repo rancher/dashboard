@@ -28,9 +28,8 @@ import {
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 
-import { camelToTitle } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import { isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
 import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
@@ -74,6 +73,8 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
+import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
+import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -132,7 +133,9 @@ export default {
     UnitInput,
     YamlEditor,
     MemberRoles,
-    Basics
+    Basics,
+    AddOnConfig,
+    AddOnAdditionalManifest
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -250,6 +253,7 @@ export default {
       machinePoolErrors:     {},
       allNamespaces:         [],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      labelForAddon,
     };
   },
 
@@ -1549,30 +1553,34 @@ export default {
       }
     },
 
-    labelForAddon(name) {
-      const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
-
-      return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
-    },
-
-    showAddons() {
+    showAddons(key) {
       this.addonsRev++;
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
         set(this.userChartValuesTemp, name, chartValues);
       });
-      this.refreshYamls();
+      this.refreshComponentWithYamls(key);
     },
 
-    refreshYamls() {
-      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
+    refreshComponentWithYamls(key) {
+      const component = this.$refs[key];
 
-      for ( const k of keys ) {
-        const entry = this.$refs[k];
+      if (Array.isArray(component) && component.length > 0) {
+        this.refreshYamls(component[0].$refs);
+      } else if (component) {
+        this.refreshYamls(component.$refs);
+      }
+    },
+
+    refreshYamls(refs) {
+      const keys = Object.keys(refs).filter((x) => x.startsWith('yaml'));
+
+      for (const k of keys) {
+        const entry = refs[k];
         const list = isArray(entry) ? entry : [entry];
 
-        for ( const component of list ) {
+        for (const component of list) {
           component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
         }
       }
@@ -2005,6 +2013,10 @@ export default {
       }
     },
 
+    updateAdditionalManifest(neu) {
+      this.value.spec.rkeConfig.additionalManifest = neu;
+    },
+
     /**
      * Keep last PSP value
      */
@@ -2279,7 +2291,7 @@ export default {
           name="basic"
           label-key="cluster.tabs.basic"
           :weight="11"
-          @active="refreshYamls"
+          @active="refreshComponentWithYamls('tab-Basics')"
         >
           <!-- Basic -->
           <Basics
@@ -2665,68 +2677,41 @@ export default {
           </template>
         </Tab>
 
-        <!-- Add-on Config -->
+        <!-- Add-on Configs -->
         <Tab
-          name="addons"
-          label-key="cluster.tabs.addons"
-          @active="showAddons"
+          v-for="v in addonVersions"
+          :key="v.name"
+          :name="v.name"
+          :label="labelForAddon(v.name, false)"
+          :weight="9"
+          :showHeader="false"
+          @active="showAddons(v.name)"
         >
-          <Banner
-            v-if="isEdit"
-            color="warning"
-          >
-            {{ t('cluster.addOns.dependencyBanner') }}
-          </Banner>
-          <div
-            v-if="versionInfo && addonVersions.length"
-            :key="addonsRev"
-          >
-            <div
-              v-for="v in addonVersions"
-              :key="v._key"
-            >
-              <h3>{{ labelForAddon(v.name) }}</h3>
-              <Questions
-                v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
-                v-model="userChartValuesTemp[v.name]"
-                :emit="true"
-                in-store="management"
-                :mode="mode"
-                :tabbed="false"
-                :source="versionInfo[v.name]"
-                :target-namespace="value.metadata.namespace"
-                @updated="updateQuestions(v.name)"
-              />
-              <YamlEditor
-                v-else
-                ref="yaml-values"
-                :value="initYamlEditor(v.name)"
-                :scrolling="true"
-                :as-object="true"
-                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-                :hide-preview-buttons="true"
-                @input="data => updateValues(v.name, data)"
-              />
-              <div class="spacer" />
-            </div>
-          </div>
+          <AddOnConfig
+            :ref="v.name"
+            v-model="value"
+            :mode="mode"
+            :version-info="versionInfo"
+            :addon-version="v"
+            :addons-rev="addonsRev"
+            :user-chart-values-temp="userChartValuesTemp"
+            :init-yaml-editor="initYamlEditor"
+            @update-questions="syncChartValues"
+            @update-values="updateValues"
+          />
+        </Tab>
 
-          <div>
-            <h3>
-              {{ t('cluster.addOns.additionalManifest.title') }}
-              <i
-                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
-                class="icon icon-info"
-              />
-            </h3>
-            <YamlEditor
-              ref="yaml-additional"
-              v-model="rkeConfig.additionalManifest"
-              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              initial-yaml-values="# Additional Manifest YAML"
-              class="yaml-editor"
-            />
-          </div>
+        <!-- Add-on Additional Manifest -->
+        <Tab
+          name="additionalmanifest"
+          label-key="cluster.tabs.addOnAdditionalManifest"
+          :showHeader="false"
+        >
+          <AddOnAdditionalManifest
+            :value="value"
+            :mode="mode"
+            @additional-manifest-changed="updateAdditionalManifest"
+          />
         </Tab>
 
         <!-- Cluster Agent Configuration -->
@@ -2763,7 +2748,6 @@ export default {
           name="advanced"
           label-key="cluster.tabs.advanced"
           :weight="-1"
-          @active="refreshYamls"
         >
           <template v-if="haveArgInfo">
             <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
