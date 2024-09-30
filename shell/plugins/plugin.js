@@ -82,11 +82,7 @@ export default async function(context) {
       const entries = response[2]?.value.entries || response[2]?.value.Entries || {};
 
       Object.values(entries).forEach((plugin) => {
-        let shouldNotLoad = shouldNotLoadPlugin(plugin, { rancherVersion, kubeVersion }, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
-
-        if (plugin.name === 'elemental') {
-          shouldNotLoad = 'ssss';
-        }
+        const shouldNotLoad = shouldNotLoadPlugin(plugin, { rancherVersion, kubeVersion }, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
 
         if (!shouldNotLoad) {
           hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
