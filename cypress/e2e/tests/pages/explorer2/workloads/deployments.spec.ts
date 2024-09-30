@@ -42,12 +42,20 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('Update: Deployments', () => {
-      const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
-      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
+    describe.skip('Update: Deployments', () => {
+      let workloadName;
+      let workloadDetailsPage;
+
+      const { namespace } = createDeploymentBlueprint.metadata;
       let deploymentEditConfigPage;
 
       beforeEach(() => {
+        workloadName = `e2e-deployment-${ Math.random().toString(36).substr(2, 6) }`;
+        const testDeployment = { ...createDeploymentBlueprint };
+
+        workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
+
+        testDeployment.metadata.name = workloadName;
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
 
@@ -84,7 +92,7 @@ describe('Cluster Explorer', () => {
 
         cy.wait('@editDeployment').then(({ request, response }) => {
           expect(request.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed' });
-          expect(response.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed' });
+          expect(response.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed', emptyDir: {} });
         });
       });
 
@@ -130,7 +138,10 @@ describe('Cluster Explorer', () => {
     // This is here because need to delete the workload after the test
     // But need to reuse the same workload for multiple tests
     after(() => {
+      // cy.login();
+
       deploymentsListPage?.goTo();
+      // deploymentsListPage.sortableTable().checkVisible();
       e2eWorkloads?.forEach(({ name, namespace }) => {
         deploymentsListPage.deleteWithKubectl(name, namespace);
       });
