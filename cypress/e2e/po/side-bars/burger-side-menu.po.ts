@@ -10,7 +10,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static toggle(): Cypress.Chainable {
-    return cy.getId('top-level-menu').should('be.visible').click({ force: true }).wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+    return cy.getId('top-level-menu').should('be.visible').click({ force: true });
   }
 
   /**
@@ -112,7 +112,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   home(): Cypress.Chainable {
-    return this.self().find('.body > div > a').first();
+    return this.self().find('a.option.home');
   }
 
   /**
