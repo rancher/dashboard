@@ -15,9 +15,14 @@ describe('Home Page', () => {
     });
 
     describe('Isolated tests', () => {
+      before(() => {
+        cy.login();
+      });
       // Breaks test isolation, so state resets?
 
       it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+        HomePagePo.goToAndWaitForGet();
+
         /**
          * Verify changelog banner is hidden after clicking link
          * Verify release notes link is valid github page
