@@ -204,6 +204,7 @@ export default {
         tabindex="-1"
         type="button"
         class="dropdown-button-two btn"
+        data-testid="dropdown-button"
         @click="ddButtonAction(option)"
         @focus="focusSearch"
       >

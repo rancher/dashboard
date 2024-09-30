@@ -17,7 +17,7 @@ describe('Cluster Explorer', () => {
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
-    describe.skip('Create: Deployments', () => {
+    describe('Create: Deployments', () => {
       beforeEach(() => {
         cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       });
@@ -45,27 +45,26 @@ describe('Cluster Explorer', () => {
     describe('Update: Deployments', () => {
       const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
+      let deploymentEditConfigPage;
 
       beforeEach(() => {
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
 
+        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('editDeployment');
+        deploymentsListPage.goTo();
+        deploymentsListPage.goToEditConfigPage(workloadName);
+        deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
         // Collect the name of the workload for cleanup
         e2eWorkloads.push({ name: workloadName, namespace });
       });
 
-      it.skip('Should be able to scale the number of pods', () => {
+      it('Should be able to scale the number of pods', () => {
         workloadDetailsPage.goTo();
         workloadDetailsPage.mastheadTitle().should('contain', workloadName);
       });
 
-      it('Should be able to view and edit configuration of volumes with no custom component', () => {
-        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('editDeployment');
-        deploymentsListPage.goTo();
-        deploymentsListPage.goToEditConfigPage(workloadName);
-
-        const deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
-
+      it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
         // open the pod tab
         deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
 
@@ -83,22 +82,29 @@ describe('Cluster Explorer', () => {
 
         deploymentEditConfigPage.saveCreateForm().click();
 
-        cy.wait('@editDeployment').then(({ request }) => {
+        cy.wait('@editDeployment').then(({ request, response }) => {
           expect(request.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed' });
+          expect(response.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed' });
         });
       });
 
-      afterEach(() => {
-        cy.login();
+      it('should be able to add container volume mounts', () => {
+        // select storage tab in first container tab
+        deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
 
-        deploymentsListPage?.goTo();
-        e2eWorkloads?.forEach(({ name, namespace }) => {
-          deploymentsListPage.deleteWithKubectl(name, namespace);
+        deploymentEditConfigPage.containerStorage().addVolume('test-vol1');
+
+        deploymentEditConfigPage.containerStorage().nthVolumeMount(0).nthMountPoint(0).set('test-123');
+        deploymentEditConfigPage.saveCreateForm().click();
+
+        cy.wait('@editDeployment').then(({ request, response }) => {
+          expect(request.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([{ mountPath: 'test-123', name: 'test-vol1' }]);
+          expect(response.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([{ mountPath: 'test-123', name: 'test-vol1' }]);
         });
       });
     });
 
-    describe.skip('List: Deployments', () => {
+    describe('List: Deployments', () => {
       // To reduce test runtime, will use the same workload for all the tests
       it('Should list the workloads', () => {
         deploymentsListPage.goTo();
@@ -108,7 +114,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe.skip('Delete: Deployments', () => {
+    describe('Delete: Deployments', () => {
       const deploymentName = deploymentCreateRequest.metadata.name;
 
       // To reduce test runtime, will use the same workload for all the tests
@@ -121,14 +127,13 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    // TODO nb fix shitty retry logic
     // This is here because need to delete the workload after the test
     // But need to reuse the same workload for multiple tests
-    // after(() => {
-    //   deploymentsListPage?.goTo();
-    //   e2eWorkloads?.forEach(({ name, namespace }) => {
-    //     deploymentsListPage.deleteWithKubectl(name, namespace);
-    //   });
-    // });
+    after(() => {
+      deploymentsListPage?.goTo();
+      e2eWorkloads?.forEach(({ name, namespace }) => {
+        deploymentsListPage.deleteWithKubectl(name, namespace);
+      });
+    });
   });
 });

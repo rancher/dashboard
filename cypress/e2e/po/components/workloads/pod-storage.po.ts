@@ -14,6 +14,5 @@ export default class WorkloadPodStoragePo extends ComponentPo {
 
   nthVolumeComponent(n: number) {
     return new WorkloadVolumePo(`[data-testid="volume-component-${ n }"]`);
-    // return this.self().find(`[data-testid="volume-component-${ n }"]`);
   }
 }

@@ -78,12 +78,6 @@ export default {
           icon:    null
         }
       }), {});
-    },
-
-    refreshYamls() {
-      // if (this.$refs.storage) {
-      //   this.$refs.storage.refresh();
-      // }
     }
   }
 };
@@ -355,8 +349,8 @@ export default {
               :weight="tabWeightMap['storage']"
             >
               <ContainerMountPaths
-                v-model:value="podTemplateSpec"
                 v-model:container="allContainers[i]"
+                :value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"

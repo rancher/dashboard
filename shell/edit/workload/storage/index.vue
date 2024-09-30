@@ -282,12 +282,6 @@ export default {
               :data-testid="`volume-component-${props.i}`"
               :editor-mode="yamlEditorMode"
             />
-            <!-- <CodeMirror
-              :ref="`cm-${props.i}`"
-              :value="yamlDisplay(props.row.value)"
-              :options="{ readOnly: isView, cursorBlinkRate: -1 }"
-              :data-testid="`volume-component-${props.i}`"
-            /> -->
           </div>
         </div>
 
