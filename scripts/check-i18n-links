@@ -171,14 +171,14 @@ console.log(`Read  ${cyan}${ Object.keys(i18n).length }${reset} translations`); 
 
 const links = [];
 
-// Look for translations that are not used
+// Parse all of the links from each translation file
 Object.keys(i18n).forEach((str) => {
   const link = parseLinks(i18n[str]);
 
  links.push(...link);
 });
 
-console.log(`Discoverd ${cyan}${links.length}${reset} links`); // eslint-disable-line no-console
+console.log(`Discovered ${cyan}${links.length}${reset} links`); // eslint-disable-line no-console
 
 console.log(`${cyan}Links:${reset}`); // eslint-disable-line no-console
 console.log(`${cyan}======${reset}`); // eslint-disable-line no-console
