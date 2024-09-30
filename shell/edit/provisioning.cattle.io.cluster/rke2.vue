@@ -2396,7 +2396,7 @@ export default {
           v-for="v in addonVersions"
           :key="v.name"
           :name="v.name"
-          :label="labelForAddon(v.name)"
+          :label="labelForAddon(v.name, false)"
           :weight="9"
           :showHeader="false"
           @active="showAddons(v.name)"
