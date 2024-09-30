@@ -4286,9 +4286,10 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
-    api: This Extension is not compatible with the current Extensions API version
-    host: This Extension is not compatible with this application
-    version: This Extension is not compatible with this version of Rancher
+    api: Loading error! The version installed is not compatible with the current Extensions API version
+    host: Loading error! The version installed is not compatible with this application host
+    version: Loading error! The version installed is not compatible with the current version of Rancher
+    kubeVersion: Loading error! The version installed is not compatible with the current Rancher kubernetes version
     load: An error occurred loading the code for this Extension
     developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:

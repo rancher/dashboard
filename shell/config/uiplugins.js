@@ -147,7 +147,7 @@ function parseRancherVersion(v) {
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
  * @returns String || Boolean
  */
-export function shouldNotLoadPlugin(UIPluginResource, rancherVersion, loadedPlugins) {
+export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {
   if (!UIPluginResource.name || !UIPluginResource.version || !UIPluginResource.endpoint) {
     return 'plugins.error.generic';
   }
@@ -155,10 +155,11 @@ export function shouldNotLoadPlugin(UIPluginResource, rancherVersion, loadedPlug
   // Extension chart specified a required extension API version
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
-  const requiredUiExtensionsVersion = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const requiredUiExtensionsVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] || '>= 3.0.0';
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
   const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
+  const parsedKubeVersion = kubeVersion ? semver.coerce(kubeVersion)?.version : '';
 
   if (requiredUiExtensionsVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
     return 'plugins.error.api';
@@ -169,6 +170,15 @@ export function shouldNotLoadPlugin(UIPluginResource, rancherVersion, loadedPlug
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return 'plugins.error.host';
+  }
+
+  // Kube version
+  if (parsedKubeVersion) {
+    const requiredKubeVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+
+    if (requiredKubeVersion && !semver.satisfies(parsedRancherVersion, requiredKubeVersion)) {
+      return 'plugins.error.kubeVersion';
+    }
   }
 
   // Rancher version
@@ -262,7 +272,7 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
   }
 
   // check "catalog.cattle.io/ui-extensions-version" annotation
-  const requiredUiExtensionsApiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const requiredUiExtensionsApiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] || '>= 3.0.0';
   const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
 
   if (requiredUiExtensionsApiVersion && parsedUiExtensionsApiVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsApiVersion)) {
