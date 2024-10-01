@@ -30,4 +30,8 @@ export default class ContainerMountPathPo extends ComponentPo {
   nthVolumeMount(i: number): ContainerMountPo {
     return new ContainerMountPo(`[data-testid="container-storage-mount-${ i }"]`);
   }
+
+  removeVolume(i: number) {
+    this.self().find(`[data-testid="container-storage-array-list"] [data-testid="remove-item-${ i }"]`).click();
+  }
 }

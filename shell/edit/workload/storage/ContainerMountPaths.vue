@@ -140,6 +140,7 @@ export default {
       v-model:value="selectedContainerVolumes"
       :add-allowed="false"
       :mode="mode"
+      data-testid="container-storage-array-list"
       @remove="removeVolume"
     >
       <!-- Custom/default storage volume form -->
