@@ -201,5 +201,8 @@
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
     "yarn": "1.22.18"
+  },
+  "resolutions": {
+    "html-webpack-plugin": "^5.0.0"
   }
 }
