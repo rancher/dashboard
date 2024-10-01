@@ -4,7 +4,8 @@ Rancher allows UI to be created for custom Node Drivers by registering component
 
 - `cloud-credential`
   - defines a custom component for collecting data for a cloud credential for a given node driver
-  - If no cloud credentials are required, the extension can just set the component to `false`
+  - if cloud credentials are required, override any existing credential setting by setting the value to `true`
+  - if no cloud credentials are required, the extension can just set the component to `false`
 - `machine-config`
   - defined a custom component for the machine pool configuration for a cloud credential for a given node driver
 
