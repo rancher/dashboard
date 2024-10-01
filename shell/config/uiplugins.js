@@ -53,14 +53,6 @@ export const UI_PLUGIN_LABELS = {
   CATALOG:       'catalog.cattle.io/ui-extensions-catalog',
 };
 
-// Plugin Metadata properties
-export const UI_PLUGIN_METADATA = {
-  RANCHER_VERSION:   'rancherVersion',
-  EXTENSION_VERSION: 'extVersion',
-  EXTENSIONS_HOST:   'host',
-  DISPLAY_NAME:      'displayName',
-};
-
 export const EXTENSIONS_INCOMPATIBILITY_TYPES = {
   UI:             'uiVersion',
   EXTENSIONS_API: 'extensionsApiVersion',
