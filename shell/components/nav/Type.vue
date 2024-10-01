@@ -157,7 +157,7 @@ export default {
   </router-link>
   <li
     v-else-if="type.link"
-    class="child nav-type"
+    class="child nav-type nav-link"
     data-testid="link-type"
   >
     <a
@@ -242,6 +242,12 @@ export default {
       padding-right: 4px;
       display: flex;
       align-items: center;
+    }
+
+    &.nav-type.nav-link {
+      a .label {
+        display: flex;
+      }
     }
 
     &.nav-type:not(.depth-0) {
