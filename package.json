@@ -56,9 +56,9 @@
     "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
-    "@aws-sdk/client-ec2": "3.1.0",
+    "@aws-sdk/client-ec2": "3.658.1",
     "@aws-sdk/client-eks": "3.1.0",
-    "@aws-sdk/client-iam": "3.18.0",
+    "@aws-sdk/client-iam": "3.658.1",
     "@aws-sdk/client-kms": "3.8.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.4.4",
