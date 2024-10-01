@@ -29,7 +29,7 @@ import { sortBy } from '@shell/utils/sort';
 import { vspherePoolConfigMerge } from '@shell/machine-config/vmwarevsphere-pool-config-merge';
 
 import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import { isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -63,6 +63,7 @@ import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registri
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
+import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -114,7 +115,8 @@ export default {
     Registries,
     AddOnConfig,
     Advanced,
-    ClusterAppearance
+    ClusterAppearance,
+    AddOnAdditionalManifest
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -247,6 +249,7 @@ export default {
       machinePoolErrors:     {},
       allNamespaces:         [],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      labelForAddon
     };
   },
 
@@ -1583,7 +1586,9 @@ export default {
     refreshComponentWithYamls(key) {
       const component = this.$refs[key];
 
-      if (component) {
+      if (Array.isArray(component) && component.length > 0) {
+        this.refreshYamls(component[0].$refs);
+      } else if (component) {
         this.refreshYamls(component.$refs);
       }
     },
@@ -2386,23 +2391,39 @@ export default {
           />
         </Tab>
 
-        <!-- Add-on Config -->
+        <!-- Add-on Configs -->
         <Tab
-          name="addons"
-          label-key="cluster.tabs.addons"
-          @active="showAddons('tab-addOnConfig')"
+          v-for="v in addonVersions"
+          :key="v.name"
+          :name="v.name"
+          :label="labelForAddon(v.name, false)"
+          :weight="9"
+          :showHeader="false"
+          @active="showAddons(v.name)"
         >
           <AddOnConfig
-            ref="tab-addOnConfig"
+            :ref="v.name"
             v-model="value"
             :mode="mode"
             :version-info="versionInfo"
-            :addon-versions="addonVersions"
+            :addon-version="v"
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
             @update-questions="syncChartValues"
             @update-values="updateValues"
+          />
+        </Tab>
+
+        <!-- Add-on Additional Manifest -->
+        <Tab
+          name="additionalmanifest"
+          label-key="cluster.tabs.addOnAdditionalManifest"
+          :showHeader="false"
+        >
+          <AddOnAdditionalManifest
+            :value="value"
+            :mode="mode"
             @additional-manifest-changed="updateAdditionalManifest"
           />
         </Tab>
