@@ -912,7 +912,7 @@ export default {
       const secret = await this.$store.dispatch('management/create', {
         type:     SECRET,
         metadata: {
-          namespace: 'fleet-default',
+          namespace:    'fleet-default',
           generateName: 'vsphere-cpi-creds-',
           // TODO: take care of labels
           // labels: ??
@@ -923,15 +923,15 @@ export default {
           //   'vsphere-cpi-infra': 'secret',
           //   component: 'rancher-vsphere-cpi-cloud-controller-manager'
           // }
-          annotations: {
+          annotations:  {
             'provisioning.cattle.io/sync-target-namespace': 'kube-system',
-            'provisioning.cattle.io/sync-target-name': 'vsphere-cpi-creds',
+            'provisioning.cattle.io/sync-target-name':      'vsphere-cpi-creds',
             'rke.cattle.io/object-authorized-for-clusters': clusterName,
-            'provisioning.cattle.io/sync-bootstrap': 'true'
+            'provisioning.cattle.io/sync-bootstrap':        'true'
           }
         },
         // Tried to be consistent with createKubeconfigSecret, but can use setData as well
-        data: { username: base64Encode(username), password: base64Encode(password)}
+        data: { username: base64Encode(username), password: base64Encode(password) }
       });
 
       secret.save({ url: '/v1/secrets', method: 'POST' });
@@ -942,21 +942,21 @@ export default {
       const chartName = 'rancher-vsphere-cpi';
       const chartValues = this.versionInfo[chartName]?.values;
       const userValues = this.userChartValues[this.chartVersionKey(chartName)];
-      const combined = merge({}, chartValues || {}, userValues || {})
-      // TODO: remove console log 
-      console.warn(
-        chartValues,
-        userValues,
-        combined
-      );
+      const combined = merge({}, chartValues || {}, userValues || {});
+      // TODO: remove console log
+      // console.warn(
+      //   chartValues,
+      //   userValues,
+      //   combined
+      // );
       const ourNewCheckboxProperty = combined.vCenter.credentialSecret.ourNewCheckboxProperty;
 
       if (ourNewCheckboxProperty) {
         // find values need in cpi chart value
         const { username, password } = combined.vCenter;
-        
+
         // create secret
-        await this.createVSphereCpiSecret({ username, password })
+        await this.createVSphereCpiSecret({ username, password });
 
         // TODO: remove Richard's notes
         // create secret
@@ -986,8 +986,8 @@ export default {
         // - generate creds secret false
         userValues.vCenter.credentialSecret.generate = false;
         // - remove username and password fields
-        userValues.vCenter.username = "";
-        userValues.vCenter.password = "";
+        userValues.vCenter.username = '';
+        userValues.vCenter.password = '';
       }
     },
 
