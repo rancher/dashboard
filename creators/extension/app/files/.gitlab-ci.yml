@@ -1,0 +1,14 @@
+image: registry.suse.com/bci/bci-base:latest
+
+stages:
+  - check_version
+  - build_catalog
+
+variables:
+  REGISTRY: $CI_REGISTRY
+  REGISTRY_USER: $CI_REGISTRY_USER
+  REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+  IMAGE_NAMESPACE: $CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+
+include:
+  - remote: 'https://raw.githubusercontent.com/rancher/dashboard/master/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml'

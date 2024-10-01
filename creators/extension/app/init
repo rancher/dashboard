@@ -12,9 +12,10 @@ const targets = {
 const files = [
   'tsconfig.json',
   'vue.config.js',
-  '.gitignore',
+  'gitignore',
   '.eslintignore',
   '.eslintrc.js',
+  '.yarnrc.yml',
   'babel.config.js',
   '.vscode/settings.json'
 ];
@@ -24,6 +25,7 @@ console.log('Creating Skeleton Application');
 
 const args = process.argv;
 let appFolder = path.resolve('.');
+let shellVersion = '';
 
 if (args.length === 3) {
   const name = args[2];
@@ -34,7 +36,31 @@ if (args.length === 3) {
   fs.ensureDirSync(appFolder);
 }
 
-// Check that there is a package file
+let addGitlabWorkflow = false;
+let addWorkflowFolder = true;
+
+// Check for Gitlab integration option
+if ( args.length >= 3 ) {
+  shellVersion = args[3];
+
+  for (let i = 3; i < args.length; i++) {
+    switch (args[i]) {
+    case '-l':
+      addGitlabWorkflow = true;
+      break;
+    case '--skip-workflow':
+    case '-w':
+      addWorkflowFolder = false;
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+if ( addGitlabWorkflow ) {
+  files.push('.gitlab-ci.yml');
+}
 
 let setName = false;
 
@@ -70,7 +96,8 @@ Object.keys(targets).forEach((target) => {
 const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
-pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
+// Set the package version of @rancher/shell in the dependencies
+pkg.dependencies['@rancher/shell'] = `^${ shellVersion }`;
 
 // Rest of dependencies are in the _pkgs property of package.json - copy then across
 if (creatorPkg._pkgs) {
@@ -83,8 +110,9 @@ fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null,
 
 // Copy base files
 files.forEach((file) => {
+  const destinationFile = file === 'gitignore' ? '.gitignore' : file;
   const src = path.join(__dirname, 'files', file);
-  const dest = path.join(appFolder, file);
+  const dest = path.join(appFolder, destinationFile);
 
   if (!fs.existsSync(dest)) {
     console.log(`  Adding file: ${ file }`);

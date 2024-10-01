@@ -43,12 +43,15 @@ if (args.length !== 3) {
 const name = args[2];
 const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
+let shellVersion = '';
 
 let addTypeFolders = false;
 let addWorkflowFolder = false;
 
-if (args.length > 3) {
-  for (let i = 3; i < args.length; i++) {
+if ( args.length >= 3 ) {
+  shellVersion = args[3];
+
+  for ( let i = 3; i < args.length; i++ ) {
     switch (args[i]) {
     case '-t':
       addTypeFolders = true;
@@ -131,6 +134,15 @@ function fetchLatestVersion() {
           console.log(`  Adding rancher-version annotation '>= ${ release.tag_name }' to package.json`);
 
           pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
+
+          if ( !shellVersion ) {
+            console.log('Could not get a shell version from npm, skipping adding catalog.cattle.io/ui-extensions-version annotation to package.json');
+          } else {
+            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${ shellVersion }' to package.json`);
+
+            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ shellVersion }`;
+          }
+
           writePackageJson();
         }
       } catch (e) {

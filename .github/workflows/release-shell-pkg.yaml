@@ -1,0 +1,61 @@
+name: Publish Shell Package
+
+on:
+  push:
+    tags:
+      - "shell-pkg-v*"
+      - "creators-pkg-v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.x'
+          cache: 'yarn'
+
+      - name: Check Tags Version Matching
+        env:
+          TAG: ${{github.ref_name}}
+        run: ./.github/workflows/scripts/check-package-tag-version.sh
+        shell: bash
+
+      # Skipping due to node version mismatch
+      # - name: Validate Plugin build system
+      #   run: ./shell/scripts/test-plugins-build.sh
+      #   shell: bash
+
+      # Reset the local (ci) repository state because
+      # The previous step (Validate Plugin build system) changes
+      # the version number on package.json for Shell in order
+      # to release it in verdaccio for it's tests
+      - name: Reset repository (file system)
+        run: |
+          git reset --hard HEAD
+          echo $NPM_REGISTRY
+          cat ./shell/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@rancher"
+
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: Publish Shell Package to npm
+        run: ./shell/scripts/publish-shell.sh --npm
+        env:
+          TAG: ${{github.ref_name}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
