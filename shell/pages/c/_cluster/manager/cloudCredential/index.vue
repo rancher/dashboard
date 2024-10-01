@@ -107,8 +107,8 @@ export default {
       });
 
       return {
-        expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
-        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expired }) : '',
+        expiring: counts.expiring ? this.t('manager.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
+        expired:  counts.expired ? this.t('manager.cloudCredentials.banners.expired', { count: counts.expired }) : '',
       };
     }
   },
