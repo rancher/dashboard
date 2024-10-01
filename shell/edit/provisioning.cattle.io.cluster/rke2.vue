@@ -2419,8 +2419,10 @@ export default {
           name="additionalmanifest"
           label-key="cluster.tabs.addOnAdditionalManifest"
           :showHeader="false"
+          @active="refreshComponentWithYamls('additionalmanifest')"
         >
           <AddOnAdditionalManifest
+            ref="additionalmanifest"
             :value="value"
             :mode="mode"
             @additional-manifest-changed="updateAdditionalManifest"
