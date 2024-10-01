@@ -1155,7 +1155,7 @@ cluster:
       label: Google
     rancher-vsphere:
       label: vSphere
-      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the tabs on the left.'
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
