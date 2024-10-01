@@ -1793,7 +1793,6 @@ cluster:
     expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
     banners:
       expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
-      # expiring: "{count} {count, plural, =1 { Cloud Credentials expires soon} other { Cloud Credential expire soon}}"
       expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
 
   architecture:
@@ -7702,6 +7701,7 @@ manager:
   cloudCredentials:
     label: Cloud Credentials
     renew: Renew
+    expired: Expired
   drivers:
     label: Drivers
   rkeTemplates:
