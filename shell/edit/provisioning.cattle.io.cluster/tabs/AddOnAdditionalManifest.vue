@@ -2,6 +2,9 @@
 import YamlEditor from '@shell/components/YamlEditor';
 export default {
   components: { YamlEditor },
+
+  emits: ['additional-manifest-changed'],
+
   props: {
     mode: {
       type:     String,
@@ -12,6 +15,7 @@ export default {
       required: true,
     }
   },
+
   computed: {
     additionalManifest: {
       get() {
@@ -36,7 +40,7 @@ export default {
     </h3>
     <YamlEditor
       ref="yaml-additional"
-      v-model="additionalManifest"
+      v-model:value="additionalManifest"
       :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
       initial-yaml-values="# Additional Manifest YAML"
       class="yaml-editor"
