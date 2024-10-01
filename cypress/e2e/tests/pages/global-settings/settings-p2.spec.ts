@@ -423,8 +423,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
     createRKE2ClusterPage.selectCustom(0);
-    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-addons"]');
-    cy.contains(settings['system-default-registry'].new).should('exist');
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
+    cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
 
     const settingsPageBlank = new SettingsPagePo();
     const settingsEditBlank = settingsPageBlank.editSettings(undefined, 'system-default-registry');
