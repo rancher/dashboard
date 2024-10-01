@@ -34,7 +34,6 @@ import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
   UI_PLUGINS_REPOS,
-  UI_PLUGIN_HOST_APP,
   EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
@@ -285,7 +284,7 @@ export default {
           switch (latestNotCompatible.versionIncompatibilityData?.type) {
           case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
             item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
-              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: UI_PLUGIN_HOST_APP
+              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: latestNotCompatible.versionIncompatibilityData?.mainHost
             }, true);
             break;
           default:

@@ -3,6 +3,8 @@ import semver from 'semver';
 // Version of the plugin API supported
 // here we inject the current shell version that we read in vue.config
 export const UI_EXTENSIONS_API_VERSION = process.env.UI_EXTENSIONS_API_VERSION;
+const MINIMUM_MANDATORY_EXTENSIONS_API_VERSION = `> ${ UI_EXTENSIONS_API_VERSION }`;
+
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/v1/uiplugins';
@@ -140,6 +142,7 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
 
 /**
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
+ * The output will be used to PREVENT loading of an extension that is already installed but isn't compatible with the system
  * @returns String || Boolean
  */
 export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {
@@ -150,18 +153,20 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
   // Extension chart specified a required extension API version
   // we are propagating the annotations in pkg/package.json for any extension
   // inside the "spec.plugin.metadata" property of UIPlugin resource
-  const requiredUiExtensionsVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  // the minimum version is enforced to prevent loading of extensions
+  // that don't have the annotation 'catalog.cattle.io/ui-extensions-version' present
+  const requiredUiExtensionsVersion = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] || MINIMUM_MANDATORY_EXTENSIONS_API_VERSION;
   // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
-  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const parsedKubeVersion = kubeVersion ? semver.coerce(kubeVersion)?.version : '';
 
-  if (requiredUiExtensionsVersion || !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
+  if (requiredUiExtensionsVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
     return 'plugins.error.api';
   }
 
   // Host application
-  const requiredHost = UIPluginResource.metadata?.[UI_PLUGIN_METADATA.EXTENSIONS_HOST];
+  const requiredHost = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return 'plugins.error.host';
@@ -169,7 +174,7 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
 
   // Kube version
   if (parsedKubeVersion) {
-    const requiredKubeVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+    const requiredKubeVersion = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
 
     if (requiredKubeVersion && !semver.satisfies(parsedKubeVersion, requiredKubeVersion)) {
       return 'plugins.error.kubeVersion';
@@ -178,7 +183,7 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
 
   // Rancher version
   if (parsedRancherVersion) {
-    const requiredRancherVersion = UIPluginResource.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
+    const requiredRancherVersion = UIPluginResource.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
 
     if (requiredRancherVersion && !semver.satisfies(parsedRancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
@@ -202,6 +207,7 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
 /**
  * Wether an extension version is available to be installed, based on the annotations present in the Helm chart version
  * backend may not automatically "limit" a particular version but dashboard will disable that version for install with this check
+ * The output will be used to display a message on the extension card to notify users if a LATEST version of an extension is available but isn't compatible
  * @returns Boolean || Object
  */
 export function isSupportedChartVersion(versionData, returnObj = false) {
@@ -210,7 +216,7 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
     ...version, isVersionCompatible: true, versionIncompatibilityData: {}
   };
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
-  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version || UI_EXTENSIONS_API_VERSION;
+  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
 
   const checks = [
     {
@@ -220,12 +226,17 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
     },
     {
       currentVersion:      parsedRancherVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION] || version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION],
+      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION],
+      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.UI,
+    },
+    {
+      currentVersion:      parsedRancherVersion,
+      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION],
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.UI,
     },
     {
       currentVersion:      parsedUiExtensionsApiVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION],
+      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] || MINIMUM_MANDATORY_EXTENSIONS_API_VERSION,
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.EXTENSIONS_API,
     },
     {
