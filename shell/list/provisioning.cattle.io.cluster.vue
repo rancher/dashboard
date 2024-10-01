@@ -146,7 +146,7 @@ export default {
       return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
     },
 
-    expiredData() {
+    tokenExpiredData() {
       const counts = this.rows.reduce((res, provCluster) => {
         const expireData = provCluster.cloudCredential?.expireData;
 
@@ -165,7 +165,7 @@ export default {
 
       return {
         expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
-        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expired }) : '',
+        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
       };
     }
   },
@@ -213,15 +213,14 @@ export default {
     </Masthead>
 
     <Banner
-      v-if="expiredData.expiring"
-      data-testid="cert-expiring-banner"
+      v-if="tokenExpiredData.expiring"
       color="warning"
-      :label="expiredData.expiring"
+      :label="tokenExpiredData.expiring"
     />
     <Banner
-      v-if="expiredData.expired"
+      v-if="tokenExpiredData.expired"
       color="error"
-      :label="expiredData.expired"
+      :label="tokenExpiredData.expired"
     />
 
     <ResourceTable
