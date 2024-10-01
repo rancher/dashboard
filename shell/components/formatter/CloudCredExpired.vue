@@ -49,12 +49,8 @@ export default {
   >
     <div class="token-icon mr-5">
       <i
-        v-if="row.expireData.expired"
-        class="icon icon-error text-error"
-      />
-      <i
-        v-if="row.expireData.expiring"
-        class="icon icon-warning text-warning"
+        class="icon"
+        :class="{'icon-error': row.expireData.expired, 'icon-warning': row.expireData.expiring}"
       />
     </div>
     {{ outputString }}

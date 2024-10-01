@@ -47,13 +47,12 @@ export default class CloudCredential extends NormanModel {
   constructor(...args) { // TODO: RC remove
     super(...args);
 
-    // TODO: RC sort order is undefined/null expired expiring
     if (this.name === 'france') {
       console.warn('Setting Super Debug Annotation', this.id, this.name);
       this.setAnnotation(CLOUD_CREDENTIALS, '1727443439000');
     } else if (this.name === 'harvester-v-1-2-2') {
       console.warn('Setting Super Debug Annotation', this.id, this.name);
-      this.setAnnotation(CLOUD_CREDENTIALS, '1727700548000');
+      this.setAnnotation(CLOUD_CREDENTIALS, '1728204047000');
     }
   }
 
@@ -295,6 +294,10 @@ export default class CloudCredential extends NormanModel {
   get expiresString() {
     if (this.expires === undefined) {
       return '';
+    }
+
+    if (this.expireData.expired) {
+      return this.t('manager.cloudCredentials.expired');
     }
 
     const dateFormat = escapeHtml( this.$rootGetters['prefs/get'](DATE_FORMAT));
