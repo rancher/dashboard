@@ -892,6 +892,7 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
+    this.registerBeforeHook(this.cpi, 'sync-vsphere-cpi');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -903,6 +904,92 @@ export default {
 
   methods: {
     set,
+
+    // TODO: we might combine CPI and CSI with the Havester one => this.createKubeconfigSecret
+    // create a vsphere cpi secret
+    async createVSphereCpiSecret({ username, password }) {
+      const clusterName = this.value.metadata.name;
+      const secret = await this.$store.dispatch('management/create', {
+        type:     SECRET,
+        metadata: {
+          namespace: 'fleet-default',
+          generateName: 'vsphere-cpi-creds-',
+          // TODO: take care of labels
+          // labels: ??
+          // - vsphere-cpi-infra: "secret"
+          // - component: "rancher-vsphere-cpi-cloud-controller-manager"
+          // - {{- include "labels" . | nindent 4 }}
+          // labels: {
+          //   'vsphere-cpi-infra': 'secret',
+          //   component: 'rancher-vsphere-cpi-cloud-controller-manager'
+          // }
+          annotations: {
+            'provisioning.cattle.io/sync-target-namespace': 'kube-system',
+            'provisioning.cattle.io/sync-target-name': 'vsphere-cpi-creds',
+            'rke.cattle.io/object-authorized-for-clusters': clusterName,
+            'provisioning.cattle.io/sync-bootstrap': 'true'
+          }
+        },
+        // Tried to be consistent with createKubeconfigSecret, but can use setData as well
+        data: { username: base64Encode(username), password: base64Encode(password)}
+      });
+
+      secret.save({ url: '/v1/secrets', method: 'POST' });
+    },
+
+    async cpi() {
+      // check values for cpi chart has 'use our method' checkbox
+      const chartName = 'rancher-vsphere-cpi';
+      const chartValues = this.versionInfo[chartName]?.values;
+      const userValues = this.userChartValues[this.chartVersionKey(chartName)];
+      const combined = merge({}, chartValues || {}, userValues || {})
+      // TODO: remove console log 
+      console.warn(
+        chartValues,
+        userValues,
+        combined
+      );
+      const ourNewCheckboxProperty = combined.vCenter.credentialSecret.ourNewCheckboxProperty;
+
+      if (ourNewCheckboxProperty) {
+        // find values need in cpi chart value
+        const { username, password } = combined.vCenter;
+        
+        // create secret
+        await this.createVSphereCpiSecret({ username, password })
+
+        // TODO: remove Richard's notes
+        // create secret
+        // const newSecret = await this.$store.dispatch('management/create', { type: SECRETS }, { root: true });
+        // newSecret.metadata.generateName = "vsphere-cpi-creds-";
+        // newSecret.setData(key, value)
+        // await newSecret.save()
+
+        // metadata:
+        //   generateName: "vsphere-cpi-creds-"
+        //   metadata:
+        //     labels:
+        //     - vsphere-cpi-infra: "secret"
+        //     - component: "rancher-vsphere-cpi-cloud-controller-manager"
+        //     - {{- include "labels" . | nindent 4 }}????
+        //     annotations:
+        //     - provisioning.cattle.io/sync-target-namespace: "kube-system"
+        //     - provisioning.cattle.io/sync-target-name: "vsphere-cpi-creds"
+        //     - rke.cattle.io/object-authorized-for-clusters: this.value.metadata.name
+        //     - provisioning.cattle.io/sync-bootstrap: "true"
+        //     namespace: this.value.metadata.namespace
+        // data:
+        //   {{ chart value's vCenter.host }}.username: "{{ username from input field, use secret model's `setData` fn to get it base 64 encoded }}"
+        //   {{ chart value's vCenter.host }}.password: "{{ password from input field, use secret model's `setData` fn to get it base 64 encoded }}"
+
+        // set cpi chart values
+        // - generate creds secret false
+        userValues.vCenter.credentialSecret.generate = false;
+        // - remove username and password fields
+        userValues.vCenter.username = "";
+        userValues.vCenter.password = "";
+      }
+    },
 
     /**
      * Initialize all the cluster specs
