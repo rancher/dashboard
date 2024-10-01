@@ -135,6 +135,10 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
 /**
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
  * The output will be used to PREVENT loading of an extension that is already installed but isn't compatible with the system
+ *
+ * String output for i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion,
+ * plugins.error.version, plugins.error.developerPkg
+ *
  * @returns String || Boolean
  */
 export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {

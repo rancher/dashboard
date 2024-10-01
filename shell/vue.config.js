@@ -364,8 +364,7 @@ const getVirtualModulesAutoImport = (dir) => {
 };
 
 // Get current shell version
-const shellPkgRawData = fs.readFileSync(path.join(__dirname, 'package.json'));
-const shellPkgData = JSON.parse(shellPkgRawData);
+const shellPkgData = require(path.join(__dirname, 'package.json'));
 
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
