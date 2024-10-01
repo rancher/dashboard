@@ -14,31 +14,40 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
     });
 
-    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Verify changelog banner is hidden after clicking link
-     * Verify release notes link is valid github page
-     */
-      const text: string[] = [];
-
-      homePage.restoreAndWait();
-
-      homePage.whatsNewBannerLink().invoke('text').then((el) => {
-        text.push(el);
+    describe('Isolated tests', () => {
+      before(() => {
+        cy.login();
       });
+      // Breaks test isolation, so state resets?
 
-      homePage.changelog().self().invoke('text').then((el) => {
-        expect(el).contains(text[0]);
-      });
+      it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+        HomePagePo.goToAndWaitForGet();
 
-      homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-        cy.request(releaseNotesUrl).then((res) => {
-          expect(res.status).equals(200);
+        /**
+         * Verify changelog banner is hidden after clicking link
+         * Verify release notes link is valid github page
+         */
+        const text: string[] = [];
+
+        homePage.restoreAndWait();
+
+        homePage.whatsNewBannerLink().invoke('text').then((el) => {
+          text.push(el);
         });
-      });
 
-      homePage.whatsNewBannerLink().click();
-      homePage.changelog().self().should('not.exist');
+        homePage.changelog().self().invoke('text').then((el) => {
+          expect(el).contains(text[0]);
+        });
+
+        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
+          cy.request(releaseNotesUrl).then((res) => {
+            expect(res.status).equals(200);
+          });
+        });
+
+        homePage.whatsNewBannerLink().click();
+        homePage.changelog().self().should('not.exist');
+      });
     });
 
     it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
