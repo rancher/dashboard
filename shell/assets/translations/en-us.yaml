@@ -4311,7 +4311,7 @@ plugins:
     versionError: Could not load version information
     requiresRancherVersion: "Requires Rancher {required}"
     requiresKubeVersion: "Requires Kube version {required}"
-    requiresExtensionApiVersionMissing: "Missing the mandatory annotation 'catalog.cattle.io/ui-extensions-version' from Rancher 2.10 and onwards"
+    requiresExtensionApiVersionMissing: "Missing the annotation 'catalog.cattle.io/ui-extensions-version' which implies incompatibility with Rancher 2.10 and onwards"
     requiresExtensionApiVersion: "Requires Extensions API version {required}"
     requiresHost: 'Requires a host that matches "{mainHost}"'
   empty:
