@@ -141,7 +141,7 @@
 .v-popper__popper.v-popper--theme-dropdown {
   z-index: z-index('tooltip');
 
-  &.containerLogsDropdown {
+  &.containerLogsDropdown, &.fleet-summary-tooltip{
     .v-popper__arrow-container {
       display: none;
     }
