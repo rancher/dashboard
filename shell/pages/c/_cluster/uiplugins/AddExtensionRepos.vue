@@ -2,14 +2,7 @@
 import { CATALOG } from '@shell/config/types';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import {
-  UI_PLUGINS_REPO_NAME,
-  UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_REPO_BRANCH,
-  UI_PLUGINS_PARTNERS_REPO_NAME,
-  UI_PLUGINS_PARTNERS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_BRANCH,
-} from '@shell/config/uiplugins';
+import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
 
 export default {
@@ -38,15 +31,15 @@ export default {
       reposInfo: {
         official: {
           repo:   undefined,
-          name:   UI_PLUGINS_REPO_NAME,
-          url:    UI_PLUGINS_REPO_URL,
-          branch: UI_PLUGINS_REPO_BRANCH,
+          name:   UI_PLUGINS_REPOS.OFFICIAL.NAME,
+          url:    UI_PLUGINS_REPOS.OFFICIAL.URL,
+          branch: UI_PLUGINS_REPOS.OFFICIAL.BRANCH,
         },
         partners: {
           repo:   undefined,
-          name:   UI_PLUGINS_PARTNERS_REPO_NAME,
-          url:    UI_PLUGINS_PARTNERS_REPO_URL,
-          branch: UI_PLUGINS_PARTNERS_REPO_BRANCH,
+          name:   UI_PLUGINS_REPOS.PARTNERS.NAME,
+          url:    UI_PLUGINS_REPOS.PARTNERS.URL,
+          branch: UI_PLUGINS_REPOS.PARTNERS.BRANCH,
         }
       },
       isDialogActive: false,
@@ -55,10 +48,10 @@ export default {
 
   computed: {
     hasRancherUIPluginsRepo() {
-      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
+      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.OFFICIAL.URL);
     },
     hasRancherUIPartnersPluginsRepo() {
-      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.PARTNERS.URL);
     }
   },
 

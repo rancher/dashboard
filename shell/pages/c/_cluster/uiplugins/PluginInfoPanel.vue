@@ -182,12 +182,6 @@ export default {
         </div>
         <div>
           <Banner
-            v-if="info.error"
-            color="error"
-            :label="info.error"
-            class="mt-10"
-          />
-          <Banner
             v-if="info.builtin"
             color="warning"
             :label="t('plugins.descriptions.built-in')"
