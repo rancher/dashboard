@@ -26,18 +26,28 @@ export default async function(context) {
     }, 1000);
   }
 
-  if (loadPlugins) {
+  const rancherVersionRequest = context.store.dispatch('rancher/request', {
+    url:                  '/rancherversion',
+    method:               'get',
+    redirectUnauthorized: false
+  });
+
+  if (!loadPlugins) {
+    try {
+      // Fetch rancher version metadata
+      const response = await rancherVersionRequest;
+
+      setVersionData(response);
+    } catch (e) {
+      console.warn('Failed to fetch Rancher version metadata', e); // eslint-disable-line no-console
+    }
+  } else {
     let rancherVersion;
     let kubeVersion;
-
     const reqs = [];
 
     // Fetch rancher version metadata
-    reqs.push(context.store.dispatch('rancher/request', {
-      url:                  '/rancherversion',
-      method:               'get',
-      redirectUnauthorized: false
-    }));
+    reqs.push(rancherVersionRequest);
 
     // Fetch kubernetes version metadata
     reqs.push(context.store.dispatch('rancher/request', {
