@@ -4267,6 +4267,7 @@ inactivity:
 plugins:
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
+  incompatibleUiExtensionsApiVersionMissing: "The latest version of this extension ({ version }) is missing the mandatory annotation 'catalog.cattle.io/ui-extensions-version' from Rancher 2.10 and onwards."
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
@@ -4286,6 +4287,7 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
+    apiAnnotationMissing: Unable to load Extension. The version installed does not have the mandatory annotation 'catalog.cattle.io/ui-extensions-version' from Rancher 2.10 and onwards
     api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
     host: Unable to load Extension. The version installed is not compatible with this application host
     version: Unable to load Extension. The version installed is not compatible with the current version of Rancher
@@ -4309,6 +4311,7 @@ plugins:
     versionError: Could not load version information
     requiresRancherVersion: "Requires Rancher {required}"
     requiresKubeVersion: "Requires Kube version {required}"
+    requiresExtensionApiVersionMissing: "Missing the mandatory annotation 'catalog.cattle.io/ui-extensions-version' from Rancher 2.10 and onwards"
     requiresExtensionApiVersion: "Requires Extensions API version {required}"
     requiresHost: 'Requires a host that matches "{mainHost}"'
   empty:
