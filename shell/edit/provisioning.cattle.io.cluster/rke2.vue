@@ -892,7 +892,8 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
-    this.registerBeforeHook(this.cpi, 'sync-vsphere-cpi');
+    this.registerBeforeHook(this.updateVsphereCpi, 'sync-vsphere-cpi');
+    this.registerBeforeHook(this.updateVsphereCsi, 'sync-vsphere-csi');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -905,90 +906,141 @@ export default {
   methods: {
     set,
 
-    // TODO: we might combine CPI and CSI with the Havester one => this.createKubeconfigSecret
-    // create a vsphere cpi secret
-    async createVSphereCpiSecret({ username, password }) {
+    /**
+     * Create upstream vsphere cpi secret to sync downstream
+     */
+    async updateVsphereCpi() {
+      // check values for cpi chart has 'use our method' checkbox
+      const chartName = 'rancher-vsphere-cpi';
+      const rancherManagedSecretPropName = 'generate';// TODO: RC TBD
+      const chartValues = this.versionInfo[chartName]?.values;
+
+      if (!chartValues) {
+        return;
+      }
+      const userValues = this.userChartValues[this.chartVersionKey(chartName)];
+      const combined = merge({}, chartValues || {}, userValues || {});
+      const generate = combined.vCenter?.credentialsSecret?.generate;
+      const rancherManagedSecret = combined.vCenter?.credentialsSecret?.[rancherManagedSecretPropName];
+
+      if (!generate || !rancherManagedSecret) {
+        return;
+      }
+
+      const downstreamSecretName = 'vsphere-cpi-creds';
+      // find values need in cpi chart value
+      const { username, password, host } = combined.vCenter;
+
+      if (!username || !password || !host) {
+        throw new Error('vSphere CPI username, password and host are all required when generating a new secret');
+      }
+
+      // create secret
       const clusterName = this.value.metadata.name;
+      const clusterNamespace = this.value.metadata.namespace;
       const secret = await this.$store.dispatch('management/create', {
         type:     SECRET,
         metadata: {
-          namespace:    'fleet-default',
+          namespace:    clusterNamespace,
           generateName: 'vsphere-cpi-creds-',
-          // TODO: take care of labels
-          // labels: ??
-          // - vsphere-cpi-infra: "secret"
-          // - component: "rancher-vsphere-cpi-cloud-controller-manager"
-          // - {{- include "labels" . | nindent 4 }}
-          // labels: {
-          //   'vsphere-cpi-infra': 'secret',
-          //   component: 'rancher-vsphere-cpi-cloud-controller-manager'
-          // }
-          annotations:  {
+          labels:       {
+            'vsphere-cpi-infra': 'secret',
+            component:           'rancher-vsphere-cpi-cloud-controller-manager'
+          },
+          annotations: {
             'provisioning.cattle.io/sync-target-namespace': 'kube-system',
-            'provisioning.cattle.io/sync-target-name':      'vsphere-cpi-creds',
+            'provisioning.cattle.io/sync-target-name':      downstreamSecretName,
             'rke.cattle.io/object-authorized-for-clusters': clusterName,
             'provisioning.cattle.io/sync-bootstrap':        'true'
           }
         },
-        // Tried to be consistent with createKubeconfigSecret, but can use setData as well
-        data: { username: base64Encode(username), password: base64Encode(password) }
       });
 
-      secret.save({ url: '/v1/secrets', method: 'POST' });
+      secret.setData(`${ host }.username`, username);
+      secret.setData(`${ host }.password`, password);
+
+      await secret.save();
+
+      // reset cpi chart values
+      if (!userValues.vCenter.credentialsSecret) {
+        userValues.vCenter.credentialsSecret = {};
+      }
+      userValues.vCenter.credentialsSecret.generate = false;
+      userValues.vCenter.credentialsSecret.name = downstreamSecretName;
+      userValues.vCenter.credentialsSecret[rancherManagedSecretPropName] = false;
+      userValues.vCenter.username = '';
+      userValues.vCenter.password = '';
     },
 
-    async cpi() {
+    /**
+     * Create upstream vsphere csi secret to sync downstream
+     */
+    async updateVsphereCsi() {
       // check values for cpi chart has 'use our method' checkbox
-      const chartName = 'rancher-vsphere-cpi';
+      const chartName = 'rancher-vsphere-csi';
+      const rancherManagedSecretPropName = 'generate';// TODO: RC TBD
       const chartValues = this.versionInfo[chartName]?.values;
+
+      if (!chartValues) {
+        return;
+      }
       const userValues = this.userChartValues[this.chartVersionKey(chartName)];
       const combined = merge({}, chartValues || {}, userValues || {});
-      // TODO: remove console log
-      // console.warn(
-      //   chartValues,
-      //   userValues,
-      //   combined
-      // );
-      const ourNewCheckboxProperty = combined.vCenter.credentialSecret.ourNewCheckboxProperty;
+      const generate = combined.vCenter?.configSecret?.generate;
+      const rancherManagedSecret = combined.vCenter?.configSecret?.[rancherManagedSecretPropName];
 
-      if (ourNewCheckboxProperty) {
-        // find values need in cpi chart value
-        const { username, password } = combined.vCenter;
-
-        // create secret
-        await this.createVSphereCpiSecret({ username, password });
-
-        // TODO: remove Richard's notes
-        // create secret
-        // const newSecret = await this.$store.dispatch('management/create', { type: SECRETS }, { root: true });
-        // newSecret.metadata.generateName = "vsphere-cpi-creds-";
-        // newSecret.setData(key, value)
-        // await newSecret.save()
-
-        // metadata:
-        //   generateName: "vsphere-cpi-creds-"
-        //   metadata:
-        //     labels:
-        //     - vsphere-cpi-infra: "secret"
-        //     - component: "rancher-vsphere-cpi-cloud-controller-manager"
-        //     - {{- include "labels" . | nindent 4 }}????
-        //     annotations:
-        //     - provisioning.cattle.io/sync-target-namespace: "kube-system"
-        //     - provisioning.cattle.io/sync-target-name: "vsphere-cpi-creds"
-        //     - rke.cattle.io/object-authorized-for-clusters: this.value.metadata.name
-        //     - provisioning.cattle.io/sync-bootstrap: "true"
-        //     namespace: this.value.metadata.namespace
-        // data:
-        //   {{ chart value's vCenter.host }}.username: "{{ username from input field, use secret model's `setData` fn to get it base 64 encoded }}"
-        //   {{ chart value's vCenter.host }}.password: "{{ password from input field, use secret model's `setData` fn to get it base 64 encoded }}"
-
-        // set cpi chart values
-        // - generate creds secret false
-        userValues.vCenter.credentialSecret.generate = false;
-        // - remove username and password fields
-        userValues.vCenter.username = '';
-        userValues.vCenter.password = '';
+      if (!generate || !rancherManagedSecret) {
+        return;
       }
+
+      const downstreamSecretName = 'vsphere-csi-creds';
+      let configTemplateString = ' |\n      [Global]\n      cluster-id = {{ required \".Values.vCenter.clusterId must be provided\" (default .Values.vCenter.clusterId .Values.global.cattle.clusterId) | quote }}\n      user = {{ .Values.vCenter.username | quote }}\n      password = {{ .Values.vCenter.password | quote }}\n      port = {{ .Values.vCenter.port | quote }}\n      insecure-flag = {{ .Values.vCenter.insecureFlag | quote }}\n\n      [VirtualCenter {{ .Values.vCenter.host | quote }}]\n      datacenters = {{ .Values.vCenter.datacenters | quote }}'; // TODO: RC
+      // find values need in cpi chart value
+      const {
+        username, password, host, datacenters
+      } = combined.vCenter;
+
+      if (!username || !password || !host || !datacenters) {
+        throw new Error('vSphere CSI username, password, host and datacenters are all required when generating a new secret');
+      }
+
+      configTemplateString = configTemplateString.replace('{{ .Values.vCenter.username | quote }}', `"${ username }"`);
+      configTemplateString = configTemplateString.replace('{{ .Values.vCenter.password | quote }}', `"${ password }"`);
+      configTemplateString = configTemplateString.replace('{{ .Values.vCenter.host | quote }}', `"${ host }"`);
+      configTemplateString = configTemplateString.replace('{{ .Values.vCenter.datacenters | quote }}', `"${ datacenters }"`);
+
+      // create secret
+      const clusterName = this.value.metadata.name;
+      const clusterNamespace = this.value.metadata.namespace;
+      const secret = await this.$store.dispatch('management/create', {
+        type:     SECRET,
+        metadata: {
+          namespace:    clusterNamespace,
+          generateName: 'vsphere-csi-creds-',
+          annotations:  {
+            'provisioning.cattle.io/sync-target-namespace': 'kube-system',
+            'provisioning.cattle.io/sync-target-name':      downstreamSecretName,
+            'rke.cattle.io/object-authorized-for-clusters': clusterName,
+            'provisioning.cattle.io/sync-bootstrap':        'true'
+          }
+        },
+      });
+
+      secret.setData(`csi-vsphere.conf`, configTemplateString);
+
+      await secret.save();
+
+      // reset csi chart values
+      if (!userValues.vCenter.configSecret) {
+        userValues.vCenter.configSecret = {};
+      }
+      userValues.vCenter.configSecret.generate = false;
+      userValues.vCenter.configSecret.name = downstreamSecretName;
+      userValues.vCenter.configSecret[rancherManagedSecretPropName] = false;
+      userValues.vCenter.username = '';
+      userValues.vCenter.password = '';
+      userValues.vCenter.host = '';
+      userValues.vCenter.datacenters = '';
     },
 
     /**
@@ -1587,16 +1639,18 @@ export default {
         return await this.extensionProvider?.saveCluster(this.value, this.schema);
       }
 
-      if (this.isCreate) {
-        url = url || this.schema.linkFor('collection');
-        const res = await this.value.save({ url });
+      throw new Error('oh no....'); // TODO: RC
 
-        if (res) {
-          Object.assign(this.value, res);
-        }
-      } else {
-        await this.value.save();
-      }
+      // if (this.isCreate) { // TODO: RC
+      //   url = url || this.schema.linkFor('collection');
+      //   const res = await this.value.save({ url });
+
+      //   if (res) {
+      //     Object.assign(this.value, res);
+      //   }
+      // } else {
+      //   await this.value.save();
+      // }
     },
 
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
@@ -1702,6 +1756,8 @@ export default {
       const fromChart = this.versionInfo[name]?.values;
       const fromUser = this.userChartValuesTemp[name];
       const different = diff(fromChart, fromUser);
+
+      console.warn(name, different, fromChart, this.userChartValues); // TODO: RC
 
       this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
