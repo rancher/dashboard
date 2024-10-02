@@ -1107,17 +1107,39 @@ cis:
 
 cluster:
   addonChart:
-    rancher-vsphere-cpi: vSphere CPI Configuration
-    rancher-vsphere-csi: vSphere CSI Configuration
-    rke2-calico: Calico Configuration
-    rke2-calico-crd: Calico Configuration
-    rke2-canal: Canal Configuration
-    rke2-cilium: Cilium Configuration
-    rke2-coredns: CoreDNS Configuration
-    rke2-ingress-nginx: NGINX Ingress Configuration
-    rke2-kube-proxy: Kube Proxy Configuration
-    rke2-metrics-server: Metrics Server Configuration
-    rke2-multus: Multus Configuration
+    rancher-vsphere-cpi:
+      label: vSphere CPI
+      configuration: vSphere CPI Configuration
+    rancher-vsphere-csi:
+      label: vSphere CSI
+      configuration: vSphere CSI Configuration
+    rke2-calico:
+      label: Calico
+      configuration: Calico Configuration
+    rke2-calico-crd:
+      label:  Calico
+      configuration: Calico Configuration
+    rke2-canal:
+      label: Canal
+      configuration: Canal Configuration
+    rke2-cilium:
+      label: Cilium
+      configuration: Cilium Configuration
+    rke2-coredns:
+      label: CoreDNS
+      configuration: CoreDNS Configuration
+    rke2-ingress-nginx:
+      label: NGINX
+      configuration: NGINX Ingress Configuration
+    rke2-kube-proxy:
+      label: Kube Proxy
+      configuration: Kube Proxy Configuration
+    rke2-metrics-server:
+      label: Metrics Server
+      configuration: Metrics Server Configuration
+    rke2-multus:
+      label: Multus
+      configuration: Multus Configuration
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
@@ -1133,7 +1155,7 @@ cluster:
       label: Google
     rancher-vsphere:
       label: vSphere
-      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the tabs on the left.'
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
@@ -1981,7 +2003,7 @@ cluster:
       s3: s3
   tabs:
     ace: Authorized Endpoint
-    addons: Add-On Config
+    addOnAdditionalManifest: Additional Manifest
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
