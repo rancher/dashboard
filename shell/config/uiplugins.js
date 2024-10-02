@@ -137,15 +137,15 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
   return true;
 }
 
+// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion, plugins.error.version, plugins.error.developerPkg, plugins.error.apiAnnotationMissing
+
 /**
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
  * The output will be used to PREVENT loading of an extension that is already installed but isn't compatible with the system
  *
- * String output for i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion,
- * plugins.error.version, plugins.error.developerPkg, plugins.error.apiAnnotationMissing will display a message on the extension card to notify users
- * on why the extension was not loaded
+ * String output will display a message on the extension card to notify users on why the extension was not loaded
  *
- * @returns String || Boolean
+ * @returns String | Boolean
  */
 export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {
   if (!UIPluginResource.name || !UIPluginResource.version || !UIPluginResource.endpoint) {
@@ -213,7 +213,7 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
  * The output will be used to display a message on the extension card to notify users if a LATEST version of an extension is available but isn't compatible (cardMessageKey)
  * The output will also disable the buttons in the slide-in panel with extension details, displaying a tooltip message with the reason (tooltipKey)
  *
- * @returns Boolean || Object
+ * @returns Boolean | Object
  */
 export function isSupportedChartVersion(versionData, returnObj = false) {
   const { version, rancherVersion, kubeVersion } = versionData;

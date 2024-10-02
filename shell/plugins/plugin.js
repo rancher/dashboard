@@ -1,7 +1,8 @@
 // This plugin loads any UI Plugins at app load time
 import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { setVersionData, setKubeVersionData } from '@shell/config/version';
+import { getKubeVersionData, getVersionData } from '@shell/config/version';
+import versions from '@shell/utils/versions';
 
 export default async function(context) {
   if (process.env.excludeOperatorPkg === 'true') {
@@ -26,70 +27,28 @@ export default async function(context) {
     }, 1000);
   }
 
-  const rancherVersionRequest = context.store.dispatch('rancher/request', {
-    url:                  '/rancherversion',
-    method:               'get',
-    redirectUnauthorized: false
-  });
-
-  if (!loadPlugins) {
-    try {
-      // Fetch rancher version metadata
-      const response = await rancherVersionRequest;
-
-      setVersionData(response);
-    } catch (e) {
-      console.warn('Failed to fetch Rancher version metadata', e); // eslint-disable-line no-console
-    }
-  } else {
-    let rancherVersion;
-    let kubeVersion;
-    const reqs = [];
-
-    // Fetch rancher version metadata
-    reqs.push(rancherVersionRequest);
-
-    // Fetch kubernetes version metadata
-    reqs.push(context.store.dispatch('rancher/request', {
-      url:                  '/version',
-      method:               'get',
-      redirectUnauthorized: false
-    }));
-
+  if (loadPlugins) {
     // Fetch list of installed plugins from endpoint
-    reqs.push(context.store.dispatch('management/request', {
-      url:                  `${ UI_PLUGIN_BASE_URL }`,
-      method:               'GET',
-      headers:              { accept: 'application/json' },
-      redirectUnauthorized: false,
-    }));
+    try {
+      const res = await allHashSettled({
+        versions: versions.fetch(context),
+        plugins:  context.store.dispatch('management/request', {
+          url:                  `${ UI_PLUGIN_BASE_URL }`,
+          method:               'GET',
+          headers:              { accept: 'application/json' },
+          redirectUnauthorized: false,
+        })
+      });
 
-    const response = await Promise.allSettled(reqs);
+      if (res.plugins.status === 'rejected') {
+        throw new Error(res.reason);
+      }
 
-    if (response[0]?.status === 'rejected') {
-      console.warn('Failed to fetch Rancher version metadata', response[0]?.reason?.message); // eslint-disable-line no-console
-    }
+      const kubeVersion = getKubeVersionData()?.gitVersion;
+      const rancherVersion = getVersionData().Version;
 
-    if (response[1]?.status === 'rejected') {
-      console.warn('Failed to fetch Kube version metadata', response[1]?.reason?.message); // eslint-disable-line no-console
-    }
-
-    if (response[2]?.status === 'rejected') {
-      console.warn('Could not load UI Extensions list', response[2]?.reason?.message); // eslint-disable-line no-console
-    }
-
-    if (response[0]?.status === 'fulfilled') {
-      rancherVersion = response[0]?.value?.Version;
-      setVersionData(response[0]?.value);
-    }
-
-    if (response[1]?.status === 'fulfilled') {
-      kubeVersion = response[1]?.value?.gitVersion;
-      setKubeVersionData(response[1]?.value);
-    }
-
-    if (response[2]?.status === 'fulfilled' && response[2]?.value) {
-      const entries = response[2]?.value.entries || response[2]?.value.Entries || {};
+      const plugins = res.plugins.value;
+      const entries = plugins.entries || plugins.Entries || {};
 
       Object.values(entries).forEach((plugin) => {
         const shouldNotLoad = shouldNotLoadPlugin(plugin, { rancherVersion, kubeVersion }, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
@@ -100,6 +59,13 @@ export default async function(context) {
           context.store.dispatch('uiplugins/setError', { name: plugin.name, error: shouldNotLoad });
         }
       });
+    } catch (e) {
+      if (e?.code === 404) {
+        // Not found, so extensions operator probably not installed
+        console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
+      } else {
+        console.error('Could not load UI Extensions list', e); // eslint-disable-line no-console
+      }
     }
 
     // Load all of the plugins

@@ -37,6 +37,7 @@ import {
   EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+import versions from '@shell/utils/versions';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -85,7 +86,7 @@ export default {
       hasFeatureFlag:                 true,
       defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
       reloadRequired:                 false,
-      rancherVersion:                 getVersionData()?.Version,
+      rancherVersion:                 null,
       showCatalogList:                false
     };
   },
@@ -101,22 +102,25 @@ export default {
       }
     }
 
-    hash.load = await this.$store.dispatch('catalog/load', { reset: true });
+    hash.load = this.$store.dispatch('catalog/load', { reset: true });
 
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
-      hash.localCluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
+      hash.localCluster = this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
-      hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
+      hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-      hash.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
+      hash.repos = this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
     }
+
+    hash.versions = versions.fetch({ store: this.$store });
 
     const res = await allHash(hash);
 
+    this.rancherVersion = getVersionData()?.Version;
     this.plugins = res.plugins || [];
     this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
