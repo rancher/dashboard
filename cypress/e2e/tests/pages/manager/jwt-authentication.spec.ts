@@ -156,7 +156,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 });
 
 describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
-
   before(() => {
     cy.login();
     HomePagePo.goTo();
