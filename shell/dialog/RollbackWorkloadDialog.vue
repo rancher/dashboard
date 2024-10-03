@@ -29,6 +29,8 @@ const REMOVE_KEYS = REMOVE.reduce((obj, item) => {
 }, {});
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

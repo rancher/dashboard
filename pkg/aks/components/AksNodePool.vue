@@ -18,6 +18,8 @@ import { randomStr } from '@shell/utils/string';
 export default defineComponent({
   name: 'AKSNodePool',
 
+  emits: ['vmSizeSet', 'update:value', 'validationChanged'],
+
   components: {
     LabeledInput,
     LabeledSelect,
@@ -145,6 +147,10 @@ export default defineComponent({
         }
       }
     },
+
+    upgradeLabel(): string {
+      return this.t('aks.nodePools.orchestratorVersion.upgrade', { from: this.originalOrchestratorVersion, to: this.clusterVersion });
+    },
   },
 
   methods: {
@@ -171,6 +177,12 @@ export default defineComponent({
 
     availabilityZonesSupport() {
       return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
+    },
+
+    poolCountValidator() {
+      const canBeZero: boolean = this.pool.mode === 'User';
+
+      return (val: number) => this.validationRules?.count?.[0](val, canBeZero);
     }
   },
 });
@@ -188,7 +200,7 @@ export default defineComponent({
         <Checkbox
           v-model:value="willUpgrade"
           :mode="mode"
-          :label="t('aks.nodePools.orchestratorVersion.upgrade', {from: originalOrchestratorVersion, to: clusterVersion})"
+          :label="upgradeLabel"
           data-testid="aks-pool-upgrade-checkbox"
         />
       </div>
@@ -297,18 +309,19 @@ export default defineComponent({
     >
       <div class="col span-3">
         <LabeledInput
-          v-model.number="pool.count"
+          v-model:value.number="pool.count"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.count.label"
-          :rules="validationRules.count"
-          :min="1"
-          :max="100"
+          :rules="[poolCountValidator()]"
+          :min="pool.mode === 'User' ? 0 : 1"
+          :max="1000"
+          data-testid="aks-pool-count-input"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model.number="pool.maxPods"
+          v-model:value.number="pool.maxPods"
           type="number"
           :mode="mode"
           label-key="aks.nodePools.maxPods.label"
@@ -334,24 +347,24 @@ export default defineComponent({
       <template v-if="pool.enableAutoScaling">
         <div class="col span-3">
           <LabeledInput
-            v-model.number="pool.minCount"
+            v-model:value.number="pool.minCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.minCount.label"
             :rules="validationRules.min"
-            :min="1"
-            :max="100"
+            :min="0"
+            :max="1000"
           />
         </div>
         <div class="col span-3">
           <LabeledInput
-            v-model.number="pool.maxCount"
+            v-model:value.number="pool.maxCount"
             type="number"
             :mode="mode"
             label-key="aks.nodePools.maxCount.label"
             :rules="validationRules.max"
-            :min="1"
-            :max="100"
+            :min="0"
+            :max="1000"
           />
         </div>
       </template>

@@ -8,6 +8,8 @@ import { Card } from '@components/Card';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {
+  emits: ['close'],
+
   components: {
     AsyncButton,
     Banner,
@@ -90,9 +92,8 @@ export default {
         </div>
         <input
           id="confirm"
-          :value="confirmName"
+          v-model="confirmName"
           type="text"
-          @input="($plainInputEvent) => confirmName = $plainInputEvent"
         >
         <div class="text-info mt-20">
           {{ protip }}

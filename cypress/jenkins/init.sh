@@ -3,6 +3,10 @@
 set -x
 set -e
 
+if cat /etc/os-release | grep -iq "Alpine Linux"; then
+ apk update && apk add --no-cache gcompat g++ make
+fi
+
 OS="$(uname -s)"
 case "${OS}" in
     Linux*)     MACHINE=amd64;;
@@ -30,11 +34,12 @@ DASHBOARD_REPO="${DASHBOARD_REPO:-rancher/dashboard.git}"
 DASHBOARD_BRANCH="${DASHBOARD_BRANCH:-master}"
 GITHUB_URL="https://github.com/"
 RANCHER_TYPE="${RANCHER_TYPE:-local}"
+RANCHER_HELM_REPO="${RANCHER_HELM_REPO:-latest}"
 HELM_VERSION="${HELM_VERSION:-3.13.2}"
 NODEJS_VERSION="${NODEJS_VERSION:-14.19.1}"
 CYPRESS_VERSION="${CYPRESS_VERSION:-13.2.0}"
 YARN_VERSION="${YARN_VERSION:-1.22.19}"
-KUBECTL_VERSION="${KUBECTL_VERSION:-v1.27.10}"
+KUBECTL_VERSION="${KUBECTL_VERSION:-v1.29.8}"
 YQ_BIN="mikefarah/yq/releases/latest/download/yq_linux_amd64"
 
 mkdir -p "${WORKSPACE}/bin"
@@ -48,10 +53,17 @@ chmod +x "${CORRAL}"
 curl -L -o "${GO_PKG_FILENAME}" "${GO_DL_PACKAGE}"
 tar -C "${WORKSPACE}" -xzf "${GO_PKG_FILENAME}"
 
+curl -sSL https://raw.githubusercontent.com/parleer/semver-bash/latest/semver -o semver
+chmod +x semver
+mv semver "${WORKSPACE}/bin"
+
 ls -al "${WORKSPACE}"
 export PATH=$PATH:"${WORKSPACE}/go/bin:${WORKSPACE}/bin"
+export GOROOT="${WORKSPACE}/go"
 echo "${PATH}"
 
+
+ls -al "${WORKSPACE}/go"
 go version
 
 
@@ -80,20 +92,54 @@ corral config vars set volume_iops "${AWS_VOLUME_IOPS}"
 corral config vars set azure_subscription_id "${AZURE_AKS_SUBSCRIPTION_ID}"
 corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
 corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
+corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
 
-if [[ "${JOB_TYPE}" == "recurring" ]]; then 
-  RANCHER_TYPE="recurring"
+create_initial_clusters() {
+  shopt -u nocasematch
   if [[ -n "${RANCHER_IMAGE_TAG}" ]]; then
     TARFILE="helm-v${HELM_VERSION}-linux-amd64.tar.gz"
     curl -L -o "${TARFILE}" "https://get.helm.sh/${TARFILE}"
     tar -C "${WORKSPACE}/bin" --strip-components=1 -xzf "${TARFILE}"
-    helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-    helm repo update
+    if [[ -n "${RANCHER_HELM_REPO}" ]]; then
+      if [[ "${RANCHER_HELM_REPO}" == "prime" ]]; then
+        RANCHER_CHART_URL=https://charts.rancher.com/server-charts/prime
+        helm repo add rancher-prime "${RANCHER_CHART_URL}"
+        helm repo update
+        corral config vars set rancher_image "registry.suse.com/rancher/rancher"
+        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|registry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG}', RANCHER_PRIME|true, CATTLE_UI_BRAND|suse"]'
+      elif [[ "${RANCHER_HELM_REPO}" == "optimus_prime" ]]; then
+        RANCHER_HELM_REPO=optimus
+        RANCHER_CHART_URL=https://charts.optimus.rancher.io/server-charts/latest
+        helm repo add rancher-optimus "${RANCHER_CHART_URL}"
+        helm repo update
+        corral config vars set rancher_image "stgregistry.suse.com/rancher/rancher"
+        corral config vars set env_var_map '["CATTLE_AGENT_IMAGE|stgregistry.suse.com/rancher/rancher-agent:'${RANCHER_IMAGE_TAG}', RANCHER_PRIME|true, CATTLE_UI_BRAND|suse"]'
+      elif [[ "${RANCHER_HELM_REPO}" == "alpha" ]]; then
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/alpha
+        helm repo add rancher-alpha "${RANCHER_CHART_URL}"
+        helm repo update
+      elif [[ "${RANCHER_HELM_REPO}" == "stable" ]]; then
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/stable
+        helm repo add rancher-stable "${RANCHER_CHART_URL}"
+        helm repo update
+      else
+        RANCHER_CHART_URL=https://releases.rancher.com/server-charts/latest
+        helm repo add rancher-latest "${RANCHER_CHART_URL}"
+        helm repo update
+      fi
+      corral config vars set rancher_chart_repo "${RANCHER_HELM_REPO}"
+      if [[ "${RANCHER_HELM_REPO}" == "optimus" ]]; then
+        corral config vars set rancher_chart_url "${RANCHER_CHART_URL}"
+      else
+        url_string=$(echo "${RANCHER_CHART_URL}" | grep -o '.*server-charts')
+        corral config vars set rancher_chart_url "${url_string}"
+      fi
+    fi
     version_string=$(echo "${RANCHER_IMAGE_TAG}" | cut -f1 -d"-")
-    if [[ -z "${RANCHER_VERSION}" && "${RANCHER_IMAGE_TAG}" == "head" ]]; then
-        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
-    elif [[ -z "${RANCHER_VERSION}" ]]; then
-        RANCHER_VERSION=$(helm search repo rancher-latest --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
+    if [[ "${RANCHER_IMAGE_TAG}" == "head" ]]; then
+      RANCHER_VERSION=$(helm search repo "rancher-${RANCHER_HELM_REPO}" --devel --versions | sed -n '1!p' | head -1 | cut -f2 | tr -d '[:space:]')
+    else
+      RANCHER_VERSION=$(helm search repo "rancher-${RANCHER_HELM_REPO}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
     fi
     corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
   fi
@@ -117,7 +163,9 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set server_count "${SERVER_COUNT:-3}"
   corral config vars set agent_count "${AGENT_COUNT:-0}"
   corral config vars delete rancher_host
-  RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    RANCHER_HOST="jenkins-${prefix_random}.${AWS_ROUTE53_ZONE}"
+  fi
 
   K3S_KUBERNETES_VERSION="${K3S_KUBERNETES_VERSION//+/-}"
   make init
@@ -134,7 +182,7 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
 
   corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
-  echo "Corral Package string: ${CERT_MANAGER_VERSION}-${RANCHER_VERSION//v}-${K3S_KUBERNETES_VERSION}"
+  echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-i"
   corral config vars set server_count 1
   corral create --skip-cleanup --recreate --debug importcluster \
@@ -142,15 +190,31 @@ if [[ "${JOB_TYPE}" == "recurring" ]]; then
   corral config vars set imported_kubeconfig $(corral vars importcluster kubeconfig)
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   corral config vars set server_count "${SERVER_COUNT:-3}"
-  corral create --skip-cleanup --recreate --debug rancher \
-    "dist/aws-k3s-rancher-${CERT_MANAGER_VERSION}-${RANCHER_VERSION//v}-${K3S_KUBERNETES_VERSION}"
+  if [[ "${JOB_TYPE}" == "recurring" ]]; then
+    corral create --skip-cleanup --recreate --debug rancher \
+      "dist/aws-k3s-rancher-${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
+  fi
+}
+
+
+if [[ "${JOB_TYPE}" == "recurring" ]]; then 
+  RANCHER_TYPE="recurring"
+  create_initial_clusters
 fi
 
 if [[ "${JOB_TYPE}" == "existing" ]]; then
   RANCHER_TYPE="existing"
+  shopt -s nocasematch
+  if [[ "${CREATE_INITIAL_CLUSTERS}" == "yes" ]]; then
+    create_initial_clusters
+  fi
+  shopt -u nocasematch
 fi
 
 echo "Rancher type: ${RANCHER_TYPE}"
+
+override_node=$(semver lt "${RANCHER_VERSION}" "2.9.99")
+if [[ ${override_node} -eq 0 && "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
 
 corral config vars set rancher_type "${RANCHER_TYPE}"
 corral config vars set nodejs_version "${NODEJS_VERSION}"

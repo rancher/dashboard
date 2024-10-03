@@ -14,6 +14,8 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
+  emits: ['close'],
+
   components: {
     AsyncButton,
     Banner,
@@ -140,7 +142,6 @@ export default {
             <div class="col span-6">
               <LabeledSelect
                 :value="defaultNamespace"
-                class="pull-right"
                 :options="namespaceOptions"
                 label-key="import.defaultNamespace.label"
                 mode="edit"

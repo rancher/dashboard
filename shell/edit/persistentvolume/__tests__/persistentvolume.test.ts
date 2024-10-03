@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import PersistentVolume from '@shell/edit/persistentvolume/index';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 
-describe.skip('(Vue3 Skip) view: PersistentVolume', () => {
+describe('view: PersistentVolume', () => {
   it('should list enabled PV storage option if supported', () => {
     const plugin = {
       labelKey: 'persistentVolume.csi.label', supported: true, value: 'csi'
@@ -39,11 +39,13 @@ describe.skip('(Vue3 Skip) view: PersistentVolume', () => {
           }
         },
 
-        stubs: { LabeledSelect: true },
+        stubs: {
+          LabeledSelect: true, Tabbed: true, Tab: true
+        },
       },
     });
 
-    const select = wrapper.find('[data-testid="persistent-volume-plugin-select"]');
+    const select = wrapper.findComponent('[data-testid="persistent-volume-plugin-select"]');
 
     expect((select.vm as unknown as any).options).toStrictEqual(expect.arrayContaining([plugin]));
   });
@@ -78,7 +80,10 @@ describe.skip('(Vue3 Skip) view: PersistentVolume', () => {
           $router: {
             currentRoute: {},
             replace:      jest.fn(),
-          }
+          },
+        },
+        stubs: {
+          LabeledSelect: true, Tabbed: true, Tab: true
         },
       }
     });

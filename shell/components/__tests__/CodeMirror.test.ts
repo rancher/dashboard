@@ -1,96 +1,93 @@
-// import { nextTick } from 'vue';
-// import { shallowMount, Wrapper } from '@vue/test-utils';
-// import CodeMirror from '@shell/components/CodeMirror.vue';
-// import { _EDIT, _YAML } from '@shell/config/query-params';
+import { nextTick } from 'vue';
+import { shallowMount, Wrapper } from '@vue/test-utils';
+import CodeMirror from '@shell/components/CodeMirror.vue';
+import { _EDIT, _YAML } from '@shell/config/query-params';
 
-// // eslint-disable-next-line jest/no-disabled-tests
-// describe.skip('component: CodeMirror.vue', () => {
-//   let wrapper: Wrapper<InstanceType<typeof CodeMirror>>;
+// eslint-disable-next-line jest/no-disabled-tests
+describe('component: CodeMirror.vue', () => {
+  let wrapper: Wrapper<InstanceType<typeof CodeMirror>>;
 
-//   const options = {
-//     readOnly: false,
-//     gutters:  [
-//       'CodeMirror-lint-markers',
-//       'CodeMirror-foldgutter'
-//     ],
-//     mode:            'yaml',
-//     lint:            true,
-//     lineNumbers:     true,
-//     styleActiveLine: true,
-//     tabSize:         2,
-//     indentWithTabs:  false,
-//     cursorBlinkRate: 530,
-//     extraKeys:       { 'Ctrl-Space': 'autocomplete' }
-//   };
+  const options = {
+    readOnly: false,
+    gutters:  [
+      'CodeMirror-lint-markers',
+      'CodeMirror-foldgutter'
+    ],
+    mode:            'yaml',
+    lint:            true,
+    lineNumbers:     true,
+    styleActiveLine: true,
+    tabSize:         2,
+    indentWithTabs:  false,
+    cursorBlinkRate: 530,
+    extraKeys:       { 'Ctrl-Space': 'autocomplete' }
+  };
 
-//   const mountOptions = {
-//     propsData: {
-//       value:         '',
-//       mode:          _EDIT,
-//       options,
-//       asTextArea:    false,
-//       showKeyMapBox: true,
-//     },
-//     mocks: {
-//       $store: {
-//         getters: {
-//           currentStore:              () => 'current_store',
-//           'current_store/schemaFor': jest.fn(),
-//           'current_store/all':       jest.fn(),
-//           'i18n/t':                  () => 'Vim',
-//           'prefs/get':               () => 'Vim',
-//           'prefs/theme':             jest.fn(),
-//         }
-//       },
-//       $route:  { query: { AS: _YAML } },
-//       $router: { applyQuery: jest.fn() },
-//     },
-//   };
+  const mountOptions = {
+    propsData: {
+      value:         '',
+      mode:          _EDIT,
+      options,
+      asTextArea:    false,
+      showKeyMapBox: true,
+    },
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  () => 'Vim',
+            'prefs/get':               () => 'Vim',
+            'prefs/theme':             jest.fn(),
+          }
+        },
+        $route:  { query: { AS: _YAML } },
+        $router: { applyQuery: jest.fn() },
+      },
+    }
 
-//   // eslint-disable-next-line jest/no-disabled-tests
-//   describe.skip('keyMap info', () => {
-//     (window as any).__codeMirrorLoader = () => new Promise((resolve) => {
-//       resolve(true);
-//     });
+  };
 
-//     wrapper = shallowMount(
-//       CodeMirror,
-//       mountOptions,
-//     );
+  // eslint-disable-next-line jest/no-disabled-tests
+  describe('keyMap info', () => {
+    (window as any).__codeMirrorLoader = () => new Promise((resolve) => {
+      resolve(true);
+    });
 
-//     it(`should show keyMap preference`, async() => {
-//       await nextTick();
+    wrapper = shallowMount(
+      CodeMirror,
+      mountOptions,
+    );
 
-//       const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-//       const keyboardIcon = keyMapBox.find('.keymap-indicator');
-//       const closeIcon = keyMapBox.find('.icon-close');
+    it(`should show keyMap preference`, async() => {
+      await nextTick();
 
-//       expect(keyboardIcon.element).toBeDefined();
-//       expect(closeIcon.element).toBeDefined();
-//     });
+      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"] .keymap-indicator');
 
-//     it(`should remove keyMap box`, async() => {
-//       await nextTick();
+      const closeIcon = wrapper.find('[data-testid="code-mirror-keymap"] .icon-close');
 
-//       let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+      expect(keyMapBox).toBeDefined();
+      expect(closeIcon).toBeDefined();
+    });
 
-//       keyMapBox.trigger('mouseenter');
-//       await nextTick();
+    it(`should remove keyMap box`, async() => {
+      await nextTick();
 
-//       const closeIcon = keyMapBox.find('.icon-close');
+      let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
-//       closeIcon.element.click();
-//       await nextTick();
+      keyMapBox.trigger('mouseenter');
+      await nextTick();
 
-//       keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+      const closeIcon = keyMapBox.find('.icon-close');
 
-//       expect(keyMapBox.element).toBeUndefined();
-//     });
-//   });
-// });
+      closeIcon.element.click();
+      await nextTick();
 
-describe.skip('(Vue3 Skip) it must have one test', () => {
-  it('will pass', () => {
-    expect(true).toBe(true);
+      keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
+
+      expect(keyMapBox.exists()).toBe(false);
+    });
   });
 });

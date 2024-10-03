@@ -6,6 +6,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits:      ['update:value'],
   components: {
     UnitInput, LabeledInput, RadioGroup
   },
@@ -213,7 +214,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model.number="successfulJobsHistoryLimit"
+            v-model:value.number="successfulJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.successfulJobsHistoryLimit.label"
             tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
@@ -225,7 +226,7 @@ export default {
           class="col span-6"
         >
           <LabeledInput
-            v-model.number="failedJobsHistoryLimit"
+            v-model:value.number="failedJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.failedJobsHistoryLimit.label"
             tooltip-key="workload.job.failedJobsHistoryLimit.tip"
@@ -286,7 +287,7 @@ export default {
             name="concurrency"
             :options="['Allow', 'Forbid', 'Replace']"
             :labels="[t('workload.upgrading.concurrencyPolicy.options.allow'), t('workload.upgrading.concurrencyPolicy.options.forbid'), t('workload.upgrading.concurrencyPolicy.options.replace')]"
-            @input="update"
+            @update:value="update"
           />
         </div>
         <div
@@ -300,7 +301,7 @@ export default {
             name="suspend"
             :options="[true, false]"
             :labels="['Yes', 'No']"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>

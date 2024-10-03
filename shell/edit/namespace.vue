@@ -20,6 +20,7 @@ import Labels from '@shell/components/form/Labels';
 import { randomStr } from '@shell/utils/string';
 
 export default {
+  emits:      ['input'],
   components: {
     ContainerResourceLimit,
     CruResource,
@@ -34,7 +35,8 @@ export default {
     MoveModal
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
@@ -246,6 +248,7 @@ export default {
           :mode="mode"
           :namespace="value"
           :register-before-hook="registerBeforeHook"
+          data-testid="namespace-container-resource-limit"
         />
       </Tab>
       <Tab

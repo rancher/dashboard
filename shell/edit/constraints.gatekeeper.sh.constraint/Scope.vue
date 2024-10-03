@@ -18,6 +18,8 @@ export const SCOPE_OPTIONS = [
 ];
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
 
   props: {

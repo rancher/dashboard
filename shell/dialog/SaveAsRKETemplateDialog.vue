@@ -8,6 +8,8 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 const DEFAULT_REVISION = 'v1';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

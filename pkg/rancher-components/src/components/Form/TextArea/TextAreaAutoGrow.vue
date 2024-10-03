@@ -1,15 +1,17 @@
 <script lang="ts">
-// @ts-nocheck
-import { defineComponent } from 'vue';
+import { defineComponent, inject, PropType } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-declare module 'vue/types/vue' {
-  /* eslint-disable no-unused-vars */
-  interface Vue {
-    queueResize(): void;
-  }
+interface NonReactiveProps {
+  queueResize(): void;
 }
+
+const provideProps: NonReactiveProps = {
+  queueResize() {
+    // noop
+  }
+};
 
 export default defineComponent({
   inheritAttrs: false,
@@ -21,7 +23,7 @@ export default defineComponent({
     },
 
     class: {
-      type:    String,
+      type:    [String, Array, Object] as PropType<string | unknown[] | Record<string, boolean>>,
       default: ''
     },
 
@@ -78,6 +80,12 @@ export default defineComponent({
     }
   },
 
+  setup() {
+    const queueResize = inject('queueResize', provideProps.queueResize);
+
+    return { queueResize };
+  },
+
   data() {
     return {
       curHeight: this.minHeight,
@@ -101,7 +109,7 @@ export default defineComponent({
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
     },
 
-    className(): string {
+    className(): string | unknown[] | Record<string, boolean> {
       return this.class;
     }
   },
@@ -172,6 +180,7 @@ export default defineComponent({
 <template>
   <textarea
     ref="ta"
+    :value="value"
     :data-testid="$attrs['data-testid'] ? $attrs['data-testid'] : 'text-area-auto-grow'"
     :disabled="isDisabled"
     :style="style"

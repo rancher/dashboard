@@ -8,7 +8,7 @@ const networkPolicyDescription = 'Custom Network Policy Description';
 let namespacesCount;
 
 describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  beforeEach(() => {
+  before(() => {
     cy.intercept('GET', '/v1/namespaces?exclude=metadata.managedFields').as('getNamespaces');
     cy.login();
 
@@ -17,7 +17,7 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     });
   });
 
-  afterEach(() => {
+  after(() => {
     // Deleting the created network policy
     networkPolicyPage.goTo();
     networkPolicyPage.waitForPage();
@@ -66,5 +66,13 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();
     networkPolicyPo.matchingNamespacesMessage(0).contains(`Matches ${ namespacesCount } of ${ namespacesCount }`);
     networkPolicyPo.matchingNamespacesMessage(1).contains(`Matches 0 of ${ namespacesCount }`);
+  });
+  it('can open "Edit as YAML"', () => {
+    NetworkPolicyPagePo.navTo();
+    networkPolicyPage.clickCreate();
+    const networkPolicyPo = new NetworkPolicyPo();
+
+    networkPolicyPo.editAsYaml().click();
+    networkPolicyPo.yamlEditor().checkExists();
   });
 });

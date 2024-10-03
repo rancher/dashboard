@@ -7,6 +7,8 @@ import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
+  emits: ['closed', 'update'],
+
   components: {
     AsyncButton,
     AppModal,

@@ -318,7 +318,7 @@ export default {
               {{ t('performance.manualRefresh.setting') }}
             </p>
             <LabeledInput
-              v-model.number="value.manualRefresh.threshold"
+              v-model:value.number="value.manualRefresh.threshold"
               :mode="mode"
               :label="t('performance.manualRefresh.inputLabel')"
               :disabled="!value.manualRefresh.enabled"
@@ -397,7 +397,7 @@ export default {
                 {{ t('performance.gc.howRun.count.description') }}
               </p>
               <LabeledInput
-                v-model.number="value.garbageCollection.countThreshold"
+                v-model:value.number="value.garbageCollection.countThreshold"
                 :mode="mode"
                 :label="t('performance.gc.howRun.count.inputLabel')"
                 :disabled="!value.garbageCollection.enabled"

@@ -6,6 +6,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
+  emits: ['update:value', 'remove'],
+
   components: {
     LabeledSelect,
     LabeledInput

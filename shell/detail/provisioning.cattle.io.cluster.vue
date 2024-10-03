@@ -57,6 +57,8 @@ class EmptyCapiMachineDeployment extends CapiMachineDeployment {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     Banner,

@@ -23,6 +23,8 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 export default defineComponent({
   name: 'GKEConfig',
 
+  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:labels'],
+
   components: {
     RadioGroup,
     LabeledSelect,

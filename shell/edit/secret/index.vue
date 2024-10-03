@@ -32,6 +32,8 @@ const creatableTypes = [
 export default {
   name: 'CruSecret',
 
+  emits: ['set-subtype', 'input'],
+
   components: {
     LabeledInput,
     LabeledSelect,

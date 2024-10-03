@@ -390,7 +390,7 @@ export default {
 
       let contentText = '';
       let content;
-      let classes = '';
+      let popperClass = '';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -415,7 +415,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+        popperClass = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -427,7 +427,7 @@ export default {
           content = this.shown ? contentText : null;
 
           // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
-          classes += ' description-tooltip-pos-adjustment';
+          popperClass += ' description-tooltip-pos-adjustment';
         }
       }
 
@@ -435,7 +435,7 @@ export default {
         content,
         placement:     'right',
         popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
-        classes
+        popperClass
       };
     },
   }
@@ -527,9 +527,8 @@ export default {
               >
                 <input
                   ref="clusterFilter"
-                  :value="clusterFilter"
+                  v-model="clusterFilter"
                   :placeholder="t('nav.search.placeholder')"
-                  @input="($plainInputEvent) => clusterFilter = $plainInputEvent.target.value"
                 >
                 <i
                   class="magnifier icon icon-search"
@@ -693,6 +692,7 @@ export default {
                       v-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
+                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -904,15 +904,15 @@ export default {
   }
 
   .localeSelector {
-    .popover-inner {
+    .v-popper__inner {
       padding: 10px 0;
     }
 
-    .popover-arrow {
+    .v-popper__arrow-container {
       display: none;
     }
 
-    .popover:focus {
+    .v-popper:focus {
       outline: 0;
     }
   }
@@ -1451,15 +1451,15 @@ export default {
   }
 
   .localeSelector {
-    :deep() .popover-inner {
+    :deep() .v-popper__inner {
       padding: 50px 0;
     }
 
-    :deep() .popover-arrow {
+    :deep() .v-popper__arrow-container {
       display: none;
     }
 
-    :deep() .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 

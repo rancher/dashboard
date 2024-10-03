@@ -62,7 +62,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.azureDisk.diskURI"
+          v-model:value.number="value.azureDisk.diskURI"
           :mode="mode"
           :required="true"
           :label="t('workload.storage.csi.diskURI')"

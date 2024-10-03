@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import defaults from './utils/questions-defaults';
 
-describe.skip('(Vue3 Skip) the Int Component', () => {
+describe('the Int Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
       props: {
@@ -25,7 +25,6 @@ describe.skip('(Vue3 Skip) the Int Component', () => {
 
     const inputFields = wrapper.findAll('[data-testid="int-input-var_name"]');
 
-    // TODO: UNIT TEST - Default stubs give us a tab stub, rendering no input fields
     expect(inputFields).toHaveLength(1);
 
     const descriptionFields = wrapper.findAll('[data-testid="int-description-var_name"]');

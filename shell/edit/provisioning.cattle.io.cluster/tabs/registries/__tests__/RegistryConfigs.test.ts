@@ -4,7 +4,7 @@ import { _EDIT } from '@shell/config/query-params';
 import { PROV_CLUSTER } from '@shell/edit/provisioning.cattle.io.cluster/__tests__/utils/cluster';
 import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs.vue';
 
-describe.skip('(Vue3 Skip) component: RegistryConfigs', () => {
+describe('component: RegistryConfigs', () => {
   let wrapper: Wrapper<InstanceType<typeof RegistryConfigs> & { [key: string]: any }>;
 
   const mountOptions = {
@@ -35,9 +35,9 @@ describe.skip('(Vue3 Skip) component: RegistryConfigs', () => {
         mountOptions
       );
 
-      const registry = wrapper.find('[data-testid^="registry-caBundle"]').element as HTMLTextAreaElement;
+      const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      expect(registry.value).toBe('foobar');
+      expect(registry.props().value).toBe('foobar');
     });
 
     it('should update key in base64 format', async() => {
@@ -52,13 +52,12 @@ describe.skip('(Vue3 Skip) component: RegistryConfigs', () => {
         mountOptions
       );
 
-      const registry = wrapper.find('[data-testid^="registry-caBundle"]');
+      const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      await registry.setValue('ssh key');
-
+      registry.vm.$emit('update:value', 'ssh key');
       wrapper.vm.update();
 
-      expect(wrapper.emitted('updateConfigs')![0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
+      expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
     });
   });
 });

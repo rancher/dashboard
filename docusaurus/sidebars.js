@@ -120,6 +120,7 @@ const sidebars = {
                 'extensions/usecases/node-driver/about-drivers',
                 'extensions/usecases/node-driver/cloud-credential',
                 'extensions/usecases/node-driver/machine-config',
+                'extensions/usecases/node-driver/node-driver-icon',
                 'extensions/usecases/node-driver/advanced',
                 'extensions/usecases/node-driver/proxying',
                 'extensions/usecases/node-driver/about-example',

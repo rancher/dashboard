@@ -19,6 +19,8 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
 export default {
+  emits: ['input'],
+
   components: {
     ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },

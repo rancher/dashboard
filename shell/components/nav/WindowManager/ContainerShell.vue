@@ -4,7 +4,7 @@ import { addParams } from '@shell/utils/url';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import Select from '@shell/components/form/Select';
 import { NODE } from '@shell/config/types';
-
+import { mapGetters } from 'vuex';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_CONNECTING,
@@ -105,6 +105,7 @@ export default {
     containerChoices() {
       return this.pod?.spec?.containers?.map((x) => x.name) || [];
     },
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   watch: {
@@ -405,7 +406,10 @@ export default {
           class="btn btn-sm bg-primary"
           @click="clear"
         >
-          <t k="wm.containerShell.clear" />
+          <t
+            data-testid="shell-clear-button-label"
+            k="wm.containerShell.clear"
+          />
         </button>
       </div>
       <div class="status pull-left">
@@ -424,6 +428,7 @@ export default {
           v-else
           k="wm.connection.disconnected"
           class="text-error"
+          data-testid="shell-status-disconnected"
         />
       </div>
     </template>
@@ -469,20 +474,14 @@ export default {
   .shell-body {
     padding: calc(2 * var(--outline-width));
     height: 100%;
-
-    & > .terminal.focus {
-      outline: var(--outline-width) solid var(--outline);
-    }
   }
 
-  .containerPicker {
-    :deep() &.unlabeled-select {
-      display: inline-block;
-      min-width: 200px;
-      height: 30px;
-      min-height: 30px;
-      width: initial;
-    }
+  .containerPicker.unlabeled-select {
+    display: inline-block;
+    min-width: 200px;
+    height: 30px;
+    min-height: 30px;
+    width: initial;
   }
 
   .status {

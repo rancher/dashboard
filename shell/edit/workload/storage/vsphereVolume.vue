@@ -46,7 +46,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.vsphereVolume.storagePolicyName"
+          v-model:value.number="value.vsphereVolume.storagePolicyName"
           :mode="mode"
           :label="t('workload.storage.csi.storagePolicyName')"
         />

@@ -33,6 +33,8 @@ const _SPECIFY = 'specify';
 export default {
   name: 'CruGitRepo',
 
+  emits: ['input'],
+
   components: {
     Checkbox,
     ArrayList,

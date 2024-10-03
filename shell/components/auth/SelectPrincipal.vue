@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['add'],
+
   components: {
     LabeledSelect,
     Principal,
@@ -178,7 +180,7 @@ export default {
     v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
-      classes: ['select-principal-tooltip']
+      popperClass: ['select-principal-tooltip']
     }"
     :mode="mode"
     :label="label"
@@ -188,7 +190,7 @@ export default {
     :filterable="false"
     class="select-principal"
     :class="{'retain-selection': retainSelection}"
-    @input="add"
+    @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
     @on-close="setTooltipContent()"

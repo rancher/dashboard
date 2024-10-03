@@ -9,12 +9,9 @@ import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import config from '@shell/edit/auth/ldap/config';
+import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-
-export const SHIBBOLETH = 'shibboleth';
-export const OKTA = 'okta';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {
@@ -125,19 +122,24 @@ export default {
       switch (neu) {
       case SLO_OPTION_VALUES.rancher:
         this.model.logoutAllEnabled = false;
-        this.$set(this.model, 'logoutAllForced', false);
+        this.model.logoutAllForced = false;
         break;
       case SLO_OPTION_VALUES.all:
-        this.$set(this.model, 'logoutAllEnabled', true);
-        this.$set(this.model, 'logoutAllForced', true);
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = true;
         break;
       case SLO_OPTION_VALUES.both:
-        this.$set(this.model, 'logoutAllEnabled', true);
-        this.$set(this.model, 'logoutAllForced', false);
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = false;
         break;
       }
     }
-  }
+  },
+  methods: {
+    onSelected(val, key) {
+      this.model[key] = val;
+    }
+  },
 };
 </script>
 
@@ -309,7 +311,7 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'spKey', $event)"
+              @selected="onSelected($event, 'spKey')"
             />
           </div>
           <div class="col span-4">
@@ -325,7 +327,7 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'spCert', $event)"
+              @selected="onSelected($event, 'spCert')"
             />
           </div>
           <div class="col span-4">
@@ -341,7 +343,7 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'idpMetadataContent', $event)"
+              @selected="onSelected($event, 'idpMetadataContent')"
             />
           </div>
         </div>
@@ -359,7 +361,7 @@ export default {
           <div class="row">
             <div class="col span-4">
               <RadioGroup
-                v-model="sloType"
+                v-model:value="sloType"
                 :mode="mode"
                 :options="sloOptions"
                 :disabled="!model.logoutAllSupported"

@@ -63,8 +63,8 @@ export default {
     v-if="show"
     class="text-center hand"
     placement="top"
-    :open-group="row.id"
-    :trigger="show ? 'click' : 'manual'"
+    :show-group="row.id"
+    :triggers="show ? ['click'] : []"
     offset="1"
   >
     <ProgressBarMulti
@@ -74,7 +74,7 @@ export default {
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"

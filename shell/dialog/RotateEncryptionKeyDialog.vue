@@ -12,6 +12,8 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,

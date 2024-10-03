@@ -26,6 +26,8 @@ const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
 export default {
   name: 'CruHPA',
 
+  emits: ['input'],
+
   components: {
     HpaScalingRule,
     ArrayListGrouped,
@@ -229,7 +231,7 @@ export default {
           <div class="row">
             <div class="col span-6">
               <LabeledInput
-                v-model.number="value.spec.minReplicas"
+                v-model:value.number="value.spec.minReplicas"
                 :mode="mode"
                 :label="t('hpa.workloadTab.min')"
                 placeholder="1"
@@ -239,7 +241,7 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
-                v-model.number="value.spec.maxReplicas"
+                v-model:value.number="value.spec.maxReplicas"
                 :mode="mode"
                 :label="t('hpa.workloadTab.max')"
                 placeholder="1"

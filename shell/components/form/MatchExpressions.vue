@@ -8,6 +8,8 @@ import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update:value', 'remove'],
+
   components: { Select, LabeledSelect },
   props:      {
     // Array of actual match expressions
@@ -346,11 +348,11 @@ export default {
         </div>
         <input
           v-else
-          :value="row.values"
+          v-model="row.values"
           :mode="mode"
           :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
           :data-testid="`input-match-expression-values-control-${index}`"
-          @input="($plainInputEvent) => update($plainInputEvent)"
+          @input="update"
         >
       </div>
       <div

@@ -3,7 +3,7 @@ import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 
 describe('component: ConsumptionGauge', () => {
-  it.skip('(Vue3 Skip) should render component with the correct data applied', () => {
+  it('should render component with the correct data applied', () => {
     const colorStops = {
       0: '--success', 30: '--warning', 70: '--error'
     };
@@ -36,7 +36,7 @@ describe('component: ConsumptionGauge', () => {
 
     // checking PercentageBar component render
     expect(percentageBar.exists()).toBe(true);
-    expect(Number(percentageBar.attributes().value)).toBe(20);
+    expect(percentageBar.props().modelValue).toBe(20);
     expect(percentageBar.props().colorStops).toStrictEqual(colorStops);
   });
 

@@ -1,9 +1,6 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
-import {
-  UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL,
-} from '@shell/config/uiplugins';
+import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import AddExtensionRepos from '@shell/pages/c/_cluster/uiplugins/AddExtensionRepos.vue';
 const mockedStore = () => {
   return {
@@ -13,8 +10,8 @@ const mockedStore = () => {
       t:                      (text: string) => text,
       'management/schemaFor': () => true,
       'management/findAll':   () => [
-        { urlDisplay: UI_PLUGINS_REPO_URL },
-        { urlDisplay: UI_PLUGINS_PARTNERS_REPO_URL },
+        { urlDisplay: UI_PLUGINS_REPOS.OFFICIAL.URL },
+        { urlDisplay: UI_PLUGINS_REPOS.PARTNERS.URL },
       ]
     }
   };
@@ -29,38 +26,27 @@ const requiredSetup = () => {
   };
 };
 
-describe.skip('(Vue3 Skip) component: AddExtensionRepos', () => {
+describe('component: AddExtensionRepos', () => {
   it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
     jest.useFakeTimers();
 
     const wrapper = mount(AddExtensionRepos, {
       global: {
         ...requiredSetup(),
-        // since vue-js-modal uses transitions, we need disable
-        // the default behaviour of transition-stubbing that vue-test-utils has...
-        stubs: { transition: false },
+        stubs: { Dialog: { template: '<span><slot/></span>' } },
       }
     });
 
     wrapper.vm.showDialog();
 
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
     await nextTick();
 
-    jest.advanceTimersByTime(1);
-
-    await nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
+    const rancherCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-official-repo"]');
+    const partnersCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
 
     expect(rancherCheckbox.exists()).toBe(false);
     expect(partnersCheckbox.exists()).toBe(true);
 
-    jest.clearAllTimers();
     wrapper.unmount();
   });
 
@@ -70,32 +56,21 @@ describe.skip('(Vue3 Skip) component: AddExtensionRepos', () => {
     const wrapper = mount(AddExtensionRepos, {
       global: {
         ...requiredSetup(),
-        // since vue-js-modal uses transitions, we need disable
-        // the default behaviour of transition-stubbing that vue-test-utils has...
-        stubs: { transition: false },
+        stubs: { Dialog: { template: '<span><slot/></span>' } },
       }
     });
 
     wrapper.vm.prime = true;
     wrapper.vm.showDialog();
 
-    // these couple of nextTick + advanceTimersByTime are needed for
-    // the dialog content to be rendered!
     await nextTick();
 
-    jest.advanceTimersByTime(1);
-
-    await nextTick();
-
-    jest.advanceTimersByTime(1);
-
-    const rancherCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-official-repo"]');
-    const partnersCheckbox = wrapper.find('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
+    const rancherCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-official-repo"]');
+    const partnersCheckbox = wrapper.findComponent('[data-testid="add-extensions-repos-modal-add-partners-repo"]');
 
     expect(rancherCheckbox.exists()).toBe(true);
     expect(partnersCheckbox.exists()).toBe(true);
 
-    jest.clearAllTimers();
     wrapper.unmount();
   });
 });

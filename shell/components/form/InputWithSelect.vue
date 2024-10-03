@@ -5,6 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Select from '@shell/components/form/Select';
 export default {
   name:       'InputWithSelect',
+  emits:      ['update:value'],
   components: {
     LabeledInput,
     LabeledSelect,
@@ -94,6 +95,12 @@ export default {
     };
   },
 
+  computed: {
+    canPaginate() {
+      return false;
+    }
+  },
+
   methods: {
     focus() {
       const comp = this.$refs.text;
@@ -120,7 +127,6 @@ export default {
   <div
     :class="{ 'select-after': !selectBeforeText }"
     class="input-container row"
-    @update:value="change"
   >
     <LabeledSelect
       v-if="selectLabel"
@@ -170,6 +176,7 @@ export default {
       :mode="mode"
       :rules="textRules"
       v-bind="$attrs"
+      @update:value="change"
     >
       <template #label>
         <slot name="label" />
@@ -186,6 +193,7 @@ export default {
       :disabled="isView"
       :placeholder="placeholder"
       autocomplete="off"
+      @input="change"
     >
   </div>
 </template>

@@ -41,6 +41,8 @@ export default {
 
   name: 'ResourceTable',
 
+  emits: ['clickedActionButton'],
+
   components: { ButtonGroup, SortableTable },
 
   props: {

@@ -6,6 +6,8 @@ import {
 } from '@shell/utils/position';
 
 export default {
+  emits: ['draggable'],
+
   data() {
     return {
       dragOffset:     0,

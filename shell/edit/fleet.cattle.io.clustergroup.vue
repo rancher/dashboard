@@ -16,7 +16,10 @@ import { allHash } from '@shell/utils/promise';
 export default {
   name: 'CruClusterGroup',
 
-  components: {
+  emits: ['input'],
+
+  inheritAttrs: false,
+  components:   {
     Banner,
     CruResource,
     Labels,

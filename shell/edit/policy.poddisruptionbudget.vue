@@ -11,9 +11,11 @@ import { POD } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  name: 'PodDisruptionBudget',
+  name:  'PodDisruptionBudget',
+  emits: ['input'],
 
-  components: {
+  inheritAttrs: false,
+  components:   {
     ResourceSelector,
     CruResource,
     Labels,

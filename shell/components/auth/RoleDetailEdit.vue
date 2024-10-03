@@ -16,6 +16,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import { Banner } from '@components/Banner';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -52,6 +53,8 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *   - Should show only namespace scoped resources
  */
 export default {
+  emits: ['set-subtype', 'input'],
+
   components: {
     ArrayList,
     CruResource,
@@ -63,7 +66,8 @@ export default {
     SortableTable,
     Loading,
     Error,
-    Banner
+    Banner,
+    LabeledInput
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -706,6 +710,7 @@ export default {
                     :options="verbOptions"
                     :multiple="true"
                     :mode="mode"
+                    :compact="true"
                     :data-testid="`grant-resources-verbs${props.i}`"
                     @update:value="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
@@ -719,31 +724,32 @@ export default {
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
+                    :compact="true"
                     :data-testid="`grant-resources-resources${props.i}`"
                     @update:value="setRule('resources', props.row.value, $event)"
                     @createdListItem="setRule('resources', props.row.value, $event)"
                   />
                 </div>
                 <div :class="ruleClass">
-                  <input
+                  <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-api-groups${props.i}`"
-                    @input="($plainInputEvent) => setRule('apiGroups', props.row.value, $plainInputEvent.target.value)"
-                  >
+                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
+                  />
                 </div>
                 <div
                   v-if="!isNamespaced"
                   :class="ruleClass"
                 >
-                  <input
+                  <LabeledInput
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     :data-testid="`grant-resources-non-resource-urls${props.i}`"
-                    @input="($plainInputEvent) => setRule('nonResourceURLs', props.row.value, $plainInputEvent.target.value)"
-                  >
+                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
+                  />
                 </div>
               </div>
             </template>
@@ -777,6 +783,7 @@ export default {
                     option-key="value"
                     option-label="label"
                     :mode="mode"
+                    :compact="true"
                     @on-focus="selectFocused = props.i"
                     @on-blur="selectFocused = null"
                   />
@@ -813,18 +820,9 @@ export default {
     }
 
     .columns {
-      & > .col {
-        &:not(:first-of-type) {
-          height: $input-height;
-        }
-
-        &:first-of-type {
-          min-height: $input-height;
-        }
-
-        & > * {
-          height: 100%;
-        }
+      .col > .unlabeled-select:not(.taggable) {
+        // override the odd padding-top from shell/assets/styles/global/_select.scss
+        padding: $unlabaled-select-padding
       }
     }
   }

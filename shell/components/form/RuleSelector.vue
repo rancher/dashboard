@@ -12,6 +12,8 @@ const OPERATOR_VALUES = {
 };
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: {
     ArrayList,
     LabeledInput,

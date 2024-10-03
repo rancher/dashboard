@@ -8,6 +8,7 @@ import { mapGetters } from 'vuex';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
 
 export default {
+  emits:      ['update:value'],
   components: {
     RadioGroup, UnitInput, InputWithSelect
   },

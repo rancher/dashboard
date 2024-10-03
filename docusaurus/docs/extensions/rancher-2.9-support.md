@@ -1,28 +1,28 @@
 # Rancher 2.9.0 update
 
-## What happened
+## Breaking Changes in 2.9.0
 
-Rancher 2.9.0 contains many improvements, unfortunately some make necessary changes that may invalidate certain versions of Rancher Extensions working with certain versions of Rancher. In a nutshell:
+Some of the changes introduced in Rancher 2.9.0 may cause problems with existing UI Extensions. You should check that your UI Extension(s) continue to operate correctly, if they encounter issues, your Extension(s) are most likely affected by the changes below and you should follow the steps below to update them.
 
-- “Schema diet initiative” changes. Affects how Rancher Dashboard deals with k8s resources and it’s schemas in the scope of the application  
+Two key changes were made that can affect UI Extensions:
 
-- “defineComponent” changes. Outdated JS notations that are overall not compatible with our path towards Vue3
+- “Schema diet initiative” changes. The API that the UI uses to understand which schemas (resources) are available was changed such that it now only returns the top-level schema metadata. A new API was added to retrieve the full scheme definition for a given resource type. This will affect UI Extensions that take advantage of this directly or which use the YAML resource editing for a resource type.
+
+- “defineComponent” changes. The use of `defineComponent` was introduced in 2.9.0 as part of the migration to Vue 3. Due to a way in which Vue is exposed in older versions of Rancher, some UI Extensions may experience compatibility issues at load time.
 
 To support these changes we have made some important changes to Rancher Shell (our core JS package) which helps and protects version compatibility.
 
-
-## What changed in Shell
+## Shell Versioning
 
 Before Rancher 2.9.0 was released, the latest stable Shell version was `0.5.3`. From Rancher 2.9.0 we have updated the Shell versioning system in the following way:
 
 ![Shell versioning 2.9.0](./screenshots/shell-update-2.9-diagram.png)
 
-Effectively, we've had to split Shell into two different versions:
+Effectively, we have split Shell into two different versions:
 
 - `1.2.3` - which is compliant with any **pre-2.9.0** Rancher system (effectively should be the same as using `0.5.3`).
 
 - `2.0.1` - which is compliant and **needed** for a **2.9.0** Rancher system
-
 
 For future releases of your extension to **work on Rancher 2.9.0** you will need to build and release a new version of your extension using Shell `2.0.1`.
 

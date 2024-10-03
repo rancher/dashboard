@@ -4,6 +4,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { NORMAN } from '@shell/config/types';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput },
   mixins:     [CreateEditView],
 

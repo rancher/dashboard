@@ -13,6 +13,8 @@ import {
 export default defineComponent({
   name: 'GKEAuthScopes',
 
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledSelect

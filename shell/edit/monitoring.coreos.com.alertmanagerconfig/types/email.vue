@@ -6,6 +6,8 @@ import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['input'],
+
   components: {
     Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },

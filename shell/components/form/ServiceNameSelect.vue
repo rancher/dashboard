@@ -5,6 +5,8 @@ import { Banner } from '@components/Banner';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect, Banner },
 
   mixins: [labeledFormElement],
@@ -85,8 +87,11 @@ export default {
 
     serviceName() {
       return this.reduce(this.selected);
-    }
+    },
 
+    canPaginate() {
+      return false;
+    },
   },
 
   methods: {

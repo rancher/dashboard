@@ -12,6 +12,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import TLS from '../tls';
 
 export default {
+  emits:      ['input'],
   components: {
     Checkbox, LabeledInput, TLS
   },

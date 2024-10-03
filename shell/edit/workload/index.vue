@@ -2,9 +2,11 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
+import { mapGetters } from 'vuex';
 
 export default {
   name:   'Workload',
+  emits:  ['input'],
   mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:  {
     value: {
@@ -18,7 +20,17 @@ export default {
     },
   },
   data() {
-    return { selectedName: null };
+    return { selectedName: null, closedErrorMessages: [] };
+  },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    errorMessages() {
+      if (!this.type) {
+        return [];
+      }
+
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
+    }
   },
   methods: {
     changed(tab) {
@@ -48,10 +60,7 @@ export default {
         const name = match[0];
         const policy = match[1];
 
-        return {
-          message: `Pod ${ name } Security Policy Violation ${ policy }`,
-          icon:    'icon-pod_security'
-        };
+        return { message: this.t('workload.error', { name, policy }) };
       }
       default:
         break;
@@ -85,7 +94,7 @@ export default {
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="fvUnreportedValidationErrors"
+      :errors="errorMessages"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -93,9 +102,8 @@ export default {
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
-      @error="e=>errors = e"
+      @error="(_, closedError) => closedErrorMessages.push(closedError)"
     >
-      <!-- <pre>{{ JSON.stringify(allContainers, null, 2) }}</pre> -->
       <NameNsDescription
         :value="value"
         :mode="mode"
@@ -126,7 +134,7 @@ export default {
           class="col span-3"
         >
           <LabeledInput
-            v-model.number="spec.replicas"
+            v-model:value.number="spec.replicas"
             type="number"
             min="0"
             required
@@ -177,7 +185,6 @@ export default {
             >
               <template
                 #tab-header-right
-                class="tab-content-controls"
               >
                 <button
                   v-if="allContainers.length > 1 && !isView"
@@ -421,7 +428,7 @@ export default {
               name="resources"
               :weight="tabWeightMap['resources']"
             >
-              <template>
+              <div>
                 <div>
                   <h3 class="mb-10">
                     <t k="workload.scheduling.titles.tolerations" />
@@ -442,7 +449,7 @@ export default {
                   <div class="row">
                     <div class="col span-6">
                       <LabeledInput
-                        v-model.number="podTemplateSpec.priority"
+                        v-model:value.number="podTemplateSpec.priority"
                         :mode="mode"
                         :label="t('workload.scheduling.priority.priority')"
                       />
@@ -456,7 +463,7 @@ export default {
                     </div>
                   </div>
                 </div>
-              </template>
+              </div>
             </Tab>
             <Tab
               :label="t('workload.container.titles.podScheduling')"
@@ -511,7 +518,7 @@ export default {
                 <div class="row">
                   <div class="col span-6">
                     <LabeledInput
-                      v-model.number="podFsGroup"
+                      v-model:value.number="podFsGroup"
                       type="number"
                       :mode="mode"
                       :label="t('workload.container.security.fsGroup')"

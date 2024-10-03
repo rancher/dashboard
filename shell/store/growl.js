@@ -18,11 +18,14 @@ export const getters = {
 
 export const mutations = {
   add(state, data) {
-    state.stack.push({
-      id:      state.nextId++,
-      started: (new Date().getTime()),
-      ...data
-    });
+    state.stack = [
+      ...state.stack,
+      {
+        id:      state.nextId++,
+        started: (new Date().getTime()),
+        ...data
+      }
+    ];
   },
 
   remove(state, id) {

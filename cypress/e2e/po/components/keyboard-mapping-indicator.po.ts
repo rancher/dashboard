@@ -10,6 +10,6 @@ export default class KeyboardMappingIndicatorPo extends ComponentPo {
   }
 
   getTooltipContent(): Cypress.Chainable {
-    return cy.get('.tooltip.vue-tooltip-theme .tooltip-inner');
+    return cy.get('.v-popper__popper.v-popper--theme-tooltip .v-popper__inner');
   }
 }

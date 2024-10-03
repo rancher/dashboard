@@ -67,7 +67,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
   });
 
-  it.skip('[Vue3 Skip]: has the correct title', () => {
+  it('has the correct title', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();

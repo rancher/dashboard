@@ -10,6 +10,8 @@ import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 export default {
   name: 'FleetDetailCluster',
 
+  emits: ['input'],
+
   components: {
     Loading,
     ResourcesSummary,

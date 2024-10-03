@@ -92,6 +92,8 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: {
     AgentEnv,
     BadgeState,
@@ -652,7 +654,10 @@ export default {
     },
 
     isAzureProviderUnsupported() {
-      return isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || this.agentConfig['cloud-provider-name'] === 'azure';
+      const isAzureAvailable = !!this.cloudProviderOptions.find((p) => p.value === 'azure');
+      const isAzureSelected = this.agentConfig['cloud-provider-name'] === 'azure';
+
+      return isAzureAvailable && (isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || isAzureSelected);
     },
 
     canAzureMigrateOnEdit() {
@@ -1541,7 +1546,7 @@ export default {
             versionName: entry.version,
           });
 
-          this.versionInfo.chartName = res;
+          this.versionInfo[chartName] = res;
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
@@ -1558,7 +1563,7 @@ export default {
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
-        this.userChartValuesTemp.name = chartValues;
+        this.userChartValuesTemp[name] = chartValues;
       });
       this.refreshComponentWithYamls(key);
     },
@@ -1584,7 +1589,7 @@ export default {
     },
 
     updateValues(name, values) {
-      this.userChartValuesTemp.name = values;
+      this.userChartValuesTemp[name] = values;
       this.syncChartValues(name);
     },
 
@@ -1868,7 +1873,7 @@ export default {
         const userValues = this.userChartValues[key];
 
         if (userValues) {
-          rkeConfig.chartValues.name = userValues;
+          rkeConfig.chartValues[name] = userValues;
         }
       });
     },
@@ -1999,9 +2004,12 @@ export default {
     handleCisChanged() {
       this.handleCisChange();
     },
+
     handlePsaDefaultChanged() {
+      this.cisOverride = !this.cisOverride;
       this.togglePsaDefault();
     },
+
     handleMachinePoolError(error) {
       this.machinePoolErrors = merge(this.machinePoolErrors, error);
 

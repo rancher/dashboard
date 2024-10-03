@@ -186,7 +186,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       viewYaml.mastheadTitle().should('contain', standardUsername);
     });
 
-    it.skip('[Vue3 Skip]: can Download YAML', () => {
+    it('can Download YAML', () => {
       // Download YAML and verify file exists
       const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
@@ -202,7 +202,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it.skip('[Vue3 Skip]: can Delete user', () => {
+    it('can Delete user', () => {
       // Delete user and verify user is removed from list
       usersPo.goTo();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
@@ -217,7 +217,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe.skip('[Vue3 Skip]: Bulk Actions', () => {
+  describe('Bulk Actions', () => {
     it('can Deactivate and Activate users', () => {
       // Deactivate user and check state is Inactive
       cy.intercept('PUT', '/v3/users/*').as('updateUsers');
@@ -374,11 +374,18 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
           .endButton()
           .click();
 
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
         // check text after navigation
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (count % 10) + 1 } - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Users`);
           });
 
         // navigate to first page - beginning button

@@ -11,6 +11,8 @@ export const NAMESPACE_FILTERS_HELPER = {
 };
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
 
   props: {

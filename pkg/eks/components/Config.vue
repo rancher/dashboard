@@ -19,6 +19,8 @@ import eksVersions from '../assets/data/eks-versions';
 export default defineComponent({
   name: 'EKSConfig',
 
+  emits: ['update:kmsKey', 'update:serviceRole', 'update:kubernetesVersion', 'update:enableNetworkPolicy', 'update:ebsCSIDriver', 'update:serviceRole', 'update:secretsEncryption', 'update:kmsKey', 'update:tags'],
+
   components: {
     LabeledSelect,
     RadioGroup,

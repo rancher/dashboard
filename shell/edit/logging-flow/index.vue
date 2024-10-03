@@ -14,7 +14,7 @@ import { allHash } from '@shell/utils/promise';
 import { isArray } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { clone, set } from '@shell/utils/object';
+import { clone } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -33,6 +33,8 @@ function emptyMatch(include = true) {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     CruResource,
@@ -75,7 +77,7 @@ export default {
     const schemas = this.$store.getters['cluster/all'](SCHEMA);
     let filtersYaml;
 
-    set(this.value, 'spec', this.value.spec || {});
+    this.value.spec = this.value.spec || {};
 
     if ( this.value.spec.filters?.length ) {
       filtersYaml = jsyaml.dump(this.value.spec.filters);
@@ -219,7 +221,7 @@ export default {
           }
         });
 
-        set(this.value.spec, 'match', matches);
+        this.value.spec.match = matches;
       }
     },
     filtersYaml: {
@@ -229,9 +231,9 @@ export default {
           const filterJson = jsyaml.load(this.filtersYaml);
 
           if ( isArray(filterJson) ) {
-            set(this.value.spec, 'filters', filterJson);
+            this.value.spec.filters = filterJson;
           } else {
-            set(this.value.spec, 'filters', undefined);
+            this.value.spec.filters = undefined;
           }
         } catch (e) {
           this.errors = exceptionToErrorsArray(e);
@@ -241,13 +243,13 @@ export default {
     globalOutputRefs: {
       deep: true,
       handler() {
-        set(this.value.spec, 'globalOutputRefs', this.globalOutputRefs);
+        this.value.spec.globalOutputRefs = this.globalOutputRefs;
       }
     },
     localOutputRefs: {
       deep: true,
       handler() {
-        set(this.value.spec, 'localOutputRefs', this.localOutputRefs);
+        this.value.spec.localOutputRefs = this.localOutputRefs;
       }
     }
   },
@@ -262,7 +264,7 @@ export default {
 
   methods: {
     addMatch(include) {
-      this.matches.push(emptyMatch(include));
+      this.matches = [...this.matches, emptyMatch(include)];
     },
 
     removeMatch(idx) {

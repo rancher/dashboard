@@ -116,6 +116,8 @@ function migrate(expr) {
 }
 
 export default {
+  emits: ['updated'],
+
   components: {
     ...knownTypes,
     Tab,

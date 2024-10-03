@@ -7,6 +7,7 @@ $max-width: 1440px !default;
 $min-width: 75% !default;
 $input-height: 61px;
 $unlabeled-input-height: 40px;
+$unlabaled-select-padding: 3px 0;
 
 $input-padding-lg: 18px;
 $input-padding-sm: 10px;
@@ -24,10 +25,19 @@ $z-indexes: (
   overContent: 2,
   hoverOverContent: 3,
 
-  mainHeader: 12,
-
   tableGroup: 10,
   fixedTableHeader: 11,
+
+  // ---- Boundary for central content (in `<main>`)
+
+  // This covers both relative and content modes of the loading indicator
+  loading: 12,
+
+  // Users can click on shell in header and show shell even with most loading indicators showing,
+  // so add it above them
+  windowsManager: 13,
+
+  mainHeader: 14,
 
   modalOverlay: 20,
   modalContent: 21,
@@ -37,8 +47,7 @@ $z-indexes: (
   dropdownOverlay: 40,
   dropdownContent: 41,
 
-  loadingOverlay: 50,
-  loadingContent: 51
+  loadingMain: 51
 );
 
 // Usage Example:

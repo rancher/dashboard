@@ -22,7 +22,7 @@ const invalidTokenEndpoint = 'aaaaBBBBaaaa';
 const invalidGraphEndpoint = 'aaaaBBBBaaaa';
 
 const mockModel = {
-  enabled:  true,
+  enabled:  false,
   id:       'azuread',
   endpoint: 'https://login.microsoftonline.com/',
   type:     'azureADConfig',
@@ -35,7 +35,7 @@ describe('edit: azureAD should', () => {
       return {
         isEnabling:     true,
         editConfig:     false,
-        model:          mockModel,
+        model:          { ...mockModel },
         serverSetting:  null,
         errors:         [],
         originalModel:  null,
@@ -79,7 +79,7 @@ describe('edit: azureAD should', () => {
     expect(saveButton.disabled).toBe(true);
   });
 
-  it.skip.each([
+  it.each([
     {
       tenantId:          '',
       applicationId:     '',
@@ -110,7 +110,7 @@ describe('edit: azureAD should', () => {
       applicationSecret: validAppSecret,
       result:            false
     },
-  ])('(Vue3 Skip) has "Create" button enabled and disabled depending on validation results when endpoint is standard', async(testCase) => {
+  ])('has "Create" button enabled and disabled depending on validation results when endpoint is standard', async(testCase) => {
     const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]');
     const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]');
     const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]');
@@ -121,11 +121,10 @@ describe('edit: azureAD should', () => {
     applicationSecretInputField.setValue(testCase.applicationSecret);
     await nextTick();
 
-    // TODO: This appears to be close.. It looks like form validation is failing for some reason on the final test iteration.
     expect(saveButton.disabled).toBe(testCase.result);
   });
 
-  it.skip.each([
+  it.each([
     {
       endpoint:      '',
       graphEndpoint: '',
@@ -203,7 +202,7 @@ describe('edit: azureAD should', () => {
       authEndpoint:  validAuthEndpoint,
       result:        false
     }
-  ])('(Vue3 Skip) has "Create" button enabled and disabled depending on validation results when endpoint is custom', async(testCase) => {
+  ])('has "Create" button enabled and disabled depending on validation results when endpoint is custom', async(testCase) => {
     const tenantIdInputField = wrapper.find('[data-testid="input-azureAD-tenantId"]');
     const applicationIdInputField = wrapper.find('[data-testid="input-azureAD-applcationId"]');
     const applicationSecretInputField = wrapper.find('[data-testid="input-azureAD-applicationSecret"]');
@@ -223,10 +222,10 @@ describe('edit: azureAD should', () => {
     await nextTick();
     expect(saveButton.disabled).toBe(true);
 
-    const endpointInputField = wrapper.find('[data-testid="input-azureAD-endpoint"]').find('input');
-    const graphEndpointInputField = wrapper.find('[data-testid="input-azureAD-graphEndpoint"]').find('input');
-    const tokenEndpointInputField = wrapper.find('[data-testid="input-azureAD-tokenEndpoint"]').find('input');
-    const authEndpointInputField = wrapper.find('[data-testid="input-azureAD-authEndpoint"]').find('input');
+    const endpointInputField = wrapper.find('[data-testid="input-azureAD-endpoint"]');
+    const graphEndpointInputField = wrapper.find('[data-testid="input-azureAD-graphEndpoint"]');
+    const tokenEndpointInputField = wrapper.find('[data-testid="input-azureAD-tokenEndpoint"]');
+    const authEndpointInputField = wrapper.find('[data-testid="input-azureAD-authEndpoint"]');
 
     endpointInputField.setValue(testCase.endpoint);
     graphEndpointInputField.setValue(testCase.graphEndpoint);

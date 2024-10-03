@@ -153,7 +153,7 @@ export default {
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"
-            :disabled="!fel.enabled"
+            :disabled="!fel.enabled ? true : null"
             target="_blank"
             rel="noopener noreferrer"
             :class="{ 'subtype-banner': true, disabled: !fel.enabled }"

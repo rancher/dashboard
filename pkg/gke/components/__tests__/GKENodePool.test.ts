@@ -39,7 +39,7 @@ const requiredSetup = () => {
 
 jest.mock('@pkg/gke/util/gcp');
 
-describe.skip('(Vue3 Skip) gke node pool', () => {
+describe('gke node pool', () => {
   it('should offer a dropdown of service account options defaulting to null opt', async() => {
     const setup = requiredSetup();
 
@@ -52,7 +52,7 @@ describe.skip('(Vue3 Skip) gke node pool', () => {
       ...setup
     });
 
-    const serviceAccountSelect = wrapper.find('[data-testid="gke-service-account-select"]');
+    const serviceAccountSelect = wrapper.getComponent('[data-testid="gke-service-account-select"]');
 
     expect(serviceAccountSelect.props().value).toStrictEqual(serviceAccountOptions[0]);
 
@@ -79,7 +79,7 @@ describe.skip('(Vue3 Skip) gke node pool', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(true);
 
@@ -101,11 +101,11 @@ describe.skip('(Vue3 Skip) gke node pool', () => {
       ...setup
     });
 
-    const versionDisplay = wrapper.find('[data-testid="gke-k8s-display"]');
+    const versionDisplay = wrapper.findComponent('[data-testid="gke-k8s-display"]');
 
     expect(versionDisplay.exists()).toBe(false);
 
-    const versionUpgradeCheckbox = wrapper.find('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.findComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
 
     expect(versionUpgradeCheckbox.exists()).toBe(true);
 
@@ -129,7 +129,7 @@ describe.skip('(Vue3 Skip) gke node pool', () => {
       ...setup
     });
 
-    const versionUpgradeCheckbox = wrapper.find('[data-testid="gke-k8s-upgrade-checkbox"]');
+    const versionUpgradeCheckbox = wrapper.getComponent('[data-testid="gke-k8s-upgrade-checkbox"]');
 
     versionUpgradeCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
@@ -153,7 +153,7 @@ describe.skip('(Vue3 Skip) gke node pool', () => {
       ...setup
     });
 
-    const taints = wrapper.find('[data-testid="gke-taints-comp"]');
+    const taints = wrapper.getComponent('[data-testid="gke-taints-comp"]');
 
     // the effectValues prop functionality is tested in the Taints component's unit tests
     expect(taints.props().effectValues).toStrictEqual({

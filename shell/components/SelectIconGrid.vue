@@ -4,6 +4,8 @@ import { get } from '@shell/utils/object';
 import capitalize from 'lodash/capitalize';
 
 export default {
+  emits: ['clicked'],
+
   components: { LazyImage },
 
   props: {

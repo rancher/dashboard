@@ -12,6 +12,8 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI, SERVICE } from '@shell/config/types';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput,
     LabeledSelect,
@@ -302,7 +304,7 @@ export default {
 
       <div class="port">
         <LabeledInput
-          v-model.number="row.containerPort"
+          v-model:value.number="row.containerPort"
           :mode="mode"
           type="number"
           min="1"
@@ -331,7 +333,7 @@ export default {
       >
         <LabeledInput
           ref="port"
-          v-model.number="row.hostPort"
+          v-model:value.number="row.hostPort"
           :mode="mode"
           type="number"
           min="1"
@@ -373,7 +375,7 @@ export default {
       <div v-if="row._serviceType === 'LoadBalancer' || row._serviceType === 'NodePort'">
         <LabeledInput
           ref="port"
-          v-model.number="row._listeningPort"
+          v-model:value.number="row._listeningPort"
           type="number"
           :mode="mode"
           :label="t('workload.container.ports.listeningPort')"

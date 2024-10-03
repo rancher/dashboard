@@ -33,9 +33,12 @@ export default {
   computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   watch: {
-    volumeMounts(neu) {
-      this.container.volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name && (mount.name !== this.name));
-      this.container.volumeMounts.push(...neu);
+    volumeMounts: {
+      handler(neu) {
+        this.container.volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name && (mount.name !== this.name));
+        this.container.volumeMounts.push(...neu);
+      },
+      deep: true
     },
 
     name(neu) {
@@ -90,7 +93,7 @@ export default {
       :key="i"
       class="mount-rows"
     >
-      <div>
+      <div :data-testid="`mount-path-${i}`">
         <LabeledInput
           :id="`mount-path-${i}`"
           v-model:value="volumeMount.mountPath"

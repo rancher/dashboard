@@ -32,11 +32,11 @@ export default {
   <v-dropdown
     class="text-center hand machine-summary-graph"
     placement="top"
-    :open-group="row.id"
-    trigger="click"
+    :show-group="row.id"
+    :triggers="['click']"
     offset="1"
   >
-    <template #popover>
+    <template #popper>
       <table class="fixed">
         <tbody>
           <tr

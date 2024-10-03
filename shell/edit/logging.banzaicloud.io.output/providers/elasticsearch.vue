@@ -96,7 +96,7 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model.number="port"
+          v-model:value.number="port"
           :mode="mode"
           :disabled="disabled"
           class="port"

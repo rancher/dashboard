@@ -8,6 +8,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
+  emits: ['add', 'remove', 'update:value'],
+
   components: { TextAreaAutoGrow, LabeledInput },
   props:      {
     value: {
@@ -78,6 +80,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    required: {
+      type:    Boolean,
+      default: false
+    },
     rules: {
       default:   () => [],
       type:      Array,
@@ -86,7 +92,7 @@ export default {
     }
   },
   data() {
-    const input = (this.value || []).slice();
+    const input = (Array.isArray(this.value) ? this.value : []).slice();
     const rows = [];
 
     for ( const value of input ) {
@@ -228,6 +234,10 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <span
+            v-if="required"
+            class="required"
+          >*</span>
           <i
             v-if="showProtip"
             v-clean-tooltip="protip"
@@ -367,6 +377,11 @@ export default {
   .title {
     margin-bottom: 10px;
   }
+
+  .required {
+    color: var(--error);
+  }
+
   .box {
     display: grid;
     grid-template-columns: auto $array-list-remove-margin;
@@ -375,7 +390,7 @@ export default {
     .value {
       flex: 1;
       INPUT {
-        height: $input-height;
+        height: $unlabeled-input-height;
       }
     }
   }

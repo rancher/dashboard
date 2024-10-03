@@ -4,6 +4,8 @@ import FileSelector from '@shell/components/form/FileSelector';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value', 'error'],
+
   components: { FileSelector, LazyImage },
   props:      {
     value: {

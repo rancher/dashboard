@@ -6,6 +6,8 @@ import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledInput,
@@ -48,7 +50,8 @@ export default {
       'SETGID',
       'SETPCAP',
       'SETUID',
-      'SYSLOGSYS_ADMIN',
+      'SYSLOG',
+      'SYS_ADMIN',
       'SYS_BOOT',
       'SYS_CHROOT',
       'SYS_MODULE',
@@ -198,7 +201,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model.number="runAsUser"
+          v-model:value.number="runAsUser"
           :label="t('workload.container.security.runAsUser')"
           :mode="mode"
           @update:value="update"

@@ -15,6 +15,8 @@ import { Card } from '@components/Card';
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
  */
 export default {
+  emits: ['hasChanges', 'canLogIn', 'changed'],
+
   components: {
     Checkbox,
     Loading,

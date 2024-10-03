@@ -4,7 +4,7 @@ import type { Setting } from '@shell/types/resources/settings';
 
 const mockStore = { dispatch: jest.fn() };
 
-jest.mock('@shell/composables/useStore', () => ({ useStore: () => mockStore }));
+jest.mock('vuex', () => ({ useStore: () => mockStore }));
 
 const mockI18n = { t: (key: string) => key };
 

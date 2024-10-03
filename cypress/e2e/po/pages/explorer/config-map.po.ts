@@ -41,4 +41,8 @@ export class ConfigMapPagePo extends PagePo {
   searchForConfigMap(name: string) {
     return this.list().resourceTable().sortableTable().filter(name);
   }
+
+  title() {
+    return this.self().get('.title h1').invoke('text');
+  }
 }

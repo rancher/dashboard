@@ -3,6 +3,8 @@ import ArrayList from '@shell/components/form/ArrayList';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { ArrayList },
   mixins:     [Question],
 

@@ -20,6 +20,8 @@ import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     ClusterMembershipEditor,

@@ -4,6 +4,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 
 export default {
+  emits: ['update:value'],
+
   components: { HookOption },
 
   props: {

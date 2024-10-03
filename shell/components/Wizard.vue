@@ -4,6 +4,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
+import LazyImage from '@shell/components/LazyImage';
 
 /*
 Wizard accepts an array of steps (see props), and creates named slots for each step.
@@ -22,10 +23,13 @@ Wizard will emit these events:
 export default {
   name: 'Wizard',
 
+  emits: ['next', 'cancel', 'finish'],
+
   components: {
     AsyncButton,
     Banner,
     Loading,
+    LazyImage,
   },
 
   props: {

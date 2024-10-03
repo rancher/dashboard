@@ -6,6 +6,8 @@ import ResourceCancelModal from '@shell/components/ResourceCancelModal';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['cancel-confirmed', 'finish'],
+
   components: { AsyncButton, ResourceCancelModal },
   props:      {
     mode: {

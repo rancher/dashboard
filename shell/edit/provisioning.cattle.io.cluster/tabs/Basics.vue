@@ -16,6 +16,8 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 const HARVESTER = 'harvester';
 
 export default {
+  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'cis-changed', 'psa-default-changed'],
+
   components: {
     Banner,
     Checkbox,

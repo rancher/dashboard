@@ -7,6 +7,8 @@ import { mapGetters } from 'vuex';
 import { SECRET } from '@shell/config/types';
 
 export default {
+  emits: ['valid'],
+
   components: {
     LabeledInput,
     Checkbox,

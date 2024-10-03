@@ -7,6 +7,8 @@ import { get, set } from '@shell/utils/object';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledSelect, Banner },
   mixins:     [CreateEditView],
 

@@ -39,6 +39,8 @@ const PROXY_ENDPOINT = '/meta/proxy';
 export default {
   name: 'CruCluster',
 
+  emits: ['update:value', 'set-subtype', 'input'],
+
   components: {
     CruResource,
     EmberPage,
@@ -50,8 +52,6 @@ export default {
   },
 
   mixins: [CreateEditView],
-
-  emits: ['set-subtype'],
 
   inheritAttrs: false,
 

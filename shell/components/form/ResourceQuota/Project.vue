@@ -4,6 +4,8 @@ import Row from './ProjectRow';
 import { QUOTA_COMPUTED } from './shared';
 
 export default {
+  emits: ['remove', 'input'],
+
   components: { ArrayList, Row },
 
   props: {

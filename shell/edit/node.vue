@@ -8,6 +8,8 @@ import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 export default {
+  emits: ['input'],
+
   components: {
     CruResource,
     Labels,
@@ -17,9 +19,9 @@ export default {
     Taints,
   },
 
-  mixins: [createEditView],
-
-  props: {
+  mixins:       [createEditView],
+  inheritAttrs: false,
+  props:        {
     value: {
       type:     Object,
       required: true,

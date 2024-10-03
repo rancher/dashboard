@@ -6,6 +6,8 @@ import { clone } from '@shell/utils/object';
 import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
+  emits: ['update:value'],
+
   components: { Checkbox },
   props:      {
     value: {
@@ -156,12 +158,12 @@ export default {
             <input
               v-else
               ref="port"
-              :value="row.port"
+              v-model.number="row.port"
               type="number"
               min="1"
               max="65535"
               placeholder="e.g. 8080"
-              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+              @input="queueUpdate"
             >
           </td>
           <td class="protocol">
@@ -195,12 +197,12 @@ export default {
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
-              :value="row.targetPort"
+              v-model.number="row.targetPort"
               type="number"
               min="1"
               max="65535"
               placeholder="e.g. 80"
-              @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+              @input="queueUpdate"
             >
           </td>
           <td class="expose">

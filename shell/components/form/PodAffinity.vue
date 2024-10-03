@@ -20,6 +20,8 @@ const NAMESPACE_SELECTION_OPTION_VALUES = {
 };
 
 export default {
+  emits: ['update'],
+
   components: {
     ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
   },
@@ -470,7 +472,7 @@ export default {
               class="col span-3"
             >
               <LabeledInput
-                v-model.number="props.row.value.weight"
+                v-model:value.number="props.row.value.weight"
                 :mode="mode"
                 type="number"
                 min="1"
@@ -478,6 +480,7 @@ export default {
                 :label="t('workload.scheduling.affinity.weight.label')"
                 :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
                 :data-testid="`pod-affinity-weight-index${props.i}`"
+                @update:value="update"
               />
             </div>
           </div>

@@ -16,6 +16,8 @@ export function canViewClusterPermissionsEditor(store) {
 }
 
 export default {
+  emits: ['update:value'],
+
   components: {
     Card,
     Checkbox,

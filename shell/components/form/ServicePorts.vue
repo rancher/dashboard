@@ -7,6 +7,8 @@ import Select from '@shell/components/form/Select';
 import Error from '@shell/components/form/Error';
 
 export default {
+  emits: ['update:value'],
+
   components: { Select, Error },
   props:      {
     value: {
@@ -183,10 +185,10 @@ export default {
           <input
             v-else
             ref="port-name"
-            :value="row.name"
+            v-model.number="row.name"
             type="text"
             :placeholder="t('servicePorts.rules.name.placeholder')"
-            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+            @input="queueUpdate"
           >
         </div>
         <div class="port">
@@ -194,12 +196,12 @@ export default {
           <input
             v-else
             ref="port"
-            :value="row.port"
+            v-model.number="row.port"
             type="number"
             min="1"
             max="65535"
             :placeholder="t('servicePorts.rules.listening.placeholder')"
-            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+            @input="queueUpdate"
           >
         </div>
         <div
@@ -218,9 +220,9 @@ export default {
           <span v-if="isView">{{ row.targetPort }}</span>
           <input
             v-else
-            :value="row.targetPort"
+            v-model="row.targetPort"
             :placeholder="t('servicePorts.rules.target.placeholder')"
-            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+            @input="queueUpdate"
           >
         </div>
         <div
@@ -230,12 +232,12 @@ export default {
           <span v-if="isView">{{ row.nodePort }}</span>
           <input
             v-else
-            :value="row.nodePort"
+            v-model.number="row.nodePort"
             type="number"
             min="1"
             max="65535"
             :placeholder="t('servicePorts.rules.node.placeholder')"
-            @input="($plainInputEvent) => queueUpdate($plainInputEvent)"
+            @input="queueUpdate"
           >
         </div>
         <div

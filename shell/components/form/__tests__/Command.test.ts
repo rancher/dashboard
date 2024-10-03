@@ -14,16 +14,17 @@ describe('component: Command', () => {
     expect(inputWraps).toHaveLength(5);
   });
 
-  it.skip.each([
+  it.each([
     'command',
     'args',
     'workingDir',
-  ])('(Vue3 Skip) should emit an update on %p input', (field) => {
+  ])('should emit an update on %p input', (field) => {
     const wrapper = mount(Command, { props: { mode: _EDIT } });
-    const input = wrapper.find(`[data-testid="input-command-${ field }"]`).find('input');
-    const newValue = 123;
+    const inputComponent = wrapper.getComponent(`[data-testid="input-command-${ field }"]>*`);
 
-    input.setValue(newValue);
+    const newValue = ['123'];
+
+    inputComponent.vm.$emit('update:value', newValue);
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
   });

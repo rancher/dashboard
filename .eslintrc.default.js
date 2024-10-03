@@ -189,7 +189,7 @@ module.exports = {
     ],
     'vue/one-component-per-file':       'off',
     'vue/no-deprecated-slot-attribute': 'off',
-    'vue/require-explicit-emits':       'off',
+    'vue/require-explicit-emits':       'error',
     'vue/v-on-event-hyphenation':       'off'
   },
   overrides: [

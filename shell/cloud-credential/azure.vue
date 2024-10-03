@@ -6,6 +6,8 @@ import { parseAzureError } from '@shell/utils/azure';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput, LabeledSelect },
   mixins:     [CreateEditView],
 

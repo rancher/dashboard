@@ -43,6 +43,8 @@ const INTERCEPTS = {
 };
 
 export default {
+  emits: ['before-nav'],
+
   components: { Loading },
 
   props: {

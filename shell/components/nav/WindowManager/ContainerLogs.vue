@@ -10,6 +10,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
+import { shallowRef } from 'vue';
+import { debounce } from 'lodash';
 
 import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
@@ -130,18 +132,19 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod?.defaultContainerName,
-      socket:      null,
-      isOpen:      false,
-      isFollowing: true,
-      timestamps:  this.$store.getters['prefs/get'](LOGS_TIME),
-      wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
-      previous:    false,
-      search:      '',
-      backlog:     [],
-      lines:       [],
-      now:         new Date(),
-      logItem:     LogItem
+      container:       this.initialContainer || this.pod?.defaultContainerName,
+      socket:          null,
+      isOpen:          false,
+      isFollowing:     true,
+      scrollThreshold: 80,
+      timestamps:      this.$store.getters['prefs/get'](LOGS_TIME),
+      wrap:            this.$store.getters['prefs/get'](LOGS_WRAP),
+      previous:        false,
+      search:          '',
+      backlog:         [],
+      lines:           [],
+      now:             new Date(),
+      logItem:         shallowRef(LogItem),
     };
   },
 
@@ -275,6 +278,17 @@ export default {
       this.connect();
     },
 
+    lines: {
+      handler() {
+        if (this.isFollowing) {
+          this.$nextTick(() => {
+            this.follow();
+          });
+        }
+      },
+      deep: true
+    }
+
   },
 
   beforeUnmount() {
@@ -284,7 +298,7 @@ export default {
   async mounted() {
     await this.connect();
     this.boundFlush = this.flush.bind(this);
-    this.timerFlush = setInterval(this.boundFlush, 100);
+    this.timerFlush = setInterval(this.boundFlush, 200);
   },
 
   methods: {
@@ -417,21 +431,21 @@ export default {
           this.lines = this.lines.slice(-maxLines);
         }
       }
-
-      if ( this.isFollowing ) {
-        this.$nextTick(() => {
-          this.follow();
-        });
-      }
     },
 
-    updateFollowing() {
+    updateFollowing: debounce(function() {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
+        const scrollSize = virtualList.getScrollSize();
+        const clientSize = virtualList.getClientSize();
+        const offset = virtualList.getOffset();
+
+        const distanceFromBottom = scrollSize - clientSize - offset;
+
+        this.isFollowing = distanceFromBottom <= this.scrollThreshold;
       }
-    },
+    }, 100),
 
     parseRange(range) {
       range = `${ range }`.trim().toLowerCase();
@@ -503,7 +517,8 @@ export default {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        virtualList.$el.scrollTop = virtualList.getScrollSize();
+        virtualList.scrollToBottom();
+        this.isFollowing = true;
       }
     },
 
@@ -606,15 +621,16 @@ export default {
 
         <div class="log-action log-action-group ml-5">
           <v-dropdown
-            trigger="click"
+            :triggers="['click']"
             placement="top"
+            popperClass="containerLogsDropdown"
           >
             <button class="btn bg-primary btn-cog">
               <i class="icon icon-gear" />
               <i class="icon icon-chevron-up" />
             </button>
 
-            <template #popover>
+            <template #popper>
               <div class="filter-popup">
                 <LabeledSelect
                   v-model:value="range"
@@ -646,11 +662,10 @@ export default {
 
         <div class="log-action log-action-group ml-5">
           <input
-            :value="search"
+            v-model="search"
             class="input-sm"
             type="search"
             :placeholder="t('wm.containerLogs.search')"
-            @input="($plainInputEvent) => search = $plainInputEvent.target.value"
           >
         </div>
 
@@ -670,11 +685,11 @@ export default {
         <VirtualList
           v-show="filtered.length"
           ref="virtualList"
+          class="virtual-list"
           data-key="id"
           :data-sources="filtered"
           :data-component="logItem"
           direction="vertical"
-          class="virtual-list"
           :keeps="200"
           @scroll="updateFollowing"
         />

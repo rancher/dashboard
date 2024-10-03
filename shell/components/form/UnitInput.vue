@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 export default {
   components: { LabeledInput },
 
+  emits: ['update:value'],
+
   props: {
     /**
      * Convert output to string

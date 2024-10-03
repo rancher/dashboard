@@ -41,10 +41,11 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
 export default {
+  emits:        ['set-subtype'],
   // Props are found in CreateEditView
   // props: {},
-
-  components: {
+  inheritAttrs: false,
+  components:   {
     ArrayList,
     Banner,
     CruResource,
@@ -107,7 +108,8 @@ export default {
         SESSION_AFFINITY_ACTION_VALUES
       ),
       fvFormRuleSets:            [],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      closedErrorMessages:       []
     };
   },
 
@@ -207,6 +209,13 @@ export default {
 
       return out;
     },
+    errorMessages() {
+      if (!this.serviceType) {
+        return [];
+      }
+
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
+    }
   },
 
   watch: {
@@ -340,7 +349,7 @@ export default {
     :selected-subtype="serviceType"
     :subtypes="defaultServiceTypes"
     :validation-passed="fvFormIsValid"
-    :errors="fvUnreportedValidationErrors"
+    :errors="errorMessages"
     :apply-hooks="applyHooks"
     :description="t('servicesPage.serviceListDescription')"
     @error="(e) => (errors = e)"
@@ -369,7 +378,7 @@ export default {
             <LabeledInput
               v-else
               ref="external-name"
-              v-model.number="value.spec.externalName"
+              v-model:value.number="value.spec.externalName"
               :mode="mode"
               :label="t('servicesPage.externalName.input.label')"
               :placeholder="t('servicesPage.externalName.placeholder')"

@@ -5,6 +5,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
+  emits: ['validationChanged'],
+
   components: {
     Loading, LabeledInput, LabeledSelect
   },

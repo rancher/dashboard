@@ -19,6 +19,8 @@ import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types'
 import { CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
 
 export default {
+  emits: ['register-before-hook', 'input'],
+
   components: {
     Alerting,
     Checkbox,

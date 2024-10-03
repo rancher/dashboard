@@ -14,6 +14,7 @@ import { clone } from '@shell/utils/object';
 
 export default {
   name:       'AlertmanagerConfigReceiverCreateEdit',
+  emits:      ['error'],
   components: {
     ActionMenu,
     ButtonGroup,

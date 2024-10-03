@@ -52,8 +52,8 @@ export default {
   <v-dropdown
     :class="{'hand': showHover}"
     placement="top"
-    :open-group="row.id"
-    :trigger="showHover ? 'click' : 'manual'"
+    :show-group="row.id"
+    :triggers="showHover ? ['click'] : []"
     offset="1"
   >
     <span>
@@ -83,7 +83,7 @@ export default {
       </span>
     </span>
 
-    <template #popover>
+    <template #popper>
       <div
         v-if="canAdjust"
         class="text-center pb-5"

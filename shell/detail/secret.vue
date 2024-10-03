@@ -18,6 +18,8 @@ const registryAddresses = [
 ];
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTabs,
     DetailText,

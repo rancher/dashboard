@@ -2,7 +2,7 @@ import { nextTick } from 'vue';
 import { shallowMount, RouterLinkStub } from '@vue/test-utils';
 import Type from '@shell/components/nav/Type.vue';
 import { createChildRenderingRouterLinkStub } from '@shell/utils/unit-tests/ChildRenderingRouterLinkStub';
-import { TYPE_MODES } from '@shell/store/type-map';
+import { TYPE_MODES } from '@shell/store/type-map.js';
 
 // Configuration
 const activeClass = 'router-link-active';
@@ -25,6 +25,12 @@ describe('component: Type', () => {
         'cluster/count': () => defaultCount,
       }
     };
+    const routerMock = {
+      resolve: jest.fn((route) => {
+        return { fullPath: route };
+      })
+    };
+    const routeMock = { fullPath: 'route' };
 
     describe('should pass props correctly', () => {
       it('should forward Type props to router-link', () => {
@@ -33,8 +39,10 @@ describe('component: Type', () => {
 
           global: {
             directives: { cleanHtml: (identity) => identity },
-            mocks:      { $store: storeMock },
-            stubs:      { routerLink: RouterLinkStub },
+            mocks:      {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: RouterLinkStub },
           },
         });
 
@@ -51,7 +59,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub({ href: fakeHref }) },
           },
         });
@@ -69,8 +79,10 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: true, navigate }) },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ navigate }) },
           },
         });
 
@@ -90,8 +102,10 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: false }) },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: { fullPath: 'bad' }
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
 
@@ -107,7 +121,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: false }) },
           },
         });
@@ -124,7 +140,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
@@ -143,8 +161,10 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
-            stubs: { routerLink: createChildRenderingRouterLinkStub({ isActive: true }) },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
 
@@ -160,7 +180,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
           },
         });
@@ -177,7 +199,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
@@ -194,7 +218,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
@@ -211,7 +237,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
             stubs: { routerLink: createChildRenderingRouterLinkStub() },
           },
         });
@@ -230,7 +258,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -256,7 +286,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -277,7 +309,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -306,7 +340,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -327,7 +363,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -355,7 +393,9 @@ describe('component: Type', () => {
                   currentStore:    () => 'cluster',
                   'cluster/count': () => null,
                 }
-              }
+              },
+              $router: routerMock,
+              $route:  routeMock
             },
 
             stubs: {
@@ -379,7 +419,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),
@@ -400,7 +442,9 @@ describe('component: Type', () => {
           global: {
             directives: { cleanHtml: (identity) => identity },
 
-            mocks: { $store: storeMock },
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
 
             stubs: {
               routerLink: createChildRenderingRouterLinkStub(),

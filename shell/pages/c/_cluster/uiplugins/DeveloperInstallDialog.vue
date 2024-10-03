@@ -4,9 +4,11 @@ import AppModal from '@shell/components/AppModal.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
-import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
+  emits: ['closed'],
+
   components: {
     AsyncButton,
     Checkbox,
@@ -105,8 +107,9 @@ export default {
               endpoint: url,
               noCache:  true,
               metadata: {
-                developer: 'true',
-                direct:    'true'
+                developer:                                        'true',
+                direct:                                           'true',
+                [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3',
               },
               noAuth: true
             }

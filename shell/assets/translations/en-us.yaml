@@ -438,7 +438,7 @@ authConfig:
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Create Service Account credentials'
-        introduction: 'Follow <a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
+        introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
         body:
           1: Create a service account.
           2: Generate a key for the service account.
@@ -1134,7 +1134,7 @@ cis:
   alertNeeded: |-
     Alerting must be enabled within the CIS chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
-    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'> configured to send out alerts.</a>
+    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -1177,6 +1177,7 @@ cis:
     total: Total
     warn: Warn
   scheduling:
+    title: Scheduling
     disable: Run scan once
     enable: Run scan on a schedule
   scoreWarning:
@@ -1185,6 +1186,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
+  alerting: Alerting
 
 cluster:
   jwtAuthentication:
@@ -1883,7 +1885,7 @@ cluster:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
     description: "If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
-    docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">documentation.</a>"
+    docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration\" target=\"_blank\">documentation.</a>"
     docsLinkK3s: "For help configuring private registry mirrors, see the K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">documentation.</a>"
   provider:
     aliyunecs: Aliyun ECS
@@ -1927,6 +1929,7 @@ cluster:
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
+    ovhcloudmks: OVHcloud MKS
     packet: Equinix Metal
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
@@ -3482,7 +3485,7 @@ monitoring:
       keyFilePath:
         label: Key File Path
         placeholder: e.g. ./key-file.pfx
-      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
+      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/how-to-guides/advanced-user-guides/monitoring-alerting-guides" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
   projectMonitoring:
     detail:
       error: "Unable to fetch Dashboard values with status: "
@@ -4262,8 +4265,11 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
-  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
+  incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
+  incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
+  incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
@@ -4281,9 +4287,11 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
-    api: This Extension is not compatible with the current Extensions API version
-    host: This Extension is not compatible with this application
-    version: This Extension is not compatible with this version of Rancher
+    apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
+    api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
+    host: Unable to load Extension. The version installed is not compatible with this application host
+    version: Unable to load Extension. The version installed is not compatible with the current version of Rancher
+    kubeVersion: Unable to load Extension. The version installed is not compatible with the current Rancher kubernetes version
     load: An error occurred loading the code for this Extension
     developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:
@@ -4301,8 +4309,11 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresRancherVersion: "Requires Rancher {version}"
-    requiresKubeVersion: "Requires Kube version {version}"
+    requiresRancherVersion: "Requires Rancher {required}"
+    requiresKubeVersion: "Requires Kube version {required}"
+    requiresExtensionApiVersionMissing: 'Missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards'
+    requiresExtensionApiVersion: "Requires Extensions API version {required}"
+    requiresHost: 'Requires a host that matches "{mainHost}"'
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
@@ -5243,7 +5254,7 @@ setup:
     skip: Skip
     tip: What URL should be used for this {vendor} installation? All the nodes in your clusters will need to be able to reach this.
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
+  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
   welcome: Welcome to {vendor}!
@@ -6287,6 +6298,7 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+  error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
     running: Running

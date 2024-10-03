@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import { get, set } from '@shell/utils/object';
 
 export default {
+  emits:      ['update:value'],
   components: {
     LabeledInput, LabeledSelect, Banner
   },
@@ -115,7 +116,7 @@ export default {
       >
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
-          v-model.number="servicePort"
+          v-model:value.number="servicePort"
           :mode="mode"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"

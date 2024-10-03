@@ -1,8 +1,8 @@
 import PortalVue from 'portal-vue';
-import VueResize from 'vue-resize';
+import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
-import 'vue-resize/dist/vue-resize.css';
+import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
@@ -17,7 +17,7 @@ import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
-import { InstallCodemirro } from 'codemirror-editor-vue3';
+import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -25,24 +25,24 @@ import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
-import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
 
 import 'floating-vue/dist/style.css';
+import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
-  vueApp.use(VueResize);
-  vueApp.use(FloatingVue);
+  vueApp.use(Vue3Resize);
+  vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  vueApp.use(InstallCodemirro);
+  vueApp.use(InstallCodeMirror);
   vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {

@@ -4,6 +4,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
 
 export default {
+  emits: ['close'],
+
   components: { Card, AsyncButton },
 
   props: {

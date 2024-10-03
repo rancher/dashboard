@@ -5,6 +5,8 @@ import isString from 'lodash/isString';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 
 export default {
+  emits: ['dd-button-action', 'click-action'],
+
   mixins: [VueSelectOverrides],
   props:  {
     buttonLabel: {
@@ -181,7 +183,7 @@ export default {
     :clearable="false"
     :close-on-select="closeOnSelect"
     :filterable="false"
-    :value="buttonLabel"
+    :modelValue="buttonLabel"
     :options="dropdownOptions"
     :map-keydown="mappedKeys"
     :get-option-key="
@@ -191,7 +193,7 @@ export default {
     :selectable="selectable"
     @search:blur="onBlur"
     @search:focus="onFocus"
-    @update:value="$emit('click-action', $event)"
+    @update:modelValue="$emit('click-action', $event)"
   >
     <template #no-options>
       <slot name="no-options" />
@@ -211,14 +213,15 @@ export default {
     <!-- Pass down templates provided by the caller -->
     <template
       v-for="(_, slot) of $slots"
+      #[slot]="scope"
       :key="slot"
-      v-slot:[slot]="scope"
     >
-      <slot
-        v-if="slot !== 'selected-option'"
-        :name="slot"
-        v-bind="scope"
-      />
+      <template v-if="slot !== 'selected-option' && typeof $slots[slot] === 'function'">
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
     </template>
   </v-select>
 </template>

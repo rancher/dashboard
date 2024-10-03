@@ -206,11 +206,10 @@ export default {
         />
         <div class="ml-20 mt-10 expiry">
           <input
-            :value="form.customExpiry"
+            v-model="form.customExpiry"
             :disabled="form.expiryType !== 'custom'"
             type="number"
             :mode="mode"
-            @input="($plainInputEvent) => form.customExpiry = $plainInputEvent"
           >
           <Select
             v-model:value="form.customExpiryUnits"

@@ -41,7 +41,7 @@ const requiredSetup = () => {
   };
 };
 
-describe.skip('(Vue3 Skip) eKS Networking', () => {
+describe('eKS Networking', () => {
   it('should allow the user to add endpoints when public access is checked', async() => {
     const setup = requiredSetup();
 
@@ -50,7 +50,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
       ...setup
     });
 
-    const publicAccessSources = wrapper.find('[data-testid="eks-public-access-sources"]');
+    const publicAccessSources = wrapper.getComponent('[data-testid="eks-public-access-sources"]');
 
     expect(publicAccessSources.vm.addAllowed).toBe(false);
 
@@ -69,7 +69,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -90,7 +90,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -108,7 +108,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const sgDropDown = wrapper.find('[data-testid="eks-security-groups-dropdown"]');
+    const sgDropDown = wrapper.findComponent('[data-testid="eks-security-groups-dropdown"]');
 
     expect(sgDropDown.exists()).toBe(true);
 
@@ -173,7 +173,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    const sgDropDown = wrapper.find('[data-testid="eks-security-groups-dropdown"]');
+    const sgDropDown = wrapper.getComponent('[data-testid="eks-security-groups-dropdown"]');
 
     expect(sgDropDown.props().options).toStrictEqual([]);
 
@@ -242,7 +242,7 @@ describe.skip('(Vue3 Skip) eKS Networking', () => {
     wrapper.setData({ chooseSubnet: true });
 
     await wrapper.vm.$nextTick();
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.getComponent('[data-testid="eks-subnets-dropdown"]');
 
     let subnetOpts = subnetDropdown.props().options;
 

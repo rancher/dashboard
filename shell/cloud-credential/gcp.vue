@@ -4,6 +4,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector from '@shell/components/form/FileSelector';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledInput, FileSelector },
   mixins:     [CreateEditView],
 

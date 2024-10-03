@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { defineAsyncComponent } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -21,6 +22,7 @@ import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
+import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -38,9 +40,17 @@ import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 // --> index.vue displayedRows
 
 export default {
-  name:       'SortableTable',
+  name: 'SortableTable',
+
+  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change', 'selection', 'rowClick'],
+
   components: {
-    THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
+    THead,
+    Checkbox,
+    AsyncButton,
+    ActionDropdown,
+    LabeledSelect,
+    ButtonMultiAction,
   },
   mixins: [
     filtering,
@@ -682,7 +692,7 @@ export default {
                 const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
-                  component = pluginFormatter;
+                  component = defineAsyncComponent(pluginFormatter);
                   needRef = true;
                 }
               }
@@ -1136,11 +1146,10 @@ export default {
             >
               <input
                 ref="advancedSearchQuery"
-                :value="advFilterSearchTerm"
+                v-model="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
                 :placeholder="t('sortableTable.filterFor')"
-                @input="($plainInputEvent) => advFilterSearchTerm = $plainInputEvent.target.value"
               >
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
@@ -1178,11 +1187,10 @@ export default {
           <input
             v-else-if="search"
             ref="searchQuery"
-            :value="eventualSearchQuery"
+            v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
-            @input="($plainInputEvent) => eventualSearchQuery = $plainInputEvent.target.value"
           >
           <slot name="header-button" />
         </div>
@@ -1413,18 +1421,15 @@ export default {
                     name="row-actions"
                     :row="row.row"
                   >
-                    <button
+                    <ButtonMultiAction
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
-                      :data-testid="componentTestid + '-' + i + '-action-button'"
                       aria-haspopup="true"
                       aria-expanded="false"
-                      type="button"
-                      class="btn btn-sm role-multi-action actions"
+                      :data-testid="componentTestid + '-' + i + '-action-button'"
+                      :borderless="true"
                       @click="handleActionButtonClick(i, $event)"
-                    >
-                      <i class="icon icon-actions" />
-                    </button>
+                    />
                   </slot>
                 </td>
               </tr>
@@ -1659,17 +1664,7 @@ export default {
     }
   }
 
-  // Remove colors from multi-action buttons in the table
   td {
-    .actions.role-multi-action {
-      background-color: transparent;
-      border: none;
-      &:hover, &:focus {
-        background-color: var(--accent-btn);
-        box-shadow: none;
-      }
-    }
-
     // Aligns with COLUMN_BREAKPOINTS
     @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
       // HIDE column on sizes below 480px

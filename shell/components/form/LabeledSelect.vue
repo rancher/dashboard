@@ -13,6 +13,8 @@ import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSe
 export default {
   name: 'LabeledSelect',
 
+  inheritAttrs: false,
+
   components: { LabeledTooltip },
   mixins:     [
     CompactInput,
@@ -21,7 +23,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'update:validation'],
+  emits: ['on-open', 'on-close', 'selecting', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {
@@ -132,7 +134,18 @@ export default {
     _options() {
       // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
       return this.canPaginate ? this.page : this.options;
-    }
+    },
+
+    filteredAttrs() {
+      const {
+        class: _class,
+        taggable,
+        multiple,
+        ...rest
+      } = this.$attrs;
+
+      return rest;
+    },
   },
 
   methods: {
@@ -247,17 +260,20 @@ export default {
   <div
     ref="select"
     class="labeled-select"
-    :class="{
-      disabled: isView || disabled,
-      focused,
-      [mode]: true,
-      [status]: status,
-      taggable: $attrs.taggable,
-      taggable: $attrs.multiple,
-      hoverable: hoverTooltip,
-      'compact-input': isCompact,
-      'no-label': !hasLabel,
-    }"
+    :class="[
+      $attrs.class,
+      {
+        disabled: isView || disabled,
+        focused,
+        [mode]: true,
+        [status]: status,
+        taggable: $attrs.taggable,
+        taggable: $attrs.multiple,
+        hoverable: hoverTooltip,
+        'compact-input': isCompact,
+        'no-label': !hasLabel
+      }
+    ]"
     @click="focusSearch"
     @focus="focusSearch"
   >
@@ -280,7 +296,7 @@ export default {
     </div>
     <v-select
       ref="select-input"
-      v-bind="$attrs"
+      v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"

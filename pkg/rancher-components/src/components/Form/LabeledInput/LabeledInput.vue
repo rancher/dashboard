@@ -1,6 +1,5 @@
 <script lang="ts">
-// @ts-nocheck
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml } from '@shell/utils/string';
@@ -10,11 +9,15 @@ import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
 
-declare module 'vue/types/vue' {
-  interface Vue {
-    onInput: (event: Event) => void | ((event: Event) => void);
-  }
+interface NonReactiveProps {
+  onInput: (event: Event) => void | ((event: Event) => void);
 }
+
+const provideProps: NonReactiveProps = {
+  onInput() {
+    // noop
+  },
+};
 
 export default defineComponent({
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -116,10 +119,13 @@ export default defineComponent({
     } = useLabeledFormElement(props, emit);
     const { isCompact } = useCompactInput(props);
 
+    const onInput = inject('onInput', provideProps.onInput);
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
+      onInput,
       isDisabled,
       validationMessage,
       requiredField,
@@ -175,7 +181,7 @@ export default defineComponent({
         return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value);
+        const hint = cronstrue.toString(this.value || '');
 
         return hint;
       } catch (e) {
@@ -326,7 +332,7 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
-        :value="value"
+        :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
@@ -347,7 +353,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="($plainInputEvent) => onInput($plainInputEvent)"
+        @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"

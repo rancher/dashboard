@@ -140,7 +140,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.contains(`${ this.machineDeploymentsName }-clone`).should('not.exist');
   });
 
-  it.skip('[Vue3 Skip]: can delete MachineDeployments via bulk actions', function() {
+  it('can delete MachineDeployments via bulk actions', function() {
     MachineDeploymentsPagePo.navTo();
     machineDeploymentsPage.waitForPage();
 

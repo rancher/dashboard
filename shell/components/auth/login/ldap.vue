@@ -4,6 +4,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
 
 export default {
+  emits: ['error', 'showInputs'],
+
   components: { LabeledInput, AsyncButton },
   mixins:     [Login],
 

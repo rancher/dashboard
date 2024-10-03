@@ -5,6 +5,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { base64Decode } from '@shell/utils/crypto';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTabs,
     DetailText,

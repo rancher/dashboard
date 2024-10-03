@@ -21,6 +21,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { authProvidersInfo, parseAuthProvidersInfo } from '@shell/utils/auth';
+import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
 
 export default {
 
@@ -35,6 +36,7 @@ export default {
     ClusterProviderIcon,
     IconOrSvg,
     AppModal,
+    HeaderPageActionMenu,
   },
 
   props: {
@@ -57,7 +59,7 @@ export default {
       authInfo:               {},
       show:                   false,
       showTooltip:            false,
-      isPopoverOpen:          false,
+      isUserMenuOpen:         false,
       isPageActionMenuOpen:   false,
       kubeConfigCopying:      false,
       searchShortcut,
@@ -72,8 +74,20 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
-      'currentProduct', 'rootProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
+    ...mapGetters([
+      'clusterReady',
+      'isExplorer',
+      'isRancher',
+      'currentCluster',
+      'currentProduct',
+      'rootProduct',
+      'backToRancherLink',
+      'backToRancherGlobalLink',
+      'pageActions',
+      'isSingleProduct',
+      'isRancherInHarvester',
+      'showTopLevelMenu'
+    ]),
 
     authProviderEnabled() {
       const authProviders = this.$store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
@@ -275,7 +289,7 @@ export default {
       }
     },
     showMenu(show) {
-      this.isPopoverOpen = show;
+      this.isUserMenuOpen = show;
     },
 
     openImport() {
@@ -292,14 +306,6 @@ export default {
 
     hideSearch() {
       this.showSearchModal = false;
-    },
-
-    showPageActionsMenu(show) {
-      this.isPageActionMenuOpen = show;
-    },
-
-    pageAction(action) {
-      this.$store.dispatch('handlePageAction', action);
     },
 
     checkClusterName() {
@@ -610,53 +616,7 @@ export default {
         </button>
       </div>
 
-      <div
-        v-if="showPageActions"
-        id="page-actions"
-        class="actions"
-      >
-        <i
-          data-testid="page-actions-menu"
-          class="icon icon-actions"
-          @blur="showPageActionsMenu(false)"
-          @click="showPageActionsMenu(true)"
-          @focus.capture="showPageActionsMenu(true)"
-        />
-        <v-dropdown
-          :triggers="[]"
-          :shown="isPageActionMenuOpen"
-          :autoHide="false"
-        >
-          <template #popper>
-            <div
-              class="user-menu"
-            >
-              <ul
-                data-testid="page-actions-dropdown"
-                class="list-unstyled dropdown"
-                @click.stop="showPageActionsMenu(false)"
-              >
-                <li
-                  v-for="(a, i) in pageActions"
-                  :key="i"
-                  class="user-menu-item"
-                >
-                  <a
-                    v-if="!a.separator"
-                    @click="pageAction(a)"
-                  >{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
-                  <div
-                    v-else
-                    class="menu-separator"
-                  >
-                    <div class="menu-separator-line" />
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </template>
-        </v-dropdown>
-      </div>
+      <header-page-action-menu v-if="showPageActions" />
 
       <div class="header-spacer" />
       <div
@@ -664,13 +624,17 @@ export default {
         class="user user-menu"
         data-testid="nav_header_showUserMenu"
         tabindex="0"
+        @blur="showMenu(false)"
         @click="showMenu(true)"
         @focus.capture="showMenu(true)"
       >
         <v-dropdown
           :triggers="[]"
-          :shown="isPopoverOpen"
+          :shown="isUserMenuOpen"
           :autoHide="false"
+          :flip="false"
+          :container="false"
+          :placement="'bottom-end'"
         >
           <div class="user-image text-right hand">
             <img
@@ -735,8 +699,18 @@ export default {
                     <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
                   </li>
                 </router-link>
+                <!-- SLO modal -->
+                <li
+                  v-if="authEnabled && shouldShowSloLogoutModal"
+                  class="user-menu-item no-link"
+                  @click="showSloModal"
+                  @keypress.enter="showSloModal"
+                >
+                  <span>{{ t('nav.userMenu.logOut') }}</span>
+                </li>
+                <!-- logout -->
                 <router-link
-                  v-if="authEnabled"
+                  v-else-if="authEnabled"
                   v-slot="{ href, navigate }"
                   custom
                   :to="generateLogoutRoute"
@@ -984,26 +958,12 @@ export default {
         }
       }
 
-      .actions {
-        align-items: center;
-        cursor: pointer;
-        display: flex;
-
-        > I {
-          font-size: 18px;
-          padding: 6px;
-          &:hover {
-            color: var(--link);
-          }
-        }
-      }
-
       .header-spacer {
         background-color: var(--header-bg);
         position: relative;
       }
 
-      .user-menu {
+      .user.user-menu {
         padding-top: 9.5px;
       }
 
@@ -1011,7 +971,7 @@ export default {
         outline: none;
         width: var(--header-height);
 
-        .v-popover {
+        .v-popper {
           display: flex;
           :deep() .trigger{
           .user-image {
@@ -1026,7 +986,7 @@ export default {
         }
 
         &:focus {
-          .v-popover {
+          .v-popper {
             :deep() .trigger {
               line-height: 0;
               .user-image {
@@ -1084,7 +1044,7 @@ export default {
     }
   }
 
-  .popover .popover-inner {
+  .v-popper__popper .v-popper__inner {
     padding: 0;
     border-radius: 0;
   }
@@ -1095,60 +1055,4 @@ export default {
     color: var(--secondary);
   }
 
-  .user-menu {
-    // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
-    :deep() .popover-inner {
-      padding: 10px 0;
-    }
-
-    :deep() .v-popover {
-      display: flex;
-    }
-  }
-
-  .actions {
-    :deep() .popover:focus {
-      outline: 0;
-    }
-
-    .dropdown {
-      margin: 0 -10px;
-    }
-  }
-
-  .user-menu-item {
-    a, &.no-link > span {
-      cursor: pointer;
-      padding: 0px 10px;
-
-      &:hover {
-        background-color: var(--dropdown-hover-bg);
-        color: var(--dropdown-hover-text);
-        text-decoration: none;
-      }
-
-      // When the menu item is focused, pop the margin and compensate the padding, so that
-      // the focus border appears within the menu
-      &:focus {
-        margin: 0 2px;
-        padding: 10px 8px;
-      }
-    }
-
-    &.no-link > span {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-    }
-
-    div.menu-separator {
-      cursor: default;
-      padding: 4px 0;
-
-      .menu-separator-line {
-        background-color: var(--border);
-        height: 1px;
-      }
-    }
-  }
 </style>

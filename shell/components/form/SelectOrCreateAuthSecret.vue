@@ -16,6 +16,8 @@ import {
 export default {
   name: 'SelectOrCreateAuthSecret',
 
+  emits: ['inputauthval', 'update:value'],
+
   components: {
     LabeledInput,
     LabeledSelect,

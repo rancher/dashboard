@@ -1,7 +1,7 @@
 
 const defaultStubs = {
-  Tab:    true,
-  Tabbed: true,
+  Tab:    { template: '<span><slot/></span>' },
+  Tabbed: false,
 };
 const defaultGetters = {
   currentStore:           () => 'current_store',

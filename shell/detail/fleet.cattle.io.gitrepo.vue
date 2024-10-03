@@ -14,6 +14,8 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 export default {
   name: 'DetailGitRepo',
 
+  emits: ['input'],
+
   components: {
     Loading,
     FleetResources,
