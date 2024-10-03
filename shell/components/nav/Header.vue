@@ -958,6 +958,28 @@ export default {
         }
       }
 
+      :deep(.actions) {
+        align-items: center;
+        cursor: pointer;
+        display: flex;
+
+        > I {
+          font-size: 18px;
+          padding: 6px;
+          &:hover {
+            color: var(--link);
+          }
+        }
+
+        :deep(.v-popper:focus) {
+          outline: 0;
+        }
+
+        .dropdown {
+          margin: 0 -10px;
+        }
+      }
+
       .header-spacer {
         background-color: var(--header-bg);
         position: relative;
