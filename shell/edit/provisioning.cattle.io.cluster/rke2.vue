@@ -75,6 +75,7 @@ import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles'
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
+import VsphereUtils from '@shell/utils/v-sphere';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -839,6 +840,8 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
+    this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
+    this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -850,6 +853,13 @@ export default {
 
   methods: {
     set,
+
+    async handleVsphereCpiSecret() {
+      return VsphereUtils.handleVsphereCpiSecret(this);
+    },
+    async handleVsphereCsiSecret() {
+      return VsphereUtils.handleVsphereCsiSecret(this);
+    },
 
     /**
      * Initialize all the cluster specs
@@ -1387,6 +1397,13 @@ export default {
       // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
       this.agentConfigurationCleanup();
 
+      // TODO: RC
+      // Shows `Changing the Kubernetes Version can reset the Add-On Config values. You should check that the values are as expected before continuing.`
+      // if editing cluster and kube version has changed
+      // 2. rancher-vsphere:
+      // 3: addOns:
+      // dependencyBanner:
+
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
       const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
 
@@ -1481,16 +1498,18 @@ export default {
         return await this.extensionProvider?.saveCluster(this.value, this.schema);
       }
 
-      if ( this.isCreate ) {
-        url = url || this.schema.linkFor('collection');
-        const res = await this.value.save({ url });
+      throw new Error('oh no....'); // TODO: RC
 
-        if (res) {
-          Object.assign(this.value, res);
-        }
-      } else {
-        await this.value.save();
-      }
+      // if ( this.isCreate ) {
+      //   url = url || this.schema.linkFor('collection');
+      //   const res = await this.value.save({ url });
+
+      //   if (res) {
+      //     Object.assign(this.value, res);
+      //   }
+      // } else {
+      //   await this.value.save();
+      // }
     },
 
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
@@ -1595,6 +1614,8 @@ export default {
       const fromChart = this.versionInfo[name]?.values;
       const fromUser = this.userChartValuesTemp[name];
       const different = diff(fromChart, fromUser);
+
+      console.warn(name, different, fromChart, this.userChartValues); // TODO: RC
 
       this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
