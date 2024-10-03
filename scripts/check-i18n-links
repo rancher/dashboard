@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const request = require('request-promise-native');
+const axios = require('axios');
 
 const base = path.resolve(__dirname, '..');
 const srcFolder = path.resolve(base, 'shell');
@@ -235,13 +235,13 @@ async function check(links) {
         'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
       };
 
-      const r = await request(link, { resolveWithFullResponse: true, headers });
+      const r = await axios.get(link, { headers });
 
-      statusCode = r.statusCode;
-      statusMessage = r.statusMessage;
+      statusCode = r.status;
+      statusMessage = r.statusText;
     } catch (e) {
-      statusCode = e.statusCode;
-      statusMessage = e.statusMessage;
+      statusCode = e.status;
+      statusMessage = e.statusText;
     }
 
     if (statusCode !== 200) {
