@@ -3,7 +3,7 @@
 /**
  * This script reads and parses all of the source code files, reads the US English
  * translation files, extracts all http/s links and checks for broken links.
- * 
+ *
  * This script is used in the PR gate to check for broken links.
  *
  */
@@ -18,7 +18,7 @@ const srcFolder = path.resolve(base, 'shell');
 const pkgFolder = path.resolve(base, 'pkg');
 
 // Simple shell colors
-const reset = "\x1b[0m";
+const reset = '\x1b[0m';
 const cyan = `\x1b[96m`;
 const yellow = `\x1b[33m`;
 const bold = `\x1b[1m`;
@@ -27,15 +27,15 @@ const DOCS_BASE_REGEX = /export const DOCS_BASE = '([^']*)';/;
 
 const CATEGORIES = [
   {
-    name: 'Rancher Manager Documentation',
+    name:  'Rancher Manager Documentation',
     regex: /^https:\/\/.*rancher\.com\/.*/
   },
   {
-    name: 'RKE2 Documentation',
+    name:  'RKE2 Documentation',
     regex: /^https:\/\/.*rke2\.io\/.*/
   },
   {
-    name: 'K3S Documentation',
+    name:  'K3S Documentation',
     regex: /^https:\/\/.*k3s\.io\/.*/
   }
 ];
@@ -73,17 +73,18 @@ function readAndParseTranslations(filePath) {
 
     return parseTranslations(i18n);
   } catch (e) {
-    console.log('Can not read i18n file');  // eslint-disable-line no-console
-    console.log(e);  // eslint-disable-line no-console
+    console.log('Can not read i18n file'); // eslint-disable-line no-console
+    console.log(e); // eslint-disable-line no-console
     process.exit(1);
   }
 }
 
 function parseTranslations(obj, parent) {
   let res = {};
+
   Object.keys(obj).forEach((key) => {
     const v = obj[key];
-    const pKey = parent ? `${parent}.${key}` : key;
+    const pKey = parent ? `${ parent }.${ key }` : key;
 
     if (v === null) {
       // ignore
@@ -91,7 +92,7 @@ function parseTranslations(obj, parent) {
       res = {
         ...res,
         ...parseTranslations(v, pKey)
-      }
+      };
     } else {
       // Ensure empty strings work
       res[pKey] = v.length === 0 ? '[empty]' : v;
@@ -133,7 +134,7 @@ function loadI18nFiles(folder) {
 
   // Find all of the test files
   fs.readdirSync(folder).forEach((file) => {
-    const filePath = path.resolve(folder, file)
+    const filePath = path.resolve(folder, file);
     const isFolder = fs.lstatSync(filePath).isDirectory();
 
     if (isFolder) {
@@ -157,7 +158,7 @@ function loadI18nFiles(folder) {
 }
 
 console.log('======================================'); // eslint-disable-line no-console
-console.log(`${cyan}Checking source files for i18n strings${reset}`); // eslint-disable-line no-console
+console.log(`${ cyan }Checking source files for i18n strings${ reset }`); // eslint-disable-line no-console
 console.log('======================================'); // eslint-disable-line no-console
 
 console.log(''); // eslint-disable-line no-console
@@ -167,7 +168,7 @@ let i18n = loadI18nFiles(srcFolder);
 
 i18n = { ...i18n, ...loadI18nFiles(pkgFolder) };
 
-console.log(`Read  ${cyan}${ Object.keys(i18n).length }${reset} translations`); // eslint-disable-line no-console
+console.log(`Read  ${ cyan }${ Object.keys(i18n).length }${ reset } translations`); // eslint-disable-line no-console
 
 const links = [];
 
@@ -175,13 +176,13 @@ const links = [];
 Object.keys(i18n).forEach((str) => {
   const link = parseLinks(i18n[str]);
 
- links.push(...link);
+  links.push(...link);
 });
 
-console.log(`Discovered ${cyan}${links.length}${reset} links`); // eslint-disable-line no-console
+console.log(`Discovered ${ cyan }${ links.length }${ reset } links`); // eslint-disable-line no-console
 
-console.log(`${cyan}Links:${reset}`); // eslint-disable-line no-console
-console.log(`${cyan}======${reset}`); // eslint-disable-line no-console
+console.log(`${ cyan }Links:${ reset }`); // eslint-disable-line no-console
+console.log(`${ cyan }======${ reset }`); // eslint-disable-line no-console
 
 showByCategory(links, 'Links in', 'Other Links', cyan);
 
@@ -193,6 +194,7 @@ function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
 
   linksToShow.forEach((link) => {
     let found = false;
+
     CATEGORIES.forEach((category) => {
       byCategory[category.name] = byCategory[category.name] || [];
 
@@ -209,21 +211,21 @@ function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
 
   CATEGORIES.forEach((category) => {
     if (byCategory[category.name]?.length) {
-      console.log(`${color}${prefixLabel} ${category.name}${reset}`); // eslint-disable-line no-console
-      byCategory[category.name].forEach((link) => console.log(`  ${link}`)); // eslint-disable-line no-console
+      console.log(`${ color }${ prefixLabel } ${ category.name }${ reset }`); // eslint-disable-line no-console
+      byCategory[category.name].forEach((link) => console.log(`  ${ link }`)); // eslint-disable-line no-console
     }
   });
 
   if (others.length) {
-    console.log(`${color}${otherLabel}${reset}`); // eslint-disable-line no-console
-    others.forEach((link) => console.log(`  ${link}`));
+    console.log(`${ color }${ otherLabel }${ reset }`); // eslint-disable-line no-console
+    others.forEach((link) => console.log(`  ${ link }`));
   }
 }
 
 async function check(links) {
   const brokenLinks = [];
 
-  for(let i =0; i<links.length; i++) {
+  for (let i = 0; i < links.length; i++) {
     const link = links[i];
     let statusCode;
     let statusMessage;
@@ -231,7 +233,7 @@ async function check(links) {
     try {
       const headers = {
         'User-Agent':      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-        'Accept':          'text/html',
+        Accept:            'text/html',
         'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
       };
 
@@ -247,18 +249,18 @@ async function check(links) {
     if (statusCode !== 200) {
       const sc = `${ statusCode }`.padEnd(5);
 
-      console.log(`  ${ link } : ${ sc } ${ statusMessage ? statusMessage : '' }`); // eslint-disable-line no-console
+      console.log(`  ${ link } : ${ sc } ${ statusMessage || '' }`); // eslint-disable-line no-console
 
       brokenLinks.push(link);
     }
-  };
+  }
 
   console.log(''); // eslint-disable-line no-console
 
   if (brokenLinks.length === 0) {
-    console.log(`${cyan}${bold}Links Checked - all links could be fetched okay${reset}`); // eslint-disable-line no-console
+    console.log(`${ cyan }${ bold }Links Checked - all links could be fetched okay${ reset }`); // eslint-disable-line no-console
   } else {
-    console.log(`${yellow}${bold}Found ${brokenLinks.length} link(s) that could not be fetched${reset}`); // eslint-disable-line no-console
+    console.log(`${ yellow }${ bold }Found ${ brokenLinks.length } link(s) that could not be fetched${ reset }`); // eslint-disable-line no-console
   }
 
   console.log(''); // eslint-disable-line no-console
@@ -273,6 +275,6 @@ async function check(links) {
   }
 }
 
-console.log(`${cyan}Checking doc links ...${reset}`); // eslint-disable-line no-console
+console.log(`${ cyan }Checking doc links ...${ reset }`); // eslint-disable-line no-console
 
 check(links);
