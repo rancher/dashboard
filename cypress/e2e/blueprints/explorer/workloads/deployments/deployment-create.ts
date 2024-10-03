@@ -25,6 +25,36 @@ export const createDeploymentBlueprint = {
               }
             }
           }
+        ],
+        volumes: [
+          {
+            name:      'test-vol',
+            projected: {
+              defaultMode: 420,
+              sources:     [
+                {
+                  configMap: {
+                    items: [{ key: 'test-vol-key', path: 'test-vol-path' }],
+                    name:  'configmap-name'
+                  }
+                }
+              ]
+            }
+          },
+          {
+            name:      'test-vol1',
+            projected: {
+              defaultMode: 420,
+              sources:     [
+                {
+                  configMap: {
+                    items: [{ key: 'test-vol-key1', path: 'test-vol-path1' }],
+                    name:  'configmap-name1'
+                  }
+                }
+              ]
+            }
+          }
         ]
       },
       metadata: {

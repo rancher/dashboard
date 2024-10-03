@@ -163,6 +163,7 @@ export default {
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
         :flat="true"
+        data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
         <Tab
@@ -176,6 +177,7 @@ export default {
           <Tabbed
             :side-tabs="true"
             :weight="99"
+            :data-testid="`workload-container-tabs-${i}`"
           >
             <Tab
               :label="t('workload.container.titles.general')"
@@ -347,13 +349,13 @@ export default {
               :weight="tabWeightMap['storage']"
             >
               <ContainerMountPaths
-                v-model:value="podTemplateSpec"
+                v-model:container="allContainers[i]"
+                :value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"
                 :secrets="namespacedSecrets"
                 :config-maps="namespacedConfigMaps"
-                :container="allContainers[i]"
                 :save-pvc-hook-name="savePvcHookName"
                 @removePvcForm="clearPvcFormState"
               />
@@ -366,7 +368,10 @@ export default {
           :name="nameDisplayFor(type)"
           :weight="99"
         >
-          <Tabbed :side-tabs="true">
+          <Tabbed
+            data-testid="workload-general-tabs"
+            :side-tabs="true"
+          >
             <Tab
               name="labels"
               label-key="generic.labelsAndAnnotations"
@@ -404,13 +409,18 @@ export default {
           :name="'pod'"
           :weight="98"
         >
-          <Tabbed :side-tabs="true">
+          <Tabbed
+            data-testid="workload-pod-tabs"
+            :side-tabs="true"
+          >
             <Tab
               :label="t('workload.storage.title')"
               name="storage"
               :weight="tabWeightMap['storage']"
+              @active="$refs.storage.refresh()"
             >
               <Storage
+                ref="storage"
                 v-model:value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"

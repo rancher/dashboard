@@ -15,7 +15,8 @@ export const defaultContainer = {
     readOnlyRootFilesystem:   false,
     privileged:               false,
     allowPrivilegeEscalation: false,
-  }
+  },
+  volumeMounts: []
 };
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported

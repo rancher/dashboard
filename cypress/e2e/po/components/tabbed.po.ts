@@ -10,7 +10,7 @@ export default class TabbedPo extends ComponentPo {
   }
 
   clickTabWithSelector(selector: string) {
-    return this.self().get(`${ selector }`).click();
+    return this.self().find(`${ selector }`).click();
   }
 
   allTabs() {

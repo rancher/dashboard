@@ -5,7 +5,11 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
+import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
+
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
 
@@ -115,6 +119,10 @@ export class WorkloadsListPageBasePo extends PagePo {
     return this.sortableTable().rowActionMenuOpen(elemName).getMenuItem('Edit YAML').click();
   }
 
+  goToEditConfigPage(elemName: string) {
+    return this.sortableTable().rowActionMenuOpen(elemName).getMenuItem('Edit Config').click();
+  }
+
   private workload() {
     return new WorkloadPagePo();
   }
@@ -162,6 +170,49 @@ export class WorkloadsCreatePageBasePo extends PagePo {
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  /**
+   *
+   * @returns po for the top level tabs in workloads ie general workload, pod, and one more per container
+   */
+  horizontalTabs(): TabbedPo {
+    return new TabbedPo('[data-testid="workload-horizontal-tabs"]');
+  }
+
+  /**
+   *
+   * @returns po for the vertical tabs within the first horizontal tab, ie non-pod workload configuration
+   */
+  generalTabs(): TabbedPo {
+    return new TabbedPo('[data-testid="workload-general-tabs"]');
+  }
+
+  /**
+   *
+   * @returns po for the vertical tabs within the pod tab
+   */
+  podTabs(): TabbedPo {
+    return new TabbedPo('[data-testid="workload-pod-tabs"]');
+  }
+
+  /**
+   *
+   * @param containerIndex
+   * @returns po for vertical tabs used to configure nth container
+   */
+  nthContainerTabs(containerIndex: number) {
+    this.horizontalTabs().clickTabWithSelector(`>ul>li:nth-child(${ containerIndex + 3 })`);
+
+    return new TabbedPo(`[data-testid="workload-container-tabs-${ containerIndex }"]`);
+  }
+
+  podStorage(): WorkloadPodStoragePo {
+    return new WorkloadPodStoragePo();
+  }
+
+  containerStorage(): ContainerMountPathPo {
+    return new ContainerMountPathPo();
   }
 
   createWithUI(name: string, containerImage: string, namespace = 'default') {
