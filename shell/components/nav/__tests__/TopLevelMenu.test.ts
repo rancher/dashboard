@@ -5,7 +5,7 @@ import { mount, Wrapper } from '@vue/test-utils';
 // DISCLAIMER: This should not be added here, although we have several store requests which are irrelevant
 const defaultStore = {
   'management/byId':         jest.fn(),
-  'management/schemaFor':    jest.fn(),
+  'management/schemaFor':    () => ({}),
   'i18n/t':                  jest.fn(),
   'features/get':            jest.fn(),
   'prefs/theme':             jest.fn(),
@@ -20,7 +20,11 @@ describe('topLevelMenu', () => {
       mocks: {
         $store: {
           getters: {
-            'management/all': () => [{ name: 'whatever' }],
+            'management/all': () => [{
+              name: 'whatever',
+              id:   'an-id1',
+              mgmt: { id: 'an-id1' },
+            }],
             ...defaultStore
           },
         },
@@ -48,21 +52,21 @@ describe('topLevelMenu', () => {
             'management/all': () => [
               {
                 name:        'x32-cwf5-name',
-                id:          'x32-cwf5-id',
+                id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
                 isReady:     true
               },
               {
                 name:        'x33-cwf5-name',
-                id:          'x33-cwf5-id',
+                id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
                 isReady:     true
               },
               {
                 name:        'x34-cwf5-name',
-                id:          'x34-cwf5-id',
+                id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
                 isReady:     true
@@ -70,7 +74,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'local-name',
                 id:          'local',
-                mgmt:        { id: 'an-id4' },
+                mgmt:        { id: 'local' },
                 nameDisplay: 'local',
                 isReady:     true
               },
@@ -103,21 +107,21 @@ describe('topLevelMenu', () => {
             'management/all': () => [
               {
                 name:        'x32-cwf5-name',
-                id:          'x32-cwf5-id',
+                id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
                 isReady:     true
               },
               {
                 name:        'x33-cwf5-name',
-                id:          'x33-cwf5-id',
+                id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
                 isReady:     false
               },
               {
                 name:        'x34-cwf5-name',
-                id:          'x34-cwf5-id',
+                id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
                 isReady:     true
@@ -125,7 +129,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'local-name',
                 id:          'local',
-                mgmt:        { id: 'an-id4' },
+                mgmt:        { id: 'local' },
                 nameDisplay: 'local',
                 isReady:     true
               },
@@ -158,7 +162,7 @@ describe('topLevelMenu', () => {
             'management/all': () => [
               {
                 name:        'x32-cwf5-name',
-                id:          'x32-cwf5-id',
+                id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
                 isReady:     true,
@@ -166,7 +170,7 @@ describe('topLevelMenu', () => {
               },
               {
                 name:        'x33-cwf5-name',
-                id:          'x33-cwf5-id',
+                id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
                 isReady:     true,
@@ -174,7 +178,7 @@ describe('topLevelMenu', () => {
               },
               {
                 name:        'x34-cwf5-name',
-                id:          'x34-cwf5-id',
+                id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
                 isReady:     true,
@@ -183,7 +187,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'local-name',
                 id:          'local',
-                mgmt:        { id: 'an-id4' },
+                mgmt:        { id: 'local' },
                 nameDisplay: 'local',
                 isReady:     true,
                 pinned:      true
@@ -217,7 +221,7 @@ describe('topLevelMenu', () => {
             'management/all': () => [
               {
                 name:        'x32-cwf5-name',
-                id:          'x32-cwf5-id',
+                id:          'an-id1',
                 mgmt:        { id: 'an-id1' },
                 nameDisplay: 'c-cluster',
                 isReady:     true,
@@ -225,7 +229,7 @@ describe('topLevelMenu', () => {
               },
               {
                 name:        'x33-cwf5-name',
-                id:          'x33-cwf5-id',
+                id:          'an-id2',
                 mgmt:        { id: 'an-id2' },
                 nameDisplay: 'a-cluster',
                 isReady:     true,
@@ -233,7 +237,7 @@ describe('topLevelMenu', () => {
               },
               {
                 name:        'x34-cwf5-name',
-                id:          'x34-cwf5-id',
+                id:          'an-id3',
                 mgmt:        { id: 'an-id3' },
                 nameDisplay: 'b-cluster',
                 isReady:     false,
@@ -242,7 +246,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'local-name',
                 id:          'local',
-                mgmt:        { id: 'an-id4' },
+                mgmt:        { id: 'local' },
                 nameDisplay: 'local',
                 isReady:     true,
                 pinned:      true
@@ -333,7 +337,7 @@ describe('topLevelMenu', () => {
   it('should show description if it is available on the mgmt cluster (relevant for RKE1/ember world)', async() => {
     const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
       data: () => {
-        return { hasProvCluster: false, showPinClusters: true };
+        return { hasProvCluster: true, showPinClusters: true };
       },
       mocks: {
         $store: {
@@ -347,6 +351,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'whatever',
                 id:          'an-id1',
+                mgmt:        { id: 'an-id1' },
                 description: 'some-description1',
                 nameDisplay: 'some-label',
                 isReady:     true,
@@ -356,6 +361,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'whatever',
                 id:          'an-id2',
+                mgmt:        { id: 'an-id2' },
                 description: 'some-description2',
                 nameDisplay: 'some-label',
                 pinned:      true
@@ -364,6 +370,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'whatever',
                 id:          'an-id3',
+                mgmt:        { id: 'an-id3' },
                 description: 'some-description3',
                 nameDisplay: 'some-label',
                 isReady:     true
@@ -372,6 +379,7 @@ describe('topLevelMenu', () => {
               {
                 name:        'whatever',
                 id:          'an-id4',
+                mgmt:        { id: 'an-id4' },
                 description: 'some-description4',
                 nameDisplay: 'some-label'
               },
@@ -430,11 +438,15 @@ describe('topLevelMenu', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', () => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data:  () => ({ clusterFilter: 'whatever' }),
+          data:  () => ({ hasProvCluster: true, clusterFilter: 'whatever' }),
           mocks: {
             $store: {
               getters: {
-                'management/all': () => [{ nameDisplay: 'something else' }],
+                'management/all': () => [{
+                  id:          'an-id1',
+                  mgmt:        { id: 'an-id1' },
+                  nameDisplay: 'something else'
+                }],
                 ...defaultStore
               },
             },
@@ -449,11 +461,16 @@ describe('topLevelMenu', () => {
 
       it('given no matched pinned clusters', () => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data:  () => ({ clusterFilter: 'whatever' }),
+          data:  () => ({ hasProvCluster: true, clusterFilter: 'whatever' }),
           mocks: {
             $store: {
               getters: {
-                'management/all': () => [{ nameDisplay: 'something else', pinned: true }],
+                'management/all': () => [{
+                  id:          'an-id1',
+                  mgmt:        { id: 'an-id1' },
+                  nameDisplay: 'something else',
+                  pinned:      true
+                }],
                 ...defaultStore
               },
             },
@@ -471,11 +488,15 @@ describe('topLevelMenu', () => {
       it('given matching clusters', () => {
         const search = 'you found me';
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data:  () => ({ clusterFilter: search }),
+          data:  () => ({ hasProvCluster: true, clusterFilter: search }),
           mocks: {
             $store: {
               getters: {
-                'management/all': () => [{ nameDisplay: search }],
+                'management/all': () => [{
+                  id:          'an-id1',
+                  mgmt:        { id: 'an-id1' },
+                  nameDisplay: search
+                }],
                 ...defaultStore
               },
             },
@@ -492,11 +513,16 @@ describe('topLevelMenu', () => {
       it('given clusters with status pinned', () => {
         const search = 'you found me';
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data:  () => ({ clusterFilter: search }),
+          data:  () => ({ hasProvCluster: true, clusterFilter: search }),
           mocks: {
             $store: {
               getters: {
-                'management/all': () => [{ nameDisplay: search, pinned: true }],
+                'management/all': () => [{
+                  nameDisplay: search,
+                  pinned:      true,
+                  id:          'an-id1',
+                  mgmt:        { id: 'an-id1' },
+                }],
                 ...defaultStore
               },
             },
