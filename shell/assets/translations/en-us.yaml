@@ -360,7 +360,7 @@ addClusterMemberDialog:
   title: Add Cluster Member
 
 addonConfigConfirmation:
-  title:  Add-On Reset
+  title: Add-On Reset
   body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
 
 addProjectMemberDialog:
