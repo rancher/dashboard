@@ -360,8 +360,8 @@ addClusterMemberDialog:
   title: Add Cluster Member
 
 addonConfigConfirmation:
-  title: Add-On Config Reset
-  body: Changing the Kubernetes Version can reset the Add-On Config values. You should check that the values are as expected before continuing.
+  title:  Add-On Reset
+  body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
 
 addProjectMemberDialog:
   title: Add Project Member
@@ -1187,38 +1187,38 @@ cluster:
       <code>Cluster Management > Advanced > JWT Authentication</code>"
   addonChart:
     rancher-vsphere-cpi:
-      label: vSphere CPI
-      configuration: vSphere CPI Configuration
+      label: "Add-on: vSphere CPI"
+      configuration: vSphere CPI
     rancher-vsphere-csi:
-      label: vSphere CSI
-      configuration: vSphere CSI Configuration
+      label: "Add-on: vSphere CSI"
+      configuration: vSphere CSI
     rke2-calico:
-      label: Calico
-      configuration: Calico Configuration
+      label: "Add-on: Calico"
+      configuration: Calico
     rke2-calico-crd:
-      label:  Calico
-      configuration: Calico Configuration
+      label:  "Add-on: Calico"
+      configuration: Calico
     rke2-canal:
-      label: Canal
-      configuration: Canal Configuration
+      label: "Add-on: Canal"
+      configuration: Canal
     rke2-cilium:
-      label: Cilium
-      configuration: Cilium Configuration
+      label: "Add-on: Cilium"
+      configuration: Cilium
     rke2-coredns:
-      label: CoreDNS
-      configuration: CoreDNS Configuration
+      label: "Add-on: CoreDNS"
+      configuration: CoreDNS
     rke2-ingress-nginx:
-      label: NGINX
-      configuration: NGINX Ingress Configuration
+      label: "Add-on: NGINX"
+      configuration: NGINX Ingress
     rke2-kube-proxy:
-      label: Kube Proxy
-      configuration: Kube Proxy Configuration
+      label: "Add-on: Kube Proxy"
+      configuration: Kube Proxy
     rke2-metrics-server:
-      label: Metrics Server
-      configuration: Metrics Server Configuration
+      label: "Add-on: Metrics Server"
+      configuration: Metrics Server
     rke2-multus:
-      label: Multus
-      configuration: Multus Configuration
+      label: "Add-on: Multus"
+      configuration: Multus
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
@@ -1234,7 +1234,7 @@ cluster:
       label: Google
     rancher-vsphere:
       label: vSphere
-      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the tabs on the left.'
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-on tabs.'
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
@@ -1745,7 +1745,7 @@ cluster:
       serverOs:
         label: OS
   addOns:
-    dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
+    dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
