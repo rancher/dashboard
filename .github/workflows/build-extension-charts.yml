@@ -32,6 +32,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Nodejs for corepack
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
       - name: Enable Corepack
         run: corepack enable
 
@@ -50,9 +55,6 @@ jobs:
         with:
           cache: yarn
           node-version: '16'
-
-      - name: Setup yarn
-        run: npm install -g yarn
 
       - name: Install dependencies
         run: yarn
