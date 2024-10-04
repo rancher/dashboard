@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { defineComponent } from 'vue';
 
 describe('component: LabeledSelect', () => {
   describe('should display correct label', () => {
@@ -133,6 +134,47 @@ describe('component: LabeledSelect', () => {
         // Component is from a library and class is not going to be changed
         expect(wrapper.find('.vs__selected').text()).toBe(translation);
       });
+    });
+  });
+
+  describe('given attributes from parent element', () => {
+    it('should not pass classes to the select element', () => {
+      const customClass = 'bananas';
+      const ParentComponent = defineComponent({
+        components: { LabeledSelect },
+        template:   `<LabeledSelect class="${ customClass }" />`,
+      });
+      const wrapper = mount(ParentComponent);
+      const input = wrapper.find('.v-select');
+
+      expect(input.classes).not.toContain(customClass);
+    });
+
+    it.each([
+      [true, ['bananas']],
+      [false, 'bananas'],
+    ])('given multiple as %p, should emit %p', async(multiple, expectation) => {
+      const ParentComponent = defineComponent({
+        components: { LabeledSelect },
+        template:   `
+          <LabeledSelect
+            v-model:value="myValue"
+            :multiple="${ multiple }"
+            :options="options"
+            :appendToBody="false"
+          />`,
+        data: () => ({
+          myValue: [],
+          options: ['bananas']
+        })
+      });
+      const wrapper = mount(ParentComponent);
+
+      // https://test-utils.vuejs.org/guide/essentials/event-handling#Asserting-the-arguments-of-the-event
+      await wrapper.find('input').trigger('focus');
+      await wrapper.find('.vs__dropdown-option').trigger('click');
+
+      expect(wrapper.vm.$data.myValue).toStrictEqual(expectation);
     });
   });
 });
