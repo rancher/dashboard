@@ -11,6 +11,8 @@ As discussed in the [Getting Started](./extensions-getting-started#creating-a-re
 
 ## Automatic Approach - Triggering a Github Workflow on Tagged Release
 
+> **WARNING:** When using the provided Github workflows, the base skeleton application name (Found in the root level `package.json`) ___MUST___ be unique when compared with any extension packages found in `./pkg/*`. If an extension package name matches the base skeleton name the workflow will fail due to the "Parse Extension Name" step found in both the ["Build and Release Extension Charts"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-charts.yml#L59-L65) and ["Build and release Extension Catalog Image to registry"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-catalog.yml#L64-L70) workflows.
+
 If your extensions repository doesn't include a github workflow to automate the publishing procedure (ignore this step if you have it already), you can create one in `.github/workflows/build.yaml` on your extension folder, with the following content:
 
 ```yaml
