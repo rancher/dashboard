@@ -1388,7 +1388,7 @@ cluster:
         macFormat: 'Invalid MAC address format.'
       vGpus:
         errors:
-          notAllocatable: '"VGPUs" not allocatable. There are not enough [{vGpus}] devices to be allocated to each node in machine pool [{pool}]'
+          notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
