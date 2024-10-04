@@ -30,6 +30,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Nodejs for corepack
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
       - name: Enable Corepack
         run: corepack enable
 
@@ -55,9 +60,6 @@ jobs:
         with:
           node-version: '16'
           cache: yarn
-
-      - name: Setup yarn
-        run: npm install -g yarn
 
       - name: Install dependencies
         run: yarn
