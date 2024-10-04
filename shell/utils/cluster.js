@@ -1,4 +1,5 @@
 import semver from 'semver';
+import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -89,4 +90,12 @@ export function abbreviateClusterName(input) {
   }
 
   return result;
+}
+
+export function labelForAddon(store, name, configuration = true) {
+  const addon = camelToTitle(name.replace(/^(rke|rke2|rancher)-/, ''));
+  const fallback = `${ addon } ${ configuration ? 'Configuration' : '' }`;
+  const key = `cluster.addonChart."${ name }"${ configuration ? '.configuration' : '.label' }`;
+
+  return store.getters['i18n/withFallback'](key, null, fallback);
 }
