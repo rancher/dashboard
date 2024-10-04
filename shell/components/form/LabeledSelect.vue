@@ -140,7 +140,6 @@ export default {
       const {
         class: _class,
         taggable,
-        multiple,
         ...rest
       } = this.$attrs;
 
