@@ -133,6 +133,8 @@ declare global {
 
       keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
+      containsExactly(searchString: string): Chainable<Element>;
+
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
       iFrame(): Chainable<Element>;
