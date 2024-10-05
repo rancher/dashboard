@@ -33,9 +33,9 @@ export default class WorkloadPagePo extends PagePo {
       .executeCommand(`delete deployment ${ name } -n ${ namespace }`);
   }
 
-  createWithKubectl(blueprints: string | Object, wait = 6000) {
+  createWithKubectl(blueprints: string | Object, wait = 6000, timeout) {
     this.kubectl()
-      .openTerminal()
+      .openTerminal(timeout)
       .executeMultilineCommand(blueprints, wait);
   }
 

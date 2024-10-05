@@ -16,6 +16,10 @@ export default class ProvClusterListPo extends BaseResourceList {
     return cy.getId('sortable-table-downloadKubeConfig');
   }
 
+  details(name: string, index: number) {
+    return this.resourceTable().sortableTable().rowWithName(name).column(index);
+  }
+
   state(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(1);
   }

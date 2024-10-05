@@ -55,7 +55,7 @@ export class workloadDetailsPageBasePo extends PagePo {
     this.workload().deleteWithKubectl(name, namespace);
   }
 
-  createWithKubectl(blueprintJson: string | Object, wait = 6000) {
+  createWithKubectl(blueprintJson: string | Object, wait = 6000 ) {
     this.workload().createWithKubectl(blueprintJson, wait);
   }
 }
@@ -103,8 +103,15 @@ export class WorkloadsListPageBasePo extends PagePo {
     promptRemove.remove();
   }
 
-  createWithKubectl(blueprintJson: string | Object, wait = 6000) {
-    this.workload().createWithKubectl(blueprintJson, wait);
+  deleteAndWaitForRequest(name: string) {
+    cy.intercept('DELETE', 'v1/apps.deployments/**').as('deleteDeployment');
+    this.deleteItemWithUI(name);
+
+    return cy.wait('@deleteDeployment');
+  }
+
+  createWithKubectl(blueprintJson: string | Object, wait = 6000, timeout = { timeout: 10000 }) {
+    this.workload().createWithKubectl(blueprintJson, wait, timeout);
   }
 
   listElementWithName(name: string) {
