@@ -519,16 +519,32 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
 /**
  * delete a node template
  */
-Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000) => {
-  return cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, false).then((resp: Cypress.Response<any>) => {
-    if (resp.status === 405 && (resp.body.message === 'Template is in use by a node pool.' || 'Template is in use by a node.')) {
-      cy.log(`error message: ${ resp.body.message }. Lets retry node deletion after ${ timeout } milliseconds`);
-      cy.wait(timeout); // eslint-disable-line cypress/no-unnecessary-waiting
-      cy.deleteRancherResource('v3', 'nodetemplate', nodeTemplateId, true);
-    } else {
-      expect(resp.status).to.be.oneOf([200, 204]);
-    }
-  });
+Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false) => {
+  let retries = 10;
+
+  const retry = () => {
+    cy.request({
+      method:  'DELETE',
+      url:     `${ Cypress.env('api') }/v3/nodetemplate/${ nodeTemplateId }`,
+      failOnStatusCode,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+    }).then((resp) => {
+      if (resp.status === 200 || resp.status === 204) return resp;
+      else {
+        cy.log(`error message: ${ resp.body.message }. Lets retry node deletion after ${ timeout } milliseconds`);
+        cy.wait(timeout); // eslint-disable-next-line cypress/no-unnecessary-waiting
+
+        retries = retries - 1;
+        if (retries === 0) return resp;
+        retry();
+      }
+    });
+  };
+
+  return retry();
 });
 
 /**

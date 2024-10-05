@@ -186,8 +186,8 @@ export default class SortableTablePo extends ComponentPo {
    * @param expected number of rows shown
    * @returns
    */
-  checkRowCount(isEmpty: boolean, expected: number, hasFilter = false) {
-    return this.rowElements().should((el) => {
+  checkRowCount(isEmpty: boolean, expected: number, options?, hasFilter = false) {
+    return this.rowElements(options).should((el) => {
       if (isEmpty) {
         expect(el).to.have.length(expected);
         expect(el).to.have.text(hasFilter ? 'There are no rows which match your search query.' : 'There are no rows to show.');
