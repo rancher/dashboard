@@ -160,7 +160,7 @@ export default class SteveSchema extends Schema {
         url
       });
     } catch (e: any) {
-      if ( e?._status === 500) {
+      if (e?._status === 500 || e?._status === 503) {
         // Rancher could be updating it's definition cache, attempt a few times
         await wait(2000);
 
