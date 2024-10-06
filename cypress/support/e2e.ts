@@ -2,6 +2,7 @@ import '@cypress/code-coverage/support';
 import './commands/commands';
 import './commands/rancher-api-commands.ts';
 import registerCypressGrep from '@cypress/grep/src/support';
+import 'cypress-mochawesome-reporter/register';
 
 registerCypressGrep();
 

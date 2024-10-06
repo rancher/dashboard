@@ -170,6 +170,7 @@
     "csv-loader": "3.0.3",
     "cy2": "2.0.0",
     "cypress": "10.11.0",
+    "cypress-mochawesome-reporter": "^3.8.2",
     "eslint": "7.32.0",
     "eslint-config-standard": "16.0.3",
     "eslint-import-resolver-node": "0.3.4",
