@@ -42,7 +42,7 @@ for d in ${BASE_DIR}/dist-pkg/*; do
   mkdir plugin && mv ./${pkg}/* ./plugin
   rm -rf ./${pkg}/* && mv ./plugin ./${pkg}
 
-  find ${pkg} -type f -printf '%P\n' | sort > ./${pkg}/files.txt
+  find ${pkg} -type f | sed "s|^${pkg}/||" | sort > ./${pkg}/files.txt
   popd > /dev/null
 
   cp -R ${BASE_DIR}/dist-pkg/${pkg} ${TMP}/container/plugin
