@@ -231,6 +231,7 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :sub-rows="true"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
@@ -244,32 +245,32 @@ export default {
       </template>
       <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
         <tr
-          v-if="row.stateDescription"
           :key="row[keyField] + '-description'"
           :data-testid="componentTestid + '-' + i + '-row-description'"
           class="state-description sub-row"
           @mouseenter="onRowMouseEnter"
           @mouseleave="onRowMouseLeave"
         >
-          <td>&nbsp;</td>
+          <td v-if="row.cloudCredentialWarning || row.stateDescription">
+&nbsp;
+          </td>
           <td
-            v-if="row.cloudCredentialWarning"
+            v-if="row.cloudCredentialWarning || row.stateDescription"
             :colspan="fullColspan - 1"
           >
             <CloudCredExpired
+              v-if="row.cloudCredentialWarning"
               :value="row.cloudCredential.expires"
               :row="row.cloudCredential"
               :verbose="true"
-              class="mb-10"
+              :class="{'mb-10': row.stateDescription}"
             />
-            {{ row.stateDescription }}
-          </td>
-          <td
-            v-else
-            :colspan="fullColspan - 1"
-            :class="{ 'text-error' : row.stateObj.error }"
-          >
-            {{ row.stateDescription }}
+            <div
+              v-if="row.stateDescription"
+              :class="{ 'text-error' : row.stateObj.error }"
+            >
+              {{ row.stateDescription }}
+            </div>
           </td>
         </tr>
       </template>
