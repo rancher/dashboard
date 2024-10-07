@@ -44,18 +44,6 @@ const renew = {
 };
 
 export default class CloudCredential extends NormanModel {
-  constructor(...args) { // TODO: RC remove
-    super(...args);
-
-    if (this.name === 'france') {
-      console.warn('Setting Super Debug Annotation', this.id, this.name);
-      this.setAnnotation(CLOUD_CREDENTIALS, '1727443439000');
-    } else if (this.name === 'harvester-v-1-2-2') {
-      console.warn('Setting Super Debug Annotation', this.id, this.name);
-      this.setAnnotation(CLOUD_CREDENTIALS, '1728204047000');
-    }
-  }
-
   get _availableActions() {
     const out = super._availableActions;
 
