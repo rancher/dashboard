@@ -32,6 +32,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Nodejs for corepack
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
       - name: Enable Corepack
         run: corepack enable
 
@@ -40,6 +45,20 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.8.0
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          node-version: '16'
+
+      - name: Install dependencies
+        run: yarn
+
       - name: Parse Extension Name
         if: github.ref_type == 'tag'
         id: parsed-name
@@ -47,22 +66,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.8.0
-
-      - name: Setup Nodejs and npm
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-
-      - name: Setup yarn
-        run: npm install -g yarn
-
-      - name: Install dependencies
-        run: yarn
 
       - name: Run build script
         shell: bash
