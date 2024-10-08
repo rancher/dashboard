@@ -17,10 +17,13 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   describe('Create', () => {
     beforeEach(() => {
-      const name = `e2e-repo-${ Math.random().toString(36).substr(2, 6) }`;
+      // const name = `e2e-repo-${ Math.random().toString(36).substr(2, 6) }`;
+      // cy.wrap(name).as('repoName');
 
-      cy.wrap(name).as('repoName');
-      testRepos.push(name);
+      // testRepos.push(name);
+
+      cy.createE2EResourceName('repo').as('repoName');
+      cy.get('@repoName').then((name) => testRepos.push(name));
     });
 
     it('can create a repository', function() {
@@ -139,13 +142,21 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   describe('Cluster Management Helm Repository Read/Clone/Update/Delete', () => {
     beforeEach(() => {
-      const name = `e2e-repo-${ Math.random().toString(36).substr(2, 6) }`;
+      // const name = `e2e-repo-${ Math.random().toString(36).substr(2, 6) }`;
 
-      cy.wrap(name).as('repoName');
+      // cy.wrap(name).as('repoName');
+      // testRepos.push(name);
+      // cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+      //   metadata: { name }, spec: { gitRepo: 'https://github.com/rancher/charts', gitBranch: 'release-v2.9' }, type: 'catalog.cattle.io.clusterrepo'
+      // });
 
-      testRepos.push(name);
-      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
-        metadata: { name }, spec: { gitRepo: 'https://github.com/rancher/charts', gitBranch: 'release-v2.9' }, type: 'catalog.cattle.io.clusterrepo'
+      cy.createE2EResourceName('repo').as('repoName');
+      cy.get('@repoName').then((name) => {
+        testRepos.push(name);
+
+        cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+          metadata: { name }, spec: { gitRepo: 'https://github.com/rancher/charts', gitBranch: 'release-v2.9' }, type: 'catalog.cattle.io.clusterrepo'
+        });
       });
     });
 

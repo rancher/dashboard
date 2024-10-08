@@ -76,7 +76,9 @@ Cypress.Commands.add('iFrame', () => {
 const runTimestamp = +new Date();
 
 Cypress.Commands.add('createE2EResourceName', (context) => {
-  return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
+  const randomStr = Math.random().toString(36).substr(2, 6);
+
+  return cy.wrap(`e2e-test-${ runTimestamp }-${ randomStr }-${ context }`);
 });
 
 // See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress
