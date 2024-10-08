@@ -36,7 +36,7 @@ describe.skip('[Vue3 Skip]: Git Repo', { testIsolation: 'off', tags: ['@fleet', 
     });
 
     beforeEach(() => {
-      cy.createE2EResourceName('git-repo').as('gitRepo');
+      // cy.createE2EResourceName('git-repo').as('gitRepo');
     });
 
     it('Should be able to create a git repo', () => {

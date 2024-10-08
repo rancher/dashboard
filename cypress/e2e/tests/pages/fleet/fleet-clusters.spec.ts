@@ -61,7 +61,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
     beforeEach(() => {
       // get clusterId
-      cy.createE2EResourceName('rke2cluster').as('rke2Ec2ClusterName');
+      // cy.createE2EResourceName('rke2cluster').as('rke2Ec2ClusterName');
       cy.get<string>('@rke2Ec2ClusterName').then((name) => {
         cy.getRancherResource('v3', 'clusters').then((resp: Cypress.Response<any>) => {
           const body = resp.body;

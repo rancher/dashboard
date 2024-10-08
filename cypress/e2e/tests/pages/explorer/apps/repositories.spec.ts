@@ -8,13 +8,18 @@ describe('Apps', () => {
     describe('Add', () => {
       const appRepoList = new ReposListPagePo('local', 'apps');
 
+      before(){
+        cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
+
+      }
+
       beforeEach(() => {
         cy.login();
 
         appRepoList.goTo();
         appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
 
-        cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
+        // cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });
 
       describe('Contained', () => {

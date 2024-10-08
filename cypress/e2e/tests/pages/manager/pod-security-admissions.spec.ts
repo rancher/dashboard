@@ -12,11 +12,12 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
 
   beforeEach(() => {
     cy.viewport(1380, 720);
-    cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
+    // cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
   it('can open "Edit as YAML"', () => {
     PodSecurityAdmissionsPagePo.navTo();

@@ -32,11 +32,14 @@ describe('Provision Node driver RKE2 cluster with Azure', { testIsolation: 'off'
         });
       }
     });
+
+    cy.createE2EResourceName('rke2azure').as('rke2AzureClusterName');
+    cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
 
   beforeEach(() => {
-    cy.createE2EResourceName('rke2azure').as('rke2AzureClusterName');
-    cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
+    // cy.createE2EResourceName('rke2azure').as('rke2AzureClusterName');
+    // cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
 
   it('can provision a RKE2 cluster with Azure cloud provider', function() {
