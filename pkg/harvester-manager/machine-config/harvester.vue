@@ -1241,15 +1241,19 @@ export default {
         {{ t('cluster.credential.harvester.volume.title') }}
       </h2>
       <draggable
-        v-model:value="disks"
-        :disabled="isView"
+        :item-key="() => ''"
+        :list="disks"
+        :options="{disabled: isView}"
+        :drag-options="{
+          animation: 250,
+          group: 'people',
+          disabled: false,
+          ghostClass: 'ghost'
+        }"
         @end="update"
       >
-        <transition-group>
-          <div
-            v-for="(disk, i) in disks"
-            :key="i"
-          >
+        <template #item="{ element: disk, index: i }">
+          <div>
             <InfoBox
               class="box"
               :class="[disks.length === i +1 ? 'mb-10' : 'mb-20']"
@@ -1338,7 +1342,7 @@ export default {
               </div>
             </InfoBox>
           </div>
-        </transition-group>
+        </template>
       </draggable>
 
       <div class="volume">
