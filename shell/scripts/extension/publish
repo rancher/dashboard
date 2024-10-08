@@ -18,6 +18,8 @@ FORCE="false"
 GITHUB_BUILD="true"
 GITHUB_RELEASE_TAG=""
 PODMAN_CONTAINER="false"
+UPDATE_OLD_PACKAGES="true"
+UPDATE_LATEST_PACAKGES="true"
 
 GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
 GITHUB_BRANCH="main"
@@ -35,10 +37,12 @@ usage() {
   echo "  -o <name>    Specify destination container registry organization for built images"
   echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
   echo "  -l           Specify Podman container build"
+  echo "  -n           Do not check for updates to existing Charts (Chart.yaml)"
+  echo "  -e           Only check for updates to existing Charts (Chart.yaml)"
   exit 1
 }
 
-while getopts "hvr:o:pi:fcb:t:s:l" opt; do
+while getopts "hvr:o:pi:fcb:t:s:lne" opt; do
   case $opt in
     h)
       usage
@@ -74,6 +78,13 @@ while getopts "hvr:o:pi:fcb:t:s:l" opt; do
       ;;
     l)
       PODMAN_CONTAINER="true"
+      ;;
+    n)
+      UPDATE_OLD_PACKAGES="false"
+      ;;
+    e)
+      UPDATE_OLD_PACKAGES="true"
+      UPDATE_LATEST_PACAKGES="false"
       ;;
     *)
       usage
@@ -211,137 +222,201 @@ CHART_TEMPLATE=${BASE_DIR}/tmp/helm
 ROOT_INDEX=${BASE_DIR}/index.yaml
 
 # --------------------------------------------------------------------------------
+# Iterate through all existing charts and look for updates/removals
+# --------------------------------------------------------------------------------
+if [ "${UPDATE_OLD_PACKAGES}" = "true" ]; then
+  pushd ${ASSETS} > /dev/null
+  echo -e "${CYAN}${BOLD}Checking existing charts for updates ...${RESET}"
+
+  for FOLDER_NAME in */ ; do
+    EXT_NAME=${FOLDER_NAME::${#FOLDER_NAME}-1}
+    echo -e "${CYAN}${EXT_NAME}${RESET}"
+
+    for CHART_ARCHIVE in ${EXT_NAME}/*.tgz ; do
+      rm -f ${TMP}/Chart.yaml
+
+      # path in chart may be different to tar file name, so extratct the Chart.yaml file to the top-level folder
+      tar --strip-components=1 -C ${TMP} -xf ${CHART_ARCHIVE} */Chart.yaml
+
+      EXISTING_MD5=$(md5 -q ${TMP}/Chart.yaml)
+      VERSION=$(yq eval .version ${TMP}/Chart.yaml)
+
+      CHART_FOLDER=${CHARTS}/${EXT_NAME}/${VERSION}
+      LATEST=${CHART_FOLDER}/Chart.yaml
+
+      if [ ! -f "${LATEST}" ]; then
+        echo "  - Chart for ${EXT}-${VERSION} appears to have been deleted - removing chart archive: ${CHART_ARCHIVE}"
+        rm -f ${ASSETS}/${CHART_ARCHIVE}
+        BUILT="true"
+      else
+        # Re-package the helm chart so that the Chart.yaml is processed in the same way so we can compare it
+        mkdir -p ${TMP}/tmp_chart
+        helm package ${CHART_FOLDER} -d ${TMP}/tmp_chart > /dev/null
+        rm ${TMP}/Chart.yaml
+
+        # path in chart may be different to tar file name, so list the files to find what the chart archive is named
+        FILENAME=$(cd ${TMP}/tmp_chart; ls)
+
+        # path in chart may be different to tar file name, so extratct the Chart.yaml file to the top-level folder
+        tar --strip-components=1 -C ${TMP} -xf ${TMP}/tmp_chart/${FILENAME} */Chart.yaml
+        LATEST_MD5=$(md5 -q ${TMP}/Chart.yaml)
+
+        rm -f $TMP/tmp_chart/${FILENAME}
+
+        if [ "${EXISTING_MD5}" != "${LATEST_MD5}" ]; then
+          BUILT="true"
+
+          echo "  + Chart.yaml has changed for ${CHART_ARCHIVE}"
+          # Chart was already re-generated - update ir
+          rm ${CHART_ARCHIVE}
+          helm package ${CHART_FOLDER} -d ${ASSETS}/${EXT_NAME}
+        fi
+      fi
+
+      rm -d ${TMP}/tmp_chart
+      rm ${TMP}/Chart.yaml
+      
+    done
+  done
+
+  popd > /dev/null
+fi
+
+# --------------------------------------------------------------------------------
 # Iterate through all packages - built them all or build only those specified on the command line
 # --------------------------------------------------------------------------------
-for d in pkg/*/ ; do
-  pkg=$(basename $d)
+if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
+  for d in pkg/*/ ; do
+    pkg=$(basename $d)
 
-  if [ -z "$1" ] || [[ " ${PLUGINS[*]} " =~ " ${pkg} " ]]; then
-    # Check we don't already have a published version by looking in the assets folder
-    PKG_VERSION=$(jq -r .version ./pkg/${pkg}/package.json)
-    PKG_NAME="${pkg}-${PKG_VERSION}"
-    PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
+    if [ -z "$1" ] || [[ " ${PLUGINS[*]} " =~ " ${pkg} " ]]; then
+      # Check we don't already have a published version by looking in the assets folder
+      PKG_VERSION=$(jq -r .version ./pkg/${pkg}/package.json)
+      PKG_NAME="${pkg}-${PKG_VERSION}"
+      PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
 
-    # Skip the build for a package that does not match the tagged release name
-    if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
-      echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
-      echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
-      continue
+      # Skip the build for a package that does not match the tagged release name
+      if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
+        echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
+        echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
+        continue
+      fi
+
+      echo -e "${CYAN}${BOLD}Building extension: ${pkg} (${PKG_VERSION}) ${RESET}"
+
+      echo "Package version: ${PKG_VERSION}"
+      echo "Package folder:  ${PKG_NAME}"
+
+      # --------------------------------------------------------------------------------
+      # Build the plugin from source
+      # --------------------------------------------------------------------------------
+      echo -e "${CYAN}Building extension from source code${RESET}"
+      FORCE_COLOR=1 yarn build-pkg $pkg | cat
+
+      echo -e "${CYAN}Adding extension code ...${RESET}"
+
+      EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+      PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
+
+      rm -rf ${EXT_FOLDER}
+
+      mkdir -p ${EXT_FOLDER}/plugin
+
+      # Copy the code into the folder
+      cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
+
+      pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
+      rm -f plugin/report.html
+      find plugin -type f | sort > files.txt
+      popd > /dev/null
+
+      # --------------------------------------------------------------------------------
+      # Create the Helm chart
+      # --------------------------------------------------------------------------------
+
+      if [ -f ${PKG_ASSET} ] && [ "${FORCE}" == "false" ]; then
+        echo -e "${YELLOW}Helm chart has already been created - skipping (run with -f to force build)${RESET}"
+        continue;
+      fi
+
+      CHART_FOLDER=${CHARTS}/${pkg}/${PKG_VERSION}
+
+      mkdir -p ${ASSETS}/${pkg}
+      rm -rf ${CHART_FOLDER}
+      mkdir -p ${CHART_FOLDER}
+
+      cp -R ${CHART_TEMPLATE}/charts/ui-plugin-server/* ${CHART_FOLDER}
+
+      # Update Chart.yaml and values.yaml from the package file metadata
+      # Use the script from the template repository
+      echo -e "${CYAN}Patching Helm chart template${RESET}"
+
+      CHART=${CHART_FOLDER} REGISTRY="${REGISTRY}" ORG="${REGISTRY_ORG}" PACKAGE_JSON=${BASE_DIR}/pkg/${pkg}/package.json ${CHART_TEMPLATE}/scripts/patch
+
+      # Copy README file from the plugin to the Helm chart, if there is one
+      if [ -f "./pkg/${pkg}/README.md" ]; then
+        cp ./pkg/${pkg}/README.md ${CHART_FOLDER}/README.md
+      fi
+
+      pushd ${CHART_FOLDER}/templates > /dev/null
+      
+      if [ "${GITHUB_BUILD}" == "true" ]; then
+        echo "Patching for GitHub build"
+        ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
+      else
+        echo "Patching for container build"
+        ENDPOINT=http://${IMAGE_PREFIX}${BASE_EXT}-svc.cattle-ui-plugin-system:8080/plugin/${PKG_NAME}
+      fi
+      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
+      rm *.bak
+      popd > /dev/null
+
+      # Additional patches
+      ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"
+
+      # Package into a .tgz helm chart
+      helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
+
+      BUILT="true"
     fi
+  done
+fi
 
-    echo -e "${CYAN}${BOLD}Building extension: ${pkg} (${PKG_VERSION}) ${RESET}"
+# Update the Helm Index for all charts, if changes were made
+if [ "${BUILT}" == "true" ]; then
+  # --------------------------------------------------------------------------------
+  # Update the helm index for all charts
+  # --------------------------------------------------------------------------------
+  HELM_INDEX=${BASE_DIR}/index.yaml
 
-    echo "Package version: ${PKG_VERSION}"
-    echo "Package folder:  ${PKG_NAME}"
+  echo "Updating Helm Index file"
 
-    # --------------------------------------------------------------------------------
-    # Build the plugin from source
-    # --------------------------------------------------------------------------------
-    echo -e "${CYAN}Building extension from source code${RESET}"
-    FORCE_COLOR=1 yarn build-pkg $pkg | cat
+  if [ -f "${HELM_INDEX}" ]; then
+    UPDATE="--merge ${HELM_INDEX}"
+  elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
+    # Check if git branch contains index.yaml
+    GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
 
-    echo -e "${CYAN}Adding extension code ...${RESET}"
-
-    EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
-    PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
-
-    rm -rf ${EXT_FOLDER}
-
-    mkdir -p ${EXT_FOLDER}/plugin
-
-    # Copy the code into the folder
-    cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
-
-    pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
-    rm -f plugin/report.html
-    find plugin -type f | sort > files.txt
-    popd > /dev/null
-
-    # --------------------------------------------------------------------------------
-    # Create the Helm chart
-    # --------------------------------------------------------------------------------
-
-    if [ -f ${PKG_ASSET} ] && [ "${FORCE}" == "false" ]; then
-      echo -e "${YELLOW}Helm chart has already been created - skipping (run with -f to force build)${RESET}"
-      continue;
-    fi
-
-    CHART_FOLDER=${CHARTS}/${pkg}/${PKG_VERSION}
-
-    mkdir -p ${ASSETS}/${pkg}
-    rm -rf ${CHART_FOLDER}
-    mkdir -p ${CHART_FOLDER}
-
-    cp -R ${CHART_TEMPLATE}/charts/ui-plugin-server/* ${CHART_FOLDER}
-
-    # Update Chart.yaml and values.yaml from the package file metadata
-    # Use the script from the template repository
-    echo -e "${CYAN}Patching Helm chart template${RESET}"
-
-    CHART=${CHART_FOLDER} REGISTRY="${REGISTRY}" ORG="${REGISTRY_ORG}" PACKAGE_JSON=${BASE_DIR}/pkg/${pkg}/package.json ${CHART_TEMPLATE}/scripts/patch
-
-    # Copy README file from the plugin to the Helm chart, if there is one
-    if [ -f "./pkg/${pkg}/README.md" ]; then
-      cp ./pkg/${pkg}/README.md ${CHART_FOLDER}/README.md
-    fi
-
-    pushd ${CHART_FOLDER}/templates > /dev/null
-    
-    if [ "${GITHUB_BUILD}" == "true" ]; then
-      echo "Patching for GitHub build"
-      ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
-    else
-      echo "Patching for container build"
-      ENDPOINT=http://${IMAGE_PREFIX}${BASE_EXT}-svc.cattle-ui-plugin-system:8080/plugin/${PKG_NAME}
-    fi
-    sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
-    rm *.bak
-    popd > /dev/null
-
-    # Additional patches
-    ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"
-
-    # Package into a .tgz helm chart
-    helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
-
-    # --------------------------------------------------------------------------------
-    # Update the helm index just for this chart 
-    # --------------------------------------------------------------------------------
-    HELM_INDEX=${BASE_DIR}/index.yaml
+    wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml 2>/dev/null
+    HELM_INDEX="${BASE_DIR}/index.yaml"
 
     if [ -f "${HELM_INDEX}" ]; then
       UPDATE="--merge ${HELM_INDEX}"
-    elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
-      # Check if git branch contains index.yaml
-      GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
-
-      wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml 2>/dev/null
-      HELM_INDEX="${BASE_DIR}/index.yaml"
-
-      if [ -f "${HELM_INDEX}" ]; then
-        UPDATE="--merge ${HELM_INDEX}"
-      fi
     fi
-
-    # Base URL referencing assets directly from GitHub
-    BASE_URL="assets/"
-
-    # Relative URL references assets within the container deployment
-    RELATIVE_URL="plugin/"
-    
-    rm -rf ${CHART_TMP}
-    mkdir -p ${CHART_TMP}
-    cp ${ASSETS}/${pkg}/*.tgz ${CHART_TMP}
-
-    if [ "${GITHUB_BUILD}" == "true" ]; then
-      helm repo index ${ASSETS} --url ${BASE_URL} ${UPDATE}
-    elif ! [ -e "${HELM_INDEX}" ]; then
-      helm repo index ${ASSETS} --url ${RELATIVE_URL}
-    fi
-
-    BUILT="true"
   fi
-done
+
+  # Base URL referencing assets directly from GitHub
+  BASE_URL="assets/"
+
+  # Relative URL references assets within the container deployment
+  RELATIVE_URL="plugin/"
+  
+  if [ "${GITHUB_BUILD}" == "true" ]; then
+    helm repo index ${ASSETS} --url ${BASE_URL} ${UPDATE}
+  elif ! [ -e "${HELM_INDEX}" ]; then
+    helm repo index ${ASSETS} --url ${RELATIVE_URL}
+  fi
+fi
 
 if [ "${GITHUB_BUILD}" == "true" ] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ "${BUILT}" == "false" ]; then
   echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} did not match any package name.${RESET}"

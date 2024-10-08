@@ -12,7 +12,7 @@ import { allHash } from '@shell/utils/promise';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
-import { _VIEW, _CREATE } from '@shell/config/query-params';
+import { _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
@@ -39,6 +39,37 @@ export default {
   },
 
   async fetch() {
+    // we need to force-fetch the resource fields, otherwise on page refresh
+    // in the clusterscan edit/create views the "canBeScheduled" won't run properly
+    await this.schema.fetchResourceFields();
+
+    if (this.realMode === _CREATE || this.realMode === _EDIT) {
+      const includeScheduling = this.value.canBeScheduled();
+      const spec = this.value.spec || {};
+
+      spec.scanProfileName = null;
+      if (includeScheduling) {
+        spec.scoreWarning = 'pass';
+        spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
+      }
+
+      this.value.spec = spec;
+    }
+
+    if (!this.value.metadata.name) {
+      this.value.metadata.generateName = 'scan-';
+    }
+    if (!this.value.spec.scheduledScanConfig) {
+      this.value.spec['scheduledScanConfig'] = { scanAlertRule: {} };
+    }
+    if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
+      this.value.spec.scheduledScanConfig['scanAlertRule'] = { };
+    }
+
+    this.isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
+    this.scheduledScanConfig = this.value.spec.scheduledScanConfig;
+    this.scanAlertRule = this.value.spec.scheduledScanConfig.scanAlertRule;
+
     const hash = await allHash({
       profiles:               this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
       benchmarks:             this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
@@ -65,24 +96,13 @@ export default {
   },
 
   data() {
-    if (!this.value.metadata.name) {
-      this.value.metadata.generateName = 'scan-';
-    }
-    if (!this.value.spec.scheduledScanConfig) {
-      this.value.spec['scheduledScanConfig'] = { scanAlertRule: {} };
-    }
-    if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
-      this.value.spec.scheduledScanConfig['scanAlertRule'] = { };
-    }
-    const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
-
     return {
       allProfiles:         [],
       defaultConfigMap:    null,
-      scheduledScanConfig: this.value.spec.scheduledScanConfig,
-      scanAlertRule:       this.value.spec.scheduledScanConfig.scanAlertRule,
+      scheduledScanConfig: null,
+      scanAlertRule:       null,
       hasAlertManager:     false,
-      isScheduled
+      isScheduled:         null
     };
   },
 
@@ -281,7 +301,7 @@ export default {
       </div>
     </div>
     <template v-if="canBeScheduled">
-      <h3>Scheduling</h3>
+      <h3>{{ t('cis.scheduling.title') }}</h3>
       <div class="row mb-20">
         <div class="col">
           <RadioGroup
@@ -314,8 +334,8 @@ export default {
             />
           </div>
         </div>
-        <h3>
-          Alerting
+        <h3 class="mt-20">
+          {{ t('cis.alerting') }}
         </h3>
         <div class="row mb-20">
           <div class="col span-12">

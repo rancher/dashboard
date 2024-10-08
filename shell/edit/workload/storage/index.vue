@@ -5,6 +5,7 @@ import { _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
 import { randomStr } from '@shell/utils/string';
 import { uniq } from '@shell/utils/array';
 
@@ -14,7 +15,11 @@ export default {
   emits: ['removePvcForm'],
 
   components: {
-    ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
+    ArrayListGrouped,
+    ButtonDropdown,
+    Mount,
+    CodeMirror,
+    YamlEditor
   },
 
   props: {
@@ -110,21 +115,21 @@ export default {
     pvcNames() {
       return this.namespacedPvcs.map((pvc) => pvc.metadata.name);
     },
+
+    yamlEditorMode() {
+      return this.isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
+    }
   },
 
-  // watch: {
-  //   storageVolumes(neu, old) {
-  //     removeObjects(this.value.volumes, old);
-  //     addObjects(this.value.volumes, neu);
-  //     const names = neu.reduce((all, each) => {
-  //       all.push(each.name);
-
-  //       return all;
-  //     }, []);
-
-  //     this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
-  //   }
-  // },
+  // need to refresh codemirror when the tab is opened and hash change === tab change
+  watch: {
+    '$route.hash': {
+      deep: true,
+      handler() {
+        this.refresh();
+      }
+    }
+  },
 
   methods: {
     /**
@@ -223,14 +228,18 @@ export default {
 
     // codemirror needs to refresh if it is in a tab that wasn't visible on page load
     refresh() {
-      if (this.$refs.cm) {
-        this.$refs.cm.forEach((component) => component.refresh());
+      if (this.$refs) {
+        // if a constant ref is assigned to the codemirror component in the template below, only the last instance of that codemirror component gets the ref
+        const cmRefs = Object.keys(this.$refs).filter((ref) => ref.startsWith('cm-'));
+
+        cmRefs.forEach((r) => this.$refs[r].refresh());
       }
     },
 
     removePvcForm(hookName) {
       this.$emit('removePvcForm', hookName);
-    }
+    },
+
   },
 };
 </script>
@@ -260,13 +269,18 @@ export default {
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
             :loading="loading"
+            :data-testid="`volume-component-${props.i}`"
             @removePvcForm="removePvcForm"
           />
-          <div v-else-if="isView">
-            <CodeMirror
-              ref="cm"
-              :value="yamlDisplay(props.row.value)"
-              :options="{ readOnly: true, cursorBlinkRate: -1 }"
+          <div
+            v-else
+          >
+            <YamlEditor
+              :ref="`cm-${props.i}`"
+              v-model:value="props.row.value"
+              :as-object="true"
+              :data-testid="`volume-component-${props.i}`"
+              :editor-mode="yamlEditorMode"
             />
           </div>
         </div>

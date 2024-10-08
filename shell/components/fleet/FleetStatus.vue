@@ -150,7 +150,7 @@ function toPercent(value, min, max) {
           {{ title }}
         </div>
         <div
-          class="dropdwon resources-dropdown"
+          class="resources-dropdown"
           tabindex="0"
           @blur="showMenu(false)"
           @click="showMenu(true)"
@@ -158,12 +158,13 @@ function toPercent(value, min, max) {
         >
           <v-dropdown
             ref="popover"
-            placement="bottom-end"
+            placement="bottom"
             offset="-10"
             :triggers="[]"
             :delay="{show: 0, hide: 0}"
             :flip="false"
             :container="false"
+            popper-class="fleet-summary-tooltip"
           >
             <div class="meta-title">
               {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready <i class="icon toggle icon-chevron-down" />

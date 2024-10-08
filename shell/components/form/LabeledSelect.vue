@@ -134,7 +134,17 @@ export default {
     _options() {
       // If we're paginated show the page as provided by `paginate`. See label-select-pagination mixin
       return this.canPaginate ? this.page : this.options;
-    }
+    },
+
+    filteredAttrs() {
+      const {
+        class: _class,
+        taggable,
+        ...rest
+      } = this.$attrs;
+
+      return rest;
+    },
   },
 
   methods: {
@@ -285,7 +295,7 @@ export default {
     </div>
     <v-select
       ref="select-input"
-      v-bind="$attrs"
+      v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"

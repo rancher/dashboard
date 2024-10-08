@@ -29,7 +29,7 @@ import { sortBy } from '@shell/utils/sort';
 import { vspherePoolConfigMerge } from '@shell/machine-config/vmwarevsphere-pool-config-merge';
 
 import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import { isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -62,6 +62,7 @@ import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registri
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
+import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -115,7 +116,8 @@ export default {
     Registries,
     AddOnConfig,
     Advanced,
-    ClusterAppearance
+    ClusterAppearance,
+    AddOnAdditionalManifest
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -248,6 +250,7 @@ export default {
       machinePoolErrors:     {},
       allNamespaces:         [],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      labelForAddon
     };
   },
 
@@ -1546,7 +1549,7 @@ export default {
             versionName: entry.version,
           });
 
-          this.versionInfo.chartName = res;
+          this.versionInfo[chartName] = res;
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
@@ -1563,14 +1566,16 @@ export default {
       this.addonNames.forEach((name) => {
         const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
 
-        this.userChartValuesTemp.name = chartValues;
+        this.userChartValuesTemp[name] = chartValues;
       });
       this.refreshComponentWithYamls(key);
     },
     refreshComponentWithYamls(key) {
       const component = this.$refs[key];
 
-      if (component) {
+      if (Array.isArray(component) && component.length > 0) {
+        this.refreshYamls(component[0].$refs);
+      } else if (component) {
         this.refreshYamls(component.$refs);
       }
     },
@@ -1589,7 +1594,7 @@ export default {
     },
 
     updateValues(name, values) {
-      this.userChartValuesTemp.name = values;
+      this.userChartValuesTemp[name] = values;
       this.syncChartValues(name);
     },
 
@@ -1873,7 +1878,7 @@ export default {
         const userValues = this.userChartValues[key];
 
         if (userValues) {
-          rkeConfig.chartValues.name = userValues;
+          rkeConfig.chartValues[name] = userValues;
         }
       });
     },
@@ -2384,24 +2389,42 @@ export default {
           />
         </Tab>
 
-        <!-- Add-on Config -->
+        <!-- Add-on Configs -->
         <Tab
-          name="addons"
-          label-key="cluster.tabs.addons"
-          @active="showAddons('tab-addOnConfig')"
+          v-for="v in addonVersions"
+          :key="v.name"
+          :name="v.name"
+          :label="labelForAddon($store, v.name, false)"
+          :weight="9"
+          :showHeader="false"
+          @active="showAddons(v.name)"
         >
           <AddOnConfig
-            ref="tab-addOnConfig"
+            :ref="v.name"
             v-model:value="localValue"
             :mode="mode"
             :version-info="versionInfo"
-            :addon-versions="addonVersions"
+            :addon-version="v"
             :addons-rev="addonsRev"
             :user-chart-values-temp="userChartValuesTemp"
             :init-yaml-editor="initYamlEditor"
             @update:value="$emit('input', $event)"
             @update-questions="syncChartValues"
             @update-values="updateValues"
+          />
+        </Tab>
+
+        <!-- Add-on Additional Manifest -->
+        <Tab
+          name="additionalmanifest"
+          label-key="cluster.tabs.addOnAdditionalManifest"
+          :showHeader="false"
+          @active="refreshComponentWithYamls('additionalmanifest')"
+        >
+          <AddOnAdditionalManifest
+            ref="additionalmanifest"
+            :value="value"
+            :mode="mode"
             @additional-manifest-changed="updateAdditionalManifest"
           />
         </Tab>

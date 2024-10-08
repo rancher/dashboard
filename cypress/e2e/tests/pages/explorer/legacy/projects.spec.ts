@@ -1,10 +1,8 @@
 
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
-import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 const featureFlagsPage = new FeatureFlagsPagePo();
-const namespacePicker = new NamespaceFilterPo();
 
 let disableLegacyFlag = false;
 
@@ -19,22 +17,33 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], test
         });
       }
     });
+
+    cy.getRancherResource('v1', 'management.cattle.io.projects').then((resp: Cypress.Response<any>) => {
+      resp.body.data.forEach((item: any) => {
+        if (item.spec.displayName === 'Default') {
+          const id = item.metadata.name;
+
+          cy.updateNamespaceFilter('local', 'none', `{"local":["project://${ id }"]}`);
+        }
+      });
+    });
   });
 
   it('Ensure legacy: projects is visible and can nav to child entry', () => {
     const configMapPage = new ConfigMapPagePo('local');
 
     configMapPage.goTo();
-
-    namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('All Namespaces');
-    namespacePicker.clickOptionByLabel('Project: Default');
-    namespacePicker.closeDropdown();
+    configMapPage.waitForPage();
 
     configMapPage.navToSideMenuGroupByLabel('Legacy');
+
     configMapPage.productNav().navToSideMenuGroupByLabelExistence('Project', 'exist');
+
     configMapPage.navToSideMenuGroupByLabel('Project');
+    cy.url().should('include', '/legacy/project');
+
     configMapPage.navToSideMenuEntryByLabel('Config Maps');
+    cy.url().should('include', '/legacy/project/config-maps');
 
     cy.iFrame().contains('.header h1', 'Config Maps');
   });
@@ -44,7 +53,6 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], test
       featureFlagsPage.setFeatureFlag('legacy', false);
     }
 
-    namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('Only User Namespaces'); // This is the default
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

@@ -30,14 +30,14 @@ import {
   uiPluginAnnotation,
   uiPluginHasAnnotation,
   isSupportedChartVersion,
-  isChartVersionAvailableForInstall,
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
-  UI_PLUGINS_REPO_URL,
-  UI_PLUGINS_PARTNERS_REPO_URL
+  UI_PLUGINS_REPOS,
+  EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+import versions from '@shell/utils/versions';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -86,7 +86,7 @@ export default {
       hasFeatureFlag:                 true,
       defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
       reloadRequired:                 false,
-      rancherVersion:                 getVersionData()?.Version,
+      rancherVersion:                 null,
       showCatalogList:                false
     };
   },
@@ -102,22 +102,25 @@ export default {
       }
     }
 
-    hash.load = await this.$store.dispatch('catalog/load', { reset: true });
+    hash.load = this.$store.dispatch('catalog/load', { reset: true });
 
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
-      hash.localCluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
+      hash.localCluster = this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
-      hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
+      hash.helmOps = this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-      hash.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
+      hash.repos = this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO }, { force: true });
     }
+
+    hash.versions = versions.fetch({ store: this.$store });
 
     const res = await allHash(hash);
 
+    this.rancherVersion = getVersionData()?.Version;
     this.plugins = res.plugins || [];
     this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
@@ -152,8 +155,8 @@ export default {
 
     showAddReposBanner() {
       const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true';
-      const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
-      const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+      const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.OFFICIAL.URL);
+      const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.PARTNERS.URL);
 
       return hasExtensionReposBannerSetting && (uiPluginsRepoNotFound || uiPluginsPartnersRepoNotFound);
     },
@@ -257,19 +260,20 @@ export default {
 
         item.versions = [...chart.versions];
         item.chart = chart;
+        item.incompatibilityMessage = '';
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({ version, kubeVersion: this.kubeVersion }) && isChartVersionAvailableForInstall({
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall({
+        item.versions = item.versions.map((version) => isSupportedChartVersion({
           version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
         }, true));
 
         const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion);
+        const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
@@ -279,11 +283,20 @@ export default {
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
 
+        // add message of extension card if there's a newer version of the extension, but it's not available to be installed
         if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          if (!item.isCompatibleWithUi) {
-            item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
-          } else if (!item.isCompatibleWithKubeVersion) {
-            item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
+          switch (latestNotCompatible.versionIncompatibilityData?.type) {
+          case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version: latestNotCompatible.version, required: latestNotCompatible.versionIncompatibilityData?.required, mainHost: latestNotCompatible.versionIncompatibilityData?.mainHost
+            }, true);
+            break;
+          default:
+            item.incompatibilityMessage = this.t(latestNotCompatible.versionIncompatibilityData?.cardMessageKey, {
+              version:  latestNotCompatible.version,
+              required: latestNotCompatible.versionIncompatibilityData?.required
+            }, true);
+            break;
           }
         }
 
@@ -368,9 +381,9 @@ export default {
           const error = this.uiErrors[e];
 
           if (error && typeof error === 'string') {
-            chart.error = this.t(this.uiErrors[e]);
+            chart.installedError = this.t(this.uiErrors[e]);
           } else {
-            chart.error = false;
+            chart.installedError = '';
           }
         }
       });
@@ -389,20 +402,6 @@ export default {
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
         }
-
-        // check if kube version compatibility is met for installed extension
-        if (plugin.uiplugin) {
-          const versionInstalled = plugin.uiplugin.spec?.plugin?.version;
-          const versionInstalledData = plugin.versions.find((v) => v.version === versionInstalled);
-
-          if (versionInstalledData) {
-            const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
-
-            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
-              plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
-            }
-          }
-        }
       });
 
       // Sort by name
@@ -411,66 +410,72 @@ export default {
   },
 
   watch: {
-    helmOps(neu) {
+    helmOps: {
+      handler(neu) {
       // Get Helm operations for UI plugins and order by date
-      let pluginOps = neu.filter((op) => {
-        return op.namespace === UI_PLUGIN_NAMESPACE;
-      });
+        let pluginOps = neu.filter((op) => {
+          return op.namespace === UI_PLUGIN_NAMESPACE;
+        });
 
-      pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
+        pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
 
-      // Go through the installed plugins
-      (this.available || []).forEach((plugin) => {
-        const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
+        // Go through the installed plugins
+        (this.available || []).forEach((plugin) => {
+          const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
-        if (op) {
-          const active = op.metadata.state?.transitioning;
-          const error = op.metadata.state?.error;
+          if (op) {
+            const active = op.metadata.state?.transitioning;
+            const error = op.metadata.state?.error;
 
-          this.errors[plugin.name] = error;
+            this.errors[plugin.name] = error;
 
-          if (active) {
+            if (active) {
             // Can use the status directly, apart from upgrade, which maps to install
-            const status = op.status.action === 'upgrade' ? 'install' : op.status.action;
+              const status = op.status.action === 'upgrade' ? 'install' : op.status.action;
 
-            this.updatePluginInstallStatus(plugin.name, status);
-          } else if (op.status.action === 'uninstall') {
+              this.updatePluginInstallStatus(plugin.name, status);
+            } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
-            this.updatePluginInstallStatus(plugin.name, false);
-          } else if (error) {
+              this.updatePluginInstallStatus(plugin.name, false);
+            } else if (error) {
+              this.updatePluginInstallStatus(plugin.name, false);
+            }
+          } else {
             this.updatePluginInstallStatus(plugin.name, false);
           }
-        } else {
-          this.updatePluginInstallStatus(plugin.name, false);
-        }
-      });
+        });
+      },
+      deep: true
     },
 
-    plugins(neu, old) {
-      const installed = this.$store.getters['uiplugins/plugins'];
-      const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
-      let changes = 0;
+    plugins: {
+      handler(neu) {
+        const installed = this.$store.getters['uiplugins/plugins'];
+        const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
+        let changes = 0;
 
-      // Did the user remove an extension
-      if (neu?.length < shouldHaveLoaded.length) {
-        changes++;
-      }
-
-      neu.forEach((plugin) => {
-        const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
-
-        if (!existing && plugin.isInitialized) {
-          if (!this.uiErrors[plugin.name]) {
-            changes++;
-          }
-
-          this.updatePluginInstallStatus(plugin.name, false);
+        // Did the user remove an extension
+        if (neu?.length < shouldHaveLoaded.length) {
+          changes++;
         }
-      });
 
-      if (changes > 0) {
-        this['reloadRequired'] = true;
-      }
+        neu.forEach((plugin) => {
+          const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
+
+          if (!existing && plugin.isInitialized) {
+            if (!this.uiErrors[plugin.name]) {
+              changes++;
+            }
+
+            this.updatePluginInstallStatus(plugin.name, false);
+          }
+        });
+
+        if (changes > 0) {
+          this['reloadRequired'] = true;
+        }
+      },
+      deep: true
     }
   },
 
@@ -840,19 +845,15 @@ export default {
                     > -> {{ plugin.upgrade }}</span>
                     <p
                       v-if="plugin.installedError"
-                      class="incompatible"
+                      class="install-error"
                     >
-                      <i class="icon icon-warning icon-lg text-warning" />
+                      <i class="icon icon-warning icon-lg" />
                       <span>{{ plugin.installedError }}</span>
                     </p>
                     <p
-                      v-else-if="plugin.incompatibleRancherVersion"
+                      v-else-if="plugin.incompatibilityMessage"
                       class="incompatible"
-                    >{{ plugin.incompatibleRancherVersion }}</p>
-                    <p
-                      v-else-if="plugin.incompatibleKubeVersion"
-                      class="incompatible"
-                    >{{ plugin.incompatibleKubeVersion }}</p>
+                    >{{ plugin.incompatibilityMessage }}</p>
                   </span>
                 </div>
                 <!-- plugin badges -->
@@ -884,14 +885,6 @@ export default {
                 <div class="plugin-spacer" />
                 <!-- plugin badges -->
                 <div class="plugin-actions">
-                  <template v-if="plugin.error">
-                    <div
-                      v-clean-tooltip="plugin.error"
-                      class="plugin-error"
-                    >
-                      <i class="icon icon-warning" />
-                    </div>
-                  </template>
                   <!-- plugin status -->
                   <div
                     v-if="plugin.helmError"
@@ -1177,9 +1170,17 @@ export default {
         width: 16px;
       }
 
-      .incompatible {
-        margin: 10px 0;
+      .install-error {
+        margin: 10px 10px 5px 0;
         font-weight: bold;
+        $error-icon-size: 22px;
+
+        > i {
+          color: var(--error);
+          height: $error-icon-size;
+          font-size: $error-icon-size;
+          width: $error-icon-size;
+        }
       }
     }
 

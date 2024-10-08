@@ -5,30 +5,10 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 const networkPolicyPage = new NetworkPolicyPagePo('local');
 const networkPolicyName = 'custom-network-policy';
 const networkPolicyDescription = 'Custom Network Policy Description';
-let namespacesCount;
 
 describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
-    cy.intercept('GET', '/v1/namespaces?exclude=metadata.managedFields').as('getNamespaces');
     cy.login();
-
-    cy.wait('@getNamespaces', { requestTimeout: 4000 }).then((req) => {
-      namespacesCount = req.response.body.data.length;
-    });
-  });
-
-  after(() => {
-    // Deleting the created network policy
-    networkPolicyPage.goTo();
-    networkPolicyPage.waitForPage();
-    networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Delete').click();
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', 'v1/networking.k8s.io.networkpolicies/**').as('deleteNetworkPolicy');
-    promptRemove.remove();
-    cy.wait('@deleteNetworkPolicy');
-    networkPolicyPage.waitForPage();
-    cy.contains(networkPolicyName).should('not.exist');
   });
 
   it('creates a network policy and displays it in the list', () => {
@@ -49,24 +29,33 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     networkPolicyPo.addAllowedTrafficSourceButton().click();
     networkPolicyPo.policyRuleTargetSelect(0).toggle();
     networkPolicyPo.policyRuleTargetSelect(0).clickOptionWithLabel('Namespace Selector');
-    networkPolicyPo.matchingNamespacesMessage(0).contains(`Matches ${ namespacesCount } of ${ namespacesCount }`);
-    // Add a second rule a key to match none of the namespaces
-    networkPolicyPo.addAllowedTrafficSourceButton().click();
-    networkPolicyPo.policyRuleTargetSelect(1).toggle();
-    networkPolicyPo.policyRuleTargetSelect(1).clickOptionWithLabel('Namespace Selector');
-    networkPolicyPo.policyRuleKeyInput(1).focus().type('something-with-no-matching-namespaces');
-    networkPolicyPo.matchingNamespacesMessage(1).contains(`Matches 0 of ${ namespacesCount }`);
-    // Click on Create
-    networkPolicyPo.saveCreateForm().click();
-    // Check if the NetworkPolicy is created successfully
-    networkPolicyPage.waitForPage();
-    networkPolicyPage.searchForNetworkPolicy(networkPolicyName);
-    networkPolicyPage.listElementWithName(networkPolicyName).should('exist').and('be.visible');
-    // Navigate back to the edit page and check if the matching message is still correct
-    networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();
-    networkPolicyPo.matchingNamespacesMessage(0).contains(`Matches ${ namespacesCount } of ${ namespacesCount }`);
-    networkPolicyPo.matchingNamespacesMessage(1).contains(`Matches 0 of ${ namespacesCount }`);
+
+    cy.getRancherResource('v1', 'namespaces').then((resp: Cypress.Response<any>) => {
+      cy.wrap(resp.body.count).as('namespaceCount');
+    });
+
+    cy.get('@namespaceCount').then((count) => {
+      networkPolicyPo.matchingNamespacesMessage(0).should('contain.text', `Matches ${ count } of ${ count }`);
+      // Add a second rule a key to match none of the namespaces
+      networkPolicyPo.addAllowedTrafficSourceButton().click();
+      networkPolicyPo.policyRuleTargetSelect(1).toggle();
+      networkPolicyPo.policyRuleTargetSelect(1).clickOptionWithLabel('Namespace Selector');
+      networkPolicyPo.policyRuleKeyInput(1).focus().type('something-with-no-matching-namespaces');
+      networkPolicyPo.matchingNamespacesMessage(1).should('contain.text', `Matches 0 of ${ count }`);
+      // Click on Create
+      networkPolicyPo.saveCreateForm().click();
+      // Check if the NetworkPolicy is created successfully
+      networkPolicyPage.waitForPage();
+      networkPolicyPage.searchForNetworkPolicy(networkPolicyName);
+      networkPolicyPage.waitForPage(`q=${ networkPolicyName }`);
+      networkPolicyPage.listElementWithName(networkPolicyName).should('exist').and('be.visible');
+      // Navigate back to the edit page and check if the matching message is still correct
+      networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();
+      networkPolicyPo.matchingNamespacesMessage(0).should('contain.text', `Matches ${ count } of ${ count }`);
+      networkPolicyPo.matchingNamespacesMessage(1).should('contain.text', `Matches 0 of ${ count }`);
+    });
   });
+
   it('can open "Edit as YAML"', () => {
     NetworkPolicyPagePo.navTo();
     networkPolicyPage.clickCreate();
@@ -74,5 +63,18 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
 
     networkPolicyPo.editAsYaml().click();
     networkPolicyPo.yamlEditor().checkExists();
+  });
+
+  it('can delete a network policy', () => {
+    NetworkPolicyPagePo.navTo();
+    networkPolicyPage.waitForPage();
+    networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Delete').click();
+    const promptRemove = new PromptRemove();
+
+    cy.intercept('DELETE', 'v1/networking.k8s.io.networkpolicies/**').as('deleteNetworkPolicy');
+    promptRemove.remove();
+    cy.wait('@deleteNetworkPolicy');
+    networkPolicyPage.waitForPage();
+    cy.contains(networkPolicyName).should('not.exist');
   });
 });

@@ -1,6 +1,8 @@
 
-import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
 
 describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   const jwtAuthenticationPage = new JWTAuthenticationPagePo();
@@ -150,5 +152,26 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
         removeCluster1 = false;
       });
     }
+  });
+});
+
+describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
+  before(() => {
+    cy.login();
+    HomePagePo.goTo();
+  });
+
+  it('should not have JWT Authentication side menu entry', () => {
+    const homePage = new HomePagePo();
+    const clusterManagerPage = new ClusterManagerListPagePo('_');
+
+    homePage.manageButton().click();
+    clusterManagerPage.waitForPage();
+
+    // Check navigation does not exist
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.checkSideMenuEntryByLabel('JWT Authentication', 'not.exist');
   });
 });

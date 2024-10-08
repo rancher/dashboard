@@ -18,6 +18,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 let runTimestamp: number;
 let runPrefix: string;
 let globalRoleName: string;
+const roleTemplatesToDelete = [];
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -26,7 +27,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.viewport(1280, 720);
     });
 
-    it('can create a Global Role', () => {
+    it('can create a Global Role template', () => {
       // We want to define these here because if this test fails after it created the global role all subsequent
       // retries will reference the wrong global-role because a second roll will with the same name but different id will be created
       runTimestamp = +new Date();
@@ -108,7 +109,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it('can create a Cluster Role', () => {
+    it('can create a Cluster Role template', () => {
       const clusterRoleName = `${ runPrefix }-my-cluster-role`;
       const fragment = 'CLUSTER';
 
@@ -130,12 +131,18 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       createClusterRole.selectResourcesByLabelValue(0, 'ClusterRoles');
 
       const clusterRoleId = createClusterRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
-        return res.response?.body.id;
+        const roleId = res.response?.body.id;
+
+        roleTemplatesToDelete.push(roleId);
+
+        return roleId;
       });
 
       // view role details
       roles.waitForPage(undefined, fragment);
       roles.list('CLUSTER').resourceTable().sortableTable().filter(`${ clusterRoleName }{enter}`);
+      roles.waitForPage(undefined, fragment);
+      roles.list('CLUSTER').resourceTable().sortableTable().checkRowCount(false, 1);
       roles.list('CLUSTER').checkDefault(clusterRoleName, true);
       roles.list('CLUSTER').details(clusterRoleName, 2).find('a').click();
 
@@ -147,7 +154,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it('can create a Project/Namespaces', () => {
+    it('can create a Project/Namespaces Role template', () => {
       const fragment = 'NAMESPACE';
       const projectRoleName = `${ runPrefix }-my-project-role`;
 
@@ -167,12 +174,18 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       createProjectRole.selectVerbs(0, 4);
       createProjectRole.selectResourcesByLabelValue(0, 'Namespaces');
       const projectRoleId = createProjectRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
-        return res.response?.body.id;
+        const roleId = res.response?.body.id;
+
+        roleTemplatesToDelete.push(roleId);
+
+        return roleId;
       });
 
       // view role details
       roles.waitForPage(undefined, fragment);
       roles.list('NAMESPACE').resourceTable().sortableTable().filter(`${ projectRoleName }{enter}`);
+      roles.waitForPage(undefined, fragment);
+      roles.list('NAMESPACE').resourceTable().sortableTable().checkRowCount(false, 1);
       roles.list('NAMESPACE').checkDefault(projectRoleName, true);
       roles.list('NAMESPACE').details(projectRoleName, 2).find('a').click();
 
@@ -215,7 +228,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
     });
 
-    it('can delete a role', () => {
+    it('can delete a role template', () => {
     // Delete role and verify role is removed from list
       roles.waitForRequests();
       roles.list('GLOBAL').elementWithName(globalRoleName).click();
@@ -226,6 +239,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.remove();
       cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
       roles.list('GLOBAL').elementWithName(globalRoleName).should('not.exist');
+    });
+
+    after(() => {
+      roleTemplatesToDelete.forEach((r) => cy.deleteRancherResource('v3', 'roleTemplates', r, false));
     });
   });
 

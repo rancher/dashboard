@@ -74,6 +74,7 @@ const getProxyConfig = (proxyConfig) => ({
   '/meta':           proxyMetaOpts(api), // Browser API UI
   '/v1-*':           proxyOpts(api), // SAML, KDM, etc
   '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
+  '/version':        proxyPrimeOpts(api), // Rancher Kube version endpoint
   // These are for Ember embedding
   '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
   '/k/':             proxyOpts('https://127.0.0.1:8000'),
@@ -362,6 +363,9 @@ const getVirtualModulesAutoImport = (dir) => {
   return new VirtualModulesPlugin(autoImportTypes);
 };
 
+// Get current shell version
+const shellPkgData = require(path.join(__dirname, 'package.json'));
+
 /**
  * DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
  * process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
@@ -377,6 +381,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.rancherEnv':                JSON.stringify(rancherEnv),
   'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
   'process.env.api':                       JSON.stringify(api),
+  'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',

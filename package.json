@@ -56,9 +56,9 @@
     "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
-    "@aws-sdk/client-ec2": "3.1.0",
+    "@aws-sdk/client-ec2": "3.658.1",
     "@aws-sdk/client-eks": "3.1.0",
-    "@aws-sdk/client-iam": "3.18.0",
+    "@aws-sdk/client-iam": "3.658.1",
     "@aws-sdk/client-kms": "3.8.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.4.4",
@@ -67,7 +67,6 @@
     "axios": "0.21.4",
     "axios-retry": "3.1.9",
     "babel-plugin-module-resolver": "4.0.0",
-    "browser-env": "3.3.0",
     "cache-loader": "4.1.0",
     "clipboard-polyfill": "4.0.1",
     "codemirror": "5.65.17",
@@ -104,7 +103,6 @@
     "js-yaml": "4.1.0",
     "js-yaml-loader": "1.2.2",
     "jsdiff": "1.1.1",
-    "jsdom-global": "3.0.2",
     "jsonpath-plus": "6.0.1",
     "jsrsasign": "10.5.25",
     "jszip": "3.8.0",
@@ -122,12 +120,12 @@
     "ufo": "0.7.11",
     "unfetch": "4.2.0",
     "url-parse": "1.5.10",
-    "vue3-resize": "0.2.0",
     "vue-router": "4.4.3",
     "vue-select": "4.0.0-beta.6",
     "vue-server-renderer": "2.6.14",
+    "vue3-resize": "0.2.0",
     "vue3-virtual-scroll-list": "0.2.1",
-    "vuedraggable": "2.24.3",
+    "vuedraggable": "4.1.0",
     "vuex": "4.0.2",
     "xterm": "5.2.1",
     "xterm-addon-canvas": "0.5.0",
@@ -135,7 +133,7 @@
     "xterm-addon-search": "0.13.0",
     "xterm-addon-web-links": "0.9.0",
     "xterm-addon-webgl": "0.16.0",
-    "yaml": "2.0.0"
+    "yaml": "2.5.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "7.14.5",
@@ -201,5 +199,8 @@
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
     "yarn": "1.22.18"
+  },
+  "resolutions": {
+    "html-webpack-plugin": "^5.0.0"
   }
 }

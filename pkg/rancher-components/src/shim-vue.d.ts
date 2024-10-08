@@ -1,14 +1,12 @@
-import Vue from 'vue';
-declare module '*.vue' {
+import { DefineComponent } from 'vue'
 
-  export default Vue;
+declare module '*.vue' {
+  const component: DefineComponent<{}, {}, any>
+  export default component
 }
 
-// This is required to keep typescript from complaining. It is required for
-// our i18n plugin. For more info see:
-// https://v2.vuejs.org/v2/guide/typescript.html?redirect=true#Augmenting-Types-for-Use-with-Plugins
-declare module 'vue/types/vue' {
-  interface Vue {
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
     /**
      * Lookup a given string with the given arguments
      * @param raw if set, do not do HTML escaping.

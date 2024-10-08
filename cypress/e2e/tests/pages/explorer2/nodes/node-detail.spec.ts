@@ -2,6 +2,7 @@ import ResourceTable from '@/cypress/e2e/po//components/resource-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import NodeDetailsPo from '@/cypress/e2e/po/detail/node.po';
 
 describe('Node detail', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off' }, () => {
   before(() => {
@@ -25,12 +26,20 @@ describe('Node detail', { tags: ['@explorer2', '@adminUser'], testIsolation: 'of
     // Wait for loading indicator to go
     nodeList.sortableTable().checkLoadingIndicatorNotVisible();
 
-    nodeList.sortableTable().rowElementLink(0, 2).click();
-    cy.get('.title .primaryheader h1').should('be.visible');
-    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
-    cy.reload();
-    // check that the page rendered is a detail view
-    cy.get('.title .primaryheader h1').should('be.visible');
-    cy.get('.title .primaryheader h1').invoke('text').should('contain', 'Node:');
+    nodeList.sortableTable().rowNames().then((nodes) => {
+      const node = nodes[0];
+
+      nodeList.sortableTable().rowElementLink(0, 2).click();
+
+      const nodeDetail = new NodeDetailsPo('local', node);
+
+      nodeDetail.waitForPage();
+      nodeDetail.mastheadTitle().should('contain', `${ node }`);
+
+      cy.reload();
+
+      nodeDetail.waitForPage();
+      nodeDetail.mastheadTitle().should('contain', `${ node }`);
+    });
   });
 });
