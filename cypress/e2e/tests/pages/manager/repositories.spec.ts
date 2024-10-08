@@ -17,11 +17,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
   describe('Create', () => {
     beforeEach(() => {
-      // const name = `e2e-repo-${ Math.random().toString(36).substr(2, 6) }`;
-      // cy.wrap(name).as('repoName');
-
-      // testRepos.push(name);
-
       cy.createE2EResourceName('repo').as('repoName');
       cy.get('@repoName').then((name) => testRepos.push(name));
     });

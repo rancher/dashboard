@@ -8,10 +8,9 @@ describe('Apps', () => {
     describe('Add', () => {
       const appRepoList = new ReposListPagePo('local', 'apps');
 
-      before(){
+      before(() => {
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
-
-      }
+      });
 
       beforeEach(() => {
         cy.login();
