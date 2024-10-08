@@ -36,6 +36,7 @@ const handleBlurEvent = (event: KeyboardEvent) => {
     :flip="false"
     :placement="'bottom-end'"
     :distance="-6"
+    :container="'.page-actions'"
   >
     <i
       data-testid="page-actions-menu"
@@ -75,10 +76,13 @@ const handleBlurEvent = (event: KeyboardEvent) => {
       </div>
     </template>
   </v-dropdown>
+  <div class="page-actions">
+    <!--Empty container for mounting popper content-->
+  </div>
 </template>
 
 <style lang="scss" scoped>
-  .v-popper__popper {
+  .page-actions :deep(.v-popper__popper) {
     .v-popper__wrapper {
       .v-popper__arrow-container {
         display: none;
