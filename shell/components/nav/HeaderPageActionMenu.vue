@@ -77,7 +77,7 @@ const handleBlurEvent = (event: KeyboardEvent) => {
   </v-dropdown>
 </template>
 
-<class lang="scss" scoped>
+<style lang="scss" scoped>
   .v-popper__popper {
     .v-popper__wrapper {
       .v-popper__arrow-container {
@@ -148,4 +148,4 @@ const handleBlurEvent = (event: KeyboardEvent) => {
       }
     }
   }
-</class>
+</style>
