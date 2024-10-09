@@ -75,6 +75,7 @@ import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles'
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
+import VsphereUtils from '@shell/utils/v-sphere';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -839,6 +840,8 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
+    this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
+    this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -850,6 +853,13 @@ export default {
 
   methods: {
     set,
+
+    async handleVsphereCpiSecret() {
+      return VsphereUtils.handleVsphereCpiSecret(this);
+    },
+    async handleVsphereCsiSecret() {
+      return VsphereUtils.handleVsphereCsiSecret(this);
+    },
 
     /**
      * Initialize all the cluster specs
