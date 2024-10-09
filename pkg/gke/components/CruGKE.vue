@@ -37,6 +37,7 @@ import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr, GKEInitialCount
 } from '../util/validators';
 import { diffUpstreamSpec, syncUpstreamConfig } from '@shell/utils/kontainer';
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
 const defaultMachineType = 'n1-standard-2';
 
@@ -124,6 +125,7 @@ const defaultCluster = {
   enableClusterMonitoring: false,
   enableNetworkPolicy:     false,
   labels:                  {},
+  annotations:             {},
   windowsPreferedCluster:  false,
 };
 
@@ -178,6 +180,8 @@ export default defineComponent({
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
+    } else {
+      this.value.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
     }
     if (!this.normanCluster.gkeConfig) {
       this.normanCluster['gkeConfig'] = { ...defaultGkeConfig };

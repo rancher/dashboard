@@ -12,7 +12,7 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG, CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
@@ -123,6 +123,10 @@ export default {
       if ( !this.value.metadata ) {
         this.value.metadata = {};
       }
+      if (!this.value.metadata.annotations) {
+        this.value.metadata.annotations = {};
+      }
+      this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
 
       this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }

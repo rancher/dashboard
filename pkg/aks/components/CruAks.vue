@@ -55,6 +55,7 @@ import {
   nodePoolNamesUnique,
   nodePoolCount
 } from '../util/validators';
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
 export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
@@ -95,6 +96,7 @@ const defaultCluster = {
   enableClusterMonitoring: false,
   enableNetworkPolicy:     false,
   labels:                  {},
+  annotations:             {},
   windowsPreferedCluster:  false,
 };
 
@@ -155,6 +157,8 @@ export default defineComponent({
       // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
         syncUpstreamConfig('aks', this.normanCluster);
+      } else {
+        this.value.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
 
       // track original version on edit to ensure we don't offer k8s downgrades

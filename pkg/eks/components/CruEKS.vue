@@ -27,6 +27,7 @@ import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
 import EKSValidators from '../util/validators';
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -34,6 +35,7 @@ const DEFAULT_CLUSTER = {
   enableClusterMonitoring:             false,
   enableNetworkPolicy:                 false,
   labels:                              {},
+  annotations:                         {},
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {}
@@ -122,6 +124,8 @@ export default defineComponent({
       // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
         syncUpstreamConfig('eks', this.normanCluster);
+      } else {
+        this.value.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
