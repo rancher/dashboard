@@ -1422,15 +1422,6 @@ export default {
       // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
       this.agentConfigurationCleanup();
 
-      // TODO: RC
-      // Shows `Changing the Kubernetes Version can reset the Add-On Config values. You should check that the values are as expected before continuing.`
-      // if editing cluster and kube version has changed
-
-      // 2. rancher-vsphere:
-
-      // 3: addOns:
-      // dependencyBanner:
-
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
       if (isEditVersion) {
@@ -1520,18 +1511,16 @@ export default {
         return await this.extensionProvider?.saveCluster(this.value, this.schema);
       }
 
-      throw new Error('oh no....'); // TODO: RC
+      if (this.isCreate) {
+        url = url || this.schema.linkFor('collection');
+        const res = await this.value.save({ url });
 
-      // if (this.isCreate) { // TODO: RC
-      //   url = url || this.schema.linkFor('collection');
-      //   const res = await this.value.save({ url });
-
-      //   if (res) {
-      //     Object.assign(this.value, res);
-      //   }
-      // } else {
-      //   await this.value.save();
-      // }
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save();
+      }
     },
 
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
@@ -1637,8 +1626,6 @@ export default {
       const fromChart = this.versionInfo[name]?.values;
       const fromUser = this.userChartValuesTemp[name];
       const different = diff(fromChart, fromUser);
-
-      console.warn(name, different, fromChart, this.userChartValues); // TODO: RC
 
       this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
