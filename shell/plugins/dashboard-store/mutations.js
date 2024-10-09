@@ -1,4 +1,4 @@
-import { markRaw, reactive, toRaw, toRef } from 'vue';
+import { markRaw, reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -46,17 +46,17 @@ function registerType(state, type) {
 }
 
 export function replace(existing, data) {
-  const keyMap = {};
+  const existingPropertyMap = {};
 
   for ( const k of Object.keys(existing) ) {
     delete existing[k];
-    keyMap[k] = true;
+    existingPropertyMap[k] = true;
   }
 
   let newProperty = false;
 
   for ( const k of Object.keys(data) ) {
-    if (!newProperty && !keyMap[k]) {
+    if (!newProperty && !existingPropertyMap[k]) {
       newProperty = true;
     }
 
