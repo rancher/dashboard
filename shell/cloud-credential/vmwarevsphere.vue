@@ -13,7 +13,7 @@ export default {
     return {
       fvFormRuleSets: [
         { path: 'decodedData.vcenter', rules: ['required', 'wildcardHostname'] },
-        { path: 'decodedData.vcenterPort', rules: ['required', 'portNumber'] },
+        { path: 'decodedData.vcenterPort', rules: ['required', 'portNumber', 'requiredInt'] },
         { path: 'decodedData.username', rules: ['required'] },
         { path: 'decodedData.password', rules: ['required'] },
       ]
@@ -73,9 +73,6 @@ export default {
           :value="value.decodedData.vcenterPort"
           label-key="cluster.credential.vmwarevsphere.port.label"
           :required="true"
-          type="number"
-          min="1"
-          max="65535"
           :mode="mode"
           :rules="fvGetAndReportPathRules('decodedData.vcenterPort')"
           @update:value="$emit('valueChanged', 'vcenterPort', $event)"
