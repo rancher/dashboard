@@ -169,13 +169,12 @@ export default {
         this.$emit('update:value', val);
       }
     },
+    'newCredential.name'(newValue) {
+      this.nameRequiredValidation = newValue?.length > 0;
+    }
   },
 
   methods: {
-    handleNameRequiredValidation() {
-      this.nameRequiredValidation = !!this.newCredential?.name?.length;
-    },
-
     async save(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
@@ -223,6 +222,9 @@ export default {
 
     backToExisting() {
       this.credentialId = _NONE;
+    },
+    updateCredentialValue(key, value) {
+      this.newCredential.setData(key, value);
     }
   },
 };
@@ -259,7 +261,6 @@ export default {
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
         mode="create"
-        @change="handleNameRequiredValidation"
       />
 
       <component
@@ -269,6 +270,7 @@ export default {
         mode="create"
         :driver-name="driverName"
         @validationChanged="createValidationChanged"
+        @valueChanged="updateCredentialValue"
       />
     </div>
     <div v-else>

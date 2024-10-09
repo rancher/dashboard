@@ -1077,4 +1077,54 @@ export default {
     color: var(--secondary);
   }
 
+  .user-menu {
+    :deep(.v-popper__arrow-container) {
+      display: none;
+    }
+
+    :deep(.v-popper__inner) {
+      padding: 10px 0 10px 0;
+    }
+
+    :deep(.v-popper) {
+      display: flex;
+    }
+  }
+
+  .user-menu-item {
+    a, &.no-link > span {
+      cursor: pointer;
+      padding: 0px 10px;
+
+      &:hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+        text-decoration: none;
+      }
+
+      // When the menu item is focused, pop the margin and compensate the padding, so that
+      // the focus border appears within the menu
+      &:focus {
+        margin: 0 2px;
+        padding: 10px 8px;
+      }
+    }
+
+    &.no-link > span {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      color: var(--link);
+    }
+
+    div.menu-separator {
+      cursor: default;
+      padding: 4px 0;
+
+      .menu-separator-line {
+        background-color: var(--border);
+        height: 1px;
+      }
+    }
+  }
 </style>
