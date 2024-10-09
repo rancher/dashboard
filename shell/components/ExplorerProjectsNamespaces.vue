@@ -477,24 +477,24 @@ export default {
       <template
         v-for="(project, i) in projectsWithoutNamespaces"
         :key="i"
-        v-slot:[slotName(project)]
+        #[slotName(project)]="{ fullColspan }"
       >
         <tr
           class="main-row"
         >
           <td
             class="empty text-center"
-            colspan="5"
+            :colspan="fullColspan"
           >
             {{ t('projectNamespaces.noNamespaces') }}
           </td>
         </tr>
       </template>
-      <template #main-row:fake-empty>
+      <template #main-row:fake-empty="{ fullColspan }">
         <tr class="main-row">
           <td
             class="empty text-center"
-            colspan="5"
+            :colspan="fullColspan"
           >
             {{ t('projectNamespaces.noProjectNoNamespaces') }}
           </td>
