@@ -1072,7 +1072,7 @@ catalog:
     oci:
       urlLabel: OCI Repository Host URL
       placeholder: 'e.g. oci://test.azure.io/test-namespace:test-tag'
-      info: For better performance, add OCI URLs that contain ONLY helm charts. For example oci://test.rancher.io/charts or oci://test.rancher.io/charts/mychart. The list of charts available from the repository is updated every 6 hours. Scanning directories with a large number of artifacts may degrade performance considerably.
+      info: Add OCI URLs that contain ONLY helm charts. For example oci://test.rancher.io/charts or oci://test.rancher.io/charts/mychart. The list of charts available from the repository is updated every 6 hours. Scanning directories with a large number of artifacts may degrade performance considerably.
       skipTlsVerifications: Skip TLS Verifications
       insecurePlainHttp: Insecure Plain Http
       exponentialBackOff:
