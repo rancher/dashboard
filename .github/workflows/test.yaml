@@ -120,7 +120,7 @@ jobs:
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
