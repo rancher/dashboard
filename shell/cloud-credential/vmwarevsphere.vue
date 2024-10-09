@@ -2,19 +2,26 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { NORMAN } from '@shell/config/types';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  emits: ['validationChanged'],
+  emits: ['validationChanged', 'valueChanged'],
 
   components: { LabeledInput },
-  mixins:     [CreateEditView],
-
+  mixins:     [CreateEditView, FormValidation],
+  data() {
+    return {
+      fvFormRuleSets: [
+        { path: 'decodedData.vcenter', rules: ['required', 'wildcardHostname'] },
+        { path: 'decodedData.vcenterPort', rules: ['required', 'portNumber', 'requiredInt'] },
+        { path: 'decodedData.username', rules: ['required'] },
+        { path: 'decodedData.password', rules: ['required'] },
+      ]
+    };
+  },
   watch: {
-    value: {
-      deep: true,
-      handler(neu) {
-        this.$emit('validationChanged', !!neu);
-      }
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
     }
   },
 
@@ -57,7 +64,8 @@ export default {
           placeholder-key="cluster.credential.vmwarevsphere.server.placeholder"
           :required="true"
           :mode="mode"
-          @update:value="value.setData('vcenter', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.vcenter')"
+          @update:value="$emit('valueChanged', 'vcenter', $event)"
         />
       </div>
       <div class="col span-6">
@@ -65,11 +73,9 @@ export default {
           :value="value.decodedData.vcenterPort"
           label-key="cluster.credential.vmwarevsphere.port.label"
           :required="true"
-          type="number"
-          min="1"
-          max="65535"
           :mode="mode"
-          @update:value="value.setData('vcenterPort', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.vcenterPort')"
+          @update:value="$emit('valueChanged', 'vcenterPort', $event)"
         />
       </div>
     </div>
@@ -80,7 +86,8 @@ export default {
           label-key="cluster.credential.vmwarevsphere.username.label"
           :required="true"
           :mode="mode"
-          @update:value="value.setData('username', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.username')"
+          @update:value="$emit('valueChanged', 'username', $event)"
         />
       </div>
       <div class="col span-6">
@@ -90,7 +97,8 @@ export default {
           :required="true"
           type="password"
           :mode="mode"
-          @update:value="value.setData('password', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.password')"
+          @update:value="$emit('valueChanged', 'password', $event)"
         />
       </div>
     </div>

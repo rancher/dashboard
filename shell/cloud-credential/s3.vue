@@ -4,14 +4,15 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  emits: ['validationChanged'],
+  emits: ['validationChanged', 'valueChanged'],
 
   components: {
     Loading, Checkbox, LabeledInput, LabeledSelect
   },
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     let cur = (this.value.decodedData.defaultRegion || '').toLowerCase();
@@ -29,35 +30,18 @@ export default {
   },
 
   data() {
-    return { knownRegions: null };
+    return {
+      knownRegions:   null,
+      fvFormRuleSets: [
+        { path: 'decodedData.accessKey', rules: ['required'] },
+        { path: 'decodedData.secretKey', rules: ['required'] }]
+    };
   },
-
   watch: {
-    'value.decodedData.accessKey'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.secretKey'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultBucket'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultFolder'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultRegion'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultEndpointCA'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultEndpoint'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaulSkipSSLVerify'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-  },
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    }
+  }
 };
 </script>
 
@@ -76,7 +60,8 @@ export default {
           placeholder-key="cluster.credential.s3.accessKey.placeholder"
           type="text"
           :mode="mode"
-          @update:value="value.setData('accessKey', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.accessKey')"
+          @update:value="$emit('valueChanged', 'accessKey', $event)"
         />
       </div>
       <div class="col span-6">
@@ -87,7 +72,8 @@ export default {
           placeholder-key="cluster.credential.s3.secretKey.placeholder"
           type="password"
           :mode="mode"
-          @update:value="value.setData('secretKey', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.secretKey')"
+          @update:value="$emit('valueChanged', 'secretKey', $event)"
         />
       </div>
     </div>

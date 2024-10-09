@@ -91,6 +91,12 @@ export default {
     };
   },
 
+  watch: {
+    'value._name'(newValue) {
+      this.nameRequiredValidation = newValue?.length > 0;
+    }
+  },
+
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
@@ -188,9 +194,6 @@ export default {
   },
 
   methods: {
-    handleNameRequiredValidation() {
-      this.nameRequiredValidation = !!this.value?._name?.length;
-    },
 
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
@@ -260,6 +263,10 @@ export default {
 
       return this.$store.getters['i18n/withFallback'](`secret.initials."${ type }"`, null, fallback);
     },
+
+    updateValue(key, value) {
+      this.value.setData(key, value);
+    }
   },
 };
 </script>
@@ -291,7 +298,6 @@ export default {
         :mode="mode"
         :namespaced="false"
         @update:value="$emit('input', $event)"
-        @change="handleNameRequiredValidation"
       />
       <keep-alive>
         <component
@@ -302,6 +308,7 @@ export default {
           :mode="mode"
           :hide-sensitive-data="hideSensitiveData"
           @validationChanged="createValidationChanged"
+          @valueChanged="updateValue"
         />
       </keep-alive>
     </CruResource>
