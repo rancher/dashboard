@@ -25,9 +25,19 @@ installPlugins(vueApp);
 if (!global.fetch) {
   global.fetch = fetch;
 }
-
-loadDebugger(vueApp);
-const errorHandler = vueApp.config.errorHandler || console.error; // eslint-disable-line no-console
+const debug = process.env.dev;
+if(debug){
+    loadDebugger(vueApp);
+} else {
+    //Need to add some error handler for production
+    vueApp.config.errorHandler = async(err, vm, info, ...rest) => {
+        if (vm?._component?.methods?.handleError) {
+            vm._component.methods.handleError(err);
+        }
+    }
+}
 
 // Create and mount App
-extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch(errorHandler); // eslint-disable-line no-undef
+extendApp(vueApp).then((appPartials) => mountApp(appPartials, vueApp)).catch((err) => {
+    return vueApp.config.errorHandler ? vueApp.config.errorHandler(err, vueApp) : console.error(err);
+  }); // eslint-disable-line no-undef
