@@ -4,6 +4,7 @@ import './commands/chainable';
 import './commands/rancher-api-commands';
 import registerCypressGrep from '@cypress/grep/src/support';
 import { addCustomCommand } from 'cypress-delete-downloads-folder';
+import 'cypress-mochawesome-reporter/register';
 
 registerCypressGrep();
 addCustomCommand();
