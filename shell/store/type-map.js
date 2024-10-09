@@ -697,7 +697,7 @@ export const getters = {
         if ( route && typeof route === 'object' ) {
           route.params = route.params || {};
           route.params.cluster = clusterId;
-          route.params.product = productId;
+          // route.params.product = productId;
         }
 
         group.children.push({
