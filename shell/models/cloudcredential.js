@@ -1,11 +1,65 @@
-import { CAPI } from '@shell/config/labels-annotations';
+import { CAPI, CLOUD_CREDENTIALS } from '@shell/config/labels-annotations';
 import { fullFields, prefixFields, simplify, suffixFields } from '@shell/store/plugins';
 import { isEmpty, set } from '@shell/utils/object';
-import { SECRET } from '@shell/config/types';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import day from 'dayjs';
+
+const harvesterProvider = 'harvester';
+
+const renew = {
+  [harvesterProvider]: {
+    renew: ({ cloudCredential, $ctx }) => {
+      return renew[harvesterProvider].renewBulk(
+        { cloudCredentials: [cloudCredential], $ctx }
+      );
+    },
+    renewBulk: async({ cloudCredentials, $ctx }) => {
+      // A harvester cloud credential (at the moment) is a kubeconfig complete with expiring token
+      // So to renew we just need to generate a new one and save it to the cc (similar to shell/cloud-credential/harvester.vue)
+
+      const mgmtClusters = $ctx.rootGetters['management/all'](MANAGEMENT.CLUSTER);
+
+      await Promise.all(cloudCredentials.map((cc) => {
+        const mgmtCluster = mgmtClusters.find((x) => x.id === cc.harvestercredentialConfig?.clusterId);
+
+        if (!mgmtCluster) {
+          throw new Error(`Unable to refresh credentials cloud credential '${ cc.id }'`);
+        }
+
+        return mgmtCluster.generateKubeConfig()
+          .then((kubeconfigContent) => {
+            cc.setData('kubeconfigContent', kubeconfigContent);
+
+            return cc.save();
+          })
+          .catch((err) => {
+            console.error('Unable to save cloud credential', err); // eslint-disable-line no-console
+          });
+      }));
+    }
+  }
+};
 
 export default class CloudCredential extends NormanModel {
+  get _availableActions() {
+    const out = super._availableActions;
+
+    out.splice(0, 0, { divider: true });
+    out.splice(0, 0, {
+      action:     'renew',
+      enabled:    this.canRenew,
+      bulkable:   this.canBulkRenew,
+      bulkAction: 'renewBulk',
+      icon:       'icon icon-fw icon-refresh',
+      label:      this.t('manager.cloudCredentials.renew'),
+    });
+
+    return out;
+  }
+
   get hasSensitiveData() {
     return true;
   }
@@ -176,5 +230,107 @@ export default class CloudCredential extends NormanModel {
 
   get doneRoute() {
     return 'c-cluster-manager-secret';
+  }
+
+  get canRenew() {
+    return !!renew[this.provider]?.renew && this.expires !== undefined && this.canUpdate;
+  }
+
+  get canBulkRenew() {
+    return !!renew[this.provider]?.renewBulk;
+  }
+
+  get expiresForSort() {
+    // Why not just `expires`? Ensures the correct sort order of 'no expiration' --> 'expired' --> 'expiring'
+    // (instead of expired --> expiring --> no expiration)
+    return this.expires || Number.MAX_SAFE_INTEGER;
+  }
+
+  get expires() {
+    const expires = this.annotations[CLOUD_CREDENTIALS];
+
+    if (typeof expires === 'string') {
+      return parseInt(expires);
+    } else if (typeof expires === 'number') {
+      return expires;
+    }
+
+    return undefined; // Weird things happen if this isn't a number
+  }
+
+  get expireData() {
+    if (typeof this.expiresIn !== 'number') {
+      return null;
+    }
+
+    const sevenDays = 1000 * 60 * 60 * 24 * 7;
+
+    if (this.expiresIn === 0) {
+      return {
+        expired:  true,
+        expiring: false,
+      };
+    } else if (this.expiresIn < sevenDays) {
+      return {
+        expired:  false,
+        expiring: true,
+      };
+    }
+
+    return null;
+  }
+
+  get expiresString() {
+    if (this.expires === undefined) {
+      return '';
+    }
+
+    if (this.expireData.expired) {
+      return this.t('manager.cloudCredentials.expired');
+    }
+
+    const dateFormat = escapeHtml( this.$rootGetters['prefs/get'](DATE_FORMAT));
+    const timeFormat = escapeHtml( this.$rootGetters['prefs/get'](TIME_FORMAT));
+
+    return day(this.expires).format(`${ dateFormat } ${ timeFormat }`);
+  }
+
+  get expiresIn() {
+    if (!this.expires) {
+      return null;
+    }
+
+    const timeThen = this.expires;
+    const timeNow = Date.now();
+
+    const expiresIn = timeThen - timeNow;
+
+    return expiresIn < 0 ? 0 : expiresIn;
+  }
+
+  renew() {
+    const renewFn = renew[this.provider]?.renew;
+
+    if (!renewFn) {
+      console.error('No fn renew function for ', this.provider); // eslint-disable-line no-console
+    }
+
+    return renewFn({
+      cloudCredential: this,
+      $ctx:            this.$ctx
+    });
+  }
+
+  async renewBulk(cloudCredentials = []) {
+    const renewBulkFn = renew[this.provider]?.renewBulk;
+
+    if (!renewBulkFn) {
+      console.error('No fn renew bulk function for ', this.provider); // eslint-disable-line no-console
+    }
+
+    return renewBulkFn({
+      cloudCredentials,
+      $ctx: this.$ctx
+    });
   }
 }
