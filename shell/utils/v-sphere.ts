@@ -124,6 +124,7 @@ class VSphereUtils {
 
     if (!combined?.vCenter?.credentialsSecret?.generate) {
       this.resetCpiValues(userValues, downstreamName);
+
       return;
     }
 
@@ -184,6 +185,7 @@ class VSphereUtils {
 
     if (!combined?.vCenter?.configSecret?.generate) {
       this.resetCsiValues(userValues, downstreamName);
+
       return;
     }
 
