@@ -104,6 +104,13 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-cpi') || {};
 
     if (!combined?.vCenter?.credentialsSecret?.generate) {
+      if (userValues?.vCenter?.username) {
+        userValues.vCenter.username = '';
+      }
+      if (userValues?.vCenter?.password) {
+        userValues.vCenter.password = '';
+      }
+
       return;
     }
 
@@ -170,6 +177,13 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-csi') || {};
 
     if (!combined?.vCenter?.configSecret?.generate) {
+      if (userValues?.vCenter?.username) {
+        userValues.vCenter.username = '';
+      }
+      if (userValues?.vCenter?.password) {
+        userValues.vCenter.password = '';
+      }
+
       return;
     }
 
