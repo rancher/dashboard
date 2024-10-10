@@ -18,26 +18,26 @@ const renew = {
     },
     renewBulk: async({ cloudCredentials, $ctx }) => {
       // A harvester cloud credential (at the moment) is a kubeconfig complete with expiring token
-      // So to renew we just need to generate a new one and save it to the cc (similar to shell/cloud-credential/harvester.vue)
+      // So to renew we just need to generate a new kubeconfig and save it to the cc (similar to shell/cloud-credential/harvester.vue)
+      await Promise.all(cloudCredentials.map(async(cc) => {
+        try {
+          if (!cc.harvestercredentialConfig?.clusterId) {
+            throw new Error(`credential has no matching harvester cluster`);
+          }
+          const mgmtCluster = $ctx.rootGetters['management/byId'](MANAGEMENT.CLUSTER, cc.harvestercredentialConfig.clusterId);
 
-      const mgmtClusters = $ctx.rootGetters['management/all'](MANAGEMENT.CLUSTER);
+          if (!mgmtCluster) {
+            throw new Error(`cannot find harvester cluster`);
+          }
 
-      await Promise.all(cloudCredentials.map((cc) => {
-        const mgmtCluster = mgmtClusters.find((x) => x.id === cc.harvestercredentialConfig?.clusterId);
+          const kubeconfigContent = await mgmtCluster.generateKubeConfig();
 
-        if (!mgmtCluster) {
-          throw new Error(`Unable to refresh credentials cloud credential '${ cc.id }'`);
+          cc.setData('kubeconfigContent', kubeconfigContent);
+
+          await cc.save();
+        } catch (error) {
+          console.error(`Unable to refresh harvester cloud credential '${ cc.id }'`, error); // eslint-disable-line no-console
         }
-
-        return mgmtCluster.generateKubeConfig()
-          .then((kubeconfigContent) => {
-            cc.setData('kubeconfigContent', kubeconfigContent);
-
-            return cc.save();
-          })
-          .catch((err) => {
-            console.error('Unable to save cloud credential', err); // eslint-disable-line no-console
-          });
       }));
     }
   }

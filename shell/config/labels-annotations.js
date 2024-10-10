@@ -174,5 +174,5 @@ export const SYSTEM_LABELS = [
 ];
 
 export const CLOUD_CREDENTIALS = [
-  'cattle.io/expiration-date'
+  'rancher.io/expiration-timestamp',
 ];
