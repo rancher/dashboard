@@ -48,6 +48,9 @@ export default {
   },
 
   methods: {
+    handleError(error) {
+        window.$globalApp.$store.dispatch('loadingError', new Error(error), true);
+    },
     refreshOnlineStatus() {
       if (typeof window.navigator.onLine === 'undefined') {
         // If the browser doesn't support connection status reports
