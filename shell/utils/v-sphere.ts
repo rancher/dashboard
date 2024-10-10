@@ -88,7 +88,7 @@ class VSphereUtils {
     };
   }
 
-  private resetCpiValues(userValues, downstreamName) {
+  private resetCpiValues(userValues: any, downstreamName: string) {
     if (!userValues?.vCenter?.credentialsSecret) {
       userValues.vCenter.credentialsSecret = {};
     }
@@ -98,7 +98,7 @@ class VSphereUtils {
     userValues.vCenter.password = '';
   }
 
-  private resetCsiValues(userValues, downstreamName) {
+  private resetCsiValues(userValues: any, downstreamName: string) {
     if (!userValues?.vCenter?.configSecret) {
       userValues.vCenter.configSecret = {};
     }
