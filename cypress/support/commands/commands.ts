@@ -28,6 +28,15 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
 });
 
 /**
+ * wrapper around cypress.contains to search for exact strings eg find ONLY spans containing 'test-resource' and not 'test-resource-123-abc'
+ */
+Cypress.Commands.add('containsExactly', (searchString) => {
+  const searchRegExp = new RegExp(`^${ searchString }$`);
+
+  return cy.contains(searchRegExp);
+});
+
+/**
  * Intercept all requests and return
  * @param {array} intercepts - Array of intercepts to return
  * return {array} - Array of intercepted request strings
@@ -67,7 +76,9 @@ Cypress.Commands.add('iFrame', () => {
 const runTimestamp = +new Date();
 
 Cypress.Commands.add('createE2EResourceName', (context) => {
-  return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
+  const randomStr = Math.random().toString(36).substr(2, 6);
+
+  return cy.wrap(`e2e-test-${ runTimestamp }-${ randomStr }-${ context }`);
 });
 
 // See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress

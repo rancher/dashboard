@@ -11,12 +11,14 @@ describe('Node Templates', { testIsolation: 'off', tags: ['@manager', '@jenkins'
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('nodeTemplates').as('nodeTemplateName');
+    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   beforeEach(() => {
     cy.viewport(1440, 900);
-    cy.createE2EResourceName('nodeTemplates').as('nodeTemplateName');
-    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
+    // cy.createE2EResourceName('nodeTemplates').as('nodeTemplateName');
+    // cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   let removeCloudCred = false;

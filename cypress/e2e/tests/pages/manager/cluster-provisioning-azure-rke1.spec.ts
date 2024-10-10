@@ -21,7 +21,9 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
   before(() => {
     cy.login();
     HomePagePo.goTo();
-
+    cy.createE2EResourceName('rke1azurecluster').as('rke1AzureClusterName');
+    cy.createE2EResourceName('template').as('templateName');
+    cy.createE2EResourceName('node').as('nodeName');
     // clean up azure node templates and cloud credentials
     cy.getRancherResource('v3', 'nodetemplate', null, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
@@ -58,9 +60,9 @@ describe('Provision Node driver RKE1 cluster with Azure', { testIsolation: 'off'
 
   beforeEach(() => {
     cy.viewport(1440, 900);
-    cy.createE2EResourceName('rke1azurecluster').as('rke1AzureClusterName');
-    cy.createE2EResourceName('template').as('templateName');
-    cy.createE2EResourceName('node').as('nodeName');
+    // cy.createE2EResourceName('rke1azurecluster').as('rke1AzureClusterName');
+    // cy.createE2EResourceName('template').as('templateName');
+    // cy.createE2EResourceName('node').as('nodeName');
     cy.getRancherResource('v3', 'clusters', null, null).then((resp: Cypress.Response<any>) => {
       const data = resp.body.data;
 

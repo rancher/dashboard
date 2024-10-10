@@ -15,10 +15,11 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('machinedeployments').as('machineDeploymentsName');
   });
 
   beforeEach(() => {
-    cy.createE2EResourceName('machinedeployments').as('machineDeploymentsName');
+    // cy.createE2EResourceName('machinedeployments').as('machineDeploymentsName');
   });
 
   it('can create a MachineDeployments', function() {

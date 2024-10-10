@@ -10,12 +10,14 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('rkeTemplate').as('rkeTemplateName');
+    cy.createE2EResourceName('rkeRevision').as('rkeRevisionName');
   });
 
   beforeEach(() => {
     cy.viewport(1440, 900);
-    cy.createE2EResourceName('rkeTemplate').as('rkeTemplateName');
-    cy.createE2EResourceName('rkeRevision').as('rkeRevisionName');
+    // cy.createE2EResourceName('rkeTemplate').as('rkeTemplateName');
+    // cy.createE2EResourceName('rkeRevision').as('rkeRevisionName');
   });
 
   it('can create RKE template and should display on RKE1 cluster creation page', function() {

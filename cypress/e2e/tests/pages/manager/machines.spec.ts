@@ -15,10 +15,11 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('machines').as('machineName');
   });
 
   beforeEach(() => {
-    cy.createE2EResourceName('machines').as('machineName');
+    // cy.createE2EResourceName('machines').as('machineName');
   });
 
   it('can create a Machine', function() {

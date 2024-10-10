@@ -8,6 +8,7 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
 
     cy.getRancherResource('v3', 'cloudCredentials').then((resp: Cypress.Response<any>) => {
       const credentials = resp.body.data;
@@ -19,7 +20,7 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   });
 
   beforeEach(() => {
-    cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
+    // cy.createE2EResourceName('cloudCredential').as('cloudCredentialName');
   });
 
   it('can see error when authentication fails', function() {

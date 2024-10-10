@@ -15,7 +15,8 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
   before(() => {
     cy.login();
     HomePagePo.goTo();
-
+    cy.createE2EResourceName('rke2ec2cluster').as('rke2Ec2ClusterName');
+    cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
     // clean up amazon cloud credentials
     cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
@@ -35,8 +36,8 @@ describe('Provision Node driver RKE2 cluster', { testIsolation: 'off', tags: ['@
   });
 
   beforeEach(() => {
-    cy.createE2EResourceName('rke2ec2cluster').as('rke2Ec2ClusterName');
-    cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
+    // cy.createE2EResourceName('rke2ec2cluster').as('rke2Ec2ClusterName');
+    // cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
   it('can provision a Amazon EC2 RKE2 cluster with Amazon cloud provider', function() {
