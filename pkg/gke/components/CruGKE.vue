@@ -176,12 +176,13 @@ export default defineComponent({
       this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+      if (!this.$store.getters['auth/principalId'].includes('local://')) {
+        this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+      }
     }
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
-    } else {
-      this.value.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
     }
     if (!this.normanCluster.gkeConfig) {
       this.normanCluster['gkeConfig'] = { ...defaultGkeConfig };

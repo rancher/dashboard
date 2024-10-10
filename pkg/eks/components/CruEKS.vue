@@ -124,13 +124,14 @@ export default defineComponent({
       // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
         syncUpstreamConfig('eks', this.normanCluster);
-      } else {
-        this.value.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
+      if (!this.$store.getters['auth/principalId'].includes('local://')) {
+        this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+      }
     }
 
     if (!this.normanCluster.eksConfig) {
