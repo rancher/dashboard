@@ -88,6 +88,28 @@ class VSphereUtils {
     };
   }
 
+  private resetCpiValues(userValues, downstreamName) {
+    if (!userValues?.vCenter?.credentialsSecret) {
+      userValues.vCenter.credentialsSecret = {};
+    }
+    userValues.vCenter.credentialsSecret.generate = false;
+    userValues.vCenter.credentialsSecret.name = downstreamName;
+    userValues.vCenter.username = '';
+    userValues.vCenter.password = '';
+  }
+
+  private resetCsiValues(userValues, downstreamName) {
+    if (!userValues?.vCenter?.configSecret) {
+      userValues.vCenter.configSecret = {};
+    }
+    userValues.vCenter.configSecret.generate = false;
+    userValues.vCenter.configSecret.name = downstreamName;
+    userValues.vCenter.username = '';
+    userValues.vCenter.password = '';
+    userValues.vCenter.host = '';
+    userValues.vCenter.datacenters = '';
+  }
+
   /**
     * Create upstream vsphere cpi secret to sync downstream
     */
@@ -101,6 +123,7 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-cpi') || {};
 
     if (!combined?.vCenter?.credentialsSecret?.generate) {
+      this.resetCpiValues(userValues, downstreamName);
       return;
     }
 
@@ -144,14 +167,7 @@ class VSphereUtils {
 
     await secret.save();
 
-    // reset cpi chart values
-    if (!userValues.vCenter.credentialsSecret) {
-      userValues.vCenter.credentialsSecret = {};
-    }
-    userValues.vCenter.credentialsSecret.generate = false;
-    userValues.vCenter.credentialsSecret.name = downstreamName;
-    userValues.vCenter.username = '';
-    userValues.vCenter.password = '';
+    this.resetCpiValues(userValues, downstreamName);
   }
 
   /**
@@ -167,6 +183,7 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-csi') || {};
 
     if (!combined?.vCenter?.configSecret?.generate) {
+      this.resetCsiValues(userValues, downstreamName);
       return;
     }
 
@@ -219,16 +236,7 @@ class VSphereUtils {
 
     await secret.save();
 
-    // reset csi chart values
-    if (!userValues.vCenter.configSecret) {
-      userValues.vCenter.configSecret = {};
-    }
-    userValues.vCenter.configSecret.generate = false;
-    userValues.vCenter.configSecret.name = downstreamName;
-    userValues.vCenter.username = '';
-    userValues.vCenter.password = '';
-    userValues.vCenter.host = '';
-    userValues.vCenter.datacenters = '';
+    this.resetCsiValues(userValues, downstreamName);
   }
 }
 
