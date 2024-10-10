@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const components = require.context('@shell/components/formatter', false, /[A-Z]\w+\.(vue)$/);
+const components = require.context('@shell/components/formatter', false, /\.\/[A-Z]\w+\.(vue)$/);
 
 const globalFormatters = {
   install: (vueApp) => {

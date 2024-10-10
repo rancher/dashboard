@@ -94,7 +94,7 @@ export function abbreviateClusterName(input) {
 
 export function labelForAddon(store, name, configuration = true) {
   const addon = camelToTitle(name.replace(/^(rke|rke2|rancher)-/, ''));
-  const fallback = `${ addon } ${ configuration ? 'Configuration' : '' }`;
+  const fallback = `${ configuration ? '' : 'Add-on: ' }${ addon }`;
   const key = `cluster.addonChart."${ name }"${ configuration ? '.configuration' : '.label' }`;
 
   return store.getters['i18n/withFallback'](key, null, fallback);

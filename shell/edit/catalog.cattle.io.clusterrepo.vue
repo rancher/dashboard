@@ -167,7 +167,7 @@ export default {
 
     <div v-else-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
       <InfoBox class="p-10">
-        {{ t('catalog.repo.oci.info') }}
+        {{ t('catalog.repo.oci.info', null, true) }}
       </InfoBox>
       <LabeledInput
         v-model:value.trim="value.spec.url"

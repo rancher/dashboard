@@ -96,7 +96,7 @@ export default {
         :as-object="true"
         :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
         :hide-preview-buttons="true"
-        @input="data => $emit('update-values', addonVersion.name, data)"
+        @update:value="$emit('update-values', addonVersion.name, $event)"
       />
       <div class="spacer" />
     </div>
