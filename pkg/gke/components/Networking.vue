@@ -523,7 +523,7 @@ export default defineComponent({
           this.$emit('update:clusterIpv4CidrBlock', '');
         } else {
           this.$emit('update:clusterSecondaryRangeName', neu.rangeName);
-          this.$emit('update:clusterIpv4CidrBlock', neu.ipCidrRange);
+          this.$emit('update:clusterIpv4CidrBlock', '');
         }
       }
     },
@@ -547,7 +547,7 @@ export default defineComponent({
           this.$emit('update:servicesIpv4CidrBlock', '');
         } else {
           this.$emit('update:servicesSecondaryRangeName', neu.rangeName);
-          this.$emit('update:servicesIpv4CidrBlock', neu.ipCidrRange);
+          this.$emit('update:servicesIpv4CidrBlock', '');
         }
       }
     },
@@ -618,12 +618,13 @@ export default defineComponent({
       <div class="col span-6">
         <LabeledSelect
           v-if="!!subnetwork"
-          v-model:value="selectedClusterSecondaryRangeName"
+          :value="selectedClusterSecondaryRangeName"
           :mode="mode"
           :options="clusterSecondaryRangeOptions"
           label-key="gke.clusterSecondaryRangeName.label"
           :disabled="!isNewOrUnprovisioned"
           data-testid="gke-cluster-secondary-range-name-select"
+          @update:value="e=>selectedClusterSecondaryRangeName = e"
         />
         <LabeledInput
           v-else
@@ -638,7 +639,7 @@ export default defineComponent({
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="clusterIpv4CidrBlock"
+          :value="disableClusterIpv4CidrBlock ? selectedClusterSecondaryRangeName.ipCidrRange : clusterIpv4CidrBlock"
           :mode="mode"
           label-key="gke.clusterIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
@@ -671,7 +672,7 @@ export default defineComponent({
       </div>
       <div class="col span-6">
         <LabeledInput
-          :value="servicesIpv4CidrBlock"
+          :value="disableServicesIpv4CidrBlock ? selectedClusterSecondaryRangeName.ipCidrRange : servicesIpv4CidrBlock"
           :mode="mode"
           label-key="gke.servicesIpv4CidrBlock.label"
           :placeholder="t('gke.clusterIpv4Cidr.placeholder')"
