@@ -247,7 +247,7 @@ export default class CloudCredential extends NormanModel {
   }
 
   get expires() {
-    const expires = this.annotations[CLOUD_CREDENTIALS];
+    const expires = this.annotations[CLOUD_CREDENTIALS.EXPIRATION];
 
     if (typeof expires === 'string') {
       return parseInt(expires);
