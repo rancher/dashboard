@@ -551,6 +551,8 @@ module.exports = function(dir, _appConfig) {
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
+      config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\/__tests__\// }));
+
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = {
         ...(config.watchOptions || {}),
