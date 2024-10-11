@@ -2036,8 +2036,14 @@ function hasCustom(state, rootState, kind, key, fallback) {
 
   // Fallback
   try {
-    fallback(key);
-    cache[key] = true;
+    const importFunc = fallback(key);
+
+    // We're not actually importing here, just checking if the function exists
+    if (typeof importFunc === 'function') {
+      cache[key] = true;
+    } else {
+      throw new Error('Import function not returned');
+    }
   } catch (e) {
     cache[key] = false;
   }
