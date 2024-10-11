@@ -101,6 +101,13 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-cpi') || {};
 
     if (!combined?.vCenter?.credentialsSecret?.generate) {
+      if (userValues?.vCenter?.username) {
+        userValues.vCenter.username = '';
+      }
+      if (userValues?.vCenter?.password) {
+        userValues.vCenter.password = '';
+      }
+
       return;
     }
 
@@ -167,6 +174,13 @@ class VSphereUtils {
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-csi') || {};
 
     if (!combined?.vCenter?.configSecret?.generate) {
+      if (userValues?.vCenter?.username) {
+        userValues.vCenter.username = '';
+      }
+      if (userValues?.vCenter?.password) {
+        userValues.vCenter.password = '';
+      }
+
       return;
     }
 
@@ -181,7 +195,7 @@ class VSphereUtils {
 
     // This is a copy of https://github.com/rancher/vsphere-charts/blob/a5c99d716df960dc50cf417d9ecffad6b55ca0ad/charts/rancher-vsphere-csi/values.yaml#L12-L21
     // Which makes it's way into the secret via https://github.com/rancher/vsphere-charts/blob/main/charts/rancher-vsphere-csi/templates/secret.yaml#L8
-    let configTemplateString = ' |\n      [Global]\n      cluster-id = {{ required \".Values.vCenter.clusterId must be provided\" (default .Values.vCenter.clusterId .Values.global.cattle.clusterId) | quote }}\n      user = {{ .Values.vCenter.username | quote }}\n      password = {{ .Values.vCenter.password | quote }}\n      port = {{ .Values.vCenter.port | quote }}\n      insecure-flag = {{ .Values.vCenter.insecureFlag | quote }}\n\n      [VirtualCenter {{ .Values.vCenter.host | quote }}]\n      datacenters = {{ .Values.vCenter.datacenters | quote }}';
+    let configTemplateString = '      [Global]\n      cluster-id = {{ required \".Values.vCenter.clusterId must be provided\" (default .Values.vCenter.clusterId .Values.global.cattle.clusterId) | quote }}\n      user = {{ .Values.vCenter.username | quote }}\n      password = {{ .Values.vCenter.password | quote }}\n      port = {{ .Values.vCenter.port | quote }}\n      insecure-flag = {{ .Values.vCenter.insecureFlag | quote }}\n\n      [VirtualCenter {{ .Values.vCenter.host | quote }}]\n      datacenters = {{ .Values.vCenter.datacenters | quote }}';
 
     configTemplateString = configTemplateString.replace('{{ required \".Values.vCenter.clusterId must be provided\" (default .Values.vCenter.clusterId .Values.global.cattle.clusterId) | quote }}', `"{{clusterId}}"`);
     configTemplateString = configTemplateString.replace('{{ .Values.vCenter.username | quote }}', `"${ username }"`);
