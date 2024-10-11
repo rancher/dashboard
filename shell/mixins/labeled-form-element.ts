@@ -10,6 +10,8 @@ interface LabeledFormElement {
 export default {
   inheritAttrs: false,
 
+  emits: ['update:validation', 'on-focus', 'on-blur'],
+
   props: {
     mode: {
       type:    String,
