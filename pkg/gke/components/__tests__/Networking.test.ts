@@ -175,13 +175,12 @@ describe('gke Networking', () => {
 
     const wrapper = shallowMount(Networking, {
       propsData: {
-        zone:                      'test-zone',
-        region:                    'test-region',
-        cloudCredentialId:         '',
-        projectId:                 'test-project',
-        network:                   'test-network',
-        subnetwork:                'test-network-subnet',
-        clusterSecondaryRangeName: 'range-1'
+        zone:              'test-zone',
+        region:            'test-region',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        network:           'test-network',
+        subnetwork:        'test-network-subnet',
       },
       ...setup
     });
@@ -190,8 +189,27 @@ describe('gke Networking', () => {
     await flushPromises();
 
     const clusterSecondaryCIDRInput = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-cidr-input"]');
+    const clusterSecondaryRangeSelect = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
+
+    expect(clusterSecondaryCIDRInput.props('disabled')).toBe(false);
+    expect(clusterSecondaryCIDRInput.props('value')).toBe('');
+    const opt = {
+      ipCidrRange: '10.0.1.0/24',
+      label:       'range-1 (10.0.1.0/24)',
+      rangeName:   'range-1'
+    };
+
+    clusterSecondaryRangeSelect.vm.$emit('update:value', opt);
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:clusterSecondaryRangeName')[0][0]).toBe('range-1');
+    expect(wrapper.emitted('update:clusterIpv4CidrBlock')[0][0]).toBe('');
+    wrapper.setProps({ clusterSecondaryRangeName: 'range-1' });
+    await wrapper.vm.$nextTick();
 
     expect(clusterSecondaryCIDRInput.props('disabled')).toBe(true);
+    expect(clusterSecondaryCIDRInput.props('value')).toBe('10.0.1.0/24');
 
     wrapper.setProps({ clusterSecondaryRangeName: '' });
     await wrapper.vm.$nextTick();
