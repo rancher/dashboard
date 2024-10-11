@@ -332,7 +332,11 @@ export default {
 
       const queryDiff = Object.keys(diff(neu, old));
 
-      if ( queryDiff.includes(MODE) || queryDiff.includes(AS)) {
+      if (Object.keys(neu).length <= 0) {
+        return;
+      }
+
+      if (queryDiff.includes(MODE) || queryDiff.includes(AS)) {
         this.$fetch();
       }
     },
