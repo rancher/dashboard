@@ -103,8 +103,9 @@ export default {
     this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
     this.value['spec'] = this.value.spec || {};
     this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
-
-    this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+    if (!this.$store.getters['auth/principalId'].includes('local://')) {
+      this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+    }
   },
   methods: {
     async save(saveCb) {

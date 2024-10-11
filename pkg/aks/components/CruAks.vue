@@ -157,11 +157,6 @@ export default defineComponent({
       // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
         syncUpstreamConfig('aks', this.normanCluster);
-      } else if (!this.$store.getters['auth/principalId'].includes('local://')) {
-        if (!this.normanCluster.annotations) {
-          this.normanCluster.annotations = {};
-        }
-        this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
 
       // track original version on edit to ensure we don't offer k8s downgrades

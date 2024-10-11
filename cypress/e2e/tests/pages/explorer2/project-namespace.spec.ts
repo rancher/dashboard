@@ -1,4 +1,5 @@
 import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
+import { spoofThirdPartyPrincipal } from '@/cypress/e2e/blueprints/explorer/rbac/third-party-principals-get';
 
 describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   const projectsNamespacesPage = new ProjectsNamespacesPagePo('local');
@@ -19,22 +20,57 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     projectsNamespacesPage.nsProject().checkExists();
   });
 
-  describe('Create Project validation', () => {
+  describe('Project creation', () => {
+    beforeEach(() => {
+      cy.createE2EResourceName('proj').as('projectName');
+      cy.intercept('POST', '/v3/projects').as('createProjectRequest');
+    });
+
+    it('sets the creator principal id annotation when creating a project and using third-party auth', () => {
+      cy.get('@projectName').then((projectName) => {
+        // intercept the request to /v3/principals and return a principal authenticated by github instead of local
+        spoofThirdPartyPrincipal();
+
+        projectsNamespacesPage.createProjectButtonClick();
+        projectsNamespacesPage.name().set(projectName);
+        projectsNamespacesPage.buttonSubmit().click();
+
+        cy.wait('@createProjectRequest').then(({ request, response }) => {
+          expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
+          expect(response.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
+        });
+      });
+    });
+
+    it('does not set a creator principal id annotation when creating a project if using local auth', () => {
+      cy.get('@projectName').then((projectName) => {
+        projectsNamespacesPage.createProjectButtonClick();
+        projectsNamespacesPage.name().set(projectName);
+        projectsNamespacesPage.buttonSubmit().click();
+
+        cy.wait('@createProjectRequest').then(({ request, response }) => {
+          expect(request.body.annotations).to.not.have.property('field.cattle.io/creator-principal-name');
+          expect(response.body.annotations).to.not.have.property('field.cattle.io/creator-principal-name');
+        });
+      });
+    });
+
+    afterEach(() => {
+      cy.deleteRancherResource('v3', 'projects', cy.get('@projectName'));
+    });
+  });
+
+  describe('Project Error Banner and Validation', () => {
     beforeEach(() => {
       projectsNamespacesPage.goTo();
     });
+
     // Issue 5975: create button should be disabled unless name is filled in
     it('Create button becomes available if the name is filled in', () => {
       projectsNamespacesPage.createProjectButtonClick();
       projectsNamespacesPage.buttonSubmit().expectToBeDisabled();
       projectsNamespacesPage.name().set('test-1234');
       projectsNamespacesPage.buttonSubmit().expectToBeEnabled();
-    });
-  });
-
-  describe('Create Project Error Banner', () => {
-    beforeEach(() => {
-      projectsNamespacesPage.goTo();
     });
 
     it('displays an error message when submitting a form with errors', () => {
