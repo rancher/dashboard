@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
+BASE_DIR="$(git rev-parse --show-toplevel)"
 SHELL_DIR=$BASE_DIR/shell
 
 echo "Generating typescript definitions"
@@ -12,36 +12,39 @@ mkdir -p ${SHELL_DIR}/tmp
 echo "Generating ..."
 
 # utils
-${BASE_DIR}/node_modules/.bin/tsc shell/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/utils/validators/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/validators > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/utils/crypto/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/crypto > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/utils/validators/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/validators > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/utils/crypto/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils/crypto > /dev/null
 
 # config
-${BASE_DIR}/node_modules/.bin/tsc shell/config/query-params.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/config/table-headers.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/query-params.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/table-headers.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 
-# store
-${BASE_DIR}/node_modules/.bin/tsc shell/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+# # store
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
-# plugins
-${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/classify.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/actions.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+# # plugins
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/classify.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/actions.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 
-# mixins
-${BASE_DIR}/node_modules/.bin/tsc shell/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
+# # mixins
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
 
-# models
-${BASE_DIR}/node_modules/.bin/tsc shell/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
-${BASE_DIR}/node_modules/.bin/tsc shell/models/networking.k8s.io.ingress.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
+# # models
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/networking.k8s.io.ingress.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 
-#./node_modules/.bin/tsc shell/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store > /dev/null
+#./node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store
 
 # Go through all of the folders and combine by wrapping with 'declare module'
+
+echo "Contents of ${SHELL_DIR}/tmp after tsc commands:"
+find ${SHELL_DIR}/tmp
 
 echo "Combining type definitions ..."
 
