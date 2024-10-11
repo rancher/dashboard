@@ -93,7 +93,7 @@ class VSphereUtils {
     */
   async handleVsphereCpiSecret(rke2Component: Rke2Component) {
     const generateName = `${ rootGenerateName }cpi-`;
-    const downstreamName = 'vsphere-cpi-credentials';
+    const downstreamName = 'rancher-vsphere-cpi-credentials';
     const downstreamNamespace = 'kube-system';
     const { value } = rke2Component;
 
@@ -166,7 +166,7 @@ class VSphereUtils {
     */
   async handleVsphereCsiSecret(rke2Component: Rke2Component) {
     const generateName = `${ rootGenerateName }csi-`;
-    const downstreamName = 'vsphere-csi-credentials';
+    const downstreamName = 'rancher-vsphere-csi-credentials';
     const downstreamNamespace = 'kube-system';
     const { value } = rke2Component;
 
