@@ -56,7 +56,9 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
 
     afterEach(() => {
-      cy.deleteRancherResource('v3', 'projects', cy.get('@projectName'));
+      cy.get('@projectName').then((projectName) => {
+        cy.deleteRancherResource('v3', 'projects', projectName, false);
+      });
     });
   });
 
