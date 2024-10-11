@@ -173,6 +173,4 @@ export const SYSTEM_LABELS = [
   'egress.rke2.io'
 ];
 
-export const CLOUD_CREDENTIALS = [
-  'rancher.io/expiration-timestamp',
-];
+export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };
