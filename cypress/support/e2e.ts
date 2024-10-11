@@ -3,6 +3,7 @@ import './commands/commands';
 import './commands/rancher-api-commands.ts';
 import registerCypressGrep from '@cypress/grep/src/support';
 import { addCustomCommand } from 'cypress-delete-downloads-folder';
+import 'cypress-mochawesome-reporter/register';
 
 registerCypressGrep();
 addCustomCommand();
