@@ -130,10 +130,7 @@ export default {
           }
         };
       } else {
-        this.$delete(
-          this.value.prometheus.prometheusSpec.storageSpec,
-          'volumeClaimTemplate'
-        );
+        delete this.value.prometheus.prometheusSpec.storageSpec['volumeClaimTemplate'];
       }
     },
   },
