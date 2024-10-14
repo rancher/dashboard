@@ -77,15 +77,15 @@ export default {
         {
           name:     'clustersReady',
           labelKey: 'tableHeaders.clustersReady',
-          value:    'status.readyClusters',
-          sort:     'status.readyClusters',
+          value:    'targetClustersReady',
+          sort:     'targetClustersReady',
           search:   false,
         },
         {
           name:     'bundlesReady',
           labelKey: 'tableHeaders.bundlesReady',
-          value:    'status.readyClusters',
-          sort:     'status.readyClusters',
+          value:    'bundlesReady',
+          sort:     'bundlesReady',
           search:   false,
         },
         {
