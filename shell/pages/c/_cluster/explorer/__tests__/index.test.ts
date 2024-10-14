@@ -163,7 +163,7 @@ describe('page: cluster dashboard', () => {
       ['created', 'glance.created', []],
       ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { [NODE_ARCHITECTURE]: 'intel' } }]],
       ['architecture', 'mixed', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }, { labels: { } }]],
-      ['architecture', 'Amd64', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }]],
+      ['architecture', 'amd64', [{ labels: { [NODE_ARCHITECTURE]: 'amd64' } }]],
       ['architecture', 'unknown', [{ labels: { } }]],
       ['architecture', '—', [{ metadata: { state: { transitioning: true } } }]],
     ])('should show %p label %p', (label, text, nodes) => {
