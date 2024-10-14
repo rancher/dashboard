@@ -231,12 +231,16 @@ export default {
       }
     },
     // since the Header is a "persistent component" we need to update it at every route change...
-    $route(nue) {
-      if (nue) {
-        this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+    $route: {
+      handler(nue) {
+        if (nue) {
+          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
 
-        this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
-      }
+          this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
+        }
+      },
+      immediate: true,
+      deep:      true,
     }
   },
 
