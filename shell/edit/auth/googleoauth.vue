@@ -196,7 +196,7 @@ export default {
                 class="role-tertiary add mt-5"
                 :label="t('generic.readFromFile')"
                 :mode="mode"
-                @selected="$set(model, 'oauthCredential', $event)"
+                @selected="model.oauthCredential = $event"
               />
             </div>
           </div>
@@ -231,7 +231,7 @@ export default {
                 class="role-tertiary add mt-5"
                 :label="t('generic.readFromFile')"
                 :mode="mode"
-                @selected="$set(model, 'serviceAccountCredential', $event)"
+                @selected="model.serviceAccountCredential = $event"
               />
             </div>
           </div>

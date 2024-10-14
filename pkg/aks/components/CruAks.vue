@@ -1195,7 +1195,7 @@ export default defineComponent({
                   :mode="mode"
                   :label="t('aks.sshPublicKey.readFromFile')"
                   class="role-tertiary mt-10"
-                  @selected="e=>$set(config, 'sshPublicKey', e)"
+                  @selected="e => config.sshPublicKey = e"
                 />
               </div>
             </div>

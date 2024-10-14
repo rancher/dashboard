@@ -64,11 +64,7 @@ export default {
     initializeType(authOptions, type) {
       authOptions.forEach((authOption) => {
         if (authOption.value === type && type !== 'none') {
-          this.$set(
-            this.value,
-            authOption.value,
-            this.value[authOption.value] || authOption.default
-          );
+          this.value.authOption.value = this.value[authOption.value] || authOption.default;
         } else if (typeof this.value[authOption.value] !== 'undefined') {
           delete this.value[authOption.value];
         }

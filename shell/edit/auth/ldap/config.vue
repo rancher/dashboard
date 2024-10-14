@@ -120,7 +120,7 @@ export default {
           :step="1"
           :mode="mode"
           :label="t('authConfig.ldap.port')"
-          @update:value="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
+          @update:value="e=> model.port = e.replace(/[^0-9]*/g, '')"
         />
       </div>
 
@@ -158,7 +158,7 @@ export default {
           class="role-tertiary add mt-5"
           :label="t('generic.readFromFile')"
           :mode="mode"
-          @selected="$set(model, 'certificate', $event)"
+          @selected="model.certificate = $event"
         />
       </div>
     </div>

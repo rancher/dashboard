@@ -233,7 +233,7 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'privateKey', $event)"
+              @selected="model.privateKey = $event"
             />
           </div>
           <div class="col span-6">
@@ -248,7 +248,7 @@ export default {
               class="role-tertiary add mt-5"
               :label="t('generic.readFromFile')"
               :mode="mode"
-              @selected="$set(model, 'certificate', $event)"
+              @selected="model.certificate = $event"
             />
           </div>
         </div>

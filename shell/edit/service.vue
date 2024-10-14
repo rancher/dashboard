@@ -226,11 +226,7 @@ export default {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.
-        this.$set(
-          this.value.spec.sessionAffinityConfig.clientIP,
-          'timeoutSeconds',
-          SESSION_STICKY_TIME_DEFAULT
-        );
+        this.value.spec.sessionAffinityConfig.clientIP.timeoutSeconds = SESSION_STICKY_TIME_DEFAULT;
       } else if (
         this.value?.spec?.sessionAffinityConfig?.clientIP?.timeoutSeconds
       ) {
@@ -425,7 +421,7 @@ export default {
               :mode="mode"
               :initial-empty-row="true"
               :protip="false"
-              @update:value="(e) => $set(value.spec, 'selector', e)"
+              @update:value="(e) => value.spec.selector = e"
             />
           </div>
         </div>
@@ -448,7 +444,7 @@ export default {
               :tooltip-key="
                 hasClusterIp ? 'servicesPage.ips.clusterIpHelpText' : null
               "
-              @update:value="(e) => $set(value.spec, 'clusterIP', e)"
+              @update:value="(e) => value.spec.clusterIP = e"
             />
           </div>
         </div>
@@ -465,7 +461,7 @@ export default {
               :tooltip-key="
                 hasClusterIp ? 'servicesPage.ips.loadBalancerIp.helpText' : null
               "
-              @update:value="(e) => $set(value.spec, 'loadBalancerIP', e)"
+              @update:value="(e) => value.spec.loadBalancerIP = e"
             />
           </div>
         </div>
@@ -478,7 +474,7 @@ export default {
               :value-placeholder="t('servicesPage.ips.external.placeholder')"
               :mode="mode"
               :protip="false"
-              @update:value="(e) => $set(value.spec, 'externalIPs', e)"
+              @update:value="(e) => value.spec.externalIPs = e"
             />
           </div>
         </div>
@@ -527,12 +523,7 @@ export default {
               :label="t('servicesPage.affinity.timeout.label')"
               :placeholder="t('servicesPage.affinity.timeout.placeholder')"
               @input="
-                (e) =>
-                  $set(
-                    value.spec.sessionAffinityConfig.clientIP,
-                    'timeoutSeconds',
-                    e
-                  )
+                (e) => value.spec.sessionAffinityConfig.clientIP.timeoutSeconds = e
               "
             />
           </div>

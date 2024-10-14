@@ -379,7 +379,7 @@ export default {
                 :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
                 :label="t('workload.scheduling.affinity.type')"
                 :data-testid="`pod-affinity-type-index${props.i}`"
-                @update:value="$set(props.row.value, '_anti',!props.row.value._anti)"
+                @update:value="props.row.value._anti = !props.row.value._anti"
               />
             </div>
             <div class="col span-6">
