@@ -138,10 +138,14 @@ export default {
     }
   },
   watch: {
-    value() {
-      this.lastUpdateWasFromValue = true;
-      this.rows = (this.value || []).map((v) => ({ value: v }));
+    value: {
+      deep: true,
+      handler() {
+        this.lastUpdateWasFromValue = true;
+        this.rows = (this.value || []).map((v) => ({ value: v }));
+      }
     },
+
     rows: {
       deep: true,
       handler(newValue, oldValue) {

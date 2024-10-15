@@ -546,8 +546,10 @@ export default {
     async loadNetworks() {
       set(this, 'networksResults', null);
 
-      const options = await this.requestOptions('networks', this.value.datacenter);
-      const content = this.mapPathOptionsToContent(options);
+      const options = await this.requestOptions('networks-extended', this.value.datacenter);
+      const content = options.map((opt) => {
+        return { label: `${ opt.name } (${ opt.moid })`, value: opt.moid };
+      });
 
       this.resetValueIfNecessary('network', content, options, true);
 
