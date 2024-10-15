@@ -521,6 +521,7 @@ export default {
             <button
               v-if="isView"
               ref="actions"
+              data-testid="mathead-action-menu"
               aria-haspopup="true"
               type="button"
               class="btn role-multi-action actions"

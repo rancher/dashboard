@@ -228,6 +228,25 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
     });
 
+    it('can delete a role template from the detail page', () => {
+      // Delete role and verify role is removed from list
+      roles.waitForRequests();
+      const oneRoleTemplateId = roleTemplatesToDelete.splice(0, 1)[0];
+      const detailPage = roles.detailRole(oneRoleTemplateId);
+
+      detailPage.goTo();
+      detailPage.waitForPage();
+
+      const actionMenu = detailPage.detail().openMastheadActionMenu();
+
+      actionMenu.clickMenuItem(5);
+
+      const promptRemove = new PromptRemove();
+
+      promptRemove.remove();
+      roles.list('CLUSTER').elementWithName(oneRoleTemplateId).should('not.exist');
+    });
+
     it('can delete a role template', () => {
     // Delete role and verify role is removed from list
       roles.waitForRequests();
