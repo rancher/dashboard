@@ -15,10 +15,7 @@
   }
 
   .v-popper__arrow-container {
-    width: 0;
-    height: 0;
     border: 0 solid transparent;
-    position: absolute;
     z-index: 1;
 
     .v-popper__arrow-inner {
@@ -30,9 +27,7 @@
     .v-popper__arrow-container {
 
       .v-popper__arrow-outer {
-        border-bottom-width: 0;
         border-top-color: var(--tooltip-bg);
-        left: -$triangle-inner-size;
       }
     }
   }
@@ -42,9 +37,7 @@
     .v-popper__arrow-container {
 
       .v-popper__arrow-outer {
-        border-top-width: 0;
         border-bottom-color: var(--tooltip-bg);
-        left: -$triangle-inner-size;
         background: transparent;
       }
     }
@@ -55,8 +48,6 @@
 
       .v-popper__arrow-outer {
         border-right-color: var(--tooltip-bg);
-        top: -$triangle-inner-size;
-        border-left-width: 0;
       }
     }
   }
@@ -65,9 +56,7 @@
     .v-popper__arrow-container {
 
       .v-popper__arrow-outer {
-        border-right-width: 0;
         border-left-color: var(--tooltip-bg);
-        top: -$triangle-inner-size;
       }
     }
   }
