@@ -26,7 +26,7 @@ export type CoreStoreInit = (store: any, ctx: any) => void;
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
 
-export type PluginRouteRecordRaw = {parent?: string, route: RouteRecordRaw}
+export type PluginRouteRecordRaw = { [key: string]: any }
 
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
