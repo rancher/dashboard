@@ -81,33 +81,6 @@ const networkToVappProperties = (props, network, i) => {
   return props;
 };
 
-const getInitialVappMode = (c) => {
-  const vappProperty = c.vappProperty || [];
-
-  if (
-    !c.vappIpprotocol &&
-    !c.vappIpallocationpolicy &&
-    !c.vappTransport &&
-    vappProperty.length === 0
-  ) {
-    return VAPP_MODE.DISABLED;
-  }
-
-  const d = getDefaultVappOptions(c.network || []);
-
-  if (
-    c.vappIpprotocol === d.vappIpprotocol &&
-    c.vappIpallocationpolicy === d.vappIpallocationpolicy &&
-    c.vappTransport === d.vappTransport &&
-    vappProperty.length === d.vappProperty.length &&
-    vappProperty.join() === d.vappProperty.join()
-  ) {
-    return VAPP_MODE.AUTO;
-  }
-
-  return VAPP_MODE.MANUAL;
-};
-
 /**
  * passing 'datacenter' yields
  *
@@ -266,9 +239,10 @@ export default {
       haveAttributes:           null,
       haveTemplates:            null,
       vAppOptions,
-      vappMode:                 getInitialVappMode(this.value),
-      osOptions:                OS_OPTIONS,
-      validationErrors:         {},
+      vappMode:                 VAPP_MODE.DISABLED,
+
+      osOptions:        OS_OPTIONS,
+      validationErrors: {},
     };
   },
 
@@ -287,6 +261,21 @@ export default {
     ...createOptionHelpers('tags'),
     ...createOptionHelpers('attributeKeys'),
     ...createOptionHelpers('networks'),
+
+    networkNames() {
+      const { network = [] } = this.value;
+
+      return network.reduce((names, id) => {
+        // previously this form used network names instead of ids -- need to account for both possibilities
+        const name = this.networks.find((nw) => nw.value === id || nw.name === id)?.name;
+
+        if (name && !names.includes(name)) {
+          names.push(name);
+        }
+
+        return names;
+      }, []);
+    },
 
     isDisabled() {
       return this.disabled || this.mode === _VIEW;
@@ -390,12 +379,12 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
+        const defaultVappOptions = getDefaultVappOptions(this.networkNames || []);
 
         return this.updateVappOptions(defaultVappOptions);
+      } else if (value === VAPP_MODE.DISABLED) {
+        this.updateVappOptions(INITIAL_VAPP_OPTIONS);
       }
-
-      this.updateVappOptions(INITIAL_VAPP_OPTIONS);
     },
     validationErrors(value) {
       this.$emit('error', value);
@@ -548,12 +537,15 @@ export default {
 
       const options = await this.requestOptions('networks-extended', this.value.datacenter);
       const content = options.map((opt) => {
-        return { label: `${ opt.name } (${ opt.moid })`, value: opt.moid };
+        return {
+          label: `${ opt.name } (${ opt.moid })`, value: opt.moid, name: opt.name
+        };
       });
 
       this.resetValueIfNecessary('network', content, options, true);
 
       set(this, 'networksResults', content);
+      this.vappMode = this.getInitialVappMode(this.value);
     },
 
     async loadContentLibraries() {
@@ -726,6 +718,34 @@ export default {
         this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x === key) }) ;
       }
     },
+
+    getInitialVappMode(c) {
+      const vappProperty = c.vappProperty || [];
+
+      if (
+        !c.vappIpprotocol &&
+        !c.vappIpallocationpolicy &&
+        !c.vappTransport &&
+        vappProperty.length === 0
+      ) {
+        return VAPP_MODE.DISABLED;
+      }
+
+      const d = getDefaultVappOptions(this.networkNames || []);
+
+      if (
+        c.vappIpprotocol === d.vappIpprotocol &&
+        c.vappIpallocationpolicy === d.vappIpallocationpolicy &&
+        c.vappTransport === d.vappTransport &&
+        vappProperty.length === d.vappProperty.length &&
+        vappProperty.join() === d.vappProperty.join()
+      ) {
+        return VAPP_MODE.AUTO;
+      }
+
+      return VAPP_MODE.MANUAL;
+    }
+
   }
 };
 </script>
@@ -1134,68 +1154,78 @@ export default {
       </template>
       <template #body>
         <div>
-          <div class="row mb-10">
-            <div class="col span-6">
-              <RadioGroup
-                v-model:value="vappMode"
-                name="restoreMode"
-                :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
-                :options="vAppOptions"
-                :disabled="isDisabled"
-              />
-            </div>
-          </div>
           <div
-            v-if="showManual"
-            class="row mb-10"
+            v-if="networksLoading"
+            class="row flex-justify-center"
           >
-            <div class="col span-4">
-              <LabeledInput
-                v-model:value="value.vappTransport"
-                :mode="mode"
-                :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
-                :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
-                :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
-                :disabled="isDisabled"
-              />
-            </div>
-            <div class="col span-4">
-              <LabeledInput
-                v-model:value="value.vappIpprotocol"
-                :mode="mode"
-                :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
-                :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
-                :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
-                :disabled="isDisabled"
-              />
-            </div>
-            <div class="col span-4">
-              <LabeledInput
-                v-model:value="value.vappIpallocationpolicy"
-                :mode="mode"
-                :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
-                :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
-                :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
-                :disabled="isDisabled"
-              />
-            </div>
+            <i
+              class="icon icon-spinner icon-spin"
+            />
           </div>
-          <div
-            v-if="showManual"
-            class="row"
-          >
-            <div class="col span-12">
-              <KeyValue
-                v-model:value="vappProperty"
-                :title="t('cluster.machineConfig.vsphere.vAppOptions.properties.label')"
-                :key-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.keyPlaceholder')"
-                :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
-                :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
-                :read-allowed="false"
-                :disabled="isDisabled"
-              />
+          <template v-else>
+            <div class="row mb-10">
+              <div class="col span-6">
+                <RadioGroup
+                  v-model:value="vappMode"
+                  name="restoreMode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
+                  :options="vAppOptions"
+                  :disabled="isDisabled"
+                />
+              </div>
             </div>
-          </div>
+            <div
+              v-if="showManual"
+              class="row mb-10"
+            >
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappTransport"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappIpprotocol"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappIpallocationpolicy"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+            </div>
+            <div
+              v-if="showManual"
+              class="row"
+            >
+              <div class="col span-12">
+                <KeyValue
+                  v-model:value="vappProperty"
+                  :title="t('cluster.machineConfig.vsphere.vAppOptions.properties.label')"
+                  :key-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.keyPlaceholder')"
+                  :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
+                  :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
+                  :read-allowed="false"
+                  :disabled="isDisabled"
+                />
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </Card>
