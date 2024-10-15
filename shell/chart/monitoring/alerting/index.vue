@@ -81,27 +81,15 @@ export default {
   watch: {
     filteredSecrets(newValue) {
       if (isEmpty(newValue)) {
-        this.$set(
-          this.value.alertmanager.alertmanagerSpec,
-          'useExistingSecret',
-          false
-        );
+        this.value.alertmanager.alertmanagerSpec.useExistingSecret = false;
       }
 
       const { existingSecret } = this;
 
       if (existingSecret) {
         this.$nextTick(() => {
-          this.$set(
-            this.value.alertmanager.alertmanagerSpec,
-            'useExistingSecret',
-            true
-          );
-          this.$set(
-            this.value.alertmanager.alertmanagerSpec,
-            'configSecret',
-            existingSecret.metadata.name
-          );
+          this.value.alertmanager.alertmanagerSpec.useExistingSecret = true;
+          this.value.alertmanager.alertmanagerSpec.configSecret = existingSecret.metadata.name;
         });
       }
     },
@@ -110,11 +98,7 @@ export default {
 
       if (useExistingSecret) {
         if (existingSecret?.metadata?.name) {
-          this.$set(
-            this.value.alertmanager.alertmanagerSpec,
-            'configSecret',
-            existingSecret.metadata.name
-          );
+          this.value.alertmanager.alertmanagerSpec.configSecret = existingSecret.metadata.name;
         }
       } else {
         this.value.alertmanager.alertmanagerSpec['configSecret'] = '';

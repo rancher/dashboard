@@ -249,7 +249,7 @@ export default {
               :mode="mode"
               :options="pvcs"
               :label="t('monitoring.grafana.storage.existingClaim')"
-              @updateName="(name) => $set(value.grafana.persistence, 'existingClaim', name)"
+              @updateName="(name) => value.grafana.persistence.existingClaim = name"
             />
           </div>
         </div>
@@ -271,7 +271,7 @@ export default {
                 :mode="mode"
                 :options="storageClasses"
                 :label="t('monitoring.prometheus.storage.className')"
-                @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
+                @updateName="(name) => value.grafana.persistence.storageClassName = name"
               />
             </div>
           </div>
@@ -338,7 +338,7 @@ export default {
                 :mode="mode"
                 :options="storageClasses"
                 :label="t('monitoring.prometheus.storage.className')"
-                @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
+                @updateName="(name) => value.grafana.persistence.storageClassName = name"
               />
             </div>
           </div>

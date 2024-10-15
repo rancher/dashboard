@@ -84,29 +84,28 @@ export default {
 
   watch: {
     'value.type'(neuType, oldType) {
-      const { $set } = this;
       let resourceSpec, podSpec, objectSpec, externalSpec;
 
       switch (neuType) {
       case 'External':
         externalSpec = this.initExternalSpec();
 
-        $set(this.value, 'external', externalSpec);
+        this.value.external = externalSpec;
         break;
       case 'Object':
         objectSpec = this.initObjectSpec();
 
-        $set(this.value, 'object', objectSpec);
+        this.value.object = objectSpec;
         break;
       case 'Pods':
         podSpec = this.initPodsSpec();
 
-        $set(this.value, 'pods', podSpec);
+        this.value.pods = podSpec;
         break;
       case 'Resource':
         resourceSpec = this.initResourceSpec();
 
-        $set(this.value, 'resource', resourceSpec.resource);
+        this.value.resource = resourceSpec.resource;
         break;
       default:
         break;

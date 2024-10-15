@@ -123,21 +123,14 @@ export default {
   watch: {
     enablePersistentStorage(enabled) {
       if (!!enabled) {
-        this.$set(
-          this.value.prometheus.prometheusSpec.storageSpec,
-          'volumeClaimTemplate',
-          {
-            spec: {
-              accessModes: ['ReadWriteOnce'],
-              resources:   { requests: { storage: '50Gi' } },
-            }
+        this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate = {
+          spec: {
+            accessModes: ['ReadWriteOnce'],
+            resources:   { requests: { storage: '50Gi' } },
           }
-        );
+        };
       } else {
-        this.$delete(
-          this.value.prometheus.prometheusSpec.storageSpec,
-          'volumeClaimTemplate'
-        );
+        delete this.value.prometheus.prometheusSpec.storageSpec['volumeClaimTemplate'];
       }
     },
   },
@@ -328,7 +321,7 @@ export default {
                 :options="storageClasses"
                 :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
                 :label="t('monitoring.prometheus.storage.className')"
-                @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
+                @updateName="(name) => value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName = name"
               />
             </div>
           </div>
