@@ -27,6 +27,7 @@ import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
 import EKSValidators from '../util/validators';
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -34,6 +35,7 @@ const DEFAULT_CLUSTER = {
   enableClusterMonitoring:             false,
   enableNetworkPolicy:                 false,
   labels:                              {},
+  annotations:                         {},
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {}
@@ -127,6 +129,9 @@ export default defineComponent({
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
+      if (!this.$store.getters['auth/principalId'].includes('local://')) {
+        this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+      }
     }
 
     if (!this.normanCluster.eksConfig) {

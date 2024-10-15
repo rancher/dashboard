@@ -11,6 +11,7 @@ export const CATTLE_PUBLIC_ENDPOINTS = 'field.cattle.io/publicEndpoints';
 export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
+export const CREATOR_PRINCIPAL_ID = 'field.cattle.io/creator-principal-name';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';

@@ -14,7 +14,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
-
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
@@ -103,6 +103,9 @@ export default {
     this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
     this.value['spec'] = this.value.spec || {};
     this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
+    if (!this.$store.getters['auth/principalId'].includes('local://')) {
+      this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+    }
   },
   methods: {
     async save(saveCb) {

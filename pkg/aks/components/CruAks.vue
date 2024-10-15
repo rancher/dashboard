@@ -55,6 +55,7 @@ import {
   nodePoolNamesUnique,
   nodePoolCount
 } from '../util/validators';
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
 export const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
@@ -95,6 +96,7 @@ const defaultCluster = {
   enableClusterMonitoring: false,
   enableNetworkPolicy:     false,
   labels:                  {},
+  annotations:             {},
   windowsPreferedCluster:  false,
 };
 
@@ -161,6 +163,10 @@ export default defineComponent({
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+
+      if (!this.$store.getters['auth/principalId'].includes('local://')) {
+        this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+      }
     }
     if (!this.normanCluster.aksConfig) {
       this.normanCluster['aksConfig'] = { ...defaultAksConfig };
