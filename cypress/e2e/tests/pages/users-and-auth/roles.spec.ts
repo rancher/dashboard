@@ -18,6 +18,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 let runTimestamp: number;
 let runPrefix: string;
 let globalRoleName: string;
+const roleTemplatesToDelete = [];
 
 describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
@@ -131,6 +132,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       createClusterRole.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
         const clusterRoleId = res.response?.body.id;
 
+        roleTemplatesToDelete.push(clusterRoleId);
+
         // view role details
         roles.waitForPage(undefined, fragment);
         roles.list('CLUSTER').checkDefault(clusterRoleName, true);
@@ -208,7 +211,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.warning().first().should('contain.text', 'Caution:'); // Check warning message content
     });
 
-    it('can delete a role', () => {
+    it('can delete a role template', () => {
     // Delete role and verify role is removed from list
       roles.waitForRequests();
       roles.list('GLOBAL').elementWithName(globalRoleName).click();
@@ -219,6 +222,25 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.remove();
       cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
       roles.list('GLOBAL').elementWithName(globalRoleName).should('not.exist');
+    });
+
+    it('can delete a role template from the detail page', () => {
+      // Delete role and verify role is removed from list
+      roles.waitForRequests();
+      const oneRoleTemplateId = roleTemplatesToDelete.splice(0, 1)[0];
+      const detailPage = roles.detailRole(oneRoleTemplateId);
+
+      detailPage.goTo();
+      detailPage.waitForPage();
+
+      const actionMenu = detailPage.detail().openMastheadActionMenu();
+
+      actionMenu.clickMenuItem(5);
+
+      const promptRemove = new PromptRemove();
+
+      promptRemove.remove();
+      roles.list('CLUSTER').elementWithName(oneRoleTemplateId).should('not.exist');
     });
   });
 
