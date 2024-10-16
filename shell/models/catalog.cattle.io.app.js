@@ -55,12 +55,13 @@ export default class CatalogApp extends SteveModel {
     }
 
     const chartName = chart.metadata?.name;
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
-    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+    const repoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || this.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE] || 'cluster';
+
     const match = this.$rootGetters['catalog/chart']({
       chartName,
+      repoName,
       preferRepoType,
-      preferRepoName,
       includeHidden
     });
 

@@ -91,11 +91,12 @@ export const CATALOG = {
   _CLUSTER_TPL:  'cluster-template',
   _CLUSTER_TOOL: 'cluster-tool',
 
-  COMPONENT:        'catalog.cattle.io/ui-component',
-  SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
-  SOURCE_REPO_NAME: 'catalog.cattle.io/ui-source-repo',
-  COLOR:            'catalog.cattle.io/ui-color',
-  DISPLAY_NAME:     'catalog.cattle.io/display-name',
+  COMPONENT:         'catalog.cattle.io/ui-component',
+  SOURCE_REPO_TYPE:  'catalog.cattle.io/ui-source-repo-type',
+  SOURCE_REPO_NAME:  'catalog.cattle.io/ui-source-repo',
+  COLOR:             'catalog.cattle.io/ui-color',
+  DISPLAY_NAME:      'catalog.cattle.io/display-name',
+  CLUSTER_REPO_NAME: 'catalog.cattle.io/cluster-repo-name',
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',
