@@ -88,7 +88,7 @@ declare global {
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
-      deleteNodeTemplate(nodeTemplateId: string, timeout?: number)
+      deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
 
       tableRowsPerPageAndNamespaceFilter(rows: number, cluster: string, groupBy: string, namespacefilter: string)
 
