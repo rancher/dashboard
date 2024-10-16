@@ -247,12 +247,6 @@ export default {
     }
   },
 
-  mounted() {
-    if ( typeof window !== 'undefined' ) {
-      window.c = this;
-    }
-  },
-
   methods: {
     colorForChart(chart) {
       const repos = this.repoOptions;
