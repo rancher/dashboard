@@ -318,9 +318,12 @@ export default {
   },
 
   watch: {
-    '$route.query'(inNeu, inOld) {
-      const neu = clone(inNeu);
-      const old = clone(inOld);
+    '$route'(current, prev) {
+      if (current.name !== prev.name) {
+        return;
+      }
+      const neu = clone(current.query);
+      const old = clone(prev.query);
 
       delete neu[PREVIEW];
       delete old[PREVIEW];
@@ -331,10 +334,6 @@ export default {
       }
 
       const queryDiff = Object.keys(diff(neu, old));
-
-      if (Object.keys(neu).length <= 0) {
-        return;
-      }
 
       if (queryDiff.includes(MODE) || queryDiff.includes(AS)) {
         this.$fetch();
