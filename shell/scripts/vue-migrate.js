@@ -348,6 +348,33 @@ const vueSyntaxUpdates = () => {
   const isSimpleIdentifier = (str) => /^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(str.trim());
   const isBracketedExpression = (str) => str.trim().startsWith('[') && str.trim().endsWith(']');
   const isStringLiteral = (str) => /^['"].*['"]$/.test(str.trim());
+  // Extracts the key expression from a v-for directive.
+  const extractKeyExpression = (vForContent) => {
+    const vForMatch = vForContent.match(/^\s*\(([^,]+),\s*([^)]+)\)\s+in\s+(.*)$/);
+    let keyExpression = null;
+
+    if (vForMatch) {
+      // v-for="(item, key) in items"
+      keyExpression = vForMatch[2].trim();
+    } else {
+      const simpleVForMatch = vForContent.match(/^\s*([^\s]+)\s+in\s+(.*)$/);
+
+      if (simpleVForMatch) {
+        // v-for="item in items"
+        // Use 'item' as key if it's a simple identifier
+        keyExpression = isSimpleIdentifier(simpleVForMatch[1].trim()) ? simpleVForMatch[1].trim() : null;
+      }
+    }
+
+    return keyExpression;
+  };
+  // Adds the :key attribute to a tag if it doesn't already have one.
+  const addKeyAttribute = (tag, keyExpression) => {
+    // Add space if necessary
+    const space = tag.endsWith(' ') ? '' : ' ';
+
+    return `${ tag }${ space }:key="${ keyExpression }"`;
+  };
 
   const replacementCases = [
     // Handle Vue.set
@@ -470,6 +497,98 @@ const vueSyntaxUpdates = () => {
 
     // Remove portal-vue components (now use Teleport)
     [/<\/?portal(-target)?\b[^>]*>/g, '', 'Remove portal components (use Teleport instead) - https://v3.vuejs.org/guide/teleport.html'],
+
+    // Add :key to <template v-for> elements if missing
+    [
+      /(<template\b[^>]*v-for="([^"]*)"[^>]*)(>)/g,
+      (match, beforeTagEnd, vForContent, tagClose) => {
+        // Check if :key exists in the tag
+        if (beforeTagEnd.includes(':key=')) {
+          return match; // :key already exists, do not modify
+        }
+
+        const keyExpression = extractKeyExpression(vForContent);
+
+        if (keyExpression) {
+          const updatedTag = addKeyAttribute(beforeTagEnd, keyExpression);
+
+          return `${ updatedTag }${ tagClose }`;
+        } else {
+          // Cannot safely determine a key, so do not add one
+          return match;
+        }
+      },
+      'Add :key to <template v-for> elements if missing, using existing variables',
+    ],
+
+    // Move :key from child elements to <template v-for>
+    [
+      /(<template\b[^>]*v-for="[^"]*"[^>]*>)([\s\S]*?)(<\/template>)/g,
+      (match, templateStart, templateContent, templateEnd) => {
+        // Check if :key is on the <template> tag
+        const hasKeyOnTemplate = /:key=/.test(templateStart);
+
+        // Find any :key on direct child elements
+        const childWithKeyRegex = /(<\w+[^>]*)(\s+:key="([^"]+)")([^>]*>)/g;
+        let updatedContent = templateContent;
+        let movedKey = null;
+
+        updatedContent = updatedContent.replace(childWithKeyRegex, (childMatch, beforeKey, keyAttr, keyValue, afterKey) => {
+          if (!hasKeyOnTemplate && !movedKey) {
+            // Move the first encountered :key to the template
+            movedKey = keyValue;
+          }
+
+          // Remove :key from child element
+          return `${ beforeKey }${ afterKey }`;
+        });
+
+        if (!hasKeyOnTemplate && movedKey) {
+          // Add :key to the <template> tag
+          const updatedTemplateStart = `${ addKeyAttribute(templateStart.replace(/>$/, ''), movedKey) }>`;
+
+          return `${ updatedTemplateStart }${ updatedContent }${ templateEnd }`;
+        }
+
+        return `${ templateStart }${ updatedContent }${ templateEnd }`;
+      },
+      'Move :key from child elements to <template v-for>',
+    ],
+
+    // Remove any remaining :key from child elements within <template v-for>
+    [
+      /(<template\b[^>]*v-for="[^"]*"[^>]*>)([\s\S]*?)(<\/template>)/g,
+      (match, templateStart, templateContent, templateEnd) => {
+        const childWithKeyRegex = /(<\w+[^>]*)(\s+:key="[^"]+")([^>]*>)/g;
+        const updatedContent = templateContent.replace(childWithKeyRegex, '$1$3');
+
+        return `${ templateStart }${ updatedContent }${ templateEnd }`;
+      },
+      'Remove any remaining :key from child elements within <template v-for>',
+    ],
+
+    // For other elements with v-for (excluding <template>), ensure :key is present
+    [
+      /(<(?!template\b)\w+[^>]*v-for="([^"]*)"[^>]*)(>)/g,
+      (match, beforeTagEnd, vForContent, tagClose) => {
+        // Check if :key exists in the tag
+        if (beforeTagEnd.includes(':key=')) {
+          return match; // :key already exists, do not modify
+        }
+
+        const keyExpression = extractKeyExpression(vForContent);
+
+        if (keyExpression) {
+          const updatedTag = addKeyAttribute(beforeTagEnd, keyExpression);
+
+          return `${ updatedTag }${ tagClose }`;
+        } else {
+          // Cannot safely determine a key, so do not add one
+          return match;
+        }
+      },
+      'Add :key to elements with v-for that lack it, using existing variables (excluding <template>)',
+    ],
 
     // Update custom directives hooks
     [/\binserted\s*\(/g, 'mounted(', 'Update inserted hook to mounted - https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
@@ -641,9 +760,11 @@ const eslintUpdates = () => {
  * Add information about TS issues, recommend @ts-nocheck as temporary solution
  */
 const tsUpdates = () => {
-  console.warn('TS checks are stricter and may require to be fixed manually.',
-    'Use @ts-nocheck to give you time to fix them.',
-    'Add exception to your ESLint config to avoid linting errors.');
+  if (!isSuggest) {
+    console.warn('TS checks are stricter and may require to be fixed manually.',
+      'Use @ts-nocheck to give you time to fix them.',
+      'Add exception to your ESLint config to avoid linting errors.');
+  }
   // TODO: Add case
 };
 
