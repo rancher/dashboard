@@ -2,12 +2,13 @@
 /* eslint-disable no-console */
 
 const fs = require('fs');
+const path = require('path');
 const glob = require('glob');
 const semver = require('semver');
-const path = require('path');
+const { createPatch } = require('diff');
 
 /**
- * Init logger
+ * Initialize statistics for tracking changes
  */
 const stats = {
   libraries:     [],
@@ -23,19 +24,24 @@ const stats = {
   style:         [],
   total:         [],
 };
-const ignore = [
+
+// Directories and files to ignore during migration
+let ignore = [
   '**/node_modules/**',
   '**/dist/**',
   '**/scripts/vue-migrate.js',
   'docusaurus/**',
   'storybook-static/**',
-  'storybook/**',
+  'storybook/**'
 ];
+
 const nodeRequirement = '20.0.0';
 const isDry = process.argv.includes('--dry');
 const isVerbose = process.argv.includes('--verbose');
+const isSuggest = process.argv.includes('--suggest');
 const removePlaceholder = 'REMOVE';
-const params = { paths: null };
+const params = { paths: null, ignorePatterns: [] };
+const diffOutput = []; // Array to store diffs for suggest mode
 
 /**
  * Package updates
@@ -45,10 +51,9 @@ const packageUpdates = () => {
   const files = glob.sync(params.paths || '**/package.json', { ignore });
 
   files.forEach((file) => {
-    let content = fs.readFileSync(file, 'utf8');
-    const toReplaceNode = false;
+    const originalContent = fs.readFileSync(file, 'utf8');
+    let content = originalContent;
 
-    // TODO: Refactor and loop?
     const [librariesContent, replaceLibraries] = packageUpdatesLibraries(file, content);
 
     if (replaceLibraries.length) {
@@ -73,20 +78,22 @@ const packageUpdates = () => {
       stats.libraries.push(file);
     }
 
-    if (replaceLibraries || toReplaceNode || replaceResolution) {
+    if (replaceLibraries.length || replaceNode.length || replaceResolution.length) {
+      writeContent(file, content, originalContent);
       stats.total.push(file);
     }
   });
 };
 
 /**
- * Verify package vue related libraries versions
+ * Update Vue-related libraries in package.json
  */
 const packageUpdatesLibraries = (file, oldContent) => {
   let content = oldContent;
   let parsedJson = JSON.parse(content);
   const replaceLibraries = [];
   const types = ['dependencies', 'devDependencies', 'peerDependencies'];
+
   // [Library name, new version or new library, new library version]
   const librariesUpdates = [
     ['@nuxt/babel-preset-app', removePlaceholder],
@@ -134,7 +141,7 @@ const packageUpdatesLibraries = (file, oldContent) => {
             content = JSON.stringify(parsedJson, null, 2);
             writeContent(file, content);
           } else if (newLibraryVersion) {
-            // Replace with a new library if present, due breaking changes in Vue3
+            // Replace with a new library
             replaceLibraries.push([library, [parsedJson[type][library], newVersion, newLibraryVersion]]);
             content = content.replaceAll(`"${ library }": "${ parsedJson[type][library] }"`, `"${ newVersion }": "${ newLibraryVersion }"`);
             parsedJson = JSON.parse(content);
@@ -146,6 +153,12 @@ const packageUpdatesLibraries = (file, oldContent) => {
             parsedJson = JSON.parse(content);
             writeContent(file, content);
           }
+        } else if (newLibraryVersion && library === newVersion) {
+          // Add new library if it doesn't exist
+          parsedJson[type][library] = newLibraryVersion;
+          replaceLibraries.push([library, [null, newLibraryVersion]]);
+          content = JSON.stringify(parsedJson, null, 2);
+          writeContent(file, content);
         }
       });
     }
@@ -155,14 +168,13 @@ const packageUpdatesLibraries = (file, oldContent) => {
 };
 
 /**
- * Verify package engines node to latest
+ * Update Node engine version in package.json
  */
 const packageUpdatesEngine = (file, oldContent) => {
   let content = oldContent;
   let parsedJson = JSON.parse(content);
   const replaceNode = [];
 
-  // Verify package engines node to latest
   if (parsedJson.engines) {
     const outdated = semver.lt(semver.coerce(parsedJson.engines.node), semver.coerce(nodeRequirement));
 
@@ -268,9 +280,24 @@ const nvmUpdates = () => {
   const files = glob.sync(params.paths || '**/.nvmrc', { ignore });
   const nvmRequirement = 20;
 
+  if (files.length === 0) {
+    // If no .nvmrc files found, create one
+    const newFilePath = '.nvmrc';
+
+    if (!isDry && !isSuggest) {
+      fs.writeFileSync(newFilePath, nvmRequirement.toString());
+      printContent(newFilePath, `Created ${ newFilePath } with Node version ${ nvmRequirement }`, '');
+    }
+
+    writeContent(newFilePath, nvmRequirement.toString(), '');
+    stats.nvmrc.push(newFilePath);
+    stats.total.push(newFilePath);
+  }
+
   files.forEach((file) => {
     if (file) {
-      let content = fs.readFileSync(file, 'utf8');
+      const originalContent = fs.readFileSync(file, 'utf8');
+      let content = originalContent;
       const nodeVersionMatch = content.match(/([0-9.x]+)/g);
       const nodeVersion = semver.coerce(nodeVersionMatch[0]);
 
@@ -278,13 +305,10 @@ const nvmUpdates = () => {
       if (nodeVersion && semver.lt(nodeVersion, semver.coerce(nodeRequirement))) {
         printContent(file, `Updating node ${ [nodeVersionMatch[0], nvmRequirement] }`);
         content = content.replaceAll(nodeVersionMatch[0], nvmRequirement);
-
-        writeContent(file, content);
+        writeContent(file, content, originalContent);
         stats.nvmrc.push(file);
         stats.total.push(file);
       }
-    } else {
-      writeContent('.nvmrc', nvmRequirement);
     }
   });
 };
@@ -300,10 +324,12 @@ const vueConfigUpdates = () => {
   const files = glob.sync(params.paths || 'vue.config**.js', { ignore });
 
   files.forEach((file) => {
-    const content = fs.readFileSync(file, 'utf8');
+    const originalContent = fs.readFileSync(file, 'utf8');
+    const content = originalContent;
 
     // Verify vue.config presence of deprecated Webpack5 options
     if (content.includes('devServer.public: \'path\'')) {
+      writeContent(file, content, originalContent);
       stats.webpack.push(file);
       stats.total.push(file);
       // TODO: Add replacement
@@ -312,110 +338,165 @@ const vueConfigUpdates = () => {
 };
 
 /**
- * Vue syntax update (to do not mix with tests)
+ * Vue syntax update
  * Files: .vue, .js, .ts (not .spec.ts, not .test.ts)
  */
 const vueSyntaxUpdates = () => {
-  const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
+  const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore: [...ignore, '**/*.spec.ts', '**/*.spec.js', '**/__tests__/**', '**/*.test.ts', 'jest.setup.js', '**/*.d.ts', '**/vue-shim.ts'] });
+
+  // Helper functions
+  const isSimpleIdentifier = (str) => /^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(str.trim());
+  const isBracketedExpression = (str) => str.trim().startsWith('[') && str.trim().endsWith(']');
+  const isStringLiteral = (str) => /^['"].*['"]$/.test(str.trim());
+
   const replacementCases = [
-    // Prioritize set and delete to be converted since removed in Vue3
-    [/\=\> Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }[${ prop.trim() }] = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/\=\> Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    // Handle Vue.set
+    [/\bVue\.set\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (match, obj, prop, val) => {
+      prop = prop.trim();
+      obj = obj.trim();
+      val = val.trim();
 
-    [/Vue\.set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/Vue\.delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+      if (isBracketedExpression(prop)) {
+        return `${ obj }${ prop } = ${ val }`;
+      } else if (isStringLiteral(prop)) {
+        return `${ obj }[${ prop }] = ${ val }`;
+      } else if (isSimpleIdentifier(prop)) {
+        return `${ obj }.${ prop } = ${ val }`;
+      } else {
+        return `${ obj }[${ prop }] = ${ val }`;
+      }
+    }, 'Replace Vue.set with direct assignment - https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
-    [/\=\> this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }[${ prop.trim() }] = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }['${ prop }'] = {${ val.trim() }})`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/\=\> this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `=> (${ obj.trim() }.${ prop } = ${ val.trim() })`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    // Handle this.$set
+    [/\bthis\.\$set\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, (match, obj, prop, val) => {
+      prop = prop.trim();
+      obj = obj.trim();
+      val = val.trim();
 
-    [/this.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => obj.trim() === 'this' ? `this['${ prop }'] = ${ val }` : `${ obj.trim() }['${ prop }'] = ${ val }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+      if (isBracketedExpression(prop)) {
+        return `${ obj }${ prop } = ${ val }`;
+      } else if (isStringLiteral(prop)) {
+        return `${ obj }[${ prop }] = ${ val }`;
+      } else if (isSimpleIdentifier(prop)) {
+        return `${ obj }.${ prop } = ${ val }`;
+      } else {
+        return `${ obj }[${ prop }] = ${ val }`;
+      }
+    }, 'Replace this.$set with direct assignment - https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
-    [/this\.\$set\((.*?),\s*(.*?),\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }[${ prop.trim() }] = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/this\.\$set\((.*?),\s*'([^']*?)',\s*\{([\s\S]*?)\}\)/g, (_, obj, prop, val) => `${ obj.trim() }['${ prop }'] = {${ val.trim() }}`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/this\.\$set\((.*?),\s*'([^']*?)',\s*(.*?)\)/g, (_, obj, prop, val) => `${ obj.trim() }.${ prop } = ${ val.trim() }`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
-    [/this\.\$delete\((.*?),\s*(.*?)\)/g, (_, obj, prop) => `delete ${ obj.trim() }[${ prop.trim() }]`, 'removed and unnecessary due new reactivity https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+    // Handle Vue.delete
+    [/\bVue\.delete\(([^,]+),\s*([^)]+)\)/g, (match, obj, prop) => {
+      prop = prop.trim();
+      obj = obj.trim();
 
-    // Replace imports for all the cases where createApp is needed, before the rest of the replacements
-    [/import Vue from 'vue';?/g, `import { createApp } from \'vue\';\nconst vueApp = createApp({});`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`new Vue(`, `createApp(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.config`, `vueApp.config`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.directive`, `vueApp.directive`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.filter(`, `vueApp.filter(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.mixin(`, `vueApp.mixin(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.component(`, `vueApp.component(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.use(`, `vueApp.use(`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    [`Vue.prototype`, `vueApp.config.globalProperties`, `https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp`],
-    ['Vue.util', '', 'Vue.util is private and no longer available https://v3-migration.vuejs.org/migration-build.html#partially-compatible-with-caveats'],
-    // [`Vue.extend`, removePlaceholder, 'https://v3-migration.vuejs.org/breaking-changes/global-api.html#vue-extend-removed'],
-    // [`Vue.extend`, `createApp({})`], //  (mixins)
+      if (isBracketedExpression(prop)) {
+        return `delete ${ obj }${ prop }`;
+      } else if (isStringLiteral(prop)) {
+        return `delete ${ obj }[${ prop }]`;
+      } else if (isSimpleIdentifier(prop)) {
+        return `delete ${ obj }.${ prop }`;
+      } else {
+        return `delete ${ obj }[${ prop }]`;
+      }
+    }, 'Replace Vue.delete with delete operator - https://vuejs.org/guide/extras/reactivity-in-depth.html'],
 
+    [/\bthis\.\$delete\(([^,]+),\s*([^)]+)\)/g, (match, obj, prop) => {
+      prop = prop.trim();
+      obj = obj.trim();
+
+      if (isBracketedExpression(prop)) {
+        return `delete ${ obj }${ prop }`;
+      } else if (isStringLiteral(prop)) {
+        return `delete ${ obj }[${ prop }]`;
+      } else if (isSimpleIdentifier(prop)) {
+        return `delete ${ obj }.${ prop }`;
+      } else {
+        return `delete ${ obj }[${ prop }]`;
+      }
+    }, 'Replace this.$delete with delete operator - https://vuejs.org/guide/extras/reactivity-in-depth.html'],
+
+    // Replace Vue import with createApp and initialize vueApp
+    [/import Vue from 'vue';?/g, `import { createApp } from 'vue';\nconst vueApp = createApp({});`, 'Replace Vue import with createApp - https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp'],
+
+    // Replace new Vue({}) with createApp({})
+    [/new Vue\(/g, 'createApp(', 'Replace new Vue with createApp - https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp'],
+
+    // Replace Vue global methods with vueApp methods
+    [/\bVue\.(config|directive|filter|mixin|component|use|prototype)\b/g, (match, method) => `vueApp.${ method }`, 'Replace Vue global methods with vueApp methods - https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp'],
+
+    // Update Vue.prototype to vueApp.config.globalProperties
+    [/Vue\.prototype/g, 'vueApp.config.globalProperties', 'Update Vue.prototype to vueApp.config.globalProperties - https://v3-migration.vuejs.org/breaking-changes/global-api.html#a-new-global-api-createapp'],
+
+    // Remove Vue.util as it's no longer available
+    [/Vue\.util/g, '', 'Vue.util is private and no longer available - https://v3-migration.vuejs.org/migration-build.html#partially-compatible-with-caveats'],
+
+    // Replace vue-virtual-scroll-list with vue3-virtual-scroll-list
     [`vue-virtual-scroll-list`, `vue3-virtual-scroll-list`, 'library update'],
 
-    [`Vue.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
-    [`this.nextTick`, `nextTick`, 'https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
-    // TODO: Add missing import
+    // Update Vue.nextTick
+    [/\bVue\.nextTick\b/g, 'nextTick', 'Update Vue.nextTick to nextTick - https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
+    [/\bthis\.nextTick\b/g, 'nextTick', 'Update this.nextTick to nextTick - https://v3-migration.vuejs.org/breaking-changes/global-api-treeshaking.html#global-api-treeshaking'],
+    // Note: You may need to import nextTick from 'vue' where used.
 
-    [/( {4,}default)\(\)\s*\{([\s\S]*?)this\.([\s\S]*?\}\s*\})/g, (_, before, middle, after) => `${ before }(props) {${ middle }props.${ after }`, 'https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
-    // [`value=`, `modelValue=`],
-    // [`@input=`, `@update:modelValue=`],
-    [/\@input=\"((?!.*plainInputEvent).+)\"/g, (_, betweenQuotes) => `@update:value="${ betweenQuotes }"`], // Matches @input while avoiding `@input="($plainInputEvent) => onInput($plainInputEvent)"` which we used on plain <input elements since they differ in vue3
-    [`v-model=`, `v-model:value=`],
-    // [`v-bind.sync=`, `:modelValue=`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
-    // ['v-model=', ':modelValue=', ''],
-    [/:([a-z-0-9]+)\.sync/g, (_, propName) => `v-model:${ propName }`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#migration-strategy`],
-    [`click.native`, `click`, `https://v3-migration.vuejs.org/breaking-changes/v-model.html#using-v-bind-sync`],
-    [`v-on="$listeners"`, removePlaceholder, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
-    [`:listeners="$listeners"`, `:v-bind="$attrs"`, `removed and integrated with $attrs https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html`],
+    // Update props default function context
+    [/(default)\(\)\s*\{([\s\S]*?)return\s+([\s\S]*?)\}/g, (match, def, middle, retVal) => `${ def }(props) {${ middle }return ${ retVal }}`, 'Update props default function context - https://v3-migration.vuejs.org/breaking-changes/props-default-this.html'],
 
-    [/this\.\$scopedSlots\[(\w+)\]|this\.\$scopedSlots\.(\w+)/, (match, key1, key2) => `this.$slots.${ key1 || key2 }()`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
-    [` $scopedSlots`, ` $slots`, `(many components loop through them) https://v3-migration.vuejs.org/breaking-changes/slots-unification.html`],
-    [/slot="(\w+:\w+)"\s+slot-scope="(\w+)"/g, `$1="$2"`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    // [/this\.\$slots\.([^']+)'/g, `this.$slots.$1()`, `not mentioned in migration https://vuejs.org/guide/components/slots.html#scoped-slots`],
-    // [/this\.\$slots(?!\s*\(\))(\b|\?|['"\[])/g, `this.$slots()$1`, `https://eslint.vuejs.org/rules/require-slots-as-functions.html`], // TODO: Add exception for existing brackets
+    // Replace @input with @update:value (excluding plainInputEvent)
+    [/@input="((?!.*plainInputEvent).+?)"/g, (_, handler) => `@update:value="${ handler }"`, 'Update @input to @update:value'],
 
-    // Portals are now Vue3 Teleports
-    [/<portal|<portal-target|<\/portal|<\/portal-target/g, '', `https://v3.vuejs.org/guide/teleport.html`],
+    // Update v-model syntax
+    [/v-model=/g, 'v-model:value=', 'Update v-model to v-model:value'],
 
-    // TODO: probably requires JSDom
-    // [/<template v-for="([\s\S]*?)">\s*<([\s\S]*?)\s*([\s\S]*?):key="([\s\S]*?)"([\s\S]*?)<\/([\s\S]*?)>\s*<\/template>/gs, '<template v-for="$1" :key="$4"><$3 $5>$6</$7>\n</template>', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
-    // [/(<\w+(?!.*?v-for=)[^>]*?)\s*:key="[^"]*"\s*([^>]*>)/g, '$1$2', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
-    [/(<\w+[^>v\-for]*?):key="[^"]*"\s*([^>]*>)/g, '$1$2', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
-    [/(\<\w+\s+(?:[^>]*?\s+)?v-for="\(.*?,\s*(\w+)\s*\).*?")(?:\s*:key=".*"\s*)?([^>]*>)/g, '$1 :key="$2"$3', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
-    [/(\<\w+\s+(?:[^>]*?\s+)?)v-for="(?!\*?\s+.*?\s+.*?)([^,]+?)\s+in\s+([^"]+?)"(?:\s*:key=".*"\s*)?([^>]*>)/g, '$1 v-for="($2, i) in $3" :key="i" $4', `https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for`],
+    // Replace .sync modifier with v-model
+    [/:([a-zA-Z0-9_-]+)\.sync=/g, 'v-model:$1=', 'Update .sync modifier to v-model'],
 
-    // TODO: except for <components /> elements, probably requires JSDom
-    // [' is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
-    // [' :is=', ``, `https://v3-migration.vuejs.org/breaking-changes/custom-elements-interop.html#customized-built-in-elements`],
+    // Replace click.native with click
+    [/(\b@click)\.native/g, '$1', 'Remove .native modifier from @click'],
 
-    // Directive updates
-    // [`bind(`, '', `beforeMount( but there's too many bind cases https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`], // TODO: Restrict to directives and context
-    // [`update(`, '', `removed, also common term https://v3-migration.vuejs.org/breaking-changes/custom-directives.html`], // TODO: Restrict to directives and context
-    [`inserted(`, `mounted(`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
-    [`componentUpdated(`, `updated(`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
-    [`unbind`, `unmounted`, 'https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
+    // Remove v-on="$listeners"
+    [/v-on="\$listeners"/g, '', 'Remove v-on="$listeners" as it is no longer needed - https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html'],
 
-    // [`propsData (app creation)`, ``, `use second argument of createApp({}) https://v3-migration.vuejs.org/breaking-changes/props-data.html`],
-    [`@hook:lifecycleHook`, `@vue:lifecycleHook`, `https://v3-migration.vuejs.org/breaking-changes/vnode-lifecycle-events.html`],
+    // Update :listeners="$listeners" to v-bind="$attrs"
+    [/:listeners="\$listeners"/g, 'v-bind="$attrs"', 'Update :listeners="$listeners" to v-bind="$attrs" - https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html'],
 
-    // Nuxt and initalize case only
-    // TODO: Use eventbus replacement as temporary solution?
-    [`$on('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
-    [`$off('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
-    [`$once('event', callback)`, '', `no migration, existing lib, https://v3-migration.vuejs.org/breaking-changes/events-api.html`],
+    // Update $scopedSlots to $slots
+    [/\$scopedSlots/g, '$slots', 'Update $scopedSlots to $slots - https://v3-migration.vuejs.org/breaking-changes/slots-unification.html'],
 
-    // [`$children`, ``, `no migration, $refs are suggested as communication https://v3-migration.vuejs.org/breaking-changes/children.html`],
+    // Update slot-scope to v-slot
+    [/slot-scope="([^"]+)"/g, 'v-slot="$1"', 'Update slot-scope to v-slot - https://vuejs.org/guide/components/slots.html#scoped-slots'],
 
-    // Vuex
-    [`new Vuex.Store(`, `createStore(`, 'To install Vuex to a Vue instance, pass the store instead of Vuex https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
-    [`import Vuex from 'vuex'`, `import { createStore } from 'vuex'`, 'To install Vuex to a Vue instance, pass the store instead of Vuex https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
+    // Update this.$slots['name'] to this.$slots.name()
+    [/this\.\$slots\['([^']+)'\]/g, `this.$slots[\'$1\']()`, `Update this.$slots['name'] to this.$slots.name() - https://vuejs.org/guide/components/slots.html#scoped-slots`],
+
+    // Remove portal-vue components (now use Teleport)
+    [/<\/?portal(-target)?\b[^>]*>/g, '', 'Remove portal components (use Teleport instead) - https://v3.vuejs.org/guide/teleport.html'],
+
+    // Update custom directives hooks
+    [/\binserted\s*\(/g, 'mounted(', 'Update inserted hook to mounted - https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
+    [/\bcomponentUpdated\s*\(/g, 'updated(', 'Update componentUpdated hook to updated - https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
+    [/\bunbind\b/g, 'unmounted', 'Update unbind hook to unmounted - https://v3-migration.vuejs.org/breaking-changes/custom-directives.html'],
+
+    // Update hook events
+    [/@hook:/g, '@vue:', 'Update @hook: events to @vue: - https://v3-migration.vuejs.org/breaking-changes/vnode-lifecycle-events.html'],
+
+    // Remove events API ($on, $off, $once)
+    [/\$on\(/g, '', 'Remove $on as the events API has been removed - https://v3-migration.vuejs.org/breaking-changes/events-api.html'],
+    [/\$off\(/g, '', 'Remove $off as the events API has been removed - https://v3-migration.vuejs.org/breaking-changes/events-api.html'],
+    [/\$once\(/g, '', 'Remove $once as the events API has been removed - https://v3-migration.vuejs.org/breaking-changes/events-api.html'],
+
+    // Update Vuex store creation
+    [/new Vuex\.Store\(/g, 'createStore(', 'Update Vuex store creation - https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
+    [/import Vuex from 'vuex'/g, `import { createStore } from 'vuex'`, 'Update Vuex import - https://vuex.vuejs.org/guide/migrating-to-4-0-from-3-x.html#installation-process'],
+
+    // Replace n-link with router-link
+    [/<\/?n-link(\s|>)/g, (match) => match.replace('n-link', 'router-link'), 'Replace n-link with router-link'],
+
+    // Replace v-popover with VDropdown
+    [/\bv-popover\b/g, 'VDropdown', 'Replace v-popover with VDropdown'],
+    [/<template\s+#popover>/g, '<template #popper>', 'Update slot name from #popover to #popper'],
 
     // Extra cases TBD (it seems like we already use the suggested way for arrays)
-    // watch option used on arrays not triggered by mutations https://v3-migration.vuejs.org/breaking-changes/watch.html
+    // watch option used on arrays not triggered by mutations - https://v3-migration.vuejs.org/breaking-changes/watch.html
   ];
 
   replaceCases('vueSyntax', files, replacementCases, `Updating Vue syntax`);
@@ -428,15 +509,13 @@ const vueSyntaxUpdates = () => {
 const routerUpdates = () => {
   const files = glob.sync(params.paths || '**/*.{vue,js,ts}', { ignore });
   const replacementCases = [
-    [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`],
-    [`Vue.use(Router)`, `const router = createRouter({})`],
-    // [`currentRoute`, '', 'The currentRoute property is now a ref() https://router.vuejs.org/guide/migration/#The-currentRoute-property-is-now-a-ref-'],
-    [/import\s*\{([^}]*)\s* RouteConfig\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteRecordRaw ${ after.trim() }} from 'vue-router'`],
-    [/import\s*\{([^}]*)\s* Location\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteLocation ${ after.trim() }} from 'vue-router'`],
-    ['imported Router', ''],
-    ['router.name', '', 'now string | Symbol'],
-    [`mode: \'history\'`, 'history: createWebHistory()'],
-    // ['getMatchedComponents', '', 'https://router.vuejs.org/guide/migration/#Removal-of-router-getMatchedComponents-'],
+    [`import Router from 'vue-router'`, `import { createRouter } from 'vue-router'`, 'Ensure correct import of createRouter'],
+    [`vueApp.use(Router)`, `const router = createRouter({})`, 'Update router initialization'],
+    [`Vue.use(Router)`, `const router = createRouter({})`, 'Update router initialization'],
+
+    [/import\s*\{([^}]*)\s* RouteConfig\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteRecordRaw ${ after.trim() }} from 'vue-router'`, 'Update RouteConfig to RouteRecordRaw'],
+    [/import\s*\{([^}]*)\s* Location\s*([^}]*)\}\s*from\s*'vue-router'/g, (match, before, after) => `import {${ before.trim() } RouteLocation ${ after.trim() }} from 'vue-router'`, 'Update Location to RouteLocation'],
+    ['mode: \'history\'', 'history: createWebHistory()', 'Update router mode to history'],
   ];
 
   replaceCases('router', files, replacementCases, `Updating Vue Router`);
@@ -498,7 +577,6 @@ const jestConfigUpdates = () => {
  */
 const eslintUpdates = () => {
   const files = glob.sync(params.paths || '**/.eslintrc.*{js,json,yml}', { ignore });
-  // Add cases introduced with new recommended settings
   const replacePlugins = [
     ['plugin:vue/essential', 'plugin:vue/vue3-essential'],
     ['plugin:vue/strongly-recommended', 'plugin:vue/vue3-strongly-recommended'],
@@ -512,23 +590,31 @@ const eslintUpdates = () => {
   };
 
   files.forEach((file) => {
-    let content = fs.readFileSync(file, 'utf8');
+    const originalContent = fs.readFileSync(file, 'utf8');
+    let content = originalContent;
     const matchedCases = [];
 
     replacePlugins.forEach(([text, replacement]) => {
-      const isCase = content.includes(text);
-
-      if (isCase) {
+      if (content.includes(text)) {
         content = content.replaceAll(text, replacement);
         matchedCases.push([text, replacement]);
 
-        writeContent(file, content);
+        writeContent(file, content, originalContent);
       }
     });
 
-    // Add the new rules if they don't exist
     const eslintConfigPath = path.join(process.cwd(), `${ file }`);
-    const eslintConfig = require(eslintConfigPath);
+    let eslintConfig;
+
+    try {
+      eslintConfig = require(eslintConfigPath);
+    } catch (error) {
+      eslintConfig = {};
+    }
+
+    if (!eslintConfig.rules) {
+      eslintConfig.rules = {};
+    }
 
     Object.keys(newRules).forEach((rule) => {
       if (!eslintConfig.rules[rule]) {
@@ -536,9 +622,11 @@ const eslintUpdates = () => {
         matchedCases.push(rule);
       }
     });
-    writeContent(eslintConfigPath, `module.exports = ${ JSON.stringify(eslintConfig, null, 2) }`);
 
     if (matchedCases.length) {
+      const updatedConfig = `module.exports = ${ JSON.stringify(eslintConfig, null, 2) }`;
+
+      writeContent(file, updatedConfig, originalContent);
       printContent(file, `Updating ESLint`, matchedCases);
       stats.eslint.push(file);
       stats.total.push(file);
@@ -560,28 +648,42 @@ const tsUpdates = () => {
 };
 
 /**
- * Styles updates
+ * Update styles (e.g., replace ::v-deep with :deep)
  */
 const stylesUpdates = () => {
-  const files = glob.sync(params.paths || '**/*.{vue, scss}', { ignore });
+  const files = glob.sync(params.paths || '**/*.{vue,scss,css}', { ignore });
   const cases = [
-    ['::v-deep', ':deep()'],
+    // Replace '::v-deep' without parentheses with ':deep()'
+    [/::v-deep(?!\()/g, ':deep()', 'Replace ::v-deep with :deep()'],
+    // Replace '::v-deep(' with ':deep('
+    [/::v-deep\(/g, ':deep(', 'Replace ::v-deep( with :deep('],
   ];
 
   replaceCases('style', files, cases, `Updating styles`);
 };
 
 /**
- * Hook to write content
+ * Function to write content to files or generate diffs in suggest mode
  */
-const writeContent = (...args) => {
-  if (!isDry) {
-    fs.writeFileSync(...args);
+const writeContent = (file, content, originalContent) => {
+  if (!isDry && !isSuggest) {
+    fs.writeFileSync(file, content);
+  } else if (isSuggest) {
+    // Ensure originalContent is defined
+    if (typeof originalContent === 'undefined') {
+      originalContent = fs.readFileSync(file, 'utf8');
+    }
+    // Generate diff with limited context and store in diffOutput
+    const diff = createPatch(file, originalContent, content, '', '', { context: 3 });
+
+    if (diff.trim()) {
+      diffOutput.push({ file, diff });
+    }
   }
 };
 
 /**
- * Hook to print content
+ * Function to print content based on verbosity
  */
 const printContent = (...args) => {
   if (isVerbose) {
@@ -590,40 +692,39 @@ const printContent = (...args) => {
 };
 
 /**
- * Replace all cases for the provided files
+ * Replace cases in files based on provided patterns
  */
 const replaceCases = (fileType, files, replacementCases, printText) => {
   files.forEach((file) => {
+    const originalContent = fs.readFileSync(file, 'utf8');
+    let content = originalContent;
     const matchedCases = [];
-    let content = fs.readFileSync(file, 'utf8');
 
-    replacementCases.forEach(([text, replacement, notes]) => {
-      // Simple text
-      if (typeof text === 'string') {
-        if (content.includes(text)) {
-          // Exclude cases without replacement
-          if (replacement) {
-            // Remove discontinued functionalities which do not break
-            content = content.replaceAll(text, replacement === removePlaceholder ? '' : replacement);
-          }
-          if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
-            matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
-          }
+    replacementCases.forEach(([pattern, replacement, notes]) => {
+      let matches = false;
+
+      // Simple text replacement
+      if (typeof pattern === 'string') {
+        const regex = new RegExp(escapeRegExp(pattern), 'g');
+
+        if (regex.test(content)) {
+          matches = true;
+          content = content.replace(regex, replacement);
         }
-      } else {
-        // Regex case
-        // TODO: Fix issue not replacing all
-        if (text.test(content) && replacement) {
-          content = content.replace(new RegExp(text, 'g'), replacement);
-          if (!matchedCases.includes(`${ text }, ${ replacement }, ${ notes }`)) {
-            matchedCases.push(`${ text }, ${ replacement }, ${ notes }`);
-          }
-        }
+      } else if (pattern.test(content)) {
+        matches = true;
+        content = content.replace(pattern, replacement);
+      }
+
+      if (matches) {
+        matchedCases.push({
+          pattern: pattern.toString(), replacement, notes
+        });
       }
     });
 
     if (matchedCases.length) {
-      writeContent(file, content);
+      writeContent(file, content, originalContent);
       printContent(file, printText, matchedCases);
       stats[fileType].push(file);
       stats.total.push(file);
@@ -632,7 +733,14 @@ const replaceCases = (fileType, files, replacementCases, printText) => {
 };
 
 /**
- * Print log
+ * Utility function to escape special regex characters in a string
+ */
+const escapeRegExp = (string) => {
+  return string.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+/**
+ * Print migration statistics and diffs if in suggest mode
  */
 const printLog = () => {
   if (process.argv.includes('--files')) {
@@ -646,38 +754,64 @@ const printLog = () => {
 
   console.table(statsCount);
 
+  if (isSuggest && diffOutput.length > 0) {
+    const diffFile = 'suggested_changes.diff';
+    let diffContent = '';
+
+    diffOutput.forEach(({ file, diff }) => {
+      diffContent += `--- ${ file }\n+++ ${ file }\n${ diff }\n`;
+    });
+
+    fs.writeFileSync(diffFile, diffContent);
+    console.log(`\nSuggested changes have been written to ${ diffFile }`);
+  }
+
   if (process.argv.includes('--log')) {
     fs.writeFileSync('stats.json', JSON.stringify(stats, null, 2));
   }
 };
 
+/**
+ * Parse command-line arguments
+ */
 const setParams = () => {
   const args = process.argv.slice(2);
-  const paramKeys = ['paths'];
+  const paramKeys = ['paths', 'ignore'];
 
   args.forEach((val) => {
     paramKeys.forEach((key) => {
       if (val.startsWith(`--${ key }=`)) {
-        params[key] = val.split('=')[1];
+        const value = val.split('=')[1];
+
+        if (key === 'ignore') {
+          params.ignorePatterns = value.split(',').map((pattern) => pattern.trim());
+        } else {
+          params[key] = value;
+        }
       }
     });
   });
+
+  // Add user-specified ignore patterns
+  if (params.ignorePatterns.length > 0) {
+    ignore = ignore.concat(params.ignorePatterns);
+  }
 };
 
 /**
- * Init application
+ * Main function to initiate migration
  */
 (function() {
   setParams();
 
   packageUpdates();
-  gitHubActionsUpdates();
+  // gitHubActionsUpdates();
   nvmUpdates();
   vueConfigUpdates();
   vueSyntaxUpdates();
-  routerUpdates();
-  // jestUpdates();
+  jestUpdates();
   jestConfigUpdates();
+  routerUpdates();
   eslintUpdates();
   tsUpdates();
   stylesUpdates();
