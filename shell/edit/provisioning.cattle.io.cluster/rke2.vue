@@ -42,6 +42,7 @@ import Tabbed from '@shell/components/Tabbed';
 import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
+import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS, CLUSTER_BADGE } from '@shell/config/labels-annotations';
@@ -413,11 +414,22 @@ export default {
     },
 
     needCredential() {
-      if (this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW || (this.providerConfig?.spec?.builtin === false && this.providerConfig?.spec?.addCloudCredential === false)) {
+      // Check non-provider specific config
+      if (
+        this.provider === 'custom' ||
+        this.provider === 'import' ||
+        this.isElementalCluster || // Elemental cluster can make use of `cloud-credential`: false
+        this.mode === _VIEW
+      ) {
         return false;
       }
 
-      if (this.customCredentialComponentRequired === false) {
+      // Check provider specific config
+      if (this.cloudCredentialsOverride === true || this.cloudCredentialsOverride === false) {
+        return this.cloudCredentialsOverride;
+      }
+
+      if (this.providerConfig?.spec?.builtin === false && this.providerConfig?.spec?.addCloudCredential === false) {
         return false;
       }
 
@@ -425,10 +437,21 @@ export default {
     },
 
     /**
-     * Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
+     * Override the native way of determining if cloud credentials are required (builtin ++ node driver spec.addCloudCredentials)
+     *
+     * 1) Override via extensions
+     *    - `true` or actual component - return true
+     *    - `false` - return false
+     * 2) Override via hardcoded setting
      */
-    customCredentialComponentRequired() {
-      return this.$plugin.getDynamic('cloud-credential', this.provider);
+    cloudCredentialsOverride() {
+      const cloudCredential = this.$plugin.getDynamic('cloud-credential', this.provider);
+
+      if (cloudCredential === undefined) {
+        return CLOUD_CREDENTIAL_OVERRIDE[this.provider];
+      }
+
+      return !!cloudCredential;
     },
 
     hasMachinePools() {
