@@ -64,21 +64,26 @@ const networksToVappProperties = (networks) => {
   }
 
   return networks.reduce(networkToVappProperties, [
-    `guestinfo.dns.servers=\${dns:${ networks[0] }}`,
-    `guestinfo.dns.domains=\${searchPath:${ networks[0] }}`
+    `guestinfo.dns.servers=\${dns:${ nameOnly(networks[0]) }}`,
+    `guestinfo.dns.domains=\${searchPath:${ nameOnly(networks[0]) }}`
   ]);
 };
 
 const networkToVappProperties = (props, network, i) => {
   const n = i.toString();
+  const networkName = nameOnly(network);
 
   props.push(
-    `guestinfo.interface.${ n }.ip.0.address=ip:${ network }`,
-    `guestinfo.interface.${ n }.ip.0.netmask=\${netmask:${ network }}`,
-    `guestinfo.interface.${ n }.route.0.gateway=\${gateway:${ network }}`
+    `guestinfo.interface.${ n }.ip.0.address=ip:${ networkName }`,
+    `guestinfo.interface.${ n }.ip.0.netmask=\${netmask:${ networkName }}`,
+    `guestinfo.interface.${ n }.route.0.gateway=\${gateway:${ networkName }}`
   );
 
   return props;
+};
+
+const nameOnly = (network) => {
+  return network.split('/').pop();
 };
 
 /**
