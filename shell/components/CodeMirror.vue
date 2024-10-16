@@ -292,17 +292,30 @@ export default {
     }
   }
 
-  .code-mirror .codemirror-container {
-    z-index: 0;
-    font-size: inherit !important;
+  .code-mirror {
+    position: relative;
 
-    // Keyboard mapping overlap
+    .codemirror-container {
+      z-index: 0;
+      font-size: inherit !important;
+
+      //rm no longer extant selector
+      .CodeMirror {
+        height: initial;
+        background: none
+      }
+
+      .CodeMirror-gutters {
+        background: inherit;
+      }
+    }
+
     .keymap.overlay {
       position: absolute;
       display: flex;
       top: 7px;
       right: 7px;
-      z-index: 1;
+      z-index: 5000;
       cursor: pointer;
 
       .keymap-indicator {
@@ -352,16 +365,6 @@ export default {
         }
       }
     }
-
-    //rm no longer extant selector
-    .CodeMirror {
-      height: initial;
-      background: none
-    }
-
-    .CodeMirror-gutters {
-      background: inherit;
-    }
-
   }
+
 </style>
