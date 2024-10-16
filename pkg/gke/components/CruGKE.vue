@@ -185,7 +185,7 @@ export default defineComponent({
       syncUpstreamConfig('gke', this.normanCluster);
     }
     if (!this.normanCluster.gkeConfig) {
-      this.normanCluster['gkeConfig'] = { ...defaultGkeConfig };
+      this.normanCluster['gkeConfig'] = cloneDeep(defaultGkeConfig);
     }
     if (!this.normanCluster.gkeConfig.nodePools) {
       this.normanCluster.gkeConfig['nodePools'] = [{ ...cloneDeep(defaultNodePool), name: 'group-1' }];
