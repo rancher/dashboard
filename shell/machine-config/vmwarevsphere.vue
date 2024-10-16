@@ -387,10 +387,11 @@ export default {
         const defaultVappOptions = getDefaultVappOptions(this.networkNames || []);
 
         return this.updateVappOptions(defaultVappOptions);
-      } else if (value === VAPP_MODE.DISABLED) {
+      } else {
         this.updateVappOptions(INITIAL_VAPP_OPTIONS);
       }
     },
+
     validationErrors(value) {
       this.$emit('error', value);
     }
