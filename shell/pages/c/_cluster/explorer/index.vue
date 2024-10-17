@@ -115,13 +115,6 @@ export default {
       if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       }
-
-      // // this.canViewAgents = this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET);
-      // this.canViewAgents = this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system') || (!this.currentCluster.isLocal && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-system'));
-
-      // if (this.canViewAgents) {
-      //   this.loadAgents();
-      // }
     }
   },
 
@@ -139,7 +132,6 @@ export default {
       cattleDeployment:   'loading',
       fleetDeployment:    'loading',
       fleetStatefulSet:   'loading',
-      // canViewAgents:      false,
       disconnected:       false,
       events:             [],
       nodeMetrics:        [],
@@ -527,19 +519,6 @@ export default {
           this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
         }, 1000);
       }
-
-      // if (this.currentCluster.isLocal) {
-      //     this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
-      //     this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
-      // } else {
-      //     this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
-      //     this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
-
-      //   // Scaling Up/Down cattle deployment causes web sockets disconnection;
-      //   this.interval = setInterval(() => {
-      //     this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
-      //   }, 1000);
-      // }
     },
 
     async setAgentResource(agent, type, id) {
