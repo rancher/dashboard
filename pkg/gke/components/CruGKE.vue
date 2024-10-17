@@ -100,7 +100,7 @@ const defaultGkeConfig = {
   },
   kubernetesVersion:        '',
   labels:                   {},
-  locations:                [],
+  locations:                [DEFAULT_GCP_ZONE],
   loggingService:           'logging.googleapis.com/kubernetes',
   maintenanceWindow:        '',
   masterAuthorizedNetworks: { enabled: false, cidrBlocks: [] },

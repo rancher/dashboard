@@ -4,15 +4,6 @@ import flushPromises from 'flush-promises';
 import Config from '@pkg/gke/components/Config.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
-// const mockedValidationMixin = {
-//   computed: {
-//     fvFormIsValid:                jest.fn(),
-//     type:                         jest.fn(),
-//     fvUnreportedValidationErrors: jest.fn(),
-//   },
-//   methods: { fvGetAndReportPathRules: jest.fn() }
-// };
-
 const mockedStore = (versionSetting: any) => {
   return {
     getters: {
@@ -207,5 +198,30 @@ describe('gke Config', () => {
     });
 
     expect(Object.keys(checkedNotInLocations)).toHaveLength(0);
+  });
+
+  it('should add newly selected zone to the list of extra zones (gkeConfig.locations) and remove old extra zones', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        zone:              'us-east1-b',
+        region:            '',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        locations:         ['us-east1-a']
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    const zoneSelect = wrapper.getComponent('[data-testid="gke-zone-select"]');
+
+    zoneSelect.vm.$emit('selecting', { name: 'us-east4-b' });
+
+    await flushPromises();
+    expect(wrapper.emitted('update:locations')[0][0]).toStrictEqual(['us-east4-b']);
   });
 });
