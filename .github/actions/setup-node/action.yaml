@@ -1,0 +1,18 @@
+name: Setup Node
+description: Setup node, including yarn
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup yarn
+      shell: bash
+      # if we have yarn, no op
+      # if no yarn, install (probably running in non-containerized runners)
+      run: |
+        yarn || curl -fsSL -o ~/bin/yarn https://github.com/yarnpkg/yarn/releases/download/v1.22.17/yarn-1.22.17.js && chmod +x ~/bin/yarn && echo "~/bin" >> $GITHUB_PATH
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'yarn'
