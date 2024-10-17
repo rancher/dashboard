@@ -128,6 +128,12 @@ export default class GlobalRole extends SteveDescriptionModel {
     return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
+  /**
+   * Resource action redirects to the detail page with a query parameter 'clone'
+   * When the query parameter is present, the view will fetch the resource to clone define in the parameter
+   * E.g.: /my-id?mode=clone
+   * @param {*} moreQuery
+   */
   goToClone(moreQuery = {}) {
     const location = this.detailLocation;
 

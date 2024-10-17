@@ -127,12 +127,6 @@ export default {
 
   created() {
     this.value['rules'] = this.value.rules || [];
-    this.value.rules.forEach((rule) => {
-      if (rule.verbs[0] === '*') {
-        rule['verbs'] = [...VERBS];
-      }
-    });
-
     const query = { ...this.$route.query };
     const { roleContext } = query;
 
@@ -701,6 +695,7 @@ export default {
             <template #columns="props">
               <div class="columns row mr-20">
                 <div :class="ruleClass">
+                  <!-- Select verbs -->
                   <Select
                     :value="props.row.value.verbs"
                     class="lg"
