@@ -573,10 +573,6 @@ export default {
     }
   },
 
-  mounted() {
-    window.c = this;
-  },
-
   methods: {
     toggleScaleDownModal( event, resources ) {
       // Check if the user held alt key when an action is clicked.
