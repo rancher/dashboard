@@ -1,6 +1,5 @@
 
 export default {
-  emits:   ['option:selecting', 'option:created', 'option:selected'],
   methods: {
     mappedKeys(map, vm) {
       // Defaults found at - https://github.com/sagalbot/vue-select/blob/master/src/components/Select.vue#L947
