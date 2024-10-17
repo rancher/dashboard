@@ -40,6 +40,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'color-input'
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -56,6 +61,12 @@ export default {
      */
     inputValue() {
       return this.value ? this.value : this.defaultValue;
+    },
+
+    isDisabled() {
+      const disabled = this.disabled;
+
+      return this.mode !== this.editMode || disabled;
     }
   },
 
@@ -69,7 +80,7 @@ export default {
 <template>
   <div
     class="color-input"
-    :class="{[mode]:mode, disabled: mode !== editMode}"
+    :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
   >
     <label class="text-label"><t
@@ -89,7 +100,7 @@ export default {
         <input
           ref="input"
           type="color"
-          :disabled="mode !== editMode"
+          :disabled="isDisabled"
           :value="inputValue"
           @input="$emit('update:value', $event.target.value)"
         >
