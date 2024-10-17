@@ -64,7 +64,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
+    clusterDashboard.waitForPage();
     clusterDashboard.fleetStatus().should('exist');
   });
 
@@ -328,7 +328,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // go to cluster dashboard
       ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage(undefined, 'cluster-events');
+      clusterDashboard.waitForPage();
     });
 
     // note - this would be 'fleet agent' on downstream clusters
