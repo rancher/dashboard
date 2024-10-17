@@ -76,58 +76,102 @@ export default {
       return this.clusters.length > this.maxClustersToShow;
     },
 
+    /**
+     * Filter mgmt clusters by
+     * 1. Harvester type 1 (filterOnlyKubernetesClusters)
+     * 2. Harvester type 2 (filterHiddenLocalCluster)
+     * 3. There's a matching prov cluster
+     *
+     * Convert remaining clusters to special format
+     */
     clusters() {
+      if (!this.hasProvCluster) {
+        // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
+        // exit early
+        return [];
+      }
+
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
-      let pClusters = null;
+      const mgmtClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
+      const provClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+      const provClustersByMgmtId = provClusters.reduce((res, provCluster) => {
+        if (provCluster.mgmt?.id) {
+          res[provCluster.mgmt.id] = provCluster;
+        }
 
-      if (this.hasProvCluster) {
-        pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-        const available = pClusters.reduce((p, c) => {
-          p[c.mgmt] = true;
+        return res;
+      }, {});
 
-          return p;
-        }, {});
-
+      return (mgmtClusters || []).reduce((res, mgmtCluster) => {
         // Filter to only show mgmt clusters that exist for the available provisioning clusters
         // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
         // provisioning cluster has been deleted
-        kubeClusters = kubeClusters.filter((c) => !!available[c]);
-      }
+        if (!provClustersByMgmtId[mgmtCluster.id]) {
+          return res;
+        }
 
-      return kubeClusters?.map((x) => {
-        const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
+        const pCluster = provClustersByMgmtId[mgmtCluster.id];
 
-        return {
-          id:              x.id,
-          label:           x.nameDisplay,
-          ready:           x.isReady && !pCluster?.hasError,
-          osLogo:          x.providerOsLogo,
-          providerNavLogo: x.providerMenuLogo,
-          badge:           x.badge,
-          isLocal:         x.isLocal,
-          isHarvester:     x.isHarvester,
-          pinned:          x.pinned,
-          description:     pCluster?.description || x.description,
-          pin:             () => x.pin(),
-          unpin:           () => x.unpin(),
-          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
-        };
-      }) || [];
+        res.push({
+          id:              mgmtCluster.id,
+          label:           mgmtCluster.nameDisplay,
+          ready:           mgmtCluster.isReady && !pCluster?.hasError,
+          osLogo:          mgmtCluster.providerOsLogo,
+          providerNavLogo: mgmtCluster.providerMenuLogo,
+          badge:           mgmtCluster.badge,
+          isLocal:         mgmtCluster.isLocal,
+          isHarvester:     mgmtCluster.isHarvester,
+          pinned:          mgmtCluster.pinned,
+          description:     pCluster?.description || mgmtCluster.description,
+          pin:             () => mgmtCluster.pin(),
+          unpin:           () => mgmtCluster.unpin(),
+          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
+        });
+
+        return res;
+      }, []);
     },
 
+    /**
+     * Filter clusters by
+     * 1. Not pinned
+     * 2. Includes search term
+     *
+     * Sort remaining clusters
+     *
+     * Reduce number of clusters if too many too show
+     *
+     * Important! This is used to show unpinned clusters OR results of search
+     */
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
-      const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      let localCluster = null;
 
-      // put local cluster on top of list always
-      // https://github.com/rancher/dashboard/issues/10975
-      if (sorted.findIndex((c) => c.id === 'local') > 0) {
-        const localCluster = sorted.find((c) => c.id === 'local');
-        const localIndex = sorted.findIndex((c) => c.id === 'local');
+      const filtered = this.clusters.filter((c) => {
+        // If we're searching we don't care if pinned or not
+        if (search) {
+          if (!c.label?.toLowerCase().includes(search)) {
+            return false;
+          }
+        } else if (c.pinned) {
+          // Not searching, not pinned, don't care
+          return false;
+        }
 
-        sorted.splice(localIndex, 1);
+        if (!localCluster && c.id === 'local') {
+          // Local cluster is a special case, we're inserting it at top so don't include in the middle
+          localCluster = c;
+
+          return false;
+        }
+
+        return true;
+      });
+
+      const sorted = sortBy(filtered, ['ready:desc', 'label']);
+
+      // put local cluster on top of list always - https://github.com/rancher/dashboard/issues/10975
+      if (localCluster) {
         sorted.unshift(localCluster);
       }
 
@@ -141,25 +185,45 @@ export default {
       this.searchActive = false;
 
       if (sorted.length >= this.maxClustersToShow) {
-        const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
-
-        return sortedPinOut;
-      } else {
-        return sorted.filter((item) => !item.pinned);
+        return sorted.slice(0, this.maxClustersToShow);
       }
+
+      return sorted;
     },
 
+    /**
+     * Filter clusters by
+     * 1. Not pinned
+     * 2. Includes search term
+     *
+     * Sort remaining clusters
+     *
+     * Reduce number of clusters if too many too show
+     *
+     * Important! This is hidden if there's a filter (user searching)
+     */
     pinFiltered() {
-      const out = this.clusters.filter((item) => item.pinned);
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      let localCluster = null;
+      const filtered = this.clusters.filter((c) => {
+        if (!c.pinned) {
+          // We only care about pinned clusters
+          return false;
+        }
 
-      // put local cluster on top of list always
-      // https://github.com/rancher/dashboard/issues/10975
-      if (sorted.findIndex((c) => c.id === 'local') > 0) {
-        const localCluster = sorted.find((c) => c.id === 'local');
-        const localIndex = sorted.findIndex((c) => c.id === 'local');
+        if (c.id === 'local') {
+          // Special case, we're going to add this at the start so filter out
+          localCluster = c;
 
-        sorted.splice(localIndex, 1);
+          return false;
+        }
+
+        return true;
+      });
+
+      const sorted = sortBy(filtered, ['ready:desc', 'label']);
+
+      // put local cluster on top of list always - https://github.com/rancher/dashboard/issues/10975
+      if (localCluster) {
         sorted.unshift(localCluster);
       }
 
@@ -167,7 +231,7 @@ export default {
     },
 
     pinnedClustersHeight() {
-      const pinCount = this.clusters.filter((item) => item.pinned).length;
+      const pinCount = this.pinFiltered.length;
       const height = pinCount > 2 ? (pinCount * 43) : 90;
 
       return `min-height: ${ height }px`;
