@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils';
 import RoleDetailEdit from '@shell/components/auth/RoleDetailEdit.vue';
 import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
 
-
 describe('component: RoleDetailEdit', () => {
   it('does not have validation errors when the role has no displayName', () => {
     const role = {
@@ -10,7 +9,7 @@ describe('component: RoleDetailEdit', () => {
       kind:                  'GlobalRole',
       metadata:              { name: 'global-role-with-inherited' },
       inheritedClusterRoles: ['cluster-admin'],
-      rules: [{
+      rules:                 [{
         verbs:     ['get', 'list'],
         resources: ['pods'],
         apiGroups: ['']
@@ -27,9 +26,9 @@ describe('component: RoleDetailEdit', () => {
           $store:      {
             dispatch: jest.fn(),
             getters:  {
-              currentStore: () => 'store',
-              'i18n/t': jest.fn(),
-              'store/schemaFor': jest.fn(),
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
               'store/customisation/': jest.fn()
             }
           }
@@ -52,7 +51,7 @@ describe('component: RoleDetailEdit', () => {
     const wrapper = mount(RoleDetailEdit, {
       props: {
         value: {
-          rules: [{verbs}],
+          rules:   [{ verbs }],
           subtype: 'GLOBAL'
         },
       },
@@ -64,9 +63,9 @@ describe('component: RoleDetailEdit', () => {
           $store:      {
             dispatch: jest.fn(),
             getters:  {
-              currentStore: () => 'store',
-              'i18n/t': jest.fn(),
-              'store/schemaFor': jest.fn(),
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
               'store/customisation/': jest.fn()
             }
           }

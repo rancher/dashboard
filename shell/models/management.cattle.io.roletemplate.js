@@ -177,7 +177,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
    * Resource action redirects to the detail page with a query parameter 'clone'
    * When the query parameter is present, the view will fetch the resource to clone define in the parameter
    * E.g.: /my-id?mode=clone
-   * @param {*} moreQuery 
+   * @param {*} moreQuery
    */
   goToClone(moreQuery = {}) {
     const location = this.detailLocation;
