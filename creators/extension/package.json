@@ -1,10 +1,10 @@
 {
   "name": "@rancher/create-extension",
   "description": "Rancher UI Extension generator",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "license": "Apache-2.0",
   "author": "SUSE",
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.5.0",
   "bin": {
     "create-extension": "./init"
   },
@@ -22,6 +22,10 @@
     "@rancher/components"
   ],
   "dependencies": {
-    "fs-extra": "^10.0.0"
+    "diff": "^7.0.0",
+    "fs-extra": "^10.0.0",
+    "glob": "^11.0.0",
+    "path": "^0.12.7",
+    "semver": "^7.6.3"
   }
 }
