@@ -315,7 +315,7 @@ export default {
       display: flex;
       top: 7px;
       right: 7px;
-      z-index: 5000;
+      z-index: 1;
       cursor: pointer;
 
       .keymap-indicator {
