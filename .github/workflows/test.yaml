@@ -104,6 +104,7 @@ jobs:
       - name: Install Chrome 127
         run: |
           sudo apt-get install -y wget
+          sudo apt-get install libu2f-udev
           cd /tmp
           wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
           sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
