@@ -25,7 +25,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  BUILD_DASHBOARD: false
 
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
@@ -103,8 +103,9 @@ jobs:
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
       - name: Install Chrome 127
         run: |
+          hostnamectl || lsb_release || cat /etc/os-release
           sudo apt-get install -y wget
-          sudo apt-get install libu2f-udev
+          sudo apt-get install libgconf2-4 libnss3-1d libxss1
           cd /tmp
           wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
           sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
