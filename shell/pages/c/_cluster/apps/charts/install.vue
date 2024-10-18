@@ -302,8 +302,9 @@ export default {
         */
         userValues = diff(this.loadedVersionValues, this.chartValues);
       } else if ( this.existing ) {
+        await this.existing.fetchValues(); // In theory this has already been called, but do again to be safe
         /* For an already installed app, use the values from the previous install. */
-        userValues = clone(this.existing.spec?.values || {});
+        userValues = clone(this.existing.values || {});
       } else {
         /* For an new app, start empty. */
         userValues = {};
@@ -1008,6 +1009,12 @@ export default {
         }
 
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+
+        if (isUpgrade && this.existing) {
+          // The chart values are cached locally. Clear them so we refetch from secret again
+          this.existing.clearValues();
+        }
+
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
