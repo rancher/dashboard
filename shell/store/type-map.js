@@ -2022,8 +2022,10 @@ function hasCustom(state, rootState, kind, key, fallback) {
     return cache[key];
   }
 
-  // Check to see if the custom kind is provided by a plugin
-  if (!!rootState.$plugin.getDynamic(kind, key)) {
+  // Check to see if the custom kind is provided by a plugin (ignore booleans)
+  const pluginComponent = rootState.$plugin.getDynamic(kind, key);
+
+  if (typeof pluginComponent !== 'boolean' && !!pluginComponent) {
     cache[key] = true;
 
     return cache[key];

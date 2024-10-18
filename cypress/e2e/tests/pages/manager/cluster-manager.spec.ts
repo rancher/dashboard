@@ -663,38 +663,80 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   describe('Credential Step', () => {
-    it('should show credential step when `addCloudCredential` is true', () => {
-      cy.intercept({
-        method: 'GET',
-        path:   `/v1/management.cattle.io.nodedrivers*`,
-      }, (req) => {
-        req.continue((res) => {
-          res.body.data = nodeDriveResponse(false).data;
+    describe('should always show credentials', () => {
+      const driver = 'nutanix';
+
+      it('should show credential step when `addCloudCredential` is true', () => {
+        cy.intercept({
+          method: 'GET',
+          path:   `/v1/management.cattle.io.nodedrivers*`,
+        }, (req) => {
+          req.continue((res) => {
+            res.body.data = nodeDriveResponse(true, driver).data;
+          });
         });
+        const clusterCreate = new ClusterManagerCreatePagePo();
+
+        clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
+        clusterCreate.waitForPage();
+
+        clusterCreate.credentialsBanner().checkExists();
       });
-      const clusterCreate = new ClusterManagerCreatePagePo();
 
-      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
-      clusterCreate.waitForPage();
+      it('should show credential step when `addCloudCredential` is false', () => {
+        cy.intercept({
+          method: 'GET',
+          path:   `/v1/management.cattle.io.nodedrivers*`,
+        }, (req) => {
+          req.continue((res) => {
+            res.body.data = nodeDriveResponse(false, driver).data;
+          });
+        });
+        const clusterCreate = new ClusterManagerCreatePagePo();
 
-      clusterCreate.self().find('[data-testid="form"]').should('exist');
+        clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
+        clusterCreate.waitForPage();
+
+        clusterCreate.credentialsBanner().checkExists();
+      });
     });
 
-    it('should NOT show credential step when `addCloudCredential` is false', () => {
-      cy.intercept({
-        method: 'GET',
-        path:   `/v1/management.cattle.io.nodedrivers*`,
-      }, (req) => {
-        req.continue((res) => {
-          res.body.data = nodeDriveResponse(true).data;
+    const driver2 = 'outscale';
+
+    describe('should show on condition of addCloudCredential', () => {
+      it('should show credential step when `addCloudCredential` is true', () => {
+        cy.intercept({
+          method: 'GET',
+          path:   `/v1/management.cattle.io.nodedrivers*`,
+        }, (req) => {
+          req.continue((res) => {
+            res.body.data = nodeDriveResponse(true, driver2).data;
+          });
         });
+        const clusterCreate = new ClusterManagerCreatePagePo();
+
+        clusterCreate.goTo(`type=${ driver2 }&rkeType=rke2`);
+        clusterCreate.waitForPage();
+
+        clusterCreate.credentialsBanner().checkExists();
       });
-      const clusterCreate = new ClusterManagerCreatePagePo();
 
-      clusterCreate.goTo(`type=nutanix&rkeType=rke2`);
-      clusterCreate.waitForPage();
+      it('should NOT show credential step when `addCloudCredential` is false', () => {
+        cy.intercept({
+          method: 'GET',
+          path:   `/v1/management.cattle.io.nodedrivers*`,
+        }, (req) => {
+          req.continue((res) => {
+            res.body.data = nodeDriveResponse(false, driver2).data;
+          });
+        });
+        const clusterCreate = new ClusterManagerCreatePagePo();
 
-      clusterCreate.self().find('[data-testid="select-credential"]').should('exist');
+        clusterCreate.goTo(`type=${ driver2 }&rkeType=rke2`);
+        clusterCreate.waitForPage();
+
+        clusterCreate.credentialsBanner().checkNotExists();
+      });
     });
   });
 });
