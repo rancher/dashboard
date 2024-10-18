@@ -263,6 +263,8 @@ export default {
             id:   `${ this.query.appNamespace }/${ this.query.appName }`,
           });
 
+          await this.existing?.fetchValues();
+
           this.mode = _EDIT;
         } catch (e) {
           this.mode = _CREATE;
@@ -420,10 +422,12 @@ export default {
               }
             }
             if (existingCRDApp) {
+              await existingCRDApp.fetchValues();
+
               // spec.values are any non-default values the user configured
               // the installation form should show these, as well as any default values from the chart
-              const existingValues = clone(existingCRDApp.spec?.values || {});
-              const defaultValues = clone(existingCRDApp.spec?.chart?.values || {});
+              const existingValues = clone(existingCRDApp.values || {});
+              const defaultValues = clone(existingCRDApp.chartValues || {});
 
               crdVersionInfo.existingValues = existingValues;
               crdVersionInfo.allValues = merge(defaultValues, existingValues);

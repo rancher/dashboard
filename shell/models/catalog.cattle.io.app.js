@@ -4,7 +4,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@shell/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@shell/utils/version';
 import { filterBy } from '@shell/utils/array';
-import { CATALOG, MANAGEMENT, NORMAN } from '@shell/config/types';
+import { CATALOG, MANAGEMENT, NORMAN, SECRET } from '@shell/config/types';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
@@ -271,28 +271,109 @@ export default class CatalogApp extends SteveModel {
     };
   }
 
-  get deployedAsLegacy() {
-    return async() => {
-      if (this.spec?.values?.global) {
-        const { clusterName, projectName } = this.spec.values.global;
+  async deployedAsLegacy() {
+    await this.fetchValues();
 
-        if (clusterName && projectName) {
-          try {
-            const legacyApp = await this.$dispatch('rancher/find', {
-              type: NORMAN.APP,
-              id:   `${ projectName }:${ this.metadata?.name }`,
-              opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-            }, { root: true });
+    if (this.values?.global) {
+      const { clusterName, projectName } = this.values.global;
 
-            if (legacyApp) {
-              return legacyApp;
-            }
-          } catch (e) {}
-        }
+      if (clusterName && projectName) {
+        try {
+          const legacyApp = await this.$dispatch('rancher/find', {
+            type: NORMAN.APP,
+            id:   `${ projectName }:${ this.metadata?.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+          }, { root: true });
+
+          if (legacyApp) {
+            return legacyApp;
+          }
+        } catch (e) {}
+      }
+    }
+
+    return false;
+  }
+
+  _values = undefined;
+
+  /*
+  * Value live in a helm secret, so fetch it (with special param) and cache locally
+  */
+  async fetchValues() {
+    if (this._values) {
+      return;
+    }
+
+    if (this._values === undefined) {
+      const metadata = this.metadata;
+      const secretReference = metadata.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
+
+      const secretId = secretReference?.name;
+      const secretNamespace = metadata.namespace;
+
+      if (!secretNamespace || !secretId) {
+        console.warn(`Cannot find values for ${ this.id } (cannot find related secret namespace or id)`); // eslint-disable-line no-console
+
+        return null;
       }
 
-      return false;
-    };
+      try {
+        const id = `${ secretNamespace }/${ secretId }`;
+        const existingSecret = this.$getters['byId'](SECRET, id);
+        const haveValues = !!existingSecret?.data?.release?.chart?.values && !!existingSecret?.data?.release?.config;
+        const secret = haveValues ? existingSecret : await this.$dispatch('find', {
+          type: SECRET,
+          id,
+          opt:  {
+            force:  !!existingSecret, // force if we have a secret without the values in (Secret has been fetched another way)
+            watch:  false, // Cannot watch with custom params (they are dropped on calls made when resyncing over socket)
+            params: { includeHelmData: true }
+          }
+        });
+
+        this._values = {
+          values:      { ...secret.data?.release?.config },
+          chartValues: { ...secret.data?.release?.chart?.values }
+        };
+
+        // Avoid undefined
+        return;
+      } catch (e) {
+        console.error(`Cannot find values for ${ this.id } (unable to fetch)`, e); // eslint-disable-line no-console
+      }
+
+      return undefined;
+    }
+  }
+
+  /**
+   * Clear cached helm secret based values. This will force a refetch when fetchValues is called again
+   */
+  clearValues() {
+    delete this._values;
+  }
+
+  _validateValuesSecret(noun) {
+    if (this._values === undefined) {
+      throw new Error(`Cannot find ${ noun } for  ${ this.id } (chart secret has not been fetched via app \`fetchValues\`)`);
+    }
+
+    if (this._values === null) {
+      throw new Error(`Cannot find ${ noun } for ${ this.id } (chart secret failed to fetch) `);
+    }
+  }
+
+  get values() {
+    this._validateValuesSecret('values');
+
+    return this._values.values;
+  }
+
+  get chartValues() {
+    this._validateValuesSecret('chartValues');
+
+    return this._values.chartValues;
   }
 }
 
