@@ -39,6 +39,6 @@ export class NetworkPolicyPagePo extends PagePo {
   }
 
   searchForNetworkPolicy(name: string) {
-    return this.list().resourceTable().sortableTable().filter(name);
+    return this.list().resourceTable().sortableTable().filter(name, true);
   }
 }

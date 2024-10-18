@@ -128,7 +128,10 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   pushd test-app > /dev/null
 
   yarn install
-  FORCE_COLOR=true yarn build | cat
+
+  echo "Building skeleton app"
+
+  NODE_OPTIONS=--max_old_space_size=4096 FORCE_COLOR=true yarn build | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
@@ -228,3 +231,5 @@ function clone_repo_test_extension_build() {
 # clone_repo_test_extension_build "capi-ui-extension" "capi"
 
 echo "All done"
+# Force an exit
+exit 0
