@@ -1041,7 +1041,7 @@ export default defineComponent({
       data-testid="cruaks-form"
     >
       <div class="row mb-10">
-        <div class="col span-3">
+        <div class="col span-4">
           <LabeledInput
             :value="normanCluster.name"
             :mode="mode"
@@ -1051,7 +1051,7 @@ export default defineComponent({
             @update:value="setClusterName"
           />
         </div>
-        <div class="col span-3">
+        <div class="col span-4">
           <LabeledInput
             v-model:value="normanCluster.description"
             :mode="mode"
@@ -1060,7 +1060,7 @@ export default defineComponent({
           />
         </div>
         <div
-          class="col span-3"
+          class="col span-4"
         >
           <LabeledSelect
             v-model:value="config.resourceLocation"
@@ -1074,22 +1074,6 @@ export default defineComponent({
             :loading="loadingLocations"
             required
             :disabled="!isNewOrUnprovisioned"
-          />
-        </div>
-        <div
-          class="col span-3"
-        >
-          <LabeledSelect
-            v-model:value="config.kubernetesVersion"
-            data-testid="cruaks-kubernetesversion"
-            :mode="mode"
-            :options="aksVersionOptions"
-            label-key="aks.kubernetesVersion.label"
-            option-key="value"
-            option-label="label"
-            :loading="loadingVersions"
-            required
-            :rules="fvGetAndReportPathRules('kubernetesVersion')"
           />
         </div>
       </div>
@@ -1146,8 +1130,24 @@ export default defineComponent({
           title-key="aks.accordions.basics"
         >
           <div
-            class="row mb-10 center-inputs"
+            class="row mb-10 "
           >
+            <div
+              class="col span-3"
+            >
+              <LabeledSelect
+                v-model:value="config.kubernetesVersion"
+                data-testid="cruaks-kubernetesversion"
+                :mode="mode"
+                :options="aksVersionOptions"
+                label-key="aks.kubernetesVersion.label"
+                option-key="value"
+                option-label="label"
+                :loading="loadingVersions"
+                required
+                :rules="fvGetAndReportPathRules('kubernetesVersion')"
+              />
+            </div>
             <div class="col span-3">
               <LabeledInput
                 v-model:value="config.linuxAdminUsername"
@@ -1181,6 +1181,29 @@ export default defineComponent({
                 :tooltip="t('aks.nodeResourceGroup.tooltip',null, true )"
               />
             </div>
+          </div>
+
+          <div class="row mb-10 center-inputs">
+            <!-- <template v-if="config.monitoring"> -->
+            <div class="col span-3">
+              <LabeledInput
+                v-model:value="config.logAnalyticsWorkspaceGroup"
+                :mode="mode"
+                :disabled="!config.monitoring"
+                label-key="aks.logAnalyticsWorkspaceGroup.label"
+                data-testid="aks-log-analytics-workspace-group-input"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model:value="config.logAnalyticsWorkspaceName"
+                :disabled="!config.monitoring"
+                :mode="mode"
+                label-key="aks.logAnalyticsWorkspaceName.label"
+                data-testid="aks-log-analytics-workspace-name-input"
+              />
+            </div>
+            <!-- </template> -->
             <div class="col span-3">
               <Checkbox
                 v-model:value="config.monitoring"
@@ -1189,27 +1212,6 @@ export default defineComponent({
                 data-testid="aks-monitoring-checkbox"
               />
             </div>
-          </div>
-
-          <div class="row mb-10">
-            <template v-if="config.monitoring">
-              <div class="col span-3">
-                <LabeledInput
-                  v-model:value="config.logAnalyticsWorkspaceGroup"
-                  :mode="mode"
-                  label-key="aks.logAnalyticsWorkspaceGroup.label"
-                  data-testid="aks-log-analytics-workspace-group-input"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model:value="config.logAnalyticsWorkspaceName"
-                  :mode="mode"
-                  label-key="aks.logAnalyticsWorkspaceName.label"
-                  data-testid="aks-log-analytics-workspace-name-input"
-                />
-              </div>
-            </template>
           </div>
           <div class="row mb-10">
             <div class="col span-6">
