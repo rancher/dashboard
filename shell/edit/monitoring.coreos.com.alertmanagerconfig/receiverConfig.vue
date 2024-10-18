@@ -105,6 +105,8 @@ export default {
 
   mixins: [CreateEditView, FormValidation],
 
+  inheritAttrs: false,
+
   async fetch() {
     /**
      * example receiver value:

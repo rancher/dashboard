@@ -18,6 +18,8 @@ export default {
 
   mixins: [createEditView],
 
+  inheritAttrs: false,
+
   props: {
     value: {
       type:    Object,

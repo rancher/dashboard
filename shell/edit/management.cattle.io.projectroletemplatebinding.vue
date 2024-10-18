@@ -11,7 +11,8 @@ export default {
     ProjectMemberEditor,
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
   async fetch() {
     await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });

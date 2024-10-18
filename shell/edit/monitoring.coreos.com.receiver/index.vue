@@ -37,6 +37,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   async fetch() {
     await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
   },

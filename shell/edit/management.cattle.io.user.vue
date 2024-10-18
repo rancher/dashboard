@@ -14,9 +14,12 @@ export default {
   components: {
     ChangePassword, GlobalRoleBindings, CruResource, LabeledInput, Loading
   },
+
   mixins: [
     CreateEditView
   ],
+
+  inheritAttrs: false,
 
   data() {
     const showGlobalRoles = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);

@@ -24,6 +24,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   created() {
     if (!get(this.value, 'spec.trafficPolicy.loadBalancer')) {
       set(this.value, 'spec.trafficPolicy.loadBalancer', { simple: 'ROUND_ROBIN' });
