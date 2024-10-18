@@ -8,6 +8,23 @@ const {
 
 const diffOutput = [];
 
+function printUsage() {
+  console.log(`
+Usage: node index.js [options]
+
+Options:
+
+  --dry                 Dry Run Mode: Run the script without making any changes to your files.
+  --verbose             Verbose Output: Enable detailed logging.
+  --suggest             Suggest Mode: Generate a 'suggested_changes.diff' file with proposed changes.
+  --paths=<path>        Specify Paths: Limit migration to specific paths or files (accepts glob patterns).
+  --ignore=<patterns>   Ignore Patterns: Exclude specific files or directories (accepts comma-separated glob patterns).
+  --files               Output Modified Files: List all files modified during the migration.
+  --log                 Generate Log File: Write detailed migration statistics to 'stats.json'.
+  --help, -h            Display this help message and exit.
+  `);
+}
+
 function writeContent(file, content, originalContent) {
   if (!isDry && !isSuggest) {
     fs.writeFileSync(file, content);
@@ -138,6 +155,7 @@ function replaceCases(fileType, files, replacementCases, printText, params) {
 }
 
 module.exports = {
+  printUsage,
   writeContent,
   printContent,
   escapeRegExp,

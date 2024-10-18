@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { setParams, printLog } = require('./utils/content');
+const { setParams, printLog, printUsage } = require('./utils/content');
 const {
   packageUpdates,
   nvmUpdates,
@@ -14,6 +14,12 @@ const {
 const params = require('./params');
 
 (function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    printUsage();
+
+    return;
+  }
+
   setParams(params);
 
   packageUpdates(params);

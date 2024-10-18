@@ -1,9 +1,10 @@
 const fs = require('fs');
+const path = require('path');
 const glob = require('glob');
 const semver = require('semver');
-const { writeContent, printContent } = require('../utils/content');
 const stats = require('../stats');
 const { nodeRequirement, removePlaceholder } = require('../config');
+const { writeContent, printContent } = require('../utils/content');
 
 function packageUpdates(params) {
   const files = glob.sync(params.paths || '**/package.json', { ignore: params.ignore });
@@ -36,7 +37,21 @@ function packageUpdates(params) {
       stats.libraries.push(file);
     }
 
-    if (replaceLibraries.length || replaceNode.length || replaceResolution.length) {
+    const [annotationsContent, annotationsChanges] = packageUpdatesAnnotations(file, content);
+
+    if (annotationsChanges.length) {
+      content = annotationsContent;
+      printContent(file, `Updating annotations`, annotationsChanges);
+      stats.annotations = stats.annotations || [];
+      stats.annotations.push(file);
+    }
+
+    if (
+      replaceLibraries.length ||
+      replaceNode.length ||
+      replaceResolution.length ||
+      annotationsChanges.length
+    ) {
       writeContent(file, content, originalContent);
       stats.total.push(file);
     }
@@ -184,6 +199,44 @@ function packageUpdatesResolution(file, oldContent) {
   }
 
   return [content, replaceResolution];
+}
+
+function packageUpdatesAnnotations(file, oldContent) {
+  let content = oldContent;
+  const parsedJson = JSON.parse(content);
+  const changesMade = [];
+
+  // Check if the file is in pkg/*/package.json
+  const dirName = path.dirname(file); // e.g., 'pkg/extension-name'
+  const parentDirName = path.basename(path.dirname(dirName)); // Should be 'pkg'
+
+  if (parentDirName === 'pkg') {
+    // The file is in pkg/<extension-name>/package.json
+    const annotations = {
+      'catalog.cattle.io/rancher-version':      '>= 2.10.0-0',
+      'catalog.cattle.io/ui-extension-version': '>= 3.0.0',
+    };
+
+    if (!parsedJson.rancher) {
+      parsedJson.rancher = { annotations };
+      changesMade.push('Added rancher annotations');
+    } else if (!parsedJson.rancher.annotations) {
+      parsedJson.rancher.annotations = annotations;
+      changesMade.push('Added rancher annotations');
+    } else {
+      // Merge existing annotations with the new ones
+      parsedJson.rancher.annotations = {
+        ...parsedJson.rancher.annotations,
+        ...annotations,
+      };
+      changesMade.push('Updated rancher annotations');
+    }
+
+    // Update content
+    content = JSON.stringify(parsedJson, null, 2);
+  }
+
+  return [content, changesMade];
 }
 
 module.exports = packageUpdates;
