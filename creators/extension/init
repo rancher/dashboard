@@ -12,7 +12,7 @@ let appName = '';
 let migrate = false;
 let updateOnly = false;
 let skeletonOnly = false;
-let ignoreShellDepCheck = false;
+let ignoreShellDepCheck = false; // Ignore the check for @rancher/shell dependency (Only used for testing)
 let tagUsed = ''; // To store the inferred tag
 
 args.forEach((arg, index) => {
@@ -22,7 +22,7 @@ args.forEach((arg, index) => {
     console.log(`Usage: ${ creatorPkg.name } [options] [extension-name]`);
     console.log('\nOptions:');
     console.log('  --help, -h          Show help');
-    console.log('  --migrate           Migrate an existing extension');
+    console.log('  --migrate           Migrate an existing extension to Vue 3');
     console.log('  --update, -u        Update applications');
     console.log('  --app-name, -a      Specify the name of the application');
     console.log('  --skeleton-only, -s Create only the skeleton application');
@@ -100,7 +100,9 @@ try {
   process.exit(1);
 }
 
-console.log(`  Using version ${ shellVersion } for ${ shellPackageName }`);
+if (!migrate) {
+  console.log(`  Using version ${ shellVersion } for ${ shellPackageName }`);
+}
 
 const basePath = process.cwd();
 let skeletonPath;

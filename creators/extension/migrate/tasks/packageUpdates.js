@@ -51,6 +51,8 @@ function packageUpdatesLibraries(file, oldContent) {
 
   // [Library name, new version or new library, new library version]
   const librariesUpdates = [
+    ['@rancher/shell', '^3.0.0'],
+    ['@rancher/components', '^0.3.0-alpha.1'],
     ['@nuxt/babel-preset-app', removePlaceholder],
     ['@types/jest', '^29.5.2'],
     ['@typescript-eslint/eslint-plugin', '~5.4.0'],
