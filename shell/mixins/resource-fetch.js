@@ -48,7 +48,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // make sure this only runs once, for the initialized instance
     if (this.init) {
       // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
