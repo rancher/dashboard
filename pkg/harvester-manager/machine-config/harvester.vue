@@ -1179,8 +1179,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <UnitInput
-            v-model:value="value.cpuCount"
-            v-int-number
+            v-model:value.number="value.cpuCount"
             label-key="cluster.credential.harvester.cpu"
             suffix="C"
             output-as="string"
@@ -1193,8 +1192,7 @@ export default {
 
         <div class="col span-6">
           <UnitInput
-            v-model:value="value.memorySize"
-            v-int-number
+            v-model:value.number="value.memorySize"
             label-key="cluster.credential.harvester.memory"
             output-as="string"
             suffix="GiB"
@@ -1301,8 +1299,7 @@ export default {
 
                 <div class="col span-6">
                   <UnitInput
-                    v-model:value="disk.size"
-                    v-int-number
+                    v-model:value.number="disk.size"
                     label-key="cluster.credential.harvester.disk"
                     output-as="string"
                     suffix="GiB"
