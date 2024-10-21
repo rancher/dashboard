@@ -1448,12 +1448,6 @@ export default {
               />
             </div>
           </div>
-          <div
-            class="step__values__controls--spacer"
-            style="flex:1"
-          >
-&nbsp;
-          </div>
           <Banner
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
