@@ -512,7 +512,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
-      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', dev ? 'vue.js' : 'vue.min.js');
+      config.resolve.alias['vue$'] = path.resolve(process.cwd(), 'node_modules', 'vue', 'dist', 'vue.js');
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));
       config.plugins.push(getAutoImport());
