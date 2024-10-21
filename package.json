@@ -84,7 +84,7 @@
     "dayjs": "1.8.29",
     "defu": "5.0.1",
     "diff2html": "3.4.24",
-    "dompurify": "2.4.5",
+    "dompurify": "2.5.4",
     "element-matches": "0.1.2",
     "event-target-shim": "5.0.1",
     "express": "4.17.1",
