@@ -1,5 +1,10 @@
 import Driver from '@shell/models/driver';
 
+/**
+ * Overrides for spec.addCloudCredential
+ */
+export const CLOUD_CREDENTIAL_OVERRIDE = { nutanix: true };
+
 export default class NodeDriver extends Driver {
   get doneRoute() {
     return 'c-cluster-manager-driver-nodedriver';
