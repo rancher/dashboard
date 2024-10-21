@@ -34,7 +34,7 @@ export default {
     const promises = {
       catalog:       this.$store.dispatch('catalog/load'),
       allOperations: this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION }),
-      secrets:       this.value?.fetchValues(),
+      secrets:       this.value.fetchValues(true),
     };
 
     const res = await allHash(promises);

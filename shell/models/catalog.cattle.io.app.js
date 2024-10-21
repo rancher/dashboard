@@ -305,53 +305,51 @@ export default class CatalogApp extends SteveModel {
 
   _values = undefined;
 
-  /*
-  * Value live in a helm secret, so fetch it (with special param) and cache locally
-  */
-  async fetchValues() {
-    if (this._values) {
+  /**
+   * User and Chart values live in a helm secret, so fetch it (with special param) and cache them locally
+   */
+  async fetchValues(force = false) {
+    if (this._values && !force) {
       return;
     }
 
-    if (this._values === undefined) {
-      const metadata = this.metadata;
-      const secretReference = metadata.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
+    if (this._values === null) {
+      // Note - if this._values is null this isn't ever going to work, no need to carry on
+      return;
+    }
 
-      const secretId = secretReference?.name;
-      const secretNamespace = metadata.namespace;
+    const metadata = this.metadata;
+    const secretReference = metadata.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
 
-      if (!secretNamespace || !secretId) {
-        console.warn(`Cannot find values for ${ this.id } (cannot find related secret namespace or id)`); // eslint-disable-line no-console
+    const secretId = secretReference?.name;
+    const secretNamespace = metadata.namespace;
 
-        return null;
-      }
+    if (!secretNamespace || !secretId) {
+      console.warn(`Cannot find values for ${ this.id } (cannot find related secret namespace or id)`); // eslint-disable-line no-console
 
-      try {
-        const id = `${ secretNamespace }/${ secretId }`;
-        const existingSecret = this.$getters['byId'](SECRET, id);
-        const haveValues = !!existingSecret?.data?.release?.chart?.values && !!existingSecret?.data?.release?.config;
-        const secret = haveValues ? existingSecret : await this.$dispatch('find', {
-          type: SECRET,
-          id,
-          opt:  {
-            force:  !!existingSecret, // force if we have a secret without the values in (Secret has been fetched another way)
-            watch:  false, // Cannot watch with custom params (they are dropped on calls made when resyncing over socket)
-            params: { includeHelmData: true }
-          }
-        });
+      return null;
+    }
 
-        this._values = {
-          values:      { ...secret.data?.release?.config },
-          chartValues: { ...secret.data?.release?.chart?.values }
-        };
+    try {
+      const id = `${ secretNamespace }/${ secretId }`;
+      const existingSecret = this.$getters['byId'](SECRET, id);
+      const haveValues = !!existingSecret?.data?.release?.chart?.values && !!existingSecret?.data?.release?.config;
+      const secret = haveValues ? existingSecret : await this.$dispatch('find', {
+        type: SECRET,
+        id,
+        opt:  {
+          force:  force || !!existingSecret, // force if we have a secret without the values in (Secret has been fetched another way)
+          watch:  false, // Cannot watch with custom params (they are dropped on calls made when resyncing over socket)
+          params: { includeHelmData: true }
+        }
+      });
 
-        // Avoid undefined
-        return;
-      } catch (e) {
-        console.error(`Cannot find values for ${ this.id } (unable to fetch)`, e); // eslint-disable-line no-console
-      }
-
-      return undefined;
+      this._values = {
+        values:      { ...secret.data?.release?.config },
+        chartValues: { ...secret.data?.release?.chart?.values }
+      };
+    } catch (e) {
+      console.error(`Cannot find values for ${ this.id } (unable to fetch)`, e); // eslint-disable-line no-console
     }
   }
 
@@ -372,12 +370,18 @@ export default class CatalogApp extends SteveModel {
     }
   }
 
+  /**
+   * The user's helm values
+   */
   get values() {
     this._validateValuesSecret('values');
 
     return this._values.values;
   }
 
+  /**
+   * The Charts default helm values
+   */
   get chartValues() {
     this._validateValuesSecret('chartValues');
 
