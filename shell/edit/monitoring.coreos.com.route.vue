@@ -35,6 +35,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   async fetch() {
     const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
     const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });

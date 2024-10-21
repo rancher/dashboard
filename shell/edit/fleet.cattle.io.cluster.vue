@@ -20,6 +20,8 @@ export default {
     NameNsDescription,
   },
 
+  inheritAttrs: false,
+
   mixins: [CreateEditView],
 
   props: {
@@ -53,6 +55,7 @@ export default {
   methods: {
     async save(buttonDone) {
       try {
+        this.errors = [];
         await this.value.save();
 
         await this.normanCluster.save();
@@ -60,6 +63,7 @@ export default {
         this.done();
         buttonDone(true);
       } catch (e) {
+        this.errors.push(e);
         buttonDone(false);
       }
     },
