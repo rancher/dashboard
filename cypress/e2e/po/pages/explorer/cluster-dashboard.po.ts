@@ -63,4 +63,20 @@ export default class ClusterDashboardPagePo extends PagePo {
   clusterActionsHeader() {
     return new HeaderPo();
   }
+
+  fleetStatus() {
+    return cy.get('[data-testid="k8s-service-fleet"]');
+  }
+
+  etcdStatus() {
+    return cy.get('[data-testid="k8s-service-etcd"]');
+  }
+
+  schedulerStatus() {
+    return cy.get('[data-testid="k8s-service-scheduler"]');
+  }
+
+  controllerManagerStatus() {
+    return cy.get('[data-testid="k8s-service-controller-manager"]');
+  }
 }
