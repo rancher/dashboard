@@ -504,7 +504,7 @@ export default {
         margin: 0;
         object-fit: cover;
         padding: 0;
-        width: 45%;
+        width: 49%;
       }
     }
 
@@ -514,7 +514,7 @@ export default {
       overflow-y: auto;
       position: relative;
       height: 100vh;
-      width: 55%;
+      width: 51%;
 
       & > div:first-of-type {
         flex:3;
