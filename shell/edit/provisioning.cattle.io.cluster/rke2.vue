@@ -1480,12 +1480,12 @@ export default {
           this.agentConfig['cloud-provider-config'] = `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`;
 
           if (this.isCreate) {
-            this.chartValues[`${ HARVESTER_CLOUD_PROVIDER }.global.cattle.clusterName`] = this.value.metadata.name;
+            set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.global.cattle.clusterName`, this.value.metadata.name);
           }
 
           const distroRoot = this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro?.length ? this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro : '/var/lib/rancher/rke2';
 
-          this.chartValues[`${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`] = `${ distroRoot }/etc/config-files/cloud-provider-config`;
+          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, `${ distroRoot }/etc/config-files/cloud-provider-config`);
         }
       } catch (err) {
         this.errors.push(err);
