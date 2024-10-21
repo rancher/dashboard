@@ -291,7 +291,7 @@ export default {
             id:   `${ this.query.appNamespace }/${ this.query.appName }`,
           });
 
-          await this.existing?.fetchValues();
+          await this.existing?.fetchValues(true);
 
           this.mode = _EDIT;
         } catch (e) {
@@ -452,7 +452,7 @@ export default {
               }
             }
             if (existingCRDApp) {
-              await existingCRDApp.fetchValues();
+              await existingCRDApp.fetchValues(true);
 
               // spec.values are any non-default values the user configured
               // the installation form should show these, as well as any default values from the chart
