@@ -235,7 +235,7 @@ export interface ProductOptions {
   /**
    * The route that the product will lead to if click on in navigation.
    */
-  to?: Location;
+  to?: PluginRouteRecordRaw;
 
   /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
