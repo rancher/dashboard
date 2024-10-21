@@ -134,6 +134,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // update color
     clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
     clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
@@ -156,6 +157,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
     clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
     // Apply Changes
