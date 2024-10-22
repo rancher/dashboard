@@ -104,7 +104,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it.skip('[Vue3 Skip]: Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
+  it('Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -118,10 +118,7 @@ describe('User can update their preferences', () => {
       },
       {
         index: '1', value: '"last-visited"', page: 'c/_/manager/provisioning.cattle.io.cluster'
-      },
-      { // This option only works when there is an existing local cluster
-        index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
-      },
+      }
     ];
 
     prefPage.goTo();
@@ -426,7 +423,7 @@ describe('User can update their preferences', () => {
       yamlEditor.keyboardMappingIndicator().checkNotExists();
     });
 
-    it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
+    it('does show any indicator for non-default keyboard mapping', () => {
       prefPage.goTo();
       prefPage.keymapButtons().checkVisible();
 
