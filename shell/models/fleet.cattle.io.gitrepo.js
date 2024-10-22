@@ -316,14 +316,6 @@ export default class GitRepo extends SteveModel {
     return 0;
   }
 
-  get targetClustersReady() {
-    if (this.targetClusters && this.targetClusters.length) {
-      return this.targetClusters.filter((cluster) => cluster.state === 'active');
-    }
-
-    return 0;
-  }
-
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 

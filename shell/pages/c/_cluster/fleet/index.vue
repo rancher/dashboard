@@ -175,7 +175,12 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
+          };
+        }
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -223,7 +228,7 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        group = '';
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -262,7 +267,7 @@ export default {
       }
 
       if (area === 'clusters') {
-        value = `${ row.targetClustersReady?.length || '0' }/${ row.targetClusters?.length || '?' }`;
+        return `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
       } else if (area === 'bundles') {
         value = `${ row.bundlesReady?.length || '0' }/${ row.bundles?.length || '?' }`;
       } else if (area === 'resources') {
