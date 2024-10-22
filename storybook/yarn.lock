@@ -7856,10 +7856,10 @@ domhandler@^4.0.0, domhandler@^4.2.0, domhandler@^4.3.1:
   dependencies:
     domelementtype "^2.2.0"
 
-dompurify@2.4.5:
-  version "2.4.5"
-  resolved "https://registry.npmjs.org/dompurify/-/dompurify-2.4.5.tgz#0e89a27601f0bad978f9a924e7a05d5d2cccdd87"
-  integrity sha512-jggCCd+8Iqp4Tsz0nIvpcb22InKEBrGz5dw3EQJMs8HPJDsKbFIO3STYtAvCfDx26Muevn1MHVI0XxjgFfmiSA==
+dompurify@2.5.4:
+  version "2.5.4"
+  resolved "https://registry.npmjs.org/dompurify/-/dompurify-2.5.4.tgz#347e91070963b22db31c7c8d0ce9a0a2c3c08746"
+  integrity sha512-l5NNozANzaLPPe0XaAwvg3uZcHtDBnziX/HjsY1UcDj1MxTK8Dd0Kv096jyPK5HRzs/XM5IMj20dW8Fk+HnbUA==
 
 domutils@^1.5.1:
   version "1.7.0"
@@ -13321,7 +13321,7 @@ shell-quote@1.7.3:
     dayjs "1.8.29"
     defu "5.0.1"
     diff2html "3.4.24"
-    dompurify "2.4.5"
+    dompurify "2.5.4"
     element-matches "0.1.2"
     event-target-shim "5.0.1"
     express "4.17.1"
@@ -13362,7 +13362,7 @@ shell-quote@1.7.3:
     vue-server-renderer "2.6.14"
     vue3-resize "0.2.0"
     vue3-virtual-scroll-list "0.2.1"
-    vuedraggable "2.24.3"
+    vuedraggable "4.1.0"
     vuex "4.0.2"
     xterm "5.2.1"
     xterm-addon-canvas "0.5.0"
@@ -13370,7 +13370,7 @@ shell-quote@1.7.3:
     xterm-addon-search "0.13.0"
     xterm-addon-web-links "0.9.0"
     xterm-addon-webgl "0.16.0"
-    yaml "2.0.0"
+    yaml "2.5.1"
 
 side-channel@^1.0.4, side-channel@^1.0.6:
   version "1.0.6"
@@ -13457,10 +13457,10 @@ snapdragon@^0.8.1:
     source-map-resolve "^0.5.0"
     use "^3.1.0"
 
-sortablejs@1.10.2:
-  version "1.10.2"
-  resolved "https://registry.npmjs.org/sortablejs/-/sortablejs-1.10.2.tgz#6e40364d913f98b85a14f6678f92b5c1221f5290"
-  integrity sha512-YkPGufevysvfwn5rfdlGyrGjt7/CRHwvRPogD/lC+TnvcN29jDpCifKP+rBqf+LRldfXSTh+0CGLcSg0VIxq3A==
+sortablejs@1.14.0:
+  version "1.14.0"
+  resolved "https://registry.npmjs.org/sortablejs/-/sortablejs-1.14.0.tgz#6d2e17ccbdb25f464734df621d4f35d4ab35b3d8"
+  integrity sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==
 
 "source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.1, source-map-js@^1.2.0:
   version "1.2.0"
@@ -14677,12 +14677,12 @@ vue@^3.4.31:
     "@vue/server-renderer" "3.4.38"
     "@vue/shared" "3.4.38"
 
-vuedraggable@2.24.3:
-  version "2.24.3"
-  resolved "https://registry.npmjs.org/vuedraggable/-/vuedraggable-2.24.3.tgz#43c93849b746a24ce503e123d5b259c701ba0d19"
-  integrity sha512-6/HDXi92GzB+Hcs9fC6PAAozK1RLt1ewPTLjK0anTYguXLAeySDmcnqE8IC0xa7shvSzRjQXq3/+dsZ7ETGF3g==
+vuedraggable@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.npmjs.org/vuedraggable/-/vuedraggable-4.1.0.tgz#edece68adb8a4d9e06accff9dfc9040e66852270"
+  integrity sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==
   dependencies:
-    sortablejs "1.10.2"
+    sortablejs "1.14.0"
 
 vuex@4.0.2:
   version "4.0.2"
@@ -14993,10 +14993,10 @@ yallist@^4.0.0:
   resolved "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
-yaml@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/yaml/-/yaml-2.0.0.tgz#cbc588ad58e0cd924cd3f5f2b1a9485103048e25"
-  integrity sha512-JbfdlHKGP2Ik9IHylzWlGd4pPK++EU46/IxMykphS2ZKw7a7h+dHNmcXObLgpRDriBY+rpWslldikckX8oruWQ==
+yaml@2.5.1:
+  version "2.5.1"
+  resolved "https://registry.npmjs.org/yaml/-/yaml-2.5.1.tgz#c9772aacf62cb7494a95b0c4f1fb065b563db130"
+  integrity sha512-bLQOjaX/ADgQ20isPJRvF0iRUHIxVhYvr53Of7wGcWlO2jvtUlH5m87DsmulFVxRpNLOnI4tB6p/oh8D7kpn9Q==
 
 yaml@^1.10.0:
   version "1.10.2"
