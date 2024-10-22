@@ -13,7 +13,7 @@ export default {
     this.metricPoller.start();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.metricPoller.stop();
   },
 };
