@@ -1,10 +1,11 @@
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-const chartBranch = 'release-v2.9';
+const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');

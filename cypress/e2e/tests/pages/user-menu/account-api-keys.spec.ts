@@ -49,7 +49,8 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
     });
 
-    it('Can create and delete API keys', () => {
+    // undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
+    it.skip('Can create and delete API keys', () => {
     /**
      * Bulk delete existing API keys (to make this a deterministic test)
      * Verify empty state message displays
@@ -133,7 +134,8 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });
 
-    it('pagination is visible and user is able to navigate through tokens data', () => {
+    // undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
+    it.skip('pagination is visible and user is able to navigate through tokens data', () => {
       // check tokens count
       const count = initialCount + 26;
 

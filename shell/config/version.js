@@ -25,3 +25,5 @@ export function setKubeVersionData(v) {
   // Remove any properties on 'v' we don't want
   _kubeVersionData = JSON.parse(JSON.stringify(v));
 }
+
+export const CURRENT_RANCHER_VERSION = 'v2.10';
