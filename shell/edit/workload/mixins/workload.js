@@ -947,7 +947,7 @@ export default {
         nameNumber++;
       }
       const container = {
-        ...defaultContainer,
+        ...structuredClone(defaultContainer),
         name:   `container-${ nameNumber }`,
         active: true
       };

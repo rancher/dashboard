@@ -110,7 +110,7 @@ export default class Workload extends WorkloadService {
         spec.template = {
           spec: {
             restartPolicy:  this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always',
-            containers:     [{ ...defaultContainer }],
+            containers:     [{ ...structuredClone(defaultContainer) }],
             initContainers: []
           }
         };
