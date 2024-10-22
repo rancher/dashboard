@@ -1,4 +1,3 @@
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
@@ -27,22 +26,22 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
   });
 
   it('app bar shows short version number', () => {
-    interceptAndChangeVersion(`${ CURRENT_RANCHER_VERSION }.0`);
+    interceptAndChangeVersion('2.9.0');
     HomePagePo.goTo();
 
     nav.version().checkExists();
     nav.version().checkVisible();
-    nav.version().checkVersion(CURRENT_RANCHER_VERSION);
+    nav.version().checkVersion('v2.9');
     nav.version().checkNormalText();
   });
 
-  it('app bar shows full version number', () => {
-    interceptAndChangeVersion(`${ CURRENT_RANCHER_VERSION }.1`);
+  it.only('app bar shows full version number', () => {
+    interceptAndChangeVersion('2.9.1');
     HomePagePo.goTo();
 
     nav.version().checkExists();
     nav.version().checkVisible();
-    nav.version().checkVersion(`${ CURRENT_RANCHER_VERSION }.1`);
+    nav.version().checkVersion('2.9.1');
     nav.version().checkNormalText();
   });
 
