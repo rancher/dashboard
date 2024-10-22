@@ -42,7 +42,7 @@ export default {
   },
   computed: {
     gitRepoHasClusters() {
-      return this.value?.clusterResourceStatus?.length;
+      return this.value.status.desiredReadyClusters;
     },
     clusterSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
