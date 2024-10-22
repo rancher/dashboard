@@ -2,6 +2,7 @@ import { mount, shallowMount } from '@vue/test-utils';
 import { SECRET } from '@shell/config/types';
 import { _CREATE } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
+import { get } from '@shell/utils/object';
 
 /**
  * DISCLAIMER ***************************************************************************************
@@ -242,7 +243,9 @@ describe('component: rke2', () => {
 
     await wrapper.vm._doSaveOverride(jest.fn());
 
-    expect(wrapper.vm.chartValues[`${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`]).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
+    const cloudConfigPath = get(wrapper.vm.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`);
+
+    expect(cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
 
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
