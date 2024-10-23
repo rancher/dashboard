@@ -5,7 +5,7 @@ import { machineSelectorConfigPayload, registriesWithSecretPayload } from '@/cyp
 const registryHost = 'docker.io';
 const registryAuthHost = 'a.registry.com';
 
-describe.skip('[Vue3 Skip]: Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
+describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
     cy.createE2EResourceName('cluster').as('clusterName');
