@@ -16,6 +16,10 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('filtering the Charts (search box) should not impact the Charts carousel', () => {
+    chartsPage.chartsFilterCategoriesSelect().toggle();
+    chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
     chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
     chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
     chartsPage.chartsFilterInput().clear();
@@ -52,6 +56,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('Charts have expected icons', () => {
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
     chartsPage.checkChartGenericIcon('Logging', false);
