@@ -26,7 +26,7 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
   });
 
   it('app bar shows short version number', () => {
-    interceptAndChangeVersion('2.9.0');
+    interceptAndChangeVersion('v2.9.0');
     HomePagePo.goTo();
 
     nav.version().checkExists();
@@ -36,12 +36,12 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
   });
 
   it('app bar shows full version number', () => {
-    interceptAndChangeVersion('2.9.1');
+    interceptAndChangeVersion('v2.9.1');
     HomePagePo.goTo();
 
     nav.version().checkExists();
     nav.version().checkVisible();
-    nav.version().checkVersion('2.9.1');
+    nav.version().checkVersion('v2.9.1');
     nav.version().checkNormalText();
   });
 
