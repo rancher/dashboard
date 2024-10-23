@@ -10,7 +10,6 @@ import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
-import capitalize from 'lodash/capitalize';
 
 /**
  * Class representing Cluster resource.
@@ -424,7 +423,7 @@ export default class ProvCluster extends SteveModel {
       if (!node.metadata?.state?.transitioning) {
         const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
 
-        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+        const key = architecture || this.t('cluster.architecture.label.unknown');
 
         obj[key] = (obj[key] || 0) + 1;
       }
