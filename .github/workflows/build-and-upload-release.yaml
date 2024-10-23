@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - v2.9.*
+      # v${RANCHER_VERSION}-hotfix-ch-${COUNTER}-${HASH}
+      - 'v2.9.*-hotfix-ch-*-*'
 
 jobs:
   build-validation:
