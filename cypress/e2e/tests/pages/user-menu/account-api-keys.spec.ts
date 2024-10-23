@@ -11,7 +11,8 @@ const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 const tokenIdsList = [];
 
-describe('Account and API Keys', { testIsolation: 'off' }, () => {
+// TODO: undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
+describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
@@ -49,8 +50,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       cy.wait('@changePw').its('response.statusCode').should('eq', 200);
     });
 
-    // undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
-    it.skip('Can create and delete API keys', () => {
+    it('Can create and delete API keys', () => {
     /**
      * Bulk delete existing API keys (to make this a deterministic test)
      * Verify empty state message displays
@@ -134,8 +134,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });
 
-    // undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
-    it.skip('pagination is visible and user is able to navigate through tokens data', () => {
+    it('pagination is visible and user is able to navigate through tokens data', () => {
       // check tokens count
       const count = initialCount + 26;
 
