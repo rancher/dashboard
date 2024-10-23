@@ -159,6 +159,10 @@ describe('Apps', () => {
 
         // Nav to a summary page for a specific chart
         ChartsPage.navTo(clusterId);
+        chartsPage.chartsFilterCategoriesSelect().toggle();
+        chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
+        chartsPage.chartsFilterReposSelect().toggle();
+        chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
         chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
         chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
         chartsPage.chartsFilterInput().clear();
