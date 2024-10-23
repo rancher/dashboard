@@ -18,7 +18,7 @@ export default class SelectPo extends ComponentPo {
       if (!el.find('input[type="checkbox"]').is(':checked')) {
         return cy.wrap(el).should('be.visible').click({ force: true });
       }
-    })
+    });
   }
 
   /**
