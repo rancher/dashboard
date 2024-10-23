@@ -35,7 +35,7 @@ describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@
     nav.version().checkNormalText();
   });
 
-  it.only('app bar shows full version number', () => {
+  it('app bar shows full version number', () => {
     interceptAndChangeVersion('2.9.1');
     HomePagePo.goTo();
 
