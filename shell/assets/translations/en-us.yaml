@@ -1832,8 +1832,8 @@ cluster:
 
   architecture:
     label:
-      unknown: Unknown
-      mixed: Mixed
+      unknown: unknown
+      mixed: mixed
 
   availabilityWarnings:
     node: Node {name} is inactive
