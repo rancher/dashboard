@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-const chartBranch = `release-${ CURRENT_RANCHER_VERSION }`;
+const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');

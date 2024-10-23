@@ -26,4 +26,4 @@ export function setKubeVersionData(v) {
   _kubeVersionData = JSON.parse(JSON.stringify(v));
 }
 
-export const CURRENT_RANCHER_VERSION = 'v2.10';
+export const CURRENT_RANCHER_VERSION = '2.10';

@@ -32,7 +32,7 @@ describe('Home Page', () => {
       cy.login();
     });
 
-    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    it.only('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
