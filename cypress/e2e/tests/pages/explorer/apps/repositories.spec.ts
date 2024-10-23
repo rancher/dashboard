@@ -162,7 +162,7 @@ describe('Apps', () => {
         chartsPage.chartsFilterCategoriesSelect().toggle();
         chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
         chartsPage.chartsFilterReposSelect().toggle();
-        chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
+        chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
         chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
         chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
         chartsPage.chartsFilterInput().clear();
