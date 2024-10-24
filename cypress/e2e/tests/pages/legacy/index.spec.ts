@@ -10,6 +10,6 @@ describe('Legacy Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser
 
     page.goTo();
 
-    cy.url().should('includes', `${ Cypress.config().baseUrl }/c/local/legacy/pages/alerts`);
+    cy.url().should('includes', `${ Cypress.config().baseUrl }/c/local/legacy/project`);
   });
 });
