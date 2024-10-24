@@ -64,7 +64,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters(['isSingleProduct']),
+    ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
+
+    isHarvester() {
+      return this.isSingleProduct?.productName === 'harvester';
+    },
 
     loggedOutSuccessMsg() {
       if (this.isSlo) {
@@ -497,7 +502,7 @@ export default {
           </div>
         </template>
         <div
-          v-if="showLocaleSelector"
+          v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"
           class="locale-selector"
         >
           <LocaleSelector
