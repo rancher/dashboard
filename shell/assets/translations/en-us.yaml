@@ -26,6 +26,7 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
+  inProgress: In Progress
   imagePullPolicy:
     always: Always
     ifNotPresent: IfNotPresent
@@ -111,6 +112,7 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
+  basic: Basic
 
 locale:
   en-us: English
@@ -2124,6 +2126,7 @@ cluster:
   tabs:
     ace: Authorized Endpoint
     addOnAdditionalManifest: Additional Manifest
+    addons: Add-on Configuration
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
@@ -2157,6 +2160,7 @@ clusterIndexPage:
     ram: Memory
     used: Used
     reserved: Reserved
+    allocated: Allocated
     units:
       cores: |-
         {count, plural,
@@ -2980,6 +2984,10 @@ labelSelect:
   pagination:
     counts: '{count} / {totalCount} items'
     more: Load More...
+labeledSelect:
+  startTyping: Start typing to define an item
+  pressEnter: Press enter to add "{input}"
+
 landing:
   clusters:
     title: Clusters
@@ -3712,6 +3720,9 @@ namespace:
   selectNamespace: Select Namespace
   createNamespace: Create a new Namespace
   selectOrCreate: Select or Create a Namespace
+  snapshots:
+    label: Snapshots
+    totalSnapshotSize: Total Snapshot Size
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -4993,6 +5004,7 @@ resourceTable:
     node: Group by Node
     role: Group by Role
     cluster: Group by Cluster
+    device: Group by Device
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
@@ -5788,6 +5800,7 @@ tableHeaders:
   resourcesReady: Resources Ready
   restarts: Restarts
   restart: Restart Required
+  restore: Restore
   role: Role
   roles: Roles
   routes: Routes
@@ -5823,6 +5836,7 @@ tableHeaders:
   targetKind: Target Type
   targetPort: Target
   template: Template
+  totalSnapshotQuota: Total Snapshot Quota
   type: Type
   updated: Updated
   up-to-date: Up To Date
@@ -7299,6 +7313,7 @@ action:
   viewYaml: View YAML
   activate: Activate
   deactivate: Deactivate
+  editQuota: Edit Quota
   show: Show
   hide: Hide
   copy: Copy
@@ -7778,7 +7793,9 @@ auth:
     label: Auth Provider
 vncConsole:
   error:
-    message: Web VNC console connection is disconnected
+    message: Web VNC console is disconnected
+  reconnecting:
+    message: Web VNC console reconnection attempt
 
 gitPicker:
   github:
