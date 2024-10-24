@@ -222,7 +222,6 @@ product:
   settings: 全局设置
   clusterManagement: 集群管理
   monitoring: 监控
-  mcapps: 全局配置
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
   rancher: Rancher
