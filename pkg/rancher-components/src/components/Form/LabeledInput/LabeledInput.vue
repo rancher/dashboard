@@ -177,11 +177,16 @@ export default defineComponent({
       if (this.type !== 'cron' || !this.value) {
         return;
       }
-      if (typeof this.value === 'string' && !isValidCron(this.value)) {
+      // refer https://github.com/GuillaumeRochat/cron-validator#readme
+      if (!isValidCron(this.value as string, {
+        alias:              true,
+        allowBlankDay:      true,
+        allowSevenAsSunday: true,
+      })) {
         return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value || '');
+        const hint = cronstrue.toString(this.value as string || '');
 
         return hint;
       } catch (e) {
