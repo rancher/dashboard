@@ -187,7 +187,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it.skip('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
+  it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
 
@@ -204,8 +204,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
         // check ns picker
         namespacePicker.toggle();
-        cy.contains(projName).should('be.visible');
-        cy.contains(nsName).should('be.visible');
+        cy.contains(projName).should('exist').scrollIntoView().and('be.visible');
+        cy.contains(nsName).should('exist').scrollIntoView().and('be.visible');
 
         // delete project and ns
         cy.deleteRancherResource('v1', 'namespaces', nsName);
