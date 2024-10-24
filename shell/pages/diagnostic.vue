@@ -151,7 +151,6 @@ export default {
         responseTimes:     this.responseTimes
       };
 
-      console.log('eeeeeeee', Object.keys(data.storeMapping));
       downloadFile(fileName, JSON.stringify(data), 'application/json')
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
