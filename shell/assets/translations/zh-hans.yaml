@@ -48,7 +48,7 @@ generic:
       info: 信息
       warning: 警告
       error: 错误
-  ok: OK
+  ok: 确定
   overview: 概述
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
