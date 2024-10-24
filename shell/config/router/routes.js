@@ -228,12 +228,10 @@ export default [
         path: '/c/:cluster/legacy',
         redirect(to) {
           return {
-            name:   'c-cluster-legacy-pages-page',
+            name:   'c-cluster-legacy-project',
             params: {
               ...(to?.params || {}),
-              cluster: 'local',
-              product: LEGACY,
-              page:    'alerts'
+              product: EXPLORER,
             }
           };
         },
@@ -367,10 +365,6 @@ export default [
         path:      '/c/:cluster/auth/user.retention',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/user.retention/index.vue')),
         name:      'c-cluster-auth-user.retention'
-      }, {
-        path:      '/c/:cluster/legacy/project/pipelines',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/legacy/project/pipelines.vue')),
-        name:      'c-cluster-legacy-project-pipelines'
       }, {
         path:      '/c/:cluster/manager/cloudCredential/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/create.vue')),
