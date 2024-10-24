@@ -6,7 +6,7 @@ import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
-import { getProduct } from '@shell/config/private-label';
+import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
 import AppModal from '@shell/components/AppModal';
@@ -14,6 +14,7 @@ import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
+
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
@@ -86,7 +87,8 @@ export default {
       'pageActions',
       'isSingleProduct',
       'isRancherInHarvester',
-      'showTopLevelMenu'
+      'showTopLevelMenu',
+      'isMultiCluster'
     ]),
 
     samlAuthProviderEnabled() {
@@ -108,6 +110,12 @@ export default {
 
     appName() {
       return getProduct();
+    },
+
+    vendor() {
+      this.$store.getters['management/all'](MANAGEMENT.SETTING)?.find((setting) => setting.id === 'ui-pl');
+
+      return getVendor();
     },
 
     authEnabled() {
@@ -379,7 +387,7 @@ export default {
     data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="showTopLevelMenu" />
+      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
     <div
       class="menu-spacer"
@@ -389,7 +397,14 @@ export default {
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
+        <BrandImage
+          v-if="isSingleProduct.supportCustomLogo"
+          class="side-menu-logo"
+          file-name="harvester.svg"
+          :support-custom-logo="true"
+        />
         <img
+          v-else
           class="side-menu-logo"
           :src="isSingleProduct.logo"
         >
@@ -409,7 +424,12 @@ export default {
           v-if="isSingleProduct && !isRancherInHarvester"
           class="product-name"
         >
-          {{ t(isSingleProduct.productNameKey) }}
+          <template v-if="isSingleProduct.supportCustomLogo">
+            {{ vendor }}
+          </template>
+          <template v-else>
+            {{ t(isSingleProduct.productNameKey) }}
+          </template>
         </div>
         <template v-else>
           <ClusterProviderIcon

@@ -3237,6 +3237,9 @@ logging:
       certificate: Connection
       labels: Labels
       configuration: Configuration
+    tips:
+      singleProvider: This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+      multipleProviders: This output is configured with providers we do not support yet. You can view or edit the YAML.
   outputProviders:
     elasticsearch: Elasticsearch
     opensearch: OpenSearch
