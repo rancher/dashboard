@@ -313,6 +313,7 @@ export const HCI = {
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
   SETTING:          'harvesterhci.io.setting',
+  RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };
 

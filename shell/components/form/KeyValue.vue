@@ -717,7 +717,7 @@ export default {
                 @onFocus="onFocusMarkdownMultiline(i, $event)"
               />
               <TextAreaAutoGrow
-                v-else-if="valueMultiline"
+                v-else-if="valueMultiline && row[valueName] !== undefined"
                 v-model:value="row[valueName]"
                 data-testid="value-multiline"
                 :class="{'conceal': valueConcealed}"

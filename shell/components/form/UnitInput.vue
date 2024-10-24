@@ -128,7 +128,12 @@ export default {
     delay: {
       type:    Number,
       default: 0
-    }
+    },
+
+    positive: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -195,6 +200,10 @@ export default {
 
     update(inputValue) {
       let out = inputValue === '' ? null : inputValue;
+
+      if (this.positive && inputValue < 0) {
+        out = 0;
+      }
 
       if (this.outputModifier) {
         out = out === null ? null : `${ inputValue }${ this.unit }`;

@@ -6,7 +6,7 @@ import { uniq } from '@shell/utils/array';
 import {
   CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
-import { Schema } from 'plugins/steve/schema';
+import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
   /**

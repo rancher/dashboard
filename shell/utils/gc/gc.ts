@@ -29,7 +29,7 @@ class GarbageCollect {
    * To avoid JSON.parse on the `ui-performance` setting keep a local cache
    */
   private getUiPerfGarbageCollection = (rootState: any) => {
-    const uiPerfSetting = rootState.management.types[MANAGEMENT.SETTING]?.list.find((s: any) => s.id === SETTING.UI_PERFORMANCE);
+    const uiPerfSetting = rootState.management.types[MANAGEMENT.SETTING]?.list?.find((s: any) => s.id === SETTING.UI_PERFORMANCE);
 
     if (!uiPerfSetting || !uiPerfSetting.value) {
       // Could be in the process of logging out

@@ -2,6 +2,7 @@
 import KeyValue from '@shell/components/form/KeyValue';
 import Select from '@shell/components/form/Select';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 
 export default {
   emits: ['remove'],
@@ -39,6 +40,12 @@ export default {
     }
   },
 
+  computed: {
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+  },
+
   methods: {
     update() {},
 
@@ -51,19 +58,22 @@ export default {
 
 <template>
   <div>
-    <KeyValue
-      v-model:value="value.labels"
-      :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
-      :mode="mode"
-      :initial-empty-row="true"
-      :read-allowed="false"
-      :title-add="true"
-      protip=""
-      :key-label="t('logging.flow.matches.pods.keyLabel')"
-      :value-label="t('logging.flow.matches.pods.valueLabel')"
-      :add-label="t('logging.flow.matches.pods.addLabel')"
-    />
-    <div class="spacer" />
+    <div v-if="!isHarvester">
+      <KeyValue
+        v-model:value="value.labels"
+        :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
+        :mode="mode"
+        :initial-empty-row="true"
+        :read-allowed="false"
+        :title-add="true"
+        protip=""
+        :key-label="t('logging.flow.matches.pods.keyLabel')"
+        :value-label="t('logging.flow.matches.pods.valueLabel')"
+        :add-label="t('logging.flow.matches.pods.addLabel')"
+      />
+      <div class="spacer" />
+    </div>
+
     <h3>
       {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
     </h3>
@@ -83,46 +93,69 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer" />
-    <h3>
-      {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
-    </h3>
-    <div class="row">
-      <div class="col span-12">
-        <LabeledSelect
-          v-model:value="value.container_names"
-          :mode="mode"
-          :options="[]"
-          :disabled="false"
-          :placeholder="t('logging.flow.matches.containerNames.placeholder')"
-          :multiple="true"
-          :taggable="true"
-          :clearable="true"
-          :searchable="true"
-          :close-on-select="false"
-          no-options-label-key="logging.flow.matches.containerNames.enter"
-          placement="top"
-        />
-      </div>
-    </div>
-    <div v-if="isClusterFlow">
+    <div v-if="!isHarvester">
       <div class="spacer" />
       <h3>
-        {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
+        {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
       </h3>
       <div class="row">
         <div class="col span-12">
-          <Select
-            v-model:value="value.namespaces"
-            class="lg"
-            :options="namespaces"
-            :placeholder="t('logging.flow.matches.namespaces.placeholder')"
+          <LabeledSelect
+            v-model:value="value.container_names"
+            :mode="mode"
+            :options="[]"
+            :disabled="false"
+            :placeholder="t('logging.flow.matches.containerNames.placeholder')"
             :multiple="true"
             :taggable="true"
             :clearable="true"
+            :searchable="true"
             :close-on-select="false"
+            no-options-label-key="logging.flow.matches.containerNames.enter"
             placement="top"
           />
+        </div>
+      </div>
+      <div v-if="isClusterFlow">
+        <div class="spacer" />
+        <h3>
+          {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
+        </h3>
+        <div class="row">
+          <div class="col span-12">
+            <Select
+              v-model:value="value.namespaces"
+              class="lg"
+              :options="namespaces"
+              :placeholder="t('logging.flow.matches.namespaces.placeholder')"
+              :multiple="true"
+              :taggable="true"
+              :clearable="true"
+              :searchable="true"
+              :close-on-select="false"
+              no-options-label-key="logging.flow.matches.containerNames.enter"
+              placement="top"
+            />
+          </div>
+        </div>
+        <div class="spacer" />
+        <h3>
+          {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
+        </h3>
+        <div class="row">
+          <div class="col span-12">
+            <Select
+              v-model="value.namespaces"
+              class="lg"
+              :options="namespaces"
+              :placeholder="t('logging.flow.matches.namespaces.placeholder')"
+              :multiple="true"
+              :taggable="true"
+              :clearable="true"
+              :close-on-select="false"
+              placement="top"
+            />
+          </div>
         </div>
       </div>
     </div>

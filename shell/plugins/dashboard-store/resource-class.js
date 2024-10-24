@@ -9,7 +9,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { VIEW_IN_API } from '@shell/store/prefs';
+import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
@@ -84,6 +84,7 @@ export const STATES_ENUM = {
   DISCONNECTED:     'disconnected',
   DRAINED:          'drained',
   DRAINING:         'draining',
+  ENABLED:          'enabled',
   ERR_APPLIED:      'errapplied',
   ERROR:            'error',
   ERRORING:         'erroring',
@@ -231,6 +232,9 @@ export const STATES = {
   },
   [STATES_ENUM.DRAINING]: {
     color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.ENABLED]: {
+    color: 'success', icon: 'dot-open', label: 'Enabled', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.ERR_APPLIED]: {
     color: 'error', icon: 'error', label: 'Error Applied', compoundIcon: 'error'
@@ -997,7 +1001,11 @@ export default class Resource {
   }
 
   get canViewInApi() {
-    return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    try {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    } catch {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+    }
   }
 
   get canYaml() {
@@ -1055,7 +1063,7 @@ export default class Resource {
 
   async doActionGrowl(actionName, body, opt = {}) {
     try {
-      await this.$dispatch('resourceAction', {
+      return await this.$dispatch('resourceAction', {
         resource: this,
         actionName,
         body,
