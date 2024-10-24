@@ -74,7 +74,7 @@
     "dagre-d3": "0.6.4",
     "dayjs": "1.8.29",
     "diff2html": "3.4.24",
-    "dompurify": "2.4.5",
+    "dompurify": "2.5.4",
     "element-matches": "^0.1.2",
     "eslint": "7.32.0",
     "eslint-config-standard": "16.0.3",
