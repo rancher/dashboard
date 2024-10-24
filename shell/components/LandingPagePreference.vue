@@ -119,8 +119,8 @@ export default {
             :label="option.label"
             :val="false"
             :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
+            :v-bind="$attrs"
             @update:value="afterLoginRoute = false"
-            v-on="listeners"
           />
           <Select
             v-model:value="routeFromDropdown"
