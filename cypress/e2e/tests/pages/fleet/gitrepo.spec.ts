@@ -10,7 +10,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
-describe.skip('[Vue3 Skip]: Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   describe('Create', () => {
     const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
@@ -108,7 +108,9 @@ describe.skip('[Vue3 Skip]: Git Repo', { testIsolation: 'off', tags: ['@fleet', 
           prefPage.languageDropdownMenu().toggle();
           prefPage.languageDropdownMenu().isOpened();
 
-          cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateZhHans`);
+          cy.intercept({
+            method: 'PUT', url: 'v1/userpreferences/*', times: 1
+          }).as(`prefUpdateZhHans`);
           prefPage.languageDropdownMenu().clickOption(2);
           cy.wait('@prefUpdateZhHans').then(({ response }) => {
             expect(response?.statusCode).to.eq(200);
