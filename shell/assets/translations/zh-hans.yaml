@@ -7335,8 +7335,6 @@ legacy:
   catalogs: 应用商店
   configMaps: ConfigMaps
   configuration: 配置
-  globalDnsEntries: 全局 DNS 条目
-  globalDnsProviders: 全局 DNS 提供商
   notifiers: Notifiers
   monitoring: 监控
   secrets: 密文

@@ -31,31 +31,7 @@ export function init(store) {
     exact:      true
   });
 
-  virtualType({
-    labelKey:   'legacy.globalDnsEntries',
-    name:       'global-dns-entries',
-    group:      'Root',
-    namespaced: false,
-    weight:     110,
-    icon:       'folder',
-    route:      { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-entries' } },
-    exact:      true
-  });
-
-  virtualType({
-    labelKey:   'legacy.globalDnsProviders',
-    name:       'global-dns-providers',
-    group:      'Root',
-    namespaced: false,
-    weight:     109,
-    icon:       'folder',
-    route:      { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-providers' } },
-    exact:      true
-  });
-
   basicType([
     'mc-catalogs',
-    'global-dns-entries',
-    'global-dns-providers',
   ]);
 }

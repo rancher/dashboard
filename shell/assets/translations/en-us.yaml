@@ -7737,8 +7737,6 @@ legacy:
   catalogs: Catalogs
   configMaps: Config Maps
   configuration: Configuration
-  globalDnsEntries: Global DNS Entries
-  globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
   secrets: Secrets
