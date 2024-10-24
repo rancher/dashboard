@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
-import { NORMAN, STEVE, MANAGEMENT } from '@shell/config/types';
+import { NORMAN, STEVE } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -20,7 +20,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
-import { authProvidersInfo, parseAuthProvidersInfo } from '@shell/utils/auth';
+import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
 
 export default {
@@ -48,7 +48,7 @@ export default {
 
   fetch() {
     // fetch needed data to check if any auth provider is enabled
-    authProvidersInfo(this.$store);
+    this.$store.dispatch('auth/getAuthProviders');
   },
 
   data() {
@@ -89,11 +89,10 @@ export default {
       'showTopLevelMenu'
     ]),
 
-    authProviderEnabled() {
-      const authProviders = this.$store.getters['management/all'](MANAGEMENT.AUTH_CONFIG);
-      const authInfo = parseAuthProvidersInfo(authProviders);
+    samlAuthProviderEnabled() {
+      const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
-      return authInfo.enabled?.[0] || {};
+      return publicAuthProviders.find((authProvider) => configType[authProvider.id] === 'saml') || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -102,11 +101,9 @@ export default {
         return false;
       }
 
-      const {
-        logoutAllSupported, logoutAllEnabled, logoutAllForced, configType
-      } = this.authProviderEnabled;
+      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.samlAuthProviderEnabled;
 
-      return configType === 'saml' && logoutAllSupported && logoutAllEnabled && !logoutAllForced;
+      return logoutAllSupported && logoutAllEnabled && !logoutAllForced;
     },
 
     appName() {
@@ -260,7 +257,7 @@ export default {
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
-        componentProps: { authProvider: this.authProviderEnabled },
+        componentProps: { authProvider: this.samlAuthProviderEnabled },
         modalWidth:     '500px'
       });
     },
