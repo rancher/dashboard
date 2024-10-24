@@ -2995,7 +2995,7 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in this version.
+  seeWhatsNew: Learn more about the improvements and new capabilities in this version and read about the UI framework migration in 2.10
   whatsNewLink: "What's new in 2.10"
   learnMore: Learn More
   support: Support

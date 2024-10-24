@@ -43,7 +43,7 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
+        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
         homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
 
         homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
