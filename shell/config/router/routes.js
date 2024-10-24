@@ -2,7 +2,6 @@ import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { CAPI, MANAGEMENT, BACKUP_RESTORE, CIS } from '@shell/config/types';
-import { NAME as MCAPPS, NAME as LEGACY } from '@shell/config/product/multi-cluster-apps';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
@@ -263,19 +262,6 @@ export default [
         },
         name: 'c-cluster-manager'
       }, {
-        path: '/c/:cluster/mcapps',
-        redirect(to) {
-          return {
-            name:   'c-cluster-mcapps-pages-page',
-            params: {
-              ...(to?.params || {}),
-              product: MCAPPS,
-              page:    'catalogs'
-            }
-          };
-        },
-        name: 'c-cluster-mcapps'
-      }, {
         path:      '/c/:cluster/monitoring',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/index.vue')),
         name:      'c-cluster-monitoring',
@@ -437,10 +423,6 @@ export default [
         path:      '/c/:cluster/manager/pages/:page?',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/pages/_page.vue')),
         name:      'c-cluster-manager-pages-page'
-      }, {
-        path:      '/c/:cluster/mcapps/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/mcapps/pages/_page.vue')),
-        name:      'c-cluster-mcapps-pages-page'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig/:alertmanagerconfigid',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/index.vue')),
