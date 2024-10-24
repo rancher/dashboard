@@ -151,6 +151,7 @@ export default {
         responseTimes:     this.responseTimes
       };
 
+      console.log('eeeeeeee', Object.keys(data.storeMapping));
       downloadFile(fileName, JSON.stringify(data), 'application/json')
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
@@ -215,6 +216,7 @@ export default {
         'linode',
         'targetRoute', // contains circular references, isn't useful (added later to store)
         '$router', // also contains a circular reference to $store, not useful for diagnostics
+        '$route', // also contains a circular reference to $store, not useful for diagnostics
       ];
 
       const clearListsKeys = [
