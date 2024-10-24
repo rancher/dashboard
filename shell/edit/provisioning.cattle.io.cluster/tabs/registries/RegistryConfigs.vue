@@ -154,7 +154,6 @@ export default {
               :mode="mode"
               :data-testid="`registry-auth-host-input-${i}`"
             />
-
             <SelectOrCreateAuthSecret
               v-model:value="row.value.authConfigSecretName"
               :register-before-hook="wrapRegisterBeforeHook"
@@ -168,6 +167,7 @@ export default {
               generate-name="registryconfig-auth-"
               :data-testid="`registry-auth-select-or-create-${i}`"
               :cache-secrets="true"
+              @update:value="update"
             />
           </div>
           <div class="col span-6">
