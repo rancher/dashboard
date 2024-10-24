@@ -241,9 +241,10 @@ export default class CloudCredential extends NormanModel {
   }
 
   get expiresForSort() {
-    // Why not just `expires`? Ensures the correct sort order of 'no expiration' --> 'expired' --> 'expiring'
-    // (instead of expired --> expiring --> no expiration)
-    return this.expires || Number.MAX_SAFE_INTEGER;
+    // Why not just `expires`?
+    // Ensures the correct sort order:
+    // 'expired' --> 'expiring soon' --> 'never expires'
+    return this.expires !== undefined ? this.expires : Number.MAX_SAFE_INTEGER;
   }
 
   get expires() {
