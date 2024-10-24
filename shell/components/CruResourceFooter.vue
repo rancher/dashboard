@@ -117,6 +117,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+  z-index: 40;
 
   .btn {
     margin-left: 20px;

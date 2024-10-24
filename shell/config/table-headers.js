@@ -267,6 +267,21 @@ export const DESCRIPTION = {
   width:    300,
 };
 
+export const NS_SNAPSHOT_QUOTA = {
+  name:          'NamespaceSnapshotQuota',
+  labelKey:      'harvester.tableHeaders.totalSnapshotQuota',
+  value:         'snapshotSizeQuota',
+  sort:          'snapshotSizeQuota',
+  align:         'center',
+  formatter:     'Si',
+  formatterOpts: {
+    opts: {
+      increment: 1024, addSuffix: true, suffix: 'i',
+    },
+    needParseSi: false
+  },
+};
+
 export const DURATION = {
   name:      'duration',
   labelKey:  'tableHeaders.duration',

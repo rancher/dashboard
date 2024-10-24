@@ -89,7 +89,12 @@ export default {
       type:      Array,
       // we only want functions in the rules array
       validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
-    }
+    },
+
+    required: {
+      type:    Boolean,
+      default: false,
+    },
   },
   data() {
     const input = (Array.isArray(this.value) ? this.value : []).slice();
@@ -406,5 +411,9 @@ export default {
       float: right;
       padding: 5px 0;
     }
+  }
+
+  .required {
+    color: var(--error);
   }
 </style>
