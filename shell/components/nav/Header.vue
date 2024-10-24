@@ -1118,7 +1118,7 @@ export default {
       display: flex;
       justify-content: space-between;
       padding: 10px;
-      color: var(--link);
+      color: var(--popover-text);
     }
 
     div.menu-separator {
