@@ -204,7 +204,7 @@ export default defineComponent({
           this.$emit('update:region', this.defaultRegion);
         } else {
           this.$emit('update:region', null);
-          this.$emit('update:zone', this.defaultZone);
+          this.setZone({ name: this.defaultZone });
         }
       }
     },
@@ -389,6 +389,8 @@ export default defineComponent({
     setZone(neu: {name: string}) {
       this.selectedZone = neu;
       this.$emit('update:zone', neu.name);
+
+      this.$emit('update:locations', [neu.name]);
     },
 
     setExtraZone(add: boolean, zone: string) {
@@ -443,6 +445,7 @@ export default defineComponent({
           :value="zone"
           :disabled="!isNewOrUnprovisioned"
           :loading="loadingZones"
+          data-testid="gke-zone-select"
           @selecting="setZone"
         />
       </div>
@@ -462,7 +465,7 @@ export default defineComponent({
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="isView"
           class="extra-zone-checkbox"
           @update:value="e=>setExtraZone(e, zoneOpt.name)"
         />

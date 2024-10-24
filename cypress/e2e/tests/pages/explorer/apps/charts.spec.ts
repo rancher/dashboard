@@ -16,6 +16,10 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('filtering the Charts (search box) should not impact the Charts carousel', () => {
+    chartsPage.chartsFilterCategoriesSelect().toggle();
+    chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
     chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
     chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
     chartsPage.chartsFilterInput().clear();
@@ -40,9 +44,9 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
       // Test repo filter
       chartsPage.chartsFilterReposSelect().toggle();
-      chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('Rancher');
+      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('Rancher');
       chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterReposSelect().clickOptionWithLabelForChartReposFilter('All');
+      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
       chartsPage.chartsCarouselSlides().should('have.length', length);
 
       // has the correct title (Meta tag)
@@ -52,6 +56,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('Charts have expected icons', () => {
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
     chartsPage.checkChartGenericIcon('Logging', false);

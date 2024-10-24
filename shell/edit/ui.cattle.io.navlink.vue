@@ -20,9 +20,10 @@ const LINK_TARGET_BLANK = '_blank';
 const LINK_TARGET_SELF = '_self';
 
 export default {
-  emits:      ['update:value.spec.iconSrc ', 'input'],
-  mixins:     [CreateEditView, FormValidation],
-  components: {
+  emits:        ['update:value.spec.iconSrc ', 'input'],
+  mixins:       [CreateEditView, FormValidation],
+  inheritAttrs: false,
+  components:   {
     CruResource,
     LabeledInput,
     RadioGroup,

@@ -15,6 +15,8 @@ export default {
 
   mixins: [CreateEditView, FormValidation],
 
+  inheritAttrs: false,
+
   data() {
     return {
       fvFormRuleSets: [

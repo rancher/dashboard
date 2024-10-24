@@ -26,7 +26,8 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       cy.intercept('POST', '/v3/projects').as('createProjectRequest');
     });
 
-    it('sets the creator principal id annotation when creating a project and using third-party auth', () => {
+    // undo skipping by addressing this issue: https://github.com/rancher/dashboard/issues/12327
+    it.skip('sets the creator principal id annotation when creating a project and using third-party auth', () => {
       cy.get('@projectName').then((projectName) => {
         // intercept the request to /v3/principals and return a principal authenticated by github instead of local
         spoofThirdPartyPrincipal();

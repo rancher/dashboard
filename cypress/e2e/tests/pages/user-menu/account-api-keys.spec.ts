@@ -11,7 +11,8 @@ const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 const tokenIdsList = [];
 
-describe('Account and API Keys', { testIsolation: 'off' }, () => {
+// TODO: undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
+describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });

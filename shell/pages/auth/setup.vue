@@ -496,6 +496,7 @@ export default {
 
       .span-6 {
         padding: 0 60px;
+        margin: 0;
       }
 
       .landscape {
@@ -503,6 +504,7 @@ export default {
         margin: 0;
         object-fit: cover;
         padding: 0;
+        width: 49%;
       }
     }
 
@@ -512,6 +514,7 @@ export default {
       overflow-y: auto;
       position: relative;
       height: 100vh;
+      width: 51%;
 
       & > div:first-of-type {
         flex:3;

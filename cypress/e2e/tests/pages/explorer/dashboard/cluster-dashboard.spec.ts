@@ -62,6 +62,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
   });
 
+  it('shows fleet controller status', () => {
+    ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+    clusterDashboard.fleetStatus().should('exist');
+  });
+
   it('can import a YAML successfully, using the header action "Import YAML"', () => {
     ClusterDashboardPagePo.navTo();
 
@@ -134,6 +140,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // update color
     clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
     clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
@@ -156,6 +163,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
     clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
     // Apply Changes
@@ -282,6 +290,73 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
       });
+  });
+
+  describe('Cluster dashboard with limited permissions', () => {
+    let stdProjectName;
+    let stdNsName;
+    let stdUsername;
+
+    beforeEach(() => {
+      stdProjectName = `standard-user-project${ +new Date() }`;
+      stdNsName = `standard-user-ns${ +new Date() }`;
+      stdUsername = `standard-user-${ +new Date() }`;
+      // log in as admin
+      cy.login();
+      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.data[0].id.trim();
+
+        // create project
+        cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
+          cy.wrap(resp.body.id.trim()).as('standardUserProject');
+
+          // create ns in project
+          cy.get<string>('@standardUserProject').then((projId) => {
+            cy.createNamespaceInProject(stdNsName, projId);
+
+            // create std user and assign to project
+            cy.createUser({
+              username:    stdUsername,
+              globalRole:  { role: 'user' },
+              projectRole: {
+                clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
+              }
+            }).as('createUserRequest');
+          });
+        });
+      });
+      // log in as new standard user
+      cy.login(stdUsername, Cypress.env('password'), false);
+
+      // go to cluster dashboard
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage();
+    });
+
+    // note - this would be 'fleet agent' on downstream clusters
+    it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
+      clusterDashboard.fleetStatus().should('not.exist');
+
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
+    });
+
+    // log back in as admin and delete the project, ns, and user from previous test
+    afterEach(() => {
+      cy.login();
+      cy.deleteRancherResource('v1', 'namespaces', stdNsName);
+
+      cy.get('@standardUserProject').then((projectId) => {
+        cy.deleteRancherResource('v3', 'projects', projectId);
+      });
+
+      cy.get('@createUserRequest').then((req) => {
+        const userId = req.body.userPrincipalId.split('//').pop();
+
+        cy.deleteRancherResource('v3', 'users', userId);
+      });
+    });
   });
 
   after(function() {
