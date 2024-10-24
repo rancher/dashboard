@@ -1,3 +1,4 @@
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -42,10 +43,8 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
-
         homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
-        homePage.whatsNewBannerLink().contains(`What's new in ${ rancherVersion }`);
+        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
 
         homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
           cy.request(releaseNotesUrl).then((res) => {
