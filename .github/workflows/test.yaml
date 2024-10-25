@@ -103,12 +103,12 @@ jobs:
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
       - name: Install Chrome 127
         run: |
-          hostnamectl || lsb_release || cat /etc/os-release
+          cat /etc/os-release
           sudo apt-get install -y wget
-          sudo apt-get install libgconf2-4 libnss3-1d libxss1
           cd /tmp
           wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb || true
+          sudo apt --fix-broken install
           google-chrome --version
 
       - name: Download e2e build
