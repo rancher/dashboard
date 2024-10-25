@@ -56,13 +56,13 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
+      WorkloadsPodsListPagePo.navTo();
+      workloadsPodPage.waitForPage();
+
       // check pods count
       const count = initialCount + 26;
 
       cy.waitForRancherResources('v1', 'pods', count).then((resp: Cypress.Response<any>) => {
-        WorkloadsPodsListPagePo.navTo();
-        workloadsPodPage.waitForPage();
-
         // pagination is visible
         workloadsPodPage.sortableTable().pagination().checkVisible();
 
