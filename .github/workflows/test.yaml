@@ -8,6 +8,9 @@ on:
     branches:
       - master
       - 'release-*'
+    paths-ignore:
+      - 'docs/**'
+      - 'storybook/**'
   workflow_dispatch:
     inputs:
       environment:
