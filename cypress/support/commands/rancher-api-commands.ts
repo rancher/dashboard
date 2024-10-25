@@ -69,22 +69,25 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
     username, globalRole, clusterRole, projectRole
   } = params;
 
-  return cy.request({
-    method:           'POST',
-    url:              `${ Cypress.env('api') }/v3/users`,
-    failOnStatusCode: false,
-    headers:          {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    body: {
-      type:               'user',
-      enabled:            true,
-      mustChangePassword: false,
-      username,
-      password:           Cypress.env('password')
-    }
-  })
+  return cy.createE2EResourceName(username)
+    .then((e2eName) => {
+      return cy.request({
+        method:           'POST',
+        url:              `${ Cypress.env('api') }/v3/users`,
+        failOnStatusCode: false,
+        headers:          {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        body: {
+          type:               'user',
+          enabled:            true,
+          mustChangePassword: false,
+          username:           e2eName,
+          password:           Cypress.env('password')
+        }
+      });
+    })
     .then((resp) => {
       if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
         cy.log('User already exists. Skipping user creation');
@@ -296,31 +299,34 @@ Cypress.Commands.add('createNamespace', (nsName) => {
  * Create pod
  */
 Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v1/pods`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:     'pod',
-      metadata: {
-        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
-      },
-      spec: {
-        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
-        containers: [{
-          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
-        }],
-        initContainers:   [],
-        imagePullSecrets: [],
-        volumes:          [],
-        affinity:         {}
-      }
-    }
-  })
+  return cy.createE2EResourceName(nsName)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v1/pods`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:     'pod',
+          metadata: {
+            namespace: e2eName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+          },
+          spec: {
+            selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+            containers: [{
+              imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+            }],
+            initContainers:   [],
+            imagePullSecrets: [],
+            volumes:          [],
+            affinity:         {}
+          }
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
@@ -846,26 +852,29 @@ Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnS
  * Create global role
  */
 Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v3/globalroles`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:  'globalRole',
-      name,
-      rules: [{
-        apiGroups,
-        resourceNames,
-        resources,
-        verbs
-      }],
-      newUserDefault
-    }
-  })
+  return cy.createE2EResourceName(name)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v3/globalroles`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:  'globalRole',
+          name:  e2eName,
+          rules: [{
+            apiGroups,
+            resourceNames,
+            resources,
+            verbs
+          }],
+          newUserDefault
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
@@ -877,21 +886,24 @@ Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNam
 * Create fleet workspace
 */
 Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:        'fleetworkspace',
-      name,
-      annotations: { 'field.cattle.io/description': description },
-      labels:      {}
-    }
-  })
+  return cy.createE2EResourceName(name)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:        'fleetworkspace',
+          name:        e2eName,
+          annotations: { 'field.cattle.io/description': description },
+          labels:      {}
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);

@@ -14,10 +14,12 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     });
 
     it('validate persistent volume claims table in empty state', () => {
-      persistentVolumeClaimsNoData();
+      const tag = 'persistentvolumeclaimsNoData';
+
+      persistentVolumeClaimsNoData(tag);
       persistentVolumeClaimsPage.goTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsNoData');
+      cy.wait(`@${ tag }`);
 
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
@@ -31,10 +33,12 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     });
 
     it('flat list: validate persistent volume claims table', () => {
-      generatePersistentVolumeClaimsDataSmall();
+      const tag = 'persistentvolumeclaimsDataSmall';
+
+      generatePersistentVolumeClaimsDataSmall(tag);
       persistentVolumeClaimsPage.goTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsDataSmall');
+      cy.wait(`@${ tag }`);
 
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
@@ -51,11 +55,14 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
     });
 
+    // storage/persistent-volume-claims.spec.ts
     it('group by namespace: validate persistent volume claims table', () => {
-      generatePersistentVolumeClaimsDataSmall();
+      const tag = 'persistentvolumeclaimsDataSmall';
+
+      generatePersistentVolumeClaimsDataSmall(tag);
       persistentVolumeClaimsPage.goTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsDataSmall');
+      cy.wait(`@${ tag }`);
 
       // group by namespace
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().groupByButtons(1)

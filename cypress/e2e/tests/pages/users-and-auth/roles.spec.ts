@@ -282,7 +282,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       let i = 0;
 
       while (i < 25) {
-        const globalRoleName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const globalRoleName = Cypress._.uniqueId(Date.now().toString());
 
         cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
           const roleId = resp.body.id;
@@ -347,7 +347,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should NOT be visible on last page (sorted in ASC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -364,7 +364,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('not.exist');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should be visible on last page (sorted in DESC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -417,7 +417,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         paginatedRoleTab.leftButton().isDisabled();
 
         // navigate to last page - end button
-        paginatedRoleTab.endButton().click();
+        paginatedRoleTab.endButton().scrollIntoView().click();
 
         // row count on last page
         let lastPageCount = count % 10;

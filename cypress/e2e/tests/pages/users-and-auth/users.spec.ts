@@ -280,7 +280,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       let i = 0;
 
       while (i < 25) {
-        const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const userName = Cypress._.uniqueId(Date.now().toString());
 
         cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
           const userId = resp.body.id;
@@ -372,6 +372,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         // navigate to last page - end button
         usersPo.list().resourceTable().sortableTable().pagination()
           .endButton()
+          .scrollIntoView()
           .click();
 
         // row count on last page
@@ -445,6 +446,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should NOT be visible on last page (sorted in ASC order)
@@ -464,6 +466,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should be visible on last page (sorted in DESC order)

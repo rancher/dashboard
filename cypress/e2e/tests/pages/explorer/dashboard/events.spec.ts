@@ -29,7 +29,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         let i = 0;
 
         while (i < 125) {
-          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+          const podName = Cypress._.uniqueId(Date.now().toString());
 
           cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
             podNamesList.push(`pod-${ podName }`);
@@ -97,7 +97,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.sortableTable().pagination().leftButton().isDisabled();
 
       // navigate to last page - end button
-      events.sortableTable().pagination().endButton().click();
+      events.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // check row count on last page
       events.sortableTable().checkRowCount(false, 100);
@@ -167,7 +168,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.sortableTable().rowElementWithPartialName(uniquePod).should('not.exist');
 
       // navigate to last page
-      events.sortableTable().pagination().endButton().click();
+      events.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // event name should be visible on last page (sorted in DESC order)
       events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');

@@ -80,7 +80,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       let i = 0;
 
       while (i < 25) {
-        const workspaceName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const workspaceName = Cypress._.uniqueId(Date.now().toString());
         const workspaceDesc = `e2e-desc-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
         cy.createFleetWorkspace(workspaceName, workspaceDesc, false).then((resp: Cypress.Response<any>) => {
@@ -148,7 +148,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         fleetWorkspacesPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        fleetWorkspacesPage.sortableTable().pagination().endButton().click();
+        fleetWorkspacesPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // check row count on last page
         fleetWorkspacesPage.sortableTable().checkRowCount(false, count - 20);
@@ -196,7 +197,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesPage.sortableTable().rowElementWithName(uniqueWorkspaceName).scrollIntoView().should('be.visible');
 
       // navigate to last page
-      fleetWorkspacesPage.sortableTable().pagination().endButton().click();
+      fleetWorkspacesPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // workspace name should be NOT visible on last page (sorted in ASC order)
       fleetWorkspacesPage.sortableTable().rowElementWithName(uniqueWorkspaceName).should('not.exist');
@@ -209,7 +211,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesPage.sortableTable().rowElementWithName(uniqueWorkspaceName).should('not.exist');
 
       // navigate to last page
-      fleetWorkspacesPage.sortableTable().pagination().endButton().click();
+      fleetWorkspacesPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // workspace name should be visible on last page (sorted in DESC order)
       fleetWorkspacesPage.sortableTable().rowElementWithName(uniqueWorkspaceName).scrollIntoView().should('be.visible');

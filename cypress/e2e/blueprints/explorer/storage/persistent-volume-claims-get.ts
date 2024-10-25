@@ -56,10 +56,10 @@ function reply(statusCode: number, body: any) {
   };
 }
 
-export function persistentVolumeClaimsNoData(): Cypress.Chainable<Response> {
-  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsGetResponseEmpty)).as('persistentvolumeclaimsNoData');
+export function persistentVolumeClaimsNoData(tag: string): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsGetResponseEmpty)).as(tag);
 }
 
-export function generatePersistentVolumeClaimsDataSmall(): Cypress.Chainable<Response> {
-  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsResponseSmallSet)).as('persistentvolumeclaimsDataSmall');
+export function generatePersistentVolumeClaimsDataSmall(tag: string): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsResponseSmallSet)).as(tag);
 }

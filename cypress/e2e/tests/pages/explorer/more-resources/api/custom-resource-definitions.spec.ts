@@ -98,7 +98,8 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        crdsPage.sortableTable().pagination().endButton().click();
+        crdsPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // row count on last page
         let lastPageCount = count % 10;

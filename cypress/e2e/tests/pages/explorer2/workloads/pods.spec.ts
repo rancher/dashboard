@@ -34,7 +34,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         let i = 0;
 
         while (i < 25) {
-          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+          const podName = Cypress._.uniqueId(Date.now().toString());
 
           cy.createPod(nsName1, podName, 'nginx:alpine', false).then(() => {
             podNamesList.push(`pod-${ podName }`);
@@ -98,7 +98,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        workloadsPodPage.sortableTable().pagination().endButton().click();
+        workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // row count on last page
         let lastPageCount = count % 10;
@@ -144,7 +145,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).should('not.exist');
 
       // navigate to last page
-      workloadsPodPage.sortableTable().pagination().endButton().click();
+      workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // pod name should be visible on last page (sorted in DESC order)
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
