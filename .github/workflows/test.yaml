@@ -11,6 +11,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'storybook/**'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       environment:
