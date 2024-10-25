@@ -13,7 +13,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    const uniquePod = 'aaa-e2e-test-pod-name';
+    let uniquePod = 'unique-pod-name';
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
@@ -56,7 +56,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         cy.createNamespace(nsName2);
 
         // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:alpine');
+        cy.createPod(nsName2, uniquePod, 'nginx:alpine').then((resp) => {
+          uniquePod = resp.body.metadata.name;
+        });
       });
     });
 
@@ -173,7 +175,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       // filter by namespace
       workloadsPodPage.sortableTable().filter(nsName2);
       workloadsPodPage.sortableTable().checkRowCount(false, 1);
-      workloadsPodPage.sortableTable().rowElementWithName(`pod-${ uniquePod }`).should('be.visible');
+      workloadsPodPage.sortableTable().rowElementWithName(uniquePod).should('be.visible');
     });
 
     it('pagination is hidden', () => {

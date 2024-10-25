@@ -265,7 +265,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueUserName = 'aaa-e2e-test-name';
+    let uniqueUserName = 'aaa-e2e-test-name';
     const userIdsList = [];
     let initialCount;
 
@@ -295,6 +295,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
         const userId = resp.body.id;
 
+        uniqueUserName = resp.body.metadata.name;
         userIdsList.push(userId);
       });
     });

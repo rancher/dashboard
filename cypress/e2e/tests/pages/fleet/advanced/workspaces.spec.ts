@@ -70,7 +70,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
     });
 
-    const uniqueWorkspaceName = 'aaa-e2e-test-name';
+    let uniqueWorkspaceName = 'unique-test-name';
 
     before('set up', () => {
       cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {
@@ -95,6 +95,8 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       // create one more for sorting test
       cy.createFleetWorkspace(uniqueWorkspaceName).then((resp: Cypress.Response<any>) => {
         const wsId = resp.body.id;
+
+        uniqueWorkspaceName = resp.body.metadata.name;
 
         workspaceNameList.push(wsId);
       });

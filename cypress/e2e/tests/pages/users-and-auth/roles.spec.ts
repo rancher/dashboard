@@ -266,7 +266,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueRoleName = 'aaa-e2e-test-name';
+    let uniqueRoleName = 'unique-test-name';
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');
@@ -296,6 +296,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // create one more for sorting test
       cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false).then((resp: Cypress.Response<any>) => {
         const roleId = resp.body.id;
+
+        uniqueRoleName = resp.body.metadata.name;
 
         globalRolesIdsList.push(roleId);
       });
