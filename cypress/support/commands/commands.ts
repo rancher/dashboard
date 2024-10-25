@@ -61,13 +61,20 @@ Cypress.Commands.add('iFrame', () => {
     .then((body) => cy.wrap(body));
 });
 
+const runTimestamp = +new Date();
+
+/**
+ * Get root resource name
+ */
+Cypress.Commands.add('getRootE2EResourceName', () => {
+  return cy.wrap(`e2e-test-${ runTimestamp }`);
+});
+
 /**
  * Create resource name
  */
-const runTimestamp = +new Date();
-
 Cypress.Commands.add('createE2EResourceName', (context) => {
-  return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
+  return cy.getRootE2EResourceName().then((root) => `${ root }-${ context }`);
 });
 
 // See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress

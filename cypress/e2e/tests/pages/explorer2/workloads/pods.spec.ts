@@ -18,8 +18,13 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     let nsName1: string;
     let nsName2: string;
     let initialCount: number;
+    let rootResourceName: string;
 
     before('set up', () => {
+      cy.getRootE2EResourceName().then((root) => {
+        rootResourceName = root;
+      });
+
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
       cy.getRancherResource('v1', 'pods').then((resp: Cypress.Response<any>) => {
         initialCount = resp.body.count;
@@ -36,8 +41,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         while (i < 25) {
           const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:alpine', false).then(() => {
-            podNamesList.push(`pod-${ podName }`);
+          cy.createPod(nsName1, podName, 'nginx:alpine', false).then((resp) => {
+            podNamesList.push(resp.body.metadata.name);
           });
 
           i++;
@@ -56,7 +61,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
-      WorkloadsPodsListPagePo.navTo();
+      WorkloadsPodsListPagePo.goTo('local');
       workloadsPodPage.waitForPage();
 
       // check pods count
@@ -129,7 +134,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
       // use filter to only show test data
-      workloadsPodPage.sortableTable().filter('e2e-');
+      workloadsPodPage.sortableTable().filter(rootResourceName);
 
       // check table is sorted by name in ASC order by default
       workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');

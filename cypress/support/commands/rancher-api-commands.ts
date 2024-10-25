@@ -299,7 +299,7 @@ Cypress.Commands.add('createNamespace', (nsName) => {
  * Create pod
  */
 Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
-  return cy.createE2EResourceName(nsName)
+  return cy.createE2EResourceName(podName)
     .then((e2eName) => {
       return cy.request({
         method:  'POST',
@@ -312,10 +312,10 @@ Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = tr
         body: {
           type:     'pod',
           metadata: {
-            namespace: e2eName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
+            namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `${ e2eName }` }, name: `${ e2eName }`, annotations: {}
           },
           spec: {
-            selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
+            selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `${ e2eName }` } },
             containers: [{
               imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
             }],
@@ -331,6 +331,8 @@ Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = tr
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
@@ -845,6 +847,8 @@ Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnS
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
@@ -879,6 +883,8 @@ Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNam
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
@@ -908,6 +914,8 @@ Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 

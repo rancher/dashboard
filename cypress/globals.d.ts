@@ -64,7 +64,8 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
-      createE2EResourceName(context: string): Chainable;
+      getRootE2EResourceName(): Chainable<string>;
+      createE2EResourceName(context: string): Chainable<string>;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
