@@ -100,6 +100,7 @@ export default {
     <template v-if="haveArgInfo">
       <DirectoryConfig
         v-model:value="value.spec.rkeConfig.dataDirectories"
+        :k8s-version="value.spec.kubernetesVersion"
         :mode="mode"
       />
       <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
