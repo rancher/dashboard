@@ -96,7 +96,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       cy.createFleetWorkspace(uniqueWorkspaceName).then((resp: Cypress.Response<any>) => {
         const wsId = resp.body.id;
 
-        uniqueWorkspaceName = resp.body.metadata.name;
+        uniqueWorkspaceName = resp.body.name;
 
         workspaceNameList.push(wsId);
       });

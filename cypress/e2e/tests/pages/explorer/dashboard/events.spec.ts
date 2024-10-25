@@ -12,7 +12,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    const uniquePod = 'aaa-e2e-test-pod-name';
+    let uniquePod = 'unique-pod-name';
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
@@ -31,8 +31,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         while (i < 125) {
           const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
-            podNamesList.push(`pod-${ podName }`);
+          cy.createPod(nsName1, podName, 'nginx:latest', false).then((resp) => {
+            podNamesList.push(resp.body.metadata.name);
           });
 
           i++;
@@ -46,7 +46,9 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         cy.createNamespace(nsName2);
 
         // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:latest');
+        cy.createPod(nsName2, uniquePod, 'nginx:latest').then((resp) => {
+          uniquePod = resp.body.metadata.name;
+        });
       });
     });
 

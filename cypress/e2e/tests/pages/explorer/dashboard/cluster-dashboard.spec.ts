@@ -32,7 +32,7 @@ const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  const podName = `e2e-test-${ +new Date() }`;
+  let podName = `e2e-test`;
 
   before(() => {
     cy.login();
@@ -237,7 +237,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         // create pod
         // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then(() => removePod = true);
+        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
+          podName = resp.body.metadata.name;
+          removePod = true;
+        });
       });
     });
 
