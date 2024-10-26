@@ -4960,7 +4960,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
-  eula: 选中此框，即表示你接受<a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
+  eula: 选中此框，即表示你接受<a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
   newPassword: 新密码
   newUserSetPassword: 请设置强密码。建议使用生成的随机密码。你也可以自行设置。
   serverUrl:
