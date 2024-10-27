@@ -10,7 +10,6 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
-import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { getProductFromRoute } from '@shell/utils/router';
@@ -66,10 +65,6 @@ export default {
         marginBottom: globalBannerSettings?.footerFont,
         marginTop:    globalBannerSettings?.headerFont
       };
-    },
-
-    legacyEnabled() {
-      return this.features(LEGACY);
     },
 
     showClusterSearch() {
@@ -255,12 +250,6 @@ export default {
       });
     },
 
-    legacyApps() {
-      const options = this.options;
-
-      return options.filter((opt) => opt.inStore === 'management' && opt.category === 'legacy');
-    },
-
     configurationApps() {
       const options = this.options;
 
@@ -347,7 +336,6 @@ export default {
       const appBar = {
         hciApps:           this.hciApps,
         multiClusterApps:  this.multiClusterApps,
-        legacyApps:        this.legacyApps,
         configurationApps: this.configurationApps,
         pinFiltered:       this.pinFiltered,
         clustersFiltered:  this.clustersFiltered,
@@ -853,34 +841,6 @@ export default {
                     :src="a.svg"
                   />
                   <span class="option-link">{{ a.label }}</span>
-                </router-link>
-              </div>
-            </template>
-            <template v-if="legacyEnabled">
-              <div
-                class="category-title"
-              >
-                <hr>
-                <span>
-                  {{ t('nav.categories.legacy') }}
-                </span>
-              </div>
-              <div
-                v-for="(a, i) in appBar.legacyApps"
-                :key="i"
-                @click="hide()"
-              >
-                <router-link
-                  class="option"
-                  :class="{'active-menu-link': a.isMenuActive }"
-                  :to="a.to"
-                >
-                  <IconOrSvg
-                    v-tooltip="getTooltipConfig(a.label)"
-                    :icon="a.icon"
-                    :src="a.svg"
-                  />
-                  <div>{{ a.label }}</div>
                 </router-link>
               </div>
             </template>

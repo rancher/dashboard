@@ -230,7 +230,6 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -7738,8 +7737,6 @@ legacy:
   catalogs: Catalogs
   configMaps: Config Maps
   configuration: Configuration
-  globalDnsEntries: Global DNS Entries
-  globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
   secrets: Secrets
