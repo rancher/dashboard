@@ -5,7 +5,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 export default {
   name: 'CodeMirror',
 
-  emits: ['onReady', 'onInput', 'onChanges', 'onFocus'],
+  emits: ['onReady', 'onInput', 'onChanges', 'onFocus', 'validationChanged'],
 
   props: {
     /**
@@ -39,6 +39,7 @@ export default {
       codeMirrorRef:   null,
       loaded:          false,
       removeKeyMapBox: false,
+      hasLintErrors:   false,
     };
   },
 
@@ -76,6 +77,11 @@ export default {
 
       Object.assign(out, this.options);
 
+      // parent components control lint with a boolean; if linting is enabled, we need to override that boolean with a custom error handler to wire lint errors into dashboard validation
+      if (this.options.lint) {
+        out.lint = { onUpdateLinting: this.handleLintErrors };
+      }
+
       return out;
     },
 
@@ -104,7 +110,25 @@ export default {
     }
   },
 
+  watch: {
+    hasLintErrors(neu) {
+      this.$emit('validationChanged', !neu);
+    }
+  },
+
   methods: {
+    /**
+     * Codemirror yaml linting uses js-yaml parse
+     * it does not distinguish between warnings and errors so we will treat all yaml lint messages as errors
+     * other codemirror linters (eg json) will report from, to, severity where severity may be 'warning' or 'error'
+     * only 'error' level linting will trigger a validation event from this component
+    */
+    handleLintErrors(diagnostics = []) {
+      const hasLintErrors = diagnostics.filter((d) => !d.severity || d.severity === 'error').length > 0;
+
+      this.hasLintErrors = hasLintErrors;
+    },
+
     focus() {
       if ( this.$refs.codeMirrorRef ) {
         this.$refs.codeMirrorRef.cminstance.focus();
@@ -118,6 +142,8 @@ export default {
     },
 
     onReady(codeMirrorRef) {
+      this.$emit('validationChanged', true);
+
       this.$nextTick(() => {
         codeMirrorRef.refresh();
         this.codeMirrorRef = codeMirrorRef;
