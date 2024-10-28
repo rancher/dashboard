@@ -62,7 +62,7 @@ export const getters = {
     return state.available.length > 1;
   },
 
-  t: state => (key, args, language) => {
+  t: (state) => (key, args, language) => {
     if (state.selected === NONE && !language) {
       return `%${ key }%`;
     }

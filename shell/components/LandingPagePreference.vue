@@ -113,7 +113,7 @@ export default {
       :options="routeRadioOptions"
       @update:value="updateLoginRoute"
     >
-      <template #2="{option, listeners}">
+      <template #2="{option}">
         <div class="custom-page">
           <RadioButton
             :label="option.label"
