@@ -186,7 +186,7 @@ export default defineComponent({
         return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value as string || '');
+        const hint = cronstrue.toString(this.value as string || '', { verbose: true });
 
         return hint;
       } catch (e) {
