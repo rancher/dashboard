@@ -47,7 +47,6 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    // mixins: [mockedValidationMixin],
     mocks: {
       $store:      mockedStore(versionSetting),
       $route:      mockedRoute,
@@ -59,7 +58,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 const setCredential = async(wrapper: VueWrapper<any>, config = {} as EKSConfig) => {
   config.amazonCredentialSecret = 'foo';
   config.region = 'bar';
-  await wrapper.setProps({ config });
+  await wrapper.setProps({ config: { ...config } });
   await flushPromises();
 };
 
@@ -467,7 +466,6 @@ describe('eKS K8s configuration', () => {
     });
 
     await setCredential(wrapper, eksConfig);
-
     const versionDropdown = wrapper.getComponent('[data-testid="eks-version-dropdown"]');
 
     const upgradesDisallowedBanner = wrapper.getComponent('[data-testid="eks-version-upgrade-disallowed-banner"]');
