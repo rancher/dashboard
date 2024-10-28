@@ -102,6 +102,12 @@ export default {
       }
     },
   },
+
+  watch: {
+    'value.secretId'(neu, old) {
+      this.value.fetchValues(true);
+    }
+  },
 };
 </script>
 
