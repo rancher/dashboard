@@ -6064,6 +6064,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+    repo: Repository URL must be a valid HTTPS or SSH URL to a git repository.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
