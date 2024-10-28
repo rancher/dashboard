@@ -328,7 +328,11 @@ export default class CatalogApp extends SteveModel {
 
   get secretId() {
     const metadata = this.metadata;
-    const secretReference = metadata.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
+
+    if (!metadata) {
+      return null;
+    }
+    const secretReference = metadata?.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
 
     const secretId = secretReference?.name;
     const secretNamespace = metadata.namespace;
