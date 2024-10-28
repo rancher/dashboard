@@ -1009,10 +1009,6 @@ export default {
         }
 
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
-
-        // The chart values are cached locally. Clear them so we refetch from secret again
-        this.existing?.clearValues();
-
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
