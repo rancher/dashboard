@@ -150,35 +150,33 @@ export default {
     <template v-if="selectHook === 'httpGet'">
       <h4>{{ t('workload.container.lifecycleHook.httpGet.title') }}</h4>
       <div class="var-row">
-        <template @update:value="update">
-          <LabeledInput
-            v-model:value="value.httpGet.host"
-            :label="t('workload.container.lifecycleHook.httpGet.host.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
-            :mode="mode"
-          />
-          <LabeledInput
-            v-model:value="value.httpGet.path"
-            :label="t('workload.container.lifecycleHook.httpGet.path.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
-            :mode="mode"
-          />
-          <LabeledInput
-            v-model:value.number="value.httpGet.port"
-            type="number"
-            :label="t('workload.container.lifecycleHook.httpGet.port.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
-            :mode="mode"
-            required
-          />
-          <LabeledSelect
-            v-model:value="value.httpGet.scheme"
-            :label="t('workload.container.lifecycleHook.httpGet.scheme.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
-            :options="schemeOptions"
-            :mode="mode"
-          />
-        </template>
+        <LabeledInput
+          v-model:value="value.httpGet.host"
+          :label="t('workload.container.lifecycleHook.httpGet.host.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
+          :mode="mode"
+        />
+        <LabeledInput
+          v-model:value="value.httpGet.path"
+          :label="t('workload.container.lifecycleHook.httpGet.path.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
+          :mode="mode"
+        />
+        <LabeledInput
+          v-model:value.number="value.httpGet.port"
+          type="number"
+          :label="t('workload.container.lifecycleHook.httpGet.port.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
+          :mode="mode"
+          required
+        />
+        <LabeledSelect
+          v-model:value="value.httpGet.scheme"
+          :label="t('workload.container.lifecycleHook.httpGet.scheme.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
+          :options="schemeOptions"
+          :mode="mode"
+        />
       </div>
 
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
