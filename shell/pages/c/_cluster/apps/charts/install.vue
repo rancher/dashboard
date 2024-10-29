@@ -301,8 +301,9 @@ export default {
         */
         userValues = diff(this.loadedVersionValues, this.chartValues);
       } else if ( this.existing ) {
+        await this.existing.fetchValues(); // In theory this has already been called, but do again to be safe
         /* For an already installed app, use the values from the previous install. */
-        userValues = clone(this.existing.spec?.values || {});
+        userValues = clone(this.existing.values || {});
       } else {
         /* For an new app, start empty. */
         userValues = {};
