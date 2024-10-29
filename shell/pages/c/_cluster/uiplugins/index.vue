@@ -154,7 +154,7 @@ export default {
     },
 
     showAddReposBanner() {
-      const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '';
+      const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '' || this.addExtensionReposBannerSetting?.value === undefined;
       const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.OFFICIAL.URL);
       const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.PARTNERS.URL);
 
@@ -615,7 +615,7 @@ export default {
     },
 
     updateAddReposSetting() {
-      if (this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '') {
+      if (this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '' || this.addExtensionReposBannerSetting?.value === undefined) {
         this.addExtensionReposBannerSetting.value = 'false';
         this.addExtensionReposBannerSetting.save();
       }
