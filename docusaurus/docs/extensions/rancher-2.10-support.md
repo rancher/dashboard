@@ -10,7 +10,7 @@ We have developed a migration script that will allow extension developers to eas
 
 Notably we update the Shell package to version `3.x.x`, which is now a requirement to be compliant with Rancher `2.10`, but we also update some of the core files of you app skeleton in order to be compatible with the new node version now in use `v20`. To find out more about the support matrix for Shell versions in regards to Rancher versions, check the support matrix [here](./support-matrix#shell-support-matrix).
 
-On top of this, the migration script also does some of the basic changes in terms of syntax needed to work with Vue3, however we must refer that this feature is considered **experimental** and therefore we **don't** provide support for the syntax migration. We recommend that you become familiar with the changes between Vue2 and Vue3 by following the official documentation [here](https://v3-migration.vuejs.org/).
+On top of this, the migration script also does some of the basic changes in terms of syntax needed to work with Vue3. However, please note that this feature is **experimental** and therefore **unsupported** for syntax migration. We recommend familiarizing yourself with the differences between Vue2 and Vue3 by following the official documentation [here](https://v3-migration.vuejs.org/).
 
 To make use of this migration script, you'll just need to run the following command on the root folder of your skeleton app that contains your extensions:
 
