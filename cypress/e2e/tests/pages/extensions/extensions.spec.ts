@@ -60,7 +60,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    cy.title().should('eq', 'Rancher Prime - Extensions');
+    // in this case, vendor is Rancher because title depends on many different variables such as brand and settings
+    cy.title().should('eq', 'Rancher - Extensions');
 
     extensionsPo.repoBanner().checkVisible();
   });
