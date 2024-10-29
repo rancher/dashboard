@@ -12,6 +12,7 @@ import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import { NAME } from '@shell/config/product/fleet';
+import { xOfy } from '@shell/utils/string';
 
 export default {
   name:       'FleetDashboard',
@@ -175,7 +176,12 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
+          };
+        }
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -223,7 +229,7 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        group = '';
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -262,11 +268,11 @@ export default {
       }
 
       if (area === 'clusters') {
-        value = `${ row.targetClustersReady?.length || '0' }/${ row.targetClusters?.length || '?' }`;
+        return `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
       } else if (area === 'bundles') {
-        value = `${ row.bundlesReady?.length || '0' }/${ row.bundles?.length || '?' }`;
+        value = xOfy(row.bundlesReady?.length, row.bundles?.length);
       } else if (area === 'resources') {
-        value = `${ row.status?.resourceCounts?.ready || '0' }/${ row.status?.resourceCounts?.desiredReady || '?' }`;
+        value = xOfy(row.status?.resourceCounts?.ready, row.status?.resourceCounts?.desiredReady);
       }
 
       return value;
