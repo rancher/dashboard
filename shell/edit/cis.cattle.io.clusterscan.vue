@@ -326,7 +326,7 @@ export default {
           </div>
           <div class="col span-6">
             <UnitInput
-              v-model.number="scheduledScanConfig.retentionCount"
+              v-model:value="scheduledScanConfig.retentionCount"
               :suffix="t('cis.reports')"
               type="number"
               :mode="mode"
