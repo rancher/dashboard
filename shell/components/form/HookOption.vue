@@ -155,12 +155,14 @@ export default {
           :label="t('workload.container.lifecycleHook.httpGet.host.label')"
           :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
           :mode="mode"
+          @update:value="update"
         />
         <LabeledInput
           v-model:value="value.httpGet.path"
           :label="t('workload.container.lifecycleHook.httpGet.path.label')"
           :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
           :mode="mode"
+          @update:value="update"
         />
         <LabeledInput
           v-model:value.number="value.httpGet.port"
@@ -169,6 +171,7 @@ export default {
           :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
           :mode="mode"
           required
+          @update:value="update"
         />
         <LabeledSelect
           v-model:value="value.httpGet.scheme"
@@ -176,6 +179,7 @@ export default {
           :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
           :options="schemeOptions"
           :mode="mode"
+          @update:value="update"
         />
       </div>
 
