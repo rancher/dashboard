@@ -1117,6 +1117,7 @@ describe('formRules', () => {
     const testCases = [
       ['', undefined],
       ['https://github.com/rancher/fleet-examples.git', undefined],
+      ['oci://test.rancher.io/charts/mychart', undefined],
       ['git@github.com:rancher/fleet-examples.git', undefined],
       ['http://100.100.100.127', undefined],
       ['aaaAAAA111//', message],
