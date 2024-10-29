@@ -77,7 +77,7 @@ In terms of development procedure, we recommend branching your extension reposit
 
 You can check the example of `Elemental` where branch `main` is tracking the **Rancher 2.10 compliant version** and `release-2.9.x` branch is tracking everything Rancher "2.9".
 
-The difference between the two branches is some annotations and of course the shell versions being used.
+The difference between the two branches are some annotations and of course the shell versions being used.
 
 `main`
 - https://github.com/rancher/elemental-ui/blob/main/pkg/elemental/package.json#L6-L12
