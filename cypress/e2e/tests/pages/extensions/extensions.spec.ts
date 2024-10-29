@@ -29,12 +29,41 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
   });
 
-  it('has the correct title', () => {
+  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
+    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
+      const notFound = resp.status === 404;
+      const requiredValue = resp.body?.value === '';
+
+      if (notFound || requiredValue) {
+        cy.log('Good test state', '/v3/setting/display-add-extension-repos-banner', resp.status, JSON.stringify(resp?.body || {}));
+      } else {
+        cy.log('Bad test state', '/v3/setting/display-add-extension-repos-banner', resp.status, JSON.stringify(resp?.body || {}));
+
+        return cy.setRancherResource('v3', 'setting', 'display-add-extension-repos-banner', {
+          ...resp.body,
+          value: ''
+        });
+      }
+    });
+
+    cy.intercept('GET', '/rancherversion', {
+      statusCode: 200,
+      body:       {
+        Version:      '9bf6631da',
+        GitCommit:    '9bf6631da',
+        RancherPrime: 'true'
+      }
+    });
+
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForTitle();
 
+    // in this case, vendor is Rancher because title depends on many different variables such as brand and settings
     cy.title().should('eq', 'Rancher - Extensions');
+
+    extensionsPo.repoBanner().checkVisible();
   });
 
   it('Should check the feature flag', () => {
