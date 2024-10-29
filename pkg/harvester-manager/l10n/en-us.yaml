@@ -7,6 +7,8 @@ harvesterManager:
     description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
   plugins:
     loadError: Error loading harvester plugin
+  extension:
+    install: TO INSTALL HARVESTER EXTENSION
   rke:
     templateError: Incorrect template format
   affinity:

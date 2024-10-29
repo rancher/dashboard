@@ -134,83 +134,93 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <Masthead
-      :schema="realSchema"
-      :resource="resource"
-      :is-creatable="false"
-      :type-display="typeDisplay"
-    >
-      <template #typeDescription>
-        <TypeDescription :resource="hResource" />
-      </template>
-
-      <template
-        v-if="canCreateCluster"
-        #extraActions
+    <div v-if="!!harvesterExtension">
+      <Masthead
+        :schema="realSchema"
+        :resource="resource"
+        :is-creatable="false"
+        :type-display="typeDisplay"
       >
-        <router-link
-          :to="importLocation"
-          class="btn role-primary"
-        >
-          {{ t('cluster.importAction') }}
-        </router-link>
-      </template>
-    </Masthead>
+        <template #typeDescription>
+          <TypeDescription :resource="hResource" />
+        </template>
 
-    <ResourceTable
-      v-if="rows && rows.length"
-      :schema="schema"
-      :rows="rows"
-      :is-creatable="true"
-      :namespaced="false"
-      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    >
-      <template #col:name="{row}">
-        <td>
-          <span class="cluster-link">
-            <a
-              v-if="row.isReady"
-              class="link"
-              :disabled="navigating ? true : null"
-              @click="goToCluster(row)"
-            >{{ row.nameDisplay }}</a>
-            <span v-else>
-              {{ row.nameDisplay }}
+        <template
+          v-if="canCreateCluster"
+          #extraActions
+        >
+          <router-link
+            :to="importLocation"
+            class="btn role-primary"
+          >
+            {{ t('cluster.importAction') }}
+          </router-link>
+        </template>
+      </Masthead>
+      <ResourceTable
+        v-if="rows && rows.length"
+        :schema="schema"
+        :rows="rows"
+        :is-creatable="true"
+        :namespaced="false"
+        :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      >
+        <template #col:name="{row}">
+          <td>
+            <span class="cluster-link">
+              <a
+                v-if="row.isReady"
+                class="link"
+                :disabled="navigating ? true : null"
+                @click="goToCluster(row)"
+              >{{ row.nameDisplay }}</a>
+              <span v-else>
+                {{ row.nameDisplay }}
+              </span>
+              <i
+                class="icon icon-spinner icon-spin ml-5"
+                :class="{'navigating': navigating === row.id}"
+              />
             </span>
-            <i
-              class="icon icon-spinner icon-spin ml-5"
-              :class="{'navigating': navigating === row.id}"
-            />
-          </span>
-        </td>
-      </template>
+          </td>
+        </template>
 
-      <template #cell:harvester="{row}">
-        <router-link
-          class="btn btn-sm role-primary"
-          :to="row.detailLocation"
-        >
-          {{ t('harvesterManager.manage') }}
-        </router-link>
-      </template>
-    </ResourceTable>
-    <div v-else>
-      <div class="no-clusters">
-        {{ t('harvesterManager.cluster.none') }}
+        <template #cell:harvester="{row}">
+          <router-link
+            class="btn btn-sm role-primary"
+            :to="row.detailLocation"
+          >
+            {{ t('harvesterManager.manage') }}
+          </router-link>
+        </template>
+      </ResourceTable>
+      <div v-else>
+        <div class="no-clusters">
+          {{ t('harvesterManager.cluster.none') }}
+        </div>
+        <hr class="info-section">
       </div>
-      <hr class="info-section">
+    </div>
+    <div v-if="!harvesterExtension || !rows || !rows.length">
       <div class="logo">
         <BrandImage
           file-name="harvester.png"
           height="64"
         />
       </div>
-        <div class="tagline">
-          <div>{{ t('harvesterManager.cluster.description') }}</div>
-        </div>
-        <div class="tagline sub-tagline">
-          <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
-        </div>
+      <div class="tagline">
+        <div>{{ t('harvesterManager.cluster.description') }}</div>
+      </div>
+      <div class="tagline sub-tagline">
+        <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
+      </div>
+
+      <div
+        v-if="!harvesterExtension"
+        class="tagline"
+      >
+        <div v-clean-html="t('harvesterManager.extension.install', {}, true)" />
+      </div>
     </div>
   </div>
 </template>
