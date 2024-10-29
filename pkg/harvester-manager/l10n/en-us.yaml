@@ -19,7 +19,7 @@ harvesterManager:
           1: Go to
           2: Extensions
           3: page and install the Harvester Extension
-    
+      admin: Please contact your system administrator
   rke:
     templateError: Incorrect template format
   affinity:

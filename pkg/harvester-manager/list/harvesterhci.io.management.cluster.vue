@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { isAdminUser } from '@shell/store/type-map';
 import BrandImage from '@shell/components/BrandImage';
 import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
@@ -57,6 +58,7 @@ export default {
     const resource = CAPI.RANCHER_CLUSTER;
 
     return {
+      isAdmin:      isAdminUser(this.$store.getters),
       navigating:   false,
       VIRTUAL,
       hciDashboard: HCI.DASHBOARD,
@@ -232,8 +234,7 @@ export default {
         <div class="tagline">
           <div class="extension-warning" v-clean-html="t('harvesterManager.extension.install.warning', {}, true)" />
         </div>
-
-        <div class="extension-info">
+        <div v-if="isAdmin" class="extension-info">
           <ol class="steps">
             <li v-if="!harvesterRepo">
               {{ t('harvesterManager.extension.install.steps.repo.1') }}
@@ -250,6 +251,9 @@ export default {
               {{ t('harvesterManager.extension.install.steps.ui.3') }}
             </li>
           </ol>
+        </div>
+        <div v-else class="tagline">
+          <div v-clean-html="t('harvesterManager.extension.install.admin', {}, true)" />
         </div>
       </template>
     </template>
