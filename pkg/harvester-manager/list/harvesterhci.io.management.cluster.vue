@@ -1,13 +1,17 @@
 <script>
+import { mapGetters } from 'vuex';
 import BrandImage from '@shell/components/BrandImage';
 import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
-import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, HCI, MANAGEMENT, CATALOG } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
+
+const HARVESTER_REPO = 'ui-plugin-examples';
+const HARVESTER_EXTENSION = 'harvester-manager';
 
 export default {
   components: {
@@ -32,13 +36,21 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    const hash = await allHash({
+    const _hash = {
       hciClusters:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER }),
-      mgmtClusters: this.$store.dispatch(`${ inStore }/findAll`, { type: MANAGEMENT.CLUSTER })
-    });
+      mgmtClusters: this.$store.dispatch(`${ inStore }/findAll`, { type: MANAGEMENT.CLUSTER }),
+      catalogLoad:  this.$store.dispatch('catalog/load', { reset: true }),
+    };
+
+    if (this.$store.getters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO)) {
+      _hash.clusterrepos = this.$store.dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO, force: true });
+    }
+
+    const hash = await allHash(_hash);
 
     this.hciClusters = hash.hciClusters;
     this.mgmtClusters = hash.mgmtClusters;
+    this.clusterrepos = hash.clusterrepos;
   },
 
   data() {
@@ -52,11 +64,22 @@ export default {
       hResource:    HCI.CLUSTER,
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       hciClusters:  [],
-      mgmtClusters: []
+      mgmtClusters: [],
+      clusterrepos: [],
     };
   },
 
   computed: {
+    ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
+
+    harvesterRepo() {
+      return this.clusterrepos?.find((c) => c.name === HARVESTER_REPO);
+    },
+
+    harvesterExtension() {
+      return this.uiplugins?.find((c) => c.name === HARVESTER_EXTENSION);
+    },
+
     importLocation() {
       return {
         name:   'c-cluster-product-resource-create',
@@ -182,12 +205,12 @@ export default {
           height="64"
         />
       </div>
-      <div class="tagline">
-        <div>{{ t('harvesterManager.cluster.description') }}</div>
-      </div>
-      <div class="tagline sub-tagline">
-        <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
-      </div>
+        <div class="tagline">
+          <div>{{ t('harvesterManager.cluster.description') }}</div>
+        </div>
+        <div class="tagline sub-tagline">
+          <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
+        </div>
     </div>
   </div>
 </template>
