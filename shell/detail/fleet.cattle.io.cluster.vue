@@ -49,9 +49,6 @@ export default {
   },
 
   computed: {
-    allBundleDeployments() {
-      return this.value.bundleDeployments;
-    },
     clusterId() {
       return this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
     },

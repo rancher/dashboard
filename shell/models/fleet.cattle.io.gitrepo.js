@@ -10,6 +10,7 @@ import {
   STATES_ENUM, colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
+import devConsole from 'utils/dev-console';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
@@ -323,14 +324,18 @@ export default class GitRepo extends SteveModel {
   get resourcesStatuses() {
     const clusters = this.targetClusters || [];
     const resources = this.status?.resources || [];
-    const conditions = this.status?.conditions || [];
+    // const conditions = this.status?.conditions || [];
+    // const bundleDeployments = this.bundleDeployments || [];
 
     const out = [];
 
     for (const c of clusters) {
-      const clusterBundleDeploymentResources = this.bundleDeployments
-        .find((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.CLUSTER] === c.metadata.name)
-        ?.status?.resources || [];
+      devConsole.warn('model', 'gitrepo', 'resourcesStatuses', c.id);
+
+      // FIXME: if we can drop this can we drop bundleDeployments entirely (and only keep for graph view)?
+      // const clusterBundleDeploymentResources = bundleDeployments
+      //   .find((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.CLUSTER] === c.metadata.name)
+      //   ?.status?.resources || [];
 
       resources.forEach((r, i) => {
         let namespacedName = r.name;
@@ -339,9 +344,10 @@ export default class GitRepo extends SteveModel {
           namespacedName = `${ r.namespace }:${ r.name }`;
         }
 
-        let state = r.state;
+        let state = r.state; // FIXME: why assign r.state when it's always overwritten?
+
         const perEntry = r.perClusterState?.find((x) => x.clusterId === c.id);
-        const tooMany = r.perClusterState?.length >= 10 || false;
+        const tooMany = r.perClusterState?.length >= 10 || false; // FIXME: shouldn't we not calc perEntry if there are too many?
 
         if (perEntry) {
           state = perEntry.state;
@@ -366,29 +372,31 @@ export default class GitRepo extends SteveModel {
         };
 
         out.push({
-          key:                    `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
-          tableKey:               `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
-          kind:                   r.kind,
-          apiVersion:             r.apiVersion,
-          type:                   r.type,
-          id:                     r.id,
-          namespace:              r.namespace,
-          name:                   r.name,
-          clusterId:              c.id,
-          clusterLabel:           c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
-          clusterName:            c.nameDisplay,
-          state:                  mapStateToEnum(state),
-          stateBackground:        color,
-          stateDisplay:           display,
-          stateSort:              stateSort(color, display),
+          key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+          tableKey:        `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
+          kind:            r.kind,
+          apiVersion:      r.apiVersion,
+          type:            r.type,
+          id:              r.id,
+          namespace:       r.namespace,
+          name:            r.name,
+          clusterId:       c.id,
+          clusterLabel:    c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+          clusterName:     c.nameDisplay,
+          state:           mapStateToEnum(state),
+          stateBackground: color,
+          stateDisplay:    display,
+          stateSort:       stateSort(color, display),
           namespacedName,
           detailLocation,
-          conditions:             conditions[i],
-          bundleDeploymentStatus: clusterBundleDeploymentResources?.[i],
-          creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt
+          // conditions:             conditions[i], // FIXME: i is index of resource in status?.resources, what relation does that have to status?.conditions
+          // bundleDeploymentStatus: clusterBundleDeploymentResources?.[i], // FIXME: i is index of resource in status?.resources, does that match bundledeplopyment status.resources?
+          // creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt
         });
       });
     }
+
+    devConsole.warn('model', 'gitrepo', 'resourcesStatuses', 'end');
 
     return out;
   }
@@ -404,7 +412,7 @@ export default class GitRepo extends SteveModel {
     };
   }
 
-  get clusterResourceStatus() {
+  get clusterResourceStatus() { // here
     const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
       const { clusterId, clusterLabel } = curr;
 
