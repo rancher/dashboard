@@ -2,7 +2,7 @@
 
 ## Breaking Changes in 2.10.0
 
-With the update Rancher UI, Shell package and the UI Extensions from Vue2 to Vue3, this has introduced breaking changes to the UI Extensions. requiring that you must update your existing extensions in order to be compliant with the Rancher `2.10` UI framework.
+Following the updates to the Rancher UI, Shell package, and the UI Extensions from Vue2 to Vue3, we have introduced breaking changes to the UI Extensions. These changes require you to update your existing extensions in order to be compliant with the Rancher `2.10` UI framework.
 
 ## How to proceed with your extension update
 
