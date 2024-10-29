@@ -1112,6 +1112,29 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  describe('repo', () => {
+    const message = JSON.stringify({ message: 'validation.setting.repo' });
+    const testCases = [
+      ['', undefined],
+      ['https://github.com/rancher/fleet-examples.git', undefined],
+      ['git@github.com:rancher/fleet-examples.git', undefined],
+      ['http://100.100.100.127', undefined],
+      ['aaaAAAA111//', message],
+      ['/', message],
+      ['+1', message],
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (val, expected) => {
+        const formRuleResult = formRules.repo(val);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   describe.each([
     ['minValue', 2, [3], [1]],
     ['maxValue', 256, [1], [300]],
