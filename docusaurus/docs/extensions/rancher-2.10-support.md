@@ -73,7 +73,7 @@ You should check that your extension `pkg/<-YOUR EXTENSION->/package.json` shows
 
 ## How to maintain different extension versions
 
-In terms of development procedure, we do recommend that you branch your extension repository so that you can have one branch tracking the Rancher "2.9" and the Rancher 2.10 “worlds”, if your extension is affected by the changes. 
+In terms of development procedure, we recommend branching your extension repository to manage compatibility with both Rancher 2.9 and Rancher 2.10, if your extension is impacted by version-specific changes.
 
 You can check the example of `Elemental` where branch `main` is tracking the **Rancher 2.10 compliant version** and `release-2.9.x` branch is tracking everything Rancher "2.9".
 
