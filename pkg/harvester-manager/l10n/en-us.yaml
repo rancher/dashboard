@@ -8,7 +8,18 @@ harvesterManager:
   plugins:
     loadError: Error loading harvester plugin
   extension:
-    install: TO INSTALL HARVESTER EXTENSION
+    install:
+      warning: "Harvester extension is not installed"
+      steps:
+        repo:
+          1: Go to
+          2: Manage Repositories
+          3: and add the Harvester repository
+        ui:
+          1: Go to
+          2: Extensions
+          3: page and install the Harvester Extension
+    
   rke:
     templateError: Incorrect template format
   affinity:

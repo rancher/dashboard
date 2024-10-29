@@ -9,9 +9,11 @@ import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { CAPI, HCI, MANAGEMENT, CATALOG } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
+import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
-const HARVESTER_REPO = 'ui-plugin-examples';
-const HARVESTER_EXTENSION = 'harvester-manager';
+const HARVESTER_REPO = 'harvester-ui-extension';
+const HARVESTER_EXTENSION = 'harvester';
 
 export default {
   components: {
@@ -66,6 +68,20 @@ export default {
       hciClusters:  [],
       mgmtClusters: [],
       clusterrepos: [],
+      clusterRepoLink: {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  APP_PRODUCT,
+          resource: CATALOG.CLUSTER_REPO
+        }
+      },
+      extensionsLink: {
+        name:   'c-cluster-uiplugins',
+        params: {
+          cluster: BLANK_CLUSTER,
+        }
+      },
     };
   },
 
@@ -201,7 +217,7 @@ export default {
         <hr class="info-section">
       </div>
     </div>
-    <div v-if="!harvesterExtension || !rows || !rows.length">
+    <template v-if="!harvesterExtension || !rows || !rows.length">
       <div class="logo">
         <BrandImage
           file-name="harvester.png"
@@ -211,17 +227,34 @@ export default {
       <div class="tagline">
         <div>{{ t('harvesterManager.cluster.description') }}</div>
       </div>
-      <div class="tagline sub-tagline">
+      <div class="tagline">
         <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
       </div>
+      <template v-if="!harvesterExtension">
+        <div class="tagline">
+          <div class="extension-warning" v-clean-html="t('harvesterManager.extension.install.warning', {}, true)" />
+        </div>
 
-      <div
-        v-if="!harvesterExtension"
-        class="tagline"
-      >
-        <div v-clean-html="t('harvesterManager.extension.install', {}, true)" />
-      </div>
-    </div>
+        <div class="extension-info">
+          <ol class="steps">
+            <li v-if="!harvesterRepo">
+              {{ t('harvesterManager.extension.install.steps.repo.1') }}
+              <router-link :to="clusterRepoLink">
+                {{ t('harvesterManager.extension.install.steps.repo.2') }}
+              </router-link>
+              {{ t('harvesterManager.extension.install.steps.repo.3') }}
+            </li>
+            <li>
+              {{ t('harvesterManager.extension.install.steps.ui.1') }}
+              <router-link :to="extensionsLink">
+                {{ t('harvesterManager.extension.install.steps.ui.2') }}
+              </router-link>
+              {{ t('harvesterManager.extension.install.steps.ui.3') }}
+            </li>
+          </ol>
+        </div>
+      </template>
+    </template>
   </div>
 </template>
 
@@ -264,6 +297,23 @@ export default {
       line-height: 22px;
       max-width: 80%;
       text-align: center;
+    }
+  }
+
+  .extension-warning {
+    font-size: 24px !important;
+    font-weight: 400;
+  }
+
+  .extension-info {
+    display: flex;
+    justify-content: center;
+
+    .steps {
+      > li {
+        margin-top: 5px;
+        font-size: 14px;
+      }
     }
   }
 
