@@ -176,6 +176,10 @@ export default class GitRepo extends SteveModel {
   get repoDisplay() {
     let repo = this.spec.repo;
 
+    if (!repo) {
+      return null;
+    }
+
     repo = repo.replace(/.git$/, '');
     repo = repo.replace(/^https:\/\//, '');
     repo = repo.replace(/\/+$/, '');
