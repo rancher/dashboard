@@ -12,7 +12,7 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { HARVESTER_EXTENSION, HARVESTER_REPO } from '../types'
+import { HARVESTER_EXTENSION, HARVESTER_REPO } from '../types';
 
 export default {
   components: {
@@ -58,16 +58,16 @@ export default {
     const resource = CAPI.RANCHER_CLUSTER;
 
     return {
-      isAdmin:      isAdminUser(this.$store.getters),
-      navigating:   false,
+      isAdmin:         isAdminUser(this.$store.getters),
+      navigating:      false,
       VIRTUAL,
-      hciDashboard: HCI.DASHBOARD,
+      hciDashboard:    HCI.DASHBOARD,
       resource,
-      hResource:    HCI.CLUSTER,
-      realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      hciClusters:  [],
-      mgmtClusters: [],
-      clusterrepos: [],
+      hResource:       HCI.CLUSTER,
+      realSchema:      this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      hciClusters:     [],
+      mgmtClusters:    [],
+      clusterrepos:    [],
       clusterRepoLink: {
         name:   'c-cluster-product-resource',
         params: {
@@ -78,9 +78,7 @@ export default {
       },
       extensionsLink: {
         name:   'c-cluster-uiplugins',
-        params: {
-          cluster: BLANK_CLUSTER,
-        }
+        params: { cluster: BLANK_CLUSTER }
       },
     };
   },
@@ -232,9 +230,15 @@ export default {
       </div>
       <template v-if="!harvesterExtension">
         <div class="tagline">
-          <div class="extension-warning" v-clean-html="t('harvesterManager.extension.install.warning', {}, true)" />
+          <div
+            v-clean-html="t('harvesterManager.extension.install.warning', {}, true)"
+            class="extension-warning"
+          />
         </div>
-        <div v-if="isAdmin" class="extension-info">
+        <div
+          v-if="isAdmin"
+          class="extension-info"
+        >
           <ol class="steps">
             <li v-if="!harvesterRepo">
               {{ t('harvesterManager.extension.install.steps.repo.1') }}
@@ -252,7 +256,10 @@ export default {
             </li>
           </ol>
         </div>
-        <div v-else class="tagline">
+        <div
+          v-else
+          class="tagline"
+        >
           <div v-clean-html="t('harvesterManager.extension.install.admin', {}, true)" />
         </div>
       </template>
