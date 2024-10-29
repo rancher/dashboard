@@ -120,11 +120,11 @@ const getLoaders = (SHELL_ABS) => {
   }
 
   return [
-    // Ensure there is a fallback for browsers that don't support web workers
+    // no fallback for pre-2013 browsers https://caniuse.com/webworkers
     {
       test:    /web-worker.[a-z-]+.js/i,
       loader:  'worker-loader',
-      options: { inline: 'fallback' },
+      options: { inline: 'no-fallback' },
     },
     // Handler for csv files (e.g. ec2 instance data)
     {
