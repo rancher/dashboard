@@ -154,6 +154,7 @@ export default {
     },
 
     showAddReposBanner() {
+      // because of https://github.com/rancher/rancher/pull/45894 we need to consider other start values
       const hasExtensionReposBannerSetting = this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '' || this.addExtensionReposBannerSetting?.value === undefined;
       const uiPluginsRepoNotFound = isRancherPrime() && !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.OFFICIAL.URL);
       const uiPluginsPartnersRepoNotFound = !this.repos?.find((r) => r.urlDisplay === UI_PLUGINS_REPOS.PARTNERS.URL);
@@ -615,6 +616,7 @@ export default {
     },
 
     updateAddReposSetting() {
+      // because of https://github.com/rancher/rancher/pull/45894 we need to consider other start values
       if (this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '' || this.addExtensionReposBannerSetting?.value === undefined) {
         this.addExtensionReposBannerSetting.value = 'false';
         this.addExtensionReposBannerSetting.save();
