@@ -80,10 +80,14 @@ export default {
       return i !== 0 || !this.agentConfig;
     },
     showEmptyKubeletArg(config) {
-      return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
+      return !this.serverArgs?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      this.agentConfig ? this.agentConfig = value : this.serverConfig['protect-kernel-defaults'] = value;
+      if (this.agentConfig && this.agentConfig['protect-kernel-defaults'] !== undefined ) {
+        this.agentConfig['protect-kernel-defaults'] = value;
+      } else {
+        this.serverConfig['protect-kernel-defaults'] = value;
+      }
     }
   }
 };
