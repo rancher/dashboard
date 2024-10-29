@@ -307,20 +307,11 @@ export default class GitRepo extends SteveModel {
       bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
   }
 
+  /**
+   * Bundles with state of active
+   */
   get bundlesReady() {
-    if (this.bundles && this.bundles.length) {
-      return this.bundles.filter((bundle) => bundle.state === 'active');
-    }
-
-    return 0;
-  }
-
-  get targetClustersReady() {
-    if (this.targetClusters && this.targetClusters.length) {
-      return this.targetClusters.filter((cluster) => cluster.state === 'active');
-    }
-
-    return 0;
+    return this.bundles?.filter((bundle) => bundle.state === 'active');
   }
 
   get bundleDeployments() {
