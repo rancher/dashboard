@@ -62,6 +62,10 @@ export default class Project extends HybridModel {
     });
   }
 
+  get description() {
+    return this.spec?.description;
+  }
+
   get doneOverride() {
     return this.listLocation;
   }
