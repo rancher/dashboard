@@ -1457,6 +1457,7 @@ export default {
           <Banner
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
+            class="namespace-create-banner"
           >
             <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
           </Banner>
@@ -1851,6 +1852,10 @@ export default {
 
       .spacer {
         line-height: 2;
+      }
+
+      .namespace-create-banner {
+        margin-bottom: 70px;
       }
     }
     &__values {
