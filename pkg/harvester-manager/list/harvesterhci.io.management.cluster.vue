@@ -11,9 +11,7 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-
-const HARVESTER_REPO = 'harvester-ui-extension';
-const HARVESTER_EXTENSION = 'harvester';
+import { HARVESTER_EXTENSION, HARVESTER_REPO } from '../types'
 
 export default {
   components: {
