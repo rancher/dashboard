@@ -1,17 +1,37 @@
 
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { _CREATE } from '@shell/config/query-params';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+
+export const DATA_DIR_RADIO_OPTIONS = {
+  DEFAULT: 'defaultDataDir',
+  COMMON:  'commonBaseDataDir',
+  CUSTOM:  'customDataDir',
+};
+
+export const DEFAULT_COMMON_BASE_PATH = '/var/lib/rancher';
+
+export const DEFAULT_SUBDIRS = {
+  AGENT:           'agent',
+  PROVISIONING:    'provisioning',
+  K8S_DISTRO_RKE2: 'rke2',
+  K8S_DISTRO_K3S:  'k3s',
+};
 
 export default {
   name:       'DirectoryConfig',
   components: {
-    Checkbox,
     LabeledInput,
+    RadioGroup
   },
   props: {
     mode: {
+      type:     String,
+      required: true,
+    },
+
+    k8sVersion: {
       type:     String,
       required: true,
     },
@@ -22,46 +42,103 @@ export default {
     },
   },
   data() {
-    let atLeastOneDirWithAnIdentifier = false;
-    let allDirsWithSameIdentifier = false;
+    let dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.DEFAULT;
+    let k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
 
-    if (this.value?.systemAgent?.length || this.value?.provisioning?.length || this.value?.k8sDistro?.length) {
-      atLeastOneDirWithAnIdentifier = true;
-      if (this.value?.systemAgent === this.value?.provisioning && this.value?.provisioning === this.value?.k8sDistro &&
-      this.value?.systemAgent === this.value?.k8sDistro) {
-        allDirsWithSameIdentifier = true;
+    if (this.k8sVersion && this.k8sVersion.includes('k3s')) {
+      k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_K3S;
+    }
+
+    if (this.mode !== _CREATE) {
+      if (this.value?.systemAgent?.length || this.value?.provisioning?.length || this.value?.k8sDistro?.length) {
+        dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
       }
     }
 
     return {
-      isSettingCommonConfig: !(atLeastOneDirWithAnIdentifier && !allDirsWithSameIdentifier),
-      commonConfig:          allDirsWithSameIdentifier ? this.value?.systemAgent : '',
+      DATA_DIR_RADIO_OPTIONS,
+      dataConfigRadioValue,
+      k8sDistroSubDir,
+      commonConfig: '',
     };
   },
   watch: {
     commonConfig(neu) {
-      if (neu && neu.length && this.isSettingCommonConfig) {
-        this.value.systemAgent = neu;
-        this.value.provisioning = neu;
-        this.value.k8sDistro = neu;
+      if (neu && neu.length && this.dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.COMMON) {
+        this.value.systemAgent = `${ neu }/${ DEFAULT_SUBDIRS.AGENT }`;
+        this.value.provisioning = `${ neu }/${ DEFAULT_SUBDIRS.PROVISIONING }`;
+        this.value.k8sDistro = `${ neu }/${ this.k8sDistroSubDir }`;
+      }
+    },
+    k8sVersion: {
+      handler(neu) {
+        if (neu && neu.includes('k3s')) {
+          this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_K3S;
+        } else {
+          this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
+        }
+
+        if (this.value.k8sDistro) {
+          this.value.k8sDistro = `${ neu }/${ this.k8sDistroSubDir }`;
+        }
       }
     }
   },
   computed: {
-    disableEditInput() {
-      return this.mode !== _CREATE;
+    dataConfigRadioOptions() {
+      const defaultDataDirOption = {
+        value: DATA_DIR_RADIO_OPTIONS.DEFAULT,
+        label: this.t('cluster.directoryConfig.radioInput.defaultLabel')
+      };
+      const customDataDirOption = {
+        value: DATA_DIR_RADIO_OPTIONS.CUSTOM,
+        label: this.t('cluster.directoryConfig.radioInput.customLabel')
+      };
+
+      if (this.mode === _CREATE) {
+        return [
+          defaultDataDirOption,
+          { value: DATA_DIR_RADIO_OPTIONS.COMMON, label: this.t('cluster.directoryConfig.radioInput.commonLabel') },
+          customDataDirOption
+        ];
+      } else {
+        return [
+          defaultDataDirOption,
+          customDataDirOption
+        ];
+      }
     }
   },
   methods: {
-    handleCommonConfig(val) {
-      this.isSettingCommonConfig = val;
-
-      if (val) {
+    handleRadioInput(val) {
+      switch (val) {
+      case DATA_DIR_RADIO_OPTIONS.DEFAULT:
+        if (this.mode === _CREATE) {
+          this.commonConfig = '';
+        }
         this.value.systemAgent = '';
         this.value.provisioning = '';
         this.value.k8sDistro = '';
-      } else {
-        this.commonConfig = '';
+
+        this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.DEFAULT;
+        break;
+      case DATA_DIR_RADIO_OPTIONS.COMMON:
+        this.commonConfig = DEFAULT_COMMON_BASE_PATH;
+
+        this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.COMMON;
+        break;
+      // default is custom config
+      default:
+        if (this.mode === _CREATE) {
+          this.commonConfig = '';
+        }
+
+        this.value.systemAgent = '';
+        this.value.provisioning = '';
+        this.value.k8sDistro = '';
+
+        this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
+        break;
       }
     }
   },
@@ -74,33 +151,31 @@ export default {
       <h3 class="mb-20">
         {{ t('cluster.directoryConfig.title') }}
       </h3>
-      <Checkbox
+      <RadioGroup
+        :value="dataConfigRadioValue"
         class="mb-10"
-        :value="isSettingCommonConfig"
         :mode="mode"
-        :label="t('cluster.directoryConfig.checkboxText')"
-        :disabled="disableEditInput"
-        data-testid="rke2-directory-config-individual-config-checkbox"
-        @update:value="handleCommonConfig"
+        :options="dataConfigRadioOptions"
+        name="directory-config-radio"
+        data-testid="rke2-directory-config-radio-input"
+        @update:value="handleRadioInput"
       />
       <LabeledInput
-        v-if="isSettingCommonConfig"
+        v-if="dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.COMMON"
         v-model:value="commonConfig"
         class="mb-20"
         :mode="mode"
         :label="t('cluster.directoryConfig.common.label')"
         :tooltip="t('cluster.directoryConfig.common.tooltip')"
-        :disabled="disableEditInput"
         data-testid="rke2-directory-config-common-data-dir"
       />
-      <div v-if="!isSettingCommonConfig">
+      <div v-if="dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.CUSTOM">
         <LabeledInput
           v-model:value="value.systemAgent"
           class="mb-20"
           :mode="mode"
           :label="t('cluster.directoryConfig.systemAgent.label')"
           :tooltip="t('cluster.directoryConfig.systemAgent.tooltip')"
-          :disabled="disableEditInput"
           data-testid="rke2-directory-config-systemAgent-data-dir"
         />
         <LabeledInput
@@ -109,7 +184,6 @@ export default {
           :mode="mode"
           :label="t('cluster.directoryConfig.provisioning.label')"
           :tooltip="t('cluster.directoryConfig.provisioning.tooltip')"
-          :disabled="disableEditInput"
           data-testid="rke2-directory-config-provisioning-data-dir"
         />
         <LabeledInput
@@ -118,7 +192,6 @@ export default {
           :mode="mode"
           :label="t('cluster.directoryConfig.k8sDistro.label')"
           :tooltip="t('cluster.directoryConfig.k8sDistro.tooltip')"
-          :disabled="disableEditInput"
           data-testid="rke2-directory-config-k8sDistro-data-dir"
         />
       </div>
