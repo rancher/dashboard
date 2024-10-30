@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class BurgerMenuPo extends ComponentPo {
   constructor() {
@@ -19,8 +19,8 @@ export default class BurgerMenuPo extends ComponentPo {
    * Navigates to a top-level side menu entry by label (non-cluster)
    * @returns {Cypress.Chainable}
    */
-  static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
-    return this.sideMenu().should('exist').find('.option').contains(label)
+  static burgerMenuNavToMenubyLabel(label: string, options?: GetOptions): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option').contains(label, options)
       .click({ force: true });
   }
 

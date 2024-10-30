@@ -304,6 +304,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       stdProjectName = `standard-user-project${ +new Date() }`;
       stdNsName = `standard-user-ns${ +new Date() }`;
       stdUsername = `standard-user-${ +new Date() }`;
+      const password = Cypress.env('password');
+
       // log in as admin
       cy.login();
       cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
@@ -323,17 +325,19 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
               globalRole:  { role: 'user' },
               projectRole: {
                 clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
-              }
-            }).as('createUserRequest');
+              },
+              password
+            }).as('createUserRequest').then(() => {
+              // log in as new standard user
+              cy.login(stdUsername, password, false);
+
+              // go to cluster dashboard
+              ClusterDashboardPagePo.navTo();
+              clusterDashboard.waitForPage();
+            });
           });
         });
       });
-      // log in as new standard user
-      cy.login(stdUsername, Cypress.env('password'), false);
-
-      // go to cluster dashboard
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage();
     });
 
     // note - this would be 'fleet agent' on downstream clusters

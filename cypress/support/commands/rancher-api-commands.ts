@@ -66,7 +66,7 @@ Cypress.Commands.add('login', (
  */
 Cypress.Commands.add('createUser', (params: CreateUserParams) => {
   const {
-    username, globalRole, clusterRole, projectRole
+    username, globalRole, clusterRole, projectRole, password
   } = params;
 
   return cy.createE2EResourceName(username)
@@ -84,7 +84,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
           enabled:            true,
           mustChangePassword: false,
           username:           e2eName,
-          password:           Cypress.env('password')
+          password:           password || Cypress.env('password')
         }
       });
     })

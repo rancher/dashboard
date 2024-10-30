@@ -136,7 +136,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
           prefPage.languageDropdownMenu().isOpened();
 
           cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-          prefPage.languageDropdownMenu().clickOption(1);
+          prefPage.languageDropdownMenu().clickOptionWithLabel('English');
           cy.wait('@prefUpdateEnUs').then(({ response }) => {
             expect(response?.statusCode).to.eq(200);
             expect(response?.body.data).to.have.property('locale', 'en-us');

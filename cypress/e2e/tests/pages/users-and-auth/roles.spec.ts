@@ -266,7 +266,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    let uniqueRoleName = 'unique-test-name';
+    let uniqueRoleName = 'a-unique-test-name';
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');

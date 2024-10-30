@@ -12,7 +12,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    let uniquePod = 'unique-pod-name';
+    let uniquePod = 'a-unique-test-name';
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;

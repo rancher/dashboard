@@ -16,7 +16,8 @@ export type CreateUserParams = {
     clusterId: string,
     projectName: string,
     role: string,
-  }
+  },
+  password?: string,
 }
 
 export type CreateAmazonRke2ClusterParams = {

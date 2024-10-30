@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FleetDashboardPagePo extends PagePo {
     static url: string;
@@ -26,7 +27,8 @@ export class FleetDashboardPagePo extends PagePo {
 
     static navTo() {
       BurgerMenuPo.toggle();
-      BurgerMenuPo.burgerMenuNavToMenubyLabel('Continuous Delivery');
+      // Give extra time to ensure fleet comes up
+      BurgerMenuPo.burgerMenuNavToMenubyLabel('Continuous Delivery', LONG_TIMEOUT_OPT);
     }
 
     constructor(clusterId: string) {

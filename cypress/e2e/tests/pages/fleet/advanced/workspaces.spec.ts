@@ -70,7 +70,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
     });
 
-    let uniqueWorkspaceName = 'unique-test-name';
+    let uniqueWorkspaceName = 'a-unique-test-name';
 
     before('set up', () => {
       cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {
