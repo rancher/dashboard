@@ -6,10 +6,10 @@ GITHUB_WORKFLOW_TYPE=$3
 
 # Ensure "catalog" workflow release tag name does not match a pkg/<pkg-name>
 if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
-  for d in pkg/*/ ; do
+  for d in pkg/*/; do
     pkg=$(basename $d)
 
-    PKG_VERSION=$(jq -r .version pkg/${pkg}/package.json)
+    PKG_VERSION=$(jq -r .version pkg/${pkg}/package.json) || exit 1
     PKG_NAME="${pkg}-${PKG_VERSION}"
 
     if [[ "${GITHUB_RELEASE_TAG}" == "${PKG_NAME}" ]]; then
@@ -23,7 +23,8 @@ else
   BASE_EXT=$(jq -r .name package.json)
   EXT_VERSION=$(jq -r .version package.json)
 
-  if [[ "${GITHUB_RELEASE_TAG}" == "${BASE_EXT}-${EXT_VERSION}" ]]; then
+  if [[ "${GITHUB_RELEASE_TAG}" == "${BASE_EXT}-${EXT_VERSION}" ||
+    "${GITHUB_RELEASE_TAG}" == "${BASE_EXT}@${EXT_VERSION}" ]]; then
     echo -e "tag: ${GITHUB_RELEASE_TAG}"
     gh run cancel ${GITHUB_RUN_ID}
   fi
