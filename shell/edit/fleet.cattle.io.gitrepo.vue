@@ -34,6 +34,8 @@ const _SPECIFY = 'specify';
 export default {
   name: 'CruGitRepo',
 
+  inheritAttrs: false,
+
   emits: ['input'],
 
   components: {
