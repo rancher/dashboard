@@ -73,8 +73,8 @@ Cypress.Commands.add('getRootE2EResourceName', () => {
 /**
  * Create resource name
  */
-Cypress.Commands.add('createE2EResourceName', (context) => {
-  return cy.getRootE2EResourceName().then((root) => `${ root }-${ context }`);
+Cypress.Commands.add('createE2EResourceName', (context, options = { prefixContext: false }) => {
+  return cy.getRootE2EResourceName().then((root) => options?.prefixContext ? `${ context }-${ root }` : `${ root }-${ context }`);
 });
 
 // See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress

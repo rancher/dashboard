@@ -55,6 +55,11 @@ export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
     namespace: string,
   }
 }
+
+export interface CreateResourceNameOptions {
+  prefixContext: boolean
+}
+
 declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
@@ -66,7 +71,7 @@ declare global {
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
-      createE2EResourceName(context: string): Chainable<string>;
+      createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
 
       createUser(params: CreateUserParams): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
@@ -76,10 +81,10 @@ declare global {
       createProject(projName: string, clusterId: string, userId: string): Chainable;
       createNamespaceInProject(nsName: string, projId: string): Chainable;
       createNamespace(nsName: string): Chainable;
-      createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean): Chainable;
+      createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createToken(description: string, ttl: number, failOnStatusCode?: boolean, clusterId?: string): Chainable;
-      createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean): Chainable;
-      createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean): Chainable;
+      createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
+      createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;

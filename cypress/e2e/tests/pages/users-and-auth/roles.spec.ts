@@ -284,7 +284,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       while (i < 25) {
         const globalRoleName = Cypress._.uniqueId(Date.now().toString());
 
-        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
+        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
           const roleId = resp.body.id;
 
           globalRolesIdsList.push(roleId);
@@ -294,7 +294,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false).then((resp: Cypress.Response<any>) => {
+      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const roleId = resp.body.id;
 
         uniqueRoleName = resp.body.metadata.name;

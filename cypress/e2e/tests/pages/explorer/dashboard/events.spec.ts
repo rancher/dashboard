@@ -31,7 +31,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         while (i < 125) {
           const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:latest', false).then((resp) => {
+          cy.createPod(nsName1, podName, 'nginx:latest', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
             podNamesList.push(resp.body.metadata.name);
           });
 
@@ -46,7 +46,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         cy.createNamespace(nsName2);
 
         // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:latest').then((resp) => {
+        cy.createPod(nsName2, uniquePod, 'nginx:latest', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
           uniquePod = resp.body.metadata.name;
         });
       });

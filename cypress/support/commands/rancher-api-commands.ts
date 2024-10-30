@@ -298,8 +298,8 @@ Cypress.Commands.add('createNamespace', (nsName) => {
 /**
  * Create pod
  */
-Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
-  return cy.createE2EResourceName(podName)
+Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(podName, options?.createNameOptions)
     .then((e2eName) => {
       return cy.request({
         method:  'POST',
@@ -855,8 +855,8 @@ Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnS
 /**
  * Create global role
  */
-Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true) => {
-  return cy.createE2EResourceName(name)
+Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(name, options?.createNameOptions)
     .then((e2eName) => {
       return cy.request({
         method:  'POST',
@@ -891,8 +891,8 @@ Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNam
 /**
 * Create fleet workspace
 */
-Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true) => {
-  return cy.createE2EResourceName(name)
+Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(name, options?.createNameOptions)
     .then((e2eName) => {
       return cy.request({
         method:  'POST',

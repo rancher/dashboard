@@ -83,7 +83,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         const workspaceName = Cypress._.uniqueId(Date.now().toString());
         const workspaceDesc = `e2e-desc-${ Cypress._.uniqueId(Date.now().toString()) }`;
 
-        cy.createFleetWorkspace(workspaceName, workspaceDesc, false).then((resp: Cypress.Response<any>) => {
+        cy.createFleetWorkspace(workspaceName, workspaceDesc, false, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
           const wsId = resp.body.id;
 
           workspaceNameList.push(wsId);
@@ -93,7 +93,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       }
 
       // create one more for sorting test
-      cy.createFleetWorkspace(uniqueWorkspaceName).then((resp: Cypress.Response<any>) => {
+      cy.createFleetWorkspace(uniqueWorkspaceName, undefined, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const wsId = resp.body.id;
 
         uniqueWorkspaceName = resp.body.name;
