@@ -458,8 +458,6 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     return runValidators(val, [startHyphen('label'), endHyphen('label'), startDot('label'), endDot('label'), required]);
   };
 
-  const repo: Validator = (val) => val && !/((git|ssh|http(s)?)|(git@[\w\.]+))(\:(\/\/)?)([\w\.@\:/\-~]+)(\.git)?(\/)?/.test(val) ? t('validation.setting.repo') : undefined;
-
   return {
     absolutePath,
     alphanumeric,
@@ -501,7 +499,6 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     servicePort,
     subDomain,
     testRule,
-    wildcardHostname,
-    repo
+    wildcardHostname
   };
 }
