@@ -113,6 +113,10 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
 
                 return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
               }
+            })
+            .then(() => {
+              // return response of original user
+              return resp;
             });
         }
       }

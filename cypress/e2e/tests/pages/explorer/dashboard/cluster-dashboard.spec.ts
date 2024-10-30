@@ -303,7 +303,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     beforeEach(() => {
       stdProjectName = `standard-user-project${ +new Date() }`;
       stdNsName = `standard-user-ns${ +new Date() }`;
-      stdUsername = `standard-user-${ +new Date() }`;
+      stdUsername = `standard-user`;
       const password = Cypress.env('password');
 
       // log in as admin
@@ -327,9 +327,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
                 clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
               },
               password
-            }).as('createUserRequest').then(() => {
-              cy.wait(2000); // TEST
-
+            }).as('createUserRequest').then((resp) => {
+              stdUsername = resp.body.name;
               // log in as new standard user
               cy.login(stdUsername, password, false);
 
