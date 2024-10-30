@@ -23,7 +23,8 @@ const cyan = `\x1b[96m`;
 const yellow = `\x1b[33m`;
 const bold = `\x1b[1m`;
 
-const DOCS_BASE_REGEX = /export const DOCS_BASE = '([^']*)';/;
+const DOCS_BASE_REGEX = /export const DOCS_BASE = `([^']*v)\${ CURRENT_RANCHER_VERSION }`/;
+const VERSION_REGEX = /export const CURRENT_RANCHER_VERSION = '([0-9]\.[0-9]+)';/;
 
 const CATEGORIES = [
   {
@@ -63,6 +64,21 @@ const docsBaseFileMatches = docsBaseFile.match(DOCS_BASE_REGEX);
 
 if (docsBaseFileMatches && docsBaseFileMatches.length === 2) {
   docsBaseUrl = docsBaseFileMatches[1];
+}
+
+if (docsBaseUrl.length === 0) {
+  console.log('Could not parse documentation base URL'); // eslint-disable-line no-console
+  process.exit(1);
+}
+
+const versionFile = fs.readFileSync(path.join(srcFolder, 'config', 'version.js'), 'utf8');
+const versionFileMatches = versionFile.match(VERSION_REGEX);
+
+if (versionFileMatches && versionFileMatches.length === 2) {
+  docsBaseUrl = `${ docsBaseUrl }${ versionFileMatches[1] }`;
+} else {
+  console.log('Could not parse version number from the version file'); // eslint-disable-line no-console
+  process.exit(1);
 }
 
 function readAndParseTranslations(filePath) {
@@ -120,6 +136,8 @@ function parseLinks(str) {
 
           if (link.startsWith('http')) {
             links.push(link);
+          } else if (!(link.startsWith('{') && link.endsWith('}'))) {
+            console.log(`${ yellow }${bold}Skipping link: ${ link }${ reset }`); // eslint-disable-line no-console
           }
         }
       });
@@ -162,6 +180,11 @@ console.log(`${ cyan }Checking source files for i18n strings${ reset }`); // esl
 console.log('======================================'); // eslint-disable-line no-console
 
 console.log(''); // eslint-disable-line no-console
+
+console.log(`Using documentation base URL: ${ cyan }${ docsBaseUrl }${ reset }`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
+
+
 console.log('Reading translation files:'); // eslint-disable-line no-console
 
 let i18n = loadI18nFiles(srcFolder);
@@ -169,6 +192,7 @@ let i18n = loadI18nFiles(srcFolder);
 i18n = { ...i18n, ...loadI18nFiles(pkgFolder) };
 
 console.log(`Read  ${ cyan }${ Object.keys(i18n).length }${ reset } translations`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
 
 const links = [];
 
@@ -180,6 +204,7 @@ Object.keys(i18n).forEach((str) => {
 });
 
 console.log(`Discovered ${ cyan }${ links.length }${ reset } links`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
 
 console.log(`${ cyan }Links:${ reset }`); // eslint-disable-line no-console
 console.log(`${ cyan }======${ reset }`); // eslint-disable-line no-console
@@ -242,8 +267,8 @@ async function check(links) {
       statusCode = r.status;
       statusMessage = r.statusText;
     } catch (e) {
-      statusCode = e.status;
-      statusMessage = e.statusText;
+      statusCode = e.response ? e.response.status : e.status;
+      statusMessage = e.response ? e.response.statusText : e.statusText;
     }
 
     if (statusCode !== 200) {
