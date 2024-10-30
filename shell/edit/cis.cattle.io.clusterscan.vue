@@ -12,7 +12,7 @@ import { allHash } from '@shell/utils/promise';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
-import { _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
+import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
 
@@ -43,7 +43,8 @@ export default {
     // in the clusterscan edit/create views the "canBeScheduled" won't run properly
     await this.schema.fetchResourceFields();
 
-    if (this.realMode === _CREATE || this.realMode === _EDIT) {
+    // Only initialize on create or if we don't have a spec object (added for resilience)
+    if (this.realMode === _CREATE || !this.value.spec) {
       const includeScheduling = this.value.canBeScheduled();
       const spec = this.value.spec || {};
 
