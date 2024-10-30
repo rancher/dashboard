@@ -37,6 +37,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.waitForPage();
     cy.wait('@getPods');
 
+    // group by namespace
+    workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
