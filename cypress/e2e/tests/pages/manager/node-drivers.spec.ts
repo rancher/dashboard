@@ -208,39 +208,39 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(openStackDriver, 'exist');
   });
 
-  it.skip('can deactivate drivers in bulk', () => {
-    // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
-    NodeDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
-    driversPage.list().details(openStackDriver, 1).should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openStackDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
-      .click();
+  // it.skip('can deactivate drivers in bulk', () => {
+  //   // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
+  //   NodeDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
+  //   driversPage.list().details(openStackDriver, 1).should('contain', 'Active');
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openStackDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
+  //     .click();
 
-    cy.intercept('POST', '/v3/nodeDrivers/oci?action=deactivate').as('deactivateOracleDriver');
-    cy.intercept('POST', '/v3/nodeDrivers/openstack?action=deactivate').as('deactivateopenStackDriver');
+  //   cy.intercept('POST', '/v3/nodeDrivers/oci?action=deactivate').as('deactivateOracleDriver');
+  //   cy.intercept('POST', '/v3/nodeDrivers/openstack?action=deactivate').as('deactivateopenStackDriver');
 
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateopenStackDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(openStackDriver, 1).should('contain', 'Inactive');
+  //   deactivateDialog.deactivate();
+  //   cy.wait('@deactivateopenStackDriver').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().details(openStackDriver, 1).should('contain', 'Inactive');
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(openStackDriver, 'not.exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
+  //   createCluster.gridElementExistanceByName(openStackDriver, 'not.exist');
+  // });
 
   it('can delete drivers in bulk', () => {
     NodeDriversPagePo.navTo();

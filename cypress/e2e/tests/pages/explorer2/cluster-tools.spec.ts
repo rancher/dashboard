@@ -42,36 +42,36 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
   });
 
-  it.skip('can edit chart successfully', () => {
-    // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
-    // skipping this test until issue is resolved
-    clusterTools.goTo();
-    clusterTools.waitForPage();
-    clusterTools.editChart(0);
+  // it.skip('can edit chart successfully', () => {
+  //   // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
+  //   // skipping this test until issue is resolved
+  //   clusterTools.goTo();
+  //   clusterTools.waitForPage();
+  //   clusterTools.editChart(0);
 
-    const installChart = new InstallChartPage();
+  //   const installChart = new InstallChartPage();
 
-    installChart.nextPage();
+  //   installChart.nextPage();
 
-    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('chartUpdate');
-    installChart.installChart();
-    cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
-    clusterTools.waitForPage();
-    cy.contains('Connected');
-  });
+  //   cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('chartUpdate');
+  //   installChart.installChart();
+  //   cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
+  //   clusterTools.waitForPage();
+  //   cy.contains('Connected');
+  // });
 
-  it.skip('can uninstall chart successfully', () => {
-    // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
-    // skipping this test until issue is resolved
-    clusterTools.goTo();
-    clusterTools.waitForPage();
-    clusterTools.deleteChart(0);
+  // it.skip('can uninstall chart successfully', () => {
+  //   // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
+  //   // skipping this test until issue is resolved
+  //   clusterTools.goTo();
+  //   clusterTools.waitForPage();
+  //   clusterTools.deleteChart(0);
 
-    const promptRemove = new PromptRemove();
+  //   const promptRemove = new PromptRemove();
 
-    cy.intercept('POST', '/v1/catalog.cattle.io.apps/default/rancher-alerting-drivers?action=uninstall').as('chartUninstall');
-    promptRemove.remove();
-    cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-    cy.contains('Disconnected');
-  });
+  //   cy.intercept('POST', '/v1/catalog.cattle.io.apps/default/rancher-alerting-drivers?action=uninstall').as('chartUninstall');
+  //   promptRemove.remove();
+  //   cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+  //   cy.contains('Disconnected');
+  // });
 });

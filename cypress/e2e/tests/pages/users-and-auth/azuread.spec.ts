@@ -35,29 +35,29 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     azureadPo.mastheadTitle().should('include', `AzureAD`);
   });
 
-  it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
-    cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
-      expect(req.body.tenantId).to.equal(tenantId);
-      expect(req.body.applicationId).to.equal(applicationId);
-      expect(req.body.applicationSecret).to.equal(appSecret);
-      expect(req.body.endpoint).to.equal(defaultEndpoint);
-      expect(req.body.authEndpoint).to.equal(defaultAuthEndpoint);
-      expect(req.body.tokenEndpoint).to.equal(defaultTokenEndpoint);
-      expect(req.body.graphEndpoint).to.equal(defaultGraphEndpoint);
+  // it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
+  //   cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
+  //     expect(req.body.tenantId).to.equal(tenantId);
+  //     expect(req.body.applicationId).to.equal(applicationId);
+  //     expect(req.body.applicationSecret).to.equal(appSecret);
+  //     expect(req.body.endpoint).to.equal(defaultEndpoint);
+  //     expect(req.body.authEndpoint).to.equal(defaultAuthEndpoint);
+  //     expect(req.body.tokenEndpoint).to.equal(defaultTokenEndpoint);
+  //     expect(req.body.graphEndpoint).to.equal(defaultGraphEndpoint);
 
-      req.reply(mockStatusCode, mockBody);
-    }).as('configureTest');
+  //     req.reply(mockStatusCode, mockBody);
+  //   }).as('configureTest');
 
-    // save should be disabled before values are filled
-    azureadPo.saveButton().expectToBeDisabled();
-    azureadPo.enterTenantId(tenantId);
-    azureadPo.enterApplicationId(applicationId);
-    azureadPo.enterApplicationSecret(appSecret);
-    // save should be enabled after values are filled
-    azureadPo.saveButton().expectToBeEnabled();
-    azureadPo.save();
-    cy.wait('@configureTest');
-  });
+  //   // save should be disabled before values are filled
+  //   azureadPo.saveButton().expectToBeDisabled();
+  //   azureadPo.enterTenantId(tenantId);
+  //   azureadPo.enterApplicationId(applicationId);
+  //   azureadPo.enterApplicationSecret(appSecret);
+  //   // save should be enabled after values are filled
+  //   azureadPo.saveButton().expectToBeEnabled();
+  //   azureadPo.save();
+  //   cy.wait('@configureTest');
+  // });
 
   it('sends correct request to create custom Azure AD', () => {
     cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {

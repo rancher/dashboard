@@ -53,12 +53,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
-  it.skip('[Vue3 Skip]: has the correct title', () => {
-    clusterDashboard.goTo('local');
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
+  // it.skip('[Vue3 Skip]: has the correct title', () => {
+  //   clusterDashboard.goTo('local');
+  //   clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
-  });
+  //   cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  // });
 
   it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
@@ -156,7 +156,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.customBadge().should('contain', settings.description.new);
     const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
+    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
 
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
@@ -171,7 +171,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.clusterIcon().children().should('have.class', 'cluster-local-logo');
     header.clusterName().should('contain', 'local');
     header.customBadge().should('not.exist');
-    burgerMenu.clusters().first().find('svg').should('have.class', 'cluster-local-logo');
+    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
   });
 
   it('can view deployments', () => {
