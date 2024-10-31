@@ -105,8 +105,8 @@ export default {
         return null;
       }
 
-      if (this.toRemove[0].doneLocationRemove) {
-        return this.toRemove[0].doneLocationRemove;
+      if (this.toRemove[0].doneOverride) {
+        return this.toRemove[0].doneOverride;
       }
 
       const currentRoute = this.toRemove[0].currentRoute();
@@ -300,7 +300,12 @@ export default {
     },
     done() {
       if ( this.cachedDoneLocation && !isEmpty(this.cachedDoneLocation) ) {
-        this.currentRouter.push(this.cachedDoneLocation);
+        // Only push if the route will change otherwise we'll get a `NavigationDuplicated` exception
+        const resolvedRoute = this.currentRouter.resolve(this.cachedDoneLocation);
+
+        if (resolvedRoute.resolved.fullPath !== this.$route.fullPath) {
+          this.currentRouter.push(this.cachedDoneLocation);
+        }
       }
       this.close();
     },

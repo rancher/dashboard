@@ -1,10 +1,17 @@
 import RoleDetailPo from '@/cypress/e2e/po/detail/role.po';
 import RoleTemplateEditPo from '@/cypress/e2e/po/edit/management.cattle.io.roletemplate.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+import ActionMenu from '@/cypress/e2e/po/components/action-menu.po';
 
 class RoleTemplateDetailComponentPo extends ResourceDetailPo {
   userCreateEditView(clusterId: string, userId?: string ) {
     return new RoleTemplateEditPo(clusterId, userId);
+  }
+
+  openMastheadActionMenu() {
+    this.self().get('[data-testid="mathead-action-menu"]').click();
+
+    return new ActionMenu(undefined);
   }
 }
 
