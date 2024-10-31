@@ -213,7 +213,7 @@ export default {
         return undefined;
       },
       set(v) {
-        this.value['for'] = [null, undefined].includes(v ? undefined : `${ v }s`);
+        this.value['for'] = [null, undefined].includes(v) ? undefined : `${ v }s`;
       }
     }
   },
