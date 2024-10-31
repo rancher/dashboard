@@ -229,11 +229,18 @@ export default {
         <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
       </div>
       <template v-if="!harvesterExtension">
-        <div class="tagline">
+        <div class="tagline extension-warning-panel">
+          <div class="extensions-separator"></div>
           <div
             v-clean-html="t('harvesterManager.extension.install.warning', {}, true)"
             class="extension-warning"
           />
+          <div class="tagline">
+            <div
+              v-clean-html="t('harvesterManager.extension.install.prompt', {}, true)"
+              class="extension-prompt"
+            />
+          </div>
         </div>
         <div
           v-if="isAdmin"
@@ -307,6 +314,17 @@ export default {
       max-width: 80%;
       text-align: center;
     }
+  }
+
+  .extensions-separator {
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    width: 50%;
+  }
+
+  .extension-warning-panel {
+    align-items: center;
+    flex-direction: column;
   }
 
   .extension-warning {

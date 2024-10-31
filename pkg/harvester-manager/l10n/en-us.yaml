@@ -9,7 +9,8 @@ harvesterManager:
     loadError: Error loading harvester plugin
   extension:
     install:
-      warning: "Harvester extension is not installed"
+      warning: "The Harvester UI Extension is not installed"
+      prompt: "UI Integration for Harvester is now provided via the new Harvester UI Extension, which needs to be installed."
       steps:
         repo:
           1: Go to the
