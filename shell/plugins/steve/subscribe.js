@@ -35,7 +35,6 @@ import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import paginationUtils from '@shell/utils/pagination-utils';
-import _ from 'lodash';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
