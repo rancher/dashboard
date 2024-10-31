@@ -142,6 +142,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // pod name should be visible on first page (sorted in ASC order)
+      workloadsPodPage.sortableTable().tableHeaderRow().self().scrollIntoView();
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order

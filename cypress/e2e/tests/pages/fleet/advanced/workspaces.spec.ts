@@ -196,6 +196,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // workspace name should be visible on first page (sorted in ASC order)
+      fleetWorkspacesPage.sortableTable().tableHeaderRow().self().scrollIntoView();
       fleetWorkspacesPage.sortableTable().rowElementWithName(uniqueWorkspaceName).scrollIntoView().should('be.visible');
 
       // navigate to last page

@@ -327,7 +327,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
                 clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
               },
               password
-            }).as('createUserRequest').then((resp) => {
+            }).then((resp) => {
               stdUsername = resp.body.name;
               // log in as new standard user
               cy.login(stdUsername, password, false);
@@ -335,7 +335,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
               // go to cluster dashboard
               ClusterDashboardPagePo.navTo();
               clusterDashboard.waitForPage();
-            });
+
+              return resp;
+            }).as('createUserRequest');
           });
         });
       });
@@ -355,7 +357,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.login();
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
-      cy.get('@standardUserProject').then((projectId) => {
+      cy.get<string>('@standardUserProject').then((projectId) => {
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 

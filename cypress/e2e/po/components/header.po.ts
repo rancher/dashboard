@@ -1,11 +1,16 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/workspace-switcher.po';
 import { ImportYamlPo } from '@/cypress/e2e/po/components/import-yaml.po';
-import Kubectl from '~/cypress/e2e/po/components/kubectl.po';
+import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 export class HeaderPo extends ComponentPo {
   constructor() {
     super('[data-testid="header"]');
+  }
+
+  projectNamespaceFilter() {
+    return new NamespaceFilterPo();
   }
 
   selectWorkspace(name: string) {

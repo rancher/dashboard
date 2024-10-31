@@ -9,15 +9,15 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
-    });
-
     it('validate HorizontalPodAutoscalers table in empty state', () => {
       horizontalPodAutoScalersNoData();
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
       cy.wait('@horizontalpodautoscalerNoData');
+
+      horizontalPodAutoscalersPage.header().projectNamespaceFilter().toggle();
+      horizontalPodAutoscalersPage.header().projectNamespaceFilter().clickOptionByLabel('All Namespaces');
+      horizontalPodAutoscalersPage.header().projectNamespaceFilter().isChecked('All Namespaces');
 
       const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 

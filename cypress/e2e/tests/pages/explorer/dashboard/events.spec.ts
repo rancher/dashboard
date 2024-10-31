@@ -160,6 +160,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.sortableTable().tableHeaderRow().checkSortOrder(11, 'down');
 
       // event name should be visible on first page (sorted in ASC order)
+      events.sortableTable().tableHeaderRow().self().scrollIntoView();
       events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order

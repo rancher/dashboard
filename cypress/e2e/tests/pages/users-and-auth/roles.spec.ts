@@ -297,7 +297,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const roleId = resp.body.id;
 
-        uniqueRoleName = resp.body.metadata.name;
+        uniqueRoleName = resp.body.name;
 
         globalRolesIdsList.push(roleId);
       });
@@ -335,6 +335,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.waitForPage();
 
       // check table is sorted by name in ASC order by default
+      rolesList.resourceTable().sortableTable().tableHeaderRow().self()
+        .scrollIntoView();
       rolesList.resourceTable().sortableTable().tableHeaderRow()
         .checkSortOrder(3, 'down');
 
