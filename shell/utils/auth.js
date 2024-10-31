@@ -116,7 +116,7 @@ export const checkSchemasForFindAllHash = (types, store) => {
     const validSchema = value.schemaValidator ? value.schemaValidator(schema) : !!schema;
 
     if (validSchema) {
-      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type, opt: value.opt } );
     }
   }
 
