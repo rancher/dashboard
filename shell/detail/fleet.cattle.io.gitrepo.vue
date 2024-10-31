@@ -80,7 +80,8 @@ export default {
     const allDispatches = await checkSchemasForFindAllHash({
       allBundles: {
         inStoreType: 'management',
-        type:        FLEET.BUNDLE
+        type:        FLEET.BUNDLE,
+        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
       },
 
       allBundleDeployments: {

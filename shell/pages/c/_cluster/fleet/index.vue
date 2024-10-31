@@ -39,6 +39,7 @@ export default {
       allBundles: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
+        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
       },
       gitRepos: {
         inStoreType: 'management',
