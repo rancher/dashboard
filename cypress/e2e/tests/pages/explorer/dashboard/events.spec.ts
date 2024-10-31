@@ -2,6 +2,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const events = new EventsPagePo('local');
@@ -12,7 +13,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    let uniquePod = 'a-unique-test-name';
+    let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;

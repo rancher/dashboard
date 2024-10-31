@@ -2,6 +2,7 @@ import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cat
 import FleetWorkspaceDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.fleetworkspace.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
 import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
@@ -70,7 +71,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
     });
 
-    let uniqueWorkspaceName = 'a-unique-test-name';
+    let uniqueWorkspaceName = SortableTablePo.firstByDefaultName('workspace');
 
     before('set up', () => {
       cy.getRancherResource('v1', 'management.cattle.io.fleetworkspaces').then((resp: Cypress.Response<any>) => {

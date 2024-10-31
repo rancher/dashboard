@@ -7,6 +7,7 @@ import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const roles = new RolesPo(BLANK_CLUSTER);
 const usersPo = new UsersPo(BLANK_CLUSTER);
@@ -266,7 +267,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    let uniqueRoleName = 'a-unique-test-name';
+    let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');

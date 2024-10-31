@@ -312,11 +312,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         const adminUserId = resp.body.data[0].id.trim();
 
         // create project
-        cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
+        return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
           cy.wrap(resp.body.id.trim()).as('standardUserProject');
 
           // create ns in project
-          cy.get<string>('@standardUserProject').then((projId) => {
+          return cy.get<string>('@standardUserProject').then((projId) => {
             cy.createNamespaceInProject(stdNsName, projId);
 
             // create std user and assign to project
@@ -327,17 +327,20 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
                 clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
               },
               password
-            }).then((resp) => {
-              stdUsername = resp.body.name;
-              // log in as new standard user
-              cy.login(stdUsername, password, false);
+            })
+              .as('createUserRequest')
+              .then((resp) => {
+                stdUsername = resp.body.username;
+                cy.log('!!!!!', JSON.stringify(resp.body), password);
 
-              // go to cluster dashboard
-              ClusterDashboardPagePo.navTo();
-              clusterDashboard.waitForPage();
+                // log in as new standard user
+                cy.login(stdUsername, password, false);
 
-              return resp;
-            }).as('createUserRequest');
+                // go to cluster dashboard
+                ClusterDashboardPagePo.navTo();
+
+                return clusterDashboard.waitForPage();
+              });
           });
         });
       });
@@ -362,7 +365,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       });
 
       cy.get('@createUserRequest').then((req) => {
-        const userId = req.body.userPrincipalId.split('//').pop();
+        const userId = req.body.id;
 
         cy.deleteRancherResource('v3', 'users', userId);
       });

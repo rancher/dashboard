@@ -4,6 +4,7 @@ import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo('local');
@@ -13,7 +14,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    let uniquePod = 'a-unique-test-name';
+    let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;

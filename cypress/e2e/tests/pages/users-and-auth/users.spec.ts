@@ -295,7 +295,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
         const userId = resp.body.id;
 
-        uniqueUserName = resp.body.name;
+        uniqueUserName = resp.body.username;
         userIdsList.push(userId);
       });
     });
