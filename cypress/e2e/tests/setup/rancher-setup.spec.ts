@@ -107,7 +107,8 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
         clusterId:   'local',
         projectName: 'Default',
         role:        'project-member',
-      }
+      },
+      password: Cypress.env('password')
     });
   });
 });

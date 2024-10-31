@@ -529,7 +529,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
   return retry();
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal) => {
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
@@ -543,14 +543,19 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
       },
     })
       .then((resp) => {
-        if (resp.body.count === expectedResourcesTotal) return resp;
-        else {
-          retries = retries - 1;
-          if (retries === 0) return resp;
-          // eslint-disable-next-line cypress/no-unnecessary-waiting
-          cy.wait(1000);
-          retry();
+        if (greaterThan) {
+          if (resp.body.count > expectedResourcesTotal) {
+            return resp;
+          }
+        } else if (resp.body.count === expectedResourcesTotal) {
+          return resp;
         }
+
+        retries = retries - 1;
+        if (retries === 0) return resp;
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(1000);
+        retry();
       });
   };
 

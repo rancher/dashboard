@@ -10,7 +10,7 @@ const rolesGetResponseEmpty = {
 };
 
 // GET /v1/rbac.authorization.k8s.io.roles - small set of roles data
-const rolesResponseSmallSet = {
+const rolesResponseSmallSet = (namespace = 'kube-system') => ({
   type:         'collection',
   links:        { self: 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles' },
   createTypes:  { 'rbac.authorization.k8s.io.role': 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles' },
@@ -87,13 +87,13 @@ const rolesResponseSmallSet = {
       ]
     },
     {
-      id:    'kube-system/extension-apiserver-authentication-reader',
+      id:    `${ namespace }/extension-apiserver-authentication-reader`,
       type:  'rbac.authorization.k8s.io.role',
       links: {
-        remove: 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles/kube-system/extension-apiserver-authentication-reader',
-        self:   'https://localhost:8005/v1/rbac.authorization.k8s.io.roles/kube-system/extension-apiserver-authentication-reader',
-        update: 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles/kube-system/extension-apiserver-authentication-reader',
-        view:   'https://localhost:8005/apis/rbac.authorization.k8s.io/v1/namespaces/kube-system/roles/extension-apiserver-authentication-reader'
+        remove: `https://localhost:8005/v1/rbac.authorization.k8s.io.roles/${ namespace }/extension-apiserver-authentication-reader`,
+        self:   `https://localhost:8005/v1/rbac.authorization.k8s.io.roles/${ namespace }/extension-apiserver-authentication-reader`,
+        update: `https://localhost:8005/v1/rbac.authorization.k8s.io.roles/${ namespace }/extension-apiserver-authentication-reader`,
+        view:   `https://localhost:8005/apis/rbac.authorization.k8s.io/v1/namespaces/${ namespace }/roles/extension-apiserver-authentication-reader`
       },
       apiVersion: 'rbac.authorization.k8s.io/v1',
       kind:       'Role',
@@ -109,7 +109,7 @@ const rolesResponseSmallSet = {
         ],
         labels:        { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
         name:          'extension-apiserver-authentication-reader',
-        namespace:     'kube-system',
+        namespace,
         relationships: null,
         state:         {
           error:         false,
@@ -139,7 +139,7 @@ const rolesResponseSmallSet = {
       ]
     },
   ]
-};
+});
 
 function reply(statusCode: number, body: any) {
   return (req) => {
@@ -154,6 +154,6 @@ export function rolesNoData(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/rbac.authorization.k8s.io.roles?*', reply(200, rolesGetResponseEmpty)).as('rolesNoData');
 }
 
-export function generateRolesDataSmall(): Cypress.Chainable<Response> {
-  return cy.intercept('GET', '/v1/rbac.authorization.k8s.io.roles?*', reply(200, rolesResponseSmallSet)).as('rolesDataSmall');
+export function generateRolesDataSmall(as: string, namespace?: string): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/rbac.authorization.k8s.io.roles?*', reply(200, rolesResponseSmallSet(namespace))).as(as);
 }

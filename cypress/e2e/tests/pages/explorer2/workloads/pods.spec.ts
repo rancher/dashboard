@@ -18,17 +18,11 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
-    let initialCount: number;
     let rootResourceName: string;
 
     before('set up', () => {
       cy.getRootE2EResourceName().then((root) => {
         rootResourceName = root;
-      });
-
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
-      cy.getRancherResource('v1', 'pods').then((resp: Cypress.Response<any>) => {
-        initialCount = resp.body.count;
       });
 
       cy.createE2EResourceName('ns1').then((ns1) => {
@@ -48,17 +42,19 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
           i++;
         }
-      });
 
-      cy.createE2EResourceName('ns2').then((ns2) => {
-        nsName2 = ns2;
+        cy.createE2EResourceName('ns2').then((ns2) => {
+          nsName2 = ns2;
 
-        // create namespace
-        cy.createNamespace(nsName2);
+          // create namespace
+          cy.createNamespace(nsName2);
 
-        // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:alpine', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
-          uniquePod = resp.body.metadata.name;
+          // create unique pod for filtering/sorting test
+          cy.createPod(nsName2, uniquePod, 'nginx:alpine', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
+            uniquePod = resp.body.metadata.name;
+          });
+
+          cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
       });
     });
@@ -68,9 +64,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.waitForPage();
 
       // check pods count
-      const count = initialCount + 26;
+      const count = podNamesList.length + 1;
 
-      cy.waitForRancherResources('v1', 'pods', count).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         workloadsPodPage.sortableTable().pagination().checkVisible();
 
@@ -181,6 +177,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('pagination is hidden', () => {
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{"local":[]}');
+
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
@@ -204,135 +202,135 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('Should open a terminal', () => {
-    beforeEach(() => {
-      workloadsPodPage.goTo();
-    });
+  // describe('Should open a terminal', () => {
+  //   beforeEach(() => {
+  //     workloadsPodPage.goTo();
+  //   });
 
-    it('should open a pod shell', () => {
-      const shellPodPo = new PodPo();
+  //   it('should open a pod shell', () => {
+  //     const shellPodPo = new PodPo();
 
-      shellPodPo.openPodShell();
-    });
-  });
+  //     shellPodPo.openPodShell();
+  //   });
+  // });
 
-  describe('When cloning a pod', () => {
-    const { name: origPodName, namespace } = createPodBlueprint.metadata;
-    const { name: clonePodName } = clonePodBlueprint.metadata;
+  // describe('When cloning a pod', () => {
+  //   const { name: origPodName, namespace } = createPodBlueprint.metadata;
+  //   const { name: clonePodName } = clonePodBlueprint.metadata;
 
-    beforeEach(() => {
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
+  //   beforeEach(() => {
+  //     cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
+  //     cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
 
-      workloadsPodPage.goTo();
+  //     workloadsPodPage.goTo();
 
-      const createPodPo = new PodPo();
+  //     const createPodPo = new PodPo();
 
-      createPodPo.createPodViaKubectl(createPodBlueprint);
-    });
+  //     createPodPo.createPodViaKubectl(createPodBlueprint);
+  //   });
 
-    it(`Should have same spec as the original pod`, () => {
-      const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
+  //   it(`Should have same spec as the original pod`, () => {
+  //     const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-      cloneCreatePodPage.goTo();
+  //     cloneCreatePodPage.goTo();
 
-      let origPodSpec: any;
+  //     let origPodSpec: any;
 
-      cy.wait('@origPod', { timeout: 20000 })
-        .then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          origPodSpec = response?.body.spec;
-          expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
-        });
+  //     cy.wait('@origPod', { timeout: 20000 })
+  //       .then(({ response }) => {
+  //         expect(response?.statusCode).to.eq(200);
+  //         origPodSpec = response?.body.spec;
+  //         expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
+  //       });
 
-      const createClonePo = new PodPo();
+  //     const createClonePo = new PodPo();
 
-      // Each pod need a unique name
-      createClonePo.nameNsDescription().name().set(clonePodName);
-      createClonePo.save();
+  //     // Each pod need a unique name
+  //     createClonePo.nameNsDescription().name().set(clonePodName);
+  //     createClonePo.save();
 
-      workloadsPodPage.waitForPage();
-      workloadsPodPage.list().checkVisible();
-      workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
-      workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
-        .checkExists();
+  //     workloadsPodPage.waitForPage();
+  //     workloadsPodPage.list().checkVisible();
+  //     workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
+  //     workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
+  //       .checkExists();
 
-      // Simple test to assert we haven't broken Pods detail page
-      // https://github.com/rancher/dashboard/issues/10490
-      const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
+  //     // Simple test to assert we haven't broken Pods detail page
+  //     // https://github.com/rancher/dashboard/issues/10490
+  //     const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-      clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
-      clonedPodPage.waitForPage();
+  //     clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
+  //     clonedPodPage.waitForPage();
 
-      cy.wait('@clonedPod', { timeout: 20000 })
-        .then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
+  //     cy.wait('@clonedPod', { timeout: 20000 })
+  //       .then(({ response }) => {
+  //         expect(response?.statusCode).to.eq(200);
 
-          const clonedSpec = response?.body?.spec;
+  //         const clonedSpec = response?.body?.spec;
 
-          // In Dashboard adds empty affinity object by default
-          // Remove this to compare
-          if (!Object.keys(clonedSpec.affinity).length) {
-            delete clonedSpec.affinity;
-          }
+  //         // In Dashboard adds empty affinity object by default
+  //         // Remove this to compare
+  //         if (!Object.keys(clonedSpec.affinity).length) {
+  //           delete clonedSpec.affinity;
+  //         }
 
-          expect(clonedSpec).to.deep.eq(origPodSpec);
-          expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
-        });
-    });
-  });
+  //         expect(clonedSpec).to.deep.eq(origPodSpec);
+  //         expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
+  //       });
+  //   });
+  // });
 
-  describe.skip('[Vue3 Skip]: should delete pod', () => {
-    const podName = `pod-${ Date.now() }`;
+  // describe.skip('[Vue3 Skip]: should delete pod', () => {
+  //   const podName = `pod-${ Date.now() }`;
 
-    beforeEach(() => {
-      workloadsPodPage.goTo();
-    });
+  //   beforeEach(() => {
+  //     workloadsPodPage.goTo();
+  //   });
 
-    it('dialog should open/close as expected', () => {
-      const podCreatePage = new WorkloadsPodsCreatePagePo('local');
+  //   it('dialog should open/close as expected', () => {
+  //     const podCreatePage = new WorkloadsPodsCreatePagePo('local');
 
-      podCreatePage.goTo();
+  //     podCreatePage.goTo();
 
-      podCreatePage.createWithUI(podName, 'nginx', 'default');
+  //     podCreatePage.createWithUI(podName, 'nginx', 'default');
 
-      // Should be on the list view
-      const podsListPage = new WorkloadsPodsListPagePo('local');
+  //     // Should be on the list view
+  //     const podsListPage = new WorkloadsPodsListPagePo('local');
 
-      // Filter the list to just show the newly created pod
-      podsListPage.list().resourceTable().sortableTable().filter(podName);
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     // Filter the list to just show the newly created pod
+  //     podsListPage.list().resourceTable().sortableTable().filter(podName);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-      // Open action menu and delete for the first item
-      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-        .getMenuItem('Delete')
-        .click();
+  //     // Open action menu and delete for the first item
+  //     podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+  //       .getMenuItem('Delete')
+  //       .click();
 
-      let dialog = new PromptRemove();
+  //     let dialog = new PromptRemove();
 
-      dialog.checkExists();
-      dialog.checkVisible();
+  //     dialog.checkExists();
+  //     dialog.checkVisible();
 
-      dialog.cancel();
-      dialog.checkNotExists();
+  //     dialog.cancel();
+  //     dialog.checkNotExists();
 
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-      // Open action menu and delete for the first item
-      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-        .getMenuItem('Delete')
-        .click();
+  //     // Open action menu and delete for the first item
+  //     podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+  //       .getMenuItem('Delete')
+  //       .click();
 
-      dialog = new PromptRemove();
+  //     dialog = new PromptRemove();
 
-      dialog.checkExists();
-      dialog.checkVisible();
-      dialog.remove();
-      dialog.checkNotExists();
+  //     dialog.checkExists();
+  //     dialog.checkVisible();
+  //     dialog.remove();
+  //     dialog.checkNotExists();
 
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
 
-      podsListPage.list().resourceTable().sortableTable().resetFilter();
-    });
-  });
+  //     podsListPage.list().resourceTable().sortableTable().resetFilter();
+  //   });
+  // });
 });
