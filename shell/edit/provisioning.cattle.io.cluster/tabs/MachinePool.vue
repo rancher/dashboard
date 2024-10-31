@@ -317,7 +317,7 @@ export default {
             />
           </h3>
           <UnitInput
-            v-model.number="unhealthyNodeTimeoutInteger"
+            v-model:value="unhealthyNodeTimeoutInteger"
             :hide-arrows="true"
             :placeholder="t('containerResourceLimit.cpuPlaceholder')"
             :mode="mode"
