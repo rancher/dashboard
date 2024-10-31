@@ -118,12 +118,12 @@ jobs:
 
           echo "download target chrome"
           cd /tmp
-          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-          # sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb || true
+          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.119-1_amd64.deb
+          # sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.119-1_amd64.deb || true
           # sudo apt --fix-broken install
 
           echo "install target chrome"
-          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
+          sudo dpkg -i google-chrome-stable_127.0.6533.119-1_amd64.deb
           # sudo apt install --assume-yes --fix-broken
 
           echo "check target chrome"
