@@ -330,7 +330,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
               .as('createUserRequest')
               .then((resp) => {
                 stdUsername = resp.body.username;
-                cy.log('!!!!!', JSON.stringify(resp.body), password);
 
                 // log in as new standard user
                 cy.login(stdUsername, password, false);
