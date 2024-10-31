@@ -1,15 +1,11 @@
 <script>
 import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
-import SortableTable from '@shell/components/SortableTable';
 
 export default {
   name: 'FleetBundleDetail',
 
-  components: {
-    FleetBundleResources,
-    SortableTable,
-  },
-  props: {
+  components: { FleetBundleResources },
+  props:      {
     value: {
       type:     Object,
       required: true,

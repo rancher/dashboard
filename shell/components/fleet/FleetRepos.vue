@@ -16,7 +16,6 @@ import {
   FLEET_REPO_PER_CLUSTER_STATE
 
 } from '@shell/config/table-headers';
-import { FLEET } from '@shell/config/labels-annotations';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 // i18n-ignore repoDisplay
