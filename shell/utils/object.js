@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
@@ -432,5 +433,37 @@ export function dropKeys(obj, keys) {
 
   for ( const k of keys ) {
     delete obj[k];
+  }
+}
+
+/**
+ * Recursively convert a reactive object to a raw object
+ * @param {*} obj
+ * @param {*} cache
+ * @returns
+ */
+export function deepToRaw(obj, cache = new WeakSet()) {
+  if (obj === null || typeof obj !== 'object') {
+    // If obj is null or a primitive, return it as is
+    return obj;
+  }
+
+  // If the object has already been processed, return it to prevent circular references
+  if (cache.has(obj)) {
+    return obj;
+  }
+  cache.add(obj);
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepToRaw(item, cache));
+  } else {
+    const rawObj = toRaw(obj);
+    const result = {};
+
+    for (const key in rawObj) {
+      result[key] = deepToRaw(rawObj[key], cache);
+    }
+
+    return result;
   }
 }
