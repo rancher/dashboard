@@ -89,6 +89,7 @@ const sidebars = {
           label: 'Advanced',
           items: [
             'extensions/advanced/air-gapped-environments',
+            'extensions/advanced/fix-annotations-published-extensions',
             'extensions/advanced/provisioning',
             'extensions/advanced/localization',
             'extensions/advanced/hooks',
