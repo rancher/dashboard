@@ -517,7 +517,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
         if (!testFn(resp)) {
           retries = retries - 1;
           if (retries === 0) {
-            return Promise.reject(`Failed wait for expected value for ${ url }`);
+            return Promise.reject(new Error(`Failed wait for expected value for ${ url }`));
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
@@ -548,7 +548,7 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
           retries = retries - 1;
           if (retries === 0) return resp;
           // eslint-disable-next-line cypress/no-unnecessary-waiting
-          cy.wait(3000);
+          cy.wait(1000);
           retry();
         }
       });
@@ -857,29 +857,29 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
     cy.setRancherResource('v1', 'userpreferences', userId, payload);
 
     cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => {
-      const compare = (core, subset) => {
-        const entries = Object.entries(subset);
-
-        for (let i = 0; i < entries.length; i++) {
-          const [key, subsetValue] = entries[i];
-          const coreValue = core[key];
-
-          if (typeof subsetValue === 'object') {
-            if (!compare(coreValue, subsetValue)) {
-              return false;
-            }
-          } else if (subsetValue !== coreValue) {
-            return false;
-          }
-        }
-
-        return true;
-      };
-
       return compare(resp?.body, payload);
     });
   });
 });
+
+const compare = (core, subset) => {
+  const entries = Object.entries(subset);
+
+  for (let i = 0; i < entries.length; i++) {
+    const [key, subsetValue] = entries[i];
+    const coreValue = core[key];
+
+    if (typeof subsetValue === 'object') {
+      if (!compare(coreValue, subsetValue)) {
+        return false;
+      }
+    } else if (subsetValue !== coreValue) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 /**
  * Create token (API Keys)
@@ -990,8 +990,7 @@ Cypress.Commands.add('fetchRevision', () => {
 Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
-
-    cy.setRancherResource('v1', `userpreferences`, userId, {
+    const payload = {
       id:   `${ userId }`,
       type: 'userpreference',
       data: {
@@ -1000,6 +999,12 @@ Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, cluste
         'group-by':      groupBy,
         'ns-by-cluster': namespaceFilter
       }
+    };
+
+    cy.setRancherResource('v1', `userpreferences`, userId, payload);
+
+    cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => {
+      return compare(resp?.body, payload);
     });
   });
 });
