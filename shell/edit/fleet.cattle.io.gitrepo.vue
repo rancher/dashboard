@@ -157,7 +157,7 @@ export default {
       stepTargetInfo,
       addRepositorySteps,
       displayHelmRepoURLRegex: false,
-      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required', 'repo'] }]
+      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
     };
   },
 
