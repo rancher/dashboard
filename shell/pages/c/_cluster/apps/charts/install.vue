@@ -294,8 +294,9 @@ export default {
         */
         userValues = diff(this.loadedVersionValues, this.chartValues);
       } else if ( this.existing ) {
+        await this.existing.fetchValues(); // In theory this has already been called, but do again to be safe
         /* For an already installed app, use the values from the previous install. */
-        userValues = clone(this.existing.spec?.values || {});
+        userValues = clone(this.existing.values || {});
       } else {
         /* For an new app, start empty. */
         userValues = {};
@@ -1457,6 +1458,7 @@ export default {
           <Banner
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
+            class="namespace-create-banner"
           >
             <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
           </Banner>
@@ -1661,9 +1663,10 @@ export default {
           class="mt-10"
         >
           <UnitInput
-            v-model.number="customCmdOpts.timeout"
+            v-model:value="customCmdOpts.timeout"
             :label="t('catalog.install.helm.timeout.label')"
             :suffix="t('catalog.install.helm.timeout.unit', {value: customCmdOpts.timeout})"
+            type="number"
           />
         </div>
         <div
@@ -1672,9 +1675,10 @@ export default {
         >
           <UnitInput
             v-if="existing"
-            v-model.number="customCmdOpts.historyMax"
+            v-model:value="customCmdOpts.historyMax"
             :label="t('catalog.install.helm.historyMax.label')"
             :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
+            type="number"
           />
         </div>
         <div
@@ -1851,6 +1855,10 @@ export default {
 
       .spacer {
         line-height: 2;
+      }
+
+      .namespace-create-banner {
+        margin-bottom: 70px;
       }
     }
     &__values {

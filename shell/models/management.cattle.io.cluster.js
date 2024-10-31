@@ -16,6 +16,8 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 
+const DEFAULT_BADGE_COLOR = '#707070';
+
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
@@ -306,13 +308,22 @@ export default class MgmtCluster extends SteveModel {
       return undefined;
     }
 
-    const color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#7f7f7f';
+    let color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || DEFAULT_BADGE_COLOR;
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
+    let foregroundColor;
+
+    try {
+      foregroundColor = textColor(parseColor(color.trim())); // Remove any whitespace
+    } catch (_e) {
+      // If we could not parse the badge color, use the defaults
+      color = DEFAULT_BADGE_COLOR;
+      foregroundColor = textColor(parseColor(color));
+    }
 
     return {
       text:      comment || undefined,
       color,
-      textColor: textColor(parseColor(color)),
+      textColor: foregroundColor,
       iconText:  iconText.substr(0, 3)
     };
   }

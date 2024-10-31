@@ -230,7 +230,6 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -1474,10 +1473,13 @@ cluster:
     placeholder: A unique name for the cluster
   directoryConfig:
     title: Data directory configuration
-    checkboxText: Use the same path for System-agent, Provisioning and K8s Distro data directories configuration
+    radioInput:
+      defaultLabel: Use default data directory configuration
+      commonLabel: Use a common base directory for data directory configuration (sub-directories will be used for the system-agent, provisioning and distro paths)
+      customLabel: Use custom data directories
     common: 
-      label: Data directory configuration path
-      tooltip: Data directory configuration for System-agent, Provisioning and K8s Distro
+      label: Data directory base path
+      tooltip: Data directory base path. We will append the sub-directories appropriate for each directory (/agent, /provisioning and either /rke2 or /k3s)
     systemAgent: 
       label: System-agent directory path
       tooltip: Data directory for the system-agent connection info and plans
@@ -2995,7 +2997,7 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in this version.
+  seeWhatsNew: Learn more about the improvements and new capabilities in this version and read about the UI framework migration in 2.10
   whatsNewLink: "What's new in 2.10"
   learnMore: Learn More
   support: Support
@@ -5277,7 +5279,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
     helmSuffix: ""
-  eula: By checking the box, you accept the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
+  eula: By checking the box, you accept the <a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
@@ -7413,6 +7415,7 @@ advancedSettings:
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
+    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported K3s or RKE2 clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
@@ -7737,8 +7740,6 @@ legacy:
   catalogs: Catalogs
   configMaps: Config Maps
   configuration: Configuration
-  globalDnsEntries: Global DNS Entries
-  globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
   secrets: Secrets

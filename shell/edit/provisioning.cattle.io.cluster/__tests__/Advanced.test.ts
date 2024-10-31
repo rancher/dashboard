@@ -128,6 +128,32 @@ describe('component: Advanced', () => {
 
         expect(checkbox.value).toBe('true');
       });
+
+      it(`should update agentConfig when 'protect-kernel-defaults' exists`, async() => {
+        const value = clone(PROV_CLUSTER);
+
+        value.spec.rkeConfig.machineGlobalConfig['protect-kernel-defaults'] = false;
+        value.spec.rkeConfig.machineSelectorConfig = [{
+          config:               { 'protect-kernel-defaults': true },
+          machineLabelSelector: {}
+        }];
+        value.agentConfig = value.spec.rkeConfig.machineSelectorConfig[0].config;
+
+        mountOptions.propsData.mode = _EDIT; // Use edit mode to allow interactions
+        mountOptions.propsData.value = value;
+
+        wrapper = mount(Advanced, mountOptions);
+
+        const checkboxLabel = wrapper
+          .find(`[data-testid="protect-kernel-defaults"]`)
+          .find('label');
+
+        checkboxLabel.trigger('click');
+        await wrapper.vm.$nextTick();
+
+        // Verify that agentConfig is updated
+        expect(value.spec.rkeConfig.machineSelectorConfig[0].config['protect-kernel-defaults']).toBe(false);
+      });
     });
 
     describe(`'kubelet-arg'`, () => {

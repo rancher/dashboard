@@ -103,7 +103,8 @@ export default {
     this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
     this.value['spec'] = this.value.spec || {};
     this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
-    if (!this.$store.getters['auth/principalId'].includes('local://')) {
+    // norman (and matching steve) resources treat annotations containing `cattle.io` as immutable, so only do this for the create world
+    if (this.isCreate && !this.$store.getters['auth/principalId'].includes('local://')) {
       this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
     }
   },

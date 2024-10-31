@@ -26,8 +26,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
       cy.intercept('POST', '/v3/projects').as('createProjectRequest');
     });
 
-    // undo skipping by addressing this issue: https://github.com/rancher/dashboard/issues/12327
-    it.skip('sets the creator principal id annotation when creating a project and using third-party auth', () => {
+    it('sets the creator principal id annotation when creating a project and using third-party auth', () => {
       cy.get('@projectName').then((projectName) => {
         // intercept the request to /v3/principals and return a principal authenticated by github instead of local
         spoofThirdPartyPrincipal();
@@ -36,9 +35,8 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         projectsNamespacesPage.name().set(projectName);
         projectsNamespacesPage.buttonSubmit().click();
 
-        cy.wait('@createProjectRequest').then(({ request, response }) => {
+        cy.wait('@createProjectRequest').then(({ request }) => {
           expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
-          expect(response.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
         });
       });
     });

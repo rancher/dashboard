@@ -80,10 +80,14 @@ export default {
       return i !== 0 || !this.agentConfig;
     },
     showEmptyKubeletArg(config) {
-      return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
+      return !this.serverArgs?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      this.agentConfig ? this.agentConfig = value : this.serverConfig['protect-kernel-defaults'] = value;
+      if (this.agentConfig && this.agentConfig['protect-kernel-defaults'] !== undefined ) {
+        this.agentConfig['protect-kernel-defaults'] = value;
+      } else {
+        this.serverConfig['protect-kernel-defaults'] = value;
+      }
     }
   }
 };
@@ -100,6 +104,7 @@ export default {
     <template v-if="haveArgInfo">
       <DirectoryConfig
         v-model:value="value.spec.rkeConfig.dataDirectories"
+        :k8s-version="value.spec.kubernetesVersion"
         :mode="mode"
       />
       <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>

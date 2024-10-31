@@ -499,6 +499,6 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     servicePort,
     subDomain,
     testRule,
-    wildcardHostname,
+    wildcardHostname
   };
 }

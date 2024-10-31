@@ -113,7 +113,7 @@ export default {
     },
 
     updateGroupInterval(group, interval) {
-      group['interval'] = [null, undefined].includes(interval ? undefined : `${ interval }s`);
+      group['interval'] = [null, undefined].includes(interval) ? undefined : `${ interval }s`;
     },
 
     getGroupInterval(interval) {

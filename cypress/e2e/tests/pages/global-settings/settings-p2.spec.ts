@@ -14,7 +14,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-let removeServerUrl = false;
+const removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -224,9 +224,10 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].original);
   });
 
-  it.skip('[Vue3 Skip]: can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    const rancherLogo = '/img/rancher-logo.66cf5910.svg';
-    const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
+  it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
+    const rancherLogoWidth = 142;
+    const suseRancherLogoWidth = 82;
 
     // Update setting
     SettingsPagePo.navTo();
@@ -243,15 +244,17 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(suseRancherLogo);
-    });
+    burgerMenu.brandLogoImage()
+      .should('be.visible')
+      .invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', suseRancherLogoWidth);
     BurgerMenuPo.toggle();
 
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(suseRancherLogo);
-    });
+    burgerMenu.headerBrandLogoImage()
+      .should('be.visible')
+      .invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', suseRancherLogoWidth);
     BurgerMenuPo.toggle();
 
     // Reset
@@ -269,14 +272,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(rancherLogo);
-    });
+    burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', rancherLogoWidth);
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(rancherLogo);
-    });
+    burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', rancherLogoWidth);
   });
 
   it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -398,7 +399,43 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
-  it.skip('[Vue3 Skip]: can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update k3s-based-upgrader-uninstall-concurrency', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
+
+    const settingsEdit = settingsPage.editSettings('local', 'k3s-based-upgrader-uninstall-concurrency');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: k3s-based-upgrader-uninstall-concurrency').should('be.visible');
+    settingsEdit.settingsInput().set(settings['k3s-based-upgrader-uninstall-concurrency'].new);
+    settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].new);
+      expect(response?.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].new);
+    });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].new);
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: k3s-based-upgrader-uninstall-concurrency').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].original);
+      expect(response?.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].original);
+    });
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].original);
+  });
+
+  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');

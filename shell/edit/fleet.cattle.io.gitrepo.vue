@@ -25,6 +25,7 @@ import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annot
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import FormValidation from '@shell/mixins/form-validation';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -32,6 +33,8 @@ const _SPECIFY = 'specify';
 
 export default {
   name: 'CruGitRepo',
+
+  inheritAttrs: false,
 
   emits: ['input'],
 
@@ -50,7 +53,7 @@ export default {
     SelectOrCreateAuthSecret,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     const hash = await checkSchemasForFindAllHash({
@@ -153,7 +156,8 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
-      displayHelmRepoURLRegex: false
+      displayHelmRepoURLRegex: false,
+      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
     };
   },
 
@@ -253,7 +257,7 @@ export default {
     },
 
     stepOneRequires() {
-      return !!this.value.metadata.name && !!this.refValue;
+      return !!this.value.metadata.name && !!this.refValue && !!this.fvFormIsValid;
     },
   },
 
@@ -265,6 +269,8 @@ export default {
     targetAdvanced:             'updateTargets',
     tlsMode:                    'updateTls',
     caBundle:                   'updateTls',
+    'value.metadata.name':      'stepOneReady',
+    'value.spec.repo':          'stepOneReady',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -456,10 +462,6 @@ export default {
       this.tlsMode = event;
     },
 
-    onUpdateRepoName() {
-      this.stepOneReady();
-    },
-
     stepOneReady() {
       this.addRepositorySteps[0]['ready'] = this.stepOneRequires;
     },
@@ -528,7 +530,6 @@ export default {
         :namespaced="false"
         :mode="mode"
         @update:value="$emit('input', $event)"
-        @change="onUpdateRepoName"
       />
 
       <div class="row">
@@ -552,6 +553,8 @@ export default {
             :mode="mode"
             label-key="fleet.gitRepo.repo.label"
             :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
+            :required="true"
+            :rules="fvGetAndReportPathRules('spec.repo')"
           />
         </div>
         <div class="col span-6">
