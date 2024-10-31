@@ -286,6 +286,38 @@ describe('fx: deepToRaw', () => {
     expect(isReactive(result)).toBe(false);
   });
 
+  it('should handle nested reactive properties', () => {
+    const data = reactive({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: reactive({ a: 1 }) },
+      func:  null,
+      sym:   null,
+    });
+
+    const result = deepToRaw(data);
+
+    expect(result).toStrictEqual({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: { a: 1 } },
+      func:  null,
+      sym:   null,
+    });
+
+    expect(isReactive(result)).toBe(false);
+    expect(isReactive(result.obj)).toBe(false);
+    expect(isReactive(result.obj.nested)).toBe(false);
+  });
+
   it('should handle circular references', () => {
     const obj: { name: string; [key: string]: any } = { name: 'Alice' };
 

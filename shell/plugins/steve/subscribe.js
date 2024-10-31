@@ -8,7 +8,7 @@
  */
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
-import { get } from '@shell/utils/object';
+import { get, deepToRaw } from '@shell/utils/object';
 import { SCHEMA, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { CSRF } from '@shell/config/cookies';
@@ -179,9 +179,9 @@ export async function createWorker(store, ctx) {
 
   while (workerQueues[storeName]?.length) {
     const message = workerQueues[storeName].shift();
+    const safeMessage = deepToRaw(message);
 
-    // TODO: 11541: Web Worker communication fails due to Proxy objects in messages
-    store.$workers[storeName].postMessage(_.cloneDeep(message));
+    store.$workers[storeName].postMessage(safeMessage);
   }
 }
 
