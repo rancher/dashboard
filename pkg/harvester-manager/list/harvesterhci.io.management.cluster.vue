@@ -245,7 +245,7 @@ export default {
               <router-link :to="clusterRepoLink">
                 {{ t('harvesterManager.extension.install.steps.repo.2') }}
               </router-link>
-              {{ t('harvesterManager.extension.install.steps.repo.3') }}
+              <span v-clean-html="t('harvesterManager.extension.install.steps.repo.3', {}, true)"></span>
             </li>
             <li>
               {{ t('harvesterManager.extension.install.steps.ui.1') }}

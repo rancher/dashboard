@@ -12,11 +12,11 @@ harvesterManager:
       warning: "Harvester extension is not installed"
       steps:
         repo:
-          1: Go to
-          2: Manage Repositories
-          3: and add the Harvester repository
+          1: Go to the
+          2: Apps Repositories
+          3: page and add the <a target="_blank" href="https://github.com/harvester/harvester-ui-extension" rel="noopener noreferrer nofollow">Harvester repository</a>
         ui:
-          1: Go to
+          1: Go to the
           2: Extensions
           3: page and install the Harvester Extension
       admin: Please contact your system administrator
