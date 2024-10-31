@@ -87,7 +87,7 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
 
     harvesterRepo() {
-      return this.clusterrepos?.find((c) => c.name === HARVESTER_REPO);
+      return this.clusterrepos?.find((c) => c.spec?.gitRepo?.includes(HARVESTER_REPO));
     },
 
     harvesterExtension() {
