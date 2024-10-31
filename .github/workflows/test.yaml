@@ -105,13 +105,14 @@ jobs:
         run: |
           cat /etc/os-release
           # sudo apt-get remove google-chrome-stable
-          sudo dpkg -r google-chrome-stable.
+          # sudo dpkg -r google-chrome-stable.
+          google-chrome --version
           sudo apt-get install -y wget
           cd /tmp
-          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
+          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.182-1_amd64.deb
           # sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb || true
           # sudo apt --fix-broken install
-          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb || true
+          sudo dpkg -i google-chrome-stable_126.0.6478.182-1_amd64.deb
           sudo apt install --assume-yes --fix-broken
           google-chrome --version
 
