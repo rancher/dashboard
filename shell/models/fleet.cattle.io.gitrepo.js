@@ -20,6 +20,39 @@ function quacksLikeAHash(str) {
   return false;
 }
 
+function clusterIdFromLabels(labels) {
+  const clusterNamespace = labels?.[FLEET_ANNOTATIONS.CLUSTER_NAMESPACE];
+  const clusterName = labels?.[FLEET_ANNOTATIONS.CLUSTER];
+
+  return `${ clusterNamespace }/${ clusterName }`;
+}
+
+// bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
+function bundleDeploymentResources(status) {
+  // Use a map to avoid `find` over and over again
+  const resourceKey = (r) => `${ r.kind }/${ r.namespace }/${ r.name }`;
+
+  // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
+  const resources = new Map((status?.resources || []).map((r) => [
+    resourceKey(r), Object.assign({ state: STATES_ENUM.READY }, r)]));
+
+  const modified = [];
+
+  for (const r of status?.modifiedStatus || []) {
+    const state = r.create ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
+    const found = resources.get(resourceKey(r));
+
+    // Depending on the state, the same resource can appear in both fields
+    if (found) {
+      found.state = state;
+    } else {
+      modified.push(Object.assign({ state }, r));
+    }
+  }
+
+  return modified.concat(...resources.values());
+}
+
 export default class GitRepo extends SteveModel {
   applyDefaults() {
     const spec = this.spec || {};
@@ -323,34 +356,16 @@ export default class GitRepo extends SteveModel {
 
   get resourcesStatuses() {
     const clusters = this.targetClusters || [];
-    const resources = this.status?.resources || [];
-    const conditions = this.status?.conditions || [];
+    const bundleDeployments = this.bundleDeployments || [];
 
     const out = [];
 
-    for (const c of clusters) {
-      const clusterBundleDeploymentResources = this.bundleDeployments
-        .find((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.CLUSTER] === c.metadata.name)
-        ?.status?.resources || [];
+    for (const bd of bundleDeployments) {
+      const c = clusters.find((c) => clusterIdFromLabels(bd.metadata?.labels) === c.id);
+      const resources = bundleDeploymentResources(bd.status);
 
-      resources.forEach((r, i) => {
-        let namespacedName = r.name;
-
-        if (r.namespace) {
-          namespacedName = `${ r.namespace }:${ r.name }`;
-        }
-
-        let state = r.state;
-        const perEntry = r.perClusterState?.find((x) => x.clusterId === c.id);
-        const tooMany = r.perClusterState?.length >= 10 || false;
-
-        if (perEntry) {
-          state = perEntry.state;
-        } else if (tooMany) {
-          state = STATES_ENUM.UNKNOWN;
-        } else {
-          state = STATES_ENUM.READY;
-        }
+      resources.forEach((r) => {
+        const state = r.state;
 
         const color = colorForState(state).replace('text-', 'bg-');
         const display = stateDisplay(state);
@@ -367,26 +382,25 @@ export default class GitRepo extends SteveModel {
         };
 
         out.push({
-          key:                    `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
-          tableKey:               `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
-          kind:                   r.kind,
-          apiVersion:             r.apiVersion,
-          type:                   r.type,
-          id:                     r.id,
-          namespace:              r.namespace,
-          name:                   r.name,
-          clusterId:              c.id,
-          clusterLabel:           c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
-          clusterName:            c.nameDisplay,
-          state:                  mapStateToEnum(state),
-          stateBackground:        color,
-          stateDisplay:           display,
-          stateSort:              stateSort(color, display),
-          namespacedName,
+          key:      `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+          tableKey: `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
+
+          // columns
+          state:             mapStateToEnum(state),
+          clusterName:       c.nameDisplay,
+          apiVersion:        r.apiVersion,
+          kind:              r.kind,
+          name:              r.name,
+          namespace:         r.namespace,
+          creationTimestamp: r.createdAt,
+          clusterId:         c.id,
+          clusterLabel:      c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+
+          // other properties
+          stateBackground: color,
+          stateDisplay:    display,
+          stateSort:       stateSort(color, display),
           detailLocation,
-          conditions:             conditions[i],
-          bundleDeploymentStatus: clusterBundleDeploymentResources?.[i],
-          creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt
         });
       });
     }
@@ -407,9 +421,7 @@ export default class GitRepo extends SteveModel {
 
   get clusterResourceStatus() {
     const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
-      const { clusterId, clusterLabel } = curr;
-
-      const state = curr.state;
+      const { clusterId, clusterLabel, state } = curr;
 
       if (!prev[clusterId]) {
         prev[clusterId] = {

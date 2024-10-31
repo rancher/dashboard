@@ -118,12 +118,6 @@ export default {
     parseTargetMode(row) {
       return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
     },
-
-    clusterViewResourceStatus(row) {
-      return row.clusterResourceStatus.find((c) => {
-        return c.metadata?.labels[FLEET.CLUSTER_NAME] === this.clusterId;
-      });
-    }
   },
 };
 </script>
