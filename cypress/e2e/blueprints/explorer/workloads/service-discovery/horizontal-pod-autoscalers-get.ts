@@ -5,7 +5,6 @@ const horizontalpodautoscalerGetResponseEmpty = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const horizontalpodautoscalerGetResponseSmallSet = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
   count:        1,
   data:         [
     {
@@ -35,7 +33,6 @@ const horizontalpodautoscalerGetResponseSmallSet = {
         name:              'test',
         namespace:         'cattle-system',
         relationships:     null,
-        resourceVersion:   '3839186',
         state:             {
           error: true, message: 'the HPA was unable to compute the replica count: failed to get cpu utilization: missing request for cpu in container rancher of Pod rancher-6f5f99c7db-f8f86', name: 'pending', transitioning: false
         },

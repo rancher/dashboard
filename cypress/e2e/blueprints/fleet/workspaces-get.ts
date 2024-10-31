@@ -4,7 +4,6 @@ const fleetworkspacesGetResponseSmallSet = {
   links:        { self: 'https://yonasb29h3.qa.rancher.space/v1/management.cattle.io.fleetworkspaces' },
   actions:      {},
   resourceType: 'management.cattle.io.fleetworkspace',
-  revision:     '123',
   count:        2,
   data:         [
     {
@@ -34,8 +33,7 @@ const fleetworkspacesGetResponseSmallSet = {
             state:  'active'
           }
         ],
-        resourceVersion: '4483',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -81,8 +79,7 @@ const fleetworkspacesGetResponseSmallSet = {
             state:    'active'
           }
         ],
-        resourceVersion: '5284',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',

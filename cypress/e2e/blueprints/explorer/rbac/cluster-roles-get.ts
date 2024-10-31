@@ -5,7 +5,6 @@ const clusterRolesGetResponseEmpty = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrole': 'https://yonasb29h3.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterroles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrole',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const clusterRolesResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrole': 'https://yonasb29h3.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterroles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrole',
-  revision:     '123',
   count:        2,
   data:         [
     {
@@ -46,11 +44,10 @@ const clusterRolesResponseSmallSet = {
         finalizers: [
           'wrangler.cattle.io/auth-prov-v2-crole'
         ],
-        labels:          { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
-        name:            'admin',
-        relationships:   null,
-        resourceVersion: '4878',
-        state:           {
+        labels:        { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
+        name:          'admin',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -94,8 +91,7 @@ const clusterRolesResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '4838',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',

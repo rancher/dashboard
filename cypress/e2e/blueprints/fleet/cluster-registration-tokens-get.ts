@@ -5,7 +5,6 @@ const clusterRegistrationTokensGetReponseEmpty = {
   createTypes:  { 'fleet.cattle.io.clusterregistrationtoken': 'https://yonasb29h3.qa.rancher.space/v1/fleet.cattle.io.clusterregistrationtokens' },
   actions:      {},
   resourceType: 'fleet.cattle.io.clusterregistrationtoken',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const clusterRegistrationTokensGetResponseSmallSet = {
   createTypes:  { 'fleet.cattle.io.clusterregistrationtoken': 'https://yonasb29h3.qa.rancher.space/v1/fleet.cattle.io.clusterregistrationtokens' },
   actions:      {},
   resourceType: 'fleet.cattle.io.clusterregistrationtoken',
-  revision:     '123',
   count:        1,
   data:         [
     {
@@ -84,8 +82,7 @@ const clusterRegistrationTokensGetResponseSmallSet = {
             message: 'Resource is always ready'
           }
         ],
-        resourceVersion: '396332',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',

@@ -49,8 +49,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541786',
-      state:           {
+      state: {
         error:         false,
         message:       '',
         name:          'running',
@@ -248,8 +247,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541885',
-      state:           {
+      state: {
         error:         false,
         message:       '',
         name:          'running',
@@ -447,8 +445,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541968',
-      state:           {
+      state: {
         error:         false,
         message:       '',
         name:          'running',

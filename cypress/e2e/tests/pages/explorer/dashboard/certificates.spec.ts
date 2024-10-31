@@ -28,11 +28,10 @@ const expiredCert = {
       2,
       '11s'
     ],
-    name:            certName,
-    namespace:       certNs,
-    relationships:   null,
-    resourceVersion: '17963647',
-    state:           {
+    name:          certName,
+    namespace:     certNs,
+    relationships: null,
+    state:         {
       error:         false,
       message:       'Resource is always ready',
       name:          'active',

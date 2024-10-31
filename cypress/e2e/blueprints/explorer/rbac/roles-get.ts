@@ -16,7 +16,6 @@ const rolesResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.role': 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.role',
-  revision:     '123',
   count:        2,
   data:         [
     {
@@ -54,8 +53,7 @@ const rolesResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '6958',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -109,12 +107,11 @@ const rolesResponseSmallSet = {
         finalizers: [
           'wrangler.cattle.io/auth-prov-v2-role'
         ],
-        labels:          { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
-        name:            'extension-apiserver-authentication-reader',
-        namespace:       'kube-system',
-        relationships:   null,
-        resourceVersion: '4825',
-        state:           {
+        labels:        { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
+        name:          'extension-apiserver-authentication-reader',
+        namespace:     'kube-system',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'Resource is current',
           name:          'active',

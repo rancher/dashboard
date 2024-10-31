@@ -51,8 +51,7 @@ const globalRolesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '5497',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -145,8 +144,7 @@ const globalRolesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '5484',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',

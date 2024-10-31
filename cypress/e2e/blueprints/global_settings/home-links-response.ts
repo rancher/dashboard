@@ -34,10 +34,9 @@ export function applyCustomLinksResponse(customLinkName: string, customLinkUrl:s
           time:      '2024-01-31T19:58:38Z'
         }
       ],
-      name:            'ui-custom-links',
-      relationships:   null,
-      resourceVersion: '820268',
-      state:           {
+      name:          'ui-custom-links',
+      relationships: null,
+      state:         {
         error:         false,
         message:       'Resource is current',
         name:          'active',
@@ -86,10 +85,9 @@ export function removeCustomLinksResponse():object {
           time:      '2024-01-31T19:58:38Z'
         }
       ],
-      name:            'ui-custom-links',
-      relationships:   null,
-      resourceVersion: '820268',
-      state:           {
+      name:          'ui-custom-links',
+      relationships: null,
+      state:         {
         error:         false,
         message:       'Resource is current',
         name:          'active',

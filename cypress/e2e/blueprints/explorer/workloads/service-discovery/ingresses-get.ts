@@ -5,7 +5,6 @@ const ingressesGetReponseEmpty = {
   createTypes:  { 'networking.k8s.io.ingress': 'https://yonasb29head.qa.rancher.space/v1/networking.k8s.io.ingresses' },
   actions:      {},
   resourceType: 'networking.k8s.io.ingress',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const ingressesGetResponseSmallSet = {
   createTypes:  { 'networking.k8s.io.ingress': 'https://yonasb29head.qa.rancher.space/v1/networking.k8s.io.ingresses' },
   actions:      {},
   resourceType: 'networking.k8s.io.ingress',
-  revision:     '123',
   count:        2,
   data:         [
     {
@@ -67,8 +65,7 @@ const ingressesGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '4941',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -136,12 +133,11 @@ const ingressesGetResponseSmallSet = {
           '80',
           '26s'
         ],
-        generation:      1,
-        name:            'test',
-        namespace:       'default',
-        relationships:   null,
-        resourceVersion: '5040682',
-        state:           {
+        generation:    1,
+        name:          'test',
+        namespace:     'default',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'Resource is current',
           name:          'active',

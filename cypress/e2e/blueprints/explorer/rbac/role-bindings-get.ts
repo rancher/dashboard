@@ -5,7 +5,6 @@ const roleBindingGetResponseEmpty = {
   createTypes:  { 'rbac.authorization.k8s.io.rolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.rolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.rolebinding',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const roleBindingResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.rolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.rolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.rolebinding',
-  revision:     '123',
   count:        3,
   data:         [
     {
@@ -66,8 +64,7 @@ const roleBindingResponseSmallSet = {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: '445143',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -134,8 +131,7 @@ const roleBindingResponseSmallSet = {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: '4386433',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -203,8 +199,7 @@ const roleBindingResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '5141',
-        state:           {
+        state: {
           error:         false,
           message:       'Resource is current',
           name:          'active',

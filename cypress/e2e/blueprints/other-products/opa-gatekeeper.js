@@ -778,7 +778,6 @@ const allowedReposGet = {
   createTypes:  { 'constraints.gatekeeper.sh.k8sallowedrepos': 'https://localhost:8005/k8s/clusters/local/v1/constraints.gatekeeper.sh.k8sallowedrepos' },
   actions:      {},
   resourceType: 'constraints.gatekeeper.sh.k8sallowedrepos',
-  revision:     '35356',
   data:         []
 };
 
@@ -788,7 +787,6 @@ const requiredLabelsGet = {
   createTypes:  { 'constraints.gatekeeper.sh.k8srequiredlabels': 'https://localhost:8005/k8s/clusters/local/v1/constraints.gatekeeper.sh.k8srequiredlabels' },
   actions:      {},
   resourceType: 'constraints.gatekeeper.sh.k8srequiredlabels',
-  revision:     '35356',
   data:         []
 };
 
@@ -798,7 +796,6 @@ const constraintTemplatesGet = {
   createTypes:  { 'templates.gatekeeper.sh.constrainttemplate': 'https://localhost:8005/k8s/clusters/local/v1/templates.gatekeeper.sh.constrainttemplates' },
   actions:      {},
   resourceType: 'templates.gatekeeper.sh.constrainttemplate',
-  revision:     '36243',
   count:        2,
   data:         [
     {
@@ -822,12 +819,11 @@ const constraintTemplatesGet = {
           'k8sallowedrepos',
           '36m'
         ],
-        generation:      1,
-        labels:          { 'app.kubernetes.io/managed-by': 'Helm' },
-        name:            'k8sallowedrepos',
-        relationships:   null,
-        resourceVersion: '27313',
-        state:           {
+        generation:    1,
+        labels:        { 'app.kubernetes.io/managed-by': 'Helm' },
+        name:          'k8sallowedrepos',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -923,12 +919,11 @@ const constraintTemplatesGet = {
           'k8srequiredlabels',
           '36m'
         ],
-        generation:      1,
-        labels:          { 'app.kubernetes.io/managed-by': 'Helm' },
-        name:            'k8srequiredlabels',
-        relationships:   null,
-        resourceVersion: '27315',
-        state:           {
+        generation:    1,
+        labels:        { 'app.kubernetes.io/managed-by': 'Helm' },
+        name:          'k8srequiredlabels',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'Resource is current',
           name:          'active',

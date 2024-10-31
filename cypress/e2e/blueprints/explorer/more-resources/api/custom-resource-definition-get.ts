@@ -25,11 +25,10 @@ const crdsGetResponseSmallSet = {
           'users.management.cattle.io',
           '2024-06-27T20:32:20Z'
         ],
-        generation:      1,
-        name:            'users.management.cattle.io',
-        relationships:   null,
-        resourceVersion: '4473',
-        state:           {
+        generation:    1,
+        name:          'users.management.cattle.io',
+        relationships: null,
+        state:         {
           error:         false,
           message:       'CRD is established',
           name:          'active',
@@ -129,8 +128,7 @@ const crdsGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '1417',
-        state:           {
+        state: {
           error:         false,
           message:       'CRD is established',
           name:          'active',

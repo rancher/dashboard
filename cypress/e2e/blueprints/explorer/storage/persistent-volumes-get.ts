@@ -5,7 +5,6 @@ const persistentvolumesGetResponseEmpty = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const persistentvolumesResponseSmallSet = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     '123',
   count:        1,
   data:         [{
     id:    'test',
@@ -36,7 +34,6 @@ const persistentvolumesResponseSmallSet = {
       finalizers:        ['kubernetes.io/pv-protection'],
       name:              'test',
       relationships:     null,
-      resourceVersion:   '3940365',
       state:             {
         error: false, message: '', name: 'available', transitioning: false
       },

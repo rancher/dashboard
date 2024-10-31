@@ -159,8 +159,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '7555',
-      state:           {
+      state: {
         error:         false,
         message:       'Resource is Ready',
         name:          'active',
@@ -505,8 +504,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '8138',
-      state:           {
+      state: {
         error:         false,
         message:       'Resource is Ready',
         name:          'active',
@@ -1102,8 +1100,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: '2689',
-        state:           {
+        state: {
           error:         false,
           message:       '',
           name:          'active',
@@ -1152,10 +1149,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'kubernetes.io/metadata.name':  'cattle-fleet-system',
           'objectset.rio.cattle.io/hash': 'f399d0b310fbfb28e9667312fdc7a33954e2b8c8'
         },
-        name:            'cattle-fleet-system',
-        relationships:   null,
-        resourceVersion: '2965',
-        state:           {
+        name:          'cattle-fleet-system',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1203,10 +1199,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'field.cattle.io/projectId':            'p-jwd4v',
           'kubernetes.io/metadata.name':          'cattle-impersonation-system'
         },
-        name:            'cattle-impersonation-system',
-        relationships:   null,
-        resourceVersion: '2649',
-        state:           {
+        name:          'cattle-impersonation-system',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1269,8 +1264,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: '2683',
-        state:           {
+        state: {
           error:         false,
           message:       '',
           name:          'active',
@@ -1315,10 +1309,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'field.cattle.io/projectId':   'p-rs8ps',
           'kubernetes.io/metadata.name': 'default'
         },
-        name:            'default',
-        relationships:   null,
-        resourceVersion: '2622',
-        state:           {
+        name:          'default',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1364,10 +1357,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'field.cattle.io/projectId':   'p-jwd4v',
           'kubernetes.io/metadata.name': 'kube-node-lease'
         },
-        name:            'kube-node-lease',
-        relationships:   null,
-        resourceVersion: '2631',
-        state:           {
+        name:          'kube-node-lease',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1413,10 +1405,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'field.cattle.io/projectId':   'p-jwd4v',
           'kubernetes.io/metadata.name': 'kube-public'
         },
-        name:            'kube-public',
-        relationships:   null,
-        resourceVersion: '2634',
-        state:           {
+        name:          'kube-public',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1461,10 +1452,9 @@ function generateFakeNamespacesReply(mgmtClusterId) {
           'field.cattle.io/projectId':   'p-jwd4v',
           'kubernetes.io/metadata.name': 'kube-system'
         },
-        name:            'kube-system',
-        relationships:   null,
-        resourceVersion: '2711',
-        state:           {
+        name:          'kube-system',
+        relationships: null,
+        state:         {
           error:         false,
           message:       '',
           name:          'active',
@@ -1523,8 +1513,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: '2605',
-        state:           {
+        state: {
           error:         false,
           message:       '',
           name:          'active',
@@ -1583,8 +1572,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             state:    'deployed'
           }
         ],
-        resourceVersion: '2652',
-        state:           {
+        state: {
           error:         false,
           message:       '',
           name:          'active',
@@ -1693,8 +1681,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '1251',
-        state:           {
+        state: {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',
           name:          'active',
@@ -2253,8 +2240,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '2182',
-        state:           {
+        state: {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',
           name:          'active',

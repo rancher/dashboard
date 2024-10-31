@@ -209,8 +209,7 @@ export const deploymentCreateResponse = {
         rel:    'uses'
       }
     ],
-    resourceVersion: '12999795',
-    state:           {
+    state: {
       error:         false,
       message:       'replicas: 0/1',
       name:          'in-progress',

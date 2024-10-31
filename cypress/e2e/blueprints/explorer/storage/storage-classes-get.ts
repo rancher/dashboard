@@ -5,7 +5,6 @@ const pstorageclassesGetResponseEmpty = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
   count:        0,
   data:         []
 };
@@ -17,7 +16,6 @@ const storageclassesResponseSmallSet = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
   count:        1,
   data:         [{
     id:    'test',
@@ -33,7 +31,6 @@ const storageclassesResponseSmallSet = {
       fields:            ['test', 'kubernetes.io/aws-ebs', 'Delete', 'Immediate', false, '7m47s'],
       name:              'test',
       relationships:     null,
-      resourceVersion:   '3958373',
       state:             {
         error: false, message: 'Resource is current', name: 'active', transitioning: false
       },
