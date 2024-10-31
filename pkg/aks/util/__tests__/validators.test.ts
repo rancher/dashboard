@@ -1,5 +1,4 @@
 import * as validators from '@pkg/aks/util/validators';
-import { set } from '@shell/utils/object';
 import { AKSNodePool } from 'types';
 
 validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
