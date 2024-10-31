@@ -461,7 +461,11 @@ export function deepToRaw(obj, cache = new WeakSet()) {
     const result = {};
 
     for (const key in rawObj) {
-      result[key] = deepToRaw(rawObj[key], cache);
+      if (typeof rawObj[key] === 'function' || typeof rawObj[key] === 'symbol') {
+        result[key] = null;
+      } else {
+        result[key] = deepToRaw(rawObj[key], cache);
+      }
     }
 
     return result;
