@@ -1,7 +1,7 @@
+import { set } from '@shell/utils/object';
 import { EKSConfig, EKSNodeGroup } from 'types';
 
 export interface CruEKSContext {
-  $set: Function,
   t: Function,
   config: EKSConfig,
   nodeGroups: EKSNodeGroup[],
@@ -38,7 +38,7 @@ const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
       const name = group.nodegroupName;
 
       if (names.filter((n) => n === name).length > 1) {
-        ctx.$set(group, '__nameUnique', false);
+        set(group, '__nameUnique', false);
         if (!out) {
           out = ctx.t('eks.errors.nodeGroups.nameUnique');
         }
