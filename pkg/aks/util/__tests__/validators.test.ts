@@ -11,7 +11,6 @@ const MOCK_TRANSLATION = 'abc';
 const mockCtx = {
   normanCluster: { },
   t:             () => MOCK_TRANSLATION,
-  $set:          set
 };
 
 describe('fx: requiredInCluster', () => {
