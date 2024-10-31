@@ -113,6 +113,7 @@ export const FLEET = {
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
   MANAGED:              'fleet.cattle.io/managed',
+  CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
   CLUSTER:              'fleet.cattle.io/cluster'
 };
 
