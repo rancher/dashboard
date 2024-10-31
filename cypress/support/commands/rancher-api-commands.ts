@@ -64,12 +64,12 @@ Cypress.Commands.add('login', (
 /**
  * Create user via api request
  */
-Cypress.Commands.add('createUser', (params: CreateUserParams) => {
+Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => {
   const {
     username, globalRole, clusterRole, projectRole, password
   } = params;
 
-  return cy.createE2EResourceName(username)
+  return cy.createE2EResourceName(username, options?.createNameOptions)
     .then((e2eName) => {
       return cy.request({
         method:           'POST',

@@ -123,6 +123,8 @@ describe('Side Menu: main', () => {
     it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
+      // Flake: Pinned and unpinned above succeeds (not pinned), but when we refresh page cluster is pinned (so not in `clusters()`)
+      // This bad state can result in lots of tests being broken (cannot navigate to local cluster)
       burgerMenuPo.clusters().first().trigger('mouseover');
       BurgerMenuPo.checkIconTooltipOff();
       BurgerMenuPo.toggle();

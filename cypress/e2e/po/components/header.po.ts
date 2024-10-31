@@ -13,6 +13,13 @@ export class HeaderPo extends ComponentPo {
     return new NamespaceFilterPo();
   }
 
+  selectNamespaceFilterOption(singleOption: string) {
+    this.projectNamespaceFilter().toggle();
+    this.projectNamespaceFilter().clickOptionByLabel(singleOption);
+    this.projectNamespaceFilter().isChecked(singleOption);
+    this.projectNamespaceFilter().toggle();
+  }
+
   selectWorkspace(name: string) {
     const wsFilter = new WorkspaceSwitcherPo();
 

@@ -32,8 +32,6 @@ const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  let podName = `e2e-test`;
-
   before(() => {
     cy.login();
   });
@@ -216,6 +214,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   let removePod = false;
+  let podName = `e2e-test`;
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
@@ -374,7 +373,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   after(function() {
     if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
+      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }

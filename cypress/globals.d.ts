@@ -73,7 +73,7 @@ declare global {
       getRootE2EResourceName(): Chainable<string>;
       createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
 
-      createUser(params: CreateUserParams): Chainable;
+      createUser(params: CreateUserParams, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
       setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
       setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;

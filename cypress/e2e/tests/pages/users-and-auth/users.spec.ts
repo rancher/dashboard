@@ -5,6 +5,7 @@ import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -265,7 +266,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    let uniqueUserName = 'aaa-e2e-test-name';
+    let uniqueUserName = SortableTablePo.firstByDefaultName('user');
+
     const userIdsList = [];
     let initialCount;
 
@@ -292,7 +294,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
+      cy.createUser({ username: uniqueUserName }, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const userId = resp.body.id;
 
         uniqueUserName = resp.body.username;
@@ -441,7 +443,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .checkSortOrder(3, 'down');
 
       // user name should be visible on first page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
       usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
         .should('be.visible');
 
       // navigate to last page
