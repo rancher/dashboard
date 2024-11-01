@@ -16,7 +16,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
   createTypes:  { 'rbac.authorization.k8s.io.role': 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.role',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        2,
   data:         [
     {
@@ -54,7 +54,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
             state:    'deployed'
           }
         ],
-        resourceVersion: '6958',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -113,7 +113,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
         name:            'extension-apiserver-authentication-reader',
         namespace,
         relationships:   null,
-        resourceVersion: '4825',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

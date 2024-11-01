@@ -5,7 +5,7 @@ const pstorageclassesGetResponseEmpty = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const storageclassesResponseSmallSet = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        1,
   data:         [{
     id:    'test',

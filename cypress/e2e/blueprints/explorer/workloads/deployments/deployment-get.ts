@@ -154,7 +154,7 @@ export const deploymentGetResponse = {
         message: 'ReplicaSet is available. Replicas: 1'
       }
     ],
-    resourceVersion: '12999825',
+    resourceVersion: Number.MAX_VALUE,
     state:           {
       error:         false,
       message:       'Deployment is available. Replicas: 1',

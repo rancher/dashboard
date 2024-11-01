@@ -778,7 +778,7 @@ const allowedReposGet = {
   createTypes:  { 'constraints.gatekeeper.sh.k8sallowedrepos': 'https://localhost:8005/k8s/clusters/local/v1/constraints.gatekeeper.sh.k8sallowedrepos' },
   actions:      {},
   resourceType: 'constraints.gatekeeper.sh.k8sallowedrepos',
-  revision:     '35356',
+  revision:     Number.MAX_VALUE,
   data:         []
 };
 
@@ -788,7 +788,7 @@ const requiredLabelsGet = {
   createTypes:  { 'constraints.gatekeeper.sh.k8srequiredlabels': 'https://localhost:8005/k8s/clusters/local/v1/constraints.gatekeeper.sh.k8srequiredlabels' },
   actions:      {},
   resourceType: 'constraints.gatekeeper.sh.k8srequiredlabels',
-  revision:     '35356',
+  revision:     Number.MAX_VALUE,
   data:         []
 };
 
@@ -798,7 +798,7 @@ const constraintTemplatesGet = {
   createTypes:  { 'templates.gatekeeper.sh.constrainttemplate': 'https://localhost:8005/k8s/clusters/local/v1/templates.gatekeeper.sh.constrainttemplates' },
   actions:      {},
   resourceType: 'templates.gatekeeper.sh.constrainttemplate',
-  revision:     '36243',
+  revision:     Number.MAX_VALUE,
   count:        2,
   data:         [
     {
@@ -826,7 +826,7 @@ const constraintTemplatesGet = {
         labels:          { 'app.kubernetes.io/managed-by': 'Helm' },
         name:            'k8sallowedrepos',
         relationships:   null,
-        resourceVersion: '27313',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -927,7 +927,7 @@ const constraintTemplatesGet = {
         labels:          { 'app.kubernetes.io/managed-by': 'Helm' },
         name:            'k8srequiredlabels',
         relationships:   null,
-        resourceVersion: '27315',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

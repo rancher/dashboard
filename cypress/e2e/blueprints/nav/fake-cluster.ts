@@ -159,7 +159,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '7555',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       'Resource is Ready',
@@ -505,7 +505,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '8138',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       'Resource is Ready',
@@ -1102,7 +1102,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: '2689',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1154,7 +1154,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'cattle-fleet-system',
         relationships:   null,
-        resourceVersion: '2965',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1205,7 +1205,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'cattle-impersonation-system',
         relationships:   null,
-        resourceVersion: '2649',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1269,7 +1269,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: '2683',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1317,7 +1317,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'default',
         relationships:   null,
-        resourceVersion: '2622',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1366,7 +1366,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-node-lease',
         relationships:   null,
-        resourceVersion: '2631',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1415,7 +1415,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-public',
         relationships:   null,
-        resourceVersion: '2634',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1463,7 +1463,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-system',
         relationships:   null,
-        resourceVersion: '2711',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1523,7 +1523,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: '2605',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1583,7 +1583,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             state:    'deployed'
           }
         ],
-        resourceVersion: '2652',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       '',
@@ -1693,7 +1693,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '1251',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',
@@ -2253,7 +2253,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '2182',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',

@@ -5,7 +5,7 @@ const persistentvolumeclaimsGetResponseEmpty = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const persistentvolumeclaimsResponseSmallSet = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        1,
   data:         [{
     id:    'cattle-system/test',

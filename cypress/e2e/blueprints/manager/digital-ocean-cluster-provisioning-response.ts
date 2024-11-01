@@ -5,7 +5,7 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
     createTypes:  { 'provisioning.cattle.io.cluster': 'https://localhost:8005/v1/provisioning.cattle.io.clusters' },
     actions:      {},
     resourceType: 'provisioning.cattle.io.cluster',
-    revision:     '9258713',
+    revision:     Number.MAX_VALUE,
     count:        9,
     data:         [
       {
@@ -145,7 +145,7 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
               message: 'Resource is always ready'
             }
           ],
-          resourceVersion: '9258672',
+          resourceVersion: Number.MAX_VALUE,
           state:           {
             error:         false,
             message:       'Resource is Ready',

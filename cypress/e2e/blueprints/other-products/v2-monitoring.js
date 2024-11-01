@@ -5,7 +5,7 @@ const podMonitorsGet = {
   createTypes:  { 'monitoring.coreos.com.podmonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.podmonitor',
-  revision:     '7091',
+  revision:     Number.MAX_VALUE,
   data:         []
 };
 
@@ -16,7 +16,7 @@ const serviceMonitorsGet = {
   createTypes:  { 'monitoring.coreos.com.servicemonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.servicemonitor',
-  revision:     '7091',
+  revision:     Number.MAX_VALUE,
   count:        14,
   data:         [
     {
@@ -99,7 +99,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3944',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -223,7 +223,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3938',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -350,7 +350,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3941',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -485,7 +485,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3945',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -615,7 +615,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3947',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -745,7 +745,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3943',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -881,7 +881,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3950',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1004,7 +1004,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3942',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1142,7 +1142,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3939',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1273,7 +1273,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3946',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1391,7 +1391,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-apiserver',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: '3952',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1527,7 +1527,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-coredns',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: '3940',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1644,7 +1644,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-ingress-nginx',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: '3949',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1771,7 +1771,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-kubelet',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: '3948',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1929,7 +1929,7 @@ const alertManagerConfigsGet = {
   createTypes:  { 'monitoring.coreos.com.alertmanagerconfig': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.alertmanagerconfig',
-  revision:     '9702',
+  revision: Number.MAX_VALUE
   data:         [
     {
       id:    'default/test-alert',
@@ -1975,7 +1975,7 @@ const alertManagerConfigsGet = {
         name:            'test-alert',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: '95805',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2188,7 +2188,7 @@ const rancherMonitoringAlertmanagerGet = {
         message: 'Resource is always ready'
       }
     ],
-    resourceVersion: '4368',
+    resourceVersion: Number.MAX_VALUE,
     state:           {
       error:         false,
       message:       'Resource is current',
@@ -2346,7 +2346,7 @@ const alertManagerRancherMonitoringAlertmanagerGet = {
     name:            'alertmanager-rancher-monitoring-alertmanager',
     namespace:       'cattle-monitoring-system',
     relationships:   null,
-    resourceVersion: '3573',
+    resourceVersion: Number.MAX_VALUE,
     state:           {
       error:         false,
       message:       'Resource is always ready',
@@ -2364,7 +2364,7 @@ const prometheusRulesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheusrule': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheusrule',
-  revision:     '11253',
+  revision: Number.MAX_VALUE
   count:        27,
   data:         [
     {
@@ -2449,7 +2449,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3932',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2638,7 +2638,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3907',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2750,7 +2750,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3933',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3002,7 +3002,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3912',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3134,7 +3134,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3916',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3308,7 +3308,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3927',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3481,7 +3481,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3922',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3652,7 +3652,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3920',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3769,7 +3769,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3915',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3930,7 +3930,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3909',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4039,7 +4039,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3910',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4164,7 +4164,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3928',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4309,7 +4309,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3917',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4425,7 +4425,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3931',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4690,7 +4690,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3908',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4879,7 +4879,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3926',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5035,7 +5035,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3935',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5158,7 +5158,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3925',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5324,7 +5324,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3923',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5436,7 +5436,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3930',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5548,7 +5548,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3929',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5788,7 +5788,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3919',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6084,7 +6084,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3918',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6229,7 +6229,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3924',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6341,7 +6341,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3921',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6462,7 +6462,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3911',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6794,7 +6794,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3934',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6900,7 +6900,7 @@ const prometheusesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheus': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheus',
-  revision:     '11828',
+  revision: Number.MAX_VALUE
   count:        1,
   data:         [
     {
@@ -7133,7 +7133,7 @@ const prometheusesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '4515',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

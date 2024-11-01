@@ -5,7 +5,7 @@ const clusterRoleBindingGetResponseEmpty = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterrolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrolebinding',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const clusterRoleBindingResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterrolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrolebinding',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        2,
   data:         [
     {
@@ -58,7 +58,7 @@ const clusterRoleBindingResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '434584',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -118,7 +118,7 @@ const clusterRoleBindingResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '5149',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

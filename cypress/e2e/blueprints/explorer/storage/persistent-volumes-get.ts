@@ -5,7 +5,7 @@ const persistentvolumesGetResponseEmpty = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const persistentvolumesResponseSmallSet = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        1,
   data:         [{
     id:    'test',

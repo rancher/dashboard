@@ -31,7 +31,7 @@ const expiredCert = {
     name:            certName,
     namespace:       certNs,
     relationships:   null,
-    resourceVersion: '17963647',
+    resourceVersion: Number.MAX_VALUE,
     state:           {
       error:         false,
       message:       'Resource is always ready',

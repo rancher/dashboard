@@ -209,7 +209,7 @@ export const deploymentCreateResponse = {
         rel:    'uses'
       }
     ],
-    resourceVersion: '12999795',
+    resourceVersion: Number.MAX_VALUE,
     state:           {
       error:         false,
       message:       'replicas: 0/1',

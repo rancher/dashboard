@@ -12,7 +12,7 @@ export const createPayloadData = {
   },
   kind:     'PodSecurityAdmissionConfigurationTemplate',
   metadata: {
-    fields: ['e2e-pod-security-admission-1705617529465', '18s'], name: 'e2e-pod-security-admission-1705617529465', resourceVersion: '831667'
+    fields: ['e2e-pod-security-admission-1705617529465', '18s'], name: 'e2e-pod-security-admission-1705617529465', resourceVersion: Number.MAX_VALUE
   },
   description: 'e2e-pod-security-admission-1705617529465-description'
 };
@@ -31,7 +31,7 @@ export const updatePayloadData = {
   },
   kind:     'PodSecurityAdmissionConfigurationTemplate',
   metadata: {
-    fields: ['e2e-pod-security-admission-1705628550961', '7s'], name: 'e2e-pod-security-admission-1705628550961', resourceVersion: '938739'
+    fields: ['e2e-pod-security-admission-1705628550961', '7s'], name: 'e2e-pod-security-admission-1705628550961', resourceVersion: Number.MAX_VALUE
   },
   description: 'e2e-pod-security-admission-1705628550961-description-edit'
 };

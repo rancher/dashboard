@@ -49,7 +49,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541786',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       '',
@@ -248,7 +248,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541885',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       '',
@@ -447,7 +447,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: '541968',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       '',

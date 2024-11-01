@@ -5,7 +5,7 @@ const horizontalpodautoscalerGetResponseEmpty = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const horizontalpodautoscalerGetResponseSmallSet = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
+  revision:     Number.MAX_VALUE,
   count:        1,
   data:         [
     {

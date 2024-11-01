@@ -51,7 +51,7 @@ const globalRolesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '5497',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -145,7 +145,7 @@ const globalRolesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: '5484',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

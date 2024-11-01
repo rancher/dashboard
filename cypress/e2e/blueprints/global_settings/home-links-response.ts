@@ -36,7 +36,7 @@ export function applyCustomLinksResponse(customLinkName: string, customLinkUrl:s
       ],
       name:            'ui-custom-links',
       relationships:   null,
-      resourceVersion: '820268',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       'Resource is current',
@@ -88,7 +88,7 @@ export function removeCustomLinksResponse():object {
       ],
       name:            'ui-custom-links',
       relationships:   null,
-      resourceVersion: '820268',
+      resourceVersion: Number.MAX_VALUE,
       state:           {
         error:         false,
         message:       'Resource is current',

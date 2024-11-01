@@ -5,7 +5,7 @@ const serviceAccGetResponseEmpty = {
   createTypes:  { serviceaccount: 'https://yonasb29.qa.rancher.space/v1/serviceaccounts' },
   actions:      {},
   resourceType: 'serviceaccount',
-  revision:     '129651',
+  revision:     Number.MAX_VALUE,
   count:        0,
   data:         []
 };
@@ -17,7 +17,7 @@ const serviceAcctResponseSmallSet = {
   createTypes:  { serviceaccount: 'https://yonasb29.qa.rancher.space/v1/serviceaccounts' },
   actions:      {},
   resourceType: 'serviceaccount',
-  revision:     '129651',
+  revision:     Number.MAX_VALUE,
   count:        3,
   data:         [
     {
@@ -55,7 +55,7 @@ const serviceAcctResponseSmallSet = {
             state:    'succeeded'
           }
         ],
-        resourceVersion: '7124',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -104,7 +104,7 @@ const serviceAcctResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '9344',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -165,7 +165,7 @@ const serviceAcctResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '9342',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

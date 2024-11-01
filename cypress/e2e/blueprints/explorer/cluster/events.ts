@@ -40,7 +40,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -71,7 +71,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -102,7 +102,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: Number.MAX_VALUE,
         state:           {
           error:         false,
           message:       'Resource is current',

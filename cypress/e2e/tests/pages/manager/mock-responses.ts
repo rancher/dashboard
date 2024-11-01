@@ -29,7 +29,7 @@ export function nodeDriveResponse(addCloudCredential: boolean, driver: string): 
           }, {
             toId: `${ driver }config`, toType: 'management.cattle.io.dynamicschema', rel: 'owner', state: 'active', message: 'Resource is current'
           }],
-          resourceVersion: '3117786',
+          resourceVersion: Number.MAX_VALUE,
           state:           {
             error: false, message: '', name: 'active', transitioning: false
           },
