@@ -962,7 +962,7 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  labelKey:  'tableHeaders.restart',
+  labelKey:  'tableHeaders.restartSystem',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
