@@ -859,10 +859,8 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
 
     const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
 
-    cy.setRancherResource('v1', 'userpreferences', userId, payload);
-
-    cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => {
-      return compare(resp?.body, payload);
+    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload));
     });
   });
 });
@@ -879,6 +877,8 @@ const compare = (core, subset) => {
         return false;
       }
     } else if (subsetValue !== coreValue) {
+      cy.log('Compare: ', subsetValue, '!==', coreValue);
+
       return false;
     }
   }
@@ -1006,10 +1006,8 @@ Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, cluste
       }
     };
 
-    cy.setRancherResource('v1', `userpreferences`, userId, payload);
-
-    cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => {
-      return compare(resp?.body, payload);
+    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload));
     });
   });
 });
