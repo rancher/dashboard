@@ -54,72 +54,78 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
-      ClusterDashboardPagePo.navTo();
+      ClusterDashboardPagePo.goTo('local');
       clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();
       events.waitForPage();
 
-      const count = 500;
+      cy.getRancherResource('v1', 'events').then((resp: Cypress.Response<any>) => {
+        // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
+        const count = resp.body.count < 500 ? resp.body.count : 500;
 
-      // pagination is visible
-      events.sortableTable().pagination().checkVisible();
+        // Test break down if less than 400...
+        expect(count).to.be.greaterThan(400);
 
-      const loadingPo = new LoadingPo('.title .resource-loading-indicator');
+        // pagination is visible
+        events.sortableTable().pagination().checkVisible();
 
-      loadingPo.checkNotExists();
+        const loadingPo = new LoadingPo('.title .resource-loading-indicator');
 
-      // basic checks on navigation buttons
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-      events.sortableTable().pagination().rightButton().isEnabled();
-      events.sortableTable().pagination().endButton().isEnabled();
+        loadingPo.checkNotExists();
 
-      // check text before navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        // basic checks on navigation buttons
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
+        events.sortableTable().pagination().rightButton().isEnabled();
+        events.sortableTable().pagination().endButton().isEnabled();
+
+        // check text before navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+
+        // navigate to next page - right button
+        events.sortableTable().pagination().rightButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isEnabled();
+        events.sortableTable().pagination().leftButton().isEnabled();
+
+        // navigate to first page - left button
+        events.sortableTable().pagination().leftButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
+
+        // navigate to last page - end button
+        events.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
+
+        // check row count on last page
+        events.sortableTable().checkRowCount(false, 100);
+
+        // check text after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
+        });
+
+        // navigate to first page - beginning button
+        events.sortableTable().pagination().beginningButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
       });
-
-      // navigate to next page - right button
-      events.sortableTable().pagination().rightButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isEnabled();
-      events.sortableTable().pagination().leftButton().isEnabled();
-
-      // navigate to first page - left button
-      events.sortableTable().pagination().leftButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-
-      // navigate to last page - end button
-      events.sortableTable().pagination().endButton().scrollIntoView()
-        .click();
-
-      // check row count on last page
-      events.sortableTable().checkRowCount(false, 100);
-
-      // check text after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
-      });
-
-      // navigate to first page - beginning button
-      events.sortableTable().pagination().beginningButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
     });
 
     it('filter events', () => {
