@@ -502,9 +502,8 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
-  let retries = 20;
 
   const retry = () => {
     cy.request({
@@ -868,7 +867,7 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
     cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
 
     cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload), 5)
         .then((res) => {
           if (res) {
             cy.log(`updateNamespaceFilter: Success!`);

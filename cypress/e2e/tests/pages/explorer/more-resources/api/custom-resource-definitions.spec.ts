@@ -73,17 +73,23 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         crdsPage.sortableTable().pagination().endButton().isEnabled();
 
         // check text before navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
 
         // navigate to next page - right button
         crdsPage.sortableTable().pagination().rightButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `11 - 20 of ${ count } CustomResourceDefinitions`
+          }
+        );
         crdsPage.sortableTable().pagination().beginningButton().isEnabled();
         crdsPage.sortableTable().pagination().leftButton().isEnabled();
 
@@ -91,9 +97,13 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         crdsPage.sortableTable().pagination().leftButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
+
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
 
@@ -109,17 +119,23 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         }
 
         // check text after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.contain(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`
+          }
+        );
 
         // navigate to first page - beginning button
         crdsPage.sortableTable().pagination().beginningButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
       });
