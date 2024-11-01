@@ -9,14 +9,15 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+    before('set up', () => {
+      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+    });
+
     it('validate HorizontalPodAutoscalers table in empty state', () => {
       horizontalPodAutoScalersNoData();
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
       cy.wait('@horizontalpodautoscalerNoData');
-
-      // Flake: Doing this in one place via api in a before block somehow doesn't stick
-      horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
 
       const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 

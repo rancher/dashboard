@@ -458,6 +458,8 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
   })
     .then((resp) => {
       expect(resp.status).to.eq(200);
+
+      return resp;
     });
 });
 
@@ -519,12 +521,14 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           if (retries === 0) {
             cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
 
-            return Promise.reject(new Error(`Failed wait for expected value for ${ url }`));
+            return false;
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return retry();
         }
+
+        return true;
       });
   };
 
@@ -855,14 +859,31 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 });
 
 // update resource list view preference
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string) => {
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
 
     const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
 
+    cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+
     cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload));
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
+        .then((res) => {
+          if (res) {
+            cy.log(`updateNamespaceFilter: Success!`);
+          } else {
+            if (iteration < 3) {
+              cy.log(`updateNamespaceFilter: Failed! Going to retry...`);
+
+              return cy.updateNamespaceFilter(clusterName, groupBy, namespaceFilter, iteration + 1);
+            }
+
+            cy.log(`updateNamespaceFilter: Failed! Giving up...`);
+
+            return Promise.reject(new Error('updateNamespaceFilter failed'));
+          }
+        });
     });
   });
 });
