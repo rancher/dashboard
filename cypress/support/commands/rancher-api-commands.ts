@@ -1024,7 +1024,7 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, iteration = 0) => {
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
     const payload = {
@@ -1038,8 +1038,25 @@ Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, cluste
       }
     };
 
+    cy.log(`tableRowsPerPageAndNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+
     cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
-      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload));
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
+        .then((res) => {
+          if (res) {
+            cy.log(`tableRowsPerPageAndNamespaceFilter: Success!`);
+          } else {
+            if (iteration < 3) {
+              cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Going to retry...`);
+
+              return cy.tableRowsPerPageAndNamespaceFilter(rows, clusterName, groupBy, namespaceFilter, iteration + 1);
+            }
+
+            cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Giving up...`);
+
+            return Promise.reject(new Error('tableRowsPerPageAndNamespaceFilter failed'));
+          }
+        });
     });
   });
 });
