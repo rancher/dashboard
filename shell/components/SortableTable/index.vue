@@ -37,7 +37,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 // --> filtering.js filteredRows
 // --> paging.js pageRows
 // --> grouping.js groupedRows
-// --> index.vue displayedRows
+// --> index.vue displayRows
 
 export default {
   name: 'SortableTable',
@@ -77,11 +77,13 @@ export default {
       type:     Array,
       required: true
     },
+
     rows: {
       // The array of objects to show
       type:     Array,
       required: true
     },
+
     keyField: {
       // Field that is unique for each row.
       type:    String,
@@ -285,9 +287,23 @@ export default {
       default: true
     },
 
+    /**
+     * Provide a unique key that will provide a new value given changes to the environment that
+     * should kick off an update to table rows (for instance resource list generation or change of namespace)
+     *
+     * This does not have to update given internal facets like sort order or direction
+     */
     sortGenerationFn: {
       type:    Function,
       default: null,
+    },
+
+    /**
+     * Can be used in place of sortGenerationFn
+     */
+    sortGeneration: {
+      type:    String,
+      default: null
     },
 
     /**
