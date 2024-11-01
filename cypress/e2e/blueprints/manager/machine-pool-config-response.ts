@@ -62,7 +62,8 @@ export function machinePoolConfigResponse(clusterName:string, machinePoolId:stri
           message: 'Resource is current'
         }
       ],
-      state: {
+      resourceVersion: '9683918',
+      state:           {
         error:         false,
         message:       'Resource is current',
         name:          'active',

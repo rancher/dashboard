@@ -25,6 +25,7 @@ metadata:
       time: '2023-12-06T23:46:28Z'
   name: e2e-machine-name-1701906098950
   namespace: default
+  resourceVersion: '647485'
   uid: 98380f64-0706-4522-8dc2-b91a7f012dcf
 spec:
   clusterName: local

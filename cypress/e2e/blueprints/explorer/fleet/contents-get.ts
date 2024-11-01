@@ -5,6 +5,7 @@ const fleetContentsGetResponseEmpty = {
   createTypes:  { 'fleet.cattle.io.content': 'https://yonasb29head.qa.rancher.space/v1/fleet.cattle.io.contents' },
   actions:      {},
   resourceType: 'fleet.cattle.io.content',
+  revision:     '123',
   count:        0,
   data:         []
 };
@@ -16,6 +17,7 @@ const fleetContentsResponseSmallSet = {
   createTypes:  { 'fleet.cattle.io.content': 'https://yonasb29head.qa.rancher.space/v1/fleet.cattle.io.contents' },
   actions:      {},
   resourceType: 'fleet.cattle.io.content',
+  revision:     '123',
   count:        2,
   data:         [
     {
@@ -36,10 +38,11 @@ const fleetContentsResponseSmallSet = {
           's-65075fe21d0e5087693027a2fdbb5ed559295ed1ffeb5957f98d77decb4a5',
           '27h'
         ],
-        generation:    1,
-        name:          's-65075fe21d0e5087693027a2fdbb5ed559295ed1ffeb5957f98d77decb4a5',
-        relationships: null,
-        state:         {
+        generation:      1,
+        name:            's-65075fe21d0e5087693027a2fdbb5ed559295ed1ffeb5957f98d77decb4a5',
+        relationships:   null,
+        resourceVersion: '4380255',
+        state:           {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -67,10 +70,11 @@ const fleetContentsResponseSmallSet = {
           's-807cc7bcb0de2dae39c913c375f676238d021519258d34913ccc842519c63',
           '9d'
         ],
-        generation:    1,
-        name:          's-807cc7bcb0de2dae39c913c375f676238d021519258d34913ccc842519c63',
-        relationships: null,
-        state:         {
+        generation:      1,
+        name:            's-807cc7bcb0de2dae39c913c375f676238d021519258d34913ccc842519c63',
+        relationships:   null,
+        resourceVersion: '8041',
+        state:           {
           error:         false,
           message:       'Resource is current',
           name:          'active',

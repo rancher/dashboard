@@ -5,6 +5,7 @@ const servicesGetReponseEmpty = {
   createTypes:  { service: 'https://yonasb29.qa.rancher.space/v1/services' },
   actions:      {},
   resourceType: 'service',
+  revision:     '80155',
   count:        0,
   data:         []
 };
@@ -16,6 +17,7 @@ const servicesGetResponseSmallSet = {
   createTypes:  { service: 'https://yonasb29.qa.rancher.space/v1/services' },
   actions:      {},
   resourceType: 'service',
+  revision:     '80155',
   count:        3,
   data:         [
     {
@@ -74,7 +76,8 @@ const servicesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        state: {
+        resourceVersion: '4158',
+        state:           {
           error:         false,
           message:       'Service is ready',
           name:          'active',
@@ -162,7 +165,8 @@ const servicesGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        state: {
+        resourceVersion: '8539',
+        state:           {
           error:         false,
           message:       'Service is ready',
           name:          'active',
@@ -220,10 +224,11 @@ const servicesGetResponseSmallSet = {
           component: 'apiserver',
           provider:  'kubernetes'
         },
-        name:          'kubernetes',
-        namespace:     'default',
-        relationships: null,
-        state:         {
+        name:            'kubernetes',
+        namespace:       'default',
+        relationships:   null,
+        resourceVersion: '224',
+        state:           {
           error:         false,
           message:       'Service is ready',
           name:          'active',

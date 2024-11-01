@@ -44,7 +44,8 @@ export function generateFakeNodeDriversReply():any {
           message: 'Resource is current'
         }
       ],
-      state: {
+      resourceVersion: '2429',
+      state:           {
         error:         false,
         message:       '',
         name:          'active',
@@ -243,7 +244,8 @@ export function generateFakeMachineConfigReply(provClusterId:string, machinePool
           message: 'Resource is current'
         }
       ],
-      state: {
+      resourceVersion: '141967',
+      state:           {
         error:         false,
         message:       'Resource is current',
         name:          'active',
@@ -290,11 +292,12 @@ export function generateFakeSecretsReply():any {
           2,
           '9m31s'
         ],
-        generateName:  'registryconfig-auth-',
-        name:          'registryconfig-auth-reg1',
-        namespace:     'fleet-default',
-        relationships: null,
-        state:         {
+        generateName:    'registryconfig-auth-',
+        name:            'registryconfig-auth-reg1',
+        namespace:       'fleet-default',
+        relationships:   null,
+        resourceVersion: '526944',
+        state:           {
           error:         false,
           message:       'Resource is always ready',
           name:          'active',
@@ -327,11 +330,12 @@ export function generateFakeSecretsReply():any {
           2,
           '9m31s'
         ],
-        generateName:  'registryconfig-auth-',
-        name:          'registryconfig-auth-reg2',
-        namespace:     'fleet-default',
-        relationships: null,
-        state:         {
+        generateName:    'registryconfig-auth-',
+        name:            'registryconfig-auth-reg2',
+        namespace:       'fleet-default',
+        relationships:   null,
+        resourceVersion: '526944',
+        state:           {
           error:         false,
           message:       'Resource is always ready',
           name:          'active',

@@ -37,10 +37,11 @@ const eventsGetResponseSmallSet = {
           1,
           'fleet-agent-0.17d80b90a6d2c7ab'
         ],
-        name:          'fleet-agent-0.17d80b90a6d2c7ab',
-        namespace:     'cattle-fleet-local-system',
-        relationships: null,
-        state:         {
+        name:            'fleet-agent-0.17d80b90a6d2c7ab',
+        namespace:       'cattle-fleet-local-system',
+        relationships:   null,
+        resourceVersion: '0',
+        state:           {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -67,10 +68,11 @@ const eventsGetResponseSmallSet = {
           1,
           'fleet-agent-0.17d80b90a6d2c7ab'
         ],
-        name:          'fleet-agent-0.17d80b90a6d2c7ab',
-        namespace:     'cattle-fleet-local-system',
-        relationships: null,
-        state:         {
+        name:            'fleet-agent-0.17d80b90a6d2c7ab',
+        namespace:       'cattle-fleet-local-system',
+        relationships:   null,
+        resourceVersion: '0',
+        state:           {
           error:         false,
           message:       'Resource is current',
           name:          'active',
@@ -97,10 +99,11 @@ const eventsGetResponseSmallSet = {
           1,
           'fleet-agent-0.17d80b90a6d2c7ab'
         ],
-        name:          'fleet-agent-0.17d80b90a6d2c7ab',
-        namespace:     'cattle-fleet-local-system',
-        relationships: null,
-        state:         {
+        name:            'fleet-agent-0.17d80b90a6d2c7ab',
+        namespace:       'cattle-fleet-local-system',
+        relationships:   null,
+        resourceVersion: '0',
+        state:           {
           error:         false,
           message:       'Resource is current',
           name:          'active',

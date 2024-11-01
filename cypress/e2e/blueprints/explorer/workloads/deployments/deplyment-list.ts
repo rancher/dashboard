@@ -4,6 +4,7 @@ export const deploymentCollection = {
   createTypes:  { 'apps.deployment': 'https://localhost:8005/v1/apps.deployments' },
   actions:      {},
   resourceType: 'apps.deployment',
+  revision:     '12999812',
   count:        15,
   data:         [
 
@@ -163,7 +164,8 @@ export const deploymentCollection = {
             transitioning: true
           }
         ],
-        state: {
+        resourceVersion: '12999806',
+        state:           {
           error:         false,
           message:       'Deployment does not have minimum availability.',
           name:          'updating',
@@ -253,6 +255,7 @@ export const deploymentCollectionResponseFull = {
   createTypes:  { 'apps.deployment': 'https://localhost:8005/v1/apps.deployments' },
   actions:      {},
   resourceType: 'apps.deployment',
+  revision:     '12999812',
   count:        15,
   data:         [
     {
@@ -451,7 +454,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '6109',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -801,7 +805,8 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        state: {
+        resourceVersion: '3067',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -1107,7 +1112,8 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        state: {
+        resourceVersion: '3089',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -1385,7 +1391,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '787692',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -2057,7 +2064,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '787803',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -2695,7 +2703,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '787731',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -3076,7 +3085,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '12995749',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -3505,7 +3515,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '787962',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -3939,7 +3950,8 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        state: {
+        resourceVersion: '663180',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -4283,7 +4295,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '12900726',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',
@@ -4547,7 +4560,8 @@ export const deploymentCollectionResponseFull = {
             transitioning: true
           }
         ],
-        state: {
+        resourceVersion: '12999806',
+        state:           {
           error:         false,
           message:       'Deployment does not have minimum availability.',
           name:          'updating',
@@ -4936,7 +4950,8 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        state: {
+        resourceVersion: '1377',
+        state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
           name:          'active',

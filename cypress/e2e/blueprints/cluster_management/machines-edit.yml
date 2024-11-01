@@ -21,6 +21,7 @@ metadata:
       time: '2023-12-06T22:21:54Z'
   name: e2e-machine-name-1701901308645
   namespace: default
+  resourceVersion: '609444'
   uid: 7d61939a-b44a-4113-a7d1-9db2eda08811
 spec:
   bootstrap:

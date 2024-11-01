@@ -154,7 +154,8 @@ export const deploymentGetResponse = {
         message: 'ReplicaSet is available. Replicas: 1'
       }
     ],
-    state: {
+    resourceVersion: '12999825',
+    state:           {
       error:         false,
       message:       'Deployment is available. Replicas: 1',
       name:          'active',
