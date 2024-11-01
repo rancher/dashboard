@@ -517,6 +517,8 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
         if (!testFn(resp)) {
           retries = retries - 1;
           if (retries === 0) {
+            cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
+
             return Promise.reject(new Error(`Failed wait for expected value for ${ url }`));
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
@@ -867,6 +869,7 @@ Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:stri
 
 const compare = (core, subset) => {
   const entries = Object.entries(subset);
+  let result = true;
 
   for (let i = 0; i < entries.length; i++) {
     const [key, subsetValue] = entries[i];
@@ -874,16 +877,25 @@ const compare = (core, subset) => {
 
     if (typeof subsetValue === 'object') {
       if (!compare(coreValue, subsetValue)) {
-        return false;
+        cy.log(`Compare Failed: Key: "${ key }"`);
+
+        result = false;
+        break;
       }
     } else if (subsetValue !== coreValue) {
-      cy.log('Compare: ', subsetValue, '!==', coreValue);
+      cy.log(`Compare Failed: Key: "${ key }". Comparison "${ subsetValue }" !== "` + `${ coreValue }"`);
 
-      return false;
+      result = false;
+      break;
     }
   }
 
-  return true;
+  if (!result) {
+    cy.log(`Compare Failed: Result: Actual State ${ JSON.stringify(core) }`);
+    cy.log(`Compare Failed: Result: Expected Sub-state ${ JSON.stringify(subset) }`);
+  }
+
+  return result;
 };
 
 /**
