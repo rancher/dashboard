@@ -14,7 +14,7 @@ import {
   generateFakeSecretsReply
 } from './edit-cluster.ts';
 
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
 // GENERAL DATA NOT CONFIGURABLE, for now...
 const MACHINE_POOL_ID = '995mj';

@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
 export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloudCredName: string, machinePoolId: string):object {
   return {

@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../blueprint.utils';
 
 // GET /v1/rbac.authorization.k8s.io.rolebindings- return empty role binding data
 const roleBindingGetResponseEmpty = {

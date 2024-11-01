@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
 
 // GET /v1/apiextensions.k8s.io.customresourcedefinitions - small set of crds data
 const crdsGetResponseSmallSet = {

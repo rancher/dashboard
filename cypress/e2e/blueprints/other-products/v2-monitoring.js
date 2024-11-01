@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.podmonitors
 const podMonitorsGet = {

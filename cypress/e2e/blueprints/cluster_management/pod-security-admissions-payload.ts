@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
 export const createPayloadData = {
   id:            'e2e-pod-security-admission-1705617529465',

@@ -1,4 +1,4 @@
-import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
 // GET /v1/management.cattle.io.fleetworkspaces - small set of fleet workspaces data
 const fleetworkspacesGetResponseSmallSet = {
