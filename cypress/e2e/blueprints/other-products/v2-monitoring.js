@@ -1931,7 +1931,7 @@ const alertManagerConfigsGet = {
   createTypes:  { 'monitoring.coreos.com.alertmanagerconfig': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.alertmanagerconfig',
-  revision: CYPRESS_SAFE_RESOURCE_REVISION
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   data:         [
     {
       id:    'default/test-alert',
@@ -2366,7 +2366,7 @@ const prometheusRulesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheusrule': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheusrule',
-  revision: CYPRESS_SAFE_RESOURCE_REVISION
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        27,
   data:         [
     {
@@ -6902,7 +6902,7 @@ const prometheusesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheus': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheus',
-  revision: CYPRESS_SAFE_RESOURCE_REVISION
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [
     {
