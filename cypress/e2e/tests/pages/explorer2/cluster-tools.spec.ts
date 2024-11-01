@@ -1,7 +1,7 @@
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
-import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+// import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const clusterTools = new ClusterToolsPagePo('local');
 

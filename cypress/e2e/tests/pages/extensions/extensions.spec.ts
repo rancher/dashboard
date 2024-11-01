@@ -2,12 +2,12 @@ import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+// import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
-const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
-const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
-const DISABLED_CACHE_EXTENSION_TITLE = 'Large extension demo (> 20mb) - cache testing';
-const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
+// const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
+// const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
+// const DISABLED_CACHE_EXTENSION_TITLE = 'Large extension demo (> 20mb) - cache testing';
+// const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';

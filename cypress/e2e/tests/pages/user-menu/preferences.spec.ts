@@ -16,8 +16,8 @@ const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-const VIM = 'Vim';
-const NORMAL_HUMAN = 'Normal human';
+// const VIM = 'Vim';
+// const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 

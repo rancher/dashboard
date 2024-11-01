@@ -1,4 +1,4 @@
-import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
+// import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 describe('Page Actions', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
