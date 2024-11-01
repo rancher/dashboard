@@ -26,6 +26,9 @@ export default class PaginationPo extends ComponentPo {
     return this.self().find('span').invoke('text');
   }
 
+  /**
+   * Check the x of y pagination text against the side nav count
+   */
   checkPaginationText(productNav: ProductNavPo, options: {
     sideNameLabel: string,
     expectedText: (count: number) => string

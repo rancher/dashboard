@@ -1,7 +1,7 @@
-import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 // import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
-// import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
-// import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
+import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
+import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 // import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
@@ -203,83 +203,83 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  // describe('Should open a terminal', () => {
-  //   beforeEach(() => {
-  //     workloadsPodPage.goTo();
-  //   });
+  describe('Should open a terminal', () => {
+    beforeEach(() => {
+      workloadsPodPage.goTo();
+    });
 
-  //   it('should open a pod shell', () => {
-  //     const shellPodPo = new PodPo();
+    it('should open a pod shell', () => {
+      const shellPodPo = new PodPo();
 
-  //     shellPodPo.openPodShell();
-  //   });
-  // });
+      shellPodPo.openPodShell();
+    });
+  });
 
-  // describe('When cloning a pod', () => {
-  //   const { name: origPodName, namespace } = createPodBlueprint.metadata;
-  //   const { name: clonePodName } = clonePodBlueprint.metadata;
+  describe('When cloning a pod', () => {
+    const { name: origPodName, namespace } = createPodBlueprint.metadata;
+    const { name: clonePodName } = clonePodBlueprint.metadata;
 
-  //   beforeEach(() => {
-  //     cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
-  //     cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
+    beforeEach(() => {
+      cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
+      cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
 
-  //     workloadsPodPage.goTo();
+      workloadsPodPage.goTo();
 
-  //     const createPodPo = new PodPo();
+      const createPodPo = new PodPo();
 
-  //     createPodPo.createPodViaKubectl(createPodBlueprint);
-  //   });
+      createPodPo.createPodViaKubectl(createPodBlueprint);
+    });
 
-  //   it(`Should have same spec as the original pod`, () => {
-  //     const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
+    it(`Should have same spec as the original pod`, () => {
+      const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-  //     cloneCreatePodPage.goTo();
+      cloneCreatePodPage.goTo();
 
-  //     let origPodSpec: any;
+      let origPodSpec: any;
 
-  //     cy.wait('@origPod', { timeout: 20000 })
-  //       .then(({ response }) => {
-  //         expect(response?.statusCode).to.eq(200);
-  //         origPodSpec = response?.body.spec;
-  //         expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
-  //       });
+      cy.wait('@origPod', { timeout: 20000 })
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          origPodSpec = response?.body.spec;
+          expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
+        });
 
-  //     const createClonePo = new PodPo();
+      const createClonePo = new PodPo();
 
-  //     // Each pod need a unique name
-  //     createClonePo.nameNsDescription().name().set(clonePodName);
-  //     createClonePo.save();
+      // Each pod need a unique name
+      createClonePo.nameNsDescription().name().set(clonePodName);
+      createClonePo.save();
 
-  //     workloadsPodPage.waitForPage();
-  //     workloadsPodPage.list().checkVisible();
-  //     workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
-  //     workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
-  //       .checkExists();
+      workloadsPodPage.waitForPage();
+      workloadsPodPage.list().checkVisible();
+      workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
+      workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
+        .checkExists();
 
-  //     // Simple test to assert we haven't broken Pods detail page
-  //     // https://github.com/rancher/dashboard/issues/10490
-  //     const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
+      // Simple test to assert we haven't broken Pods detail page
+      // https://github.com/rancher/dashboard/issues/10490
+      const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-  //     clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
-  //     clonedPodPage.waitForPage();
+      clonedPodPage.goTo();// Needs to be goTo to ensure http request is fired
+      clonedPodPage.waitForPage();
 
-  //     cy.wait('@clonedPod', { timeout: 20000 })
-  //       .then(({ response }) => {
-  //         expect(response?.statusCode).to.eq(200);
+      cy.wait('@clonedPod', { timeout: 20000 })
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
 
-  //         const clonedSpec = response?.body?.spec;
+          const clonedSpec = response?.body?.spec;
 
-  //         // In Dashboard adds empty affinity object by default
-  //         // Remove this to compare
-  //         if (!Object.keys(clonedSpec.affinity).length) {
-  //           delete clonedSpec.affinity;
-  //         }
+          // In Dashboard adds empty affinity object by default
+          // Remove this to compare
+          if (!Object.keys(clonedSpec.affinity).length) {
+            delete clonedSpec.affinity;
+          }
 
-  //         expect(clonedSpec).to.deep.eq(origPodSpec);
-  //         expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
-  //       });
-  //   });
-  // });
+          expect(clonedSpec).to.deep.eq(origPodSpec);
+          expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
+        });
+    });
+  });
 
   // describe.skip('[Vue3 Skip]: should delete pod', () => {
   //   const podName = `pod-${ Date.now() }`;
