@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 export function applyCustomLinksResponse(customLinkName: string, customLinkUrl:string):object {
   return {
     id:    'ui-custom-links',
@@ -36,7 +38,7 @@ export function applyCustomLinksResponse(customLinkName: string, customLinkUrl:s
       ],
       name:            'ui-custom-links',
       relationships:   null,
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       'Resource is current',
@@ -88,7 +90,7 @@ export function removeCustomLinksResponse():object {
       ],
       name:            'ui-custom-links',
       relationships:   null,
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       'Resource is current',

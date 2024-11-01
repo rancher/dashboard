@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 export function nodeDriveResponse(addCloudCredential: boolean, driver: string): any {
   return {
     type:         'collection',
@@ -29,7 +31,7 @@ export function nodeDriveResponse(addCloudCredential: boolean, driver: string): 
           }, {
             toId: `${ driver }config`, toType: 'management.cattle.io.dynamicschema', rel: 'owner', state: 'active', message: 'Resource is current'
           }],
-          resourceVersion: Number.MAX_VALUE,
+          resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
           state:           {
             error: false, message: '', name: 'active', transitioning: false
           },

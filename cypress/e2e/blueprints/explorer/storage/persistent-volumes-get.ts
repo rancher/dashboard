@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/persistentvolumes- return empty persistentvolumes data
 const persistentvolumesGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const persistentvolumesGetResponseEmpty = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const persistentvolumesResponseSmallSet = {
   createTypes:  { persistentvolume: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumes' },
   actions:      {},
   resourceType: 'persistentvolume',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [{
     id:    'test',

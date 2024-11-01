@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/pods - small set of pods data
 const podsGetResponseSmallSet = {
   type:         'collection',
@@ -49,7 +51,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       '',
@@ -248,7 +250,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       '',
@@ -447,7 +449,7 @@ const podsGetResponseSmallSet = {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       '',

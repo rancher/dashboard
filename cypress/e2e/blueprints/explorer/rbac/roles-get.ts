@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/rbac.authorization.k8s.io.roles - return empty roles data
 const rolesGetResponseEmpty = {
   type:         'collection',
@@ -16,7 +18,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
   createTypes:  { 'rbac.authorization.k8s.io.role': 'https://localhost:8005/v1/rbac.authorization.k8s.io.roles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.role',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        2,
   data:         [
     {
@@ -54,7 +56,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -113,7 +115,7 @@ const rolesResponseSmallSet = (namespace = 'kube-system') => ({
         name:            'extension-apiserver-authentication-reader',
         namespace,
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

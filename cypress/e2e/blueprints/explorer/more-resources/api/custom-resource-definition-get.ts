@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/apiextensions.k8s.io.customresourcedefinitions - small set of crds data
 const crdsGetResponseSmallSet = {
   type:         'collection',
@@ -5,7 +7,7 @@ const crdsGetResponseSmallSet = {
   createTypes:  { 'apiextensions.k8s.io.customresourcedefinition': 'https://yonasb29head.qa.rancher.space/v1/apiextensions.k8s.io.customresourcedefinitions' },
   actions:      {},
   resourceType: 'apiextensions.k8s.io.customresourcedefinition',
-  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   count:        2,
   data:         [
     {
@@ -28,7 +30,7 @@ const crdsGetResponseSmallSet = {
         generation:      1,
         name:            'users.management.cattle.io',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'CRD is established',
@@ -129,7 +131,7 @@ const crdsGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'CRD is established',

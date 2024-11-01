@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /k8s/clusters/local/v1/monitoring.coreos.com.podmonitors
 const podMonitorsGet = {
   type:         'collection',
@@ -5,7 +7,7 @@ const podMonitorsGet = {
   createTypes:  { 'monitoring.coreos.com.podmonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.podmonitors' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.podmonitor',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   data:         []
 };
 
@@ -16,7 +18,7 @@ const serviceMonitorsGet = {
   createTypes:  { 'monitoring.coreos.com.servicemonitor': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.servicemonitors' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.servicemonitor',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        14,
   data:         [
     {
@@ -99,7 +101,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -223,7 +225,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -350,7 +352,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -485,7 +487,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -615,7 +617,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -745,7 +747,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -881,7 +883,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1004,7 +1006,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1142,7 +1144,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1273,7 +1275,7 @@ const serviceMonitorsGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1391,7 +1393,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-apiserver',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1527,7 +1529,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-coredns',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1644,7 +1646,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-ingress-nginx',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1771,7 +1773,7 @@ const serviceMonitorsGet = {
         name:            'rancher-monitoring-kubelet',
         namespace:       'kube-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -1929,7 +1931,7 @@ const alertManagerConfigsGet = {
   createTypes:  { 'monitoring.coreos.com.alertmanagerconfig': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.alertmanagerconfig',
-  revision: Number.MAX_VALUE
+  revision: CYPRESS_SAFE_RESOURCE_REVISION
   data:         [
     {
       id:    'default/test-alert',
@@ -1975,7 +1977,7 @@ const alertManagerConfigsGet = {
         name:            'test-alert',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2188,7 +2190,7 @@ const rancherMonitoringAlertmanagerGet = {
         message: 'Resource is always ready'
       }
     ],
-    resourceVersion: Number.MAX_VALUE,
+    resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
     state:           {
       error:         false,
       message:       'Resource is current',
@@ -2346,7 +2348,7 @@ const alertManagerRancherMonitoringAlertmanagerGet = {
     name:            'alertmanager-rancher-monitoring-alertmanager',
     namespace:       'cattle-monitoring-system',
     relationships:   null,
-    resourceVersion: Number.MAX_VALUE,
+    resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
     state:           {
       error:         false,
       message:       'Resource is always ready',
@@ -2364,7 +2366,7 @@ const prometheusRulesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheusrule': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheusrules' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheusrule',
-  revision: Number.MAX_VALUE
+  revision: CYPRESS_SAFE_RESOURCE_REVISION
   count:        27,
   data:         [
     {
@@ -2449,7 +2451,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2638,7 +2640,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -2750,7 +2752,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3002,7 +3004,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3134,7 +3136,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3308,7 +3310,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3481,7 +3483,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3652,7 +3654,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3769,7 +3771,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -3930,7 +3932,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4039,7 +4041,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4164,7 +4166,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4309,7 +4311,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4425,7 +4427,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4690,7 +4692,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -4879,7 +4881,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5035,7 +5037,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5158,7 +5160,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5324,7 +5326,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5436,7 +5438,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5548,7 +5550,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -5788,7 +5790,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6084,7 +6086,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6229,7 +6231,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6341,7 +6343,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6462,7 +6464,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6794,7 +6796,7 @@ const prometheusRulesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -6900,7 +6902,7 @@ const prometheusesGet = {
   createTypes:  { 'monitoring.coreos.com.prometheus': 'https://209.97.184.234.sslip.io/k8s/clusters/local/v1/monitoring.coreos.com.prometheuses' },
   actions:      {},
   resourceType: 'monitoring.coreos.com.prometheus',
-  revision: Number.MAX_VALUE
+  revision: CYPRESS_SAFE_RESOURCE_REVISION
   count:        1,
   data:         [
     {
@@ -7133,7 +7135,7 @@ const prometheusesGet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

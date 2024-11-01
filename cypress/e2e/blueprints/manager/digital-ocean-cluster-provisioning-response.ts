@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloudCredName: string, machinePoolId: string):object {
   return {
     type:         'collection',
@@ -5,7 +7,7 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
     createTypes:  { 'provisioning.cattle.io.cluster': 'https://localhost:8005/v1/provisioning.cattle.io.clusters' },
     actions:      {},
     resourceType: 'provisioning.cattle.io.cluster',
-    revision:     Number.MAX_VALUE,
+    revision:     CYPRESS_SAFE_RESOURCE_REVISION,
     count:        9,
     data:         [
       {
@@ -145,7 +147,7 @@ export function clusterProvDigitalOceanSingleResponse(clusterName: string, cloud
               message: 'Resource is always ready'
             }
           ],
-          resourceVersion: Number.MAX_VALUE,
+          resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
           state:           {
             error:         false,
             message:       'Resource is Ready',

@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 export const createPayloadData = {
   id:            'e2e-pod-security-admission-1705617529465',
   type:          'management.cattle.io.podsecurityadmissionconfigurationtemplate',
@@ -12,7 +14,7 @@ export const createPayloadData = {
   },
   kind:     'PodSecurityAdmissionConfigurationTemplate',
   metadata: {
-    fields: ['e2e-pod-security-admission-1705617529465', '18s'], name: 'e2e-pod-security-admission-1705617529465', resourceVersion: Number.MAX_VALUE
+    fields: ['e2e-pod-security-admission-1705617529465', '18s'], name: 'e2e-pod-security-admission-1705617529465', resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION
   },
   description: 'e2e-pod-security-admission-1705617529465-description'
 };
@@ -31,7 +33,7 @@ export const updatePayloadData = {
   },
   kind:     'PodSecurityAdmissionConfigurationTemplate',
   metadata: {
-    fields: ['e2e-pod-security-admission-1705628550961', '7s'], name: 'e2e-pod-security-admission-1705628550961', resourceVersion: Number.MAX_VALUE
+    fields: ['e2e-pod-security-admission-1705628550961', '7s'], name: 'e2e-pod-security-admission-1705628550961', resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION
   },
   description: 'e2e-pod-security-admission-1705628550961-description-edit'
 };

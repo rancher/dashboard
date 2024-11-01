@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 export function machinePoolConfigResponse(clusterName:string, machinePoolId:string ):object {
   return {
     id:    `fleet-default/nc-${ clusterName }-pool1-${ machinePoolId }`,
@@ -62,7 +64,7 @@ export function machinePoolConfigResponse(clusterName:string, machinePoolId:stri
           message: 'Resource is current'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       'Resource is current',

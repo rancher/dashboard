@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/fleet.cattle.io.clusterregistrationtokens - return empty clusterregistrationtokens data
 const clusterRegistrationTokensGetReponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const clusterRegistrationTokensGetReponseEmpty = {
   createTypes:  { 'fleet.cattle.io.clusterregistrationtoken': 'https://yonasb29h3.qa.rancher.space/v1/fleet.cattle.io.clusterregistrationtokens' },
   actions:      {},
   resourceType: 'fleet.cattle.io.clusterregistrationtoken',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const clusterRegistrationTokensGetResponseSmallSet = {
   createTypes:  { 'fleet.cattle.io.clusterregistrationtoken': 'https://yonasb29h3.qa.rancher.space/v1/fleet.cattle.io.clusterregistrationtokens' },
   actions:      {},
   resourceType: 'fleet.cattle.io.clusterregistrationtoken',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [
     {
@@ -84,7 +86,7 @@ const clusterRegistrationTokensGetResponseSmallSet = {
             message: 'Resource is always ready'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

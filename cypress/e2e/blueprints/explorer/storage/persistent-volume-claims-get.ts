@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/persistentvolumeclaim- return empty persistentvolumeclaims data
 const persistentvolumeclaimsGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const persistentvolumeclaimsGetResponseEmpty = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const persistentvolumeclaimsResponseSmallSet = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [{
     id:    'cattle-system/test',

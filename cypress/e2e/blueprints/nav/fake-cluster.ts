@@ -14,6 +14,8 @@ import {
   generateFakeSecretsReply
 } from './edit-cluster.ts';
 
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GENERAL DATA NOT CONFIGURABLE, for now...
 const MACHINE_POOL_ID = '995mj';
 const CLOUD_CRED_ID = 'srb7v';
@@ -159,7 +161,7 @@ function generateProvClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       'Resource is Ready',
@@ -505,7 +507,7 @@ function generateMgmtClusterObj(provClusterId, mgmtClusterId) {
           message: 'Resource is always ready'
         }
       ],
-      resourceVersion: Number.MAX_VALUE,
+      resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
       state:           {
         error:         false,
         message:       'Resource is Ready',
@@ -1102,7 +1104,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1154,7 +1156,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'cattle-fleet-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1205,7 +1207,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'cattle-impersonation-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1269,7 +1271,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1317,7 +1319,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'default',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1366,7 +1368,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-node-lease',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1415,7 +1417,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-public',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1463,7 +1465,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
         },
         name:            'kube-system',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1523,7 +1525,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             message:  'Resource is Ready'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1583,7 +1585,7 @@ function generateFakeNamespacesReply(mgmtClusterId) {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       '',
@@ -1693,7 +1695,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',
@@ -2253,7 +2255,7 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'All replicas scheduled as expected. Replicas: 1',

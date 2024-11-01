@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/rbac.authorization.k8s.io.rolebindings- return empty role binding data
 const roleBindingGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const roleBindingGetResponseEmpty = {
   createTypes:  { 'rbac.authorization.k8s.io.rolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.rolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.rolebinding',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const roleBindingResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.rolebinding': 'https://yonasb29head.qa.rancher.space/v1/rbac.authorization.k8s.io.rolebindings' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.rolebinding',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        3,
   data:         [
     {
@@ -66,7 +68,7 @@ const roleBindingResponseSmallSet = {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -134,7 +136,7 @@ const roleBindingResponseSmallSet = {
             message:  'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -203,7 +205,7 @@ const roleBindingResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

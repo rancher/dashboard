@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/services - return empty services data
 const servicesGetReponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const servicesGetReponseEmpty = {
   createTypes:  { service: 'https://yonasb29.qa.rancher.space/v1/services' },
   actions:      {},
   resourceType: 'service',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const servicesGetResponseSmallSet = {
   createTypes:  { service: 'https://yonasb29.qa.rancher.space/v1/services' },
   actions:      {},
   resourceType: 'service',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        3,
   data:         [
     {
@@ -76,7 +78,7 @@ const servicesGetResponseSmallSet = {
             message: 'Resource is current'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Service is ready',
@@ -165,7 +167,7 @@ const servicesGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Service is ready',
@@ -227,7 +229,7 @@ const servicesGetResponseSmallSet = {
         name:            'kubernetes',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Service is ready',

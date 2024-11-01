@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/rbac.authorization.k8s.io.clusterrolebinding - return empty cluster roles data
 const clusterRolesGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const clusterRolesGetResponseEmpty = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrole': 'https://yonasb29h3.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterroles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrole',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const clusterRolesResponseSmallSet = {
   createTypes:  { 'rbac.authorization.k8s.io.clusterrole': 'https://yonasb29h3.qa.rancher.space/v1/rbac.authorization.k8s.io.clusterroles' },
   actions:      {},
   resourceType: 'rbac.authorization.k8s.io.clusterrole',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        2,
   data:         [
     {
@@ -49,7 +51,7 @@ const clusterRolesResponseSmallSet = {
         labels:          { 'kubernetes.io/bootstrapping': 'rbac-defaults' },
         name:            'admin',
         relationships:   null,
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -94,7 +96,7 @@ const clusterRolesResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

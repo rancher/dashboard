@@ -1,10 +1,12 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
+
 // GET /v1/management.cattle.io.fleetworkspaces - small set of fleet workspaces data
 const fleetworkspacesGetResponseSmallSet = {
   type:         'collection',
   links:        { self: 'https://yonasb29h3.qa.rancher.space/v1/management.cattle.io.fleetworkspaces' },
   actions:      {},
   resourceType: 'management.cattle.io.fleetworkspace',
-  revision:     Number.MAX_VALUE,
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        2,
   data:         [
     {
@@ -34,7 +36,7 @@ const fleetworkspacesGetResponseSmallSet = {
             state:  'active'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -81,7 +83,7 @@ const fleetworkspacesGetResponseSmallSet = {
             state:    'active'
           }
         ],
-        resourceVersion: Number.MAX_VALUE,
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
