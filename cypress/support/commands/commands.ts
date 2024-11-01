@@ -73,7 +73,11 @@ Cypress.Commands.add('getRootE2EResourceName', () => {
 /**
  * Create resource name
  */
-Cypress.Commands.add('createE2EResourceName', (context, options = { prefixContext: false }) => {
+Cypress.Commands.add('createE2EResourceName', (context, options = { prefixContext: false, onlyContext: false }) => {
+  if (options?.onlyContext) {
+    return cy.wrap(context);
+  }
+
   return cy.getRootE2EResourceName().then((root) => options?.prefixContext ? `${ context }-${ root }` : `${ root }-${ context }`);
 });
 

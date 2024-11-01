@@ -109,6 +109,6 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
         role:        'project-member',
       },
       password: Cypress.env('password')
-    });
+    }, { createNameOptions: { onlyContext: true } });
   });
 });

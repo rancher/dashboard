@@ -57,7 +57,8 @@ export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
 }
 
 export interface CreateResourceNameOptions {
-  prefixContext: boolean
+  onlyContext?: boolean
+  prefixContext?: boolean
 }
 
 declare global {
