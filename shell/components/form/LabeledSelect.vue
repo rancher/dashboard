@@ -139,7 +139,6 @@ export default {
     filteredAttrs() {
       const {
         class: _class,
-        taggable,
         ...rest
       } = this.$attrs;
 
