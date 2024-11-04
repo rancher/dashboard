@@ -33,14 +33,17 @@ function bundleDeploymentResources(status) {
   const resourceKey = (r) => `${ r.kind }/${ r.namespace }/${ r.name }`;
 
   // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
-  const resources = new Map((status?.resources || []).map((r) => [
-    resourceKey(r), Object.assign({ state: STATES_ENUM.READY }, r)]));
+  const resources = (status?.resources || []).reduce((res, r) => {
+    res[resourceKey(r)] = Object.assign({ state: STATES_ENUM.READY }, r);
+
+    return res;
+  }, {});
 
   const modified = [];
 
   for (const r of status?.modifiedStatus || []) {
     const state = r.create ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
-    const found = resources.get(resourceKey(r));
+    const found = resources[resourceKey(r)];
 
     // Depending on the state, the same resource can appear in both fields
     if (found) {
@@ -50,7 +53,7 @@ function bundleDeploymentResources(status) {
     }
   }
 
-  return modified.concat(...resources.values());
+  return modified.concat(Object.values(resources));
 }
 
 export default class GitRepo extends SteveModel {
