@@ -148,10 +148,71 @@ POs all inherit a root `component.po`. Common component functionality can be add
 When selecting an element priority should be given to the attribute `data-testid`, if this does not exist using a specific css selector can be used.
 - In some cases, including lists, the data-testid is dynamically created with a context prefix or index, so check the DOM even if it code it's not obvious
 
-#### Keep it clean
+#### Environment State - Pre / Post Test
+
+##### Initial State
+If the test needs a specific state it should not be assumed that the Rancher instance is in that state, it should be confirmed or setup before the test starts.
+
+- Avoid using shaky foundations for a test. For example checking pods in the `cattle-system` namespace which will change a lot after Rancher is provisioned (and tests run immediately against it)
+- Test needs 500 events, tests create pods to create those events. 9/10 there's enough events, 1/10 there are not and the test will fail
+- Test expects helm repos to be added and ready, however slow Rancher setup means these are in flux
+
+##### Finishing State
+If the tests have altered the state of the Rancher instance they should return it back to it's original state after the tests have run
+
+*Included (Examples)*
+- created resources
+- language selected
+- filtering by namespace
+
+*Not included*
+- Page the user is on
+- Logged in state
+
+##### Hooks
 Utilize the `beforeAll` and `afterAll` hooks to setup the test, and then clean up afterwards. Be careful though, these won't run again if Cypress retries individual failed tests
 
 Returning the environment to it's original state via afterAll is important to avoid subsequent tests being affected, for example by resources created during test execution.
+
+
+#### Resources In tests
+When the test needs to exercise the UI with resources, where possible, they should be actual resources. Where not possible they can be mocked locally (in a scalable way).
+
+*Resource Names*
+Names of resources should almost always come from the `createE2EResourceName` command. This pre/post fixes a run id to the name and makes it really clear when e2e tests leave stale resources around. In the future it also opens us up to automatically cleaning them up
+
+##### Creating resources
+Resources can either be created
+- Preferred - Via cy commands calling the Rancher API
+- Via the UI itself
+
+##### Mocking Resources
+`cy.intercept` can be used to intercept http requests and return mock resources.
+
+- Mock resources can be brittle and verbose, but are good for testing at scale
+- Ideally we need a library of `create<ResourceType>` functions that can be called 100s of times if required (rather than hardcoding 100s of resources)
+
+*revision / resourceRevision*
+Mock resources should `revision` (resource) and `resourceRevision` (list) properties to `CYPRESS_SAFE_RESOURCE_REVISION`. A value that's too low can results in CPU impactful spam
+
+1. UI makes a request to fetch a resource, mock resource with too low revision is provided
+1. UI tries to watch resource over websocket with the too low revision
+1. Rancher rejects the too low revision
+1. UI tries to fix this by fetching the resource, but the mock resource with too low revision is returned again
+1. Repeat ad nauseam
+
+A revision will be too low depending on the Rancher instance.
+
+#### Excluding a test
+
+*Track how to include*
+Add a comment referencing an issue that will lead to the test being included again
+
+*Avoid `skip`*
+
+To exclude a test the jasmine `.skip` notation can be used. However this can cause havoc with grep tags / sorry cypress ending in longer running test runs and fluff results.
+
+It's better to just comment out the test instead.
 
 #### Where's my Page Object?
 
