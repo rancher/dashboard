@@ -368,14 +368,14 @@ export default {
       }
 
       if (this.loggingType === FLOW_AUDIT) {
-        this.$set(this.value.spec, 'loggingRef', 'harvester-kube-audit-log-ref');
+        this.value.spec['loggingRef'] = 'harvester-kube-audit-log-ref';
       }
 
       if (this.loggingType === FLOW_EVENT) {
         const eventSelector = { select: { labels: { 'app.kubernetes.io/name': 'event-tailer' } } };
 
         if (!this.value.spec.match) {
-          this.$set(this.value.spec, 'match', [eventSelector]);
+          this.value.spec['match'] = [eventSelector];
         } else {
           this.value.spec.match.push(eventSelector);
         }
