@@ -1,6 +1,6 @@
 # Fixing annotations on published extensions
 
-As the development of an extension progresses over time, through different versions of Rancher and the Shell package, looking back at those earlier releases some may think why is that extension version available for install in Rancher versions when you know it shouldn't work.
+As the development of an extension progresses over time, through different versions of Rancher and the Shell package, some users may wonder why a specific extension version is available for installation in Rancher versions when it is known that it shouldn't work.
 
 This is due to the fact that when the first releases were done, no-one could foresee if future versions would have breaking changes, therefore [annotations](../extensions-configuration#configurable-annotations) most commonly used like `catalog.cattle.io/rancher-version` or `catalog.cattle.io/kube-version` would either lack an upper limit boundary or just have too low of an upper limit.
 
