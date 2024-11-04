@@ -8,9 +8,10 @@ import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import {
-  STATES_ENUM, colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
+  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
+import { bundleDeploymentResources, resourceId, resourceType, clusterIdFromBundleDeploymentLabels } from '@shell/utils/fleet';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
@@ -18,57 +19,6 @@ function quacksLikeAHash(str) {
   }
 
   return false;
-}
-
-function clusterIdFromLabels(labels) {
-  const clusterNamespace = labels?.[FLEET_ANNOTATIONS.CLUSTER_NAMESPACE];
-  const clusterName = labels?.[FLEET_ANNOTATIONS.CLUSTER];
-
-  return `${ clusterNamespace }/${ clusterName }`;
-}
-
-// bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
-function bundleDeploymentResources(status) {
-  // Use a map to avoid `find` over and over again
-  const resourceKey = (r) => `${ r.kind }/${ r.namespace }/${ r.name }`;
-
-  // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
-  const resources = (status?.resources || []).reduce((res, r) => {
-    res[resourceKey(r)] = Object.assign({ state: STATES_ENUM.READY }, r);
-
-    return res;
-  }, {});
-
-  const modified = [];
-
-  for (const r of status?.modifiedStatus || []) {
-    const state = r.missing ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
-    const found = resources[resourceKey(r)];
-
-    // Depending on the state, the same resource can appear in both fields
-    if (found) {
-      found.state = state;
-    } else {
-      modified.push(Object.assign({ state }, r));
-    }
-  }
-
-  return modified.concat(Object.values(resources));
-}
-
-// ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
-function resourceType(r) {
-  const type = r.kind.toLowerCase();
-
-  if (!r.APIVersion || r.APIVersion === 'v1') {
-    return type;
-  }
-
-  return `${ r.APIVersion.split('/', 2)[0] }.${ type }`;
-}
-
-function resourceId(r) {
-  return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
 }
 
 export default class GitRepo extends SteveModel {
@@ -383,7 +333,7 @@ export default class GitRepo extends SteveModel {
     const out = [];
 
     for (const bd of bundleDeployments) {
-      const c = clusters[clusterIdFromLabels(bd.metadata?.labels)];
+      const c = clusters[clusterIdFromBundleDeploymentLabels(bd.metadata?.labels)];
       const resources = bundleDeploymentResources(bd.status);
 
       resources.forEach((r) => {
