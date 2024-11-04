@@ -17,7 +17,7 @@ export default {
       return this.value?.status?.resourceKey || [];
     },
     resourceCount() {
-      return this.value.status?.summary?.desiredReady || 0;
+      return this.bundleResources.length;
     },
   }
 };
