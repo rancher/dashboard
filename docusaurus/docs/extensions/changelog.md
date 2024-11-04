@@ -8,6 +8,7 @@
 
 | Date | Version | Description |
 |---|---|---|
+| 01&#x2011;11&#x2011;2024 | [**2.0.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.2) | Remove upper limit on kube version for default annotations on extensions. Update creators package. Minor bug fixes |
 | 09&#x2011;07&#x2011;2024 | 1.2.3 | Minor bug fixes |
 | 09&#x2011;07&#x2011;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes |
 | 01&#x2011;07&#x2011;2024 | 1.2.2 | First release of a new `Shell` version, but codewise similar to `0.5.3` in order to keep extensions api versioning up to par with shell versioning |
