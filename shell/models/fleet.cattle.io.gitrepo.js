@@ -42,7 +42,7 @@ function bundleDeploymentResources(status) {
   const modified = [];
 
   for (const r of status?.modifiedStatus || []) {
-    const state = r.create ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
+    const state = r.missing ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
     const found = resources[resourceKey(r)];
 
     // Depending on the state, the same resource can appear in both fields
