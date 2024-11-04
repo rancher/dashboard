@@ -15,3 +15,7 @@ export interface ModifiedStatus {
   delete?: boolean,
   patch: string,
 }
+
+export interface NonReadyBundle {
+  modifiedStatus: ModifiedStatus[],
+}

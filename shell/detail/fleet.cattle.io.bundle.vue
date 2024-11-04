@@ -1,5 +1,6 @@
 <script>
 import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
+import { bundleResources } from '@shell/utils/fleet';
 
 export default {
   name: 'FleetBundleDetail',
@@ -14,7 +15,7 @@ export default {
 
   computed: {
     bundleResources() {
-      return this.value?.status?.resourceKey || [];
+      return bundleResources(this.value?.status);
     },
     resourceCount() {
       return this.bundleResources.length;

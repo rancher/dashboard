@@ -1,4 +1,4 @@
-import { BundleDeploymentResource, ModifiedStatus } from '@shell/types/resources/fleet';
+import { BundleDeploymentResource, ModifiedStatus, NonReadyBundle } from '@shell/types/resources/fleet';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -11,6 +11,15 @@ interface Resource extends BundleDeploymentResource {
 interface BundleDeploymentStatus {
   resources?: BundleDeploymentResource[],
   modifiedStatus?: ModifiedStatus[],
+}
+
+interface BundleStatusSummary {
+  nonReadyResources?: NonReadyBundle[],
+}
+
+interface BundleStatus {
+  resourceKey?: BundleDeploymentResource[],
+  summary?: BundleStatusSummary,
 }
 
 // bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
@@ -40,6 +49,34 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
   }
 
   return modified.concat(Object.values(resources));
+}
+
+// bundleResources extracts the list of resources deployed by a Bundle
+export function bundleResources(status: BundleStatus): Resource[] {
+  const resources = (status.resourceKey || []).map((r) => {
+    r.state = STATES_ENUM.READY;
+
+    return r;
+  });
+
+  // The state of every resource is spread all over the bundle status.
+  // resourceKey contains one entry per resource AND cluster (built by Fleet from all the child BundleDeployments).
+  // However, those entries do not contain the cluster that they belong to, leading to duplicate entries
+  for (const bundle of status.summary?.nonReadyResources || []) {
+    for (const mod of bundle.modifiedStatus || []) {
+      if (mod.missing) {
+        resources.unshift(Object.assign({ state: STATES_ENUM.MISSING }, mod));
+      } else {
+        // There may be duplicate entries, pick the first one matching the condition
+        const r = resources.find((r) => r.state === STATES_ENUM.READY &&
+          resourceType(r) === resourceType(mod) && resourceId(r) === resourceId(mod));
+
+        r.state = mod.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
+      }
+    }
+  }
+
+  return resources;
 }
 
 // ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
