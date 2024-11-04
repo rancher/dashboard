@@ -358,13 +358,17 @@ export default class GitRepo extends SteveModel {
   }
 
   get resourcesStatuses() {
-    const clusters = this.targetClusters || [];
     const bundleDeployments = this.bundleDeployments || [];
+    const clusters = (this.targetClusters || []).reduce((res, c) => {
+      res[c.id] = c;
+
+      return res;
+    }, {});
 
     const out = [];
 
     for (const bd of bundleDeployments) {
-      const c = clusters.find((c) => clusterIdFromLabels(bd.metadata?.labels) === c.id);
+      const c = clusters[clusterIdFromLabels(bd.metadata?.labels)];
       const resources = bundleDeploymentResources(bd.status);
 
       resources.forEach((r) => {
