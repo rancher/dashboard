@@ -75,9 +75,18 @@ export function init(store) {
     dashIfEmpty: true,
   };
 
+  const clusterRepoBranch = {
+    name:        'branch',
+    labelKey:    'tableHeaders.branch',
+    sort:        'spec.gitBranch',
+    getValue:    (row) => row,
+    formatter:   'ClusterRepoBranch',
+    dashIfEmpty: true,
+  };
+
   headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, APP_SUMMARY, AGE]);
   headers(CATALOG.REPO, [STATE, NAME_COL, NAMESPACE, repoType, repoUrl, repoBranch, AGE]);
-  headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
+  headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, clusterRepoBranch, AGE]);
   headers(CATALOG.OPERATION, [
     STATE,
     NAME_COL,
