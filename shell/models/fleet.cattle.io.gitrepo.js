@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
-import { escapeHtml, randomStr } from '@shell/utils/string';
+import { escapeHtml } from '@shell/utils/string';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
@@ -54,6 +54,21 @@ function bundleDeploymentResources(status) {
   }
 
   return modified.concat(Object.values(resources));
+}
+
+// ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
+function resourceType(r) {
+  const type = r.kind.toLowerCase();
+
+  if (!r.APIVersion || r.APIVersion === 'v1') {
+    return type;
+  }
+
+  return `${ r.APIVersion.split('/', 2)[0] }.${ type }`;
+}
+
+function resourceId(r) {
+  return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
 }
 
 export default class GitRepo extends SteveModel {
@@ -372,6 +387,8 @@ export default class GitRepo extends SteveModel {
       const resources = bundleDeploymentResources(bd.status);
 
       resources.forEach((r) => {
+        const id = resourceId(r);
+        const type = resourceType(r);
         const state = r.state;
 
         const color = colorForState(state).replace('text-', 'bg-');
@@ -382,17 +399,24 @@ export default class GitRepo extends SteveModel {
           params: {
             product:   NAME,
             cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
-            resource:  r.type,
+            resource:  type,
             namespace: r.namespace,
             id:        r.name,
           }
         };
 
-        out.push({
-          key:      `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
-          tableKey: `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
+        const key = `${ c.id }-${ type }-${ r.namespace }-${ r.name }`;
 
-          // columns
+        out.push({
+          key,
+          tableKey: key,
+
+          // Needed?
+          id,
+          type,
+          clusterId: c.id,
+
+          // columns, see FleetResources.vue
           state:             mapStateToEnum(state),
           clusterName:       c.nameDisplay,
           apiVersion:        r.apiVersion,
@@ -400,10 +424,9 @@ export default class GitRepo extends SteveModel {
           name:              r.name,
           namespace:         r.namespace,
           creationTimestamp: r.createdAt,
-          clusterId:         c.id,
-          clusterLabel:      c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
 
           // other properties
+          clusterLabel:    c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),
