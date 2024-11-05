@@ -26,7 +26,9 @@ function resourceKey(r: BundleDeploymentResource): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
 }
 
-// bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
+/**
+ * bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
+ */
 export function bundleDeploymentResources(status: BundleDeploymentStatus): Resource[] {
   // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
   // Use a map to avoid `find` over and over again
@@ -53,7 +55,9 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
   return modified.concat(Object.values(resources));
 }
 
-// bundleResources extracts the list of resources deployed by a Bundle
+/**
+ * bundleResources extracts the list of resources deployed by a Bundle
+ */
 export function bundleResources(status: BundleStatus): Resource[] {
   const newCounter = (): Object<string, number> => ({
     [STATES_ENUM.READY]:    0,
@@ -112,8 +116,11 @@ export function bundleResources(status: BundleStatus): Resource[] {
   }, []);
 }
 
-// ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
+/**
+ * resourceType normalizes APIVersion and Kind from a Resources into a single string
+ */
 export function resourceType(r: Resource): string {
+  // ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
   const type = r.kind.toLowerCase();
 
   if (!r.APIVersion || r.APIVersion === 'v1') {
