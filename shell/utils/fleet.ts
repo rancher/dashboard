@@ -44,17 +44,19 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
   return modified.concat(Object.values(resources));
 }
 
+interface StatesCounter { [state: string]: number }
+
+const newCounter = (): StatesCounter => ({
+  [STATES_ENUM.READY]:    0,
+  [STATES_ENUM.MISSING]:  0,
+  [STATES_ENUM.ORPHANED]: 0,
+  [STATES_ENUM.MODIFIED]: 0,
+});
+
 /**
  * bundleResources extracts the list of resources deployed by a Bundle
  */
 export function bundleResources(status: BundleStatus): Resource[] {
-  type counter = { [state: string]: number };
-  const newCounter = (): counter => ({
-    [STATES_ENUM.READY]:    0,
-    [STATES_ENUM.MISSING]:  0,
-    [STATES_ENUM.ORPHANED]: 0,
-    [STATES_ENUM.MODIFIED]: 0,
-  });
   // The state of every resource is spread all over the bundle status.
   // resourceKey contains one entry per resource AND cluster (built by Fleet from all the child BundleDeployments).
   // However, those entries do not contain the cluster that they belong to, leading to duplicate entries
