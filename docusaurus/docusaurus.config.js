@@ -70,6 +70,20 @@ const config = {
         showLastUpdateTime: true
       },
     ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        createRedirects(existingPath) {
+          if (existingPath.includes('extensions.rancher.io/extensions')) {
+            return [
+              existingPath.replace('/extensions', '/extensions/next')
+            ];
+          }
+
+          return undefined; // Return a falsy value: no redirect created
+        },
+      },
+    ],
   ],
 
   themeConfig:
