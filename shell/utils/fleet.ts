@@ -40,18 +40,26 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
       modified.push(Object.assign({ state }, r));
     }
   }
+  for (const r of status?.nonReadyStatus || []) {
+    const state = r.summary?.state || STATES_ENUM.UNKNOWN;
+    const found: Resource = resources[resourceKey(r)];
+
+    if (found) {
+      found.state = state;
+    }
+  }
 
   return modified.concat(Object.values(resources));
 }
 
 interface StatesCounter { [state: string]: number }
 
-const newCounter = (): StatesCounter => ({
-  [STATES_ENUM.READY]:    0,
-  [STATES_ENUM.MISSING]:  0,
-  [STATES_ENUM.ORPHANED]: 0,
-  [STATES_ENUM.MODIFIED]: 0,
-});
+function incr(counter: StatesCounter, state: string) {
+  if (!counter[state]) {
+    counter[state] = 0;
+  }
+  counter[state]++;
+}
 
 /**
  * bundleResources extracts the list of resources deployed by a Bundle
@@ -66,9 +74,9 @@ export function bundleResources(status: BundleStatus): Resource[] {
     const k = resourceKey(r);
 
     if (!res[k]) {
-      res[k] = { r, count: newCounter() };
+      res[k] = { r, count: {} };
     }
-    res[k].count[STATES_ENUM.READY]++;
+    incr(res[k].count, STATES_ENUM.READY);
 
     return res;
   }, {} as { [resourceKey: string]: { r: BundleResourceKey, count: StatesCounter } });
@@ -79,18 +87,25 @@ export function bundleResources(status: BundleStatus): Resource[] {
       const k = resourceKey(r);
 
       if (!resources[k]) {
-        resources[k] = { r: r as BundleResourceKey, count: newCounter() };
+        resources[k] = { r, count: {} };
       }
 
       if (r.missing) {
-        resources[k].count[STATES_ENUM.MISSING]++;
+        incr(resources[k].count, STATES_ENUM.MISSING);
       } else if (r.delete) {
         resources[k].count[STATES_ENUM.READY]--;
-        resources[k].count[STATES_ENUM.ORPHANED]++;
+        incr(resources[k].count, STATES_ENUM.ORPHANED);
       } else {
         resources[k].count[STATES_ENUM.READY]--;
-        resources[k].count[STATES_ENUM.MODIFIED]++;
+        incr(resources[k].count, STATES_ENUM.MODIFIED);
       }
+    }
+    for (const r of bundle.nonReadyStatus || []) {
+      const k = resourceKey(r);
+      const state = r.summary?.state || STATES_ENUM.UNKNOWN;
+
+      resources[k].count[STATES_ENUM.READY]--;
+      incr(resources[k].count, state);
     }
   }
 

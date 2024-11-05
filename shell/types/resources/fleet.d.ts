@@ -9,19 +9,25 @@ export interface BundleDeploymentResource extends BundleResourceKey {
   createdAt?: string,
 }
 
-export interface BundleDeploymentModifiedStatus extends BundleResourceKey {
+export interface BundleModifiedResource extends BundleResourceKey {
   missing?: boolean,
   delete?: boolean,
   patch: string,
 }
 
+export interface BundleNonReadyResource extends BundleResourceKey {
+  summary: { [state: string]: string }
+}
+
 export interface BundleNonReadyBundle {
-  modifiedStatus: BundleDeploymentModifiedStatus[],
+  modifiedStatus: BundleModifiedResource[],
+  nonReadyStatus: BundleNonReadyResource[],
 }
 
 export interface BundleDeploymentStatus {
   resources?: BundleDeploymentResource[],
-  modifiedStatus?: BundleDeploymentModifiedStatus[],
+  modifiedStatus?: BundleModifiedResource[],
+  nonReadyStatus?: BundleNonReadyResource[],
 }
 
 export interface BundleStatusSummary {
