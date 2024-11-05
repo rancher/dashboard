@@ -1,9 +1,12 @@
-export interface BundleDeploymentResource {
+export interface ResourceKey {
   kind: string,
   apiVersion: string,
   namespace?: string,
   name: string,
-  createdAt: string,
+}
+
+export interface BundleDeploymentResource extends ResourceKey {
+  createdAt?: string,
 }
 
 export interface ModifiedStatus {

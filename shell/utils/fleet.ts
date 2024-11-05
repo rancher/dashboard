@@ -1,4 +1,4 @@
-import { BundleDeploymentResource, ModifiedStatus, NonReadyBundle } from '@shell/types/resources/fleet';
+import { BundleDeploymentResource, ModifiedStatus, NonReadyBundle, ResourceKey } from '@shell/types/resources/fleet';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -18,7 +18,7 @@ interface BundleStatusSummary {
 }
 
 interface BundleStatus {
-  resourceKey?: BundleDeploymentResource[],
+  resourceKey?: ResourceKey[],
   summary?: BundleStatusSummary,
 }
 
