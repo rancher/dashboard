@@ -233,6 +233,14 @@ export const getters = {
     default:
       return { name: afterLoginRoutePref };
     }
+  },
+
+  dev: (state, getters) => {
+    try {
+      return getters['get'](PLUGIN_DEVELOPER);
+    } catch {
+      return getters['get'](DEV);
+    }
   }
 };
 
