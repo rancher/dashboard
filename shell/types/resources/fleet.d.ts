@@ -18,3 +18,17 @@ export interface BundleDeploymentModifiedStatus extends BundleResourceKey {
 export interface BundleNonReadyBundle {
   modifiedStatus: BundleDeploymentModifiedStatus[],
 }
+
+export interface BundleDeploymentStatus {
+  resources?: BundleDeploymentResource[],
+  modifiedStatus?: BundleDeploymentModifiedStatus[],
+}
+
+export interface BundleStatusSummary {
+  nonReadyResources?: BundleNonReadyBundle[],
+}
+
+export interface BundleStatus {
+  resourceKey?: BundleResourceKey[],
+  summary?: BundleStatusSummary,
+}
