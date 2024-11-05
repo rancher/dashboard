@@ -17,7 +17,7 @@ Starting with Shell version `3.0.0`, we have introduced a feature that allows de
 **4)** Install node modules by running `yarn install`
 
 
-**5)** One the root of your branch, just run the following command:
+**5)** In the root of your branch, run the following command:
 ```js
 yarn publish-pkgs -e -s <-GITHUB-ORG->/<-GITHUB-REPO->
 ```
