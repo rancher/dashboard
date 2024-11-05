@@ -1,4 +1,4 @@
-import { BundleDeploymentResource, ModifiedStatus, NonReadyBundle, ResourceKey } from '@shell/types/resources/fleet';
+import { BundleDeploymentResource, BundleDeploymentModifiedStatus, BundleNonReadyBundle, BundleResourceKey } from '@shell/types/resources/fleet';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -8,19 +8,19 @@ interface Resource extends BundleDeploymentResource {
 
 interface BundleDeploymentStatus {
   resources?: BundleDeploymentResource[],
-  modifiedStatus?: ModifiedStatus[],
+  modifiedStatus?: BundleDeploymentModifiedStatus[],
 }
 
 interface BundleStatusSummary {
-  nonReadyResources?: NonReadyBundle[],
+  nonReadyResources?: BundleNonReadyBundle[],
 }
 
 interface BundleStatus {
-  resourceKey?: ResourceKey[],
+  resourceKey?: BundleResourceKey[],
   summary?: BundleStatusSummary,
 }
 
-function resourceKey(r: ResourceKey): string {
+function resourceKey(r: BundleResourceKey): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
 }
 
@@ -78,7 +78,7 @@ export function bundleResources(status: BundleStatus): Resource[] {
     res[k].count[STATES_ENUM.READY]++;
 
     return res;
-  }, {} as { [resourceKey: string]: { r: ResourceKey, count: counter } });
+  }, {} as { [resourceKey: string]: { r: BundleResourceKey, count: counter } });
 
   // 2. Non-ready resources are counted differently and may also appear in resourceKey, depending on their state
   for (const bundle of status.summary?.nonReadyResources || []) {
@@ -86,7 +86,7 @@ export function bundleResources(status: BundleStatus): Resource[] {
       const k = resourceKey(r);
 
       if (!resources[k]) {
-        resources[k] = { r: r as ResourceKey, count: newCounter() };
+        resources[k] = { r: r as BundleResourceKey, count: newCounter() };
       }
 
       if (r.missing) {
