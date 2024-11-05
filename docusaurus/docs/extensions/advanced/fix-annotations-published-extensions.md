@@ -26,4 +26,6 @@ In the case of the [Elemental repo](https://github.com/rancher/elemental-ui), th
 
 This will update the `index.yaml` of your Helm chart, propagating those annotation changes and also re-package the `tgz` file under `assets`.
 
-**6)** After the procedure is finished, just create a PR for your repository and merge your changes. The annotations that were changed in those published version should now be according to your needs. Careful to only commit the needed changes and not your new `package.json` or the `/node_modules` folder
+**6)** Once the procedure is complete, remove the `package.json`, `yarn.lock`, and `/node_modules` folder from your branch to avoid committing them.
+
+**7)** Create a pull request for your repository and merge your changes. The annotations for the published version should now reflect your updates.
