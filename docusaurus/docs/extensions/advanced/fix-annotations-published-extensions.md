@@ -6,7 +6,7 @@ This is due to the fact that when the first releases were done, no-one could for
 
 Since that extension was already built and served to users, fixing annotations and repackaging an extension my be a pain point that would often get postponed.
 
-With Shell `3.0.0` we have introduced a mechanism that will allow developers to fix annotations on those published extension version that will handle changes on `index.yaml` that will persist over time and also the re-packaging of the `tgz` assets with the correct annotations inside (only works for Github). To leverage this mechanism, developers should follow this procedure:
+Starting with Shell version `3.0.0`, we have introduced a feature that allows developers to update annotations on published extension versions. This mechanism enables changes to persist in the `index.yaml` file over time and ensures that the `tgz` assets are re-packaged with the correct annotations (GitHub only). To leverage this mechanism, developers should follow this procedure:
 
 **1)** Copy over the contents of the root file `package.json` to have access to the yarn command alias `publish-pkgs`. You'll need to create the file on the branch where the Helm chart that serves your extension lives in
 
