@@ -246,8 +246,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetails().should('not.be.visible');
   });
 
-  // it.skip('[Vue3 Skip]: Should install an extension', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should install an extension', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -272,8 +272,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionDetailsCloseClick();
   // });
 
-  // it.skip('[Vue3 Skip]: Should not display installed extensions within the available tab', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should not display installed extensions within the available tab', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -286,8 +286,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   // });
 
-  // it.skip('[Vue3 Skip]: Should update an extension version', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should update an extension version', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -307,8 +307,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   // });
 
-  // it.skip('[Vue3 Skip]: Should rollback an extension version', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should rollback an extension version', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -328,8 +328,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   // });
 
-  // it.skip('[Vue3 Skip]: An extension larger than 20mb, which will trigger chacheState disabled, should install and work fine', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('An extension larger than 20mb, which will trigger chacheState disabled, should install and work fine', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -357,8 +357,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
   // });
 
-  // it.skip('[Vue3 Skip]: Should respect authentication when importing extension scripts', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should respect authentication when importing extension scripts', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -396,10 +396,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
   // });
 
-  // it.skip('[Vue3 Skip]: Should uninstall extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should uninstall extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -421,10 +421,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   // });
 
-  // it.skip('[Vue3 Skip]: Should uninstall unathenticated extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should uninstall unathenticated extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
@@ -446,10 +446,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   //   extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
   // });
 
-  // it.skip('[Vue3 Skip]: Should uninstall un-cached extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+  it.skip('Should uninstall un-cached extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
   //   extensionsPo.goTo();
 
