@@ -55,30 +55,61 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
 
 // bundleResources extracts the list of resources deployed by a Bundle
 export function bundleResources(status: BundleStatus): Resource[] {
-  const resources = (status.resourceKey || []).map((r) => {
-    r.state = STATES_ENUM.READY;
-
-    return r;
+  const newCounter = (): Object<string, number> => ({
+    [STATES_ENUM.READY]:    0,
+    [STATES_ENUM.MISSING]:  0,
+    [STATES_ENUM.ORPHANED]: 0,
+    [STATES_ENUM.MODIFIED]: 0,
   });
-
   // The state of every resource is spread all over the bundle status.
   // resourceKey contains one entry per resource AND cluster (built by Fleet from all the child BundleDeployments).
   // However, those entries do not contain the cluster that they belong to, leading to duplicate entries
-  for (const bundle of status.summary?.nonReadyResources || []) {
-    for (const mod of bundle.modifiedStatus || []) {
-      if (mod.missing) {
-        resources.unshift(Object.assign({ state: STATES_ENUM.MISSING }, mod));
-      } else {
-        // There may be duplicate entries, pick the first one matching the condition
-        const r = resources.find((r) => r.state === STATES_ENUM.READY &&
-          resourceType(r) === resourceType(mod) && resourceId(r) === resourceId(mod));
 
-        r.state = mod.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
+  // 1. Fold resourceKey by using a unique key, initializing counters for multiple occurrences of the same resource
+  const resources = (status.resourceKey || []).reduce((res, r) => {
+    const k = resourceKey(r);
+
+    if (!res[k]) {
+      res[k] = { r, count: newCounter() };
+    }
+    res[k].count[STATES_ENUM.READY]++;
+
+    return res;
+  }, {});
+
+  // 2. Non-ready resources are counted differently and may also appear in resourceKey, depending on their state
+  for (const bundle of status.summary?.nonReadyResources || []) {
+    for (const r of bundle.modifiedStatus || []) {
+      const k = resourceKey(r);
+
+      if (!resources[k]) {
+        resources[k] = { r, count: newCounter() };
+      }
+
+      if (r.missing) {
+        resources[k].count[STATES_ENUM.MISSING]++;
+      } else if (r.delete) {
+        resources[k].count[STATES_ENUM.READY]--;
+        resources[k].count[STATES_ENUM.ORPHANED]++;
+      } else {
+        resources[k].count[STATES_ENUM.READY]--;
+        resources[k].count[STATES_ENUM.MODIFIED]++;
       }
     }
   }
 
-  return resources;
+  // 3. Unfold back to an array of resources for display
+  return Object.values(resources).reduce((res, e) => {
+    const { r, count } = e;
+
+    for (const state in count) {
+      for (let x = 0; x < count[state]; x++) {
+        res.push(Object.assign({ state }, r));
+      }
+    }
+
+    return res;
+  }, []);
 }
 
 // ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
