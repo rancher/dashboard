@@ -22,7 +22,7 @@ interface BundleStatus {
   summary?: BundleStatusSummary,
 }
 
-function resourceKey(r: BundleDeploymentResource): string {
+function resourceKey(r: ResourceKey): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
 }
 
@@ -36,13 +36,13 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
     res[resourceKey(r)] = Object.assign({ state: STATES_ENUM.READY }, r);
 
     return res;
-  }, {});
+  }, {} as { [resourceKey: string]: Resource });
 
-  const modified = [];
+  const modified: Resource[] = [];
 
   for (const r of status?.modifiedStatus || []) {
     const state = r.missing ? STATES_ENUM.MISSING : r.delete ? STATES_ENUM.ORPHANED : STATES_ENUM.MODIFIED;
-    const found = resources[resourceKey(r)];
+    const found: Resource = resources[resourceKey(r)];
 
     // Depending on the state, the same resource can appear in both fields
     if (found) {
@@ -59,7 +59,8 @@ export function bundleDeploymentResources(status: BundleDeploymentStatus): Resou
  * bundleResources extracts the list of resources deployed by a Bundle
  */
 export function bundleResources(status: BundleStatus): Resource[] {
-  const newCounter = (): Object<string, number> => ({
+  type counter = { [state: string]: number };
+  const newCounter = (): counter => ({
     [STATES_ENUM.READY]:    0,
     [STATES_ENUM.MISSING]:  0,
     [STATES_ENUM.ORPHANED]: 0,
@@ -79,7 +80,7 @@ export function bundleResources(status: BundleStatus): Resource[] {
     res[k].count[STATES_ENUM.READY]++;
 
     return res;
-  }, {});
+  }, {} as { [resourceKey: string]: { r: ResourceKey, count: counter } });
 
   // 2. Non-ready resources are counted differently and may also appear in resourceKey, depending on their state
   for (const bundle of status.summary?.nonReadyResources || []) {
@@ -87,7 +88,7 @@ export function bundleResources(status: BundleStatus): Resource[] {
       const k = resourceKey(r);
 
       if (!resources[k]) {
-        resources[k] = { r, count: newCounter() };
+        resources[k] = { r: r as ResourceKey, count: newCounter() };
       }
 
       if (r.missing) {
@@ -113,7 +114,7 @@ export function bundleResources(status: BundleStatus): Resource[] {
     }
 
     return res;
-  }, []);
+  }, [] as Resource[]);
 }
 
 /**
@@ -123,11 +124,11 @@ export function resourceType(r: Resource): string {
   // ported from https://github.com/rancher/fleet/blob/v0.10.0/internal/cmd/controller/grutil/resourcekey.go#L116-L128
   const type = r.kind.toLowerCase();
 
-  if (!r.APIVersion || r.APIVersion === 'v1') {
+  if (!r.apiVersion || r.apiVersion === 'v1') {
     return type;
   }
 
-  return `${ r.APIVersion.split('/', 2)[0] }.${ type }`;
+  return `${ r.apiVersion.split('/', 2)[0] }.${ type }`;
 }
 
 export function resourceId(r: Resource): string {
