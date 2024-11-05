@@ -22,12 +22,14 @@ interface BundleStatus {
   summary?: BundleStatusSummary,
 }
 
+function resourceKey(r: BundleDeploymentResource): string {
+  return `${ r.kind }/${ r.namespace }/${ r.name }`;
+}
+
 // bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
 export function bundleDeploymentResources(status: BundleDeploymentStatus): Resource[] {
-  // Use a map to avoid `find` over and over again
-  const resourceKey = (r) => `${ r.kind }/${ r.namespace }/${ r.name }`;
-
   // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
+  // Use a map to avoid `find` over and over again
   const resources = (status?.resources || []).reduce((res, r) => {
     res[resourceKey(r)] = Object.assign({ state: STATES_ENUM.READY }, r);
 
