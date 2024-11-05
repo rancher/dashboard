@@ -97,7 +97,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
   });
 
-  it.skip('[Vue3 Skip]: Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -165,16 +165,16 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+      expect(el).to.have.attr('src').includes('/img/rancher-logo');
     });
 
     BurgerMenuPo.toggle();
     burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+      expect(el).to.have.attr('src').includes('/img/rancher-logo');
     });
   });
 
-  it.skip('[Vue3 Skip]: Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -236,11 +236,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     homePage.goTo();
     homePage.getBrandBannerImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/banner.b321f7eb.svg');
+      expect(el).to.have.attr('src').includes('/img/banner');
     });
   });
 
-  it.skip('[Vue3 Skip]: Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('Login Background', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
 
     BrandingPagePo.navTo();
@@ -309,7 +309,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     loginPage.goTo();
     loginPage.loginBackgroundImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/login-landscape.911b980e.svg');
+      expect(el).to.have.attr('src').includes('/img/login-landscape');
     });
 
     cy.login();
