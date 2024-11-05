@@ -74,7 +74,7 @@ const config = {
       '@docusaurus/plugin-client-redirects',
       {
         createRedirects(existingPath) {
-          if (existingPath.includes('extensions.rancher.io/extensions')) {
+          if (existingPath.includes('/extensions') && !existingPath.includes('/next') && !existingPath.includes('/v2')) {
             return [
               existingPath.replace('/extensions', '/extensions/next')
             ];
