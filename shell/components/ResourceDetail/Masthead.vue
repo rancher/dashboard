@@ -654,6 +654,12 @@ export default {
     }
   }
 
+  div.actions-container > div.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
   .resource-external {
     font-size: 18px;
   }
