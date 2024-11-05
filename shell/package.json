@@ -36,7 +36,6 @@
     "@babel/plugin-proposal-private-property-in-object": "7.14.5",
     "@babel/preset-typescript": "7.16.7",
     "@novnc/novnc": "1.2.0",
-    "@nuxtjs/axios": "5.13.6",
     "@popperjs/core": "2.4.4",
     "@rancher/icons": "2.0.29",
     "@types/is-url": "1.2.30",
@@ -160,7 +159,7 @@
     "semver": "7.5.4",
     "@types/lodash": "4.17.5",
     "@types/node": "~20.10.0",
-    "@vue/cli-service/html-webpack-plugin": "^5.0.0"  
+    "@vue/cli-service/html-webpack-plugin": "^5.0.0"
   },
   "nyc": {
     "extension": [
