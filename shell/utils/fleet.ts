@@ -2,10 +2,8 @@ import { BundleDeploymentResource, ModifiedStatus, NonReadyBundle, ResourceKey }
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
-type state = STATES_ENUM.READY | STATES_ENUM.MODIFIED | STATES_ENUM.MISSING | STATES_ENUM.ORPHANED;
-
 interface Resource extends BundleDeploymentResource {
-  state: state,
+  state: string,
 }
 
 interface BundleDeploymentStatus {
