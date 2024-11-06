@@ -34,6 +34,8 @@ const _SPECIFY = 'specify';
 export default {
   name: 'CruGitRepo',
 
+  inheritAttrs: false,
+
   emits: ['input'],
 
   components: {
@@ -155,7 +157,7 @@ export default {
       stepTargetInfo,
       addRepositorySteps,
       displayHelmRepoURLRegex: false,
-      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required', 'repo'] }]
+      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
     };
   },
 

@@ -204,7 +204,31 @@ export default {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
-    return { inStore };
+    return {
+      inStore,
+      /**
+       * Override the sortGenerationFn given changes in the rows we pass through to sortable table
+       *
+       * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
+       * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
+       */
+      sortGeneration: undefined
+    };
+  },
+
+  watch: {
+    filteredRows: {
+      handler() {
+        // This is only prevalent in fleet world and the workspace switcher
+        // - it's singular (a --> b --> c) instead of namespace switchers additive (a --> a+b --> a)
+        // - this means it's much more likely to switch between resource sets containing the same mount of rows
+        //
+        if (this.currentProduct.showWorkspaceSwitcher) {
+          this.sortGeneration = this.safeSortGenerationFn(this.schema, this.$store);
+        }
+      },
+      immediate: true
+    }
   },
 
   computed: {
@@ -556,6 +580,7 @@ export default {
     :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
     :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     :key-field="keyField"
+    :sortGeneration="sortGeneration"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"

@@ -1663,9 +1663,10 @@ export default {
           class="mt-10"
         >
           <UnitInput
-            v-model.number="customCmdOpts.timeout"
+            v-model:value="customCmdOpts.timeout"
             :label="t('catalog.install.helm.timeout.label')"
             :suffix="t('catalog.install.helm.timeout.unit', {value: customCmdOpts.timeout})"
+            type="number"
           />
         </div>
         <div
@@ -1674,9 +1675,10 @@ export default {
         >
           <UnitInput
             v-if="existing"
-            v-model.number="customCmdOpts.historyMax"
+            v-model:value="customCmdOpts.historyMax"
             :label="t('catalog.install.helm.historyMax.label')"
             :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
+            type="number"
           />
         </div>
         <div

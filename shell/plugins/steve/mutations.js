@@ -13,6 +13,7 @@ import {
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import SteveSchema from '@shell/models/steve-schema';
+import { deepToRaw } from '@shell/utils/object';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -145,7 +146,9 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data });
+        const rawData = deepToRaw(data);
+
+        worker.postMessage({ loadSchemas: rawData });
       }
     }
   },

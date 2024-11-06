@@ -1,5 +1,6 @@
+import { reactive, isReactive } from 'vue';
 import {
-  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys
+  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys, deepToRaw
 } from '@shell/utils/object';
 
 describe('fx: get', () => {
@@ -225,5 +226,155 @@ describe('fx: definedKeys', () => {
     const expected = ['"foo"', '"baz"."bang.bop"'];
 
     expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: deepToRaw', () => {
+  it('should return primitives as is', () => {
+    expect(deepToRaw(null)).toBeNull();
+    expect(deepToRaw(undefined)).toBeUndefined();
+    expect(deepToRaw(42)).toBe(42);
+    expect(deepToRaw('test')).toBe('test');
+    expect(deepToRaw(true)).toBe(true);
+
+    const sym = Symbol('symbol');
+
+    expect(deepToRaw(sym)).toBe(sym);
+  });
+
+  it('should handle simple objects', () => {
+    const obj = { a: 1, b: 2 };
+    const result = deepToRaw(obj);
+
+    expect(result).toStrictEqual({ a: 1, b: 2 });
+    expect(result).not.toBe(obj); // Should not be the same reference
+  });
+
+  it('should handle arrays', () => {
+    const arr = [1, 2, 3];
+    const result = deepToRaw(arr);
+
+    expect(result).toStrictEqual([1, 2, 3]);
+    expect(result).not.toBe(arr); // Should not be the same reference
+  });
+
+  it('should handle nested objects', () => {
+    const obj = { a: { b: { c: 3 } } };
+    const result = deepToRaw(obj);
+
+    expect(result).toStrictEqual({ a: { b: { c: 3 } } });
+    expect(result).not.toBe(obj);
+    expect(result.a).not.toBe(obj.a);
+    expect(result.a.b).not.toBe(obj.a.b);
+  });
+
+  it('should handle nested arrays', () => {
+    const arr = [1, [2, [3]]];
+    const result = deepToRaw(arr);
+
+    expect(result).toStrictEqual([1, [2, [3]]]);
+    expect(result).not.toBe(arr);
+    expect(result[1]).not.toBe(arr[1]);
+  });
+
+  it('should handle reactive proxies (reactive object)', () => {
+    const reactiveObj = reactive({ a: 1, b: { c: 2 } });
+    const result = deepToRaw(reactiveObj);
+
+    expect(result).toStrictEqual({ a: 1, b: { c: 2 } });
+    expect(result).not.toBe(reactiveObj);
+    expect(isReactive(result)).toBe(false);
+  });
+
+  it('should handle nested reactive properties', () => {
+    const data = reactive({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: reactive({ a: 1 }) },
+      func:  null,
+      sym:   null,
+    });
+
+    const result = deepToRaw(data);
+
+    expect(result).toStrictEqual({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: { a: 1 } },
+      func:  null,
+      sym:   null,
+    });
+
+    expect(isReactive(result)).toBe(false);
+    expect(isReactive(result.obj)).toBe(false);
+    expect(isReactive(result.obj.nested)).toBe(false);
+  });
+
+  it('should handle circular references', () => {
+    const obj: { name: string; [key: string]: any } = { name: 'Alice' };
+
+    obj.self = obj; // Circular reference
+
+    const result = deepToRaw(obj);
+
+    expect(result).toStrictEqual({ name: 'Alice', self: result });
+  });
+
+  it('should handle objects with functions and symbols', () => {
+    const symbolKey = Symbol('key');
+    const obj = {
+      a:           1,
+      b() {},
+      [symbolKey]: 'symbolValue',
+    };
+
+    const result = deepToRaw(obj);
+
+    expect(result).toStrictEqual({ a: 1, b: null });
+    expect(result[symbolKey]).toBeUndefined(); // Symbols are skipped
+  });
+
+  it('should not mutate the original data', () => {
+    const obj = { a: { b: 2 } };
+    const original = JSON.stringify(obj);
+
+    deepToRaw(obj);
+    expect(JSON.stringify(obj)).toBe(original);
+  });
+
+  it('should handle complex data structures', () => {
+    const data = reactive({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: { a: 1 } },
+      func:  () => {},
+      sym:   Symbol('sym'),
+    });
+
+    const result = deepToRaw(data);
+
+    expect(result).toStrictEqual({
+      num:   1,
+      str:   'test',
+      bool:  true,
+      nil:   null,
+      undef: undefined,
+      arr:   [1, 2, { a: 3 }],
+      obj:   { nested: { a: 1 } },
+      func:  null,
+      sym:   null,
+    });
   });
 });

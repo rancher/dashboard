@@ -102,7 +102,7 @@ export default {
           if (isEmpty(this.value?.annotations)) {
             this.value['annotations'] = { summary: '' };
           } else {
-            this.value.annotations['summary'] = '';
+            this.value.annotations = { ...this.value.annotations, summary: '' };
           }
         } else {
           this.value.annotations['summary'] = '';
@@ -124,7 +124,7 @@ export default {
           if (isEmpty(this.value?.annotations)) {
             this.value['annotations'] = { message: '' };
           } else {
-            this.value.annotations['message'] = '';
+            this.value.annotations = { ...this.value.annotations, message: '' };
           }
         } else {
           this.value.annotations['message'] = '';
@@ -146,7 +146,7 @@ export default {
           if (isEmpty(this.value?.annotations)) {
             this.value['annotations'] = { description: '' };
           } else {
-            this.value.annotations['description'] = '';
+            this.value.annotations = { ...this.value.annotations, description: '' };
           }
         } else {
           this.value.annotations['description'] = '';
@@ -168,7 +168,7 @@ export default {
           if (isEmpty(this.value?.annotations)) {
             this.value['annotations'] = { runbook_url: '' };
           } else {
-            this.value.annotations['runbook_url'] = '';
+            this.value.annotations = { ...this.value.annotations, runbook_url: '' };
           }
         } else {
           this.value.annotations['runbook_url'] = '';
@@ -213,7 +213,7 @@ export default {
         return undefined;
       },
       set(v) {
-        this.value['for'] = [null, undefined].includes(v ? undefined : `${ v }s`);
+        this.value['for'] = [null, undefined].includes(v) ? undefined : `${ v }s`;
       }
     }
   },
