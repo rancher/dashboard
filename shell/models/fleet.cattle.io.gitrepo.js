@@ -11,7 +11,7 @@ import {
   colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
-import { bundleDeploymentResources, resourceId, resourceType, clusterIdFromBundleDeploymentLabels } from '@shell/utils/fleet';
+import FleetUtils from '@shell/utils/fleet';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
@@ -333,12 +333,13 @@ export default class GitRepo extends SteveModel {
     const out = [];
 
     for (const bd of bundleDeployments) {
-      const c = clusters[clusterIdFromBundleDeploymentLabels(bd.metadata?.labels)];
-      const resources = bundleDeploymentResources(bd.status);
+      let clusterId = FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels);
+      const c = clusters[clusterId];
+      const resources = FleetUtils.bundleDeploymentResources(bd.status);
 
       resources.forEach((r) => {
-        const id = resourceId(r);
-        const type = resourceType(r);
+        const id = FleetUtils.resourceId(r);
+        const type = FleetUtils.resourceType(r);
         const state = r.state;
 
         const color = colorForState(state).replace('text-', 'bg-');
