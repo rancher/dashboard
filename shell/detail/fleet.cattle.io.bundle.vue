@@ -15,7 +15,7 @@ export default {
 
   computed: {
     bundleResources() {
-      return FleetUtils.bundleResources(this.value?.status);
+      return FleetUtils.resourcesFromBundleStatus(this.value?.status);
     },
     resourceCount() {
       return this.bundleResources.length;

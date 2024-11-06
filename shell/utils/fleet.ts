@@ -48,9 +48,9 @@ class Fleet {
   }
 
   /**
-   * bundleDeploymentResources extracts the list of resources deployed by a BundleDeployment
+   * resourcesFromBundleDeploymentStatus extracts the list of resources deployed by a BundleDeployment
    */
-  bundleDeploymentResources(status: BundleDeploymentStatus): Resource[] {
+  resourcesFromBundleDeploymentStatus(status: BundleDeploymentStatus): Resource[] {
     // status.resources includes of resources that were deployed by Fleet *and still exist in the cluster*
     // Use a map to avoid `find` over and over again
     const resources = (status?.resources || []).reduce((res, r) => {
@@ -85,9 +85,9 @@ class Fleet {
   }
 
   /**
-   * bundleResources extracts the list of resources deployed by a Bundle
+   * resourcesFromBundleStatus extracts the list of resources deployed by a Bundle
    */
-  bundleResources(status: BundleStatus): Resource[] {
+  resourcesFromBundleStatus(status: BundleStatus): Resource[] {
     // The state of every resource is spread all over the bundle status.
     // resourceKey contains one entry per resource AND cluster (built by Fleet from all the child BundleDeployments).
     // However, those entries do not contain the cluster that they belong to, leading to duplicate entries
