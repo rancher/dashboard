@@ -50,13 +50,16 @@ export default {
       hciDashboard: HCI.DASHBOARD,
       resource,
       hResource:    HCI.CLUSTER,
-      realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       hciClusters:  [],
       mgmtClusters: []
     };
   },
 
   computed: {
+    realSchema() {
+      return this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+    },
+
     importLocation() {
       return {
         name:   'c-cluster-product-resource-create',

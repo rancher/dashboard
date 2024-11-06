@@ -1064,7 +1064,7 @@ export default {
       height: 40px;
       padding: 0 10px;
       position: relative;
-      z-index: auto;
+      z-index: z-index('dropdownOverlay');
 
       &.ns-open {
         border-bottom-left-radius: 0;

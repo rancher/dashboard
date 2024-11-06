@@ -58,7 +58,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="!isHarvester">
+    <template v-if="!isHarvester">
       <KeyValue
         v-model:value="value.labels"
         :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
@@ -72,7 +72,7 @@ export default {
         :add-label="t('logging.flow.matches.pods.addLabel')"
       />
       <div class="spacer" />
-    </div>
+    </template>
 
     <h3>
       {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
