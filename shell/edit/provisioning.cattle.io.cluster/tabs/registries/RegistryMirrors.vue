@@ -90,7 +90,7 @@ export default {
       :default-add-value="defaultAddValue"
       :initial-empty-row="true"
       :mode="mode"
-      @input="update"
+      @update:value="update"
     >
       <template #default="{row}">
         <div class="row">
