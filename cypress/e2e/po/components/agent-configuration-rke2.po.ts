@@ -221,7 +221,7 @@ export default class AgentConfigurationRke2 extends ComponentPo {
 
         // seconds
         if (dataPoint.seconds) {
-          this.self().find(`#${ areaId } [data-testid="toleration-seconds-index${ index }"] input`).type(dataPoint.seconds);
+          this.self().find(`#${ areaId } input[data-testid="toleration-seconds-index${ index }"]`).type(dataPoint.seconds);
         }
       });
     } else {
