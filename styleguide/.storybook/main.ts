@@ -82,6 +82,7 @@ const config: StorybookConfig = {
     name: getAbsolutePath('@storybook/vue3-webpack5'),
     options: {}
   },
+  staticDirs: ['../public', '../shell/assets'],
   stories: [
     "../src/**/*.mdx",
     "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
