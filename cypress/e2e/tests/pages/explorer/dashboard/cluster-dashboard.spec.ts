@@ -53,12 +53,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
-  // it.skip('[Vue3 Skip]: has the correct title', () => {
-  //   clusterDashboard.goTo('local');
-  //   clusterDashboard.waitForPage(undefined, 'cluster-events');
+  it('has the correct title', () => {
+    ClusterDashboardPagePo.navTo();
 
-  //   cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
-  // });
+    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  });
 
   it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
