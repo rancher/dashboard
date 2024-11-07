@@ -52,7 +52,7 @@ Images for various providers are included in the `assets/images/providers` folde
 {icons.map((icon, index) => (
   <div className="sb-icon" key={index}>
     <div>{icon}</div>
-    <img src={function(i) { return `./images/providers/${i}.svg`; }(icon)} />
+    <img src={function(i) { return `/images/providers/${i}.svg`; }(icon)} />
   </div>
 ))}
 </div>
@@ -63,19 +63,18 @@ Images for various providers are included in the `assets/images/providers` folde
 {icons.map((icon, index) => (
   <div className="sb-icon" key={index}>
     <div>{icon}</div>
-    <img src={function(i) { return `./images/providers/${i}-black.svg`; }(icon)} />
+    <img src={function(i) { return `/images/providers/${i}-black.svg`; }(icon)} />
   </div>
 ))}
 </div>
 
 <h2>Inverted with CSS - Single Color Logos</h2>
 
-
 <div className="sb-icons reverse-filter ">
 {icons.map((icon, index) => (
   <div className="sb-icon" key={index}>
     <div>{icon}</div>
-    <img src={function(i) { return `./images/providers/${i}-black.svg`; }(icon)} />
+    <img src={function(i) { return `/images/providers/${i}-black.svg`; }(icon)} />
   </div>
 ))}
 </div>
