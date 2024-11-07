@@ -8,7 +8,7 @@ import {
 } from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-data';
 import { payloadComparisonData } from '@/cypress/e2e/blueprints/agent-configuration/agent-configuration-rke2-payload';
 
-describe.skip('[Vue3 Skip]: Agent Configuration for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
+describe('Agent Configuration for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
