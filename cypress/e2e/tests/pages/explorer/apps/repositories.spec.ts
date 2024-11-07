@@ -1,3 +1,4 @@
+//
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';

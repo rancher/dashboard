@@ -54,7 +54,7 @@ const config = {
         lastVersion:        'current',
         versions:           {
           current: {
-            label: '3.x.x',
+            label: 'v3',
             path:  'next',
           },
         },
@@ -68,6 +68,20 @@ const config = {
         routeBasePath:      'internal',
         sidebarPath:        require.resolve('./internalSidebar.js'),
         showLastUpdateTime: true
+      },
+    ],
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        createRedirects(existingPath) {
+          if (existingPath.includes('/extensions') && !existingPath.includes('/next') && !existingPath.includes('/v2')) {
+            return [
+              existingPath.replace('/extensions', '/extensions/next')
+            ];
+          }
+
+          return undefined; // Return a falsy value: no redirect created
+        },
       },
     ],
   ],
