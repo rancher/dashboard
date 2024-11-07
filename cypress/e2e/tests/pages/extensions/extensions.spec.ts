@@ -188,7 +188,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().noRowsShouldNotExist();
-    appRepoList.sortableTable().rowNames().then((names) => {
+    appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
         appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
@@ -223,6 +223,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // we should be on the extensions page
     extensionsPo.waitForTitle();
@@ -253,6 +254,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
@@ -268,6 +270,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
@@ -280,10 +283,12 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // check for installed extension in "installed" tab
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
 
     // check for installed extension in "available" tab
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   });
 
@@ -291,8 +296,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
     // click on update button on card
     extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
@@ -305,6 +312,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure extension card is not available anymore on the updates tab
     // since we installed the latest version
     extensionsPo.extensionTabUpdatesClick();
+    extensionsPo.waitForPage(null, 'updates');
     extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   });
 
@@ -312,8 +320,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
     // click on the rollback button on card
     // this will rollback to the immediate previous version
@@ -326,6 +336,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is on the updates tab
     extensionsPo.extensionTabUpdatesClick();
+    extensionsPo.waitForPage(null, 'updates');
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
@@ -334,8 +345,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
@@ -350,6 +363,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
@@ -371,8 +385,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
@@ -412,8 +428,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
@@ -427,6 +445,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
@@ -437,8 +456,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
@@ -452,6 +473,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
   });
@@ -462,8 +484,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
     // click on uninstall button on card
     extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
@@ -476,6 +500,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
   });
