@@ -156,7 +156,9 @@ export default defineComponent({
       }
 
       // track original version on edit to ensure we don't offer k8s downgrades
-      this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
+      const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion);
+
+      this.originalVersion = kubernetesVersion;
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
