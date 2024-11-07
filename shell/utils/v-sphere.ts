@@ -1,5 +1,8 @@
 import merge from 'lodash/merge';
-import { SECRET, MANAGEMENT } from '@shell/config/types';
+import { SECRET } from '@shell/config/types';
+import { PROVISIONING_PRE_BOOTSTRAP } from '@shell/store/features';
+
+export const VMWARE_VSPHERE = 'vmwarevsphere';
 
 type Rke2Component = {
     versionInfo: any;
@@ -91,19 +94,15 @@ class VSphereUtils {
     };
   }
 
-  private async findPrebootstrapFeatureFlag({ $store }: Rke2Component) {
-    const featureFlag = await $store.dispatch('management/find', {
-      type: MANAGEMENT.FEATURE, id: 'provisioningprebootstrap', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/provisioningprebootstrap` }
-    });
-
-    return featureFlag?.spec?.value;
-  }
-
   /**
     * Create upstream vsphere cpi secret to sync downstream
     */
-  async handleVsphereCpiSecret(rke2Component: Rke2Component) {
-    const isPrebootstrapEnabled = await this.findPrebootstrapFeatureFlag(rke2Component);
+  async handleVsphereCpiSecret(rke2Component: Rke2Component, provider: String) {
+    if (provider !== VMWARE_VSPHERE) {
+      return;
+    }
+
+    const isPrebootstrapEnabled = rke2Component.$store.getters['features/get'](PROVISIONING_PRE_BOOTSTRAP);
 
     if (!isPrebootstrapEnabled) {
       return;
@@ -181,8 +180,12 @@ class VSphereUtils {
   /**
     * Create upstream vsphere csi secret to sync downstream
     */
-  async handleVsphereCsiSecret(rke2Component: Rke2Component) {
-    const isPrebootstrapEnabled = await this.findPrebootstrapFeatureFlag(rke2Component);
+  async handleVsphereCsiSecret(rke2Component: Rke2Component, provider: String) {
+    if (provider !== VMWARE_VSPHERE) {
+      return;
+    }
+
+    const isPrebootstrapEnabled = rke2Component.$store.getters['features/get'](PROVISIONING_PRE_BOOTSTRAP);
 
     if (!isPrebootstrapEnabled) {
       return;
