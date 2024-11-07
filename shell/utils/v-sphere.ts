@@ -1,5 +1,5 @@
 import merge from 'lodash/merge';
-import { SECRET } from '@shell/config/types';
+import { SECRET, MANAGEMENT } from '@shell/config/types';
 
 type Rke2Component = {
     versionInfo: any;
@@ -91,10 +91,24 @@ class VSphereUtils {
     };
   }
 
+  private async findPrebootstrapFeatureFlag({ $store }: Rke2Component) {
+    const featureFlag = await $store.dispatch('management/find', {
+      type: MANAGEMENT.FEATURE, id: 'provisioningprebootstrap', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/provisioningprebootstrap` }
+    });
+
+    return featureFlag?.spec?.value;
+  }
+
   /**
     * Create upstream vsphere cpi secret to sync downstream
     */
   async handleVsphereCpiSecret(rke2Component: Rke2Component) {
+    const isPrebootstrapEnabled = await this.findPrebootstrapFeatureFlag(rke2Component);
+
+    if (!isPrebootstrapEnabled) {
+      return;
+    }
+
     const generateName = `${ rootGenerateName }cpi-`;
     const downstreamName = 'rancher-vsphere-cpi-credentials';
     const downstreamNamespace = 'kube-system';
@@ -168,6 +182,12 @@ class VSphereUtils {
     * Create upstream vsphere csi secret to sync downstream
     */
   async handleVsphereCsiSecret(rke2Component: Rke2Component) {
+    const isPrebootstrapEnabled = await this.findPrebootstrapFeatureFlag(rke2Component);
+
+    if (!isPrebootstrapEnabled) {
+      return;
+    }
+
     const generateName = `${ rootGenerateName }csi-`;
     const downstreamName = 'rancher-vsphere-csi-credentials';
     const downstreamNamespace = 'kube-system';
