@@ -1,7 +1,4 @@
 import { createStore } from 'vuex'
-
-import { get } from '../../../shell/utils/object';
-const i18nStrings = require('../../../shell/assets/translations/en-us.yaml');
 import IntlMessageFormat from 'intl-messageformat';
 
 // Store modules
@@ -14,14 +11,12 @@ const store = createStore({
   getters: {
     'i18n/exists': key => store.getters['i18n/t'],
     'i18n/t': state => (key, args) => {
-      const msg = get(i18nStrings, key) || key;
-
-      if (msg?.includes('{')) {
-        const formatter = new IntlMessageFormat(msg, state.selected);
+      if (key?.includes('{')) {
+        const formatter = new IntlMessageFormat(key, state.selected);
         return formatter.format(args);
       }
 
-      return msg;
+      return key;
     },
   },
   modules: {
