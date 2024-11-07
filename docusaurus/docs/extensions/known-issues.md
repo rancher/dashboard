@@ -1,5 +1,7 @@
 # Known issues
 
+## For Shell v1 and v2
+
 - Running `yarn install` might throw the following error:
 ```
 error glob@10.4.3: The engine "node" is incompatible with this module

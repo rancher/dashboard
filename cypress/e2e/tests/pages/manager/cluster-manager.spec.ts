@@ -375,8 +375,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
       });
 
-      it.skip('can create new snapshots', () => {
-      });
+      // it.skip('can create new snapshots', () => {
+      // });
 
       it('can show snapshots list', () => {
         clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
@@ -432,8 +432,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
       });
 
-      it.skip('can delete snapshots', () => {
-      });
+      // it.skip('can delete snapshots', () => {
+      // });
 
       it('can delete cluster', () => {
         clusterList.goTo();

@@ -6,7 +6,7 @@ import ExternalLinkIcon from '@site/static/img/external-link.svg';
 const FeatureList = [
   {
     title:       'Extensions Documentation',
-    link:        'extensions/home',
+    link:        'extensions/next/home',
     target:      '',
     Svg:         require('@site/static/img/developer-documentation.svg').default,
     icon:        'hide',

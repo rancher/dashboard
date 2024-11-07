@@ -16,7 +16,8 @@ export type CreateUserParams = {
     clusterId: string,
     projectName: string,
     role: string,
-  }
+  },
+  password?: string,
 }
 
 export type CreateAmazonRke2ClusterParams = {
@@ -54,6 +55,12 @@ export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
     namespace: string,
   }
 }
+
+export interface CreateResourceNameOptions {
+  onlyContext?: boolean
+  prefixContext?: boolean
+}
+
 declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
@@ -64,9 +71,10 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
-      createE2EResourceName(context: string): Chainable;
+      getRootE2EResourceName(): Chainable<string>;
+      createE2EResourceName(context: string, options?: CreateResourceNameOptions): Chainable<string>;
 
-      createUser(params: CreateUserParams): Chainable;
+      createUser(params: CreateUserParams, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       setGlobalRoleBinding(userId: string, role: string): Chainable;
       setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
       setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
@@ -74,10 +82,10 @@ declare global {
       createProject(projName: string, clusterId: string, userId: string): Chainable;
       createNamespaceInProject(nsName: string, projId: string): Chainable;
       createNamespace(nsName: string): Chainable;
-      createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean): Chainable;
+      createPod(nsName: string, podName: string, image: string, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createToken(description: string, ttl: number, failOnStatusCode?: boolean, clusterId?: string): Chainable;
-      createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean): Chainable;
-      createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean): Chainable;
+      createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
+      createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
@@ -86,11 +94,12 @@ declare global {
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
-      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number): Chainable;
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number): Chainable;
+      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
 
-      tableRowsPerPageAndNamespaceFilter(rows: number, cluster: string, groupBy: string, namespacefilter: string)
+      tableRowsPerPageAndNamespaceFilter(rows: number, cluster: string, groupBy: string, namespacefilter: string, interation?: number)
 
       /**
        * update namespace filter
@@ -98,7 +107,7 @@ declare global {
        * @param groupBy to update list view to 'flat list', 'group by namespaces', or 'group by node' ('none', 'metadata.namespace', or 'role')
        * @param namespaceFilter to filter by 'only user namespaces', 'all namespace', etc. ('{"local":["all://user"]}', '{\"local\":[]}', etc.)
        */
-      updateNamespaceFilter(clusterName: string, groupBy:string, namespaceFilter: string): Chainable;
+      updateNamespaceFilter(clusterName: string, groupBy:string, namespaceFilter: string, iteration?: number): Chainable;
 
       /**
        *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
