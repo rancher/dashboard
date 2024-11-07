@@ -23,7 +23,7 @@ export default class ClusterDashboardPagePo extends PagePo {
     const burgerMenu = new BurgerMenuPo();
 
     BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
   }
 
   customizeAppearanceButton() {

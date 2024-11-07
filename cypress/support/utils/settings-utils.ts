@@ -1,8 +1,6 @@
 /**
- * There's a small amount of mgmt settings that are public and will be returned when the user in unauthed. This represents that number.
+ * There's a small amount of mgmt settings that are public and will be returned when the user in unauthed. When logged in there will be more.
  *
- * It doesn't need to be exact but should always be equal or more than the actual amount
- * (tests will check that the pre-authed setting count is less than this, and the post-authed count is greater than)
- *
+ * This number is used to check that after log in we get all settings by checking that unauthed setting count is lower and authed settings count is at or greater than
  */
 export const PARTIAL_SETTING_THRESHOLD = 13;

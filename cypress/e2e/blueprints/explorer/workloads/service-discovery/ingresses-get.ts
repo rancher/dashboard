@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+
 // GET /v1/networking.k8s.io.ingresses - return empty ingresses data
 const ingressesGetReponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const ingressesGetReponseEmpty = {
   createTypes:  { 'networking.k8s.io.ingress': 'https://yonasb29head.qa.rancher.space/v1/networking.k8s.io.ingresses' },
   actions:      {},
   resourceType: 'networking.k8s.io.ingress',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const ingressesGetResponseSmallSet = {
   createTypes:  { 'networking.k8s.io.ingress': 'https://yonasb29head.qa.rancher.space/v1/networking.k8s.io.ingresses' },
   actions:      {},
   resourceType: 'networking.k8s.io.ingress',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        2,
   data:         [
     {
@@ -67,7 +69,7 @@ const ingressesGetResponseSmallSet = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '4941',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -140,7 +142,7 @@ const ingressesGetResponseSmallSet = {
         name:            'test',
         namespace:       'default',
         relationships:   null,
-        resourceVersion: '5040682',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

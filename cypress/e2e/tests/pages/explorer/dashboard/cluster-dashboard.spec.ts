@@ -32,8 +32,6 @@ const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  const podName = `e2e-test-${ +new Date() }`;
-
   before(() => {
     cy.login();
   });
@@ -55,12 +53,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
-  it.skip('[Vue3 Skip]: has the correct title', () => {
-    clusterDashboard.goTo('local');
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
+  // it.skip('[Vue3 Skip]: has the correct title', () => {
+  //   clusterDashboard.goTo('local');
+  //   clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
-  });
+  //   cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  // });
 
   it('shows fleet controller status', () => {
     ClusterDashboardPagePo.navTo();
@@ -158,7 +156,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.customBadge().should('contain', settings.description.new);
     const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
+    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
 
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
@@ -173,7 +171,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.clusterIcon().children().should('have.class', 'cluster-local-logo');
     header.clusterName().should('contain', 'local');
     header.customBadge().should('not.exist');
-    burgerMenu.clusters().first().find('svg').should('have.class', 'cluster-local-logo');
+    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
   });
 
   it('can view deployments', () => {
@@ -216,6 +214,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   let removePod = false;
+  let podName = `e2e-test`;
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
@@ -237,7 +236,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         // create pod
         // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then(() => removePod = true);
+        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
+          podName = resp.body.metadata.name;
+          removePod = true;
+        });
       });
     });
 
@@ -300,18 +302,20 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     beforeEach(() => {
       stdProjectName = `standard-user-project${ +new Date() }`;
       stdNsName = `standard-user-ns${ +new Date() }`;
-      stdUsername = `standard-user-${ +new Date() }`;
+      stdUsername = `standard-user`;
+      const password = Cypress.env('password');
+
       // log in as admin
       cy.login();
       cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
         const adminUserId = resp.body.data[0].id.trim();
 
         // create project
-        cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
+        return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
           cy.wrap(resp.body.id.trim()).as('standardUserProject');
 
           // create ns in project
-          cy.get<string>('@standardUserProject').then((projId) => {
+          return cy.get<string>('@standardUserProject').then((projId) => {
             cy.createNamespaceInProject(stdNsName, projId);
 
             // create std user and assign to project
@@ -320,17 +324,24 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
               globalRole:  { role: 'user' },
               projectRole: {
                 clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
-              }
-            }).as('createUserRequest');
+              },
+              password
+            })
+              .as('createUserRequest')
+              .then((resp) => {
+                stdUsername = resp.body.username;
+
+                // log in as new standard user
+                cy.login(stdUsername, password, false);
+
+                // go to cluster dashboard
+                ClusterDashboardPagePo.navTo();
+
+                return clusterDashboard.waitForPage();
+              });
           });
         });
       });
-      // log in as new standard user
-      cy.login(stdUsername, Cypress.env('password'), false);
-
-      // go to cluster dashboard
-      ClusterDashboardPagePo.navTo();
-      clusterDashboard.waitForPage();
     });
 
     // note - this would be 'fleet agent' on downstream clusters
@@ -347,12 +358,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.login();
       cy.deleteRancherResource('v1', 'namespaces', stdNsName);
 
-      cy.get('@standardUserProject').then((projectId) => {
+      cy.get<string>('@standardUserProject').then((projectId) => {
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
       cy.get('@createUserRequest').then((req) => {
-        const userId = req.body.userPrincipalId.split('//').pop();
+        const userId = req.body.id;
 
         cy.deleteRancherResource('v3', 'users', userId);
       });
@@ -361,7 +372,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   after(function() {
     if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
+      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }

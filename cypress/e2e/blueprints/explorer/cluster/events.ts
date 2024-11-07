@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../blueprint.utils';
+
 // GET /v1/events - return empty events data
 const eventsGetEmptyEventsSet = {
   type:         'collection',
@@ -5,7 +7,7 @@ const eventsGetEmptyEventsSet = {
   createTypes:  { event: `${ Cypress.env('api') }/v1/events` },
   actions:      {},
   resourceType: 'event',
-  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   data:         []
 };
 
@@ -16,7 +18,7 @@ const eventsGetResponseSmallSet = {
   createTypes:  { event: `${ Cypress.env('api') }/v1/events` },
   actions:      {},
   resourceType: 'event',
-  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   count:        3,
   data:         [
     {
@@ -40,7 +42,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -71,7 +73,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -102,7 +104,7 @@ const eventsGetResponseSmallSet = {
         name:            'fleet-agent-0.17d80b90a6d2c7ab',
         namespace:       'cattle-fleet-local-system',
         relationships:   null,
-        resourceVersion: '0',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

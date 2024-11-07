@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+
 export const createDeploymentBlueprint = {
   apiVersion: 'apps/v1',
   kind:       'Deployment',
@@ -209,7 +211,7 @@ export const deploymentCreateResponse = {
         rel:    'uses'
       }
     ],
-    resourceVersion: '12999795',
+    resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
     state:           {
       error:         false,
       message:       'replicas: 0/1',
