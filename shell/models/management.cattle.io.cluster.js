@@ -120,7 +120,7 @@ export default class MgmtCluster extends SteveModel {
     // Provisioner is the "<something>Config" in the model
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
-    if ( provisioner === 'rancherKubernetesEngine' || provisioner === 'rke') {
+    if ( provisioner === 'rancherKubernetesEngine' || (provisioner === 'rke' && !this.isLocal )) {
       // Look for a cloud provider in one of the node templates
       if ( this.machinePools?.[0] ) {
         provider = this.machinePools[0]?.nodeTemplate?.spec?.driver || null;

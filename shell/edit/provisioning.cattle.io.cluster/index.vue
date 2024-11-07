@@ -211,14 +211,15 @@ export default {
 
     emberLink() {
       if (this.value) {
-        if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase() || DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+        // set subtype if editing non-local EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
+        if (this.value.provisioner && !this.value.isLocal) {
+          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
 
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);
           }
         }
-        // For custom RKE2 clusters, don't load an Ember page.
+        // // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
           // For admins, this.value.isCustom is used to check if it is a custom cluster.
