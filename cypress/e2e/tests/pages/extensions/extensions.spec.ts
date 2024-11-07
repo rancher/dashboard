@@ -4,6 +4,9 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+
+const namespaceFilter = new NamespaceFilterPo();
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -379,6 +382,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     uiPluginsPo.goTo();
     uiPluginsPo.waitForPage();
+
+    // toggle namespace to all
+    namespaceFilter.toggle();
+    namespaceFilter.clickOptionByLabel('All Namespaces');
+    namespaceFilter.closeDropdown();
 
     uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
   });
