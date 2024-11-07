@@ -107,38 +107,38 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
 
     // https://github.com/rancher/dashboard/issues/11881
-    it.skip('displays the most recent error after resolving a single error in a form with multiple errors', () => {
-      projectsNamespacesPage.createProjectButtonClick();
+    //   it.skip('displays the most recent error after resolving a single error in a form with multiple errors', () => {
+    //     projectsNamespacesPage.createProjectButtonClick();
 
-      // Create the first error
-      projectsNamespacesPage.name().set('test-1234');
-      projectsNamespacesPage.tabResourceQuotas().click();
-      projectsNamespacesPage.btnAddResource().click();
-      projectsNamespacesPage.inputProjectLimit().set('50');
-      projectsNamespacesPage.buttonSubmit().click();
+    //     // Create the first error
+    //     projectsNamespacesPage.name().set('test-1234');
+    //     projectsNamespacesPage.tabResourceQuotas().click();
+    //     projectsNamespacesPage.btnAddResource().click();
+    //     projectsNamespacesPage.inputProjectLimit().set('50');
+    //     projectsNamespacesPage.buttonSubmit().click();
 
-      // Create a second error
-      projectsNamespacesPage.tabContainerDefaultResourceLimit().click();
-      projectsNamespacesPage.inputCpuReservation().set('1000');
-      projectsNamespacesPage.inputMemoryReservation().set('128');
-      projectsNamespacesPage.inputCpuLimit().set('200');
-      projectsNamespacesPage.inputMemoryLimit().set('64');
-      projectsNamespacesPage.buttonSubmit().click();
+    //     // Create a second error
+    //     projectsNamespacesPage.tabContainerDefaultResourceLimit().click();
+    //     projectsNamespacesPage.inputCpuReservation().set('1000');
+    //     projectsNamespacesPage.inputMemoryReservation().set('128');
+    //     projectsNamespacesPage.inputCpuLimit().set('200');
+    //     projectsNamespacesPage.inputMemoryLimit().set('64');
+    //     projectsNamespacesPage.buttonSubmit().click();
 
-      // Assert that there is only a single error message
-      projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
-      projectsNamespacesPage.bannerError(0).should('have.length', 1);
-      projectsNamespacesPage.bannerError(1).should('have.length', 0);
+    //     // Assert that there is only a single error message
+    //     projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
+    //     projectsNamespacesPage.bannerError(0).should('have.length', 1);
+    //     projectsNamespacesPage.bannerError(1).should('have.length', 0);
 
-      // resolve the first error
-      projectsNamespacesPage.tabResourceQuotas().click();
-      projectsNamespacesPage.inputNamespaceDefaultLimit().set('50');
-      projectsNamespacesPage.buttonSubmit().click();
+    //     // resolve the first error
+    //     projectsNamespacesPage.tabResourceQuotas().click();
+    //     projectsNamespacesPage.inputNamespaceDefaultLimit().set('50');
+    //     projectsNamespacesPage.buttonSubmit().click();
 
-      // Click on Create again and assert that there is only a single error
-      projectsNamespacesPage.bannerError(0).should('be.visible').contains('admission webhook "rancher.cattle.io.projects.management.cattle.io" denied the request');
-      projectsNamespacesPage.bannerError(0).should('have.length', 1);
-      projectsNamespacesPage.bannerError(1).should('have.length', 0);
-    });
+  //     // Click on Create again and assert that there is only a single error
+  //     projectsNamespacesPage.bannerError(0).should('be.visible').contains('admission webhook "rancher.cattle.io.projects.management.cattle.io" denied the request');
+  //     projectsNamespacesPage.bannerError(0).should('have.length', 1);
+  //     projectsNamespacesPage.bannerError(1).should('have.length', 0);
+  //   });
   });
 });

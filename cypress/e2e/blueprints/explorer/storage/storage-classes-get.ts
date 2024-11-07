@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../blueprint.utils';
+
 // GET /v1/storage.k8s.io.storageclasses- return empty storageclasses data
 const pstorageclassesGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const pstorageclassesGetResponseEmpty = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const storageclassesResponseSmallSet = {
   createTypes:  { 'storage.k8s.io.storageclass': 'https://yonasb29head.qa.rancher.space/v1/storage.k8s.io.storageclasses' },
   actions:      {},
   resourceType: 'storage.k8s.io.storageclass',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [{
     id:    'test',

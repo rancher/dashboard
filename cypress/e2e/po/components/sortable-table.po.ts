@@ -7,6 +7,12 @@ import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
 import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
 export default class SortableTablePo extends ComponentPo {
+  /**
+   * Create a name that should, when sorted by name, by default appear first
+   */
+  static firstByDefaultName(context = 'resource'): string {
+    return `11111-first-in-list-unique-${ context }`;
+  }
   //
   // sortable-table-header
   //

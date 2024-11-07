@@ -29,7 +29,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
       const sideNav = new ProductNavPo();
 
       BurgerMenuPo.toggle();
-      burgerMenu.clusters().contains(clusterId).click();
+      burgerMenu.clusterNotPinnedList().contains(clusterId).click();
       sideNav.navToSideMenuGroupByLabel('Apps');
       sideNav.navToSideMenuEntryByLabel('Repositories');
     } else {
