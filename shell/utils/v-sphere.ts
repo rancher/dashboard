@@ -92,6 +92,11 @@ class VSphereUtils {
     };
   }
 
+  /**
+   * Check that system is setup to handle vsphere secrets syncing downstream
+   *
+   * Do this via checking the provider and that the required FF is enabled.
+   */
   private handleVsphereSecret({ $store, provider }: { $store: any, provider: string}): boolean {
     if (provider !== VMWARE_VSPHERE) {
       return false;
