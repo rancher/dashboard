@@ -300,7 +300,7 @@ export default {
 </script>
 
 <template>
-  <div class="fleet-dashboard">
+  <div>
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <FleetNoWorkspaces
@@ -450,9 +450,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.fleet-dashboard {
-  min-height: 100vh;
-}
 .fleet-empty-dashboard {
   flex: 1;
   display: flex;
