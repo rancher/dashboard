@@ -480,7 +480,7 @@ export default {
       <template v-else>
         <span
           v-if="isVirtualCluster && isExplorer"
-          v-tooltip="{content: harvesterVersion, placement: 'top'}"
+          v-clean-tooltip="{content: harvesterVersion, placement: 'top'}"
           class="clip text-muted ml-5"
         >
           (Harvester-{{ harvesterVersion }})
