@@ -10,7 +10,7 @@ type Rke2Component = {
     chartVersionKey: (chartName: string) => string;
     value: any;
     isEdit: boolean;
-    provider: String;
+    provider: string;
     $store: any,
 }
 
@@ -92,25 +92,32 @@ class VSphereUtils {
     };
   }
 
-  /**
-    * Create upstream vsphere cpi secret to sync downstream
-    */
-  async handleVsphereCpiSecret(rke2Component: Rke2Component) {
-    const { $store, provider, value } = rke2Component;
-
+  private handleVsphereSecret({ $store, provider }: { $store: any, provider: string}): boolean {
     if (provider !== VMWARE_VSPHERE) {
-      return;
+      return false;
     }
 
     const isPrebootstrapEnabled = $store.getters['features/get'](PROVISIONING_PRE_BOOTSTRAP);
 
     if (!isPrebootstrapEnabled) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+    * Create upstream vsphere cpi secret to sync downstream
+    */
+  async handleVsphereCpiSecret(rke2Component: Rke2Component) {
+    if (!this.handleVsphereSecret(rke2Component)) {
       return;
     }
 
     const generateName = `${ rootGenerateName }cpi-`;
     const downstreamName = 'rancher-vsphere-cpi-credentials';
     const downstreamNamespace = 'kube-system';
+    const { value } = rke2Component;
 
     // check values for cpi chart has 'use our method' checkbox
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-cpi') || {};
@@ -180,21 +187,14 @@ class VSphereUtils {
     * Create upstream vsphere csi secret to sync downstream
     */
   async handleVsphereCsiSecret(rke2Component: Rke2Component) {
-    const { $store, provider, value } = rke2Component;
-
-    if (provider !== VMWARE_VSPHERE) {
-      return;
-    }
-
-    const isPrebootstrapEnabled = $store.getters['features/get'](PROVISIONING_PRE_BOOTSTRAP);
-
-    if (!isPrebootstrapEnabled) {
+    if (!this.handleVsphereSecret(rke2Component)) {
       return;
     }
 
     const generateName = `${ rootGenerateName }csi-`;
     const downstreamName = 'rancher-vsphere-csi-credentials';
     const downstreamNamespace = 'kube-system';
+    const { value } = rke2Component;
 
     // check values for cpi chart has 'use our method' checkbox
     const { userValues, combined } = this.findChartValues(rke2Component, 'rancher-vsphere-csi') || {};
