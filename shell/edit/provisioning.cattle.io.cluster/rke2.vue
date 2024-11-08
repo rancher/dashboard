@@ -64,13 +64,11 @@ import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnCo
 import Advanced from '@shell/edit/provisioning.cattle.io.cluster/tabs/Advanced';
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
-import VsphereUtils from '@shell/utils/v-sphere';
+import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
-
-const VMWARE_VSPHERE = 'vmwarevsphere';
 
 /**
  * Classes to be adopted by the node badges in Machine pools

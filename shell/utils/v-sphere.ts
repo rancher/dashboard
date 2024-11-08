@@ -1,5 +1,8 @@
 import merge from 'lodash/merge';
 import { SECRET } from '@shell/config/types';
+import { PROVISIONING_PRE_BOOTSTRAP } from '@shell/store/features';
+
+export const VMWARE_VSPHERE = 'vmwarevsphere';
 
 type Rke2Component = {
     versionInfo: any;
@@ -7,6 +10,7 @@ type Rke2Component = {
     chartVersionKey: (chartName: string) => string;
     value: any;
     isEdit: boolean;
+    provider: string;
     $store: any,
 }
 
@@ -89,9 +93,32 @@ class VSphereUtils {
   }
 
   /**
+   * Check that system is setup to handle vsphere secrets syncing downstream
+   *
+   * Do this via checking the provider and that the required FF is enabled.
+   */
+  private handleVsphereSecret({ $store, provider }: { $store: any, provider: string}): boolean {
+    if (provider !== VMWARE_VSPHERE) {
+      return false;
+    }
+
+    const isPrebootstrapEnabled = $store.getters['features/get'](PROVISIONING_PRE_BOOTSTRAP);
+
+    if (!isPrebootstrapEnabled) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
     * Create upstream vsphere cpi secret to sync downstream
     */
   async handleVsphereCpiSecret(rke2Component: Rke2Component) {
+    if (!this.handleVsphereSecret(rke2Component)) {
+      return;
+    }
+
     const generateName = `${ rootGenerateName }cpi-`;
     const downstreamName = 'rancher-vsphere-cpi-credentials';
     const downstreamNamespace = 'kube-system';
@@ -165,6 +192,10 @@ class VSphereUtils {
     * Create upstream vsphere csi secret to sync downstream
     */
   async handleVsphereCsiSecret(rke2Component: Rke2Component) {
+    if (!this.handleVsphereSecret(rke2Component)) {
+      return;
+    }
+
     const generateName = `${ rootGenerateName }csi-`;
     const downstreamName = 'rancher-vsphere-csi-credentials';
     const downstreamNamespace = 'kube-system';
