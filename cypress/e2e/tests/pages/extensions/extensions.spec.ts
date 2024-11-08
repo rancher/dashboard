@@ -2,12 +2,16 @@ import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-// import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
-// const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
+const namespaceFilter = new NamespaceFilterPo();
+
+const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
 // const DISABLED_CACHE_EXTENSION_TITLE = 'Large extension demo (> 20mb) - cache testing';
-// const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
+const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
@@ -187,7 +191,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().noRowsShouldNotExist();
-    appRepoList.sortableTable().rowNames().then((names) => {
+    appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
         appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
@@ -222,6 +226,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // we should be on the extensions page
     extensionsPo.waitForTitle();
@@ -246,227 +251,267 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetails().should('not.be.visible');
   });
 
-  // it.skip('[Vue3 Skip]: Should install an extension', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it('Should install an extension', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   extensionsPo.goTo();
+    extensionsPo.goTo();
 
-  //   extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
-  //   // click on install button on card
-  //   extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-  //   extensionsPo.extensionInstallModal().should('be.visible');
+    // click on install button on card
+    extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
 
-  //   // select version and click install
-  //   extensionsPo.installModalSelectVersionClick(2);
-  //   extensionsPo.installModalInstallClick();
+    // select version and click install
+    extensionsPo.installModalSelectVersionClick(2);
+    extensionsPo.installModalInstallClick();
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // make sure extension card is in the installed tab
-  //   extensionsPo.extensionTabInstalledClick();
-  //   extensionsPo.extensionCardClick(EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsCloseClick();
-  // });
+    // make sure extension card is in the installed tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    extensionsPo.extensionDetailsCloseClick();
+  });
 
-  // it.skip('[Vue3 Skip]: Should not display installed extensions within the available tab', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it('Should not display installed extensions within the available tab', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   extensionsPo.goTo();
+    extensionsPo.goTo();
 
-  //   // check for installed extension in "installed" tab
-  //   extensionsPo.extensionTabInstalledClick();
-  //   extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    // check for installed extension in "installed" tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
 
-  //   // check for installed extension in "available" tab
-  //   extensionsPo.extensionTabAvailableClick();
-  //   extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
-  // });
+    // check for installed extension in "available" tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
+    cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
+  });
 
-  // it.skip('[Vue3 Skip]: Should update an extension version', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it('Should update an extension version', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   extensionsPo.goTo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  //   extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
-  //   // click on update button on card
-  //   extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
-  //   extensionsPo.installModalInstallClick();
+    // click on update button on card
+    extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
+    extensionsPo.installModalInstallClick();
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // make sure extension card is not available anymore on the updates tab
-  //   // since we installed the latest version
-  //   extensionsPo.extensionTabUpdatesClick();
-  //   extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
-  // });
+    // make sure extension card is not available anymore on the updates tab
+    // since we installed the latest version
+    extensionsPo.extensionTabUpdatesClick();
+    extensionsPo.waitForPage(null, 'updates');
+    cy.contains(`[data-testid="extension-card-${ EXTENSION_NAME }"]`).should('not.exist');
+  });
 
-  // it.skip('[Vue3 Skip]: Should rollback an extension version', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  it('Should rollback an extension version', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   extensionsPo.goTo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  //   extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
-  //   // click on the rollback button on card
-  //   // this will rollback to the immediate previous version
-  //   extensionsPo.extensionCardRollbackClick(EXTENSION_NAME);
-  //   extensionsPo.installModalInstallClick();
+    // click on the rollback button on card
+    // this will rollback to the immediate previous version
+    extensionsPo.extensionCardRollbackClick(EXTENSION_NAME);
+    extensionsPo.installModalInstallClick();
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // make sure extension card is on the updates tab
-  //   extensionsPo.extensionTabUpdatesClick();
-  //   extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
-  // });
+    // make sure extension card is on the updates tab
+    extensionsPo.extensionTabUpdatesClick();
+    extensionsPo.waitForPage(null, 'updates');
+    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+  });
 
-  // it.skip('[Vue3 Skip]: An extension larger than 20mb, which will trigger chacheState disabled, should install and work fine', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+  // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
+  it('An extension larger than 30mb, which will trigger chacheState disabled, should install and work fine', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   extensionsPo.goTo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  //   extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
-  //   // click on install button on card
-  //   extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-  //   extensionsPo.extensionInstallModal().should('be.visible');
+    // click on install button on card
+    extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
 
-  //   // click install
-  //   extensionsPo.installModalInstallClick();
+    // click install
+    extensionsPo.installModalInstallClick();
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // make sure extension card is in the installed tab
-  //   extensionsPo.extensionTabInstalledClick();
-  //   extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsCloseClick();
+    // make sure extension card is in the installed tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsCloseClick();
 
-  //   // check if extension is working fine
-  //   BurgerMenuPo.burgerMenuNavToMenubyLabel(DISABLED_CACHE_EXTENSION_MENU_LABEL);
-  //   cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
-  // });
+    // installing an extension with cache state = "disabled" may result in intermittence on installation SURE-9177
+    // reported but not yet addressed 100%
+    // // check if extension is working fine
+    // BurgerMenuPo.burgerMenuNavToMenubyLabel(DISABLED_CACHE_EXTENSION_MENU_LABEL);
+    // cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
 
-  // it.skip('[Vue3 Skip]: Should respect authentication when importing extension scripts', () => {
-  //   const extensionsPo = new ExtensionsPagePo();
+    // check if cache state is disabled
+    const uiPluginsPo = new UiPluginsPagePo('local');
 
-  //   extensionsPo.goTo();
+    uiPluginsPo.goTo();
+    uiPluginsPo.waitForPage();
 
-  //   extensionsPo.extensionTabAvailableClick();
+    // toggle namespace to all
+    namespaceFilter.toggle();
+    namespaceFilter.clickOptionByLabel('All Namespaces');
+    namespaceFilter.closeDropdown();
 
-  //   // Install unauthenticated extension
-  //   extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-  //   extensionsPo.extensionInstallModal().should('be.visible');
-  //   extensionsPo.installModalInstallClick();
+    uiPluginsPo.cacheState(DISABLED_CACHE_EXTENSION_NAME).should('contain.text', 'disabled');
+  });
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+  it('Should respect authentication when importing extension scripts', () => {
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   // make sure both extensions have been imported
-  //   extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
-  //   extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  //   cy.logout();
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
-  //   // make sure only the unauthenticated extension has been imported after logout
-  //   const loginPage = new LoginPagePo();
+    // Install unauthenticated extension
+    extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModalInstallClick();
 
-  //   loginPage.goTo();
-  //   loginPage.waitForPage();
-  //   loginPage.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
-  //   loginPage.extensionScriptImport(EXTENSION_NAME).should('not.exist');
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // make sure both extensions have been imported after logging in again
-  //   cy.login(undefined, undefined, false);
-  //   extensionsPo.goTo();
-  //   extensionsPo.waitForPage();
-  //   extensionsPo.waitForTitle();
-  //   extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
-  //   extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
-  // });
+    // make sure both extensions have been imported
+    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
 
-  // it.skip('[Vue3 Skip]: Should uninstall extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+    cy.logout();
 
-  //   extensionsPo.goTo();
+    // make sure only the unauthenticated extension has been imported after logout
+    const loginPage = new LoginPagePo();
 
-  //   extensionsPo.extensionTabInstalledClick();
+    loginPage.goTo();
+    loginPage.waitForPage();
+    loginPage.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    cy.contains(`[id*="${ EXTENSION_NAME }"]`).should('not.exist');
 
-  //   // click on uninstall button on card
-  //   extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
-  //   extensionsPo.extensionUninstallModal().should('be.visible');
-  //   extensionsPo.uninstallModaluninstallClick();
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
+    // make sure both extensions have been imported after logging in again
+    cy.login(undefined, undefined, false);
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+    extensionsPo.waitForTitle();
+    extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
+    extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
+  });
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+  it('Should uninstall extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   // make sure extension card is in the available tab
-  //   extensionsPo.extensionTabAvailableClick();
-  //   extensionsPo.extensionCardClick(EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
-  // });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  // it.skip('[Vue3 Skip]: Should uninstall unathenticated extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
-  //   extensionsPo.goTo();
+    // click on uninstall button on card
+    extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
 
-  //   extensionsPo.extensionTabInstalledClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // click on uninstall button on card
-  //   extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-  //   extensionsPo.extensionUninstallModal().should('be.visible');
-  //   extensionsPo.uninstallModaluninstallClick();
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
+    // make sure extension card is in the available tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+  });
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+  it('Should uninstall unathenticated extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   // make sure extension card is in the available tab
-  //   extensionsPo.extensionTabAvailableClick();
-  //   extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
-  // });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
-  // it.skip('[Vue3 Skip]: Should uninstall un-cached extensions', () => {
-  //   // Because we logged out in the previous test this one will also have to use an uncached login
-  //   cy.login(undefined, undefined, false);
-  //   const extensionsPo = new ExtensionsPagePo();
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
 
-  //   extensionsPo.goTo();
+    // click on uninstall button on card
+    extensionsPo.extensionCardUninstallClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+    extensionsPo.extensionReloadBanner().should('be.visible');
 
-  //   extensionsPo.extensionTabInstalledClick();
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
 
-  //   // click on uninstall button on card
-  //   extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
-  //   extensionsPo.extensionUninstallModal().should('be.visible');
-  //   extensionsPo.uninstallModaluninstallClick();
+    // make sure extension card is in the available tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionCardClick(UNAUTHENTICATED_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', UNAUTHENTICATED_EXTENSION_NAME);
+  });
 
-  //   // let's check the extension reload banner and reload the page
-  //   extensionsPo.extensionReloadBanner().should('be.visible');
-  //   extensionsPo.extensionReloadClick();
+  it('Should uninstall un-cached extensions', () => {
+    // Because we logged out in the previous test this one will also have to use an uncached login
+    cy.login(undefined, undefined, false);
+    const extensionsPo = new ExtensionsPagePo();
 
-  //   // make sure extension card is in the available tab
-  //   extensionsPo.extensionTabAvailableClick();
-  //   extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
-  //   extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
-  // });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
+
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.waitForPage(null, 'installed');
+
+    // click on uninstall button on card
+    extensionsPo.extensionCardUninstallClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionUninstallModal().should('be.visible');
+    extensionsPo.uninstallModaluninstallClick();
+
+    // let's check the extension reload banner and reload the page
+    extensionsPo.extensionReloadBanner().should('be.visible');
+    extensionsPo.extensionReloadClick();
+
+    // make sure extension card is in the available tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+  });
 });
