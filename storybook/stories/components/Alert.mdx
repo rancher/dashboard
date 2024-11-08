@@ -1,0 +1,26 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as AlertStories from './Alert.stories';
+
+<Meta of={AlertStories} />
+
+# Alert
+Use the Alert component to show the current status of another interface element or to display a notification.
+
+<br/>
+
+### Description
+
+- Don't use long texts within an Alert. Whenever possible, limit it to a maximum of 3 words or less. 
+- Color can be used to emphasize a status, to inform or to associate information.
+
+<Canvas>
+  <Story of={AlertStories.Success} />
+  <Story of={AlertStories.Warning} />
+  <Story of={AlertStories.Info} />
+  <Story of={AlertStories.Error} />
+</Canvas>
+
+### Import
+
+```js
+import Alert from '@shell/components/Alert';
