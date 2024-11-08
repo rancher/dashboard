@@ -1,17 +1,19 @@
-import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import type { Meta, StoryObj } from '@storybook/vue3';
 import CodeMirror from '@shell/components/CodeMirror';
 
-<Meta 
-  title="Form/Editor"
-  component={CodeMirror}
-/>
+const meta: Meta<typeof CodeMirror> = {
+  component: CodeMirror,
+  argTypes: {
+    value: { control: 'text' },
+    mode: { control: 'text' },
+    options: { control: 'object' },
+    asTextArea: { control: 'boolean' },
+    showKeyMapBox: { control: 'boolean' },
+  },
+};
 
-export const Template = (args, { argTypes, events }) => ({
-  components: { CodeMirror },
-  props:      Object.keys(argTypes),
-  template:   `<CodeMirror v-bind="$props"/>`
-});
-
+export default meta;
+type Story = StoryObj<typeof CodeMirror>;
 
 export const editorValueExample = `{
   apiVersion: provisioning.cattle.io/v1
@@ -86,68 +88,37 @@ spec:
 __clone: true
 }`
 
-# Editor
+export const Default: Story = {
+  render: (args: any) => ({
+    components: { CodeMirror },
+    setup() {
+      return { args };
+    },
+    template: '<CodeMirror v-bind="args" />',
+  }),
+};
 
-YAML editor for Rancher based on CodeMirror library.
+export const Yaml: Story = {
+  ...Default,
+  args: {
+    value: editorValueExample,
+    mode: 'edit',
+    options: {},
+    asTextArea: false,
+    showKeyMapBox: true,
+  },
+};
 
-### Description
-
-- Simple version for input editing
-- It can display diff
-
-<br/>
-
-#### YAML Editor
-
-Code Mirror is used mainly as YAML editor for all the K8S configurations.
-
-<Canvas>
-  <Story
-    name="Yaml"
-    args={{
-      value: editorValueExample,
-      mode: 'edit',
-      options: {},
-      asTextArea: false,
-      showKeyMapBox: true,
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
-
-
-#### Textarea Input
-
-The input version is used mainly for cases where is necessary to display line breaks, e.g. ConfigMap chomping.
-
-<Canvas>
-  <Story
-    name="Textarea"
-    args={{
-      value: `
+export const Textarea: Story = {
+  ...Default,
+  args: {
+    value: `
 Some
 values
-      `,
-      mode: 'edit',
-      options: {},
-      asTextArea: true,
-      showKeyMapBox: true,
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
-
-### Import
-
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-    import CodeMirror from '@shell/components/CodeMirror';
-  `}
-/>
-
-### Props table
-
-<ArgsTable of={CodeMirror} />
+    `,
+    mode: 'edit',
+    options: {},
+    asTextArea: true,
+    showKeyMapBox: true,
+  },
+};

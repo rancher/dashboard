@@ -24,13 +24,7 @@ export const Default: Story = {
 };
 
 export const Info: Story = {
-  render: (args: any) => ({
-    components: { LabeledInput },
-    setup() {
-      return { args };
-    },
-    template: '<LabeledInput v-bind="args" />',
-  }),
+  ...Default,
   args: {
     label: 'Name',
     type: 'text',
@@ -41,13 +35,7 @@ export const Info: Story = {
 };
 
 export const Success: Story = {
-  render: (args: any) => ({
-    components: { LabeledInput },
-    setup() {
-      return { args };
-    },
-    template: '<LabeledInput v-bind="args" />',
-  }),
+  ...Default,
   args: {
     label: 'Name',
     type: 'text',
@@ -58,13 +46,7 @@ export const Success: Story = {
 };
 
 export const Warning: Story = {
-  render: (args: any) => ({
-    components: { LabeledInput },
-    setup() {
-      return { args };
-    },
-    template: '<LabeledInput v-bind="args" />',
-  }),
+  ...Default,
   args: {
     label: 'Name',
     type: 'text',
@@ -76,13 +58,7 @@ export const Warning: Story = {
 
 
 export const Error: Story = {
-  render: (args: any) => ({
-    components: { LabeledInput },
-    setup() {
-      return { args };
-    },
-    template: '<LabeledInput v-bind="args" />',
-  }),
+  ...Default,
   args: {
     label: 'Name',
     type: 'text',

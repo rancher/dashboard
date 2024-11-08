@@ -24,13 +24,7 @@ export const Default: Story = {
 // Phases
 
 export const PhaseAction: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase action',
     currentPhase: `action`
@@ -38,13 +32,7 @@ export const PhaseAction: Story = {
 };
 
 export const PhaseWaiting: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase waiting',
     currentPhase: `waiting`
@@ -52,13 +40,7 @@ export const PhaseWaiting: Story = {
 };
 
 export const PhaseSuccess: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase success',
     currentPhase: `success`
@@ -66,13 +48,7 @@ export const PhaseSuccess: Story = {
 };
 
 export const PhaseError: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase error',
     currentPhase: `error`
@@ -82,13 +58,7 @@ export const PhaseError: Story = {
 // Phases class
 
 export const PhaseClassAction: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase action',
     actionColor: `action`,
@@ -97,13 +67,7 @@ export const PhaseClassAction: Story = {
 };
 
 export const PhaseClassWaiting: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase waiting',
     actionColor: `waiting`,
@@ -112,13 +76,7 @@ export const PhaseClassWaiting: Story = {
 };
 
 export const PhaseClassSuccess: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase success',
     actionColor: `success`,
@@ -127,13 +85,7 @@ export const PhaseClassSuccess: Story = {
 };
 
 export const PhaseClassError: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Phase error',
     actionColor: `error`,
@@ -142,13 +94,7 @@ export const PhaseClassError: Story = {
 };
 
 export const PhaseLabelAction: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Custom action label',
     currentPhase: 'action'
@@ -156,13 +102,7 @@ export const PhaseLabelAction: Story = {
 };
 
 export const PhaseLabelWaiting: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     waitingLabel: 'Custom waiting label',
     currentPhase: 'waiting'
@@ -170,13 +110,7 @@ export const PhaseLabelWaiting: Story = {
 };
 
 export const PhaseLabelSuccess: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     successLabel: 'Custom success label',
     currentPhase: 'success'
@@ -184,13 +118,7 @@ export const PhaseLabelSuccess: Story = {
 };
 
 export const PhaseLabelError: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     errorLabel: 'Custom error label',
     currentPhase: 'error'
@@ -200,13 +128,7 @@ export const PhaseLabelError: Story = {
 // #### Manual Phases
 
 export const Manual: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Manual phase',
     manual: true
@@ -216,13 +138,7 @@ export const Manual: Story = {
 // ### Modes
 
 export const ModeEdit: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Edit mode',
     mode: 'edit'
@@ -230,13 +146,7 @@ export const ModeEdit: Story = {
 };
 
 export const ModeContinue: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Continue mode',
     mode: 'continue'
@@ -244,13 +154,7 @@ export const ModeContinue: Story = {
 };
 
 export const ModeApply: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Apply mode',
     mode: 'apply'
@@ -260,13 +164,7 @@ export const ModeApply: Story = {
 // ### Delay
 
 export const Delay: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Delay',
     delay: 3000
@@ -276,13 +174,7 @@ export const Delay: Story = {
 // ### Disabled
 
 export const Disabled: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Disabled',
     disabled: true
@@ -292,13 +184,7 @@ export const Disabled: Story = {
 // ### Types
 
 export const TypeSubmit: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Submit',
     type: 'submit'
@@ -306,13 +192,7 @@ export const TypeSubmit: Story = {
 };
 
 export const TypeButton: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Button',
     type: 'button'
@@ -322,13 +202,7 @@ export const TypeButton: Story = {
 // ### Icon
 
 export const Icon: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'With icon',
     icon: 'check'
@@ -338,13 +212,7 @@ export const Icon: Story = {
 // ### Size
 
 export const SizeSm: Story = {
-  render: (args: any) => ({
-    components: { AsyncButton },
-    setup() {
-      return { args };
-    },
-    template: '<AsyncButton v-bind="args" />',
-  }),
+  ...Default,
   args: {
     actionLabel: 'Small size',
     size: 'sm'
