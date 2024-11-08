@@ -9,6 +9,15 @@ on:
       tagged_release:
         required: true
         type: string
+      is_test:
+        required: false
+        type: string
+      test_repo:
+        required: false
+        type: string
+      test_branch:
+        required: false
+        type: string
 
 env:
   ACTIONS_RUNNER_DEBUG: false
@@ -27,7 +36,16 @@ jobs:
       actions: write
       contents: read
     steps:
-      - name: Checkout
+      - if: is_test == 'true'
+        name: Checkout (test flow)
+        uses: actions/checkout@v4
+        with:
+          repository: rancher/${{ inputs.test_repo }}
+          ref: ${{ inputs.test_branch }}
+          fetch-depth: 0
+      
+      - if: is_test != 'true'
+        name: Checkout (normal flow)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -83,7 +101,7 @@ jobs:
 
   release:
     name: Release Build
-    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test != 'true'
     needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:

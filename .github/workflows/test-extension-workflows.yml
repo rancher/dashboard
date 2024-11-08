@@ -1,0 +1,75 @@
+name: Test Extension workflows
+
+# on:
+#   workflow_dispatch:
+#   release:
+#     types: [released]
+
+# defaults:
+#   run:
+#     shell: bash
+#     working-directory: ./
+
+# jobs:
+#   build-extension-charts:
+#     uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
+#     permissions:
+#       actions: write
+#       contents: write
+#       deployments: write
+#       pages: write
+#     with:
+#       target_branch: gh-pages
+#       tagged_release: ${{ github.ref_name }}
+
+on:
+  workflow_dispatch: # to be removed for PROD
+  schedule:
+    - cron: "0 0 * * *"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  test-extension-workflows:
+    strategy:
+      matrix:
+        workflows: [
+          { org: 'aalves08', name: 'build-extension-charts', target_branch: 'gh-pages', tagged_release: 'clock-0.3.2',  is_test: 'true', test_repo: 'ui-plugin-examples', test_branch: 'main' }
+        ]
+        # branch: ['master']
+        branch: ['12032-reusable-wf-tests']
+    # uses: rancher/dashboard/.github/workflows/${{ matrix.workflows.name }}.yml@${{ matrix.branch }}
+    name: Running ${{ matrix.workflows.name }} - ${{ matrix.branch }}
+    uses: ${{ matrix.workflows.org }}/dashboard/.github/workflows/${{ matrix.workflows.name }}.yml@${{ matrix.branch }}
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      pages: write
+    with:
+      target_branch: ${{ matrix.workflows.target_branch }}
+      tagged_release:  ${{ matrix.workflows.tagged_release }}
+      is_test:  ${{ matrix.workflows.is_test }}
+      test_repo:  ${{ matrix.workflows.test_repo }}
+      test_branch:  ${{ matrix.workflows.test_branch }}
+
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - name: Running ${{ matrix.workflows.name }} - ${{ matrix.branch }}
+    #     uses: ${{ matrix.workflows.org }}/dashboard/.github/workflows/${{ matrix.workflows.name }}.yml@${{ matrix.branch }}
+    #     permissions:
+    #       actions: write
+    #       contents: write
+    #       deployments: write
+    #       pages: write
+    #     with:
+    #       target_branch: ${{ matrix.workflows.target_branch }}
+    #       tagged_release:  ${{ matrix.workflows.tagged_release }}
+    #       is_test:  ${{ matrix.workflows.is_test }}
+    #       test_repo:  ${{ matrix.workflows.test_repo }}
+    #       test_branch:  ${{ matrix.workflows.test_branch }}
+
+
