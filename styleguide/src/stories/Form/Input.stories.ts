@@ -56,7 +56,6 @@ export const Warning: Story = {
   },
 };
 
-
 export const Error: Story = {
   ...Default,
   args: {

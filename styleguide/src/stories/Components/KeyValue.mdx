@@ -1,0 +1,33 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as KeyValueStories from './KeyValue.stories';
+
+<Meta of={KeyValueStories} />
+
+# KeyValue
+
+Complex component for handling list of key value pairs.
+
+### Description
+
+- Allows to protect defined keys
+- Allows to hide protected keys without modify the data 
+
+
+#### Default
+
+<Canvas of={KeyValueStories.Default} />
+
+#### Protected
+
+It's possible to define protected pairs, making not possible to edit, nor delete the values.
+Toggle "toggleFilter" to hide the values
+
+<Canvas of={KeyValueStories.Protected} />
+
+#### Protected Multiline
+
+<Canvas of={KeyValueStories.ProtectedMultiline} />
+
+#### Protected Suggestions
+
+<Canvas of={KeyValueStories.ProtectedSuggestions} />
