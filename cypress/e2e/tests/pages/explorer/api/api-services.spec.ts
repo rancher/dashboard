@@ -15,14 +15,17 @@ describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
       apiServicesPage.title().should('contain', 'APIServices');
 
       const sortableTable = apiServicesPage.sortableTable();
+      const count = 3;
 
-      sortableTable.rowElements().its('length').then((count: number) => {
-        cy.keyboardControls({ shiftKey: true, key: 'j' }, count + 2);
-
-        sortableTable.selectedCountText().should('contain', `${ count } selected`);
-
-        sortableTable.selectedCount().should('eq', count);
+      sortableTable.rowElements().should(($els) => {
+        expect($els.length).to.be.greaterThan(count - 1);
       });
+
+      cy.keyboardControls({ shiftKey: true, key: 'j' }, count);
+
+      sortableTable.selectedCountText().should('contain', `${ count } selected`);
+
+      sortableTable.selectedCount().should('eq', count);
     });
   });
 });

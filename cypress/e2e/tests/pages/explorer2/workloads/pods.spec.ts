@@ -1,9 +1,11 @@
-import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+// import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
-import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+// import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo('local');
@@ -13,16 +15,15 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    const uniquePod = 'aaa-e2e-test-pod-name';
+    let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
-    let initialCount: number;
+    let rootResourceName: string;
 
     before('set up', () => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
-      cy.getRancherResource('v1', 'pods').then((resp: Cypress.Response<any>) => {
-        initialCount = resp.body.count;
+      cy.getRootE2EResourceName().then((root) => {
+        rootResourceName = root;
       });
 
       cy.createE2EResourceName('ns1').then((ns1) => {
@@ -34,35 +35,39 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         let i = 0;
 
         while (i < 25) {
-          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+          const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:alpine', false).then(() => {
-            podNamesList.push(`pod-${ podName }`);
+          cy.createPod(nsName1, podName, 'nginx:alpine', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
+            podNamesList.push(resp.body.metadata.name);
           });
 
           i++;
         }
-      });
 
-      cy.createE2EResourceName('ns2').then((ns2) => {
-        nsName2 = ns2;
+        cy.createE2EResourceName('ns2').then((ns2) => {
+          nsName2 = ns2;
 
-        // create namespace
-        cy.createNamespace(nsName2);
+          // create namespace
+          cy.createNamespace(nsName2);
 
-        // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:alpine');
+          // create unique pod for filtering/sorting test
+          cy.createPod(nsName2, uniquePod, 'nginx:alpine', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
+            uniquePod = resp.body.metadata.name;
+          });
+
+          cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+        });
       });
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
+      WorkloadsPodsListPagePo.goTo('local');
+      workloadsPodPage.waitForPage();
+
       // check pods count
-      const count = initialCount + 26;
+      const count = podNamesList.length + 1;
 
-      cy.waitForRancherResources('v1', 'pods', count).then((resp: Cypress.Response<any>) => {
-        WorkloadsPodsListPagePo.navTo();
-        workloadsPodPage.waitForPage();
-
+      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         workloadsPodPage.sortableTable().pagination().checkVisible();
 
@@ -98,7 +103,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        workloadsPodPage.sortableTable().pagination().endButton().click();
+        workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // row count on last page
         let lastPageCount = count % 10;
@@ -128,12 +134,13 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
       // use filter to only show test data
-      workloadsPodPage.sortableTable().filter('e2e-');
+      workloadsPodPage.sortableTable().filter(rootResourceName);
 
       // check table is sorted by name in ASC order by default
       workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // pod name should be visible on first page (sorted in ASC order)
+      workloadsPodPage.sortableTable().tableHeaderRow().self().scrollIntoView();
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
@@ -144,7 +151,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).should('not.exist');
 
       // navigate to last page
-      workloadsPodPage.sortableTable().pagination().endButton().click();
+      workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // pod name should be visible on last page (sorted in DESC order)
       workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
@@ -166,10 +174,12 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       // filter by namespace
       workloadsPodPage.sortableTable().filter(nsName2);
       workloadsPodPage.sortableTable().checkRowCount(false, 1);
-      workloadsPodPage.sortableTable().rowElementWithName(`pod-${ uniquePod }`).should('be.visible');
+      workloadsPodPage.sortableTable().rowElementWithName(uniquePod).should('be.visible');
     });
 
     it('pagination is hidden', () => {
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{"local":[]}');
+
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
@@ -271,57 +281,57 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe.skip('[Vue3 Skip]: should delete pod', () => {
-    const podName = `pod-${ Date.now() }`;
+  // describe.skip('[Vue3 Skip]: should delete pod', () => {
+  //   const podName = `pod-${ Date.now() }`;
 
-    beforeEach(() => {
-      workloadsPodPage.goTo();
-    });
+  //   beforeEach(() => {
+  //     workloadsPodPage.goTo();
+  //   });
 
-    it('dialog should open/close as expected', () => {
-      const podCreatePage = new WorkloadsPodsCreatePagePo('local');
+  //   it('dialog should open/close as expected', () => {
+  //     const podCreatePage = new WorkloadsPodsCreatePagePo('local');
 
-      podCreatePage.goTo();
+  //     podCreatePage.goTo();
 
-      podCreatePage.createWithUI(podName, 'nginx', 'default');
+  //     podCreatePage.createWithUI(podName, 'nginx', 'default');
 
-      // Should be on the list view
-      const podsListPage = new WorkloadsPodsListPagePo('local');
+  //     // Should be on the list view
+  //     const podsListPage = new WorkloadsPodsListPagePo('local');
 
-      // Filter the list to just show the newly created pod
-      podsListPage.list().resourceTable().sortableTable().filter(podName);
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     // Filter the list to just show the newly created pod
+  //     podsListPage.list().resourceTable().sortableTable().filter(podName);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-      // Open action menu and delete for the first item
-      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-        .getMenuItem('Delete')
-        .click();
+  //     // Open action menu and delete for the first item
+  //     podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+  //       .getMenuItem('Delete')
+  //       .click();
 
-      let dialog = new PromptRemove();
+  //     let dialog = new PromptRemove();
 
-      dialog.checkExists();
-      dialog.checkVisible();
+  //     dialog.checkExists();
+  //     dialog.checkVisible();
 
-      dialog.cancel();
-      dialog.checkNotExists();
+  //     dialog.cancel();
+  //     dialog.checkNotExists();
 
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
 
-      // Open action menu and delete for the first item
-      podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
-        .getMenuItem('Delete')
-        .click();
+  //     // Open action menu and delete for the first item
+  //     podsListPage.list().resourceTable().sortableTable().rowActionMenuOpen(podName)
+  //       .getMenuItem('Delete')
+  //       .click();
 
-      dialog = new PromptRemove();
+  //     dialog = new PromptRemove();
 
-      dialog.checkExists();
-      dialog.checkVisible();
-      dialog.remove();
-      dialog.checkNotExists();
+  //     dialog.checkExists();
+  //     dialog.checkVisible();
+  //     dialog.remove();
+  //     dialog.checkNotExists();
 
-      podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
+  //     podsListPage.list().resourceTable().sortableTable().checkRowCount(true, 1, true);
 
-      podsListPage.list().resourceTable().sortableTable().resetFilter();
-    });
-  });
+  //     podsListPage.list().resourceTable().sortableTable().resetFilter();
+  //   });
+  // });
 });
