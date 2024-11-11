@@ -11,7 +11,6 @@
     "vue": "^3.5.10"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.9.0",
     "@storybook/addon-actions": "^8.3.6",
     "@storybook/addon-essentials": "^8.3.6",
     "@storybook/addon-interactions": "^8.3.6",
