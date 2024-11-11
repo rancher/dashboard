@@ -16,8 +16,8 @@ const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-// const VIM = 'Vim';
-// const NORMAL_HUMAN = 'Normal human';
+const VIM = 'Vim';
+const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 
@@ -426,31 +426,31 @@ describe('User can update their preferences', () => {
       yamlEditor.keyboardMappingIndicator().checkNotExists();
     });
 
-    // it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
-    //   prefPage.goTo();
-    //   prefPage.keymapButtons().checkVisible();
+    it('does show any indicator for non-default keyboard mapping', () => {
+      prefPage.goTo();
+      prefPage.keymapButtons().checkVisible();
 
-    //   prefPage.keymapButtons().set(VIM);
-    //   prefPage.keymapButtons().isSelected(VIM);
+      prefPage.keymapButtons().set(VIM);
+      prefPage.keymapButtons().isSelected(VIM);
 
-    //   const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
 
-    //   yamlEditor.goTo();
-    //   yamlEditor.waitForPage();
+      yamlEditor.goTo();
+      yamlEditor.waitForPage();
 
-    //   yamlEditor.keyboardMappingIndicator().checkExists();
-    //   yamlEditor.keyboardMappingIndicator().checkVisible();
+      yamlEditor.keyboardMappingIndicator().checkExists();
+      yamlEditor.keyboardMappingIndicator().checkVisible();
 
-    //   yamlEditor.keyboardMappingIndicator().showTooltip();
-    //   yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
-    //   yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+      yamlEditor.keyboardMappingIndicator().showTooltip();
+      yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
+      yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
 
-    //   // Reset keyboard mapping
-    //   prefPage.goTo();
-    //   prefPage.keymapButtons().checkVisible();
+      // Reset keyboard mapping
+      prefPage.goTo();
+      prefPage.keymapButtons().checkVisible();
 
-    //   prefPage.keymapButtons().set(NORMAL_HUMAN);
-    // });
+      prefPage.keymapButtons().set(NORMAL_HUMAN);
+    });
   });
 
   it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
