@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/vue3';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 const meta: Meta<typeof LabeledSelect> = {
-  title: 'Form/LabeledSelect',
   component: LabeledSelect,
   argTypes: {
     label: { control: 'text' },
