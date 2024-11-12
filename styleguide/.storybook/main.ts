@@ -3,6 +3,7 @@ import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
 import fs from "fs";
 import path, { join, dirname } from "path";
 import webpack from "webpack";
+import remarkGfm from 'remark-gfm';
 
 const baseFolder = path.resolve(__dirname, '..', '..');
 
@@ -92,7 +93,18 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-links"),
     getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@storybook/addon-interactions"),
-    getAbsolutePath('@storybook/addon-webpack5-compiler-babel')
+    getAbsolutePath('@storybook/addon-webpack5-compiler-babel'),
+    // Add support for table generation from markdown using MDX files
+    {
+      name: '@storybook/addon-docs',
+      options: {
+        mdxPluginOptions: {
+          mdxCompileOptions: {
+            remarkPlugins: [remarkGfm],
+          },
+        },
+      },
+    },
   ],
   core: {
     disableTelemetry: true,
