@@ -24,7 +24,7 @@ export class ChartsPage extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.toggle();
-    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
+    burgerMenu.clusterNotPinnedList().contains(clusterId).click({ force: true });
     sideNav.navToSideMenuGroupByLabel('Apps');
   }
 

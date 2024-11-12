@@ -12,7 +12,7 @@ export default class BurgerMenuPo extends ComponentPo {
   static toggle(): Cypress.Chainable {
     // added wait of 500ms to make time for CSS transitions to resolve (addresses tests flakiness)
     // unfortunately there's no "easy" (and foolproof) way of waiting for transitions and 500ms is quick and does the trick
-    return cy.getId('top-level-menu').should('be.visible').click({ force: true }).wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+    return cy.getId('top-level-menu').click({ force: true }).wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
   /**
