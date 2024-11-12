@@ -134,8 +134,6 @@ export default class MgmtCluster extends SteveModel {
     return this.spec?.clusterTemplateRevisionName;
   }
 
-  // provider query param should match status.driver?
-  // not for local rke2
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
