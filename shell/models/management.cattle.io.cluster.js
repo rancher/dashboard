@@ -89,11 +89,31 @@ export default class MgmtCluster extends SteveModel {
     return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
-  get provisioner() {
-    if (this.status?.provider ) {
-      return this.status.provider;
+  get isImported() {
+    if (this.isLocal) {
+      return false;
+    }
+    // imported rke2 and k3s have status.driver === rke2 and k3s respectively
+    // Provisioned rke2 and k3s have status.driver === imported
+    if (this.status?.provider === 'k3s' || this.status?.provider === 'rke2') {
+      return this.status?.driver === this.status?.provider;
     }
 
+    // imported KEv2
+    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
+
+    const isImportedKontainer = kontainerConfigs.filter((key) => {
+      return this.spec?.[key]?.imported === true;
+    }).length;
+
+    if (isImportedKontainer) {
+      return true;
+    }
+
+    return this.provisioner === 'imported';
+  }
+
+  get provisioner() {
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -114,10 +134,13 @@ export default class MgmtCluster extends SteveModel {
     return this.spec?.clusterTemplateRevisionName;
   }
 
+  // provider query param should match status.driver?
+  // not for local rke2
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
-    // Provisioner is the "<something>Config" in the model
+
+    //  provisioner is status.driver
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
     if ( provisioner === 'rancherKubernetesEngine' ) {
