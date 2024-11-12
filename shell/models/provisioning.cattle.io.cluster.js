@@ -282,19 +282,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImported() {
-    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
-    // in which this.provisioner is `k3s`.
-
-    const isImportedProvisioner = this.provisioner === 'imported';
-    const isImportedSpecialCases = this.mgmt?.providerForEmberParam === 'import' ||
-      // when imported cluster is GKE
-      !!this.mgmt?.spec?.gkeConfig?.imported ||
-      // or AKS
-      !!this.mgmt?.spec?.aksConfig?.imported ||
-      // or EKS
-      !!this.mgmt?.spec?.eksConfig?.imported;
-
-    return !this.isLocal && (isImportedProvisioner || (!this.isRke2 && !this.mgmt?.machineProvider && isImportedSpecialCases));
+    return this.mgmt?.isImported;
   }
 
   get isCustom() {
@@ -330,7 +318,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isRke1() {
-    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.labels['provider.cattle.io'] === 'rke';
+    // rancherKubernetesEngineConfig is not defined on imported RKE1 clusters
+    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.mgmt?.labels['provider.cattle.io'] === 'rke';
   }
 
   get isHarvester() {
@@ -407,6 +396,8 @@ export default class ProvCluster extends SteveModel {
       provisioner = 'k3s';
     } else if ( this.isImportedRke2 ) {
       provisioner = 'rke2';
+    } else if ((this.isImported || this.isLocal) && this.isRke1) {
+      provisioner = 'rke';
     }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
