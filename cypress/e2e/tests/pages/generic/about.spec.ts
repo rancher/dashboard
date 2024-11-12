@@ -112,7 +112,8 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
 
   describe('CLI Downloads', () => {
     // Shouldn't be needed with https://github.com/rancher/dashboard/issues/11393
-    const expectedLinkStatusCode = 200;
+    // Change back to 200 when binaries are available - see https://github.com/rancher/dashboard/issues/12576
+    const expectedLinkStatusCode = 404;
 
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
