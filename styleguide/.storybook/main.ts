@@ -74,8 +74,23 @@ const setAliases = (config: webpack.Configuration) => {
       '~shell': path.join(baseFolder, 'shell'),
     };
   };
+}
 
-  return config;
+const setLoaders = (config: webpack.Configuration) => {
+  if (config.module?.rules) {
+    config.module?.rules?.push({
+      test: /\.scss$/,
+      use: ['style-loader', 'css-loader', getSassLoader()],
+      include: baseFolder,
+    });
+
+    // Map YAML to JSON
+    config.module?.rules?.push({
+      test: /\.ya?ml$/i,
+      loader: 'js-yaml-loader',
+      options: { name: '[path][name].[ext]' },
+    });
+  }
 }
 
 const config: StorybookConfig = {
@@ -111,12 +126,8 @@ const config: StorybookConfig = {
   },
   docs: {},
   webpackFinal: async (config) => {
-    config = setAliases(config);
-    config.module?.rules?.push({
-      test: /\.scss$/,
-      use: ['style-loader', 'css-loader', getSassLoader()],
-      include: baseFolder,
-    });
+    setAliases(config);
+    setLoaders(config);
 
     if (config.plugins) {
       // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
