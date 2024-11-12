@@ -1,5 +1,8 @@
 import type { Preview } from "@storybook/vue3";
-import  { setup }  from '@storybook/vue3';
+import { setup } from '@storybook/vue3';
+import { themes } from '@storybook/theming';
+import RancherTheme from './theme-rancher';
+
 import vSelect from 'vue-select';
 import FloatingVue from 'floating-vue';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
@@ -39,6 +42,9 @@ const preview: Preview = {
       storySort: {
         order: ['Welcome', 'Foundation', 'Form', 'Components', 'Examples'],
       },
+    },
+    docs: {
+      theme: RancherTheme
     },
   },
 
