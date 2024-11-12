@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import AppModal from '@shell/components/AppModal';
+import Modal from '@shell/components/AppModal';
 
-const meta: Meta<typeof AppModal> = {
-  component: AppModal,
+const meta: Meta<typeof Modal> = {
+  component: Modal,
   argTypes: {
     clickToClose: { control: 'boolean' },
     width: { control: 'number' },
@@ -10,11 +10,11 @@ const meta: Meta<typeof AppModal> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof AppModal>;
+type Story = StoryObj<typeof Modal>;
 
 export const Default: Story = {
   render: (args: any) => ({
-    components: { AppModal },
+    components: { Modal },
     setup() {
       return { args };
     },
