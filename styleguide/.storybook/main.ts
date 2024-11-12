@@ -97,9 +97,7 @@ const config: StorybookConfig = {
   core: {
     disableTelemetry: true,
   },
-  docs: {
-    autodocs: true
-  },
+  docs: {},
   webpackFinal: async (config) => {
     config = setAliases(config);
     config.module?.rules?.push({
