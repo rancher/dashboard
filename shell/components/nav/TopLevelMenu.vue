@@ -998,7 +998,7 @@ export default {
     }
 
      &.menu-open {
-      width: 300px;
+      width: 315px;
       box-shadow: 3px 1px 3px var(--shadow);
     }
 
@@ -1034,7 +1034,7 @@ export default {
       display: flex;
       flex-direction: column;
       margin: 10px 0;
-      width: 300px;
+      width: 315px;
       overflow: auto;
 
       .option {
