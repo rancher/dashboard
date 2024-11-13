@@ -26,8 +26,6 @@ setup((vueApp) => {
     template: '<a>link</a>',
   })
   vueApp.config.globalProperties.$store = store
-  
-  window['__codeMirrorLoader'] = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
 })
 
 const preview: Preview = {
