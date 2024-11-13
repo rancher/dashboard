@@ -2,7 +2,7 @@ import { generateV2MonitoringForLocalCluster } from '@/cypress/e2e/blueprints/ot
 import V2Monitoring from '@/cypress/e2e/po/other-products/v2-monitoring.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 
-describe.skip('[Vue3 Skip]: V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
+describe('V2 monitoring Chart', { tags: ['@charts', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
 
