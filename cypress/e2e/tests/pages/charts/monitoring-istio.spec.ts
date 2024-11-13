@@ -187,10 +187,14 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         const tabbedOptions = new TabbedPo();
         const grafana = new GrafanaTab();
 
-        // Set Grafana resource request/limits configuration
-        chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="grafana"');
+        ChartPage.navTo(null, 'Monitoring');
 
+        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        chartPage.goToInstall();
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="grafana"]');
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        // Set Grafana resource request/limits configuration
         grafana.requestedCpu().checkExists();
         grafana.requestedCpu().checkVisible();
         grafana.requestedCpu().set('123m');
