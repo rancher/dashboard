@@ -23,7 +23,7 @@ export class CustomResourceDefinitionsPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
     sideNav.navToSideMenuGroupByLabel('More Resources');
     sideNav.navToSideMenuGroupByLabel('API');
     sideNav.navToSideMenuEntryByLabel('CustomResourceDefinitions');

@@ -115,7 +115,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension card ------------------
   extensionCard(extensionName: string) {
-    return this.self().getId(`extension-card-${ extensionName }`);
+    return this.self().getId(`extension-card-${ extensionName }`).scrollIntoView();
   }
 
   extensionCardVersion(extensionName: string): Cypress.Chainable {

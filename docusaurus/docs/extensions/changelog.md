@@ -8,11 +8,12 @@
 
 | Date | Version | Description |
 |---|---|---|
-| 09&#x2011;07&#x2011;2024 | 1.2.3 | Minor bug fixes |
-| 09&#x2011;07&#x2011;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes |
-| 01&#x2011;07&#x2011;2024 | 1.2.2 | First release of a new `Shell` version, but codewise similar to `0.5.3` in order to keep extensions api versioning up to par with shell versioning |
-| 01&#x2011;07&#x2011;2024 | [**2.0.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.0) | Various fixes to the `Shell` package in order to make it compliant with Rancher 2.9 |
-| 15&#x2011;02&#x2011;2024 | [**0.5.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.3) | Inclusion of the replacement of `Vue.extend` to `defineComponent` with proper fix |
-| 31&#x2011;01&#x2011;2024 | [**0.5.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.2) | Fix `parse tag name` check in workflows for publishing extensions |
-| 29&#x2011;01&#x2011;2024 | [**0.5.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.1) | Revert changes to replacement of `Vue.extend` to `defineComponent` because of impact on extensions |
-| 24&#x2011;01&#x2011;2024 | [**0.5.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.0) | Add support for Gitlab workflows for publishing extensions |
+| 01&#160;November&#160;2024 | [**2.0.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.2) | Remove upper limit on kube version for default annotations on extensions. Update creators package. Minor bug fixes |
+| 09&#160;July&#160;2024 | 1.2.3 | Minor bug fixes |
+| 09&#160;July&#160;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes |
+| 01&#160;July&#160;2024 | 1.2.2 | First release of a new `Shell` version, but codewise similar to `0.5.3` in order to keep extensions api versioning up to par with shell versioning |
+| 01&#160;July&#160;2024 | [**2.0.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.0) | Various fixes to the `Shell` package in order to make it compliant with Rancher 2.9 |
+| 15&#160;February&#160;2024 | [**0.5.3**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.3) | Inclusion of the replacement of `Vue.extend` to `defineComponent` with proper fix |
+| 31&#160;January&#160;2024 | [**0.5.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.2) | Fix `parse tag name` check in workflows for publishing extensions |
+| 29&#160;January&#160;2024 | [**0.5.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.1) | Revert changes to replacement of `Vue.extend` to `defineComponent` because of impact on extensions |
+| 24&#160;January&#160;2024 | [**0.5.0**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v0.5.0) | Add support for Gitlab workflows for publishing extensions |

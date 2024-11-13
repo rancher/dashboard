@@ -3,7 +3,7 @@ import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboa
 // import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 // import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-describe.skip('[Vue3 Skip]: Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
+describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
   // const repoName = 'fleet-e2e-test-dashboard';
 
