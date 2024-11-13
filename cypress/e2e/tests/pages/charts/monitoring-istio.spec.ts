@@ -71,8 +71,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const tabbedOptions = new TabbedPo();
 
-        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
-        chartPage.selectVersion('103.1.1+up45.31...');
+        chartPage.selectVersion('105.1.0+up61.3.2');
 
         // Navigate to the edit options page and Set prometheus storage class
         chartPage.goToInstall();
@@ -128,8 +127,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const tabbedOptions = new TabbedPo();
 
-        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
-        chartPage.selectVersion('103.1.1+up45.31...');
+        chartPage.selectVersion('105.1.0+up61.3.2');
 
         // Set prometheus storage class
         chartPage.goToInstall();
