@@ -3,10 +3,10 @@ import PercentageBar from '@shell/components/PercentageBar';
 
 const meta: Meta<typeof PercentageBar> = {
   component: PercentageBar,
-  argTypes: {
+  argTypes:  {
     preferredDirection: {
       control: {
-        type: 'select',
+        type:    'select',
         options: ['LESS', 'MORE'],
       },
     },
@@ -29,7 +29,7 @@ export const Default: Story = {
 export const Percentage: Story = {
   ...Default,
   args: {
-    modelValue: 45,
+    modelValue:     45,
     showPercentage: true,
   },
 };

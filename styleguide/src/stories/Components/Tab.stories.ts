@@ -4,8 +4,7 @@ import Tabbed from '@shell/components/Tabbed';
 
 const meta: Meta<typeof Tabbed> = {
   component: Tabbed,
-  argTypes: {
-  },
+  argTypes:  {},
 };
 
 export default meta;
@@ -17,7 +16,7 @@ export const Default: Story = {
     setup() {
       return { args };
     },
-    template:   `
+    template: `
       <Tabbed v-bind="$props">
         <Tab
           v-for="g in value"
@@ -30,9 +29,7 @@ export const Default: Story = {
       </Tabbed>
     `
   }),
-  args: {
-    useHash: false,
-  },
+  args: { useHash: false },
 };
 
 export const Editable: Story = {
@@ -42,7 +39,7 @@ export const Editable: Story = {
     setup() {
       return { args };
     },
-    template:   `
+    template: `
       <Tabbed v-bind="$props" @addTab="update($event)" @removeTab="remove($event)">
         <Tab
           v-for="g in value"
@@ -56,8 +53,8 @@ export const Editable: Story = {
     `
   }),
   args: {
-    useHash: false,
-    sideTabs: true,
+    useHash:           false,
+    sideTabs:          true,
     showTabsAddRemove: true,
   },
 };
@@ -69,10 +66,10 @@ export const Horizontal: Story = {
     setup() {
       return { args };
     },
-    template:   `
+    template: `
       <Tabbed v-bind="$props">
         <Tab name="Deployment" label="Deployment">
-          <Tabbed :useHash=${args.useHash} :sideTabs=${true}>
+          <Tabbed :useHash=${ args.useHash } :sideTabs=${ true }>
             <Tab name="labels" label="Labels & Annotations">
               <div name="labels">NestedTab content. </div>
             </Tab>
@@ -82,7 +79,7 @@ export const Horizontal: Story = {
           </Tabbed>
         </Tab>
         <Tab name="Pod" label="Pod">
-          <Tabbed :useHash=${args.useHash} :sideTabs=${true}>
+          <Tabbed :useHash=${ args.useHash } :sideTabs=${ true }>
             <Tab name="node" label="Node Scheduling">
               <div name="node">NestedTab content. </div>
             </Tab>
@@ -103,7 +100,7 @@ export const Vertical: Story = {
     setup() {
       return { args };
     },
-    template:   `
+    template: `
       <Tabbed v-bind="$props">
         <Tab name="Network" label="Network">
           <Tabbed v-bind="$props">
@@ -128,9 +125,7 @@ export const Vertical: Story = {
       </Tabbed>
     `
   }),
-  args: {
-    sideTabs: true
-  },
+  args: { sideTabs: true },
 };
 
 export const Slots: Story = {
@@ -140,7 +135,7 @@ export const Slots: Story = {
     setup() {
       return { args };
     },
-    template:   `
+    template: `
       <Tabbed v-bind="$props">
         <Tab name="Deployment" label="Deployment">
           <div name="Deployment">Deployment tab content. </div>

@@ -3,11 +3,11 @@ import BadgeState from '@/pkg/rancher-components/src/components/BadgeState/Badge
 
 const meta: Meta<typeof BadgeState> = {
   component: BadgeState,
-  argTypes: {
+  argTypes:  {
     color: {
       description: 'Overwritten description',
-      control: {
-        type: 'select',
+      control:     {
+        type:    'select',
         options: ['bg-info', 'bg-warning', 'bg-error'],
       },
     },
@@ -24,29 +24,21 @@ export const Default: Story = {
       return { args };
     },
     template: '<BadgeState v-bind="args" />',
-    args: {
-      label: 'Badge',
-    }
+    args:     { label: 'Badge' }
   }),
 };
 
 export const Info: Story = {
   ...Default,
-  args: {
-    color: 'bg-info',
-  },
+  args: { color: 'bg-info' },
 };
 
 export const Warning: Story = {
   ...Default,
-  args: {
-    color: 'bg-warning',
-  },
+  args: { color: 'bg-warning' },
 };
 
 export const Error: Story = {
   ...Default,
-  args: {
-    color: 'bg-error',
-  },
+  args: { color: 'bg-error' },
 };

@@ -3,7 +3,7 @@ import Alert from '@shell/components/Alert';
 
 const meta: Meta<typeof Alert> = {
   component: Alert,
-  argTypes: {
+  argTypes:  {
     status: {
       options: ['success', 'warning', 'info', 'error'],
       control: { type: 'select' }
@@ -28,7 +28,7 @@ export const Success: Story = {
   ...Default,
   args: {
     message: 'PID Pressure',
-    status: 'success',
+    status:  'success',
   },
 };
 
@@ -36,7 +36,7 @@ export const Warning: Story = {
   ...Default,
   args: {
     message: 'Disk Pressure',
-    status: 'warning',
+    status:  'warning',
   },
 };
 
@@ -44,7 +44,7 @@ export const Info: Story = {
   ...Default,
   args: {
     message: 'Memory Pressure',
-    status: 'info',
+    status:  'info',
   },
 };
 
@@ -52,6 +52,6 @@ export const Error: Story = {
   ...Default,
   args: {
     message: 'kubelet',
-    status: 'error',
+    status:  'error',
   },
 };

@@ -4,11 +4,11 @@ import type { Meta, StoryObj } from '@storybook/vue3';
 import MyPage from './Page.vue';
 
 const meta: Meta<typeof MyPage> = {
-  title: 'Example/Page',
+  title:     'Example/Page',
   component: MyPage,
-  render: () => ({
+  render:    () => ({
     components: { MyPage },
-    template: '<my-page />',
+    template:   '<my-page />',
   }),
   parameters: {
     // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
@@ -23,7 +23,7 @@ type Story = StoryObj<typeof MyPage>;
 
 // More on interaction testing: https://storybook.js.org/docs/writing-tests/interaction-testing
 export const LoggedIn: Story = {
-  play: async ({ canvasElement }: any) => {
+  play: async({ canvasElement }: any) => {
     // const canvas = within(canvasElement);
     // const loginButton = canvas.getByRole('button', { name: /Log in/i });
     // await expect(loginButton).toBeInTheDocument();

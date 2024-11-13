@@ -3,11 +3,11 @@ import CodeMirror from '@shell/components/CodeMirror';
 
 const meta: Meta<typeof CodeMirror> = {
   component: CodeMirror,
-  argTypes: {
-    value: { control: 'text' },
-    mode: { control: 'text' },
-    options: { control: 'object' },
-    asTextArea: { control: 'boolean' },
+  argTypes:  {
+    value:         { control: 'text' },
+    mode:          { control: 'text' },
+    options:       { control: 'object' },
+    asTextArea:    { control: 'boolean' },
     showKeyMapBox: { control: 'boolean' },
   },
 };
@@ -86,7 +86,7 @@ spec:
   machineSelectorConfig:
     - config: {}
 __clone: true
-}`
+}`;
 
 export const Default: Story = {
   render: (args: any) => ({
@@ -101,10 +101,10 @@ export const Default: Story = {
 export const Yaml: Story = {
   ...Default,
   args: {
-    value: editorValueExample,
-    mode: 'edit',
-    options: {},
-    asTextArea: false,
+    value:         editorValueExample,
+    mode:          'edit',
+    options:       {},
+    asTextArea:    false,
     showKeyMapBox: true,
   },
 };
@@ -116,9 +116,9 @@ export const Textarea: Story = {
 Some
 values
     `,
-    mode: 'edit',
-    options: {},
-    asTextArea: true,
+    mode:          'edit',
+    options:       {},
+    asTextArea:    true,
     showKeyMapBox: true,
   },
 };

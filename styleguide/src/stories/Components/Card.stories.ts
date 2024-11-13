@@ -3,9 +3,9 @@ import Card from '@/pkg/rancher-components/src/components/Card/Card.vue';
 
 const meta: Meta<typeof Card> = {
   component: Card,
-  argTypes: {
+  argTypes:  {
     title: { control: 'text' },
-    body: { control: 'text' },
+    body:  { control: 'text' },
   },
 };
 
@@ -31,6 +31,6 @@ export const WithContent: Story = {
   ...Default,
   args: {
     title: 'Card title',
-    body: 'Some quick example text to build on the card title and make up the bulk of the card\'s content.',
+    body:  'Some quick example text to build on the card title and make up the bulk of the card\'s content.',
   },
 };

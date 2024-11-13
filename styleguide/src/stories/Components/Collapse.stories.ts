@@ -3,8 +3,8 @@ import Collapse from '@shell/components/Collapse';
 
 const meta: Meta<typeof Collapse> = {
   component: Collapse,
-  argTypes: {
-    open: { control: 'boolean' },
+  argTypes:  {
+    open:  { control: 'boolean' },
     title: { control: 'text' },
   },
 };
@@ -29,7 +29,7 @@ export const Default: Story = {
 export const Open: Story = {
   ...Default,
   args: {
-    open: true,
+    open:  true,
     title: 'Collapse component',
   },
 };
@@ -37,7 +37,7 @@ export const Open: Story = {
 export const Close: Story = {
   ...Default,
   args: {
-    open: false,
+    open:  false,
     title: 'Collapsed component',
   },
 };

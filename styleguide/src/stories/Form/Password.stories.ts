@@ -3,11 +3,11 @@ import Password from '@shell/components/form/Password';
 
 const meta: Meta<typeof Password> = {
   component: Password,
-  argTypes: {
-    label: { control: 'text' },
-    value: { control: 'text' },
-    required: { control: 'boolean' },
-    isRandom: { control: 'boolean' },
+  argTypes:  {
+    label:        { control: 'text' },
+    value:        { control: 'text' },
+    required:     { control: 'boolean' },
+    isRandom:     { control: 'boolean' },
     autocomplete: { control: 'boolean' },
   },
 };
@@ -42,7 +42,7 @@ export const Random: Story = {
   args: {
     ...Default.args,
     isRandom: true,
-    value: '',
+    value:    '',
   },
 };
 
@@ -51,6 +51,6 @@ export const Autocomplete: Story = {
   args: {
     ...Default.args,
     autocomplete: true,
-    value: '',
+    value:        '',
   },
 };

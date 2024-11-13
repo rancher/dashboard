@@ -3,11 +3,11 @@ import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/Radio
 
 const meta: Meta<typeof RadioGroup> = {
   component: RadioGroup,
-  argTypes: {
-    name: { control: 'text' },
-    label: { control: 'text' },
+  argTypes:  {
+    name:    { control: 'text' },
+    label:   { control: 'text' },
     options: { control: 'array' },
-    row: { control: 'boolean' },
+    row:     { control: 'boolean' },
   },
 };
 
@@ -20,10 +20,10 @@ export const Default: StoryObj<typeof RadioGroup> = {
     template: '<RadioGroup v-bind="args" />',
   }),
   args: {
-    name: 'RadioGroup',
-    label: 'Choose one of the following theme',
+    name:    'RadioGroup',
+    label:   'Choose one of the following theme',
     options: ['Custom', 'Dark', 'Light'],
-    row: false,
+    row:     false,
   },
 };
 

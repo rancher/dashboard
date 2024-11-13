@@ -8,9 +8,9 @@ const meta: Meta<typeof MyHeader> = {
    * See https://storybook.js.org/docs/configure/#configure-story-loading
    * to learn how to generate automatic titles
    */
-  title: 'Example/Header',
+  title:     'Example/Header',
   component: MyHeader,
-  render: (args: any) => ({
+  render:    (args: any) => ({
     components: { MyHeader },
     setup() {
       return { args };
@@ -23,8 +23,8 @@ const meta: Meta<typeof MyHeader> = {
   },
   // This component will have an automatically generated docsPage entry: https://storybook.js.org/docs/writing-docs/autodocs
   args: {
-    onLogin: action('onLogin'),
-    onLogout: action('onLogout'),
+    onLogin:         action('onLogin'),
+    onLogout:        action('onLogout'),
     onCreateAccount: action('onCreateAccount'),
   },
   tags: ['autodocs'],
@@ -33,16 +33,6 @@ const meta: Meta<typeof MyHeader> = {
 export default meta;
 type Story = StoryObj<typeof MyHeader>;
 
-export const LoggedIn: Story = {
-  args: {
-    user: {
-      name: 'Jane Doe',
-    },
-  },
-};
+export const LoggedIn: Story = { args: { user: { name: 'Jane Doe' } } };
 
-export const LoggedOut: Story = {
-  args: {
-    user: null,
-  },
-};
+export const LoggedOut: Story = { args: { user: null } };

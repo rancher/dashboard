@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import AsyncButton from '@shell/components/AsyncButton';
 
-const meta: Meta<typeof AsyncButton> = {
-  component: AsyncButton,
-};
- 
+const meta: Meta<typeof AsyncButton> = { component: AsyncButton };
+
 export default meta;
 type Story = StoryObj<typeof AsyncButton>;
 
@@ -16,9 +14,7 @@ export const Default: Story = {
     },
     template: '<AsyncButton v-bind="args" />',
   }),
-  args: {
-    actionLabel: 'Click me'
-  },
+  args: { actionLabel: 'Click me' },
 };
 
 // Phases
@@ -26,7 +22,7 @@ export const Default: Story = {
 export const PhaseAction: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase action',
+    actionLabel:  'Phase action',
     currentPhase: `action`
   },
 };
@@ -34,7 +30,7 @@ export const PhaseAction: Story = {
 export const PhaseWaiting: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase waiting',
+    actionLabel:  'Phase waiting',
     currentPhase: `waiting`
   },
 };
@@ -42,7 +38,7 @@ export const PhaseWaiting: Story = {
 export const PhaseSuccess: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase success',
+    actionLabel:  'Phase success',
     currentPhase: `success`
   },
 };
@@ -50,7 +46,7 @@ export const PhaseSuccess: Story = {
 export const PhaseError: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase error',
+    actionLabel:  'Phase error',
     currentPhase: `error`
   },
 };
@@ -60,8 +56,8 @@ export const PhaseError: Story = {
 export const PhaseClassAction: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase action',
-    actionColor: `action`,
+    actionLabel:  'Phase action',
+    actionColor:  `action`,
     currentPhase: `action`
   },
 };
@@ -69,8 +65,8 @@ export const PhaseClassAction: Story = {
 export const PhaseClassWaiting: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase waiting',
-    actionColor: `waiting`,
+    actionLabel:  'Phase waiting',
+    actionColor:  `waiting`,
     currentPhase: `waiting`
   },
 };
@@ -78,8 +74,8 @@ export const PhaseClassWaiting: Story = {
 export const PhaseClassSuccess: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase success',
-    actionColor: `success`,
+    actionLabel:  'Phase success',
+    actionColor:  `success`,
     currentPhase: `success`
   },
 };
@@ -87,8 +83,8 @@ export const PhaseClassSuccess: Story = {
 export const PhaseClassError: Story = {
   ...Default,
   args: {
-    actionLabel: 'Phase error',
-    actionColor: `error`,
+    actionLabel:  'Phase error',
+    actionColor:  `error`,
     currentPhase: `error`
   },
 };
@@ -96,7 +92,7 @@ export const PhaseClassError: Story = {
 export const PhaseLabelAction: Story = {
   ...Default,
   args: {
-    actionLabel: 'Custom action label',
+    actionLabel:  'Custom action label',
     currentPhase: 'action'
   },
 };
@@ -120,7 +116,7 @@ export const PhaseLabelSuccess: Story = {
 export const PhaseLabelError: Story = {
   ...Default,
   args: {
-    errorLabel: 'Custom error label',
+    errorLabel:   'Custom error label',
     currentPhase: 'error'
   },
 };
@@ -131,7 +127,7 @@ export const Manual: Story = {
   ...Default,
   args: {
     actionLabel: 'Manual phase',
-    manual: true
+    manual:      true
   },
 };
 
@@ -141,7 +137,7 @@ export const ModeEdit: Story = {
   ...Default,
   args: {
     actionLabel: 'Edit mode',
-    mode: 'edit'
+    mode:        'edit'
   },
 };
 
@@ -149,7 +145,7 @@ export const ModeContinue: Story = {
   ...Default,
   args: {
     actionLabel: 'Continue mode',
-    mode: 'continue'
+    mode:        'continue'
   },
 };
 
@@ -157,7 +153,7 @@ export const ModeApply: Story = {
   ...Default,
   args: {
     actionLabel: 'Apply mode',
-    mode: 'apply'
+    mode:        'apply'
   },
 };
 
@@ -167,7 +163,7 @@ export const Delay: Story = {
   ...Default,
   args: {
     actionLabel: 'Delay',
-    delay: 3000
+    delay:       3000
   },
 };
 
@@ -177,7 +173,7 @@ export const Disabled: Story = {
   ...Default,
   args: {
     actionLabel: 'Disabled',
-    disabled: true
+    disabled:    true
   },
 };
 
@@ -187,7 +183,7 @@ export const TypeSubmit: Story = {
   ...Default,
   args: {
     actionLabel: 'Submit',
-    type: 'submit'
+    type:        'submit'
   },
 };
 
@@ -195,7 +191,7 @@ export const TypeButton: Story = {
   ...Default,
   args: {
     actionLabel: 'Button',
-    type: 'button'
+    type:        'button'
   },
 };
 
@@ -205,7 +201,7 @@ export const Icon: Story = {
   ...Default,
   args: {
     actionLabel: 'With icon',
-    icon: 'check'
+    icon:        'check'
   },
 };
 
@@ -215,6 +211,6 @@ export const SizeSm: Story = {
   ...Default,
   args: {
     actionLabel: 'Small size',
-    size: 'sm'
+    size:        'sm'
   },
 };

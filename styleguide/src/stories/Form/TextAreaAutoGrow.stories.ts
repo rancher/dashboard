@@ -3,9 +3,7 @@ import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextA
 
 const meta: Meta<typeof TextAreaAutoGrow> = {
   component: TextAreaAutoGrow,
-  argTypes: {
-    placeholder: { control: 'text' },
-  },
+  argTypes:  { placeholder: { control: 'text' } },
 };
 
 export default meta;
@@ -19,7 +17,5 @@ export const Default: Story = {
     },
     template: '<TextAreaAutoGrow v-bind="args" />',
   }),
-  args: {
-    placeholder: 'Enter text...',
-  },
+  args: { placeholder: 'Enter text...' },
 };

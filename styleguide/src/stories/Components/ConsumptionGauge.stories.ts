@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 
-const meta: Meta<typeof ConsumptionGauge> = {
-  component: ConsumptionGauge,
-};
+const meta: Meta<typeof ConsumptionGauge> = { component: ConsumptionGauge };
 
 export default meta;
 type Story = StoryObj<typeof ConsumptionGauge>;
@@ -21,9 +19,9 @@ export const Default: Story = {
 export const Disk: Story = {
   ...Default,
   args: {
-    used: 300,
-    capacity: 789,
-    units: 'GB',
+    used:         300,
+    capacity:     789,
+    units:        'GB',
     resourceName: 'Disk',
   },
 };

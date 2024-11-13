@@ -3,9 +3,9 @@ import Select from '@/shell/components/form/Select.vue';
 
 const meta: Meta<typeof Select> = {
   component: Select,
-  argTypes: {
-    label: { control: 'text' },
-    options: { control: 'array' },
+  argTypes:  {
+    label:       { control: 'text' },
+    options:     { control: 'array' },
     placeholder: { control: 'text' },
   },
 };
@@ -22,8 +22,8 @@ export const Default: Story = {
     template: '<Select v-bind="args" />',
   }),
   args: {
-    label: 'Select',
-    options: ['value01', 'value02', 'value03', 'value04'],
+    label:       'Select',
+    options:     ['value01', 'value02', 'value03', 'value04'],
     placeholder: 'Select option',
   },
 };

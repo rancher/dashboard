@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import LabeledTooltip from '@/pkg/rancher-components/src/components/LabeledTooltip/LabeledTooltip.vue';
 
-const meta: Meta<typeof LabeledTooltip> = {
-  component: LabeledTooltip,
-};
+const meta: Meta<typeof LabeledTooltip> = { component: LabeledTooltip };
 
 export default meta;
 type Story = StoryObj<typeof LabeledTooltip>;
@@ -18,6 +16,6 @@ export const Default: Story = {
   }),
   args: {
     status: 'Hello world',
-    value: 'More context or explanation about an element.'
+    value:  'More context or explanation about an element.'
   },
 };

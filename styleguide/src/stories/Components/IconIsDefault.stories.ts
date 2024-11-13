@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import IconIsDefault from '@shell/components/formatter/IconIsDefault';
 
-const meta: Meta<typeof IconIsDefault> = {
-  component: IconIsDefault,
-};
+const meta: Meta<typeof IconIsDefault> = { component: IconIsDefault };
 
 export default meta;
 type Story = StoryObj<typeof IconIsDefault>;

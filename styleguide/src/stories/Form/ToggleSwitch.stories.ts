@@ -3,10 +3,10 @@ import ToggleSwitch from '@/pkg/rancher-components/src/components/Form/ToggleSwi
 
 const meta: Meta<typeof ToggleSwitch> = {
   component: ToggleSwitch,
-  argTypes: {
-    value: { control: 'boolean' },
+  argTypes:  {
+    value:    { control: 'boolean' },
     offLabel: { control: 'text' },
-    onLabel: { control: 'text' },
+    onLabel:  { control: 'text' },
   },
 };
 
@@ -22,8 +22,8 @@ export const Default: Story = {
     template: '<ToggleSwitch v-bind="args" />',
   }),
   args: {
-    value: false,
+    value:    false,
     offLabel: 'Dark mode',
-    onLabel: 'Light mode',
+    onLabel:  'Light mode',
   },
 };

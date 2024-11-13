@@ -3,10 +3,10 @@ import UnitInput from '@/shell/components/form/UnitInput.vue';
 
 const meta: Meta<typeof UnitInput> = {
   component: UnitInput,
-  argTypes: {
-    label: { control: 'text' },
-    type: { control: 'text' },
-    value: { control: 'text' },
+  argTypes:  {
+    label:  { control: 'text' },
+    type:   { control: 'text' },
+    value:  { control: 'text' },
     suffix: { control: 'text' },
   },
 };
@@ -27,9 +27,9 @@ export const Default: Story = {
 export const Suffix: Story = {
   ...Default,
   args: {
-    label: 'Input with seconds',
-    type: 'text',
-    value: '123',
+    label:  'Input with seconds',
+    type:   'text',
+    value:  '123',
     suffix: 'Seconds',
   },
 };

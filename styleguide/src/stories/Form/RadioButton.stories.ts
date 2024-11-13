@@ -3,9 +3,9 @@ import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/Radi
 
 const meta: Meta<typeof RadioButton> = {
   component: RadioButton,
-  argTypes: {
-    label: { control: 'text' },
-    val: { control: 'boolean' },
+  argTypes:  {
+    label:    { control: 'text' },
+    val:      { control: 'boolean' },
     disabled: { control: 'boolean' },
   },
 };
@@ -22,7 +22,7 @@ export const Default: Story = {
   }),
   args: {
     label: 'Kubernetes',
-    val: true,
+    val:   true,
   },
 };
 

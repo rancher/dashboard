@@ -4,14 +4,14 @@ import { _VIEW } from '@shell/config/query-params';
 
 const meta: Meta<typeof ArrayList> = {
   component: ArrayList,
-  argTypes: {
-    titleSlot: { control: 'text' },
+  argTypes:  {
+    titleSlot:         { control: 'text' },
     columnHeadersSlot: { control: 'text' },
-    columnsSlot: { control: 'text' },
-    valueSlot: { control: 'text' },
-    removeButtonSlot: { control: 'text' },
-    emptySlot: { control: 'text' },
-    addSlot: { control: 'text' },
+    columnsSlot:       { control: 'text' },
+    valueSlot:         { control: 'text' },
+    removeButtonSlot:  { control: 'text' },
+    emptySlot:         { control: 'text' },
+    addSlot:           { control: 'text' },
   },
 };
 
@@ -38,9 +38,7 @@ const Template: Story = {
 
 export const Default: Story = {
   ...Template,
-  args: {
-    value: ["First value", "Second value", "Third value"],
-  },
+  args: { value: ['First value', 'Second value', 'Third value'] },
 };
 
 export const NoList: Story = {
@@ -51,7 +49,7 @@ export const NoList: Story = {
 export const MultilineValue: Story = {
   ...Template,
   args: {
-    value: [`Multiline\nvalue\nexample`],
+    value:          [`Multiline\nvalue\nexample`],
     valueMultiline: true,
   },
 };
@@ -60,15 +58,15 @@ export const EmptyValue: Story = {
   ...Template,
   args: {
     initialEmptyRow: true,
-    addLabel: "Add",
-    removeLabel: "Remove",
+    addLabel:        'Add',
+    removeLabel:     'Remove',
   },
 };
 
 export const TitleAndTip: Story = {
   ...Template,
   args: {
-    title: 'This is a title',
+    title:  'This is a title',
     protip: 'This is a tip',
   },
 };
@@ -76,28 +74,28 @@ export const TitleAndTip: Story = {
 export const InputLabelAndPlaceholder: Story = {
   ...Template,
   args: {
-    value: [''],
-    valueLabel: 'Custom label value',
+    value:            [''],
+    valueLabel:       'Custom label value',
     valuePlaceholder: 'Custom placeholder',
-    showHeader: true,
+    showHeader:       true,
   },
 };
 
 export const ReadOnlyMode: Story = {
   ...Template,
   args: {
-    value: ['string 1', 'string 2'],
-    mode: _VIEW,
-    addLabel: "Add",
-    removeLabel: "Remove",
+    value:       ['string 1', 'string 2'],
+    mode:        _VIEW,
+    addLabel:    'Add',
+    removeLabel: 'Remove',
   },
 };
 
 export const DisableAddRemoveButtons: Story = {
   ...Template,
   args: {
-    value: ['string 1', 'string 2'],
-    addAllowed: false,
+    value:         ['string 1', 'string 2'],
+    addAllowed:    false,
     removeAllowed: false,
   },
 };
@@ -105,38 +103,36 @@ export const DisableAddRemoveButtons: Story = {
 export const CustomButtonsText: Story = {
   ...Template,
   args: {
-    addLabel: 'Custom add',
+    addLabel:    'Custom add',
     removeLabel: 'Custom remove',
   },
 };
 
 export const DefaultAddValue: Story = {
   ...Template,
-  args: {
-    defaultAddValue: "Default value",
-  },
+  args: { defaultAddValue: 'Default value' },
 };
 
 export const LoadingStatus: Story = {
   ...Template,
   args: {
     loading: true,
-    value: ["Existing value"],
+    value:   ['Existing value'],
   },
 };
 
 export const Validation: Story = {
   ...Template,
   args: {
-    rules: [(value) => value !== 'Change for error' ? 'Please add at least one value' : void 0],
-    value: ["Change for error", "Already error"],
+    rules: [(value) => value !== 'Change for error' ? 'Please add at least one value' : undefined],
+    value: ['Change for error', 'Already error'],
   },
 };
 
 export const TitleSlot: Story = {
   ...Template,
   args: {
-    title: 'Anything',
+    title:     'Anything',
     titleSlot: `<div style="background: red; color: white">Title</div>`,
   },
 };
@@ -144,8 +140,8 @@ export const TitleSlot: Story = {
 export const ColumnHeadersSlot: Story = {
   ...Template,
   args: {
-    value: [''],
-    showHeader: true,
+    value:             [''],
+    showHeader:        true,
     columnHeadersSlot: `<div style="background: red; color: white">Column Headers</div>`,
   },
 };
@@ -153,7 +149,7 @@ export const ColumnHeadersSlot: Story = {
 export const ColumnsSlot: Story = {
   ...Template,
   args: {
-    value: [''],
+    value:       [''],
     columnsSlot: `<div style="background: red; color: white">Columns</div>`,
   },
 };
@@ -161,7 +157,7 @@ export const ColumnsSlot: Story = {
 export const ValueSlot: Story = {
   ...Template,
   args: {
-    value: [''],
+    value:     [''],
     valueSlot: `<div style="background: red; color: white">Value element, usually text</div>`,
   },
 };
@@ -169,22 +165,20 @@ export const ValueSlot: Story = {
 export const RemoveButtonSlot: Story = {
   ...Template,
   args: {
-    value: [''],
+    value:            [''],
     removeButtonSlot: `<div style="background: red; color: white">Remove Button, e.g. custom button</div>`,
   },
 };
 
 export const EmptySlot: Story = {
   ...Template,
-  args: {
-    emptySlot: `<div style="background: red; color: white">Empty element placeholder</div>`,
-  },
+  args: { emptySlot: `<div style="background: red; color: white">Empty element placeholder</div>` },
 };
 
 export const AddSlot: Story = {
   ...Template,
   args: {
-    value: [''],
+    value:   [''],
     addSlot: `<div style="background: red; color: white">Add element, e.g. button</div>`,
   },
 };

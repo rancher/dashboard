@@ -3,8 +3,8 @@ import FileSelector from '@shell/components/form/FileSelector';
 
 const meta: Meta<typeof FileSelector> = {
   component: FileSelector,
-  argTypes: {
-    label: { control: 'text' },
+  argTypes:  {
+    label:    { control: 'text' },
     disabled: { control: 'boolean' },
   },
 };
@@ -21,15 +21,13 @@ export const Default: Story = {
     template: '<FileSelector v-bind="args" />',
   }),
   description: 'Default FileSelector',
-  args: {
-    label: 'Choose file',
-  },
+  args:        { label: 'Choose file' },
 };
 
 export const Disabled: Story = {
   ...Default,
   args: {
-    label: 'Choose file',
+    label:    'Choose file',
     disabled: true,
   },
 };

@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
 
-const meta: Meta<typeof LabeledInput> = {
-  component: LabeledInput,
-};
- 
+const meta: Meta<typeof LabeledInput> = { component: LabeledInput };
+
 export default meta;
 type Story = StoryObj<typeof LabeledInput>;
 
@@ -18,7 +16,7 @@ export const Default: Story = {
   }),
   args: {
     label: 'Name',
-    type: 'text',
+    type:  'text',
     value: 'Simon',
   },
 };
@@ -26,10 +24,10 @@ export const Default: Story = {
 export const Info: Story = {
   ...Default,
   args: {
-    label: 'Name',
-    type: 'text',
-    value: 'Simon',
-    status: 'info',
+    label:      'Name',
+    type:       'text',
+    value:      'Simon',
+    status:     'info',
     tooltipKey: 'Info message'
   },
 };
@@ -37,10 +35,10 @@ export const Info: Story = {
 export const Success: Story = {
   ...Default,
   args: {
-    label: 'Name',
-    type: 'text',
-    value: 'Simon',
-    status: 'success',
+    label:      'Name',
+    type:       'text',
+    value:      'Simon',
+    status:     'success',
     tooltipKey: 'Success message'
   },
 };
@@ -48,10 +46,10 @@ export const Success: Story = {
 export const Warning: Story = {
   ...Default,
   args: {
-    label: 'Name',
-    type: 'text',
-    value: 'Simon',
-    status: 'warning',
+    label:      'Name',
+    type:       'text',
+    value:      'Simon',
+    status:     'warning',
     tooltipKey: 'Warning message'
   },
 };
@@ -59,11 +57,10 @@ export const Warning: Story = {
 export const Error: Story = {
   ...Default,
   args: {
-    label: 'Name',
-    type: 'text',
-    value: 'Simon',
-    status: 'error',
+    label:      'Name',
+    type:       'text',
+    value:      'Simon',
+    status:     'error',
     tooltipKey: 'Error message'
   },
 };
-

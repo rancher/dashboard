@@ -1,42 +1,40 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import Table from '@shell/components/SortableTable';
 
-const meta: Meta<typeof Table> = {
-  component: Table,
-};
+const meta: Meta<typeof Table> = { component: Table };
 
 export default meta;
 type Story = StoryObj<typeof Table>;
 
 export const rows = [
   {
-    name: 'First row',
+    name:        'First row',
     description: 'This is the first row',
-    type: 'first type',
+    type:        'first type',
   },
   {
-    name: 'Second row',
+    name:        'Second row',
     description: 'This is another row',
-    type: 'first type',
+    type:        'first type',
   },
   {
-    name: 'No description',
+    name:        'No description',
     description: '',
-    type: 'second type',
+    type:        'second type',
   },
 ];
 
 export const headers = [
   {
-    name: 'name',
+    name:  'name',
     label: 'Name',
   },
   {
-    name: 'description',
+    name:  'description',
     label: 'Description',
   },
   {
-    name: 'type',
+    name:  'type',
     label: 'Type',
   },
 ];
@@ -61,9 +59,9 @@ export const slots: [string, string][] = [
   ['shortkeysSlot', 'shortkeys'],
 ];
 
-export const getSlots = (list: [string, string][], args: any) => list.map(([key, name]) => `<template v-if="${key in args}" v-slot:${name}>${args[key]}</template>`).join('\n')
-export const textSlotArea = (text: string) => `<div style="background: red; color: white">${text}</div>`;
-export const getButton = (text: string) => `${text}`;
+export const getSlots = (list: [string, string][], args: any) => list.map(([key, name]) => `<template v-if="${ key in args }" v-slot:${ name }>${ args[key] }</template>`).join('\n');
+export const textSlotArea = (text: string) => `<div style="background: red; color: white">${ text }</div>`;
+export const getButton = (text: string) => `${ text }`;
 
 export const Default: Story = {
   render: (args: any) => ({
@@ -73,7 +71,7 @@ export const Default: Story = {
     },
     template: `
       <Table v-bind="args">
-        ${getSlots(slots, args)}
+        ${ getSlots(slots, args) }
       </Table>`
   }),
   args: {
@@ -96,8 +94,8 @@ export const Simplified: Story = {
   args: {
     headers,
     rows,
-    search: false,
-    rowActions: false,
+    search:       false,
+    rowActions:   false,
     tableActions: false,
   },
 };
@@ -106,7 +104,7 @@ export const Loading: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
+    rows:    [],
     loading: true
   },
 };
@@ -115,8 +113,8 @@ export const SlotLoading: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
-    loading: true, 
+    rows:        [],
+    loading:     true,
     loadingSlot: textSlotArea(`Loading...`)
   },
 };
@@ -125,7 +123,7 @@ export const SlotNoRow: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
+    rows:      [],
     noRowSlot: textSlotArea(`No row found`)
   },
 };
@@ -134,7 +132,7 @@ export const SlotNoResults: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
+    rows:          [],
     noResultsSlot: textSlotArea(`No result found`)
   },
 };
@@ -143,7 +141,7 @@ export const SlotTitle: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
+    rows:          [],
     noResultsSlot: textSlotArea(`No result found`)
   },
 };
@@ -152,10 +150,10 @@ export const SlotHeader: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
-    headerLeftSlot: textSlotArea(getButton('Left')),
+    rows:             [],
+    headerLeftSlot:   textSlotArea(getButton('Left')),
     headerMiddleSlot: textSlotArea(getButton('Middle')),
-    headerRightSlot: textSlotArea(getButton('Right')),
+    headerRightSlot:  textSlotArea(getButton('Right')),
     headerButtonSlot: textSlotArea(getButton('Header'))
   },
 };
@@ -165,9 +163,9 @@ export const SlotGroupBy: Story = {
   args: {
     headers,
     rows,
-    groupBy: 'type',
+    groupBy:      'type',
     groupRowSlot: textSlotArea(`Group row slot`),
-    groupBySlot: textSlotArea(`Group by slot`)
+    groupBySlot:  textSlotArea(`Group by slot`)
   },
 };
 
@@ -220,7 +218,7 @@ export const SlotSubRow: Story = {
   ...Default,
   args: {
     headers,
-    subRows: true,
+    subRows:    true,
     rows,
     subRowSlot: textSlotArea(`Sub row slot`)
   },
@@ -230,11 +228,11 @@ export const SlotSubRowExpandable: Story = {
   ...Default,
   args: {
     headers,
-    subExpandable: true,
-    subRows: true,
+    subExpandable:   true,
+    subRows:         true,
     subExpandColumn: true,
     rows,
-    subRowSlot: textSlotArea(`Sub row slot expandable`)
+    subRowSlot:      textSlotArea(`Sub row slot expandable`)
   },
 };
 
@@ -242,7 +240,7 @@ export const SlotShortkey: Story = {
   ...Default,
   args: {
     headers,
-    rows: [],
+    rows:          [],
     shortkeysSlot: textSlotArea(`Use CMD+W to close this tab :)`)
   },
 };
@@ -259,7 +257,7 @@ export const Filtering: Story = {
 export const Sorting: Story = {
   ...Default,
   args: {
-    headers: headers.map(header => ({ ...header, sort: ['name'] })),
+    headers: headers.map((header) => ({ ...header, sort: ['name'] })),
     rows,
   },
 };
@@ -268,10 +266,8 @@ export const Pagination: Story = {
   ...Default,
   args: {
     headers,
-    rows: Array.from(new Array(100)).map((el, i) => ({
-      name: `Row ${i}`,
-    })),
-    paging: true,
+    rows:        Array.from(new Array(100)).map((el, i) => ({ name: `Row ${ i }` })),
+    paging:      true,
     rowsPerPage: 5
   },
 };

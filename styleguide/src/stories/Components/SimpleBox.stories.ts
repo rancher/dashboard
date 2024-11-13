@@ -3,9 +3,9 @@ import SimpleBox from '@shell/components/SimpleBox';
 
 const meta: Meta<typeof SimpleBox> = {
   component: SimpleBox,
-  argTypes: {
+  argTypes:  {
     canClose: { control: 'boolean' },
-    title: { control: 'text' },
+    title:    { control: 'text' },
   },
 };
 
@@ -30,6 +30,6 @@ export const Basic: Story = {
   ...Default,
   args: {
     canClose: true,
-    title: 'Basic SimpleBox component',
+    title:    'Basic SimpleBox component',
   },
 };

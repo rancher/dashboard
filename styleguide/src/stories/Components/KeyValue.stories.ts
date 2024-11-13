@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
-const meta: Meta<typeof KeyValue> = {
-  component: KeyValue,
-};
+const meta: Meta<typeof KeyValue> = { component: KeyValue };
 
 export default meta;
 type Story = StoryObj<typeof KeyValue>;
@@ -41,17 +39,17 @@ export const ProtectedMultiline: Story = {
   args: {
 
     value: {
-      foo: 'bar',
-      bar: 'foo',
+      foo:   'bar',
+      bar:   'foo',
       test1: `this is disabled
 this is second line
 this is third line`,
       test2: 'this is disabled',
       test3: 'this is disabled',
     },
-    toggleFilter: true,
+    toggleFilter:   true,
     valueMultiline: true,
-    protectedKeys: ['test1', 'test2', 'test3'],
+    protectedKeys:  ['test1', 'test2', 'test3'],
   },
 };
 
@@ -59,12 +57,12 @@ export const ProtectedSuggestions: Story = {
   ...Default,
   args: {
     value: {
-      foo: 'bar',
-      bar: 'foo',
+      foo:   'bar',
+      bar:   'foo',
       test1: 'this is disabled, try to add a new one with suggestion',
     },
-    toggleFilter: true,
-    keyOptions: ['test which will be disabled'],
+    toggleFilter:  true,
+    keyOptions:    ['test which will be disabled'],
     protectedKeys: ['test1', 'test which will be disabled'],
   },
 };

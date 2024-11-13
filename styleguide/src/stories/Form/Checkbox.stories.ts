@@ -3,8 +3,8 @@ import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Chec
 
 const meta: Meta<typeof Checkbox> = {
   component: Checkbox,
-  argTypes: {
-    label: { control: 'text' },
+  argTypes:  {
+    label:   { control: 'text' },
     checked: { control: 'boolean' },
   },
 };
@@ -20,15 +20,13 @@ export const Default: Story = {
     },
     template: '<Checkbox v-bind="args" />',
   }),
-  args: {
-    label: 'Default',
-  },
+  args: { label: 'Default' },
 };
 
 export const Checked: Story = {
   ...Default,
   args: {
-    label: 'Checked',
+    label:   'Checked',
     checked: true,
   },
 };
@@ -36,8 +34,8 @@ export const Checked: Story = {
 export const Disabled: Story = {
   ...Default,
   args: {
-    label: 'Disabled',
-    checked: false,
+    label:    'Disabled',
+    checked:  false,
     disabled: true,
   },
 };
@@ -45,8 +43,8 @@ export const Disabled: Story = {
 export const DisabledChecked: Story = {
   ...Default,
   args: {
-    label: 'Disabled and checked',
-    checked: true,
+    label:    'Disabled and checked',
+    checked:  true,
     disabled: true,
   },
 };

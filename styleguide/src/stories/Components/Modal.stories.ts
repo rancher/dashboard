@@ -3,9 +3,9 @@ import Modal from '@shell/components/AppModal';
 
 const meta: Meta<typeof Modal> = {
   component: Modal,
-  argTypes: {
+  argTypes:  {
     clickToClose: { control: 'boolean' },
-    width: { control: 'number' },
+    width:        { control: 'number' },
   },
 };
 
@@ -22,6 +22,6 @@ export const Default: Story = {
   }),
   args: {
     clickToClose: true,
-    width: 800,
+    width:        800,
   },
 };

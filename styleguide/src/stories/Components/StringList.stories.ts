@@ -3,15 +3,15 @@ import StringList from '@/pkg/rancher-components/src/components/StringList/Strin
 
 const meta: Meta<typeof StringList> = {
   component: StringList,
-  argTypes: {
+  argTypes:  {
     actionsPosition: {
       options: ['left', 'right'],
       control: { type: 'radio' },
     },
-    placeholder: { control: 'text' },
+    placeholder:   { control: 'text' },
     errorMessages: { control: 'object' },
     caseSensitive: { control: 'boolean' },
-    readonly: { control: 'boolean' },
+    readonly:      { control: 'boolean' },
   },
 };
 
@@ -38,19 +38,19 @@ export const Default: Story = {
 export const Edit: Story = {
   ...Default,
   args: {
-    items: ['item', 'item-1', 'item-2', 'item-3', 'item-4'],
+    items:           ['item', 'item-1', 'item-2', 'item-3', 'item-4'],
     actionsPosition: 'left',
-    placeholder: 'type new item',
-    errorMessages: { duplicate: 'Error, item is duplicate.' }
+    placeholder:     'type new item',
+    errorMessages:   { duplicate: 'Error, item is duplicate.' }
   },
 };
 
 export const View: Story = {
   ...Default,
   args: {
-    items: ['item', 'item-1', 'item-2', 'item-3', 'item-4'],
+    items:           ['item', 'item-1', 'item-2', 'item-3', 'item-4'],
     actionsPosition: 'left',
-    placeholder: 'type new item',
-    readonly: true
+    placeholder:     'type new item',
+    readonly:        true
   },
 };

@@ -3,10 +3,10 @@ import ButtonDropdown from '@shell/components/ButtonDropdown';
 
 const meta: Meta<typeof ButtonDropdown> = {
   component: ButtonDropdown,
-  argTypes: {
-    buttonLabel: { control: 'text' },
+  argTypes:  {
+    buttonLabel:     { control: 'text' },
     dropdownOptions: { control: 'array' },
-    size: { control: 'select', options: ['sm', 'md', 'lg'] },
+    size:            { control: 'select', options: ['sm', 'md', 'lg'] },
   },
 };
 
@@ -21,25 +21,23 @@ export const Default: Story = {
     },
     template: '<ButtonDropdown v-bind="args" />',
   }),
-  args: {
-    buttonLabel: 'No options',
-  },
+  args: { buttonLabel: 'No options' },
 };
 
 export const Small: Story = {
   ...Default,
   args: {
-    buttonLabel: 'Option',
+    buttonLabel:     'Option',
     dropdownOptions: ['Option', 'Option1'],
-    size: 'sm',
+    size:            'sm',
   },
 };
 
 export const Large: Story = {
   ...Default,
   args: {
-    buttonLabel: 'Option',
+    buttonLabel:     'Option',
     dropdownOptions: ['Option', 'Option1'],
-    size: 'lg',
+    size:            'lg',
   },
 };
