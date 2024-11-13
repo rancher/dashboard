@@ -93,6 +93,14 @@ const setLoaders = (config: webpack.Configuration) => {
   }
 }
 
+const setPlugins = (config: webpack.Configuration) => {
+  if (config.plugins) {
+    // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
+    config.plugins.push(new NodePolyfillPlugin() as any);
+    config.plugins.push(new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath));
+  }
+}
+
 const config: StorybookConfig = {
   framework: {
     name: getAbsolutePath('@storybook/vue3-webpack5'),
@@ -128,12 +136,7 @@ const config: StorybookConfig = {
   webpackFinal: async (config) => {
     setAliases(config);
     setLoaders(config);
-
-    if (config.plugins) {
-      // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
-      config.plugins.push(new NodePolyfillPlugin() as any);
-      config.plugins.push(new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath));
-    }
+    setPlugins(config);
  
     return config
   },
