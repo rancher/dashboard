@@ -189,7 +189,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         // Set Grafana resource request/limits configuration
         chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-grafana"');
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="grafana"');
 
         grafana.requestedCpu().checkExists();
         grafana.requestedCpu().checkVisible();
