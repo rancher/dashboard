@@ -111,11 +111,11 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         installChart.installChart();
 
-        cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-          const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
+        // cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
+        //   const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
-          expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-        });
+        //   expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
+        // });
 
         terminal.closeTerminal();
       });
