@@ -68,11 +68,6 @@ export default {
       default: null,
     },
 
-    flexContent: {
-      type:    Boolean,
-      default: false,
-    },
-
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -418,7 +413,6 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value.doneOverride"
-      :class="{'flex-content': flexContent}"
       @update:value="$emit('input', $event)"
     />
 
@@ -434,7 +428,6 @@ export default {
       :initial-value="initialModel"
       :live-value="liveModel"
       :real-mode="realMode"
-      :class="{'flex-content': flexContent}"
       @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"
     />
