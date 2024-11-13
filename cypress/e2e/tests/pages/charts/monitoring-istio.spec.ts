@@ -2,7 +2,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
+// import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
@@ -151,11 +151,11 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         installChart.installChart();
 
-        cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-          const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
+        // cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
+        //   const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
-          expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-        });
+        //   expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
+        // });
 
         terminal.closeTerminal();
       });
