@@ -71,8 +71,6 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const tabbedOptions = new TabbedPo();
 
-        chartPage.selectVersion('105.1.0+up61.3.2');
-
         // Navigate to the edit options page and Set prometheus storage class
         chartPage.goToInstall();
         installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
@@ -127,11 +125,9 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         const tabbedOptions = new TabbedPo();
 
-        chartPage.selectVersion('105.1.0+up61.3.2');
-
         // Set prometheus storage class
         chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="prometheus"]');
         installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         // Scroll into view - scroll to bottom of view
