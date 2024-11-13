@@ -133,7 +133,7 @@ const config: StorybookConfig = {
     disableTelemetry: true,
   },
   docs: {},
-  webpackFinal: async (config) => {
+  webpackFinal: (config) => {
     setAliases(config);
     setLoaders(config);
     setPlugins(config);

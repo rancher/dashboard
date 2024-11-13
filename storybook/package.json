@@ -1,41 +1,32 @@
 {
-  "name": "dashboard-storybook",
-  "description": "Rancher Dashboard Storybook",
-  "repository": "https://github.com/rancher/dashboard",
-  "license": "Apache-2.0",
-  "author": "SUSE",
+  "name": "styleguide",
   "private": true,
   "version": "0.0.0",
-  "engines": {
-    "node": ">=14"
-  },
+  "type": "module",
   "scripts": {
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o ../storybook-static"
-  },
-  "devDependencies": {
-    "@storybook/addon-a11y": "^7.6.17",
-    "@storybook/addon-actions": "^7.6.17",
-    "@storybook/addon-essentials": "^7.6.17",
-    "@storybook/addon-links": "^7.6.17",
-    "@storybook/addon-mdx-gfm": "^7.6.17",
-    "@storybook/addon-webpack5-compiler-babel": "^3.0.3",
-    "@storybook/cli": "^7.6.17",
-    "@storybook/test-runner": "^0.11.0",
-    "@storybook/vue3": "^7.6.17",
-    "@storybook/vue3-webpack5": "^7.6.17",
-    "axe-playwright": "^1.2.3",
-    "storybook": "^7.6.17",
-    "storybook-auto-events": "^0.1.1",
-    "storybook-dark-mode": "^1.0.8",
-    "vue-shortkey": "3.1.7"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
-    "shell": "file:./..",
-    "tsconfig-paths-webpack-plugin": "^4.0.0",
-    "vue-loader": "15.10.1"
+    "remark-gfm": "^4.0.0",
+    "vue": "^3.5.10"
   },
-  "resolutions": {
-    "@storybook/components": "^7.6.17"
+  "devDependencies": {
+    "@storybook/addon-actions": "^8.4.2",
+    "@storybook/addon-essentials": "^8.4.2",
+    "@storybook/addon-interactions": "^8.4.2",
+    "@storybook/addon-links": "^8.4.2",
+    "@storybook/addon-onboarding": "^8.4.2",
+    "@storybook/addon-webpack5-compiler-babel": "^3.0.3",
+    "@storybook/addon-webpack5-compiler-swc": "^1.0.5",
+    "@storybook/blocks": "^8.4.2",
+    "@storybook/manager-api": "^8.4.2",
+    "@storybook/test": "^8.4.2",
+    "@storybook/theming": "^8.4.2",
+    "@storybook/vue3": "^8.4.2",
+    "@storybook/vue3-webpack5": "^8.4.2",
+    "storybook": "^8.4.2",
+    "typescript": "^5.5.3",
+    "vue-tsc": "^2.1.6"
   }
 }

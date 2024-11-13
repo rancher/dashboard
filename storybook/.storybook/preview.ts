@@ -9,6 +9,7 @@ import { floatingVueOptions } from '@shell/plugins/floating-vue';
 import cleanTooltipDirective  from '@shell/directives/clean-tooltip';
 import ShortKey from '@shell/plugins/shortkey';
 import cleanHtmlDirective from '@shell/directives/clean-html';
+import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 import store from './store'
 
 // i18n
@@ -19,6 +20,8 @@ setup((vueApp) => {
   vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.directive('clean-html', cleanHtmlDirective);
   vueApp.directive('clean-tooltip', cleanTooltipDirective);
+  vueApp.directive('trim-whitespace', trimWhitespaceDirective);
+  
   vueApp.component('v-select', vSelect);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.component('router-link', {

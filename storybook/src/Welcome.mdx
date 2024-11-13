@@ -2,7 +2,24 @@
 import { Meta, Canvas, Story } from '@storybook/blocks';
 import ImageFile from './../public/footer-bg.png';
 
-<div class="storybook-welcome">
+<style>
+{`
+.storybook-welcome {
+  background-color: #3d98d3;
+  margin-top: 20px !important;
+  line-height: 0;
+
+  > h2 {
+    padding: 10px 0 0 10px !important;
+    color: #fff !important;
+    border: 0;
+    line-height: initial;
+  }
+}
+`}
+</style>
+
+<div className="storybook-welcome">
   <h2>Welcome to the Rancher Storybook</h2>
   <img src={ImageFile} />
 </div>
