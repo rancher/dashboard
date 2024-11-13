@@ -181,7 +181,8 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
         accountPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        accountPage.sortableTable().pagination().endButton().click();
+        accountPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // row count on last page
         let lastPageCount = count % 10;
@@ -243,7 +244,8 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).scrollIntoView().should('be.visible');
 
       // navigate to last page
-      accountPage.sortableTable().pagination().endButton().click();
+      accountPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // token description should be NOT visible on last page (sorted in ASC order)
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).should('not.exist');
@@ -256,7 +258,8 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).should('not.exist');
 
       // navigate to last page
-      accountPage.sortableTable().pagination().endButton().click();
+      accountPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // token description should be visible on last page (sorted in DESC order)
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).scrollIntoView().should('be.visible');

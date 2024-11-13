@@ -139,7 +139,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
           prefPage.languageDropdownMenu().clickOptionWithLabel('English');
           cy.wait('@prefUpdateEnUs').then(({ response }) => {
             expect(response?.statusCode).to.eq(200);
-            expect(response?.body.data).to.have.property('locale', 'en-us');
+            expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
           });
           prefPage.languageDropdownMenu().isClosed();
         })

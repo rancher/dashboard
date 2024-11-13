@@ -9,7 +9,7 @@ class RoleTemplateDetailComponentPo extends ResourceDetailPo {
   }
 
   openMastheadActionMenu() {
-    this.self().get('[data-testid="mathead-action-menu"]').click();
+    this.self().get('[data-testid="masthead-action-menu"]').click();
 
     return new ActionMenu(undefined);
   }

@@ -24,7 +24,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     BurgerMenuPo.toggle();
     const burgerMenuPo = new BurgerMenuPo();
 
-    burgerMenuPo.clusters().eq(0).should('be.visible').click();
+    burgerMenuPo.goToCluster('local').click();
   });
 
   it('Can access to first navigation link on click', () => {

@@ -1,10 +1,12 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+
 export const deploymentCollection = {
   type:         'collection',
   links:        { self: 'https://localhost:8005/v1/apps.deployments' },
   createTypes:  { 'apps.deployment': 'https://localhost:8005/v1/apps.deployments' },
   actions:      {},
   resourceType: 'apps.deployment',
-  revision:     '12999812',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        15,
   data:         [
 
@@ -164,7 +166,7 @@ export const deploymentCollection = {
             transitioning: true
           }
         ],
-        resourceVersion: '12999806',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment does not have minimum availability.',
@@ -255,7 +257,7 @@ export const deploymentCollectionResponseFull = {
   createTypes:  { 'apps.deployment': 'https://localhost:8005/v1/apps.deployments' },
   actions:      {},
   resourceType: 'apps.deployment',
-  revision:     '12999812',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        15,
   data:         [
     {
@@ -454,7 +456,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '6109',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -805,7 +807,7 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3067',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -1112,7 +1114,7 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '3089',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -1391,7 +1393,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '787692',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -2064,7 +2066,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '787803',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -2703,7 +2705,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '787731',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -3085,7 +3087,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '12995749',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -3515,7 +3517,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '787962',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -3950,7 +3952,7 @@ export const deploymentCollectionResponseFull = {
             state:    'deployed'
           }
         ],
-        resourceVersion: '663180',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -4295,7 +4297,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '12900726',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',
@@ -4560,7 +4562,7 @@ export const deploymentCollectionResponseFull = {
             transitioning: true
           }
         ],
-        resourceVersion: '12999806',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment does not have minimum availability.',
@@ -4950,7 +4952,7 @@ export const deploymentCollectionResponseFull = {
             message: 'ReplicaSet is available. Replicas: 1'
           }
         ],
-        resourceVersion: '1377',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Deployment is available. Replicas: 1',

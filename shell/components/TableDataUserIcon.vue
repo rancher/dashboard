@@ -24,7 +24,7 @@ const iconClass = computed(() => {
 <template>
   <div class="icon-center">
     <i
-      v-tooltip="ucFirst(userState)"
+      v-clean-tooltip="ucFirst(userState)"
       :class="iconClass"
     />
   </div>

@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class BurgerMenuPo extends ComponentPo {
   constructor() {
@@ -19,8 +19,8 @@ export default class BurgerMenuPo extends ComponentPo {
    * Navigates to a top-level side menu entry by label (non-cluster)
    * @returns {Cypress.Chainable}
    */
-  static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
-    return this.sideMenu().should('exist').find('.option').contains(label)
+  static burgerMenuNavToMenubyLabel(label: string, options?: GetOptions): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option').contains(label, options)
       .click({ force: true });
   }
 
@@ -128,15 +128,26 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
+   * Get all clusters, whether pinned, filtered or not
+   */
+  allClusters(): Cypress.Chainable {
+    return this.self().find('.body .cluster.selector.option');
+  }
+
+  goToCluster(clusterId = 'local') {
+    return this.self().find('.cluster-name').contains(clusterId).click();
+  }
+
+  /**
    * Get all the available cluster navigation links
    * @returns {Cypress.Chainable}
    */
-  clusters(): Cypress.Chainable {
+  clusterNotPinnedList(): Cypress.Chainable {
     return this.self().find('.body .clustersList .cluster.selector.option');
   }
 
   pinFirstCluster(): Cypress.Chainable {
-    return this.clusters().first().trigger('mouseover').find('.pin')
+    return this.clusterNotPinnedList().first().trigger('mouseover').find('.pin')
       .invoke('show')
       .click();
   }
@@ -150,11 +161,11 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   getClusterDescription(): Cypress.Chainable {
-    return this.clusters().first().find('.description').invoke('text');
+    return this.clusterNotPinnedList().first().find('.description').invoke('text');
   }
 
   showClusterDescriptionTooltip(): Cypress.Chainable {
-    return this.clusters().first().find('.description').trigger('mouseenter');
+    return this.clusterNotPinnedList().first().find('.description').trigger('mouseenter');
   }
 
   getClusterDescriptionTooltipContent(): Cypress.Chainable {

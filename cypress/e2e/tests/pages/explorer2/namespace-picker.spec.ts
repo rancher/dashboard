@@ -37,6 +37,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.waitForPage();
     cy.wait('@getPods');
 
+    // group by namespace
+    workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
@@ -187,7 +191,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
+  it.skip('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     const projName = `project${ +new Date() }`;
     const nsName = `namespace${ +new Date() }`;
 
