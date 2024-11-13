@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -227,6 +228,9 @@ export default {
       };
     },
 
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
   },
 
   watch: {
@@ -398,7 +402,7 @@ export default {
         :to="singleProductLogoRoute"
       >
         <BrandImage
-          v-if="isSingleProduct.supportCustomLogo"
+          v-if="isSingleProduct.supportCustomLogo && isHarvester"
           class="side-menu-logo"
           file-name="harvester.svg"
           :support-custom-logo="true"
