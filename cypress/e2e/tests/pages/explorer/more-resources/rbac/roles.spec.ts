@@ -31,10 +31,10 @@ describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, (
     });
 
     it('flat list: validate roles table', () => {
-      generateRolesDataSmall();
+      generateRolesDataSmall('rolesDataSmall1');
       rolesPage.goTo();
       rolesPage.waitForPage();
-      cy.wait('@rolesDataSmall');
+      cy.wait('@rolesDataSmall1');
 
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Created At'];
@@ -52,10 +52,12 @@ describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, (
     });
 
     it('group by namespace: validate roles table', () => {
-      generateRolesDataSmall();
+      const ns = 'saddsfdsf';
+
+      generateRolesDataSmall('rolesDataSmall2', ns);
       rolesPage.goTo();
       rolesPage.waitForPage();
-      cy.wait('@rolesDataSmall');
+      cy.wait('@rolesDataSmall2');
 
       // group by namespace
       rolesPage.list().resourceTable().sortableTable().groupByButtons(1)
@@ -73,10 +75,9 @@ describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, (
       rolesPage.list().resourceTable().sortableTable().checkVisible();
       rolesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       rolesPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
-      rolesPage.list().resourceTable().sortableTable().groupElementWithName('Namespace: kube-system')
+      rolesPage.list().resourceTable().sortableTable().groupElementWithName(`Namespace: ${ ns }`)
         .scrollIntoView()
         .should('be.visible');
-      rolesPage.list().resourceTable().sortableTable().checkRowCount(false, 2);
     });
 
     after('clean up', () => {

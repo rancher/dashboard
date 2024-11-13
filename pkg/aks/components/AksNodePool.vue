@@ -379,7 +379,7 @@ export default defineComponent({
         <div class="text-label">
           {{ t('aks.nodePools.taints.label') }}
           <i
-            v-tooltip="t('aks.nodePools.taints.tooltip')"
+            v-clean-tooltip="t('aks.nodePools.taints.tooltip')"
             class="icon icon-info"
           />
         </div>
@@ -455,7 +455,7 @@ export default defineComponent({
         <div class="text-label">
           {{ t('labels.labels.title') }}
           <i
-            v-tooltip="t('aks.nodePools.labels.tooltip')"
+            v-clean-tooltip="t('aks.nodePools.labels.tooltip')"
             class="icon icon-info"
           />
         </div>

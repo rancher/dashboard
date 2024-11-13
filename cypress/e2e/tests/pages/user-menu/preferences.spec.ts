@@ -16,8 +16,8 @@ const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-const VIM = 'Vim';
-const NORMAL_HUMAN = 'Normal human';
+// const VIM = 'Vim';
+// const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 
@@ -104,58 +104,58 @@ describe('User can update their preferences', () => {
     }
   });
 
-  it.skip('[Vue3 Skip]: Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
-    /*
-    Select each radio button and verify its highlighted
-    Validate http request's payload & response contain correct values per selection
-    Verify user is landing on correct page after login
-    Verify selection is preserved after logout/login
-    */
+  // it.skip('[Vue3 Skip]: Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
+  //   /*
+  //   Select each radio button and verify its highlighted
+  //   Validate http request's payload & response contain correct values per selection
+  //   Verify user is landing on correct page after login
+  //   Verify selection is preserved after logout/login
+  //   */
 
-    const landingPageOptions = [
-      {
-        index: '0', value: '"home"', page: '/home'
-      },
-      {
-        index: '1', value: '"last-visited"', page: 'c/_/manager/provisioning.cattle.io.cluster'
-      },
-      { // This option only works when there is an existing local cluster
-        index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
-      },
-    ];
+  //   const landingPageOptions = [
+  //     {
+  //       index: '0', value: '"home"', page: '/home'
+  //     },
+  //     {
+  //       index: '1', value: '"last-visited"', page: 'c/_/manager/provisioning.cattle.io.cluster'
+  //     },
+  //     { // This option only works when there is an existing local cluster
+  //       index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
+  //     },
+  //   ];
 
-    prefPage.goTo();
-    prefPage.landingPageRadioBtn().checkVisible();
-    landingPageOptions.forEach((key) => {
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
-      prefPage.landingPageRadioBtn().set(parseInt(key.index));
-      cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('after-login-route', key.value);
-        expect(response?.body.data).to.have.property('after-login-route', key.value);
-      });
-      prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
+  //   prefPage.goTo();
+  //   prefPage.landingPageRadioBtn().checkVisible();
+  //   landingPageOptions.forEach((key) => {
+  //     cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
+  //     prefPage.landingPageRadioBtn().set(parseInt(key.index));
+  //     cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
+  //       expect(response?.statusCode).to.eq(200);
+  //       expect(request.body.data).to.have.property('after-login-route', key.value);
+  //       expect(response?.body.data).to.have.property('after-login-route', key.value);
+  //     });
+  //     prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
 
-      // NOTE: Ideally we'd like to verify user is landing on correct page after login however there are issues with the login command
+  //     // NOTE: Ideally we'd like to verify user is landing on correct page after login however there are issues with the login command
 
-      // if key is 1, navigate to cluster manager page and then do validations, else just do validations
-      // if (parseInt(key.index) === 1) {
-      //   cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
-      //   clusterManagerPage.goTo();
-      //   clusterManagerPage.list().checkVisible();
-      //   cy.wait('@userPref').its('response.statusCode').should('eq', 200);
-      // }
+  //     // if key is 1, navigate to cluster manager page and then do validations, else just do validations
+  //     // if (parseInt(key.index) === 1) {
+  //     //   cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
+  //     //   clusterManagerPage.goTo();
+  //     //   clusterManagerPage.list().checkVisible();
+  //     //   cy.wait('@userPref').its('response.statusCode').should('eq', 200);
+  //     // }
 
-    // userMenu.toggle();
-    // userMenu.isOpen();
-    // userMenu.clickMenuItem('Log Out');
-    // cy.login();
-    // cy.visit(`${ Cypress.config().baseUrl }`);
-    // cy.url().should('include', value[1]);
-    // prefPage.goTo();
-    // prefPage.landingPageRadioBtn().isChecked(key);
-    });
-  });
+  //   // userMenu.toggle();
+  //   // userMenu.isOpen();
+  //   // userMenu.clickMenuItem('Log Out');
+  //   // cy.login();
+  //   // cy.visit(`${ Cypress.config().baseUrl }`);
+  //   // cy.url().should('include', value[1]);
+  //   // prefPage.goTo();
+  //   // prefPage.landingPageRadioBtn().isChecked(key);
+  //   });
+  // });
 
   it('Can select date format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
@@ -426,31 +426,31 @@ describe('User can update their preferences', () => {
       yamlEditor.keyboardMappingIndicator().checkNotExists();
     });
 
-    it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
-      prefPage.goTo();
-      prefPage.keymapButtons().checkVisible();
+    // it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
+    //   prefPage.goTo();
+    //   prefPage.keymapButtons().checkVisible();
 
-      prefPage.keymapButtons().set(VIM);
-      prefPage.keymapButtons().isSelected(VIM);
+    //   prefPage.keymapButtons().set(VIM);
+    //   prefPage.keymapButtons().isSelected(VIM);
 
-      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+    //   const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
 
-      yamlEditor.goTo();
-      yamlEditor.waitForPage();
+    //   yamlEditor.goTo();
+    //   yamlEditor.waitForPage();
 
-      yamlEditor.keyboardMappingIndicator().checkExists();
-      yamlEditor.keyboardMappingIndicator().checkVisible();
+    //   yamlEditor.keyboardMappingIndicator().checkExists();
+    //   yamlEditor.keyboardMappingIndicator().checkVisible();
 
-      yamlEditor.keyboardMappingIndicator().showTooltip();
-      yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
-      yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+    //   yamlEditor.keyboardMappingIndicator().showTooltip();
+    //   yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
+    //   yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
 
-      // Reset keyboard mapping
-      prefPage.goTo();
-      prefPage.keymapButtons().checkVisible();
+    //   // Reset keyboard mapping
+    //   prefPage.goTo();
+    //   prefPage.keymapButtons().checkVisible();
 
-      prefPage.keymapButtons().set(NORMAL_HUMAN);
-    });
+    //   prefPage.keymapButtons().set(NORMAL_HUMAN);
+    // });
   });
 
   it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {

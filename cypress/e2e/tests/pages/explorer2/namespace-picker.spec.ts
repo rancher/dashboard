@@ -37,6 +37,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.waitForPage();
     cy.wait('@getPods');
 
+    // group by namespace
+    workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
@@ -187,38 +191,38 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 1);
   });
 
-  it.skip('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
-    const projName = `project${ +new Date() }`;
-    const nsName = `namespace${ +new Date() }`;
+  // it.skip('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
+  //   const projName = `project${ +new Date() }`;
+  //   const nsName = `namespace${ +new Date() }`;
 
-    // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+  //   // get user id
+  //   cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+  //     const userId = resp.body.data[0].id.trim();
 
-      // create project
-      cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        const projId = resp.body.id.trim();
+  //     // create project
+  //     cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
+  //       const projId = resp.body.id.trim();
 
-        // create ns
-        cy.createNamespaceInProject(nsName, projId);
+  //       // create ns
+  //       cy.createNamespaceInProject(nsName, projId);
 
-        // check ns picker
-        namespacePicker.toggle();
-        cy.contains(projName).should('be.visible');
-        cy.contains(nsName).should('be.visible');
+  //       // check ns picker
+  //       namespacePicker.toggle();
+  //       cy.contains(projName).should('be.visible');
+  //       cy.contains(nsName).should('be.visible');
 
-        // delete project and ns
-        cy.deleteRancherResource('v1', 'namespaces', nsName);
-        cy.deleteRancherResource('v3', 'projects', projId);
+  //       // delete project and ns
+  //       cy.deleteRancherResource('v1', 'namespaces', nsName);
+  //       cy.deleteRancherResource('v3', 'projects', projId);
 
-        // check ns picker
-        cy.reload();
-        namespacePicker.toggle();
-        cy.contains(projName, { timeout: 10000 }).should('not.exist');
-        cy.contains(nsName, { timeout: 10000 }).should('not.exist');
-      });
-    });
-  });
+  //       // check ns picker
+  //       cy.reload();
+  //       namespacePicker.toggle();
+  //       cy.contains(projName, { timeout: 10000 }).should('not.exist');
+  //       cy.contains(nsName, { timeout: 10000 }).should('not.exist');
+  //     });
+  //   });
+  // });
 
   after('clean up', () => {
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');

@@ -2,6 +2,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const events = new EventsPagePo('local');
@@ -12,7 +13,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    const uniquePod = 'aaa-e2e-test-pod-name';
+    let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
     let nsName2: string;
@@ -29,10 +30,10 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         let i = 0;
 
         while (i < 125) {
-          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+          const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
-            podNamesList.push(`pod-${ podName }`);
+          cy.createPod(nsName1, podName, 'nginx:latest', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
+            podNamesList.push(resp.body.metadata.name);
           });
 
           i++;
@@ -46,76 +47,85 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         cy.createNamespace(nsName2);
 
         // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:latest');
+        cy.createPod(nsName2, uniquePod, 'nginx:latest', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
+          uniquePod = resp.body.metadata.name;
+        });
       });
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
-      ClusterDashboardPagePo.navTo();
+      ClusterDashboardPagePo.goTo('local');
       clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();
       events.waitForPage();
 
-      const count = 500;
+      cy.getRancherResource('v1', 'events').then((resp: Cypress.Response<any>) => {
+        // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
+        const count = resp.body.count < 500 ? resp.body.count : 500;
 
-      // pagination is visible
-      events.sortableTable().pagination().checkVisible();
+        // Test break down if less than 400...
+        expect(count).to.be.greaterThan(400);
 
-      const loadingPo = new LoadingPo('.title .resource-loading-indicator');
+        // pagination is visible
+        events.sortableTable().pagination().checkVisible();
 
-      loadingPo.checkNotExists();
+        const loadingPo = new LoadingPo('.title .resource-loading-indicator');
 
-      // basic checks on navigation buttons
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-      events.sortableTable().pagination().rightButton().isEnabled();
-      events.sortableTable().pagination().endButton().isEnabled();
+        loadingPo.checkNotExists();
 
-      // check text before navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        // basic checks on navigation buttons
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
+        events.sortableTable().pagination().rightButton().isEnabled();
+        events.sortableTable().pagination().endButton().isEnabled();
+
+        // check text before navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+
+        // navigate to next page - right button
+        events.sortableTable().pagination().rightButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isEnabled();
+        events.sortableTable().pagination().leftButton().isEnabled();
+
+        // navigate to first page - left button
+        events.sortableTable().pagination().leftButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
+
+        // navigate to last page - end button
+        events.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
+
+        // check row count on last page
+        events.sortableTable().checkRowCount(false, 100);
+
+        // check text after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
+        });
+
+        // navigate to first page - beginning button
+        events.sortableTable().pagination().beginningButton().click();
+
+        // check text and buttons after navigation
+        events.sortableTable().pagination().paginationText().then((el) => {
+          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+        });
+        events.sortableTable().pagination().beginningButton().isDisabled();
+        events.sortableTable().pagination().leftButton().isDisabled();
       });
-
-      // navigate to next page - right button
-      events.sortableTable().pagination().rightButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isEnabled();
-      events.sortableTable().pagination().leftButton().isEnabled();
-
-      // navigate to first page - left button
-      events.sortableTable().pagination().leftButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-
-      // navigate to last page - end button
-      events.sortableTable().pagination().endButton().click();
-
-      // check row count on last page
-      events.sortableTable().checkRowCount(false, 100);
-
-      // check text after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
-      });
-
-      // navigate to first page - beginning button
-      events.sortableTable().pagination().beginningButton().click();
-
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
     });
 
     it('filter events', () => {
@@ -157,6 +167,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.sortableTable().tableHeaderRow().checkSortOrder(11, 'down');
 
       // event name should be visible on first page (sorted in ASC order)
+      events.sortableTable().tableHeaderRow().self().scrollIntoView();
       events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
@@ -167,7 +178,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.sortableTable().rowElementWithPartialName(uniquePod).should('not.exist');
 
       // navigate to last page
-      events.sortableTable().pagination().endButton().click();
+      events.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // event name should be visible on last page (sorted in DESC order)
       events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');

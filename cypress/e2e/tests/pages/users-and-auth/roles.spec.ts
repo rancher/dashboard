@@ -7,6 +7,7 @@ import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const roles = new RolesPo(BLANK_CLUSTER);
 const usersPo = new UsersPo(BLANK_CLUSTER);
@@ -266,7 +267,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueRoleName = 'aaa-e2e-test-name';
+    let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');
@@ -282,9 +283,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       let i = 0;
 
       while (i < 25) {
-        const globalRoleName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const globalRoleName = Cypress._.uniqueId(Date.now().toString());
 
-        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
+        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
           const roleId = resp.body.id;
 
           globalRolesIdsList.push(roleId);
@@ -294,8 +295,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false).then((resp: Cypress.Response<any>) => {
+      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const roleId = resp.body.id;
+
+        uniqueRoleName = resp.body.name;
 
         globalRolesIdsList.push(roleId);
       });
@@ -333,6 +336,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.waitForPage();
 
       // check table is sorted by name in ASC order by default
+      rolesList.resourceTable().sortableTable().tableHeaderRow().self()
+        .scrollIntoView();
       rolesList.resourceTable().sortableTable().tableHeaderRow()
         .checkSortOrder(3, 'down');
 
@@ -347,7 +352,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should NOT be visible on last page (sorted in ASC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -364,7 +369,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('not.exist');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should be visible on last page (sorted in DESC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -417,7 +422,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         paginatedRoleTab.leftButton().isDisabled();
 
         // navigate to last page - end button
-        paginatedRoleTab.endButton().click();
+        paginatedRoleTab.endButton().scrollIntoView().click();
 
         // row count on last page
         let lastPageCount = count % 10;

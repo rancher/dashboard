@@ -7,11 +7,13 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 const settingsPage = new SettingsPagePo('local');
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
+const userMenu = new UserMenuPo();
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -223,6 +225,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
+    userMenu.self().click();
+
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');

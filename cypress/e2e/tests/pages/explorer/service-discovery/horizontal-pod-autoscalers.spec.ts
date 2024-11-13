@@ -36,6 +36,8 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.waitForPage();
       cy.wait('@horizontalpodautoscalerDataSmall');
 
+      horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
+
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 
@@ -56,6 +58,8 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.goTo();
       horizontalPodAutoscalersPage.waitForPage();
       cy.wait('@horizontalpodautoscalerDataSmall');
+
+      horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
 
       // group by namespace
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupByButtons(1)
