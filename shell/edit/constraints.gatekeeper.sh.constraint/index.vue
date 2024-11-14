@@ -223,8 +223,8 @@ export default {
         this.value.spec.match.excludedNamespaces = [];
       }
     },
-    set() {
-      return set;
+    setParameters(e) {
+      return set(this.value.spec, 'parameters', e);
     }
   }
 };
@@ -359,7 +359,7 @@ export default {
             v-model:value="parametersYaml"
             class="yaml-editor"
             :editor-mode="editorMode"
-            @newObject="set(value.spec, 'parameters', $event)"
+            @newObject="setParameters"
           />
         </Tab>
       </Tabbed>
