@@ -1,6 +1,7 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -258,8 +259,19 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
             generic: true,
           }
         }
+      },
+      management: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: [
+              { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+              { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+            ],
+            generic: false,
+          }
+        }
       }
     }
   }
-
 };
