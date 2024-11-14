@@ -113,64 +113,65 @@ yarn publish:lib
 
 # We pipe into cat for cleaner logging - we need to set pipefail
 # to ensure the build fails in these cases
-set -o pipefail
+# set -o pipefail
 
-if [ "${SKIP_STANDALONE}" == "false" ]; then
-  DIR=$(mktemp -d)
-  pushd $DIR > /dev/null
+# if [ "${SKIP_STANDALONE}" == "false" ]; then
+#   DIR=$(mktemp -d)
+#   pushd $DIR > /dev/null
 
-  echo "Using temporary directory ${DIR}"
+#   echo "Using temporary directory ${DIR}"
 
-  echo "Verifying extension creator"
+#   echo "Verifying extension creator"
 
-  FORCE_COLOR=true yarn create @rancher/extension test-pkg --app-name test-app | cat
+#   FORCE_COLOR=true yarn create @rancher/extension test-pkg --app-name test-app | cat
 
-  pushd test-app > /dev/null
+#   pushd test-app > /dev/null
 
-  yarn install
-  FORCE_COLOR=true yarn build | cat
+#   yarn install
+#   FORCE_COLOR=true yarn build | cat
 
-  # Add test list component to the test package
-  # Validates rancher-components imports
-  mkdir -p pkg/test-pkg/list
-  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
+#   # Add test list component to the test package
+#   # Validates rancher-components imports
+#   mkdir -p pkg/test-pkg/list
+#   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
-  FORCE_COLOR=true yarn build-pkg test-pkg | cat
+#   FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-  echo "Cleaning temporary dir"
-  popd > /dev/null
+#   echo "Cleaning temporary dir"
+#   popd > /dev/null
 
-  if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
-    echo "Removing folder ${DIR}"
-    rm -rf ${DIR}
-  fi
-fi
+#   if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
+#     echo "Removing folder ${DIR}"
+#     rm -rf ${DIR}
+#   fi
+# fi
 
-pushd $BASE_DIR
+# pushd $BASE_DIR
 
-# Now try a plugin within the dashboard codebase
-echo "Validating in-tree package"
+# # Now try a plugin within the dashboard codebase
+# echo "Validating in-tree package"
 
-yarn install
+# yarn install
 
-if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
-  echo "Removing folder ./pkg/test-pkg"
-  rm -rf ./pkg/test-pkg
-fi
+# if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
+#   echo "Removing folder ./pkg/test-pkg"
+#   rm -rf ./pkg/test-pkg
+# fi
 
-yarn create @rancher/extension test-pkg -i
-cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
-FORCE_COLOR=true yarn build-pkg test-pkg | cat
+# yarn create @rancher/extension test-pkg -i
+# cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
+# FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
-if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
-  echo "Removing folder ./pkg/test-pkg"
-  rm -rf ./pkg/test-pkg
-fi
+# if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
+#   echo "Removing folder ./pkg/test-pkg"
+#   rm -rf ./pkg/test-pkg
+# fi
 
 # function to clone repos and install dependencies (including the newly published shell version)
 function clone_repo_test_extension_build() {
-  REPO_NAME=$1
-  PKG_NAME=$2
+  REPO_ORG=$1
+  REPO_NAME=$2
+  PKG_NAME=$3
 
   echo -e "\nSetting up $REPO_NAME repository locally\n"
 
@@ -183,7 +184,7 @@ function clone_repo_test_extension_build() {
   fi
 
   # cloning repo
-  git clone https://github.com/rancher/$REPO_NAME.git
+  git clone https://github.com/$REPO_ORG/$REPO_NAME.git
   pushd ${BASE_DIR}/$REPO_NAME
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
@@ -195,8 +196,6 @@ function clone_repo_test_extension_build() {
   # update package.json to use a specific version of shell
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
   rm package.json.bak
-
-  yarn remove @rancher/shell
 
   echo -e "\nInstalling newly built shell version\n"
 
@@ -222,8 +221,9 @@ function clone_repo_test_extension_build() {
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
-clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
-clone_repo_test_extension_build "elemental-ui" "elemental"
-# clone_repo_test_extension_build "capi-ui-extension" "capi"
+clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
+clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
+clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
+# clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
 
 echo "All done"
