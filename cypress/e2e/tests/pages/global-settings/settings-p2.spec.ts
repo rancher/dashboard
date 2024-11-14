@@ -316,60 +316,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].original);
   });
 
-  it('can update telemetry-opt', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting: Prompt
-    SettingsPagePo.navTo();
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('telemetry-opt').contains('Opt-out of Telemetry');
-
-    settingsPage.editSettingsByLabel('telemetry-opt');
-
-    const settingsEdit = settingsPage.editSettings('local', 'telemetry-opt');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
-    settingsEdit.useDefaultButton().should('not.be.disabled');
-    settingsEdit.selectSettingsByLabel('Prompt');
-    settingsEdit.saveAndWait('telemetry-opt', 'prompt').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', 'prompt');
-      expect(response?.body).to.have.property('value', 'prompt');
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('telemetry-opt').contains('Prompt');
-
-    // Update settings: Opt-in to Telemetry
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('telemetry-opt');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
-    settingsEdit.selectSettingsByLabel('Opt-in to Telemetry');
-    settingsEdit.saveAndWait('telemetry-opt', 'in').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', 'in');
-      expect(response?.body).to.have.property('value', 'in');
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('telemetry-opt').contains('Opt-in to Telemetry');
-
-    // Update settings: Opt-out of Telemetry
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('telemetry-opt');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
-    settingsEdit.selectSettingsByLabel('Opt-out of Telemetry');
-    settingsEdit.saveAndWait('telemetry-opt', 'out').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', 'out');
-      expect(response?.body).to.have.property('value', 'out');
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('telemetry-opt').contains('Opt-out of Telemetry');
-  });
-
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();

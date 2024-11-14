@@ -66,7 +66,6 @@ export default {
       v3User:             null,
       serverUrl:          null,
       mcmEnabled:         null,
-      telemetry:          null,
       eula:               false,
       principals:         null,
       errors:             []
@@ -101,16 +100,8 @@ export default {
   },
 
   async fetch() {
-    const telemetrySetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
     const serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
     const rancherVersionSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
-    let telemetry = true;
-
-    if (telemetrySetting?.value && telemetrySetting.value !== 'prompt') {
-      telemetry = telemetrySetting.value !== 'out';
-    } else if (!rancherVersionSetting?.value || isDevBuild(rancherVersionSetting?.value)) {
-      telemetry = false;
-    }
 
     let plSetting;
 
@@ -163,7 +154,6 @@ export default {
     this['v3User'] = v3User;
     this['serverUrl'] = serverUrl;
     this['mcmEnabled'] = mcmEnabled;
-    this['telemetry'] = telemetry;
     this['principals'] = principals;
   },
 
@@ -244,7 +234,6 @@ export default {
 
         if (this.isFirstLogin) {
           promises.push( setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString()) );
-          promises.push( setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out') );
 
           if ( this.mcmEnabled && this.serverUrl ) {
             promises.push( setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl) );
@@ -406,20 +395,6 @@ export default {
               </div>
             </template>
 
-            <div class="checkbox mt-40">
-              <Checkbox
-                id="checkbox-telemetry"
-                v-model:value="telemetry"
-              >
-                <template #label>
-                  <t
-                    k="setup.telemetry"
-                    :raw="true"
-                    :name="productName"
-                  />
-                </template>
-              </Checkbox>
-            </div>
             <div class="checkbox pt-10 eula">
               <Checkbox
                 id="checkbox-eula"
