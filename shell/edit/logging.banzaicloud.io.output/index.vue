@@ -199,13 +199,13 @@ export default {
         v-if="hasMultipleProvidersSelected"
         color="info"
       >
-        This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+        {{ t('logging.output.tips.singleProvider') }}
       </Banner>
       <Banner
         v-else-if="!value.allProvidersSupported"
         color="info"
       >
-        This output is configured with providers we don't support yet. You can view or edit the YAML.
+        {{ t('logging.output.tips.multipleProviders') }}
       </Banner>
       <Tabbed
         v-else
