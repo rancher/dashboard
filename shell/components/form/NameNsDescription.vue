@@ -1,5 +1,4 @@
 <script>
-import Vue from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -11,7 +10,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
 
 export default {
-  name:       'NameNsDescription',
+  name: 'NameNsDescription',
+
+  emits: ['update:value', 'isNamespaceNew'],
+
   components: {
     LabeledInput,
     LabeledSelect,
@@ -322,14 +324,14 @@ export default {
       if (this.nameKey) {
         set(this.value, this.nameKey, val);
       } else {
-        this.$set(this.value.metadata, 'name', val);
+        this.value.metadata['name'] = val;
       }
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
 
     namespace(val) {
       this.updateNamespace(val);
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
 
     description(val) {
@@ -338,7 +340,7 @@ export default {
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
       }
-      this.$emit('change');
+      this.$emit('update:value', this.value);
     },
   },
 
@@ -387,7 +389,7 @@ export default {
           true,
         );
         this.$emit('isNamespaceNew', true);
-        Vue.nextTick(() => this.$refs.namespace.focus());
+        this.$nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$store.dispatch(
@@ -410,7 +412,7 @@ export default {
     >
       <LabeledInput
         ref="namespace"
-        v-model="namespace"
+        v-model:value="namespace"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
@@ -436,7 +438,7 @@ export default {
     >
       <LabeledSelect
         v-show="!createNamespace"
-        v-model="namespace"
+        v-model:value="namespace"
         :clearable="true"
         :options="options"
         :disabled="namespaceReallyDisabled"
@@ -459,7 +461,7 @@ export default {
       <LabeledInput
         ref="name"
         key="name"
-        v-model="name"
+        v-model:value="name"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"
         :disabled="nameReallyDisabled"
@@ -479,7 +481,7 @@ export default {
     >
       <LabeledInput
         key="description"
-        v-model="description"
+        v-model:value="description"
         :mode="mode"
         :disabled="descriptionDisabled"
         :label="t(descriptionLabel)"
@@ -490,8 +492,8 @@ export default {
     </div>
 
     <div
-      v-for="slot in extraColumns"
-      :key="slot"
+      v-for="(slot, i) in extraColumns"
+      :key="i"
       :class="{ col: true, [colSpan]: true }"
     >
       <slot :name="slot" />
@@ -524,7 +526,7 @@ button {
     max-height: $input-height;
   }
 
-  .namespace-select ::v-deep {
+  .namespace-select :deep() {
     .labeled-select {
       min-width: 40%;
 

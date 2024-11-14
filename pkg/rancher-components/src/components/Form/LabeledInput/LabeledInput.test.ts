@@ -16,14 +16,14 @@ describe('component: LabeledInput', () => {
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 
   it('using mode "multiline" should emit input value correctly', () => {
     const value = 'any-string';
     const delay = 1;
-    const wrapper = mount(LabeledInput as any, {
+    const wrapper = mount(LabeledInput, {
       propsData: { delay, multiline: true },
       mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
     });
@@ -34,7 +34,7 @@ describe('component: LabeledInput', () => {
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(value);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 });

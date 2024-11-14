@@ -19,13 +19,14 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster, paginationFilterOnlyKubeClusters } from '@shell/utils/cluster';
-import TabTitle from '@shell/components/TabTitle';
+import { paginationFilterClusters } from '@shell/utils/cluster';
+import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
+import devConsole from 'utils/dev-console';
 import ProvCluster from 'models/provisioning.cattle.io.cluster';
 
 export default defineComponent({
@@ -39,12 +40,14 @@ export default defineComponent({
     BadgeState,
     CommunityLinks,
     SingleClusterInfo,
-    TabTitle
+    TabTitle,
   },
 
   mixins: [PageHeaderActions],
 
   data() {
+    const paginationRequestFilters = paginationFilterClusters(this.$store);
+
     return {
       HIDE_HOME_PAGE_CARDS,
       fullVersion: getVersionInfo(this.$store).fullVersion,
@@ -62,7 +65,7 @@ export default defineComponent({
       ],
       vendor: getVendor(),
 
-      paginationRequestFilters: paginationFilterOnlyKubeClusters(this.$store),
+      paginationRequestFilters,
 
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
 
@@ -157,7 +160,8 @@ export default defineComponent({
           ...STEVE_NAME_COL,
           canBeVariable: true,
           // TODO: RC ISSUE describe. search sort on prov meta namespace
-          getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay
+          // getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay || row.metadata?.name
+          getValue:      (row: ProvCluster) => row.metadata?.name
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -166,13 +170,14 @@ export default defineComponent({
           name:      'Provider',
           sort:      false,
           search:    false,
-          // TODO: RC ISSUE describe. search sort on prov meta namespace
           formatter: 'ClusterProvider'
         },
         {
           label:    this.t('landing.clusters.kubernetesVersion'),
           subLabel: this.t('landing.clusters.architecture'),
           name:     'kubernetesVersion',
+          sort:     false,
+          search:   false,
         },
         {
           label:  this.t('tableHeaders.cpu'),
@@ -231,7 +236,7 @@ export default defineComponent({
   },
 
   // Forget the types when we leave the page
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
@@ -240,6 +245,7 @@ export default defineComponent({
 
   methods: {
     fetchSecondaryResources(opts: FetchSecondaryResourcesOpts) {
+      // TODO: RC TEST with pagination off and on
       if ( this.canViewMgmtClusters ) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
       }
@@ -276,30 +282,27 @@ export default defineComponent({
       if ( this.canViewMgmtClusters ) {
         const opt: ActionFindPageArgs = {
           force,
-          pagination: new FilterArgs({}),
-          // TODO: RC API blocked on missing id
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'id',
-          //     value: r.status?.clusterName // TODO: handle empty status
-          //   }))),
-          // })
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'id',
+              value: r.mgmtClusterId
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
       }
 
-      if ( this.canViewMgmtClusters ) {
+      if ( this.canViewMachine ) {
         const opt: ActionFindPageArgs = {
           force,
-          pagination: new FilterArgs({}),
-          // TODO: RC API blocked on missing spec.clusterName
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',// TODO: handle empty spec
-          //     value: r.metadata.name
-          //   }))),
-          // })
+          // TODO: RC Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.metadata.name
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
@@ -308,14 +311,13 @@ export default defineComponent({
       if ( this.canViewMgmtNodes ) {
         const opt: ActionFindPageArgs = {
           force,
-          pagination: new FilterArgs({}),
-          // TODO: RC API blocked on missing id
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'id',
-          //     value: r.mgmtClusterId (partial)
-          //   }))),
-          // })
+          // TODO: RC Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'id',
+              value: r.mgmtClusterId
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
@@ -325,36 +327,31 @@ export default defineComponent({
       if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
         const poolOpt: ActionFindPageArgs = {
           force,
-          pagination: new FilterArgs({}),
-          // TODO: RC API blocked on missing spec.clusterName
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',
-          //     value: r.status?.clusterName// TODO: handle empty spec
-          //   }))),
-          // })
+          // TODO: RC Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.status?.clusterName// TODO: handle empty spec
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
 
         const templateOpt: ActionFindPageArgs = {
           force,
-          pagination: new FilterArgs({}),
-          // TODO: RC API blocked on missing spec.clusterName
-          // pagination: new FilterArgs({
-          //   filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //     field: 'spec.clusterName',
-          //     value: r.status?.clusterName// TODO: handle empty spec
-          //   }))),
-          // })
+          // pagination: new FilterArgs({}),
+          // TODO: RC Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.status?.clusterName// TODO: handle empty spec
+            }))),
+          })
         };
 
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_TEMPLATE, opt: templateOpt });
       }
-    },
-
-    filterRows(rows: ProvCluster[] = []) { // TODO: RC shouldn't this be passed in??
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows, this.$store), this.$store);
     },
 
     /**
@@ -522,7 +519,7 @@ export default defineComponent({
                     </h2>
                     <BadgeState
                       v-if="clusterCount"
-                      :label="clusterCount"
+                      :label="clusterCount.toString()"
                       color="role-tertiary ml-20 mr-20"
                     />
                   </div>
@@ -657,7 +654,7 @@ export default defineComponent({
   }
 
   .set-login-page, .whats-new {
-    > ::v-deep .banner__content {
+    > :deep() .banner__content {
       display: flex;
 
       > div {

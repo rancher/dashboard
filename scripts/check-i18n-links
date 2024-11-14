@@ -1,0 +1,305 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads and parses all of the source code files, reads the US English
+ * translation files, extracts all http/s links and checks for broken links.
+ *
+ * This script is used in the PR gate to check for broken links.
+ *
+ */
+
+const fs = require('fs');
+const path = require('path');
+const yaml = require('js-yaml');
+const axios = require('axios');
+
+const base = path.resolve(__dirname, '..');
+const srcFolder = path.resolve(base, 'shell');
+const pkgFolder = path.resolve(base, 'pkg');
+
+// Simple shell colors
+const reset = '\x1b[0m';
+const cyan = `\x1b[96m`;
+const yellow = `\x1b[33m`;
+const bold = `\x1b[1m`;
+
+const DOCS_BASE_REGEX = /export const DOCS_BASE = `([^']*v)\${ CURRENT_RANCHER_VERSION }`/;
+const VERSION_REGEX = /export const CURRENT_RANCHER_VERSION = '([0-9]\.[0-9]+)';/;
+
+const CATEGORIES = [
+  {
+    name:  'Rancher Manager Documentation',
+    regex: /^https:\/\/.*rancher\.com\/.*/
+  },
+  {
+    name:  'RKE2 Documentation',
+    regex: /^https:\/\/.*rke2\.io\/.*/
+  },
+  {
+    name:  'K3S Documentation',
+    regex: /^https:\/\/.*k3s\.io\/.*/
+  }
+];
+
+let docsBaseUrl = '';
+
+// -x flag will cause script to return 0, even if there are errors
+let doNotReturnError = false;
+
+// Simple arg parsing
+if (process.argv.length > 2) {
+  process.argv.shift();
+  process.argv.shift();
+
+  process.argv.forEach((arg) => {
+    if (arg === '-x') {
+      doNotReturnError = true;
+    }
+  });
+}
+
+// Read file to parse out the docs base
+const docsBaseFile = fs.readFileSync(path.join(srcFolder, 'config', 'private-label.js'), 'utf8');
+const docsBaseFileMatches = docsBaseFile.match(DOCS_BASE_REGEX);
+
+if (docsBaseFileMatches && docsBaseFileMatches.length === 2) {
+  docsBaseUrl = docsBaseFileMatches[1];
+}
+
+if (docsBaseUrl.length === 0) {
+  console.log('Could not parse documentation base URL'); // eslint-disable-line no-console
+  process.exit(1);
+}
+
+const versionFile = fs.readFileSync(path.join(srcFolder, 'config', 'version.js'), 'utf8');
+const versionFileMatches = versionFile.match(VERSION_REGEX);
+
+if (versionFileMatches && versionFileMatches.length === 2) {
+  docsBaseUrl = `${ docsBaseUrl }${ versionFileMatches[1] }`;
+} else {
+  console.log('Could not parse version number from the version file'); // eslint-disable-line no-console
+  process.exit(1);
+}
+
+function readAndParseTranslations(filePath) {
+  const data = fs.readFileSync(filePath, 'utf8');
+
+  try {
+    const i18n = yaml.load(fs.readFileSync(filePath), 'utf8');
+
+    return parseTranslations(i18n);
+  } catch (e) {
+    console.log('Can not read i18n file'); // eslint-disable-line no-console
+    console.log(e); // eslint-disable-line no-console
+    process.exit(1);
+  }
+}
+
+function parseTranslations(obj, parent) {
+  let res = {};
+
+  Object.keys(obj).forEach((key) => {
+    const v = obj[key];
+    const pKey = parent ? `${ parent }.${ key }` : key;
+
+    if (v === null) {
+      // ignore
+    } else if (typeof v === 'object') {
+      res = {
+        ...res,
+        ...parseTranslations(v, pKey)
+      };
+    } else {
+      // Ensure empty strings work
+      res[pKey] = v.length === 0 ? '[empty]' : v;
+    }
+  });
+
+  return res;
+}
+
+const LINK_REGEX = /<[aA]\s[^>]*>/g;
+const ATTR_REGEX = /(([a-zA-Z]*)=["']([^"']*))/g;
+
+function parseLinks(str) {
+  const a = [...str.matchAll(LINK_REGEX)];
+
+  const links = [];
+
+  if (a && a.length) {
+    a.forEach((m) => {
+      const attrs = [...m[0].matchAll(ATTR_REGEX)];
+
+      attrs.forEach((attr) => {
+        if (attr.length === 4 && attr[2] === 'href') {
+          const link = attr[3].replace('{docsBase}', docsBaseUrl);
+
+          if (link.startsWith('http')) {
+            links.push(link);
+          } else if (!(link.startsWith('{') && link.endsWith('}'))) {
+            console.log(`${ yellow }${bold}Skipping link: ${ link }${ reset }`); // eslint-disable-line no-console
+          }
+        }
+      });
+    });
+  }
+
+  return links;
+}
+
+function loadI18nFiles(folder) {
+  let res = {};
+
+  // Find all of the test files
+  fs.readdirSync(folder).forEach((file) => {
+    const filePath = path.resolve(folder, file);
+    const isFolder = fs.lstatSync(filePath).isDirectory();
+
+    if (isFolder) {
+      res = {
+        ...res,
+        ...loadI18nFiles(filePath)
+      };
+    } else if (file === 'en-us.yaml') {
+      console.log(` ... ${ path.relative(base, filePath) }`); // eslint-disable-line no-console
+
+      const translations = readAndParseTranslations(filePath);
+
+      res = {
+        ...res,
+        ...translations
+      };
+    }
+  });
+
+  return res;
+}
+
+console.log('======================================'); // eslint-disable-line no-console
+console.log(`${ cyan }Checking source files for i18n strings${ reset }`); // eslint-disable-line no-console
+console.log('======================================'); // eslint-disable-line no-console
+
+console.log(''); // eslint-disable-line no-console
+
+console.log(`Using documentation base URL: ${ cyan }${ docsBaseUrl }${ reset }`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
+
+
+console.log('Reading translation files:'); // eslint-disable-line no-console
+
+let i18n = loadI18nFiles(srcFolder);
+
+i18n = { ...i18n, ...loadI18nFiles(pkgFolder) };
+
+console.log(`Read  ${ cyan }${ Object.keys(i18n).length }${ reset } translations`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
+
+const links = [];
+
+// Parse all of the links from each translation file
+Object.keys(i18n).forEach((str) => {
+  const link = parseLinks(i18n[str]);
+
+  links.push(...link);
+});
+
+console.log(`Discovered ${ cyan }${ links.length }${ reset } links`); // eslint-disable-line no-console
+console.log(''); // eslint-disable-line no-console
+
+console.log(`${ cyan }Links:${ reset }`); // eslint-disable-line no-console
+console.log(`${ cyan }======${ reset }`); // eslint-disable-line no-console
+
+showByCategory(links, 'Links in', 'Other Links', cyan);
+
+console.log(''); // eslint-disable-line no-console
+
+function showByCategory(linksToShow, prefixLabel, otherLabel, color) {
+  const others = [];
+  const byCategory = {};
+
+  linksToShow.forEach((link) => {
+    let found = false;
+
+    CATEGORIES.forEach((category) => {
+      byCategory[category.name] = byCategory[category.name] || [];
+
+      if (!found && category.regex.test(link)) {
+        byCategory[category.name].push(link);
+        found = true;
+      }
+    });
+
+    if (!found) {
+      others.push(link);
+    }
+  });
+
+  CATEGORIES.forEach((category) => {
+    if (byCategory[category.name]?.length) {
+      console.log(`${ color }${ prefixLabel } ${ category.name }${ reset }`); // eslint-disable-line no-console
+      byCategory[category.name].forEach((link) => console.log(`  ${ link }`)); // eslint-disable-line no-console
+    }
+  });
+
+  if (others.length) {
+    console.log(`${ color }${ otherLabel }${ reset }`); // eslint-disable-line no-console
+    others.forEach((link) => console.log(`  ${ link }`));
+  }
+}
+
+async function check(links) {
+  const brokenLinks = [];
+
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i];
+    let statusCode;
+    let statusMessage;
+
+    try {
+      const headers = {
+        'User-Agent':      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        Accept:            'text/html',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+      };
+
+      const r = await axios.get(link, { headers });
+
+      statusCode = r.status;
+      statusMessage = r.statusText;
+    } catch (e) {
+      statusCode = e.response ? e.response.status : e.status;
+      statusMessage = e.response ? e.response.statusText : e.statusText;
+    }
+
+    if (statusCode !== 200) {
+      const sc = `${ statusCode }`.padEnd(5);
+
+      console.log(`  ${ link } : ${ sc } ${ statusMessage || '' }`); // eslint-disable-line no-console
+
+      brokenLinks.push(link);
+    }
+  }
+
+  console.log(''); // eslint-disable-line no-console
+
+  if (brokenLinks.length === 0) {
+    console.log(`${ cyan }${ bold }Links Checked - all links could be fetched okay${ reset }`); // eslint-disable-line no-console
+  } else {
+    console.log(`${ yellow }${ bold }Found ${ brokenLinks.length } link(s) that could not be fetched${ reset }`); // eslint-disable-line no-console
+  }
+
+  console.log(''); // eslint-disable-line no-console
+
+  showByCategory(brokenLinks, 'Broken links in', 'Other Broken links', yellow);
+
+  console.log(''); // eslint-disable-line no-console
+
+  // Return with error code if broken links found
+  if (!doNotReturnError && brokenLinks.length > 0) {
+    process.exit(1);
+  }
+}
+
+console.log(`${ cyan }Checking doc links ...${ reset }`); // eslint-disable-line no-console
+
+check(links);

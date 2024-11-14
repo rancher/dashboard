@@ -7,7 +7,7 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image version
-RANCHER_IMG_VERSION=v2.9-head
+RANCHER_IMG_VERSION=head
 
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
@@ -59,3 +59,16 @@ if [ "$STATUS" != "200" ]; then
 fi
 
 echo "Dashboard UI is ready"
+
+echo "Waiting for webhook to be running..."
+okay=0
+while [ $okay -lt 20 ] ; do
+  if docker exec cypress kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
+    break
+  else
+    echo "Webhook not ready, checking again in 10s..."
+    okay=$((okay+1))
+    sleep 10
+  fi
+done
+echo "Rancher is ready"

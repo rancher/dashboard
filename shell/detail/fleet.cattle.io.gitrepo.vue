@@ -14,6 +14,8 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 export default {
   name: 'DetailGitRepo',
 
+  emits: ['input'],
+
   components: {
     Loading,
     FleetResources,
@@ -40,7 +42,7 @@ export default {
   },
   computed: {
     gitRepoHasClusters() {
-      return this.value?.clusterResourceStatus?.length;
+      return this.value.status.desiredReadyClusters;
     },
     clusterSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
@@ -80,7 +82,8 @@ export default {
     const allDispatches = await checkSchemasForFindAllHash({
       allBundles: {
         inStoreType: 'management',
-        type:        FLEET.BUNDLE
+        type:        FLEET.BUNDLE,
+        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
       },
 
       allBundleDeployments: {
@@ -130,7 +133,7 @@ export default {
       mode="view"
       class="mt-20"
       :need-related="false"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="!!allBundles.length"

@@ -15,11 +15,12 @@ import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import Labels from '@shell/components/form/Labels';
 import { randomStr } from '@shell/utils/string';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 export default {
+  emits:      ['input'],
   components: {
     ContainerResourceLimit,
     CruResource,
@@ -34,7 +35,8 @@ export default {
     MoveModal
   },
 
-  mixins: [CreateEditView],
+  mixins:       [CreateEditView],
+  inheritAttrs: false,
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
@@ -123,11 +125,11 @@ export default {
     project() {
       const limits = this.getDefaultContainerResourceLimits(this.projectName);
 
-      this.$set(this, 'containerResourceLimits', limits);
+      this['containerResourceLimits'] = limits;
     },
 
     projectName(newProjectName) {
-      this.$set(this, 'project', this.projects.find((p) => p.id.includes(newProjectName)));
+      this['project'] = this.projects.find((p) => p.id.includes(newProjectName));
     }
   },
 
@@ -191,7 +193,7 @@ export default {
         #project-col
       >
         <LabeledSelect
-          v-model="projectName"
+          v-model:value="projectName"
           data-testid="name-ns-description-project"
           :label="t('namespace.project.label')"
           :options="projectOpts"
@@ -202,7 +204,7 @@ export default {
       :value="value"
       :mode="mode"
       :side-tabs="true"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="showResourceQuota"
@@ -232,7 +234,7 @@ export default {
           :mode="mode"
           :project="project"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -242,11 +244,11 @@ export default {
         :label="t('namespace.containerResourceLimit')"
       >
         <ContainerResourceLimit
-          :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"
           :mode="mode"
           :namespace="value"
           :register-before-hook="registerBeforeHook"
+          data-testid="namespace-container-resource-limit"
         />
       </Tab>
       <Tab
@@ -255,7 +257,6 @@ export default {
         :weight="-1"
       >
         <Labels
-          :key="rerenderNums"
           default-container-class="labels-and-annotations-container"
           :value="value"
           :mode="mode"

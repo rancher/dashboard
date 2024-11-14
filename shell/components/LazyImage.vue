@@ -29,7 +29,7 @@ export default {
     this.loadImage();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     const img = this.$refs.img;
 
     if (img) {

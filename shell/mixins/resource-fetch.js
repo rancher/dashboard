@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
@@ -14,6 +13,8 @@ export default {
     ResourceFetchNamespaced,
     ResourceFetchApiPagination
   ],
+
+  inheritAttrs: false,
 
   data() {
     // fetching the settings related to manual refresh from global settings
@@ -47,7 +48,7 @@ export default {
     };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // make sure this only runs once, for the initialized instance
     if (this.init) {
       // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
@@ -88,10 +89,18 @@ export default {
       if (currResource) {
         const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
 
-        return this.localFilter ? this.localFilter(rows) : rows;
-      } else {
+        if (this.canPaginate) {
+          if (this.havePaginated) {
+            return rows;
+          }
+        } else {
+          return this.localFilter ? this.localFilter(rows) : rows; // TODO: RC test after merge
+        }
+
         return [];
       }
+
+      return [];
     },
     loading() {
       if (this.canPaginate) {
@@ -168,7 +177,7 @@ export default {
           opt.paginating = this.apiFilter(opt.pagination);
         }
 
-        Vue.set(this, 'paginating', true);
+        this['paginating'] = true;
 
         const that = this;
 
@@ -176,7 +185,7 @@ export default {
           type,
           opt
         })
-          .finally(() => Vue.set(that, 'paginating', false));
+          .finally(() => (that['paginating'] = false));
       }
 
       let incremental = 0;

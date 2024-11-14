@@ -40,7 +40,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.project"
+          v-model:value="value.project"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gcs.project')"
@@ -48,7 +48,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.bucket"
+          v-model:value="value.bucket"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gcs.bucket')"
@@ -58,7 +58,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.path"
+          v-model:value="value.path"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gcs.path')"
@@ -66,7 +66,7 @@ export default {
       </div>
       <div class="col span-6 overwrite">
         <Checkbox
-          v-model="value.overwrite"
+          v-model:value="value.overwrite"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gcs.overwriteExistingPath')"
@@ -82,7 +82,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.credentials_json"
+          v-model:value="value.credentials_json"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

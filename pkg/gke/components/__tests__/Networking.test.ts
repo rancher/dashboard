@@ -3,14 +3,14 @@ import flushPromises from 'flush-promises';
 
 import Networking from '@pkg/gke/components/Networking.vue';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+// const mockedValidationMixin = {
+//   computed: {
+//     fvFormIsValid:                jest.fn(),
+//     type:                         jest.fn(),
+//     fvUnreportedValidationErrors: jest.fn(),
+//   },
+//   methods: { fvGetAndReportPathRules: jest.fn() }
+// };
 
 const mockedStore = () => {
   return {
@@ -26,11 +26,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -81,7 +83,7 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const networksDropdown = wrapper.find('[data-testid="gke-networks-dropdown"]');
+    const networksDropdown = wrapper.getComponent('[data-testid="gke-networks-dropdown"]');
 
     expect(networksDropdown.props().options).toHaveLength(4);
     expect(wrapper.emitted('update:network')?.[0]?.[0]).toBe('host-shared-vpc');
@@ -103,7 +105,7 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const subnetworksDropdown = wrapper.find('[data-testid="gke-subnetworks-dropdown"]');
+    const subnetworksDropdown = wrapper.getComponent('[data-testid="gke-subnetworks-dropdown"]');
 
     expect(subnetworksDropdown.props().options).toHaveLength(0);
 
@@ -153,8 +155,8 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const secondaryRangeNameInput = wrapper.find('[data-testid="gke-subnetwork-name-input"]');
-    let secondaryRangeDropdown = wrapper.find('[data-testid="gke-cluster-secondary-range-name-select"]');
+    const secondaryRangeNameInput = wrapper.findComponent('[data-testid="gke-subnetwork-name-input"]');
+    let secondaryRangeDropdown = wrapper.findComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
 
     expect(secondaryRangeNameInput.exists()).toBe(true);
     expect(secondaryRangeDropdown.exists()).toBe(false);
@@ -163,7 +165,7 @@ describe('gke Networking', () => {
     await wrapper.vm.$nextTick();
     expect(secondaryRangeNameInput.exists()).toBe(false);
 
-    secondaryRangeDropdown = wrapper.find('[data-testid="gke-cluster-secondary-range-name-select"]');
+    secondaryRangeDropdown = wrapper.findComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
     expect(secondaryRangeDropdown.exists()).toBe(true);
     expect(secondaryRangeDropdown.props().options).toHaveLength(2);
   });
@@ -173,13 +175,12 @@ describe('gke Networking', () => {
 
     const wrapper = shallowMount(Networking, {
       propsData: {
-        zone:                      'test-zone',
-        region:                    'test-region',
-        cloudCredentialId:         '',
-        projectId:                 'test-project',
-        network:                   'test-network',
-        subnetwork:                'test-network-subnet',
-        clusterSecondaryRangeName: 'range-1'
+        zone:              'test-zone',
+        region:            'test-region',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        network:           'test-network',
+        subnetwork:        'test-network-subnet',
       },
       ...setup
     });
@@ -187,9 +188,28 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const clusterSecondaryCIDRInput = wrapper.find('[data-testid="gke-cluster-secondary-range-cidr-input"]');
+    const clusterSecondaryCIDRInput = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-cidr-input"]');
+    const clusterSecondaryRangeSelect = wrapper.getComponent('[data-testid="gke-cluster-secondary-range-name-select"]');
+
+    expect(clusterSecondaryCIDRInput.props('disabled')).toBe(false);
+    expect(clusterSecondaryCIDRInput.props('value')).toBe('');
+    const opt = {
+      ipCidrRange: '10.0.1.0/24',
+      label:       'range-1 (10.0.1.0/24)',
+      rangeName:   'range-1'
+    };
+
+    clusterSecondaryRangeSelect.vm.$emit('update:value', opt);
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:clusterSecondaryRangeName')[0][0]).toBe('range-1');
+    expect(wrapper.emitted('update:clusterIpv4CidrBlock')[0][0]).toBe('');
+    wrapper.setProps({ clusterSecondaryRangeName: 'range-1' });
+    await wrapper.vm.$nextTick();
 
     expect(clusterSecondaryCIDRInput.props('disabled')).toBe(true);
+    expect(clusterSecondaryCIDRInput.props('value')).toBe('10.0.1.0/24');
 
     wrapper.setProps({ clusterSecondaryRangeName: '' });
     await wrapper.vm.$nextTick();
@@ -214,7 +234,7 @@ describe('gke Networking', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const banner = wrapper.find('[data-testid="gke-use-ip-aliases-banner"]');
+    const banner = wrapper.getComponent('[data-testid="gke-use-ip-aliases-banner"]');
 
     expect(banner.exists()).toBe(true);
 
@@ -289,14 +309,14 @@ describe('gke Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    let masterIpv4CidrBlockInput = wrapper.find('[data-testid="gke-master-ipv4-cidr-block-input"]');
+    let masterIpv4CidrBlockInput = wrapper.findComponent('[data-testid="gke-master-ipv4-cidr-block-input"]');
 
     expect(masterIpv4CidrBlockInput.exists()).toBe(false);
 
     wrapper.setProps({ enablePrivateNodes: true });
     await wrapper.vm.$nextTick();
 
-    masterIpv4CidrBlockInput = wrapper.find('[data-testid="gke-master-ipv4-cidr-block-input"]');
+    masterIpv4CidrBlockInput = wrapper.findComponent('[data-testid="gke-master-ipv4-cidr-block-input"]');
     expect(masterIpv4CidrBlockInput.isVisible()).toBe(true);
   });
 
@@ -320,14 +340,14 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    let enablePrivateEndpointCheckbox = wrapper.find('[data-testid="gke-enable-private-endpoint-checkbox"]');
+    let enablePrivateEndpointCheckbox = wrapper.getComponent('[data-testid="gke-enable-private-endpoint-checkbox"]');
 
     expect(enablePrivateEndpointCheckbox.props().disabled).toBe(true);
 
     wrapper.setProps({ enablePrivateNodes: true });
     await wrapper.vm.$nextTick();
 
-    enablePrivateEndpointCheckbox = wrapper.find('[data-testid="gke-enable-private-endpoint-checkbox"]');
+    enablePrivateEndpointCheckbox = wrapper.getComponent('[data-testid="gke-enable-private-endpoint-checkbox"]');
 
     expect(enablePrivateEndpointCheckbox.props().disabled).toBe(false);
   });
@@ -352,13 +372,13 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    let masterAuthorizedNetworkCidrInput = wrapper.find('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    let masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
 
     expect(masterAuthorizedNetworkCidrInput.exists()).toBe(false);
 
     wrapper.setProps({ enableMasterAuthorizedNetwork: true });
     await wrapper.vm.$nextTick();
-    masterAuthorizedNetworkCidrInput = wrapper.find('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
     expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
   });
 
@@ -384,7 +404,7 @@ describe('gke Networking', () => {
     wrapper.setData({ showAdvanced: true });
     await wrapper.vm.$nextTick();
 
-    const masterAuthorizedNetworkCidrInput = wrapper.find('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
+    const masterAuthorizedNetworkCidrInput = wrapper.findComponent('[data-testid="gke-master-authorized-network-cidr-keyvalue"]');
 
     expect(masterAuthorizedNetworkCidrInput.isVisible()).toBe(true);
     expect(masterAuthorizedNetworkCidrInput.props().disabled).toBe(false);

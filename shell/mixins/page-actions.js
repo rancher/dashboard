@@ -13,7 +13,7 @@ export default {
     this.$store.commit('pageActionHandler', pageActionHandler);
   },
 
-  unmounted() {
+  beforeUnmount() {
     if (this.pageActions) {
       this.$store.commit(STORE_PAGE_ACTIONS, []);
     }

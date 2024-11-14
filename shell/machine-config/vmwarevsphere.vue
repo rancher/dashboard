@@ -64,48 +64,26 @@ const networksToVappProperties = (networks) => {
   }
 
   return networks.reduce(networkToVappProperties, [
-    `guestinfo.dns.servers=\${dns:${ networks[0] }}`,
-    `guestinfo.dns.domains=\${searchPath:${ networks[0] }}`
+    `guestinfo.dns.servers=\${dns:${ nameOnly(networks[0]) }}`,
+    `guestinfo.dns.domains=\${searchPath:${ nameOnly(networks[0]) }}`
   ]);
 };
 
 const networkToVappProperties = (props, network, i) => {
   const n = i.toString();
+  const networkName = nameOnly(network);
 
   props.push(
-    `guestinfo.interface.${ n }.ip.0.address=ip:${ network }`,
-    `guestinfo.interface.${ n }.ip.0.netmask=\${netmask:${ network }}`,
-    `guestinfo.interface.${ n }.route.0.gateway=\${gateway:${ network }}`
+    `guestinfo.interface.${ n }.ip.0.address=ip:${ networkName }`,
+    `guestinfo.interface.${ n }.ip.0.netmask=\${netmask:${ networkName }}`,
+    `guestinfo.interface.${ n }.route.0.gateway=\${gateway:${ networkName }}`
   );
 
   return props;
 };
 
-const getInitialVappMode = (c) => {
-  const vappProperty = c.vappProperty || [];
-
-  if (
-    !c.vappIpprotocol &&
-    !c.vappIpallocationpolicy &&
-    !c.vappTransport &&
-    vappProperty.length === 0
-  ) {
-    return VAPP_MODE.DISABLED;
-  }
-
-  const d = getDefaultVappOptions(c.network || []);
-
-  if (
-    c.vappIpprotocol === d.vappIpprotocol &&
-    c.vappIpallocationpolicy === d.vappIpallocationpolicy &&
-    c.vappTransport === d.vappTransport &&
-    vappProperty.length === d.vappProperty.length &&
-    vappProperty.join() === d.vappProperty.join()
-  ) {
-    return VAPP_MODE.AUTO;
-  }
-
-  return VAPP_MODE.MANUAL;
+const nameOnly = (network) => {
+  return network.split('/').pop();
 };
 
 /**
@@ -137,6 +115,8 @@ const errorActions = Object.freeze({
 });
 
 export default {
+  emits: ['error'],
+
   components: {
     ArrayListSelect, Card, KeyValue, Loading, LabeledInput, LabeledSelect, Banner, UnitInput, RadioGroup, YamlEditor
   },
@@ -264,9 +244,10 @@ export default {
       haveAttributes:           null,
       haveTemplates:            null,
       vAppOptions,
-      vappMode:                 getInitialVappMode(this.value),
-      osOptions:                OS_OPTIONS,
-      validationErrors:         {},
+      vappMode:                 VAPP_MODE.DISABLED,
+
+      osOptions:        OS_OPTIONS,
+      validationErrors: {},
     };
   },
 
@@ -285,6 +266,21 @@ export default {
     ...createOptionHelpers('tags'),
     ...createOptionHelpers('attributeKeys'),
     ...createOptionHelpers('networks'),
+
+    networkNames() {
+      const { network = [] } = this.value;
+
+      return network.reduce((names, id) => {
+        // previously this form used network names instead of ids -- need to account for both possibilities
+        const name = this.networks.find((nw) => nw.value === id || nw.name === id)?.name;
+
+        if (name && !names.includes(name)) {
+          names.push(name);
+        }
+
+        return names;
+      }, []);
+    },
 
     isDisabled() {
       return this.disabled || this.mode === _VIEW;
@@ -388,13 +384,14 @@ export default {
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
-        const defaultVappOptions = getDefaultVappOptions(this.value.network || []);
+        const defaultVappOptions = getDefaultVappOptions(this.networkNames || []);
 
         return this.updateVappOptions(defaultVappOptions);
+      } else {
+        this.updateVappOptions(INITIAL_VAPP_OPTIONS);
       }
-
-      this.updateVappOptions(INITIAL_VAPP_OPTIONS);
     },
+
     validationErrors(value) {
       this.$emit('error', value);
     }
@@ -544,12 +541,17 @@ export default {
     async loadNetworks() {
       set(this, 'networksResults', null);
 
-      const options = await this.requestOptions('networks', this.value.datacenter);
-      const content = this.mapPathOptionsToContent(options);
+      const options = await this.requestOptions('networks-extended', this.value.datacenter);
+      const content = options.map((opt) => {
+        return {
+          label: `${ opt.name } (${ opt.moid })`, value: opt.moid, name: opt.name
+        };
+      });
 
       this.resetValueIfNecessary('network', content, options, true);
 
       set(this, 'networksResults', content);
+      this.vappMode = this.getInitialVappMode(this.value);
     },
 
     async loadContentLibraries() {
@@ -722,6 +724,34 @@ export default {
         this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x === key) }) ;
       }
     },
+
+    getInitialVappMode(c) {
+      const vappProperty = c.vappProperty || [];
+
+      if (
+        !c.vappIpprotocol &&
+        !c.vappIpallocationpolicy &&
+        !c.vappTransport &&
+        vappProperty.length === 0
+      ) {
+        return VAPP_MODE.DISABLED;
+      }
+
+      const d = getDefaultVappOptions(this.networkNames || []);
+
+      if (
+        c.vappIpprotocol === d.vappIpprotocol &&
+        c.vappIpallocationpolicy === d.vappIpallocationpolicy &&
+        c.vappTransport === d.vappTransport &&
+        vappProperty.length === d.vappProperty.length &&
+        vappProperty.join() === d.vappProperty.join()
+      ) {
+        return VAPP_MODE.AUTO;
+      }
+
+      return VAPP_MODE.MANUAL;
+    }
+
   }
 };
 </script>
@@ -748,314 +778,316 @@ export default {
       :show-highlight-border="false"
       :show-actions="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text mb-5"
-      >
-        {{ t('cluster.machineConfig.vsphere.scheduling.label') }}
-        <p class="text-muted text-small">
-          {{ t('cluster.machineConfig.vsphere.scheduling.description') }}
-        </p>
-      </h4>
-      <div slot="body">
-        <div
-          class="row"
-          data-testid="datacenter"
-        >
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.datacenter"
-              :loading="dataCentersLoading"
-              :mode="mode"
-              :options="dataCenters"
-              :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
-              :disabled="isDisabled"
-              :tooltip="value.datacenter"
-            />
-          </div>
+      <template #title>
+        <h4 class="text-default-text mb-5">
+          {{ t('cluster.machineConfig.vsphere.scheduling.label') }}
+          <p class="text-muted text-small">
+            {{ t('cluster.machineConfig.vsphere.scheduling.description') }}
+          </p>
+        </h4>
+      </template>
+      <template #body>
+        <div>
           <div
-            class="col span-6"
-            data-testid="resourcePool"
+            class="row"
+            data-testid="datacenter"
           >
-            <LabeledSelect
-              v-model="value.pool"
-              :loading="resourcePoolsLoading"
-              :mode="mode"
-              :options="resourcePools"
-              :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
-              :disabled="isDisabled"
-              :tooltip="value.pool"
-            />
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="value.datacenter"
+                :loading="dataCentersLoading"
+                :mode="mode"
+                :options="dataCenters"
+                :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
+                :disabled="isDisabled"
+                :tooltip="value.datacenter"
+              />
+            </div>
+            <div
+              class="col span-6"
+              data-testid="resourcePool"
+            >
+              <LabeledSelect
+                v-model:value="value.pool"
+                :loading="resourcePoolsLoading"
+                :mode="mode"
+                :options="resourcePools"
+                :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
+                :disabled="isDisabled"
+                :tooltip="value.pool"
+              />
+            </div>
+          </div>
+          <div class="row mt-10">
+            <div
+              class="col span-6"
+              data-testid="dataStore"
+            >
+              <LabeledSelect
+                v-model:value="value.datastore"
+                :loading="dataStoresLoading"
+                :mode="mode"
+                :options="dataStores"
+                :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
+                :disabled="isDisabled"
+                :tooltip="value.datastore"
+              />
+            </div>
+            <div
+              class="col span-6"
+              data-testid="folder"
+            >
+              <LabeledSelect
+                v-model:value="value.folder"
+                :loading="foldersLoading"
+                :mode="mode"
+                :options="folders"
+                :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
+                :disabled="isDisabled"
+                :tooltip="value.folder"
+              />
+            </div>
+          </div>
+          <div class="row mt-10">
+            <div
+              class="col span-6"
+              data-testid="host"
+            >
+              <LabeledSelect
+                v-model:value="host"
+                :loading="hostsLoading"
+                :mode="mode"
+                :options="hosts"
+                :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
+                :disabled="isDisabled"
+                :tooltip="host"
+              />
+              <p class="text-muted mt-5">
+                {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
+              </p>
+            </div>
+            <div
+              class="col span-6"
+              data-testid="gracefulShutdownTimeout"
+            >
+              <UnitInput
+                v-model:value="gracefulShutdownTimeout"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.label')"
+                :suffix="t('suffix.seconds', { count: gracefulShutdownTimeout})"
+                :disabled="isDisabled"
+                min="0"
+              />
+              <p class="text-muted mt-5">
+                {{ t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.note') }}
+              </p>
+            </div>
           </div>
         </div>
-        <div class="row mt-10">
-          <div
-            class="col span-6"
-            data-testid="dataStore"
-          >
-            <LabeledSelect
-              v-model="value.datastore"
-              :loading="dataStoresLoading"
-              :mode="mode"
-              :options="dataStores"
-              :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
-              :disabled="isDisabled"
-              :tooltip="value.datastore"
-            />
-          </div>
-          <div
-            class="col span-6"
-            data-testid="folder"
-          >
-            <LabeledSelect
-              v-model="value.folder"
-              :loading="foldersLoading"
-              :mode="mode"
-              :options="folders"
-              :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
-              :disabled="isDisabled"
-              :tooltip="value.folder"
-            />
-          </div>
-        </div>
-        <div class="row mt-10">
-          <div
-            class="col span-6"
-            data-testid="host"
-          >
-            <LabeledSelect
-              v-model="host"
-              :loading="hostsLoading"
-              :mode="mode"
-              :options="hosts"
-              :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
-              :disabled="isDisabled"
-              :tooltip="host"
-            />
-            <p class="text-muted mt-5">
-              {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
-            </p>
-          </div>
-          <div
-            class="col span-6"
-            data-testid="gracefulShutdownTimeout"
-          >
-            <UnitInput
-              v-model="gracefulShutdownTimeout"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.label')"
-              :suffix="t('suffix.seconds', { count: gracefulShutdownTimeout})"
-              :disabled="isDisabled"
-              min="0"
-            />
-            <p class="text-muted mt-5">
-              {{ t('cluster.machineConfig.vsphere.scheduling.gracefulShutdownTimeout.note') }}
-            </p>
-          </div>
-        </div>
-      </div>
+      </template>
     </Card>
     <Card
       class="m-0 mt-20"
       :show-highlight-border="false"
       :show-actions="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text mb-5"
-      >
-        {{ t('cluster.machineConfig.vsphere.instanceOptions.label') }}
-        <p class="text-muted text-small">
-          {{ t('cluster.machineConfig.vsphere.instanceOptions.description') }}
-        </p>
-      </h4>
-      <div slot="body">
-        <div class="row mt-10">
-          <div class="col span-6">
-            <UnitInput
-              v-model="cpuCount"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.cpus')"
-              :suffix="t('suffix.cores')"
-              :disabled="isDisabled"
-            />
+      <template #title>
+        <h4 class="text-default-text mb-5">
+          {{ t('cluster.machineConfig.vsphere.instanceOptions.label') }}
+          <p class="text-muted text-small">
+            {{ t('cluster.machineConfig.vsphere.instanceOptions.description') }}
+          </p>
+        </h4>
+      </template>
+      <template #body>
+        <div>
+          <div class="row mt-10">
+            <div class="col span-6">
+              <UnitInput
+                v-model:value="cpuCount"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.cpus')"
+                :suffix="t('suffix.cores')"
+                :disabled="isDisabled"
+              />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-model:value="memorySize"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.memory')"
+                :suffix="t('suffix.mib')"
+                :disabled="isDisabled"
+              />
+            </div>
           </div>
-          <div class="col span-6">
-            <UnitInput
-              v-model="memorySize"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.memory')"
-              :suffix="t('suffix.mib')"
-              :disabled="isDisabled"
-            />
+          <div class="row mt-10">
+            <div class="col span-6">
+              <UnitInput
+                v-model:value="diskSize"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
+                :suffix="t('suffix.mib')"
+                :disabled="isDisabled"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledSelect
+                v-model:value="value.os"
+                :mode="mode"
+                :options="osOptions"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
+                :disabled="isDisabled"
+              />
+            </div>
           </div>
-        </div>
-        <div class="row mt-10">
-          <div class="col span-6">
-            <UnitInput
-              v-model="diskSize"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
-              :suffix="t('suffix.mib')"
-              :disabled="isDisabled"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.os"
-              :mode="mode"
-              :options="osOptions"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
-              :disabled="isDisabled"
-            />
-          </div>
-        </div>
-        <div class="row mt-10">
-          <div
-            class="col"
-            :class="showContentLibrary ? 'span-4' : 'span-6'"
-          >
-            <LabeledSelect
-              v-model="value.creationType"
-              :mode="mode"
-              :options="creationMethods"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.creationMethod')"
-              :disabled="isDisabled"
-            />
-          </div>
-          <div
-            v-if="showTemplate"
-            class="col span-6"
-          >
-            <LabeledSelect
-              v-model="value.cloneFrom"
-              :loading="templatesLoading"
-              :mode="mode"
-              :options="templates"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.template.label')"
-              :disabled="isDisabled"
-              :status="templateStatus"
-              :tooltip="templateTooltip"
-            />
-          </div>
-          <div
-            v-if="showContentLibrary"
-            class="col span-4"
-          >
-            <LabeledSelect
-              v-model="value.contentLibrary"
-              :loading="contentLibrariesLoading"
-              :mode="mode"
-              :options="contentLibraries"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.contentLibrary')"
-              :disabled="isDisabled"
-            />
-          </div>
-          <div
-            v-if="showContentLibrary"
-            class="col span-4"
-          >
-            <LabeledSelect
-              v-model="value.cloneFrom"
-              :loading="libraryTemplatesLoading"
-              :mode="mode"
-              :options="libraryTemplates"
-              :searchable="true"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
-              :disabled="isDisabled"
-              :tooltip="value.cloneFrom"
-            />
-          </div>
-          <div
-            v-if="showVirtualMachines"
-            class="col span-6"
-          >
-            <LabeledSelect
-              v-model="value.cloneFrom"
-              :loading="virtualMachinesLoading"
-              :mode="mode"
-              :options="virtualMachines"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
-              :disabled="isDisabled"
-              :tooltip="value.cloneFrom"
-            />
+          <div class="row mt-10">
+            <div
+              class="col"
+              :class="showContentLibrary ? 'span-4' : 'span-6'"
+            >
+              <LabeledSelect
+                v-model:value="value.creationType"
+                :mode="mode"
+                :options="creationMethods"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.creationMethod')"
+                :disabled="isDisabled"
+              />
+            </div>
+            <div
+              v-if="showTemplate"
+              class="col span-6"
+            >
+              <LabeledSelect
+                v-model:value="value.cloneFrom"
+                :loading="templatesLoading"
+                :mode="mode"
+                :options="templates"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.template.label')"
+                :disabled="isDisabled"
+                :status="templateStatus"
+                :tooltip="templateTooltip"
+              />
+            </div>
+            <div
+              v-if="showContentLibrary"
+              class="col span-4"
+            >
+              <LabeledSelect
+                v-model:value="value.contentLibrary"
+                :loading="contentLibrariesLoading"
+                :mode="mode"
+                :options="contentLibraries"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.contentLibrary')"
+                :disabled="isDisabled"
+              />
+            </div>
+            <div
+              v-if="showContentLibrary"
+              class="col span-4"
+            >
+              <LabeledSelect
+                v-model:value="value.cloneFrom"
+                :loading="libraryTemplatesLoading"
+                :mode="mode"
+                :options="libraryTemplates"
+                :searchable="true"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
+                :disabled="isDisabled"
+                :tooltip="value.cloneFrom"
+              />
+            </div>
+            <div
+              v-if="showVirtualMachines"
+              class="col span-6"
+            >
+              <LabeledSelect
+                v-model:value="value.cloneFrom"
+                :loading="virtualMachinesLoading"
+                :mode="mode"
+                :options="virtualMachines"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
+                :disabled="isDisabled"
+                :tooltip="value.cloneFrom"
+              />
+            </div>
+            <div
+              v-if="showIso"
+              class="col span-6"
+            >
+              <LabeledInput
+                v-model:value="value.boot2dockerUrl"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.label')"
+                :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.placeholder')"
+                :disabled="isDisabled"
+              />
+            </div>
           </div>
           <div
             v-if="showIso"
-            class="col span-6"
+            class="row mt-10"
           >
-            <LabeledInput
-              v-model="value.boot2dockerUrl"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.label')"
-              :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.placeholder')"
-              :disabled="isDisabled"
-            />
+            <div class="col span-12">
+              <LabeledInput
+                v-model:value="value.cloudinit"
+                :mode="mode"
+                :label="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.label')"
+                :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.placeholder')"
+                :disabled="isDisabled"
+              />
+              <p class="text-muted mt-5">
+                {{ t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.note') }}
+              </p>
+            </div>
+          </div>
+          <div
+            v-if="showCloudConfigYaml"
+            class="row mt-10"
+          >
+            <div class="col span-12">
+              <label class="text-label mt-0">{{ t('cluster.machineConfig.vsphere.instanceOptions.cloudConfigYaml') }}</label>
+              <YamlEditor
+                ref="yaml-additional"
+                v-model:value="value.cloudConfig"
+                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+                :disabled="isDisabled"
+                initial-yaml-values="# Additional Manifest YAML"
+                class="yaml-editor"
+              />
+            </div>
+          </div>
+          <div class="row mt-10">
+            <div class="col span-12">
+              <label class="text-label mt-0">
+                {{ t('cluster.machineConfig.vsphere.networks.label') }}
+              </label>
+              <ArrayListSelect
+                v-model:value="network"
+                :options="networks"
+                :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
+                :loading="networksLoading"
+                :disabled="isDisabled"
+              />
+            </div>
+          </div>
+          <div class="row mt-10">
+            <div class="col span-12">
+              <label class="text-label mt-0">
+                {{ t('cluster.machineConfig.vsphere.guestinfo.label') }}
+              </label>
+              <KeyValue
+                v-model:value="cfgparam"
+                :add-label="t('cluster.machineConfig.vsphere.guestinfo.add')"
+                :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')"
+                :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')"
+                :read-allowed="false"
+                :disabled="isDisabled"
+              />
+            </div>
           </div>
         </div>
-        <div
-          v-if="showIso"
-          class="row mt-10"
-        >
-          <div class="col span-12">
-            <LabeledInput
-              v-model="value.cloudinit"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.label')"
-              :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.placeholder')"
-              :disabled="isDisabled"
-            />
-            <p class="text-muted mt-5">
-              {{ t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.note') }}
-            </p>
-          </div>
-        </div>
-        <div
-          v-if="showCloudConfigYaml"
-          class="row mt-10"
-        >
-          <div class="col span-12">
-            <label class="text-label mt-0">{{ t('cluster.machineConfig.vsphere.instanceOptions.cloudConfigYaml') }}</label>
-            <YamlEditor
-              ref="yaml-additional"
-              v-model="value.cloudConfig"
-              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              :disabled="isDisabled"
-              initial-yaml-values="# Additional Manifest YAML"
-              class="yaml-editor"
-            />
-          </div>
-        </div>
-        <div class="row mt-10">
-          <div class="col span-12">
-            <label class="text-label mt-0">
-              {{ t('cluster.machineConfig.vsphere.networks.label') }}
-            </label>
-            <ArrayListSelect
-              v-model="network"
-              :options="networks"
-              :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
-              :loading="networksLoading"
-              :disabled="isDisabled"
-            />
-          </div>
-        </div>
-        <div class="row mt-10">
-          <div class="col span-12">
-            <label class="text-label mt-0">
-              {{ t('cluster.machineConfig.vsphere.guestinfo.label') }}
-            </label>
-            <KeyValue
-              v-model="cfgparam"
-              :add-label="t('cluster.machineConfig.vsphere.guestinfo.add')"
-              :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')"
-              :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')"
-              :read-allowed="false"
-              :disabled="isDisabled"
-            />
-          </div>
-        </div>
-      </div>
+      </template>
     </Card>
     <Card
       v-if="haveTags"
@@ -1063,24 +1095,25 @@ export default {
       :show-highlight-border="false"
       :show-actions="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text mb-5"
-      >
-        {{ t('cluster.machineConfig.vsphere.tags.label') }}
-        <p class="text-muted text-small">
-          {{ t('cluster.machineConfig.vsphere.tags.description') }}
-        </p>
-      </h4>
-      <div slot="body">
-        <ArrayListSelect
-          v-model="tag"
-          :options="tags"
-          :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
-          :loading="tagsLoading"
-          :disabled="isDisabled"
-        />
-      </div>
+      <template #title>
+        <h4 class="text-default-text mb-5">
+          {{ t('cluster.machineConfig.vsphere.tags.label') }}
+          <p class="text-muted text-small">
+            {{ t('cluster.machineConfig.vsphere.tags.description') }}
+          </p>
+        </h4>
+      </template>
+      <template #body>
+        <div>
+          <ArrayListSelect
+            v-model:value="tag"
+            :options="tags"
+            :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
+            :loading="tagsLoading"
+            :disabled="isDisabled"
+          />
+        </div>
+      </template>
     </Card>
     <Card
       v-if="haveAttributes"
@@ -1088,113 +1121,125 @@ export default {
       :show-highlight-border="false"
       :show-actions="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text mb-5"
-      >
-        {{ t('cluster.machineConfig.vsphere.customAttributes.label') }}
-        <p class="text-muted text-small">
-          {{ t('cluster.machineConfig.vsphere.customAttributes.description') }}
-        </p>
-      </h4>
-      <div slot="body">
-        <KeyValue
-          v-model="customAttribute"
-          :key-options="attributeKeys"
-          :options="tags"
-          :add-label="t('cluster.machineConfig.vsphere.customAttributes.add')"
-          :read-allowed="false"
-          :loading="attributeKeysLoading"
-          :key-taggable="false"
-          :key-option-unique="true"
-          :disabled="isDisabled"
-        />
-      </div>
+      <template #title>
+        <h4 class="text-default-text mb-5">
+          {{ t('cluster.machineConfig.vsphere.customAttributes.label') }}
+          <p class="text-muted text-small">
+            {{ t('cluster.machineConfig.vsphere.customAttributes.description') }}
+          </p>
+        </h4>
+      </template>
+      <template #body>
+        <div>
+          <KeyValue
+            v-model:value="customAttribute"
+            :key-options="attributeKeys"
+            :options="tags"
+            :add-label="t('cluster.machineConfig.vsphere.customAttributes.add')"
+            :read-allowed="false"
+            :loading="attributeKeysLoading"
+            :key-taggable="false"
+            :key-option-unique="true"
+            :disabled="isDisabled"
+          />
+        </div>
+      </template>
     </Card>
     <Card
       class="m-0 mt-20"
       :show-highlight-border="false"
       :show-actions="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text mb-5"
-      >
-        {{ t('cluster.machineConfig.vsphere.vAppOptions.label') }}
-        <p class="text-muted text-small">
-          {{ t('cluster.machineConfig.vsphere.vAppOptions.description') }}
-        </p>
-      </h4>
-      <div slot="body">
-        <div class="row mb-10">
-          <div class="col span-6">
-            <RadioGroup
-              v-model="vappMode"
-              name="restoreMode"
-              :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
-              :options="vAppOptions"
-              :disabled="isDisabled"
+      <template #title>
+        <h4 class="text-default-text mb-5">
+          {{ t('cluster.machineConfig.vsphere.vAppOptions.label') }}
+          <p class="text-muted text-small">
+            {{ t('cluster.machineConfig.vsphere.vAppOptions.description') }}
+          </p>
+        </h4>
+      </template>
+      <template #body>
+        <div>
+          <div
+            v-if="networksLoading"
+            class="row flex-justify-center"
+          >
+            <i
+              class="icon icon-spinner icon-spin"
             />
           </div>
+          <template v-else>
+            <div class="row mb-10">
+              <div class="col span-6">
+                <RadioGroup
+                  v-model:value="vappMode"
+                  name="restoreMode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
+                  :options="vAppOptions"
+                  :disabled="isDisabled"
+                />
+              </div>
+            </div>
+            <div
+              v-if="showManual"
+              class="row mb-10"
+            >
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappTransport"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappIpprotocol"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model:value="value.vappIpallocationpolicy"
+                  :mode="mode"
+                  :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
+                  :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
+                  :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
+                  :disabled="isDisabled"
+                />
+              </div>
+            </div>
+            <div
+              v-if="showManual"
+              class="row"
+            >
+              <div class="col span-12">
+                <KeyValue
+                  v-model:value="vappProperty"
+                  :title="t('cluster.machineConfig.vsphere.vAppOptions.properties.label')"
+                  :key-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.keyPlaceholder')"
+                  :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
+                  :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
+                  :read-allowed="false"
+                  :disabled="isDisabled"
+                />
+              </div>
+            </div>
+          </template>
         </div>
-        <div
-          v-if="showManual"
-          class="row mb-10"
-        >
-          <div class="col span-4">
-            <LabeledInput
-              v-model="value.vappTransport"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
-              :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
-              :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
-              :disabled="isDisabled"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="value.vappIpprotocol"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
-              :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
-              :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
-              :disabled="isDisabled"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="value.vappIpallocationpolicy"
-              :mode="mode"
-              :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
-              :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
-              :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
-              :disabled="isDisabled"
-            />
-          </div>
-        </div>
-        <div
-          v-if="showManual"
-          class="row"
-        >
-          <div class="col span-12">
-            <KeyValue
-              v-model="vappProperty"
-              :title="t('cluster.machineConfig.vsphere.vAppOptions.properties.label')"
-              :key-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.keyPlaceholder')"
-              :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
-              :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
-              :read-allowed="false"
-              :disabled="isDisabled"
-            />
-          </div>
-        </div>
-      </div>
+      </template>
     </Card>
   </div>
 </template>
 
 <style lang="scss" scoped>
-::v-deep .labeled-tooltip .status-icon.icon-info {
+:deep() .labeled-tooltip .status-icon.icon-info {
     z-index: 0;
 }
 </style>

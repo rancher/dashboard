@@ -8,6 +8,8 @@ import Loading from '@shell/components/Loading';
 import { NAME } from '@shell/config/table-headers';
 
 export default {
+  emits: ['input'],
+
   components: {
     Tab,
     ResourceTabs,
@@ -231,7 +233,7 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         v-if="globalBindings"

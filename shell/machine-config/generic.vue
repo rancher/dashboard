@@ -6,6 +6,8 @@ import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading, Banner, Questions
   },
@@ -95,7 +97,7 @@ export default {
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
       :disabled="disabled"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
   </div>
 </template>

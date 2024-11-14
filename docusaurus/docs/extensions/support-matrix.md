@@ -5,11 +5,12 @@
 The Shell package enables Extensions to integrate with Rancher.  
 It's important to know which version of the Shell package is compatible with each Rancher version:
 
-| | Rancher 2.7.x | Rancher 2.8.x | Rancher 2.9.x |
-|---|---|---|---|
-|Shell **0.3.8**|Supported|Limited support|Not supported|
-|Shell 0.5.3/**1.2.3**|Limited support|Supported|Not supported|
-|Shell **2.0.1**|Not supported|Not supported|Supported|
+| | Rancher 2.7.x | Rancher 2.8.x <br/> (Extensions API V1) | Rancher 2.9.x <br/> (Extensions API V2) | Rancher 2.10.x <br/> (Extensions API V3) |
+|---|---|---|---|---|
+|Shell **0.3.8**|**Supported**|Limited support|Not supported|Not supported|
+|Shell 0.5.3/**1.2.3**|Limited support|**Supported**|Not supported|Not supported|
+|Shell **2.0.1**|Not supported|Not supported|**Supported**|Not supported|
+|Shell **3.0.0**|Not supported|Not supported|Not supported|**Supported**|
 
 To know more about the Shell package versioning take a look at the diagram [here](./rancher-2.9-support).
 

@@ -8,6 +8,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 
 export default {
+  emits: ['update:value'],
+
   props: {
     mode: {
       type:     String,
@@ -70,7 +72,7 @@ export default {
       const header = { name: '', value: '' };
 
       if (!this.value.httpGet.httpHeaders) {
-        this.$set(this.value.httpGet, 'httpHeaders', []);
+        this.value.httpGet['httpHeaders'] = [];
       }
 
       this.value.httpGet.httpHeaders.push(header);
@@ -99,7 +101,7 @@ export default {
         break;
       }
 
-      this.$emit('input', this.value);
+      this.$emit('update:value', this.value);
     },
 
     deleteLeftovers(leftovers) {
@@ -117,7 +119,7 @@ export default {
   <div>
     <div class="row mb-10">
       <RadioGroup
-        v-model="selectHook"
+        v-model:value="selectHook"
         name="selectHook"
         :options="['none', 'exec', 'httpGet']"
         :labels="[
@@ -126,7 +128,7 @@ export default {
           t('workload.container.lifecycleHook.httpGet.add'),
         ]"
         :mode="mode"
-        @input="update"
+        @update:value="update"
       />
     </div>
 
@@ -135,7 +137,7 @@ export default {
         <h4>{{ t('workload.container.lifecycleHook.exec.title') }}</h4>
         <div>
           <ShellInput
-            v-model="value.exec.command"
+            v-model:value="value.exec.command"
             :mode="mode"
             :label="t('workload.container.lifecycleHook.exec.command.label')"
             :placeholder="t('workload.container.lifecycleHook.exec.command.placeholder', null, true)"
@@ -148,60 +150,63 @@ export default {
     <template v-if="selectHook === 'httpGet'">
       <h4>{{ t('workload.container.lifecycleHook.httpGet.title') }}</h4>
       <div class="var-row">
-        <template @input="update">
-          <LabeledInput
-            v-model="value.httpGet.host"
-            :label="t('workload.container.lifecycleHook.httpGet.host.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
-            :mode="mode"
-          />
-          <LabeledInput
-            v-model="value.httpGet.path"
-            :label="t('workload.container.lifecycleHook.httpGet.path.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
-            :mode="mode"
-          />
-          <LabeledInput
-            v-model.number="value.httpGet.port"
-            type="number"
-            :label="t('workload.container.lifecycleHook.httpGet.port.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
-            :mode="mode"
-            required
-          />
-          <LabeledSelect
-            v-model="value.httpGet.scheme"
-            :label="t('workload.container.lifecycleHook.httpGet.scheme.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
-            :options="schemeOptions"
-            :mode="mode"
-          />
-        </template>
+        <LabeledInput
+          v-model:value="value.httpGet.host"
+          :label="t('workload.container.lifecycleHook.httpGet.host.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.host.placeholder')"
+          :mode="mode"
+          @update:value="update"
+        />
+        <LabeledInput
+          v-model:value="value.httpGet.path"
+          :label="t('workload.container.lifecycleHook.httpGet.path.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.path.placeholder')"
+          :mode="mode"
+          @update:value="update"
+        />
+        <LabeledInput
+          v-model:value.number="value.httpGet.port"
+          type="number"
+          :label="t('workload.container.lifecycleHook.httpGet.port.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.port.placeholder')"
+          :mode="mode"
+          required
+          @update:value="update"
+        />
+        <LabeledSelect
+          v-model:value="value.httpGet.scheme"
+          :label="t('workload.container.lifecycleHook.httpGet.scheme.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpGet.scheme.placeholder')"
+          :options="schemeOptions"
+          :mode="mode"
+          @update:value="update"
+        />
       </div>
 
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
       <div
         v-for="(header, index) in value.httpGet.httpHeaders"
-        :key="header.id"
+        :key="index"
         class="var-row"
+        data-testid="hookoption-header-row"
       >
-        <template @input="update">
-          <LabeledInput
-            v-model="value.httpGet.httpHeaders[index].name"
-            :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpHeaders.name.placeholder')"
-            class="single-value"
-            :mode="mode"
-            required
-          />
-          <LabeledInput
-            v-model="value.httpGet.httpHeaders[index].value"
-            :label="t('workload.container.lifecycleHook.httpHeaders.value.label')"
-            :placeholder="t('workload.container.lifecycleHook.httpHeaders.value.placeholder')"
-            class="single-value"
-            :mode="mode"
-          />
-        </template>
+        <LabeledInput
+          v-model:value="value.httpGet.httpHeaders[index].name"
+          :label="t('workload.container.lifecycleHook.httpHeaders.name.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpHeaders.name.placeholder')"
+          class="single-value"
+          :mode="mode"
+          required
+          @update:value="update"
+        />
+        <LabeledInput
+          v-model:value="value.httpGet.httpHeaders[index].value"
+          :label="t('workload.container.lifecycleHook.httpHeaders.value.label')"
+          :placeholder="t('workload.container.lifecycleHook.httpHeaders.value.placeholder')"
+          class="single-value"
+          :mode="mode"
+          @update:value="update"
+        />
         <div class="remove">
           <button
             v-if="!isView"
@@ -221,6 +226,7 @@ export default {
           type="button"
           class="btn role-link mb-20"
           :disabled="mode === 'view'"
+          data-testid="hookoption-add-header-button"
           @click.stop="addHeader"
         >
           Add Header

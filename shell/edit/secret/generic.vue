@@ -48,7 +48,7 @@ export default {
 <template>
   <KeyValue
     key="data"
-    v-model="value.data"
+    v-model:value="value.data"
     :mode="mode"
     :initial-empty-row="true"
     :handle-base64="true"

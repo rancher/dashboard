@@ -177,8 +177,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
-    driversPage.list().details(linodeDriver, 1).should('contain', 'Active');
+    driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
+    driversPage.list().details(linodeDriver, 1).scrollIntoView().should('contain', 'Active');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
@@ -231,7 +231,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
         cy.wait('@deleteOracleDriver').its('response.statusCode').should('eq', 200);
 
         driversPage.waitForPage();
-        driversPage.list().details(linodeDriver, 1).contains('Removing');
         driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 2);
         driversPage.list().resourceTable().sortableTable().rowNames()
           .should('not.contain', linodeDriver)

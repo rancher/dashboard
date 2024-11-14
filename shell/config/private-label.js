@@ -1,9 +1,10 @@
 import { SETTING } from './settings';
+import { CURRENT_RANCHER_VERSION } from './version';
 
 export const ANY = 0;
 export const STANDARD = 1;
 export const CUSTOM = 2;
-export const DOCS_BASE = 'https://ranchermanager.docs.rancher.com/v2.9';
+export const DOCS_BASE = `https://ranchermanager.docs.rancher.com/v${ CURRENT_RANCHER_VERSION }`;
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';

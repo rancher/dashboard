@@ -8,6 +8,7 @@ import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/reg
 import RegistryMirrors from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryMirrors';
 
 export default {
+  emits:      ['custom-registry-changed', 'registry-host-changed', 'registry-secret-changed', 'input', 'update-configs-changed'],
   components: {
     LabeledInput,
     Banner,
@@ -80,7 +81,7 @@ export default {
         class="mb-20"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
-        @input="$emit('custom-registry-changed', $event)"
+        @update:value="$emit('custom-registry-changed', $event)"
       />
     </div>
     <div
@@ -94,10 +95,10 @@ export default {
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"
           data-testid="registry-host-input"
-          @input="$emit('registry-host-changed', $event)"
+          @update:value="$emit('registry-host-changed', $event)"
         />
         <SelectOrCreateAuthSecret
-          v-model="registrySecret"
+          :value="registrySecret"
           :register-before-hook="registerBeforeHook"
           :hook-priority="1"
           :mode="mode"
@@ -108,43 +109,41 @@ export default {
           :namespace="value.metadata.namespace"
           generate-name="registryconfig-auth-"
           :cache-secrets="true"
-          @input="$emit('registry-secret-changed', $event)"
+          @update:value="$emit('registry-secret-changed', $event)"
         />
       </div>
     </div>
-    <template>
-      <div
-        v-if="showCustomRegistryInput"
-        class="row"
+    <div
+      v-if="showCustomRegistryInput"
+      class="row"
+    >
+      <AdvancedSection
+        class="col span-12 advanced"
+        :is-open-by-default="showCustomRegistryAdvancedInput"
+        :mode="mode"
+        data-testid="registries-advanced-section"
       >
-        <AdvancedSection
-          class="col span-12 advanced"
-          :is-open-by-default="showCustomRegistryAdvancedInput"
+        <Banner
+          :closable="false"
+          class="cluster-tools-tip"
+          color="info"
+          :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
+        />
+        <RegistryMirrors
+          :value="value"
+          class="mt-20"
           :mode="mode"
-          data-testid="registries-advanced-section"
-        >
-          <Banner
-            :closable="false"
-            class="cluster-tools-tip"
-            color="info"
-            :label-key="value.isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
-          />
-          <RegistryMirrors
-            :value="value"
-            class="mt-20"
-            :mode="mode"
-            @input="$emit('input', $event)"
-          />
-          <RegistryConfigs
-            :value="value"
-            class="mt-20"
-            :mode="mode"
-            :cluster-register-before-hook="registerBeforeHook"
-            @input="$emit('input', $event)"
-            @updateConfigs="$emit('update-configs-changed', $event)"
-          />
-        </AdvancedSection>
-      </div>
-    </template>
+          @update:value="$emit('input', $event)"
+        />
+        <RegistryConfigs
+          :value="value"
+          class="mt-20"
+          :mode="mode"
+          :cluster-register-before-hook="registerBeforeHook"
+          @update:value="$emit('input', $event)"
+          @updateConfigs="$emit('update-configs-changed', $event)"
+        />
+      </AdvancedSection>
+    </div>
   </div>
 </template>

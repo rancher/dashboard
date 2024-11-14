@@ -6,19 +6,27 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { LOGGING, NAMESPACE, NODE, SCHEMA } from '@shell/config/types';
+import {
+  LOGGING, NAMESPACE, NODE, POD, SCHEMA
+} from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { allHash } from '@shell/utils/promise';
-import { isArray } from '@shell/utils/array';
+import { isArray, uniq } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { clone, set } from '@shell/utils/object';
+import { clone } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import Match from './Match';
+
+const FLOW_LOGGING = 'Logging';
+const FLOW_AUDIT = 'Audit';
+const FLOW_EVENT = 'Event';
+const FLOW_TYPE = [FLOW_LOGGING, FLOW_AUDIT, FLOW_EVENT];
 
 function emptyMatch(include = true) {
   const rule = {
@@ -33,6 +41,8 @@ function emptyMatch(include = true) {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     CruResource,
@@ -48,15 +58,20 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   async fetch() {
-    const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
-    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const hasAccessToClusterOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
-    const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
+    const hasAccessToNodes = this.$store.getters[`${ inStore }/schemaFor`](NODE);
+    const hasAccessToPods = this.$store.getters[`${ inStore }/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
-      return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
+      return hasAccess ? this.$store.dispatch(`${ inStore }/findAll`, { type }) : Promise.resolve([]);
     };
 
     const hash = await allHash({
@@ -64,6 +79,7 @@ export default {
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
+      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
@@ -72,10 +88,12 @@ export default {
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
     let filtersYaml;
 
-    set(this.value, 'spec', this.value.spec || {});
+    this.value.spec = this.value.spec || {};
 
     if ( this.value.spec.filters?.length ) {
       filtersYaml = jsyaml.dump(this.value.spec.filters);
@@ -120,7 +138,8 @@ export default {
       filtersYaml,
       initialFiltersYaml: filtersYaml,
       globalOutputRefs,
-      localOutputRefs
+      localOutputRefs,
+      loggingType:        clone(this.value.loggingType || FLOW_LOGGING)
     };
   },
 
@@ -146,7 +165,17 @@ export default {
           return true;
         }
 
-        return output.namespace === this.value.namespace;
+        const isEqualNs = output.namespace === this.value.namespace;
+
+        if (!this.isHarvester) {
+          return isEqualNs;
+        }
+
+        if (this.loggingType === FLOW_AUDIT) {
+          return output.loggingType === FLOW_AUDIT && isEqualNs;
+        }
+
+        return output.loggingType !== FLOW_AUDIT && isEqualNs;
       }).map((x) => {
         return { label: x.metadata.name, value: x.metadata.name };
       });
@@ -161,7 +190,17 @@ export default {
 
       return this.allClusterOutputs
         .filter((clusterOutput) => {
-          return clusterOutput.namespace === 'cattle-logging-system';
+          const isEqualNs = clusterOutput.namespace === 'cattle-logging-system';
+
+          if (!this.isHarvester) {
+            return isEqualNs;
+          }
+
+          if (this.loggingType === FLOW_AUDIT) {
+            return clusterOutput.loggingType === FLOW_AUDIT && isEqualNs;
+          }
+
+          return clusterOutput.loggingType !== FLOW_AUDIT && isEqualNs;
         })
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
@@ -200,6 +239,25 @@ export default {
       return out;
     },
 
+    containerChoices() {
+      const out = [];
+
+      for ( const pod of this.allPods ) {
+        for ( const c of (pod.spec?.containers || []) ) {
+          out.push(c.name);
+        }
+      }
+
+      return uniq(out).sort();
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+
+    flowTypeOptions() {
+      return FLOW_TYPE;
+    },
   },
 
   watch: {
@@ -219,7 +277,7 @@ export default {
           }
         });
 
-        set(this.value.spec, 'match', matches);
+        this.value.spec.match = matches;
       }
     },
     filtersYaml: {
@@ -229,9 +287,9 @@ export default {
           const filterJson = jsyaml.load(this.filtersYaml);
 
           if ( isArray(filterJson) ) {
-            set(this.value.spec, 'filters', filterJson);
+            this.value.spec.filters = filterJson;
           } else {
-            set(this.value.spec, 'filters', undefined);
+            this.value.spec.filters = undefined;
           }
         } catch (e) {
           this.errors = exceptionToErrorsArray(e);
@@ -241,13 +299,13 @@ export default {
     globalOutputRefs: {
       deep: true,
       handler() {
-        set(this.value.spec, 'globalOutputRefs', this.globalOutputRefs);
+        this.value.spec.globalOutputRefs = this.globalOutputRefs;
       }
     },
     localOutputRefs: {
       deep: true,
       handler() {
-        set(this.value.spec, 'localOutputRefs', this.localOutputRefs);
+        this.value.spec.localOutputRefs = this.localOutputRefs;
       }
     }
   },
@@ -262,7 +320,7 @@ export default {
 
   methods: {
     addMatch(include) {
-      this.matches.push(emptyMatch(include));
+      this.matches = [...this.matches, emptyMatch(include)];
     },
 
     removeMatch(idx) {
@@ -270,7 +328,7 @@ export default {
     },
 
     updateMatch(neu, idx) {
-      this.$set(this.matches, idx, neu);
+      this.matches[idx] = neu;
     },
 
     tabChanged({ tab }) {
@@ -302,11 +360,25 @@ export default {
     },
     willSave() {
       if (this.value.spec.filters && isEmpty(this.value.spec.filters)) {
-        this.$delete(this.value.spec, 'filters');
+        delete this.value.spec['filters'];
       }
 
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
-        this.$delete(this.value.spec, 'match');
+        delete this.value.spec['match'];
+      }
+
+      if (this.loggingType === FLOW_AUDIT) {
+        this.value.spec['loggingRef'] = 'harvester-kube-audit-log-ref';
+      }
+
+      if (this.loggingType === FLOW_EVENT) {
+        const eventSelector = { select: { labels: { 'app.kubernetes.io/name': 'event-tailer' } } };
+
+        if (!this.value.spec.match) {
+          this.value.spec['match'] = [eventSelector];
+        } else {
+          this.value.spec.match.push(eventSelector);
+        }
       }
     },
     onYamlEditorReady(cm) {
@@ -342,7 +414,7 @@ export default {
       :value="value"
       :mode="mode"
       :namespaced="value.type !== LOGGING.CLUSTER_FLOW"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <Tabbed
@@ -355,12 +427,23 @@ export default {
         :weight="3"
       >
         <Banner
+          v-if="!isHarvester"
           color="info"
           class="mt-0"
           :label="t('logging.flow.matches.banner')"
         />
+        <div v-if="isHarvester">
+          <LabeledSelect
+            v-model:value="loggingType"
+            class="mb-20"
+            :options="flowTypeOptions"
+            :mode="mode"
+            :disabled="!isCreate"
+            :label="t('generic.type')"
+          />
+        </div>
         <ArrayListGrouped
-          v-model="matches"
+          v-model:value="matches"
           :add-label="t('ingress.rules.addRule')"
           :default-add-value="{}"
           :mode="mode"
@@ -374,7 +457,7 @@ export default {
               :nodes="nodeChoices"
               :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
-              @input="e=>updateMatch(e,props.row.i)"
+              @update:value="e=>updateMatch(e,props.row.i)"
             />
           </template>
           <template #add>
@@ -407,7 +490,7 @@ export default {
           color="info"
         />
         <LabeledSelect
-          v-model="globalOutputRefs"
+          v-model:value="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
           :options="clusterOutputChoices"
           :multiple="true"
@@ -427,7 +510,7 @@ export default {
         </LabeledSelect>
         <LabeledSelect
           v-if="value.type === LOGGING.FLOW"
-          v-model="localOutputRefs"
+          v-model:value="localOutputRefs"
           :label="t('logging.flow.outputs.label')"
           class="mt-10"
           :options="outputChoices"
@@ -455,7 +538,7 @@ export default {
       >
         <YamlEditor
           ref="yaml"
-          v-model="filtersYaml"
+          v-model:value="filtersYaml"
           :scrolling="false"
           :initial-yaml-values="initialFiltersYaml"
           :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
@@ -472,7 +555,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-::v-deep {
+:deep() {
   .icon-info {
     margin-top: -3px;
     margin-right: 4px;

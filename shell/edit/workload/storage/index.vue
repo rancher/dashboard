@@ -5,13 +5,21 @@ import { _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
 import { randomStr } from '@shell/utils/string';
+import { uniq } from '@shell/utils/array';
 
 export default {
   name: 'Storage',
 
+  emits: ['removePvcForm'],
+
   components: {
-    ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
+    ArrayListGrouped,
+    ButtonDropdown,
+    Mount,
+    CodeMirror,
+    YamlEditor
   },
 
   props: {
@@ -89,13 +97,13 @@ export default {
       const customVolumeTypes = require
         .context('@shell/edit/workload/storage', false, /^.*\.vue$/)
         .keys()
-        .map((path) => path.replace(/(\.\/)|(.vue)/g, ''))
+        .map((path) => path.replace(/(\.\/)|(.vue)/g, '').split('/').findLast(() => true))
         .filter((file) => !excludedFiles.includes(file));
 
-      return [
+      return uniq([
         ...customVolumeTypes,
         ...defaultVolumeTypes
-      ]
+      ])
         .sort()
         .map((volumeType) => ({
           label:  this.t(`workload.storage.subtypes.${ volumeType }`),
@@ -107,21 +115,21 @@ export default {
     pvcNames() {
       return this.namespacedPvcs.map((pvc) => pvc.metadata.name);
     },
+
+    yamlEditorMode() {
+      return this.isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
+    }
   },
 
-  // watch: {
-  //   storageVolumes(neu, old) {
-  //     removeObjects(this.value.volumes, old);
-  //     addObjects(this.value.volumes, neu);
-  //     const names = neu.reduce((all, each) => {
-  //       all.push(each.name);
-
-  //       return all;
-  //     }, []);
-
-  //     this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
-  //   }
-  // },
+  // need to refresh codemirror when the tab is opened and hash change === tab change
+  watch: {
+    '$route.hash': {
+      deep: true,
+      handler() {
+        this.refresh();
+      }
+    }
+  },
 
   methods: {
     /**
@@ -129,7 +137,7 @@ export default {
      */
     initializeStorage() {
       if (!this.value.volumes) {
-        this.$set(this.value, 'volumes', []);
+        this.value['volumes'] = [];
       }
     },
 
@@ -144,33 +152,19 @@ export default {
 
     addVolume(type) {
       const name = `vol-${ randomStr(5).toLowerCase() }`;
+      const newVolume = { name, _type: type };
 
       if (type === 'createPVC') {
-        this.value.volumes.push({
-          _type:                 'createPVC',
-          persistentVolumeClaim: {},
-          name,
-        });
+        newVolume.persistentVolumeClaim = {};
       } else if (type === 'csi') {
-        this.value.volumes.push({
-          _type: type,
-          csi:   { volumeAttributes: {} },
-          name,
-        });
+        newVolume.csi = { volumeAttributes: {} };
       } else if (type === 'emptyDir') {
-        this.value.volumes.push({
-          _type:    type,
-          emptyDir: { medium: '' },
-          name,
-        });
+        newVolume.emptyDir = { medium: '' };
       } else {
-        this.value.volumes.push({
-          _type:  type,
-          [type]: {},
-          name,
-        });
+        newVolume[type] = {};
       }
 
+      this.value.volumes = [...this.value.volumes, newVolume];
       // this.container.volumeMounts.push({ name });
     },
 
@@ -234,14 +228,18 @@ export default {
 
     // codemirror needs to refresh if it is in a tab that wasn't visible on page load
     refresh() {
-      if (this.$refs.cm) {
-        this.$refs.cm.forEach((component) => component.refresh());
+      if (this.$refs) {
+        // if a constant ref is assigned to the codemirror component in the template below, only the last instance of that codemirror component gets the ref
+        const cmRefs = Object.keys(this.$refs).filter((ref) => ref.startsWith('cm-'));
+
+        cmRefs.forEach((r) => this.$refs[r].refresh());
       }
     },
 
     removePvcForm(hookName) {
       this.$emit('removePvcForm', hookName);
-    }
+    },
+
   },
 };
 </script>
@@ -250,8 +248,7 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="value.volumes.length"
-      v-model="value.volumes"
+      v-model:value="value.volumes"
       :mode="mode"
       @remove="removeVolume"
     >
@@ -272,13 +269,18 @@ export default {
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
             :loading="loading"
+            :data-testid="`volume-component-${props.i}`"
             @removePvcForm="removePvcForm"
           />
-          <div v-else-if="isView">
-            <CodeMirror
-              ref="cm"
-              :value="yamlDisplay(props.row.value)"
-              :options="{ readOnly: true, cursorBlinkRate: -1 }"
+          <div
+            v-else
+          >
+            <YamlEditor
+              :ref="`cm-${props.i}`"
+              v-model:value="props.row.value"
+              :as-object="true"
+              :data-testid="`volume-component-${props.i}`"
+              :editor-mode="yamlEditorMode"
             />
           </div>
         </div>
@@ -312,7 +314,7 @@ export default {
   margin: 20px 0px 20px 0px;
   position: relative;
 
-  ::v-deep .code-mirror {
+  :deep() .code-mirror {
     .CodeMirror {
       background-color: var(--yaml-editor-bg);
       & .CodeMirror-gutters {

@@ -7,20 +7,11 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 
 describe('Cloud Credential', { testIsolation: 'off' }, () => {
   const clusterList = new ClusterManagerListPagePo();
+  const doCreatedCloudCredsIds = [];
+  const azCreatedCloudCredsIds = [];
 
   before(() => {
     cy.login();
-    cy.getRancherResource('v3', 'cloudCredentials').then((resp: Cypress.Response<any>) => {
-      const credentials = resp.body.data;
-
-      credentials.forEach( (credential) => {
-        cy.deleteRancherResource('v3', 'cloudCredentials', credential.id.trim(), false);
-      });
-    });
-  });
-
-  beforeEach(() => {
-    clusterList.goTo();
   });
 
   it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
@@ -69,39 +60,42 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       },
     ];
 
-    const createdCloudCredsIds = [];
-
-    for (let i = 0; i < cloudCredsToCreate.length; i++) {
-      cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadDO(cloudCredsToCreate[i].name, cloudCredsToCreate[i].token))).then((resp: Cypress.Response<any>) => {
-        createdCloudCredsIds.push(resp.body.id);
-
-        if (i === 0) {
-          // intercept GET of list of prov clusters and pass a mock (Digital Ocean)
-          cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', (req) => {
-            req.reply({
-              statusCode: 200,
-              body:       clusterProvDigitalOceanSingleResponse(clusterName, resp.body.id, machinePoolId),
-            });
-          }).as('dummyClusterListLoad');
-        }
-
-        // code to edit cluster and final checks needs to be after all "then's" otherwise the cloud cred id's aren't stored yet on it's variable...
-        if (i === cloudCredsToCreate.length - 1) {
-          clusterList.checkIsCurrentPage();
-          clusterList.editCluster(clusterName);
-
-          const editClusterPage = new ClusterManagerEditGenericPagePo(undefined, clusterName);
-
-          editClusterPage.selectOptionForCloudCredentialWithLabel(`${ credsName } (${ createdCloudCredsIds[1] })`);
-          editClusterPage.save();
-
-          cy.wait('@dummyProvClusterSave').then(({ request }) => {
-            expect(request.body.spec.cloudCredentialSecretName).to.equal(createdCloudCredsIds[1]);
-          });
-        }
+    const create = (cloudCredsToCreate) => {
+      return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadDO(
+        cloudCredsToCreate.name,
+        cloudCredsToCreate.token
+      ))).then((resp: Cypress.Response<any>) => {
+        doCreatedCloudCredsIds.push(resp.body.id);
       });
-    }
+    };
+
+    create(cloudCredsToCreate[0])
+      .then(() => create(cloudCredsToCreate[1]))
+      .then(() => create(cloudCredsToCreate[2]))
+      .then(() => {
+        clusterList.goTo();
+
+        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', (req) => {
+          req.reply({
+            statusCode: 200,
+            body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),
+          });
+        }).as('dummyClusterListLoad');
+
+        clusterList.checkIsCurrentPage();
+        clusterList.editCluster(clusterName);
+
+        const editClusterPage = new ClusterManagerEditGenericPagePo(undefined, clusterName);
+
+        editClusterPage.selectOptionForCloudCredentialWithLabel(`${ credsName } (${ doCreatedCloudCredsIds[1] })`);
+        editClusterPage.save();
+
+        cy.wait('@dummyProvClusterSave').then(({ request }) => {
+          expect(request.body.spec.cloudCredentialSecretName).to.equal(doCreatedCloudCredsIds[1]);
+        });
+      });
   });
+
   it('Changing credential environment should change the list of locations when creating an Azure cluster', { tags: ['@manager', '@adminUser'] }, () => {
     const clusterName = 'test-cluster-azure';
     const machinePoolId = 'dummy-id';
@@ -170,63 +164,76 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
     }).as('aksVMSizesV2Load');
 
-    const createdCloudCredsIds = [];
-
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
-    for (let i = 0; i < cloudCredsToCreate.length; i++) {
-      cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadAzure(
-        cloudCredsToCreate[i].name,
-        cloudCredsToCreate[i].environment,
-        cloudCredsToCreate[i].subscriptionId,
-        cloudCredsToCreate[i].clientId,
-        cloudCredsToCreate[i].clientSecret,
+    const create = (cloudCredsToCreate) => {
+      return cy.createRancherResource('v3', 'cloudcredentials', JSON.stringify(cloudCredentialCreatePayloadAzure(
+        cloudCredsToCreate.name,
+        cloudCredsToCreate.environment,
+        cloudCredsToCreate.subscriptionId,
+        cloudCredsToCreate.clientId,
+        cloudCredsToCreate.clientSecret,
       ))).then((resp: Cypress.Response<any>) => {
-        createdCloudCredsIds.push(resp.body.id);
-
-        if (i === cloudCredsToCreate.length - 1) {
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[0]) }`, (req) => {
-            req.reply({
-              statusCode: 200,
-              body:       cloudCredsToCreate[0].body,
-            });
-          }).as('aksLocations0');
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[1]) }`, (req) => {
-            req.reply({
-              statusCode: 200,
-              body:       cloudCredsToCreate[1].body,
-            });
-          }).as('aksLocations1');
-          cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(createdCloudCredsIds[2]) }`, (req) => {
-            req.reply({
-              statusCode: 200,
-              body:       cloudCredsToCreate[2].body,
-            });
-          }).as('aksLocations2');
-
-          clusterList.checkIsCurrentPage();
-          clusterList.createCluster();
-          createRKE2AzureClusterPage.rkeToggle().set('RKE2/K3s');
-          createRKE2AzureClusterPage.selectCreate(1);
-          createRKE2AzureClusterPage.rke2PageTitle().should('include', 'Create Azure');
-          createRKE2AzureClusterPage.waitForPage('type=azure&rkeType=rke2');
-          createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[0].name }`);
-
-          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[0].body[0].name);
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[0].environment );
-
-          createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[1].name }`);
-
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[1].environment );
-          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[1].body[0].name );
-
-          createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[2].name }`);
-
-          createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[2].environment );
-          createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[2].body[0].name );
-        }
+        azCreatedCloudCredsIds.push(resp.body.id);
       });
+    };
+
+    create(cloudCredsToCreate[0])
+      .then(() => create(cloudCredsToCreate[1]))
+      .then(() => create(cloudCredsToCreate[2]))
+      .then(() => {
+        clusterList.goTo();
+
+        cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(azCreatedCloudCredsIds[0]) }`, (req) => {
+          req.reply({
+            statusCode: 200,
+            body:       cloudCredsToCreate[0].body,
+          });
+        });
+        cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(azCreatedCloudCredsIds[1]) }`, (req) => {
+          req.reply({
+            statusCode: 200,
+            body:       cloudCredsToCreate[1].body,
+          });
+        });
+        cy.intercept('GET', `/meta/aksLocations?cloudCredentialId=${ encodeURIComponent(azCreatedCloudCredsIds[2]) }`, (req) => {
+          req.reply({
+            statusCode: 200,
+            body:       cloudCredsToCreate[2].body,
+          });
+        });
+
+        clusterList.checkIsCurrentPage();
+        clusterList.createCluster();
+        createRKE2AzureClusterPage.rkeToggle().set('RKE2/K3s');
+        createRKE2AzureClusterPage.selectCreate(1);
+        createRKE2AzureClusterPage.rke2PageTitle().should('include', 'Create Azure');
+        createRKE2AzureClusterPage.waitForPage('type=azure&rkeType=rke2');
+        createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[0].name }`);
+
+        createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[0].body[0].name);
+        createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[0].environment );
+
+        createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[1].name }`);
+
+        createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[1].environment );
+        createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[1].body[0].name );
+
+        createRKE2AzureClusterPage.selectOptionForCloudCredentialWithLabel(`${ cloudCredsToCreate[2].name }`);
+
+        createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[2].environment );
+        createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[2].body[0].name );
+      });
+  });
+
+  after(() => {
+    for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {
+      cy.deleteRancherResource('v3', `cloudcredentials`, doCreatedCloudCredsIds[i]);
+    }
+
+    for (let i = 0; i < azCreatedCloudCredsIds.length; i++) {
+      cy.deleteRancherResource('v3', `cloudcredentials`, azCreatedCloudCredsIds[i]);
     }
   });
 });

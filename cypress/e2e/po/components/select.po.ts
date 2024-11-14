@@ -13,8 +13,12 @@ export default class SelectPo extends ComponentPo {
     return this.getOptions().contains('li', label).click();
   }
 
-  clickOptionWithLabelForChartReposFilter(label: string) {
-    return this.getOptions().contains('li', label).find('div label').click();
+  enableOptionWithLabelForChartReposFilter(label: string) {
+    this.getOptions().contains('li', label).find('div label').then((el) => {
+      if (!el.find('input[type="checkbox"]').is(':checked')) {
+        return cy.wrap(el).should('be.visible').click({ force: true });
+      }
+    });
   }
 
   /**

@@ -10,6 +10,8 @@ const DEFAULT_EFFECT_VALUES = {
 };
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: { KeyValue, Select },
 
   props: {
@@ -42,7 +44,7 @@ export default {
       },
 
       set(localValue) {
-        this.$emit('input', localValue);
+        this.$emit('update:value', localValue);
       }
     },
 
@@ -69,7 +71,7 @@ export default {
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
       :disabled="disabled"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}
@@ -77,12 +79,12 @@ export default {
 
       <template #col:effect="{row, queueUpdate, i}">
         <Select
-          v-model="row.effect"
+          v-model:value="row.effect"
           :data-testid="`taints-effect-row-${i}`"
           :options="effectOptions"
           :disabled="disabled"
           class="compact-select"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </template>
     </KeyValue>

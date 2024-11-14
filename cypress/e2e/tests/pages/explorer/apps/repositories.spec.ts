@@ -1,3 +1,4 @@
+//
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
@@ -24,7 +25,14 @@ describe('Apps', () => {
           const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
           appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+
           appRepoList.sortableTable().rowCount().should('be.lessThan', 10); // catch page size 10...
+          // Check that the table has settled and rendered all rows
+          // This is a bit hacky, but assume table settled when we have all of these three rows
+          appRepoList.sortableTable().rowElementWithName('Partners').should('be.visible');
+          appRepoList.sortableTable().rowElementWithName('Rancher').should('be.visible');
+          appRepoList.sortableTable().rowElementWithName('RKE2').should('be.visible');
+          // Table settled. Get row count
           appRepoList.sortableTable().rowCount().then((count) => {
             // track repo rows
 
@@ -159,6 +167,10 @@ describe('Apps', () => {
 
         // Nav to a summary page for a specific chart
         ChartsPage.navTo(clusterId);
+        chartsPage.chartsFilterCategoriesSelect().toggle();
+        chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
+        chartsPage.chartsFilterReposSelect().toggle();
+        chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
         chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
         chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
         chartsPage.chartsFilterInput().clear();

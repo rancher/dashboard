@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { ref, reactive, watch, onMounted } from 'vue';
-import { useRouter, onBeforeRouteUpdate } from 'vue-router/composables';
+import { useRouter, onBeforeRouteUpdate } from 'vue-router';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
 import Footer from '@shell/components/form/Footer.vue';
-import { useStore } from '@shell/composables/useStore';
+import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { useUserRetentionValidation } from '@shell/composables/useUserRetentionValidation';
 import { MANAGEMENT } from '@shell/config/types';
@@ -191,12 +191,12 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
       </banner>
       <div class="input-fieldset">
         <checkbox
-          v-model="disableAfterPeriod"
+          v-model:value="disableAfterPeriod"
           data-testid="disableAfterPeriod"
           :label="t('user.retention.edit.form.disableAfter.checkbox')"
         />
         <labeled-input
-          v-model="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+          v-model:value="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
           data-testid="disableAfterPeriodInput"
           :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
           class="input-field"
@@ -208,12 +208,12 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
       </div>
       <div class="input-fieldset">
         <checkbox
-          v-model="deleteAfterPeriod"
+          v-model:value="deleteAfterPeriod"
           data-testid="deleteAfterPeriod"
           :label="t('user.retention.edit.form.deleteAfter.checkbox')"
         />
         <labeled-input
-          v-model="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+          v-model:value="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
           data-testid="deleteAfterPeriodInput"
           :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
           class="input-field"
@@ -229,7 +229,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
       >
         <div class="input-fieldset pt-12">
           <labeled-input
-            v-model="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
+            v-model:value="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
             data-testid="userRetentionCron"
             class="input-field"
             required
@@ -243,7 +243,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
         </div>
         <div class="input-fieldset condensed pt-12">
           <toggle-switch
-            v-model="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
+            v-model:value="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
             data-testid="userRetentionDryRun"
             :onValue="'true'"
             :offValue="'false'"
@@ -253,7 +253,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
         </div>
         <div class="input-fieldset condensed">
           <labeled-input
-            v-model="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
+            v-model:value="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
             data-testid="userLastLoginDefault"
             class="input-field"
             :label="t('user.retention.edit.form.defaultLastLogin.label')"
@@ -293,7 +293,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
     margin-top: 20px;
     padding: 10px 20px;
 
-    ::v-deep .spacer-small {
+    :deep() .spacer-small {
       padding: 0;
     }
   }

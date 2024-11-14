@@ -19,6 +19,8 @@ import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
+  emits: ['error'],
+
   components: {
     Footer,
     FileSelector,
@@ -344,14 +346,13 @@ export default {
 </script>
 
 <template>
-  <div class="root resource-yaml">
+  <div class="root resource-yaml flex-content">
     <YamlEditor
       ref="yamleditor"
-      v-model="currentYaml"
+      v-model:value="currentYaml"
       :initial-yaml-values="initialYaml"
       class="yaml-editor flex-content"
       :editor-mode="editorMode"
-      @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
     />

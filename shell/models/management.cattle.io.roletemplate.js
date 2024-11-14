@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
@@ -106,7 +105,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   updateSubtype(subtype) {
-    Vue.set(this, '_subtype', subtype);
+    this['_subtype'] = subtype;
     this.context = SUBTYPE_MAPPING[subtype].context;
   }
 
@@ -119,7 +118,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   updateDefault(value) {
     const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
 
-    Vue.set(this, defaultKey, value);
+    this[defaultKey] = value;
   }
 
   get listLocation() {
@@ -174,6 +173,12 @@ export default class RoleTemplate extends SteveDescriptionModel {
     return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
+  /**
+   * Resource action redirects to the detail page with a query parameter 'clone'
+   * When the query parameter is present, the view will fetch the resource to clone define in the parameter
+   * E.g.: /my-id?mode=clone
+   * @param {*} moreQuery
+   */
   goToClone(moreQuery = {}) {
     const location = this.detailLocation;
 

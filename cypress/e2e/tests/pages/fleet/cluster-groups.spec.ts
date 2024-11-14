@@ -47,4 +47,17 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
         });
     });
   });
+  describe('Edit', { tags: ['@vai', '@adminUser'] }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('can open "Edit as YAML"', () => {
+      FleetClusterGroupsListPagePo.navTo();
+      fleetClusterGroups.waitForPage();
+      fleetClusterGroups.clickCreate();
+      fleetClusterGroups.createFleetClusterGroupsForm().editAsYaml().click();
+      fleetClusterGroups.createFleetClusterGroupsForm().yamlEditor().checkExists();
+    });
+  });
 });

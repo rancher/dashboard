@@ -5,6 +5,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { base64Decode } from '@shell/utils/crypto';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTabs,
     DetailText,
@@ -51,7 +53,7 @@ export default {
 <template>
   <ResourceTabs
     :value="value"
-    @input="$emit('input', $event)"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       name="data"

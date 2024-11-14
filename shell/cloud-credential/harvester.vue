@@ -7,6 +7,8 @@ import { get, set } from '@shell/utils/object';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 
 export default {
+  emits: ['validationChanged'],
+
   components: { LabeledSelect, Banner },
   mixins:     [CreateEditView],
 
@@ -110,7 +112,7 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-model="cluster"
+          v-model:value="cluster"
           :mode="mode"
           :disabled="isEdit"
           :options="clusterOptions"

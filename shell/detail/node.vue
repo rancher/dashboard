@@ -27,6 +27,8 @@ const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/se
 export default {
   name: 'DetailNode',
 
+  emits: ['input'],
+
   components: {
     Alert,
     ConsumptionGauge,
@@ -236,7 +238,7 @@ export default {
     <ResourceTabs
       :value="value"
       :mode="mode"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="pods"

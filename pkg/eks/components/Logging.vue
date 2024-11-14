@@ -10,6 +10,8 @@ import { removeObject } from '@shell/utils/array';
 export default defineComponent({
   name: 'EKSLogging',
 
+  emits: ['update:loggingTypes'],
+
   components: { Checkbox },
 
   props: {
@@ -63,7 +65,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.audit.label"
           :tooltip="t('eks.audit.tooltip')"
-          @input="toggleType('audit')"
+          @update:value="toggleType('audit')"
         />
       </div>
       <div class="col span-2">
@@ -72,7 +74,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.api.label"
           :tooltip="t('eks.api.tooltip')"
-          @input="toggleType('api')"
+          @update:value="toggleType('api')"
         />
       </div>
 
@@ -82,7 +84,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.scheduler.label"
           :tooltip="t('eks.scheduler.tooltip')"
-          @input="toggleType('scheduler')"
+          @update:value="toggleType('scheduler')"
         />
       </div>
 
@@ -92,7 +94,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.controllerManager.label"
           :tooltip="t('eks.controllerManager.tooltip')"
-          @input="toggleType('controllerManager')"
+          @update:value="toggleType('controllerManager')"
         />
       </div>
       <div class="col span-2">
@@ -101,7 +103,7 @@ export default defineComponent({
           :mode="mode"
           label-key="eks.authenticator.label"
           :tooltip="t('eks.authenticator.tooltip')"
-          @input="toggleType('authenticator')"
+          @update:value="toggleType('authenticator')"
         />
       </div>
     </div>

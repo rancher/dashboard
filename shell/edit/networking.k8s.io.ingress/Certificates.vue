@@ -92,14 +92,14 @@ export default {
   />
   <div v-else>
     <ArrayListGrouped
-      v-model="value.spec.tls"
+      v-model:value="value.spec.tls"
       :add-label="t('ingress.certificates.addCertificate')"
       :default-add-value="defaultAddValue"
       :mode="mode"
     >
       <template #default="props">
         <Certificate
-          v-model="props.row.value"
+          v-model:value="props.row.value"
           class="mb-20"
           :mode="mode"
           :certs="certificates"

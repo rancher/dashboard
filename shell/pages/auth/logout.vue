@@ -1,8 +1,28 @@
 <script>
+import { configType } from '@shell/models/management.cattle.io.authconfig';
 
 export default {
   async fetch() {
-    await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+    const publicAuthProviders = await this.$store.dispatch('auth/getAuthProviders');
+
+    const samlAuthProvider = publicAuthProviders.find((authProvider) => configType[authProvider.id] === 'saml');
+
+    if (!!samlAuthProvider) {
+      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = samlAuthProvider;
+
+      if (logoutAllSupported && logoutAllEnabled && logoutAllForced) {
+        // SAML - force SLO (logout from all apps)
+        await this.$store.dispatch('auth/logout', {
+          force: true, slo: true, provider: samlAuthProvider
+        }, { root: true });
+      } else {
+        // simple logout
+        await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+      }
+    } else {
+      // simple logout
+      await this.$store.dispatch('auth/logout', { force: true }, { root: true });
+    }
   }
 };
 </script>

@@ -39,8 +39,8 @@ describe('checkbox.vue', () => {
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(true);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(true);
   });
 
   it('emits an input event with a custom valueWhenTrue', async() => {
@@ -51,8 +51,8 @@ describe('checkbox.vue', () => {
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(valueWhenTrue);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(valueWhenTrue);
   });
 
   it('updates from valueWhenTrue to falsy', async() => {
@@ -63,6 +63,6 @@ describe('checkbox.vue', () => {
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.[0][0]).toBeNull();
+    expect(wrapper.emitted('update:value')[0][0]).toBeNull();
   });
 });

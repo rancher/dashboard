@@ -1,5 +1,5 @@
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { mount, shallowMount, Wrapper } from '@vue/test-utils';
 import { EKSConfig, EKSNodeGroup } from 'types';
 import CruEKS, { DEFAULT_EKS_CONFIG } from '@pkg/eks/components/CruEKS.vue';
 
@@ -27,11 +27,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [],
-    mocks:  {
-      $store:      mockedStore(versionSetting),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mocks: {
+        $store:      mockedStore(versionSetting),
+        $route:      mockedRoute,
+        $fetchState: {},
+      },
+      stubs: { CruResource: false, Accordion: false }
     }
   };
 };
@@ -52,9 +54,10 @@ describe('eKS provisioning form', () => {
   });
 
   it('should show the form when a credential is selected', async() => {
-    const wrapper = shallowMount(CruEKS, {
+    const wrapper = mount(CruEKS, {
       propsData: { value: {}, mode: 'create' },
-      ...requiredSetup()
+      ...requiredSetup(),
+      shallow:   true
     });
 
     const formSelector = '[data-testid="crueks-form"]';
@@ -95,15 +98,15 @@ describe('eKS provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
 
-    nameInput.vm.$emit('input', 'abc');
+    nameInput.vm.$emit('update:value', 'abc');
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.config.displayName).toStrictEqual('abc');
     expect(wrapper.vm.normanCluster.name).toStrictEqual('abc');
     expect(nameInput.props().value).toStrictEqual('abc');
 
-    nameInput.vm.$emit('input', 'def');
+    nameInput.vm.$emit('update:value', 'def');
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.config.displayName).toStrictEqual('def');
     expect(wrapper.vm.normanCluster.name).toStrictEqual('def');
@@ -148,7 +151,7 @@ describe('eKS provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const configComponent = wrapper.find('[data-testid="eks-config-section"]');
+    const configComponent = wrapper.getComponent('[data-testid="eks-config-section"]');
 
     configComponent.vm.$emit('update:enableNetworkPolicy', true);
 
@@ -175,7 +178,7 @@ describe('eKS provisioning form', () => {
     await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG });
     wrapper.vm.addGroup();
 
-    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
 
     nameInput.vm.$emit('input', 'abc');
     await wrapper.vm.$nextTick();
@@ -191,26 +194,26 @@ describe('eKS provisioning form', () => {
   });
 
   it('should NOT show an error nor prevent saving if no node groups are defined in an IMPORTED cluster', async() => {
-    const wrapper = shallowMount(CruEKS, {
+    const wrapper = mount(CruEKS, {
       propsData: { value: {}, mode: 'edit' },
-      ...requiredSetup()
+      ...requiredSetup(),
+      shallow:   true,
     });
 
     await setCredential(wrapper, { ...DEFAULT_EKS_CONFIG, imported: true });
     wrapper.vm.addGroup();
 
-    const nameInput = wrapper.find('[data-testid="eks-name-input"]');
+    const nameInput = wrapper.getComponent('[data-testid="eks-name-input"]');
 
-    nameInput.vm.$emit('input', 'abc');
+    nameInput.vm.$emit('update:value', 'abc');
     await wrapper.vm.$nextTick();
-
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
 
     wrapper.vm.removeGroup(0);
 
     expect(wrapper.vm.nodeGroups).toStrictEqual([]);
-
     expect(wrapper.vm.fvFormIsValid).toBe(true);
+
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
   });
 });

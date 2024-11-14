@@ -4,12 +4,15 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
+  emits: ['validationChanged', 'valueChanged'],
+
   components: {
     Loading, Checkbox, LabeledInput, LabeledSelect
   },
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     let cur = (this.value.decodedData.defaultRegion || '').toLowerCase();
@@ -27,35 +30,18 @@ export default {
   },
 
   data() {
-    return { knownRegions: null };
+    return {
+      knownRegions:   null,
+      fvFormRuleSets: [
+        { path: 'decodedData.accessKey', rules: ['required'] },
+        { path: 'decodedData.secretKey', rules: ['required'] }]
+    };
   },
-
   watch: {
-    'value.decodedData.accessKey'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.secretKey'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultBucket'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultFolder'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultRegion'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultEndpointCA'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaultEndpoint'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.defaulSkipSSLVerify'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-  },
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    }
+  }
 };
 </script>
 
@@ -74,7 +60,8 @@ export default {
           placeholder-key="cluster.credential.s3.accessKey.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('accessKey', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.accessKey')"
+          @update:value="$emit('valueChanged', 'accessKey', $event)"
         />
       </div>
       <div class="col span-6">
@@ -85,7 +72,8 @@ export default {
           placeholder-key="cluster.credential.s3.secretKey.placeholder"
           type="password"
           :mode="mode"
-          @input="value.setData('secretKey', $event);"
+          :rules="fvGetAndReportPathRules('decodedData.secretKey')"
+          @update:value="$emit('valueChanged', 'secretKey', $event)"
         />
       </div>
     </div>
@@ -97,7 +85,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultBucket.label"
           placeholder-key="cluster.credential.s3.defaultBucket.placeholder"
-          @input="value.setData('defaultBucket', $event)"
+          @update:value="value.setData('defaultBucket', $event)"
         />
       </div>
       <div class="col span-6">
@@ -106,7 +94,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultFolder.label"
           placeholder-key="cluster.credential.s3.defaultFolder.placeholder"
-          @input="value.setData('defaultFolder', $event)"
+          @update:value="value.setData('defaultFolder', $event)"
         />
       </div>
     </div>
@@ -120,7 +108,7 @@ export default {
           :mode="mode"
           :taggable="true"
           :options="knownRegions"
-          @input="value.setData('defaultRegion', $event);"
+          @update:value="value.setData('defaultRegion', $event);"
         />
       </div>
       <div class="col span-6">
@@ -129,7 +117,7 @@ export default {
           :mode="mode"
           label-key="cluster.credential.s3.defaultEndpoint.label"
           placeholder-key="cluster.credential.s3.defaultEndpoint.placeholder"
-          @input="value.setData('defaultEndpoint', $event)"
+          @update:value="value.setData('defaultEndpoint', $event)"
         />
       </div>
     </div>
@@ -139,7 +127,7 @@ export default {
         :value="value.decodedData.defaultSkipSSLVerify"
         :mode="mode"
         label-key="cluster.credential.s3.defaultSkipSSLVerify.label"
-        @input="value.setData('defaultSkipSSLVerify', $event)"
+        @update:value="value.setData('defaultSkipSSLVerify', $event)"
       />
 
       <LabeledInput
@@ -148,7 +136,7 @@ export default {
         type="multiline"
         label-key="cluster.credential.s3.defaultEndpointCA.label"
         placeholder-key="cluster.credential.s3.defaultEndpointCA.placeholder"
-        @input="value.setData('defaultEndpointCA', $event)"
+        @update:value="value.setData('defaultEndpointCA', $event)"
       />
     </div>
   </div>

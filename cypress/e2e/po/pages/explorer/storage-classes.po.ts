@@ -1,4 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import StorageClassesCreateEditPo from '@/cypress/e2e/po/edit/storage-classes.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -21,7 +22,7 @@ export class StorageClassesPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
     sideNav.navToSideMenuGroupByLabel('Storage');
     sideNav.navToSideMenuEntryByLabel('StorageClasses');
   }
@@ -40,5 +41,9 @@ export class StorageClassesPagePo extends PagePo {
 
   listElementWithName(name:string) {
     return this.list().resourceTable().sortableTable().rowElementWithName(name);
+  }
+
+  createStorageClassesForm(id? : string): StorageClassesCreateEditPo {
+    return new StorageClassesCreateEditPo(id);
   }
 }

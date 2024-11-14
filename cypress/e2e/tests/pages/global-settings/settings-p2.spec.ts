@@ -14,7 +14,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-let removeServerUrl = false;
+const removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -225,8 +225,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    const rancherLogo = '/img/rancher-logo.66cf5910.svg';
-    const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
+    // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
+    const rancherLogoWidth = 142;
+    const suseRancherLogoWidth = 82;
 
     // Update setting
     SettingsPagePo.navTo();
@@ -243,15 +244,17 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(suseRancherLogo);
-    });
+    burgerMenu.brandLogoImage()
+      .should('be.visible')
+      .invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', suseRancherLogoWidth);
     BurgerMenuPo.toggle();
 
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(suseRancherLogo);
-    });
+    burgerMenu.headerBrandLogoImage()
+      .should('be.visible')
+      .invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', suseRancherLogoWidth);
     BurgerMenuPo.toggle();
 
     // Reset
@@ -269,14 +272,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(rancherLogo);
-    });
+    burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', rancherLogoWidth);
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes(rancherLogo);
-    });
+    burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
+      .should('eq', rancherLogoWidth);
   });
 
   it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -318,13 +319,17 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('can update telemetry-opt', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Prompt
     SettingsPagePo.navTo();
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('telemetry-opt').contains('Opt-out of Telemetry');
+
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     const settingsEdit = settingsPage.editSettings('local', 'telemetry-opt');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
-    settingsEdit.useDefaultButton().should('be.disabled'); // button should be disabled for this settings option
+    settingsEdit.useDefaultButton().should('not.be.disabled');
     settingsEdit.selectSettingsByLabel('Prompt');
     settingsEdit.saveAndWait('telemetry-opt', 'prompt').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -398,6 +403,42 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
+  it('can update k3s-based-upgrader-uninstall-concurrency', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
+
+    const settingsEdit = settingsPage.editSettings('local', 'k3s-based-upgrader-uninstall-concurrency');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: k3s-based-upgrader-uninstall-concurrency').should('be.visible');
+    settingsEdit.settingsInput().set(settings['k3s-based-upgrader-uninstall-concurrency'].new);
+    settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].new);
+      expect(response?.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].new);
+    });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].new);
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: k3s-based-upgrader-uninstall-concurrency').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].original);
+      expect(response?.body).to.have.property('value', settings['k3s-based-upgrader-uninstall-concurrency'].original);
+    });
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].original);
+  });
+
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
@@ -423,8 +464,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
     createRKE2ClusterPage.selectCustom(0);
-    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-addons"]');
-    cy.contains(settings['system-default-registry'].new).should('exist');
+    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
+    cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
 
     const settingsPageBlank = new SettingsPagePo();
     const settingsEditBlank = settingsPageBlank.editSettings(undefined, 'system-default-registry');

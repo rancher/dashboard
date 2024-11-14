@@ -15,9 +15,9 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'awsElasticBlockStore', this.value.spec.awsElasticBlockStore || {});
-    this.$set(this.value.spec.awsElasticBlockStore, 'readOnly', this.value.spec.awsElasticBlockStore.readOnly || false);
-    this.$set(this.value.spec.awsElasticBlockStore, 'partition', this.value.spec.awsElasticBlockStore.partition || 0);
+    this.value.spec['awsElasticBlockStore'] = this.value.spec.awsElasticBlockStore || {};
+    this.value.spec.awsElasticBlockStore['readOnly'] = this.value.spec.awsElasticBlockStore.readOnly || false;
+    this.value.spec.awsElasticBlockStore['partition'] = this.value.spec.awsElasticBlockStore.partition || 0;
 
     const readOnlyOptions = [
       {
@@ -38,7 +38,7 @@ export default {
         return this.value.spec.awsElasticBlockStore.partition;
       },
       set(value) {
-        this.$set(this.value.spec.awsElasticBlockStore, 'partition', Number.parseInt(value, 10));
+        this.value.spec.awsElasticBlockStore['partition'] = Number.parseInt(value, 10);
       }
     }
   }
@@ -50,7 +50,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.awsElasticBlockStore.volumeID"
+          v-model:value="value.spec.awsElasticBlockStore.volumeID"
           :mode="mode"
           :label="t('persistentVolume.awsElasticBlockStore.volumeId.label')"
           :placeholder="t('persistentVolume.awsElasticBlockStore.volumeId.placeholder')"
@@ -58,7 +58,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="partition"
+          v-model:value="partition"
           :mode="mode"
           :label="t('persistentVolume.shared.partition.label')"
           :placeholder="t('persistentVolume.shared.partition.placeholder')"
@@ -69,7 +69,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.awsElasticBlockStore.fsType"
+          v-model:value="value.spec.awsElasticBlockStore.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -77,7 +77,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.awsElasticBlockStore.readOnly"
+          v-model:value="value.spec.awsElasticBlockStore.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

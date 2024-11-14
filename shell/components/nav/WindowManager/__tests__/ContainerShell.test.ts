@@ -1,8 +1,9 @@
-import { mount, Wrapper } from '@vue/test-utils';
+import { flushPromises, mount, Wrapper } from '@vue/test-utils';
 import ContainerShell from '@shell/components/nav/WindowManager/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
+import Window from '@shell/components/nav/WindowManager/Window.vue';
 
 jest.mock('@shell/utils/socket');
 jest.mock('@shell/utils/crypto', () => {
@@ -63,16 +64,22 @@ describe('component: ContainerShell', () => {
       },
       initialContainer: 'containerId'
     },
-    stubs: ['resize-observer'],
-    mocks: {
-      $store: {
-        dispatch: action,
-        getters:  {
-          'i18n/t':            translate,
-          'cluster/schemaFor': schemaFor
+    global: {
+      stubs: {
+        'resize-observer': true,
+        Window:            { template: '<span><slot name="title"/><slot name="body"/></span>' }
+      },
+
+      mocks: {
+        $store: {
+          dispatch: action,
+          getters:  {
+            'i18n/t':            translate,
+            'cluster/schemaFor': schemaFor
+          }
         }
-      }
-    }
+      },
+    },
   };
 
   const resetMocks = () => {
@@ -84,11 +91,8 @@ describe('component: ContainerShell', () => {
   const wrapperPostMounted = async(params: Object) => {
     const wrapper = await mount(ContainerShell, params);
 
-    // these awaits are all associated with the various async dyamic imports on xterm
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    // await the various async dyamic imports on xterm
+    await flushPromises();
 
     return wrapper;
   };
@@ -98,22 +102,25 @@ describe('component: ContainerShell', () => {
   it('creates a window on the page', async() => {
     resetMocks();
     const wrapper: Wrapper<InstanceType<typeof ContainerShell> & { [key: string]: any }> = await wrapperPostMounted(defaultContainerShellParams);
-    const windowElement = wrapper.find('div.window');
+    const windowComponent = wrapper.findComponent(Window);
 
-    expect(windowElement.exists()).toBe(true);
+    expect(windowComponent.exists()).toBe(true);
+    expect(windowComponent.isVisible()).toBe(true);
   });
 
   it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {
     resetMocks();
     const testSchemaFindsSchemaParams = {
       ...defaultContainerShellParams,
-      mocks: {
-        ...defaultContainerShellParams.mocks,
-        $store: {
-          ...defaultContainerShellParams.mocks.$store,
-          getters: {
-            ...defaultContainerShellParams.mocks.$store.getters,
-            'cluster/schemaFor': jest.fn().mockImplementation(() => true)
+      global: {
+        mocks: {
+          ...defaultContainerShellParams.global.mocks,
+          $store: {
+            ...defaultContainerShellParams.global.mocks.$store,
+            getters: {
+              ...defaultContainerShellParams.global.mocks.$store.getters,
+              'cluster/schemaFor': jest.fn().mockImplementation(() => true)
+            }
           }
         }
       }
@@ -133,15 +140,16 @@ describe('component: ContainerShell', () => {
 
   it('the translate getter for the ...', async() => {
     resetMocks();
-    await wrapperPostMounted(defaultContainerShellParams);
-    const firstTranslate = translate.mock.calls[0];
-    const secondTranslate = translate.mock.calls[1];
+    const wrapper = await wrapperPostMounted(defaultContainerShellParams);
 
-    expect(translate.mock.calls).toHaveLength(2);
-    expect(firstTranslate[0]).toBe('wm.containerShell.clear');
-    expect(firstTranslate[1]).toStrictEqual({});
-    expect(secondTranslate[0]).toBe('wm.connection.disconnected');
-    expect(secondTranslate[1]).toStrictEqual({});
+    const clearButton = wrapper.find('[data-testid="shell-clear-button-label"]');
+    const disconnectedStatus = wrapper.find('[data-testid="shell-status-disconnected"]');
+
+    expect(clearButton.exists()).toBe(true);
+    expect(clearButton.attributes().k).toBe('wm.containerShell.clear');
+
+    expect(disconnectedStatus.exists()).toBe(true);
+    expect(disconnectedStatus.attributes().k).toBe('wm.connection.disconnected');
   });
 
   it('the socket is instantiated', async() => {

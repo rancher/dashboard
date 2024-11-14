@@ -6,9 +6,10 @@ import { uniq } from '@shell/utils/array';
 import {
   CAPI,
   CATALOG,
-  CONFIG_MAP, EVENT, MANAGEMENT, NAMESPACE, NODE, POD
+  CONFIG_MAP, MANAGEMENT, EVENT, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
-import { Schema } from 'plugins/steve/schema';
+import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
   /**
@@ -109,8 +110,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      // { field: 'id' }, // Pending API support
-      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'id' },
+      { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
@@ -125,10 +126,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.nodeName' },
     ],
     [MANAGEMENT.NODE_POOL]: [
-      // { field: 'spec.clusterName' },  // Pending API support // TODO: RC
+      { field: 'spec.clusterName' }, // TODO: RC TEST
     ],
     [MANAGEMENT.NODE_TEMPLATE]: [
-      // { field: 'spec.clusterName' },  // Pending API support // TODO: RC
+      { field: 'spec.clusterName' }, // TODO: RC TEST
+    ],
+    [MANAGEMENT.CLUSTER]: [
+      // { field: 'spec.internal' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+      // { field: 'spec.displayName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
@@ -137,7 +142,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
-      // { field: 'spec.clusterName' } // Pending API support // TODO: RC
+      { field: 'spec.clusterName' } // TODO: RC TEST
     ],
     [CAPI.RANCHER_CLUSTER]: [
       // { field: `metadata.labels."${ CAPI.PROVIDER }"` } // Pending API support // TODO: RC
@@ -161,6 +166,15 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       // { field: 'status.action' }, // Pending API support // TODO: RC
       // { field: 'status.namespace' }, // Pending API support // TODO: RC
       // { field: 'status.releaseName' }, // Pending API support // TODO: RC
+    ],
+    [CAPI.RANCHER_CLUSTER]: [
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC TEST
+      { field: `status.provider` }, // TODO: RC TEST
+      { field: 'status.allocatable.cpu' }, // TODO: RC TEST
+      { field: 'status.allocatable.memory' }, // TODO: RC TEST
+      { field: 'status.allocatable.pods' }, // TODO: RC TEST
+
+      // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
     ]
   }
 

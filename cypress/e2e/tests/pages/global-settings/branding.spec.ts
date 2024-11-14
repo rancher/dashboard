@@ -94,7 +94,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
-    cy.title().should('eq', settings.privateLabel.original);
+    cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
   });
 
   it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -165,12 +165,12 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     HomePagePo.navTo();
     burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+      expect(el).to.have.attr('src').includes('/img/rancher-logo');
     });
 
     BurgerMenuPo.toggle();
     burgerMenu.brandLogoImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+      expect(el).to.have.attr('src').includes('/img/rancher-logo');
     });
   });
 
@@ -236,7 +236,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     homePage.goTo();
     homePage.getBrandBannerImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/banner.b321f7eb.svg');
+      expect(el).to.have.attr('src').includes('/img/banner');
     });
   });
 
@@ -309,7 +309,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     loginPage.goTo();
     loginPage.loginBackgroundImage().should('be.visible').then((el) => {
-      expect(el).to.have.attr('src').includes('/img/login-landscape.911b980e.svg');
+      expect(el).to.have.attr('src').includes('/img/login-landscape');
     });
 
     cy.login();

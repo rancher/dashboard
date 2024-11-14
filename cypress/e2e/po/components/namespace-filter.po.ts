@@ -5,7 +5,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   toggle() {
-    return this.self().click({ force: true });
+    return this.namespaceDropdown().click({ force: true });
   }
 
   getOptions(): Cypress.Chainable {
@@ -14,6 +14,13 @@ export class NamespaceFilterPo extends ComponentPo {
 
   clickOptionByLabel(label: string) {
     return this.getOptions().contains( new RegExp(` ${ label } `)).click();
+  }
+
+  clickOptionByLabelAndWaitForRequest(label: string) {
+    cy.intercept('PUT', 'v1/userpreferences/*').as('updatePref');
+    this.clickOptionByLabel(label);
+
+    return cy.wait('@updatePref');
   }
 
   isChecked(label: string) {
@@ -30,7 +37,7 @@ export class NamespaceFilterPo extends ComponentPo {
   }
 
   searchByName(label: string) {
-    return this.self().find('.ns-controls > .ns-input').clear().type(label);
+    return this.self().find('.ns-controls > .ns-input > .ns-filter-input').clear().type(label);
   }
 
   clearSearchFilter() {

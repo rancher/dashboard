@@ -31,7 +31,7 @@ export default {
   data() {
     const formatTypeOptions = ['json', 'out_file', 'ltsv', 'csv', 'msgpack', 'hash', 'single_value'];
 
-    this.$set(this.value, 'format', this.value.format || { type: formatTypeOptions[0] });
+    this.value['format'] = this.value.format || { type: formatTypeOptions[0] };
 
     return { formatTypeOptions };
   },
@@ -41,7 +41,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value, 'port', value), port);
+        updatePort((value) => (this.value.port = value), port);
       }
     }
   }
@@ -58,7 +58,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-8">
         <LabeledInput
-          v-model="value.host"
+          v-model:value="value.host"
           :mode="mode"
           :disabled="disabled"
           class="host"
@@ -67,7 +67,7 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model.number="port"
+          v-model:value.number="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
@@ -81,7 +81,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.db_number"
+          v-model:value.number="value.db_number"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -90,7 +90,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.ttl"
+          v-model:value.number="value.ttl"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -107,7 +107,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.format.type"
+          v-model:value="value.format.type"
           :options="formatTypeOptions"
           :mode="mode"
           :disabled="disabled"
@@ -124,7 +124,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.password"
+          v-model:value="value.password"
           :secret-name-label="t('logging.elasticsearch.password')"
           :mode="mode"
           :namespace="namespace"

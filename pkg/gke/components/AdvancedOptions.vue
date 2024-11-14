@@ -16,6 +16,8 @@ const LOGGING_OPTION = 'logging.googleapis.com/kubernetes';
 export default defineComponent({
   name: 'GKEAdvancedOptions',
 
+  emits: ['update:loggingService', 'update:monitoringService', 'update:httpLoadBalancing', 'update:horizontalPodAutoscaling', 'update:enableKubernetesAlpha', 'update:maintenanceWindow'],
+
   components: {
     LabeledSelect,
     Checkbox,
@@ -165,12 +167,12 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="feature-checkboxes col span-6">
         <Checkbox
-          v-model="loggingEnabled"
+          v-model:value="loggingEnabled"
           :mode="mode"
           label-key="gke.loggingService.label"
         />
         <Checkbox
-          v-model="monitoringEnabled"
+          v-model:value="monitoringEnabled"
           :mode="mode"
           label-key="gke.monitoringService.label"
         />
@@ -178,20 +180,20 @@ export default defineComponent({
           :value="httpLoadBalancing"
           :mode="mode"
           label-key="gke.httpLoadBalancing.label"
-          @input="$emit('update:httpLoadBalancing', $event)"
+          @update:value="$emit('update:httpLoadBalancing', $event)"
         />
         <Checkbox
           :value="horizontalPodAutoscaling"
           :mode="mode"
           label-key="gke.horizontalPodAutoscaling.label"
-          @input="$emit('update:horizontalPodAutoscaling', $event)"
+          @update:value="$emit('update:horizontalPodAutoscaling', $event)"
         />
         <Checkbox
           :value="enableKubernetesAlpha"
           :mode="mode"
           label-key="gke.enableKubernetesAlpha.label"
           :disabled="!isNewOrUnprovisioned"
-          @input="$emit('update:enableKubernetesAlpha', $event)"
+          @update:value="$emit('update:enableKubernetesAlpha', $event)"
         />
       </div>
       <div class="col span-6">

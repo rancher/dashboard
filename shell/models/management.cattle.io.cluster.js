@@ -16,6 +16,8 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 
+const DEFAULT_BADGE_COLOR = '#707070';
+
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
@@ -87,11 +89,31 @@ export default class MgmtCluster extends SteveModel {
     return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
-  get provisioner() {
-    if (this.status?.provider ) {
-      return this.status.provider;
+  get isImported() {
+    if (this.isLocal) {
+      return false;
+    }
+    // imported rke2 and k3s have status.driver === rke2 and k3s respectively
+    // Provisioned rke2 and k3s have status.driver === imported
+    if (this.status?.provider === 'k3s' || this.status?.provider === 'rke2') {
+      return this.status?.driver === this.status?.provider;
     }
 
+    // imported KEv2
+    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
+
+    const isImportedKontainer = kontainerConfigs.filter((key) => {
+      return this.spec?.[key]?.imported === true;
+    }).length;
+
+    if (isImportedKontainer) {
+      return true;
+    }
+
+    return this.provisioner === 'imported';
+  }
+
+  get provisioner() {
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -115,10 +137,11 @@ export default class MgmtCluster extends SteveModel {
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
-    // Provisioner is the "<something>Config" in the model
+
+    //  provisioner is status.driver
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
-    if ( provisioner === 'rancherKubernetesEngine' ) {
+    if ( provisioner === 'rancherKubernetesEngine') {
       // Look for a cloud provider in one of the node templates
       if ( this.machinePools?.[0] ) {
         provider = this.machinePools[0]?.nodeTemplate?.spec?.driver || null;
@@ -306,13 +329,22 @@ export default class MgmtCluster extends SteveModel {
       return undefined;
     }
 
-    const color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#7f7f7f';
+    let color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || DEFAULT_BADGE_COLOR;
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
+    let foregroundColor;
+
+    try {
+      foregroundColor = textColor(parseColor(color.trim())); // Remove any whitespace
+    } catch (_e) {
+      // If we could not parse the badge color, use the defaults
+      color = DEFAULT_BADGE_COLOR;
+      foregroundColor = textColor(parseColor(color));
+    }
 
     return {
       text:      comment || undefined,
       color,
-      textColor: textColor(parseColor(color)),
+      textColor: foregroundColor,
       iconText:  iconText.substr(0, 3)
     };
   }

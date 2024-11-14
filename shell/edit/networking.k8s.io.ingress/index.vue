@@ -19,8 +19,10 @@ import Loading from '@shell/components/Loading';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name:       'CRUIngress',
-  components: {
+  name:         'CRUIngress',
+  emits:        ['input'],
+  inheritAttrs: false,
+  components:   {
     IngressClass,
     Certificates,
     CruResource,
@@ -196,12 +198,12 @@ export default {
   },
 
   created() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'rules', this.value.spec.rules || [{}]);
-    this.$set(this.value.spec, 'backend', this.value.spec.backend || {});
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['rules'] = this.value.spec.rules || [{}];
+    this.value.spec['backend'] = this.value.spec.backend || {};
 
     if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0] || {}).length === 0) {
-      this.$set(this.value.spec, 'tls', []);
+      this.value.spec['tls'] = [];
     }
 
     this.registerBeforeHook(this.willSave, 'willSave');
@@ -284,7 +286,7 @@ export default {
           :service-targets="serviceTargets"
           :certificates="certificates"
           :rules="rulesPathRules"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -298,7 +300,7 @@ export default {
           :service-targets="serviceTargets"
           :mode="mode"
           :rules="defaultBackendPathRules"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -312,7 +314,7 @@ export default {
           :mode="mode"
           :certificates="certificates"
           :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab
@@ -324,7 +326,7 @@ export default {
           :value="value"
           :mode="mode"
           :ingress-classes="ingressClasses"
-          @input="$emit('input', $event)"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
       <Tab

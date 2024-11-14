@@ -202,4 +202,39 @@ describe('validate EKS node group minimum and maximum size', () => {
 
     expect(res).toBe(errMsg);
   });
+
+  it('should return an error if the minimum size is less than 0', () => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+    } as any as CruEKSContext;
+
+    let res = EKSValidators.minSize(ctx)(-1);
+
+    expect(res).toBe('eks.errors.atLeastZero');
+
+    res = EKSValidators.minSize(ctx)(0);
+
+    expect(res).toBeNull();
+
+    res = EKSValidators.minSize(ctx)(1);
+
+    expect(res).toBeNull();
+  });
+
+  it.each([
+    [[{ minSize: 1 }, { }], 'eks.errors.atLeastZero'],
+    [[{ minSize: 0 }, { minSize: -1 }], 'eks.errors.atLeastZero'],
+    [[{ minSize: 0 }, { minSize: 1 }], null]
+  ])('should return an error if any node pools have a minimum size less than 0', (nodeGroups, errMsg) => {
+    const ctx = {
+      config: { },
+      t:      mockTranslation,
+      nodeGroups
+    } as any as CruEKSContext;
+
+    const res = EKSValidators.minSize(ctx)();
+
+    expect(res).toBe(errMsg);
+  });
 });

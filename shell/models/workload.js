@@ -15,7 +15,8 @@ export const defaultContainer = {
     readOnlyRootFilesystem:   false,
     privileged:               false,
     allowPrivilegeEscalation: false,
-  }
+  },
+  volumeMounts: []
 };
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported
@@ -85,7 +86,7 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
-  applyDefaults(vm) {
+  applyDefaults() {
     const { spec = {} } = this;
 
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
@@ -109,7 +110,7 @@ export default class Workload extends WorkloadService {
         spec.template = {
           spec: {
             restartPolicy:  this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always',
-            containers:     [{ ...defaultContainer }],
+            containers:     [{ ...structuredClone(defaultContainer) }],
             initContainers: []
           }
         };
@@ -118,7 +119,7 @@ export default class Workload extends WorkloadService {
         spec.selector = {};
       }
     }
-    vm.$set(this, 'spec', spec);
+    this.spec = spec;
   }
 
   toggleRollbackModal( workload = this ) {

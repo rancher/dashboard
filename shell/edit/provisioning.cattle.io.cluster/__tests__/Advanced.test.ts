@@ -15,18 +15,20 @@ describe('component: Advanced', () => {
       haveArgInfo:     true,
       selectedVersion: VERSION_CLUSTER
     },
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  jest.fn(),
-          'i18n/exists':             jest.fn(),
-        }
-      },
-      $route:  { query: { AS: _YAML } },
-      $router: { applyQuery: jest.fn() },
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+          }
+        },
+        $route:  { query: { AS: _YAML } },
+        $router: { applyQuery: jest.fn() },
+      }
     }
   };
 
@@ -43,9 +45,11 @@ describe('component: Advanced', () => {
         mountOptions
       );
 
-      const inputElem = wrapper.find('[data-testid="array-list-box0"]').element as HTMLElement;
+      // eslint-disable-next-line no-console
+      console.log(wrapper.html());
+      const inputElem = wrapper.find('[data-testid="array-list-box0"]');
 
-      expect(inputElem).toBeUndefined();
+      expect(inputElem.exists()).toBe(false);
     });
 
     it(`should support undefined machineSelectorConfig.config`, () => {
@@ -124,6 +128,32 @@ describe('component: Advanced', () => {
 
         expect(checkbox.value).toBe('true');
       });
+
+      it(`should update agentConfig when 'protect-kernel-defaults' exists`, async() => {
+        const value = clone(PROV_CLUSTER);
+
+        value.spec.rkeConfig.machineGlobalConfig['protect-kernel-defaults'] = false;
+        value.spec.rkeConfig.machineSelectorConfig = [{
+          config:               { 'protect-kernel-defaults': true },
+          machineLabelSelector: {}
+        }];
+        value.agentConfig = value.spec.rkeConfig.machineSelectorConfig[0].config;
+
+        mountOptions.propsData.mode = _EDIT; // Use edit mode to allow interactions
+        mountOptions.propsData.value = value;
+
+        wrapper = mount(Advanced, mountOptions);
+
+        const checkboxLabel = wrapper
+          .find(`[data-testid="protect-kernel-defaults"]`)
+          .find('label');
+
+        checkboxLabel.trigger('click');
+        await wrapper.vm.$nextTick();
+
+        // Verify that agentConfig is updated
+        expect(value.spec.rkeConfig.machineSelectorConfig[0].config['protect-kernel-defaults']).toBe(false);
+      });
     });
 
     describe(`'kubelet-arg'`, () => {
@@ -147,10 +177,10 @@ describe('component: Advanced', () => {
           const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-          const globalInputElem = globalContainer.element as HTMLInputElement;
+          const globalInputElem = globalContainer;
           const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
 
-          expect(globalInputElem).toBeUndefined();
+          expect(globalInputElem.exists()).toBe(false);
           expect(selectorInputElem.value).toContain('config-from-machineSelectorConfig');
         });
 
@@ -170,10 +200,10 @@ describe('component: Advanced', () => {
           const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-          const selectorInputElem = selectorContainer.element as HTMLInputElement;
+          const selectorInputElem = selectorContainer;
           const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
 
-          expect(selectorInputElem).toBeUndefined();
+          expect(selectorInputElem.exists()).toBe(false);
           expect(globalInputElem.value).toContain('config-from-machineGlobalConfig');
         });
 
@@ -219,22 +249,22 @@ describe('component: Advanced', () => {
         const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
         const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
-        const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]');
+        const globalInputElem = globalContainer.find('[data-testid="input-0"]');
 
         const emptyCharacter = wrapper.find('.info-box').find('.text-muted').element;
 
-        const globalAddButton = globalContainer.find('[data-testid="array-list-button"]').element;
-        const selectorAddButton = selectorContainer.find('[data-testid="array-list-button"]').element;
+        const globalAddButton = globalContainer.find('[data-testid="array-list-button"]');
+        const selectorAddButton = selectorContainer.find('[data-testid="array-list-button"]');
 
-        const removeButtonConfig = globalContainer.find('[data-testid="remove-item-0"]').element;
+        const removeButtonConfig = globalContainer.find('[data-testid="remove-item-0"]');
 
-        expect(selectorInputElem).toBeUndefined();
-        expect(globalInputElem).toBeUndefined();
-        expect(globalAddButton).toBeUndefined();
-        expect(selectorAddButton).toBeUndefined();
+        expect(selectorInputElem.exists()).toBe(false);
+        expect(globalInputElem.exists()).toBe(false);
+        expect(globalAddButton.exists()).toBe(false);
+        expect(selectorAddButton.exists()).toBe(false);
         expect(emptyCharacter).toBeDefined();
-        expect(removeButtonConfig).toBeFalsy();
+        expect(removeButtonConfig.exists()).toBeFalsy();
       });
 
       it(`mode: view, should show empty value'`, () => {
@@ -254,22 +284,22 @@ describe('component: Advanced', () => {
         const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
         const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
-        const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]');
+        const globalInputElem = globalContainer.find('[data-testid="input-0"]');
 
-        const emptyCharacter = wrapper.find('.info-box').find('.text-muted').element;
+        const emptyCharacter = wrapper.find('.info-box').find('.text-muted');
 
         const globalAddButton = globalContainer.find('[data-testid="array-list-button"]').element;
         const selectorAddButton = selectorContainer.find('[data-testid="array-list-button"]').element;
 
-        const removeButtonConfig = globalContainer.find('[data-testid="remove-item-0"]').element;
+        const removeButtonConfig = globalContainer.find('[data-testid="remove-item-0"]');
 
-        expect(selectorInputElem).toBeUndefined();
-        expect(globalInputElem).toBeUndefined();
+        expect(selectorInputElem.exists()).toBe(false);
+        expect(globalInputElem.exists()).toBe(false);
         expect(globalAddButton).toBeDefined();
         expect(selectorAddButton).toBeDefined();
-        expect(emptyCharacter).toBeUndefined();
-        expect(removeButtonConfig).toBeFalsy();
+        expect(emptyCharacter.exists()).toBe(false);
+        expect(removeButtonConfig.exists()).toBeFalsy();
       });
     });
   });

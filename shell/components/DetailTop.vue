@@ -94,7 +94,7 @@ export default {
     },
 
     labels() {
-      if (!this.showFilteredSystemLabels) {
+      if (this.showAllLabels || !this.showFilteredSystemLabels) {
         return this.value?.labels || {};
       }
 
@@ -213,8 +213,8 @@ export default {
         class="details"
       >
         <div
-          v-for="detail in group"
-          :key="detail.label || detail.slotName"
+          v-for="(detail, i) in group"
+          :key="i"
           class="detail"
         >
           <span class="label">
@@ -241,7 +241,7 @@ export default {
         </span>
         <Tag
           v-for="(prop, key) in labels"
-          :key="key + prop"
+          :key="key"
         >
           <i
             v-if="internalIcons[key]"

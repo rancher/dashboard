@@ -40,7 +40,7 @@ export default {
         return this.value.hec_port;
       },
       set(port) {
-        updatePort((value) => this.$set(this.value, 'hec_port', value), port);
+        updatePort((value) => (this.value['hec_port'] = value), port);
       }
     }
   }
@@ -54,7 +54,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-2">
           <LabeledSelect
-            v-model="value.protocol"
+            v-model:value="value.protocol"
             :mode="mode"
             :disabled="disabled"
             :options="protocolOptions"
@@ -63,7 +63,7 @@ export default {
         </div>
         <div class="col span-8">
           <LabeledInput
-            v-model="value.hec_host"
+            v-model:value="value.hec_host"
             :mode="mode"
             :disabled="disabled"
             :label="t('logging.splunk.host')"
@@ -71,7 +71,7 @@ export default {
         </div>
         <div class="col span-2">
           <LabeledInput
-            v-model="port"
+            v-model:value="port"
             :mode="mode"
             :disabled="disabled"
             type="number"
@@ -84,7 +84,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.index"
+            v-model:value="value.index"
             :mode="mode"
             :disabled="disabled"
             :label="t('logging.splunk.indexName')"
@@ -92,7 +92,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.source"
+            v-model:value="value.source"
             :mode="mode"
             :disabled="disabled"
             :label="t('logging.splunk.source')"
@@ -106,7 +106,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <SecretSelector
-            v-model="value.hec_token"
+            v-model:value="value.hec_token"
             :mode="mode"
             :namespace="namespace"
             :disabled="disabled"
@@ -121,7 +121,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.insecure_ssl"
+          v-model:value="value.insecure_ssl"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.splunk.insecureSsl')"
@@ -131,7 +131,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ca_file"
+          v-model:value="value.ca_file"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -142,7 +142,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.ca_path"
+          v-model:value="value.ca_path"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -155,7 +155,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.client_cert"
+          v-model:value="value.client_cert"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -166,7 +166,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.client_key"
+          v-model:value="value.client_key"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"

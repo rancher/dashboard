@@ -10,7 +10,6 @@ import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
-import capitalize from 'lodash/capitalize';
 
 /**
  * Class representing Cluster resource.
@@ -166,6 +165,19 @@ export default class ProvCluster extends SteveModel {
         enabled: canSaveRKETemplate,
       }, { divider: true }];
 
+    // Harvester Cluster 1:1 Harvester Cloud Cred
+    if (this.cloudCredential?.canRenew || this.cloudCredential?.canBulkRenew) {
+      out.splice(0, 0, { divider: true });
+      out.splice(0, 0, {
+        action:     'renew',
+        enabled:    this.cloudCredential?.canRenew,
+        bulkable:   this.cloudCredential?.canBulkRenew,
+        bulkAction: 'renewBulk',
+        icon:       'icon icon-fw icon-refresh',
+        label:      this.$rootGetters['i18n/t']('cluster.cloudCredentials.renew'),
+      });
+    }
+
     return actions.concat(out);
   }
 
@@ -270,19 +282,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImported() {
-    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
-    // in which this.provisioner is `k3s`.
-
-    const isImportedProvisioner = this.provisioner === 'imported';
-    const isImportedSpecialCases = this.mgmt?.providerForEmberParam === 'import' ||
-      // when imported cluster is GKE
-      !!this.mgmt?.spec?.gkeConfig?.imported ||
-      // or AKS
-      !!this.mgmt?.spec?.aksConfig?.imported ||
-      // or EKS
-      !!this.mgmt?.spec?.eksConfig?.imported;
-
-    return !this.isLocal && (isImportedProvisioner || (!this.isRke2 && !this.mgmt?.machineProvider && isImportedSpecialCases));
+    return this.mgmt?.isImported;
   }
 
   get isCustom() {
@@ -318,7 +318,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isRke1() {
-    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.labels['provider.cattle.io'] === 'rke';
+    // rancherKubernetesEngineConfig is not defined on imported RKE1 clusters
+    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig || this.mgmt?.labels['provider.cattle.io'] === 'rke';
   }
 
   get isHarvester() {
@@ -395,6 +396,8 @@ export default class ProvCluster extends SteveModel {
       provisioner = 'k3s';
     } else if ( this.isImportedRke2 ) {
       provisioner = 'rke2';
+    } else if ((this.isImported || this.isLocal) && this.isRke1) {
+      provisioner = 'rke';
     }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
@@ -411,7 +414,7 @@ export default class ProvCluster extends SteveModel {
       if (!node.metadata?.state?.transitioning) {
         const architecture = node.status?.nodeLabels?.[NODE_ARCHITECTURE];
 
-        const key = architecture ? capitalize(architecture) : this.t('cluster.architecture.label.unknown');
+        const key = architecture || this.t('cluster.architecture.label.unknown');
 
         obj[key] = (obj[key] || 0) + 1;
       }
@@ -885,7 +888,8 @@ export default class ProvCluster extends SteveModel {
   get agentConfig() {
     // The one we want is the first one with no selector.
     // If there are multiple with no selector, that will fall under the unsupported message below.
-    return this.spec.rkeConfig.machineSelectorConfig.find((x) => !x.machineLabelSelector)?.config;
+    return this.spec.rkeConfig?.machineSelectorConfig
+      ?.find((x) => !x.machineLabelSelector)?.config || { };
   }
 
   get cloudProvider() {
@@ -989,5 +993,26 @@ export default class ProvCluster extends SteveModel {
 
   get description() {
     return super.description || this.mgmt?.description;
+  }
+
+  renew() {
+    return this.cloudCredential?.renew();
+  }
+
+  renewBulk(clusters = []) {
+    // In theory we don't need to filter by cloudCred, but do so for safety
+    const cloudCredentials = clusters.filter((c) => c.cloudCredential).map((c) => c.cloudCredential);
+
+    return this.cloudCredential?.renewBulk(cloudCredentials);
+  }
+
+  get cloudCredential() {
+    return this.$rootGetters['rancher/all'](NORMAN.CLOUD_CREDENTIAL).find((cc) => cc.id === this.spec.cloudCredentialSecretName);
+  }
+
+  get cloudCredentialWarning() {
+    const expireData = this.cloudCredential?.expireData;
+
+    return expireData?.expired || expireData?.expiring;
   }
 }

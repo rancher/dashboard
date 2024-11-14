@@ -53,7 +53,7 @@ export default {
 </template>
 
 <style scoped>
-.apps ::v-deep .state-description{
+.apps :deep() .state-description{
   color: var(--error)
 }
 </style>

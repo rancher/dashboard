@@ -47,7 +47,8 @@ export default {
     if ( this.hasListComponent ) {
       // If you provide your own list then call its fetch
       const importer = this.listComponent;
-      const component = (await importer())?.default;
+
+      const component = await importer.__asyncLoader();
 
       if ( component?.typeDisplay ) {
         this.customTypeDisplay = component.typeDisplay.apply(this);
@@ -231,7 +232,10 @@ export default {
       {{ t('resourceList.nsFilteringGeneric') }}
     </template>
   </IconMessage>
-  <div v-else>
+  <div
+    v-else
+    class="outlet"
+  >
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -241,7 +245,7 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <slot name="extraActions" />
       </template>
     </Masthead>
@@ -252,7 +256,9 @@ export default {
       :location="extensionLocation"
     />
 
-    <div v-if="hasListComponent">
+    <div
+      v-if="hasListComponent"
+    >
       <component
         :is="listComponent"
         :incremental-loading-indicator="showIncrementalLoadingIndicator"

@@ -7,6 +7,8 @@ import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits: ['close'],
+
   components: {
     Card,
     AsyncButton,
@@ -73,12 +75,11 @@ export default {
     :show-highlight-border="false"
     :data-testid="'prompt-deactivate'"
   >
-    <h4
-      slot="title"
-      class="text-default-text"
-    >
-      {{ t('drivers.deactivate.title') }}
-    </h4>
+    <template #title>
+      <h4 class="text-default-text">
+        {{ t('drivers.deactivate.title') }}
+      </h4>
+    </template>
 
     <template #body>
       <div class="pl-10 pr-10">

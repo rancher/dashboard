@@ -131,7 +131,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const cronSchedule: Validator = (val: string) => {
     try {
-      cronstrue.toString(val);
+      cronstrue.toString(val, { verbose: true });
     } catch (e) {
       return t('validation.invalidCron');
     }
@@ -499,6 +499,6 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     servicePort,
     subDomain,
     testRule,
-    wildcardHostname,
+    wildcardHostname
   };
 }

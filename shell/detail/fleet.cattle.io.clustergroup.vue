@@ -10,6 +10,8 @@ import { allHash } from '@shell/utils/promise';
 export default {
   name: 'DetailClusterGroup',
 
+  emits: ['input'],
+
   components: {
     Loading,
     ResourceTabs,

@@ -118,9 +118,9 @@ export async function loadClusters(to, from, next, { store }) {
     }
     next();
   } catch (e) {
-    if ( e.name === ClusterNotFoundError.name ) {
+    if ( e.name === ClusterNotFoundError.NAME ) {
       return next('/home');
-    } if ( e.name === RedirectToError.name ) {
+    } if ( e.name === RedirectToError.NAME ) {
       return next(e.url);
     } else {
       // Sets error 500 if lost connection to API

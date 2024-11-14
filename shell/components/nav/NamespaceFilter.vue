@@ -140,9 +140,11 @@ export default {
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
       const params = { ...this.$route.params };
       const resource = params.resource;
+
       // Sometimes, different pages may have different namespaces to filter
       const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
 
@@ -197,8 +199,6 @@ export default {
 
         divider(out);
       }
-
-      const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
       if (!inStore) {
         return out;
@@ -381,7 +381,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.removeCloseKeyHandler();
   },
 
@@ -597,10 +597,13 @@ export default {
     open() {
       this.isOpen = true;
       this.$nextTick(() => {
-        this.$refs.filter.focus();
+        this.focusFilter();
       });
       this.addCloseKeyHandler();
       this.layout();
+    },
+    focusFilter() {
+      this.$refs.filter.focus();
     },
     close() {
       this.isOpen = false;
@@ -689,6 +692,7 @@ export default {
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
+    @mousedown.prevent
     @focus="open()"
   >
     <div
@@ -797,6 +801,7 @@ export default {
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
+            @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <i
@@ -836,7 +841,7 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
-          :disabled="!opt.enabled"
+          :disabled="opt.enabled ? null : true"
           :class="{
             'ns-selected': opt.selected,
             'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
@@ -888,9 +893,6 @@ export default {
     width: 280px;
     display: inline-block;
 
-    $glass-z-index: 2;
-    $dropdown-z-index: 1000;
-
     .ns-glass {
       height: 100vh;
       left: 0;
@@ -898,7 +900,7 @@ export default {
       position: absolute;
       top: 0;
       width: 100vw;
-      z-index: $glass-z-index;
+      z-index: z-index('overContent');
     }
 
     .ns-controls {
@@ -950,7 +952,7 @@ export default {
       margin-top: -1px;
       padding-bottom: 10px;
       position: relative;
-      z-index: $dropdown-z-index;
+      z-index: z-index('dropdownOverlay');
 
       .ns-options {
         max-height: 50vh;
@@ -1062,7 +1064,7 @@ export default {
       height: 40px;
       padding: 0 10px;
       position: relative;
-      z-index: $dropdown-z-index;
+      z-index: z-index('dropdownOverlay');
 
       &.ns-open {
         border-bottom-left-radius: 0;
@@ -1128,7 +1130,7 @@ export default {
   }
 </style>
 <style lang="scss">
-  .tooltip {
+  .v-popper__popper {
     .ns-filter-tooltip {
       background-color: var(--body-bg);
       margin: -6px;

@@ -2,9 +2,21 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
+import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
+import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
+
+const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
+const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
 
 Cypress.config();
 describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
+
+    deploymentsListPage.goTo();
+    deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
+  });
   beforeEach(() => {
     cy.login();
 
@@ -12,7 +24,7 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     BurgerMenuPo.toggle();
     const burgerMenuPo = new BurgerMenuPo();
 
-    burgerMenuPo.clusters().eq(0).should('be.visible').click();
+    burgerMenuPo.goToCluster('local').click();
   });
 
   it('Can access to first navigation link on click', () => {
@@ -50,6 +62,21 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       .as('closedGroup');
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
+  });
+
+  it('Going into resource detail should keep relevant group active', () => {
+    const productNavPo = new ProductNavPo();
+
+    productNavPo.groups().get('.expanded').as('openGroup');
+
+    productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
+    const workload = new WorkloadPagePo('local');
+
+    workload.goTo();
+    workload.waitForPage();
+    workload.goToDetailsPage(workloadName);
+    cy.get('@openGroup').should('be.visible');
+    cy.get('@openGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
@@ -96,5 +123,12 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       // Clicking back should take us back to workloads
       productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
     });
+  });
+
+  after(() => {
+    cy.login();
+    deploymentsListPage?.goTo();
+
+    deploymentsListPage.deleteWithKubectl(workloadName, namespace);
   });
 });

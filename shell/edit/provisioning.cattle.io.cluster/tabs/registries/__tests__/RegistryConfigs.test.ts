@@ -13,11 +13,13 @@ describe('component: RegistryConfigs', () => {
       mode:                      _EDIT,
       clusterRegisterBeforeHook: () => {}
     },
-    stubs: {
-      SelectOrCreateAuthSecret: true,
-      SecretSelector:           true,
-    },
-    mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+    global: {
+      stubs: {
+        SelectOrCreateAuthSecret: true,
+        SecretSelector:           true,
+      },
+      mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+    }
   };
 
   describe('key CA Cert Bundle', () => {
@@ -33,9 +35,9 @@ describe('component: RegistryConfigs', () => {
         mountOptions
       );
 
-      const registry = wrapper.find('[data-testid^="registry-caBundle"]').element as HTMLTextAreaElement;
+      const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      expect(registry.value).toBe('foobar');
+      expect(registry.props().value).toBe('foobar');
     });
 
     it('should update key in base64 format', async() => {
@@ -50,12 +52,12 @@ describe('component: RegistryConfigs', () => {
         mountOptions
       );
 
-      const registry = wrapper.find('[data-testid^="registry-caBundle"]');
+      const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      await registry.setValue('ssh key');
+      registry.vm.$emit('update:value', 'ssh key');
       wrapper.vm.update();
 
-      expect(wrapper.emitted('updateConfigs')![0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
+      expect(wrapper.emitted('updateConfigs')[0][0]['foo']['caBundle']).toBe('c3NoIGtleQ==');
     });
   });
 });

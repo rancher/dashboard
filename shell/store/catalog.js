@@ -7,7 +7,6 @@ import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
-import { importChart } from '@shell/utils/dynamic-importer';
 import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
@@ -262,31 +261,6 @@ export const getters = {
   importComponent(state, getters) {
     return (name) => {
       return getters['type-map/importChart'](name);
-    };
-  },
-
-  chartSteps(state, getters) {
-    return (name) => {
-      const steps = [];
-
-      const stepsPath = `./${ name }/steps/`;
-      // require.context only takes literals, so find all candidate step files and filter out
-      const allPaths = require.context('@shell/chart', true, /\.vue$/).keys();
-
-      allPaths
-        .filter((path) => path.startsWith(stepsPath))
-        .forEach((path) => {
-          try {
-            steps.push({
-              name:      path.replace(stepsPath, ''),
-              component: importChart(path.substr(2, path.length)),
-            });
-          } catch (e) {
-            console.warn(`Failed to load step component ${ path } for chart ${ name }`, e); // eslint-disable-line no-console
-          }
-        });
-
-      return steps;
     };
   },
 

@@ -6,6 +6,8 @@ import { _EDIT } from '@shell/config/query-params';
 export default {
   components: { LabeledInput },
 
+  emits: ['update:value'],
+
   props: {
     /**
      * Convert output to string
@@ -126,7 +128,12 @@ export default {
     delay: {
       type:    Number,
       default: 0
-    }
+    },
+
+    positive: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -194,6 +201,10 @@ export default {
     update(inputValue) {
       let out = inputValue === '' ? null : inputValue;
 
+      if (this.positive && inputValue < 0) {
+        out = 0;
+      }
+
       if (this.outputModifier) {
         out = out === null ? null : `${ inputValue }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
@@ -202,7 +213,7 @@ export default {
         out = this.unit ? parseSi(`${ out }${ this.unit }`) : parseInt(out);
       }
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
   }
 };

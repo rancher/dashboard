@@ -85,6 +85,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    canViewYaml: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -96,6 +101,10 @@ export default {
   },
 
   computed: {
+    dev() {
+      return this.$store.getters['prefs/dev'];
+    },
+
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
 
@@ -378,6 +387,10 @@ export default {
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation || this.value.namespaceLocation === null;
     },
+
+    resourceExternalLink() {
+      return this.value.resourceExternalLink;
+    },
   },
 
   methods: {
@@ -437,7 +450,7 @@ export default {
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
-              class="mastehead-resource-title"
+              class="masthead-resource-title"
               :k="'resourceDetail.header.' + realMode"
               :subtype="resourceSubtype"
               :name="displayName"
@@ -457,6 +470,16 @@ export default {
                 class="icon icon-sm icon-istio"
               />
             </span>
+            <a
+              v-if="dev && !!resourceExternalLink"
+              v-clean-tooltip="t(resourceExternalLink.tipsKey || 'generic.resourceExternalLinkTips')"
+              class="resource-external"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+              :href="resourceExternalLink.url"
+            >
+              <i class="icon icon-external-link" />
+            </a>
           </h1>
         </div>
         <div
@@ -503,12 +526,12 @@ export default {
               icon-size="lg"
               :options="sensitiveOptions"
               class="mr-10"
-              @input="toggleSensitiveData"
+              @update:value="toggleSensitiveData"
             />
 
             <ButtonGroup
               v-if="viewOptions && isView"
-              v-model="currentView"
+              v-model:value="currentView"
               :options="viewOptions"
               class="mr-10"
             />
@@ -516,6 +539,7 @@ export default {
             <button
               v-if="isView"
               ref="actions"
+              data-testid="masthead-action-menu"
               aria-haspopup="true"
               type="button"
               class="btn role-multi-action actions"
@@ -579,7 +603,7 @@ export default {
       flex-direction: row;
       align-items: center;
 
-      .mastehead-resource-title {
+      .masthead-resource-title {
         padding: 0 8px;
         text-overflow: ellipsis;
         overflow: hidden;
@@ -597,7 +621,8 @@ export default {
     }
 
     .live-data {
-      color: var(--body-text)
+      color: var(--body-text);
+      margin-left: 3px;
     }
   }
 
@@ -635,4 +660,7 @@ export default {
     justify-content: flex-end;
   }
 
+  .resource-external {
+    font-size: 18px;
+  }
 </style>

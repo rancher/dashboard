@@ -39,6 +39,8 @@ async function getYaml(store, model) {
 }
 
 export default {
+  emits: ['input'],
+
   components: {
     Loading,
     DetailTop,
@@ -66,11 +68,6 @@ export default {
       default: null,
     },
 
-    flexContent: {
-      type:    Boolean,
-      default: false,
-    },
-
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -85,9 +82,9 @@ export default {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    let resource = this.resourceOverride || params.resource;
+    let resourceType = this.resourceOverride || params.resource;
 
-    const inStore = this.storeOverride || store.getters['currentStore'](resource);
+    const inStore = this.storeOverride || store.getters['currentStore'](resourceType);
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const
@@ -98,10 +95,10 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const getGraphConfig = store.getters['type-map/hasGraph'](resource);
+    const getGraphConfig = store.getters['type-map/hasGraph'](resourceType);
     const hasGraph = !!getGraphConfig;
-    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
-    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
+    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, id);
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, id);
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
@@ -122,16 +119,16 @@ export default {
 
     this.as = as;
 
-    const options = store.getters[`type-map/optionsFor`](resource);
+    const options = store.getters[`type-map/optionsFor`](resourceType);
 
     this.showMasthead = [_CREATE, _EDIT].includes(mode) ? options.resourceEditMasthead : true;
     const canViewYaml = options.canYaml;
 
     if ( options.resource ) {
-      resource = options.resource;
+      resourceType = options.resource;
     }
 
-    const schema = store.getters[`${ inStore }/schemaFor`](resource);
+    const schema = store.getters[`${ inStore }/schemaFor`](resourceType);
     let model, initialModel, liveModel, yaml;
 
     if ( realMode === _CREATE || realMode === _IMPORT ) {
@@ -139,7 +136,7 @@ export default {
         namespace = store.getters['defaultNamespace'];
       }
 
-      const data = { type: resource };
+      const data = { type: resourceType };
 
       if ( schema?.attributes?.namespaced ) {
         data.metadata = { namespace };
@@ -160,7 +157,7 @@ export default {
           await schema.fetchResourceFields();
         }
 
-        yaml = createYaml(schemas, resource, data);
+        yaml = createYaml(schemas, resourceType, data);
       }
     } else {
       if ( as === _GRAPH ) {
@@ -171,7 +168,8 @@ export default {
           },
           bundle: {
             inStoreType: 'management',
-            type:        FLEET.BUNDLE
+            type:        FLEET.BUNDLE,
+            opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
           },
 
           bundleDeployment: {
@@ -192,13 +190,13 @@ export default {
 
       try {
         liveModel = await store.dispatch(`${ inStore }/find`, {
-          type: resource,
+          type: resourceType,
           id:   fqid,
           opt:  { watch: true }
         });
       } catch (e) {
         if (e.status === 404 || e.status === 403) {
-          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource, fqid }, true)));
+          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
         }
         liveModel = {};
         notFound = fqid;
@@ -235,7 +233,7 @@ export default {
       hasCustomDetail,
       hasCustomEdit,
       canViewYaml,
-      resource,
+      resourceType,
       as,
       yaml,
       initialModel,
@@ -262,7 +260,7 @@ export default {
       hasGraph:        null,
       hasCustomDetail: null,
       hasCustomEdit:   null,
-      resource:        null,
+      resourceType:    null,
       asYaml:          null,
       yaml:            null,
       liveModel:       null,
@@ -273,6 +271,7 @@ export default {
       model:           null,
       notFound:        null,
       canViewChart:    true,
+      canViewYaml:     null,
     };
   },
 
@@ -315,9 +314,12 @@ export default {
   },
 
   watch: {
-    '$route.query'(inNeu, inOld) {
-      const neu = clone(inNeu);
-      const old = clone(inOld);
+    '$route'(current, prev) {
+      if (current.name !== prev.name) {
+        return;
+      }
+      const neu = clone(current.query);
+      const old = clone(prev.query);
 
       delete neu[PREVIEW];
       delete old[PREVIEW];
@@ -329,7 +331,7 @@ export default {
 
       const queryDiff = Object.keys(diff(neu, old));
 
-      if ( queryDiff.includes(MODE) || queryDiff.includes(AS)) {
+      if (queryDiff.includes(MODE) || queryDiff.includes(AS)) {
         this.$fetch();
       }
     },
@@ -378,7 +380,7 @@ export default {
   <div v-else>
     <Masthead
       v-if="showMasthead"
-      :resource="resource"
+      :resource="resourceType"
       :value="liveModel"
       :mode="mode"
       :real-mode="realMode"
@@ -412,24 +414,22 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value.doneOverride"
-      :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <component
       :is="showComponent"
       v-else
       ref="comp"
-      :value="value"
-      v-bind="_data"
+      v-model:value="value"
+      v-bind="$data"
       :done-params="doneParams"
       :done-route="doneRoute"
       :mode="mode"
       :initial-value="initialModel"
       :live-value="liveModel"
       :real-mode="realMode"
-      :class="{'flex-content': flexContent}"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"
     />
 

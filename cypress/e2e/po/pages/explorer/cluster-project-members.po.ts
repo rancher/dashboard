@@ -32,6 +32,10 @@ export default class ClusterProjectMembersPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
+  cancelCreateForm(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="form-cancel"]', this.self());
+  }
+
   resourcesList() {
     return new BaseResourceList(this.self());
   }

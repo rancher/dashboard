@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml } from '@shell/utils/string';
@@ -9,11 +9,15 @@ import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
 
-declare module 'vue/types/vue' {
-  interface Vue {
-    onInput: (event: Event) => void | ((event: Event) => void);
-  }
+interface NonReactiveProps {
+  onInput: (event: Event) => void | ((event: Event) => void);
 }
+
+const provideProps: NonReactiveProps = {
+  onInput() {
+    // noop
+  },
+};
 
 export default defineComponent({
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -97,6 +101,11 @@ export default defineComponent({
       type:    Number,
       default: 0
     },
+
+    class: {
+      type:    String,
+      default: ''
+    }
   },
 
   setup(props, { emit }) {
@@ -110,10 +119,13 @@ export default defineComponent({
     } = useLabeledFormElement(props, emit);
     const { isCompact } = useCompactInput(props);
 
+    const onInput = inject('onInput', provideProps.onInput);
+
     return {
       focused,
       onFocusLabeled,
       onBlurLabeled,
+      onInput,
       isDisabled,
       validationMessage,
       requiredField,
@@ -165,11 +177,16 @@ export default defineComponent({
       if (this.type !== 'cron' || !this.value) {
         return;
       }
-      if (typeof this.value === 'string' && !isValidCron(this.value)) {
+      // refer https://github.com/GuillaumeRochat/cron-validator#readme
+      if (!isValidCron(this.value as string, {
+        alias:              true,
+        allowBlankDay:      true,
+        allowSevenAsSunday: true,
+      })) {
         return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value);
+        const hint = cronstrue.toString(this.value as string || '', { verbose: true });
 
         return hint;
       } catch (e) {
@@ -201,6 +218,10 @@ export default defineComponent({
 
       return undefined;
     },
+
+    className() {
+      return this.class;
+    }
   },
 
   created() {
@@ -251,7 +272,7 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', value);
+      this.$emit('update:value', value);
     },
 
     /**
@@ -286,9 +307,10 @@ export default defineComponent({
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
+      'v-popper--has-tooltip': hasTooltip,
       'compact-input': isCompact,
-      hideArrows
+      hideArrows,
+      [className]: true
     }"
   >
     <slot name="label">
@@ -315,11 +337,11 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
-        :value="value"
+        :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput"
+        @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />

@@ -1,34 +1,79 @@
 import semver from 'semver';
+import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagination.types';
 
 /**
+ * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
+ *
+ * @param {*} store
+ * @returns PaginationParam[]
+ */
+export function paginationFilterClusters(store) {
+  // TODO: RC TEST both facets
+  const paginationRequestFilters = [];
+  const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
+  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store);
+
+  if (pFilterOnlyKubernetesClusters) {
+    paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
+  }
+  if (pFilterHiddenLocalCluster) {
+    paginationRequestFilters.push(pFilterHiddenLocalCluster);
+  }
+
+  return paginationRequestFilters;
+}
+
+/**
+ * The vai backed api's `filter` equivalent of `filterHiddenLocalCluster`
+ *
+ * @export
+ * @param {*} store
+ * @returns PaginationParam | null
+ */
+export function paginationFilterHiddenLocalCluster(store) {
+  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+  const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+  const hideLocal = value === 'true';
+
+  if (!hideLocal) {
+    return null;
+  }
+
+  return PaginationParamFilter.createMultipleFields([
+    new PaginationFilterField({
+      field: `spec.internal`, // Pending API support https://github.com/rancher/rancher/issues/48011
+      value: false,
+    }),
+  ]);
+}
+
+/**
  * The vai backed api's `filter` equivalent of `filterOnlyKubernetesClusters`
  *
  * @export
  * @param {*} store
- * @returns PaginationParamFilter | null
+ * @returns PaginationParam | null
  */
-export function paginationFilterOnlyKubeClusters(store) {
+export function paginationFilterOnlyKubernetesClusters(store) {
   const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
 
   if (!openHarvesterContainerWorkload) {
     return null;
   }
 
-  // TODO: RC ISSUE describe
-
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: API blocked on missing label
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: TEST
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
     }),
     new PaginationFilterField({
-      field:  `status.provider`, // TODO: API blocked on missing label
+      field:  `status.provider`, // TODO: TEST
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
@@ -124,4 +169,12 @@ export function abbreviateClusterName(input) {
   }
 
   return result;
+}
+
+export function labelForAddon(store, name, configuration = true) {
+  const addon = camelToTitle(name.replace(/^(rke|rke2|rancher)-/, ''));
+  const fallback = `${ configuration ? '' : 'Add-on: ' }${ addon }`;
+  const key = `cluster.addonChart."${ name }"${ configuration ? '.configuration' : '.label' }`;
+
+  return store.getters['i18n/withFallback'](key, null, fallback);
 }

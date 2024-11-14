@@ -10,7 +10,6 @@ import {
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
-import { set } from '@shell/utils/object';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
@@ -40,6 +39,8 @@ const PROXY_ENDPOINT = '/meta/proxy';
 export default {
   name: 'CruCluster',
 
+  emits: ['update:value', 'set-subtype', 'input'],
+
   components: {
     CruResource,
     EmberPage,
@@ -51,6 +52,8 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  inheritAttrs: false,
 
   props: {
     realMode: {
@@ -83,9 +86,14 @@ export default {
       // These aren't explicitly used, but need to be listening for change events
       mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-
-      catalog: this.$store.dispatch('catalog/load'),
     };
+
+    // No need to fetch charts when editing an RKE1 cluster
+    // The computed property `isRke1` in this file is based on the RKE1/RKE2 toggle, which is not applicable in this case
+    // Instead, we should rely on the value from the model: `this.value.isRke1`
+    if (!this.value.isRke1 || (this.value.isRke1 && this.mode !== 'edit')) {
+      hash['catalog'] = this.$store.dispatch('catalog/load');
+    }
 
     if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_DRIVER)) {
       hash.nodeDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
@@ -113,15 +121,15 @@ export default {
     this.kontainerDrivers = res.kontainerDrivers || [];
 
     if ( !this.value.spec ) {
-      set(this.value, 'spec', {});
+      this.value.spec = {};
     }
 
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
-        set(this.value, 'metadata', {});
+        this.value.metadata = {};
       }
 
-      set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
+      this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }
 
     // For the node drivers, look for custom UI that we can use to show an icon (if not built-in)
@@ -203,8 +211,9 @@ export default {
 
     emberLink() {
       if (this.value) {
+        // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
         if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => st.id.toLowerCase() === this.value.provisioner.toLowerCase() || DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
 
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);
@@ -475,6 +484,15 @@ export default {
     firstCustomClusterItem() {
       return this.groupedSubTypes.findIndex((obj) => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
+
+    localValue: {
+      get() {
+        return this.value;
+      },
+      set(newValue) {
+        this.$emit('update:value', newValue);
+      }
+    },
   },
 
   methods: {
@@ -604,7 +622,7 @@ export default {
     <template #subtypes>
       <div
         v-for="(obj, i) in groupedSubTypes"
-        :key="obj.id"
+        :key="i"
         class="mb-20"
         style="width: 100%;"
       >
@@ -614,7 +632,7 @@ export default {
             class="grouped-type"
           >
             <ToggleSwitch
-              v-model="provisioner"
+              v-model:value="provisioner"
               data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               :off-value="_RKE1"
@@ -639,33 +657,33 @@ export default {
 
     <Import
       v-if="isImport"
-      :value="value"
+      v-model:value="localValue"
       :mode="mode"
       :provider="subType"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
     <template v-else-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
         :is="selectedSubType.component"
         v-if="selectedSubType && selectedSubType.component"
-        :value="value"
+        v-model:value="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
       <Rke2Config
         v-else
-        :value="value"
+        v-model:value="localValue"
         :initial-value="initialValue"
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
         :provider-config="selectedSubType.providerConfig"
-        @input="$emit('input', $event)"
+        @update:value="$emit('input', $event)"
       />
     </template>
 

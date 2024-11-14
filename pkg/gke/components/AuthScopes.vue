@@ -13,6 +13,8 @@ import {
 export default defineComponent({
   name: 'GKEAuthScopes',
 
+  emits: ['update:value'],
+
   components: {
     RadioGroup,
     LabeledSelect
@@ -38,9 +40,9 @@ export default defineComponent({
   created() {
     if (this.mode !== _CREATE) {
       if (this.value && this.value.length === 1 && this.value[0] === googleFullAuthUrl) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.FULL);
+        this['scopeMode'] = GKEOauthScopeOptions.FULL;
       } else if (isEqual(this.value, getGoogleAuthDefaultURLs())) {
-        this.$set(this, 'scopeMode', GKEOauthScopeOptions.DEFAULT);
+        this['scopeMode'] = GKEOauthScopeOptions.DEFAULT;
       }
     }
   },
@@ -64,13 +66,13 @@ export default defineComponent({
     scopeMode(neu) {
       switch (neu) {
       case GKEOauthScopeOptions.DEFAULT:
-        this.$emit('input', getGoogleAuthDefaultURLs());
+        this.$emit('update:value', getGoogleAuthDefaultURLs());
         break;
       case GKEOauthScopeOptions.FULL:
-        this.$emit('input', [googleFullAuthUrl]);
+        this.$emit('update:value', [googleFullAuthUrl]);
         break;
       default:
-        this.$emit('input', []);
+        this.$emit('update:value', []);
       }
     }
   },
@@ -85,7 +87,7 @@ export default defineComponent({
     setScopeValue(scopeKey: keyof typeof GKEOauthScopeFormOptions, neu: string) {
       const newScopes = addGKEAuthScope(this.value, scopeKey, neu);
 
-      this.$emit('input', newScopes);
+      this.$emit('update:value', newScopes);
     },
 
     nextScopeKey(index: number) {
@@ -102,7 +104,7 @@ export default defineComponent({
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="scopeMode"
+          v-model:value="scopeMode"
           :label="t('gke.authScopes.modeLabel')"
           name="scope-mode"
           :mode="mode"
@@ -112,7 +114,10 @@ export default defineComponent({
       </div>
     </div>
     <div v-if="scopeMode==='custom'">
-      <template v-for="(scopeKey, index) in Object.keys(formOptions)">
+      <template
+        v-for="(scopeKey, index) in Object.keys(formOptions)"
+        :key="index"
+      >
         <div
           v-if="!(index%2)"
           :key="scopeKey"

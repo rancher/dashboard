@@ -7,6 +7,20 @@ harvesterManager:
     description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
   plugins:
     loadError: Error loading harvester plugin
+  extension:
+    install:
+      warning: "The Harvester UI Extension is not installed"
+      prompt: "UI Integration for Harvester is now provided via the new Harvester UI Extension, which needs to be installed."
+      steps:
+        repo:
+          1: Go to the
+          2: Apps Repositories
+          3: page and add the <a target="_blank" href="https://github.com/harvester/harvester-ui-extension" rel="noopener noreferrer nofollow">Harvester repository</a>
+        ui:
+          1: Go to the
+          2: Extensions
+          3: page and install the Harvester Extension
+      admin: Please contact your system administrator
   rke:
     templateError: Incorrect template format
   affinity:
@@ -24,3 +38,5 @@ harvesterManager:
     title: VGPUs
     label: VGPU type
     placeholder: 'Please select a VGPU'
+    allocatable: allocatable
+    allocatableUnknown: missing allocation info

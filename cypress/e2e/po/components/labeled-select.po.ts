@@ -22,7 +22,9 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   clickLabel(label: string) {
-    return this.getOptions().contains('li', label).click();
+    const labelRegex = new RegExp(`^${ label } $`, 'g');
+
+    return this.getOptions().contains(labelRegex).click();
   }
 
   /**

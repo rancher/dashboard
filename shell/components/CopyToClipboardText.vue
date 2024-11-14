@@ -2,6 +2,8 @@
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 export default {
+  emits: ['error'],
+
   props: {
     text: {
       type:     String,
@@ -44,6 +46,7 @@ export default {
 
 <template>
   <a
+    v-if="text"
     class="copy-to-clipboard-text"
     :class="{ 'copied': copied, 'plain': plain}"
     href="#"
@@ -57,6 +60,7 @@ export default {
 </template>
 <style lang="scss" scoped>
   .copy-to-clipboard-text {
+    white-space: nowrap;
     &.plain {
       color: var(--body-text);
 

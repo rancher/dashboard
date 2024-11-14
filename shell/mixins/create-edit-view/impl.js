@@ -12,6 +12,8 @@ export default {
 
   mixins: [ChildHook],
 
+  emits: ['done'],
+
   data() {
     // Keep label and annotation filters in data so each resource CRUD page can alter individually
     return { errors: [] };

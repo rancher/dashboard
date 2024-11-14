@@ -41,7 +41,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -49,7 +49,7 @@ export default {
         </div>
         <div class="col span-6">
           <Checkbox
-            v-model="value.nfs.readOnly"
+            v-model:value="value.nfs.readOnly"
             :mode="mode"
             :label="t('workload.storage.readOnly')"
           />
@@ -58,7 +58,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.nfs.path"
+            v-model:value="value.nfs.path"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.path')"
@@ -66,7 +66,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.nfs.server"
+            v-model:value="value.nfs.server"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.server')"

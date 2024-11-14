@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import IngressPageCreateEditPo from '@/cypress/e2e/po/edit/ingress.po';
 
 export class IngressPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -21,7 +22,7 @@ export class IngressPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
     sideNav.navToSideMenuGroupByLabel('Service Discovery');
     sideNav.navToSideMenuEntryByLabel('Ingresses');
   }
@@ -40,5 +41,9 @@ export class IngressPagePo extends PagePo {
 
   listElementWithName(name:string) {
     return this.list().resourceTable().sortableTable().rowElementWithName(name);
+  }
+
+  createIngressForm(id? : string): IngressPageCreateEditPo {
+    return new IngressPageCreateEditPo(id);
   }
 }

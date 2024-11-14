@@ -9,6 +9,8 @@ import { mapGetters } from 'vuex';
 import { parseTaint, EFFECT_OPTIONS, formatTaint } from '../util/taints';
 
 export default defineComponent({
+  emits: ['update:value', 'remove'],
+
   components: { Select, LabeledInput },
 
   props: {
@@ -50,7 +52,7 @@ export default defineComponent({
     update() {
       const out = formatTaint(this.key, this.value, this.effect);
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     }
   },
 
@@ -83,7 +85,7 @@ export default defineComponent({
   <tr class="taint">
     <td :style="{'width': '40%'}">
       <LabeledInput
-        v-model="key"
+        v-model:value="key"
         :mode="mode"
         :rules="[()=>validationMessage]"
         type="text"
@@ -92,7 +94,7 @@ export default defineComponent({
     </td>
     <td :style="{'width': '40%'}">
       <LabeledInput
-        v-model="value"
+        v-model:value="value"
         :mode="mode"
         type="text"
         :rules="[()=>validationMessage]"
@@ -101,7 +103,7 @@ export default defineComponent({
     </td>
     <td :style="{'width': '15%'}">
       <Select
-        v-model="effect"
+        v-model:value="effect"
         :mode="mode"
         :options="effectOptions"
         label="effect"

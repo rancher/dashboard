@@ -66,8 +66,7 @@ node {
             try {
               stage('Grab Results') {
                   sh "cypress/jenkins/scpget.sh dashboard/results.xml"
-                  sh "cypress/jenkins/scpget.sh dashboard/results.html"
-                  sh "cypress/jenkins/scpget.sh dashboard/assets"
+                  sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html"
               }
             } catch(err) {
                 echo "Error: " + err
@@ -87,6 +86,15 @@ node {
             try {
               stage('Test Report') {
                   step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
+                  sh "pwd && ls -al && ls -al cypress"
+                  publishHTML(target : [allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    // The path is relative to ${WORKSPACE}
+                    reportDir: 'html',
+                    reportFiles: 'index.html',
+                    reportName: 'html-report',
+                    reportTitles: 'Report'])
               }
             }
             catch(err) {

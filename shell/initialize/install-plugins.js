@@ -1,13 +1,11 @@
 import PortalVue from 'portal-vue';
-import VueResize from 'vue-resize';
-import ShortKey from 'vue-shortkey';
-import VTooltip from 'v-tooltip';
+import Vue3Resize from 'vue3-resize';
+import FloatingVue from 'floating-vue';
 import vSelect from 'vue-select';
-import 'vue-resize/dist/vue-resize.css';
+import 'vue3-resize/dist/vue3-resize.css';
 
-import '@shell/plugins/extend-router';
+// import '@shell/plugins/extend-router';
 import '@shell/plugins/formatters';
-import '@shell/plugins/vue-js-modal';
 import '@shell/plugins/js-yaml';
 
 import i18n from '@shell/plugins/i18n';
@@ -19,7 +17,7 @@ import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
-import VueCodemirror from 'vue-codemirror';
+import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import nuxtClientInit from '@shell/plugins/nuxt-client-init';
 import plugin from '@shell/plugins/plugin';
@@ -27,21 +25,24 @@ import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
-import version from '@shell/plugins/version';
 import emberCookie from '@shell/plugins/ember-cookie';
+import ShortKey from '@shell/plugins/shortkey';
+
+import 'floating-vue/dist/style.css';
+import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
-  vueApp.use(VueResize);
-  vueApp.use(VTooltip);
+  vueApp.use(Vue3Resize);
+  vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
-  vueApp.use(VueCodemirror);
+  vueApp.use(InstallCodeMirror);
   vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, version, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, steveCreateWorker, emberCookie];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
@@ -112,10 +113,10 @@ function inject(key, value, context, vueApp) {
 
   // Call vueApp.use() to install the plugin into vm
   vueApp.use(() => {
-    if (!Object.prototype.hasOwnProperty.call(vueApp.prototype, key)) {
-      Object.defineProperty(vueApp.prototype, key, {
+    if (!Object.prototype.hasOwnProperty.call(vueApp.config.globalProperties, key)) {
+      Object.defineProperty(vueApp.config.globalProperties, key, {
         get() {
-          return this.$root.$options[key];
+          return app.context[key];
         }
       });
     }

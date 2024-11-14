@@ -13,6 +13,7 @@ import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapGetters } from 'vuex';
+import PromptModal from '@shell/components/PromptModal';
 
 export default {
 
@@ -22,6 +23,7 @@ export default {
     Header,
     IndentedPanel,
     PromptRemove,
+    PromptModal,
     FixedBanner,
     GrowlManager,
     AwsComplianceBanner,
@@ -75,6 +77,7 @@ export default {
         </IndentedPanel>
         <ActionMenu />
         <PromptRemove />
+        <PromptModal />
         <AssignTo />
         <button
           v-if="themeShortcut"

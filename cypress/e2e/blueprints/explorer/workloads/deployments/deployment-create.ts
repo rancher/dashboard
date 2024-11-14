@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+
 export const createDeploymentBlueprint = {
   apiVersion: 'apps/v1',
   kind:       'Deployment',
@@ -23,6 +25,36 @@ export const createDeploymentBlueprint = {
                 cpu:    '500m',
                 memory: '1Gi'
               }
+            }
+          }
+        ],
+        volumes: [
+          {
+            name:      'test-vol',
+            projected: {
+              defaultMode: 420,
+              sources:     [
+                {
+                  configMap: {
+                    items: [{ key: 'test-vol-key', path: 'test-vol-path' }],
+                    name:  'configmap-name'
+                  }
+                }
+              ]
+            }
+          },
+          {
+            name:      'test-vol1',
+            projected: {
+              defaultMode: 420,
+              sources:     [
+                {
+                  configMap: {
+                    items: [{ key: 'test-vol-key1', path: 'test-vol-path1' }],
+                    name:  'configmap-name1'
+                  }
+                }
+              ]
             }
           }
         ]
@@ -179,7 +211,7 @@ export const deploymentCreateResponse = {
         rel:    'uses'
       }
     ],
-    resourceVersion: '12999795',
+    resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
     state:           {
       error:         false,
       message:       'replicas: 0/1',

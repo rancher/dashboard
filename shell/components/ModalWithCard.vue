@@ -7,6 +7,8 @@ import AppModal from '@shell/components/AppModal.vue';
 export default {
   name: 'ModalWithCard',
 
+  emits: ['close', 'finish'],
+
   components: {
     Card, Banner, AsyncButton, AppModal
   },
@@ -70,10 +72,7 @@ export default {
       :show-highlight-border="false"
     >
       <template #title>
-        <h4
-          slot="title"
-          class="text-default-text"
-        >
+        <h4 class="text-default-text">
           <slot name="title" />
         </h4>
       </template>

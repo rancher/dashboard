@@ -1,3 +1,4 @@
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -9,8 +10,6 @@ const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
-
-const rowDetails = (text) => text.split('\n').map((r) => r.trim()).filter((f) => f);
 
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -44,10 +43,8 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'].split('-', 1)[0].slice(1);
-
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version.');
-        homePage.whatsNewBannerLink().contains(`What's new in ${ rancherVersion }`);
+        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
+        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
 
         homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
           cy.request(releaseNotesUrl).then((res) => {
@@ -132,50 +129,34 @@ describe('Home Page', () => {
        * Get cluster details from the Home page
        * Verify that the cluster details match those on the Cluster Management page
        */
-
-      const clusterDetails: string[] = [];
+      const clusterName = 'local';
 
       HomePagePo.navTo();
       homePage.waitForPage();
 
-      homeClusterList.state('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
-      });
-
-      homeClusterList.name('local').invoke('text').then((el) => {
-        clusterDetails.push(el.trim());
-      });
-
-      homeClusterList.version('local').invoke('text').then((el) => {
-        clusterDetails.push(rowDetails(el));
-      });
-
-      homeClusterList.provider('local').invoke('text').then((el) => {
-        clusterDetails.push(rowDetails(el));
-      });
+      homeClusterList.version(clusterName).invoke('text').should('not.contain', '—');
+      homeClusterList.state(clusterName).invoke('text').as('stateText');
+      homeClusterList.name(clusterName).invoke('text').as('nameText');
+      homeClusterList.version(clusterName).invoke('text').as('versionText');
+      homeClusterList.provider(clusterName).invoke('text').as('providerText');
 
       provClusterList.goTo();
+      provClusterList.waitForPage();
 
-      provClusterList.list().state('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[0]);
+      cy.get('@stateText').then((state) => {
+        provClusterList.list().details(clusterName, 1).should('contain.text', state);
       });
 
-      provClusterList.list().name('local').should((el) => {
-        expect(el).to.include.text(clusterDetails[1]);
+      cy.get('@nameText').then((name) => {
+        provClusterList.list().details(clusterName, 2).should('contain.text', name);
       });
 
-      provClusterList.list().version('local').should((el) => {
-        const version = rowDetails(el.text());
-
-        expect(version[0]).eq(clusterDetails[2][0]);
-        expect(version[1]).eq(clusterDetails[2][1]);
+      cy.get('@versionText').then((version) => {
+        provClusterList.list().details(clusterName, 3).should('contain.text', version);
       });
 
-      provClusterList.list().provider('local').should((el) => {
-        const provider = rowDetails(el.text());
-
-        expect(provider[0]).eq(clusterDetails[3][0]);
-        expect(provider[1]).eq(clusterDetails[3][1]);
+      cy.get('@providerText').then((provider) => {
+        provClusterList.list().details(clusterName, 4).should('contain.text', provider);
       });
     });
 

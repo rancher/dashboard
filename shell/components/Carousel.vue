@@ -6,6 +6,8 @@ import { mapGetters } from 'vuex';
 const carouselSeenStorageKey = `carousel-seen`;
 
 export default {
+  emits: ['clicked'],
+
   components: { BadgeState },
   name:       'Carousel',
   props:      {
@@ -111,7 +113,7 @@ export default {
     },
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.autoScrollSlideInterval) {
       clearInterval(this.autoScrollSlideInterval);
     }
@@ -291,6 +293,7 @@ export default {
     height: 100%;
 
     .slide-img {
+      align-self: flex-start;
       width: 150px;
       background: var(--card-badge-text);
       border-radius: calc(2 * var(--border-radius));

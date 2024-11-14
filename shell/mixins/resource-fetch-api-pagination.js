@@ -176,7 +176,7 @@ export default {
         return;
       }
 
-      if (!this.resource) {
+      if (!this.resource) { // TODO: RC merge issue?
         return false;
       }
 

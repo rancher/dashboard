@@ -28,17 +28,17 @@ export default {
   },
   data() {
     if (!this.value.spec.behavior[this.type].policies) {
-      this.$set(this.value.spec.behavior[this.type], 'policies', []);
+      this.value.spec.behavior[this.type]['policies'] = [];
     }
     if (!this.value.spec.behavior[this.type].selectPolicy) {
-      this.$set(this.value.spec.behavior[this.type], 'selectPolicy', 'Max');
+      this.value.spec.behavior[this.type]['selectPolicy'] = 'Max';
     }
     if (this.value.spec.behavior[this.type].stabilizationWindowSeconds === null || typeof this.value.spec.behavior[this.type].stabilizationWindowSeconds === 'undefined') {
       if (this.type === 'scaleUp') {
-        this.$set(this.value.spec.behavior[this.type], 'stabilizationWindowSeconds', 0);
+        this.value.spec.behavior[this.type]['stabilizationWindowSeconds'] = 0;
       }
       if (this.type === 'scaleDown') {
-        this.$set(this.value.spec.behavior[this.type], 'stabilizationWindowSeconds', 300);
+        this.value.spec.behavior[this.type]['stabilizationWindowSeconds'] = 300;
       }
     }
 
@@ -52,7 +52,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <ArrayListGrouped
-          v-model="value.spec.behavior[type].policies"
+          v-model:value="value.spec.behavior[type].policies"
           :add-label="t('hpa.scalingRule.addPolicy')"
           :default-add-value="{}"
           :mode="mode"
@@ -61,7 +61,7 @@ export default {
             <div class="row">
               <div class="col span-4">
                 <LabeledSelect
-                  v-model="props.row.value.type"
+                  v-model:value="props.row.value.type"
                   :mode="mode"
                   :options="policyTypeOptions"
                   :multiple="false"
@@ -74,7 +74,7 @@ export default {
               </div>
               <div class="col span-4">
                 <LabeledInput
-                  v-model.number="props.row.value.value"
+                  v-model:value.number="props.row.value.value"
                   :mode="mode"
                   type="number"
                   min="1"
@@ -85,7 +85,7 @@ export default {
               </div>
               <div class="col span-4">
                 <LabeledInput
-                  v-model.number="props.row.value.periodSeconds"
+                  v-model:value.number="props.row.value.periodSeconds"
                   :mode="mode"
                   type="number"
                   min="1"
@@ -103,7 +103,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.spec.behavior[type].selectPolicy"
+          v-model:value="value.spec.behavior[type].selectPolicy"
           :mode="mode"
           :options="selectPolicyOptions"
           :multiple="false"
@@ -115,7 +115,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model.number="value.spec.behavior[type].stabilizationWindowSeconds"
+          v-model:value.number="value.spec.behavior[type].stabilizationWindowSeconds"
           :mode="mode"
           type="number"
           min="0"

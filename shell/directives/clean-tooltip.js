@@ -1,4 +1,4 @@
-import { VTooltip } from 'v-tooltip';
+import { VTooltip } from 'floating-vue';
 import { purifyHTML } from '@shell/plugins/clean-html';
 
 function purifyContent(value) {
@@ -13,10 +13,10 @@ function purifyContent(value) {
   }
 }
 
-function bind(el, { value, oldValue, modifiers }) {
+function beforeMount(el, { value, oldValue, modifiers }) {
   const purifiedValue = purifyContent(value);
 
-  VTooltip.bind(
+  VTooltip.beforeMount(
     el,
     {
       value: purifiedValue, oldValue, modifiers
@@ -25,8 +25,8 @@ function bind(el, { value, oldValue, modifiers }) {
 
 const cleanTooltipDirective = {
   ...VTooltip,
-  bind,
-  update: bind,
+  beforeMount,
+  updated: beforeMount,
 };
 
 export default cleanTooltipDirective;

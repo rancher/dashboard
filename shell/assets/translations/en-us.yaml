@@ -26,6 +26,7 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
+  inProgress: In Progress
   imagePullPolicy:
     always: Always
     ifNotPresent: IfNotPresent
@@ -111,6 +112,7 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
+  basic: Basic
 
 locale:
   en-us: English
@@ -230,7 +232,6 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -360,8 +361,8 @@ addClusterMemberDialog:
   title: Add Cluster Member
 
 addonConfigConfirmation:
-  title: Add-On Config Reset
-  body: Changing the Kubernetes Version can reset the Add-On Config values. You should check that the values are as expected before continuing.
+  title: Add-On Reset
+  body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
 
 addProjectMemberDialog:
   title: Add Project Member
@@ -438,7 +439,7 @@ authConfig:
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Create Service Account credentials'
-        introduction: 'Follow <a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
+        introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
         body:
           1: Create a service account.
           2: Generate a key for the service account.
@@ -507,6 +508,11 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -812,7 +818,7 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName:
     backuptip: 'Any secret in the <code>{ns}</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
-    label: Encryption Config Secret
+    label: Encryption Configuration Secret
     options:
       none: Store the contents of the backup unencrypted
       secret: 'Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)'
@@ -1066,8 +1072,8 @@ catalog:
       placeholder: 'e.g. https://charts.rancher.io'
     oci:
       urlLabel: OCI Repository Host URL
-      placeholder: 'e.g. oci://test.azure.io/test-namespace:test-tag'
-      info: For better performance, add OCI URLs that contain ONLY helm charts. For example oci://test.rancher.io/charts or oci://test.rancher.io/charts/mychart. The list of charts available from the repository is updated every 6 hours. Scanning directories with a large number of artifacts may degrade performance considerably.
+      placeholder: 'e.g. oci://<registry-host>/<namespace>/<chart-name>:<tag>'
+      info: Add OCI URLs that contain ONLY helm charts. For large repositories containing many charts consider targeting a specific namespace or chart to improve performance, for example with oci://<registry-host>/<namespace> or oci://<registry-host>/<namespace>/<chart-name>. The list of charts available from the repository is updated every 6 hours.
       skipTlsVerifications: Skip TLS Verifications
       insecurePlainHttp: Insecure Plain Http
       exponentialBackOff:
@@ -1129,7 +1135,7 @@ cis:
   alertNeeded: |-
     Alerting must be enabled within the CIS chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
-    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'> configured to send out alerts.</a>
+    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -1172,6 +1178,7 @@ cis:
     total: Total
     warn: Warn
   scheduling:
+    title: Scheduling
     disable: Run scan once
     enable: Run scan on a schedule
   scoreWarning:
@@ -1180,23 +1187,46 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
+  alerting: Alerting
 
 cluster:
   jwtAuthentication:
     banner: "Service Account access with JWT authentication can be configured after cluster creation from <br>
       <code>Cluster Management > Advanced > JWT Authentication</code>"
   addonChart:
-    rancher-vsphere-cpi: vSphere CPI Configuration
-    rancher-vsphere-csi: vSphere CSI Configuration
-    rke2-calico: Calico Configuration
-    rke2-calico-crd: Calico Configuration
-    rke2-canal: Canal Configuration
-    rke2-cilium: Cilium Configuration
-    rke2-coredns: CoreDNS Configuration
-    rke2-ingress-nginx: NGINX Ingress Configuration
-    rke2-kube-proxy: Kube Proxy Configuration
-    rke2-metrics-server: Metrics Server Configuration
-    rke2-multus: Multus Configuration
+    rancher-vsphere-cpi:
+      label: "Add-on: vSphere CPI"
+      configuration: vSphere CPI
+    rancher-vsphere-csi:
+      label: "Add-on: vSphere CSI"
+      configuration: vSphere CSI
+    rke2-calico:
+      label: "Add-on: Calico"
+      configuration: Calico
+    rke2-calico-crd:
+      label:  "Add-on: Calico"
+      configuration: Calico
+    rke2-canal:
+      label: "Add-on: Canal"
+      configuration: Canal
+    rke2-cilium:
+      label: "Add-on: Cilium"
+      configuration: Cilium
+    rke2-coredns:
+      label: "Add-on: CoreDNS"
+      configuration: CoreDNS
+    rke2-ingress-nginx:
+      label: "Add-on: NGINX"
+      configuration: NGINX Ingress
+    rke2-kube-proxy:
+      label: "Add-on: Kube Proxy"
+      configuration: Kube Proxy
+    rke2-metrics-server:
+      label: "Add-on: Metrics Server"
+      configuration: Metrics Server
+    rke2-multus:
+      label: "Add-on: Multus"
+      configuration: Multus
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
@@ -1212,7 +1242,7 @@ cluster:
       label: Google
     rancher-vsphere:
       label: vSphere
-      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-on Configuration tab.'
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
@@ -1358,8 +1388,10 @@ cluster:
         macAddress: Mac Address
         macFormat: 'Invalid MAC address format.'
       vGpus:
+        warnings:
+          minimumAllocatable: It's highly recommended to select a vGPU with a number of allocatable devices greater than the number of nodes (Machine Count) to avoid "un-schedulable" errors after cluster updates.
         errors:
-          notAllocatable: '"VGPUs" not allocatable. There are not enough [{vGpus}] devices to be allocated to each node in machine pool [{pool}]'
+          notAllocatable: '[{vGpu}] vGPU device is not allocatable; required: {allocated}, allocatable: {allocatable}'
       volume:
         title: Volumes
         volume: Volume
@@ -1443,10 +1475,13 @@ cluster:
     placeholder: A unique name for the cluster
   directoryConfig:
     title: Data directory configuration
-    checkboxText: Use the same path for System-agent, Provisioning and K8s Distro data directories configuration
+    radioInput:
+      defaultLabel: Use default data directory configuration
+      commonLabel: Use a common base directory for data directory configuration (sub-directories will be used for the system-agent, provisioning and distro paths)
+      customLabel: Use custom data directories
     common: 
-      label: Data directory configuration path
-      tooltip: Data directory configuration for System-agent, Provisioning and K8s Distro
+      label: Data directory base path
+      tooltip: Data directory base path. We will append the sub-directories appropriate for each directory (/agent, /provisioning and either /rke2 or /k3s)
     systemAgent: 
       label: System-agent directory path
       tooltip: Data directory for the system-agent connection info and plans
@@ -1727,7 +1762,7 @@ cluster:
       serverOs:
         label: OS
   addOns:
-    dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
+    dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
@@ -1791,11 +1826,18 @@ cluster:
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
+  cloudCredentials:
+    renew: Renew Cloud Credentials
+    expired: Cloud Credential expired, please Renew Cloud Credentials
+    expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
+    banners:
+      expiring: "{count} {count, plural, =1 { Cluster has a Cloud Credential that expires soon} other { Clusters have Cloud Credentials that expire soon}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
+      expired: "{count} {count, plural, =1 { Cluster has a Cloud Credential that has expired} other { Clusters have Cloud Credentials that have expired}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
 
   architecture:
     label:
-      unknown: Unknown
-      mixed: Mixed
+      unknown: unknown
+      mixed: mixed
 
   availabilityWarnings:
     node: Node {name} is inactive
@@ -1878,7 +1920,7 @@ cluster:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
     description: "If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
-    docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">documentation.</a>"
+    docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration\" target=\"_blank\">documentation.</a>"
     docsLinkK3s: "For help configuring private registry mirrors, see the K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">documentation.</a>"
   provider:
     aliyunecs: Aliyun ECS
@@ -1922,11 +1964,12 @@ cluster:
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
+    ovhcloudmks: OVHcloud MKS
     packet: Equinix Metal
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
     rackspace: RackSpace
-    rancherkubernetesengine: RKE
+    rancherkubernetesengine: RKE1
     rke2: RKE2
     rke: RKE1
     rkeWindows: Windows (RKE1 only)
@@ -2084,7 +2127,8 @@ cluster:
       s3: s3
   tabs:
     ace: Authorized Endpoint
-    addons: Add-On Config
+    addOnAdditionalManifest: Additional Manifest
+    addons: Add-on Configuration
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
@@ -2118,6 +2162,7 @@ clusterIndexPage:
     ram: Memory
     used: Used
     reserved: Reserved
+    allocated: Allocated
     units:
       cores: |-
         {count, plural,
@@ -2941,6 +2986,10 @@ labelSelect:
   pagination:
     counts: '{count} / {totalCount} items'
     more: Load More...
+labeledSelect:
+  startTyping: Start typing to define an item
+  pressEnter: Press enter to add "{input}"
+
 landing:
   clusters:
     title: Clusters
@@ -2956,8 +3005,8 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.9"
+  seeWhatsNew: Learn more about the improvements and new capabilities in this version and read about the UI framework migration in 2.10
+  whatsNewLink: "What's new in 2.10"
   learnMore: Learn More
   support: Support
   community:
@@ -3188,6 +3237,9 @@ logging:
       certificate: Connection
       labels: Labels
       configuration: Configuration
+    tips:
+      singleProvider: This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+      multipleProviders: This output is configured with providers we do not support yet. You can view or edit the YAML.
   outputProviders:
     elasticsearch: Elasticsearch
     opensearch: OpenSearch
@@ -3265,6 +3317,7 @@ login:
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
+  loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
   serverError:
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
@@ -3289,6 +3342,10 @@ login:
 
 logout:
   message: Logging Out...
+  error: 'An error occurred logging out: {msg}'
+  specificError:
+    unknown: Unknown.\n\nPlease contact your system administrator.
+    500: "Server-side error.\n\nPlease contact your system administrator."
 
 managementNode:
   customName: Custom Name
@@ -3472,7 +3529,7 @@ monitoring:
       keyFilePath:
         label: Key File Path
         placeholder: e.g. ./key-file.pfx
-      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
+      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/how-to-guides/advanced-user-guides/monitoring-alerting-guides" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
   projectMonitoring:
     detail:
       error: "Unable to fetch Dashboard values with status: "
@@ -3668,6 +3725,9 @@ namespace:
   selectNamespace: Select Namespace
   createNamespace: Create a new Namespace
   selectOrCreate: Select or Create a Namespace
+  snapshots:
+    label: Snapshots
+    totalSnapshotSize: Total Snapshot Size
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -3970,6 +4030,7 @@ persistentVolume:
       file-csi-azure-com: Azure File (CSI)
       driver-longhorn-io: Longhorn (CSI)
       driver-harvesterhci-io: Harvester (CSI)
+      lvm-driver-harvesterhci-io: LVM
       nfs-csi-k8s-io: NFS (CSI)
       ebs-csi-aws-com: AWS Elastic Block Store (CSI)
       rbd-csi-ceph-com: Ceph RBD (CSI)
@@ -4252,8 +4313,11 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
-  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
+  incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
+  incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
+  incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
@@ -4271,9 +4335,11 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
-    api: This Extension is not compatible with the current Extensions API version
-    host: This Extension is not compatible with this application
-    version: This Extension is not compatible with this version of Rancher
+    apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
+    api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
+    host: Unable to load Extension. The version installed is not compatible with this application host
+    version: Unable to load Extension. The version installed is not compatible with the current version of Rancher
+    kubeVersion: Unable to load Extension. The version installed is not compatible with the current Rancher kubernetes version
     load: An error occurred loading the code for this Extension
     developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:
@@ -4291,8 +4357,11 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresRancherVersion: "Requires Rancher {version}"
-    requiresKubeVersion: "Requires Kube version {version}"
+    requiresRancherVersion: "Requires Rancher {required}"
+    requiresKubeVersion: "Requires Kube version {required}"
+    requiresExtensionApiVersionMissing: 'Missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards'
+    requiresExtensionApiVersion: "Requires Extensions API version {required}"
+    requiresHost: 'Requires a host that matches "{mainHost}"'
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
@@ -4648,6 +4717,15 @@ promptScaleMachineDown:
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
 
+promptSlo:
+  title: "Log out"
+  text: "Log out of only Rancher, or all {name} applications."
+  rancher:
+    active: Only log out of Rancher
+  all:
+    active: Log out of {name}
+    waiting: Logging Out
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
@@ -4932,6 +5010,7 @@ resourceTable:
     node: Group by Node
     role: Group by Role
     cluster: Group by Cluster
+    device: Group by Device
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
@@ -5216,7 +5295,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
     helmSuffix: ""
-  eula: By checking the box, you accept the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
+  eula: By checking the box, you accept the <a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
@@ -5224,7 +5303,7 @@ setup:
     skip: Skip
     tip: What URL should be used for this {vendor} installation? All the nodes in your clusters will need to be able to reach this.
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
+  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
   welcome: Welcome to {vendor}!
@@ -5601,7 +5680,6 @@ tableHeaders:
   createdAt: Created At
   customVerbs: Custom Verbs
   description: Description
-  expires: Expires
   cpu: CPU
   currentReplicas: Current Replicas
   date: Date
@@ -5618,6 +5696,7 @@ tableHeaders:
   distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
+  expires: Expires
   firstSeen: First Seen
   fleetBundleType: Type
   flow: Flow
@@ -5727,6 +5806,7 @@ tableHeaders:
   resourcesReady: Resources Ready
   restarts: Restarts
   restart: Restart Required
+  restore: Restore
   role: Role
   roles: Roles
   routes: Routes
@@ -5762,6 +5842,7 @@ tableHeaders:
   targetKind: Target Type
   targetPort: Target
   template: Template
+  totalSnapshotQuota: Total Snapshot Quota
   type: Type
   updated: Updated
   up-to-date: Up To Date
@@ -6268,6 +6349,7 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+  error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
     running: Running
@@ -7237,6 +7319,7 @@ action:
   viewYaml: View YAML
   activate: Activate
   deactivate: Deactivate
+  editQuota: Edit Quota
   show: Show
   hide: Hide
   copy: Copy
@@ -7351,6 +7434,7 @@ advancedSettings:
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
+    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported K3s or RKE2 clusters.
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
   editHelp:
@@ -7675,8 +7759,6 @@ legacy:
   catalogs: Catalogs
   configMaps: Config Maps
   configuration: Configuration
-  globalDnsEntries: Global DNS Entries
-  globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
   secrets: Secrets
@@ -7696,6 +7778,11 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
+    renew: Renew
+    expired: Expired
+    banners:
+      expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
+      expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
   drivers:
     label: Drivers
   rkeTemplates:
@@ -7711,7 +7798,9 @@ auth:
     label: Auth Provider
 vncConsole:
   error:
-    message: Web VNC console connection is disconnected
+    message: Web VNC console is disconnected
+  reconnecting:
+    message: Web VNC console reconnection attempt
 
 gitPicker:
   github:

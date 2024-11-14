@@ -102,7 +102,7 @@ export default defineComponent({
     },
 
     hasLabelSlot(): boolean {
-      return !!this.$slots.label || !!this.$scopedSlots.label;
+      return !!this.$slots.label;
     }
   },
 
@@ -126,7 +126,7 @@ export default defineComponent({
         return;
       }
 
-      this.$emit('input', this.val);
+      this.$emit('update:value', this.val);
     },
   }
 });

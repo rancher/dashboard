@@ -1,14 +1,20 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  components: { LabeledInput },
-  mixins:     [CreateEditView],
+  emits: ['validationChanged', 'valueChanged'],
 
+  components: { LabeledInput },
+  mixins:     [CreateEditView, FormValidation],
+
+  data() {
+    return { fvFormRuleSets: [{ path: 'decodedData.accessToken', rules: ['required'] }] };
+  },
   watch: {
-    'value.decodedData.accessToken'(neu) {
-      this.$emit('validationChanged', !!neu);
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
     }
   },
 
@@ -37,7 +43,9 @@ export default {
       placeholder-key="cluster.credential.digitalocean.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('accessToken', $event);"
+      :required="true"
+      :rules="fvGetAndReportPathRules('decodedData.accessToken')"
+      @update:value="$emit('valueChanged', 'accessToken', $event)"
     />
     <p
       v-clean-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)"

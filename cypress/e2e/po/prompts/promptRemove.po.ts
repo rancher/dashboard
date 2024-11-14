@@ -3,7 +3,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export default class PromptRemove extends ComponentPo {
   constructor() {
-    super(cy.get('body > #modals > .vue-portal-target > .modal-overlay > .remove-modal'));
+    super(cy.get('[data-testid="card"].prompt-remove'));
   }
 
   confirmField() {
@@ -28,6 +28,6 @@ export default class PromptRemove extends ComponentPo {
 
   // Get the warning message
   warning() {
-    return this.self().get('[warning] .text-warning');
+    return this.self().get('.card-body .text-warning');
   }
 }

@@ -1,4 +1,4 @@
-import { RouteConfig } from 'vue-router';
+import { RouteRecordRaw } from 'vue-router';
 import { PRODUCT_NAME } from '../config/harvester-manager';
 
 import Root from '../pages/c/_cluster/index.vue';
@@ -6,7 +6,7 @@ import ListHarvesterMgrResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateHarvesterMgrResource from '../pages/c/_cluster/_resource/create.vue';
 import ViewHarvesterMgrResource from '../pages/c/_cluster/_resource/_id.vue';
 
-const routes: RouteConfig[] = [
+const routes: RouteRecordRaw[] = [
   {
     name:      `${ PRODUCT_NAME }-c-cluster`,
     path:      `/:product/c/:cluster`,

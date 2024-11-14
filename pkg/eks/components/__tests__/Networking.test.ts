@@ -8,14 +8,14 @@ import SecurityGroupData from '../__mocks__/describeSecurityGroups.js';
 import SubnetData from '../__mocks__/describeSubnets';
 import VpcData from '../__mocks__/describeVpcs';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+// const mockedValidationMixin = {
+//   computed: {
+//     fvFormIsValid:                jest.fn(),
+//     type:                         jest.fn(),
+//     fvUnreportedValidationErrors: jest.fn(),
+//   },
+//   methods: { fvGetAndReportPathRules: jest.fn() }
+// };
 
 const mockedStore = () => {
   return {
@@ -30,11 +30,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -48,7 +50,7 @@ describe('eKS Networking', () => {
       ...setup
     });
 
-    const publicAccessSources = wrapper.find('[data-testid="eks-public-access-sources"]');
+    const publicAccessSources = wrapper.getComponent('[data-testid="eks-public-access-sources"]');
 
     expect(publicAccessSources.vm.addAllowed).toBe(false);
 
@@ -67,7 +69,7 @@ describe('eKS Networking', () => {
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -88,7 +90,7 @@ describe('eKS Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.findComponent('[data-testid="eks-subnets-dropdown"]');
 
     expect(subnetDropdown.exists()).toBe(true);
 
@@ -106,7 +108,7 @@ describe('eKS Networking', () => {
 
     wrapper.setData({ chooseSubnet: true });
     await wrapper.vm.$nextTick();
-    const sgDropDown = wrapper.find('[data-testid="eks-security-groups-dropdown"]');
+    const sgDropDown = wrapper.findComponent('[data-testid="eks-security-groups-dropdown"]');
 
     expect(sgDropDown.exists()).toBe(true);
 
@@ -171,7 +173,7 @@ describe('eKS Networking', () => {
 
     await wrapper.vm.$nextTick();
 
-    const sgDropDown = wrapper.find('[data-testid="eks-security-groups-dropdown"]');
+    const sgDropDown = wrapper.getComponent('[data-testid="eks-security-groups-dropdown"]');
 
     expect(sgDropDown.props().options).toStrictEqual([]);
 
@@ -240,7 +242,7 @@ describe('eKS Networking', () => {
     wrapper.setData({ chooseSubnet: true });
 
     await wrapper.vm.$nextTick();
-    const subnetDropdown = wrapper.find('[data-testid="eks-subnets-dropdown"]');
+    const subnetDropdown = wrapper.getComponent('[data-testid="eks-subnets-dropdown"]');
 
     let subnetOpts = subnetDropdown.props().options;
 

@@ -48,7 +48,7 @@ generic:
       info: 信息
       warning: 警告
       error: 错误
-  ok: OK
+  ok: 确定
   overview: 概述
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
@@ -222,7 +222,6 @@ product:
   settings: 全局设置
   clusterManagement: 集群管理
   monitoring: 监控
-  mcapps: 全局配置
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
   rancher: Rancher
@@ -429,7 +428,7 @@ authConfig:
           5: '在 OAuth 凭证框中，上传下载的 JSON 文件。'
       3:
         title: '创建 Service Account 凭证'
-        introduction: '参照本<a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
+        introduction: '参照本<a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
         body:
           1: 创建一个 Service Account。
           2: 为这个 Service Account 生成密钥。
@@ -1049,7 +1048,7 @@ cis:
   alertNeeded: |-
     必须在 CIS Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
-    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'>已配置告警发送</a>。
+    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
   alertOnFailure: 扫描失败告警
   benchmarkVersion: Benchmark 版本
@@ -1752,7 +1751,7 @@ cluster:
   privateRegistry:
     label: 为 Rancher 系统容器镜像启用集群级别的容器镜像仓库
     description: "如果启用，Rancher 将在集群配置期间从该镜像仓库中拉取容器镜像。默认情况下，Rancher 在安装 Rancher 的官方 Helm Chart 应用程序时也会使用此镜像仓库。如果集群级别的镜像仓库被禁用，将从全局设置中的系统默认镜像仓库中拉取系统镜像。"
-    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">文档</a>。"
+    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration\" target=\"_blank\">文档</a>。"
     docsLinkK3s: "如需配置私有镜像仓库 mirror 的帮助，请参阅 K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">文档</a>。"
   provider:
     aliyunecs: Aliyun ECS
@@ -1796,6 +1795,7 @@ cluster:
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: 其他
+    ovhcloudmks: OVHcloud MKS
     packet: Equinix Metal
     pinganyunecs: 平安云 ECS
     pnap: phoenixNAP
@@ -3235,7 +3235,7 @@ monitoring:
       keyFilePath:
         label: 密钥文件路径
         placeholder: 例如：./key-file.pfx
-      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
+      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/how-to-guides/advanced-user-guides/monitoring-alerting-guides" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
   projectMonitoring:
     detail:
       error: "无法获取具有状态的仪表板值： "
@@ -4959,7 +4959,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
-  eula: 选中此框，即表示你接受<a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
+  eula: 选中此框，即表示你接受<a href="https://www.suse.com/licensing/eula/download/suse_end_user_license_agreement_june_2024.pdf" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
   newPassword: 新密码
   newUserSetPassword: 请设置强密码。建议使用生成的随机密码。你也可以自行设置。
   serverUrl:
@@ -4967,7 +4967,7 @@ setup:
     skip: 跳过
     tip: 此 {vendor} 安装应使用什么 URL？集群中的所有节点都需要能访问该 URL。
   setPassword: 请为默认用户 <code>{username}</code>设置强密码。建议使用生成的随机密码。你也可以自行设置。
-  telemetry: 允许收集<a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">匿名统计数据</a>，以帮我们改进 {name}。
+  telemetry: 允许收集<a href="{docsBase}/faq/telemetry" target="_blank" rel="noopener noreferrer nofollow">匿名统计数据</a>，以帮我们改进 {name}。
   useManual: 设置密码
   useRandom: 使用随机生成的密码
   welcome: 欢迎使用 {vendor}！
@@ -7334,8 +7334,6 @@ legacy:
   catalogs: 应用商店
   configMaps: ConfigMaps
   configuration: 配置
-  globalDnsEntries: 全局 DNS 条目
-  globalDnsProviders: 全局 DNS 提供商
   notifiers: Notifiers
   monitoring: 监控
   secrets: 密文

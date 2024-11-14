@@ -1,5 +1,4 @@
 <script>
-import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -81,10 +80,14 @@ export default {
       return i !== 0 || !this.agentConfig;
     },
     showEmptyKubeletArg(config) {
-      return !this.serverArg?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
+      return !this.serverArgs?.['kubelet-arg']?.length && !config?.['kubelet-arg']?.length;
     },
     onInputProtectKernelDefaults(value) {
-      Vue.set(this.agentConfig || this.serverConfig, 'protect-kernel-defaults', value);
+      if (this.agentConfig && this.agentConfig['protect-kernel-defaults'] !== undefined ) {
+        this.agentConfig['protect-kernel-defaults'] = value;
+      } else {
+        this.serverConfig['protect-kernel-defaults'] = value;
+      }
     }
   }
 };
@@ -100,13 +103,14 @@ export default {
     />
     <template v-if="haveArgInfo">
       <DirectoryConfig
-        v-model="value.spec.rkeConfig.dataDirectories"
+        v-model:value="value.spec.rkeConfig.dataDirectories"
+        :k8s-version="value.spec.kubernetesVersion"
         :mode="mode"
       />
       <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
       <ArrayListGrouped
         v-if="agentArgs['kubelet-arg']"
-        v-model="rkeConfig.machineSelectorConfig"
+        v-model:value="rkeConfig.machineSelectorConfig"
         class="mb-20"
         :mode="mode"
         :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
@@ -117,7 +121,7 @@ export default {
           <template v-if="row.value.machineLabelSelector">
             <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
             <MatchExpressions
-              v-model="row.value.machineLabelSelector"
+              v-model:value="row.value.machineLabelSelector"
               class="mb-20"
               :mode="mode"
               :show-remove="false"
@@ -136,7 +140,7 @@ export default {
 
           <ArrayList
             v-if="i === 0 && serverConfig['kubelet-arg']"
-            v-model="serverConfig['kubelet-arg']"
+            v-model:value="serverConfig['kubelet-arg']"
             class="mb-10"
             data-testid="global-kubelet-arg"
             :mode="mode"
@@ -149,7 +153,7 @@ export default {
 
           <ArrayList
             v-if="row.value.config && (row.value.config['kubelet-arg'] || !serverConfig['kubelet-arg'])"
-            v-model="row.value.config['kubelet-arg']"
+            v-model:value="row.value.config['kubelet-arg']"
             data-testid="selector-kubelet-arg"
             :mode="mode"
             :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
@@ -179,21 +183,21 @@ export default {
 
       <ArrayList
         v-if="serverArgs['kube-controller-manager-arg']"
-        v-model="serverConfig['kube-controller-manager-arg']"
+        v-model:value="serverConfig['kube-controller-manager-arg']"
         :mode="mode"
         :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
         class="mb-20"
       />
       <ArrayList
         v-if="serverArgs['kube-apiserver-arg']"
-        v-model="serverConfig['kube-apiserver-arg']"
+        v-model:value="serverConfig['kube-apiserver-arg']"
         :mode="mode"
         :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
         class="mb-20"
       />
       <ArrayList
         v-if="serverArgs['kube-scheduler-arg']"
-        v-model="serverConfig['kube-scheduler-arg']"
+        v-model:value="serverConfig['kube-scheduler-arg']"
         :mode="mode"
         :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
       />
@@ -208,7 +212,7 @@ export default {
             :value="protectKernelDefaults"
             :mode="mode"
             :label="t('cluster.advanced.agentArgs.label')"
-            @input="onInputProtectKernelDefaults($event)"
+            @update:value="onInputProtectKernelDefaults($event)"
           />
         </div>
       </div>

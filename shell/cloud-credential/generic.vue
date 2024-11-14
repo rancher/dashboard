@@ -6,6 +6,8 @@ import { simplify, iffyFields, likelyFields } from '@shell/store/plugins';
 import Loading from '@shell/components/Loading';
 
 export default {
+  emits: ['validationChanged'],
+
   components: {
     KeyValue, Banner, Loading
   },
@@ -92,7 +94,7 @@ export default {
       :add-allowed="!hasSupport"
       :remove-allowed="!hasSupport"
       :initial-empty-row="true"
-      @input="update"
+      @update:value="update"
     />
   </div>
 </template>

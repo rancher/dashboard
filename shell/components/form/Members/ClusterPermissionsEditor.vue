@@ -16,6 +16,8 @@ export function canViewClusterPermissionsEditor(store) {
 }
 
 export default {
+  emits: ['update:value'],
+
   components: {
     Card,
     Checkbox,
@@ -202,7 +204,7 @@ export default {
     },
 
     onAdd(principalId) {
-      this.$set(this, 'principalId', principalId);
+      this['principalId'] = principalId;
       this.updateBindings();
     },
 
@@ -218,7 +220,7 @@ export default {
 
         const bindings = await Promise.all(bindingPromises);
 
-        this.$emit('input', bindings);
+        this.$emit('update:value', bindings);
       }
     }
   },
@@ -258,7 +260,7 @@ export default {
       </template>
       <template v-slot:body>
         <RadioGroup
-          v-model="permissionGroup"
+          v-model:value="permissionGroup"
           :options="options"
           name="permission-group"
         />
@@ -268,11 +270,11 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <div
-            v-for="permission in customPermissionsUpdate"
-            :key="permission.key"
+            v-for="(permission, i) in customPermissionsUpdate"
+            :key="i"
           >
             <Checkbox
-              v-model="permission.value"
+              v-model:value="permission.value"
               :disabled="permission.locked"
               class="mb-5"
               :label="permission.label"
@@ -291,7 +293,7 @@ export default {
 <style lang="scss" scoped>
 $detailSize: 11px;
 
-::v-deep .type-description {
+:deep() .type-description {
     font-size: $detailSize;
 }
 
@@ -305,7 +307,7 @@ label.radio {
   &.two-column {
     grid-template-columns: 1fr 1fr;
   }
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     margin-right: 0;
   }
 }

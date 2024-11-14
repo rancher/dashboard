@@ -6,9 +6,12 @@ import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET } from '@shell/config/types';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { allHash } from 'utils/promise';
 
 export default {
   name: 'FleetDetailCluster',
+
+  emits: ['input'],
 
   components: {
     Loading,
@@ -27,17 +30,18 @@ export default {
 
   async fetch() {
     const clusterId = this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
-
-    this.rancherCluster = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id:   clusterId
+    const hash = await allHash({
+      rancherCluster: this.$store.dispatch('management/find', {
+        type: MANAGEMENT.CLUSTER,
+        id:   clusterId
+      }),
+      repos:             this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
+      workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
+      bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
     });
 
-    this.allRepos = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO });
-
-    await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
-
-    await this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT });
+    this.rancherCluster = hash.rancherCluster;
+    this.allRepos = hash.repos;
   },
 
   data() {
@@ -78,7 +82,7 @@ export default {
       :value="value"
       mode="view"
       class="mt-20"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         label="Git Repos"

@@ -39,9 +39,17 @@ export default {
 
       let key;
 
-      if ( this.sortGenerationFn ) {
-        key = `${ this.sortGenerationFn.apply(this) }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
+      // Why is sortGeneration needed when we have sortGenerationFn?
+      // 1. sortGenerationFn is called when this fn is kicked off and returns latest and greatest string (given things like namespace)
+      // 2. it can be kicked off with stale rows... which is then stored against latest string
+      // 3. when updates rows comes through... sortGenerationFn returns same string
+      // 4. we therefor think nothing has changed and return old, stale rows
+      // This is avoided by outside storage of sortGeneration against rows
+      // (it would be nice to have that hash on the rows object itself, but it gets messy)
+      const sortGenerationKey = this.sortGeneration || this.sortGenerationFn?.apply(this);
 
+      if ( sortGenerationKey) {
+        key = `${ sortGenerationKey }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
         if ( this.cacheKey === key ) {
           return this.cachedRows;
         }

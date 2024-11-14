@@ -20,7 +20,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.resturl"
+          v-model:value="value.parameters.resturl"
           :placeholder="t('storageClass.glusterfs.restUrl.placeholder')"
           :label="t('storageClass.glusterfs.restUrl.label')"
           :mode="mode"
@@ -28,7 +28,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.restuser"
+          v-model:value="value.parameters.restuser"
           :placeholder="t('storageClass.glusterfs.restUser.placeholder')"
           :label="t('storageClass.glusterfs.restUser.label')"
           :mode="mode"
@@ -36,7 +36,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.restuserkey"
+          v-model:value="value.parameters.restuserkey"
           :placeholder="t('storageClass.glusterfs.restUserKey.placeholder')"
           :label="t('storageClass.glusterfs.restUserKey.label')"
           :mode="mode"
@@ -46,7 +46,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.secretNamespace"
+          v-model:value="value.parameters.secretNamespace"
           :placeholder="t('storageClass.glusterfs.secretNamespace.placeholder')"
           :label="t('storageClass.glusterfs.secretNamespace.label')"
           :mode="mode"
@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.secretName"
+          v-model:value="value.parameters.secretName"
           :placeholder="t('storageClass.glusterfs.secretName.placeholder')"
           :label="t('storageClass.glusterfs.secretName.label')"
           :mode="mode"
@@ -62,7 +62,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.clusterid"
+          v-model:value="value.parameters.clusterid"
           :placeholder="t('storageClass.glusterfs.clusterId.placeholder')"
           :label="t('storageClass.glusterfs.clusterId.label')"
           :mode="mode"
@@ -72,7 +72,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.gidMin"
+          v-model:value="value.parameters.gidMin"
           :placeholder="t('storageClass.glusterfs.gidMin.placeholder')"
           :label="t('storageClass.glusterfs.gidMin.label')"
           :mode="mode"
@@ -80,7 +80,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.gidMax"
+          v-model:value="value.parameters.gidMax"
           :placeholder="t('storageClass.glusterfs.gidMax.placeholder')"
           :label="t('storageClass.glusterfs.gidMax.label')"
           :mode="mode"
@@ -88,7 +88,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.volumetype"
+          v-model:value="value.parameters.volumetype"
           :placeholder="t('storageClass.glusterfs.volumeType.placeholder')"
           :label="t('storageClass.glusterfs.volumeType.label')"
           :mode="mode"

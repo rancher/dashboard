@@ -216,7 +216,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   describe('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
-
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Description', 'Restart Required'];
 
@@ -229,7 +228,11 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkVisible();
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
-      featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, 15);
+      cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
+        const featureCount = resp.body.count;
+
+        featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
+      });
     });
   });
 });

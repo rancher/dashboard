@@ -18,6 +18,8 @@ const registryAddresses = [
 ];
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourceTabs,
     DetailText,
@@ -87,7 +89,7 @@ export default {
     }
 
     if (!this.value._type) {
-      this.$set(this.value, '_type', TYPES.OPAQUE);
+      this.value['_type'] = TYPES.OPAQUE;
     }
 
     return {
@@ -160,7 +162,7 @@ export default {
   <ResourceTabs
     :value="value"
     :mode="mode"
-    @input="$emit('input', $event)"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       name="data"

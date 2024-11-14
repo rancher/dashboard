@@ -105,8 +105,8 @@ export default {
         return null;
       }
 
-      if (this.toRemove[0].doneLocationRemove) {
-        return this.toRemove[0].doneLocationRemove;
+      if (this.toRemove[0].doneOverride) {
+        return this.toRemove[0].doneOverride;
       }
 
       const currentRoute = this.toRemove[0].currentRoute();
@@ -350,13 +350,12 @@ export default {
       class="prompt-remove"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        class="text-default-text"
-      >
-        {{ t('promptRemove.title') }}
-      </h4>
-      <div slot="body">
+      <template #title>
+        <h4 class="text-default-text">
+          {{ t('promptRemove.title') }}
+        </h4>
+      </template>
+      <template #body>
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
@@ -364,36 +363,34 @@ export default {
             />
           </template>
 
-          <template>
-            <component
-              :is="removeComponent"
-              v-if="hasCustomRemove"
-              ref="customPrompt"
-              v-model="toRemove"
-              v-bind="_data"
-              :close="close"
-              :needs-confirm="needsConfirm"
-              :value="toRemove"
-              :names="names"
-              :type="type"
-              :done-location="doneLocation"
-              @errors="e => error = e"
-              @done="done"
+          <component
+            :is="removeComponent"
+            v-if="hasCustomRemove"
+            ref="customPrompt"
+            v-model:value="toRemove"
+            v-bind="_data"
+            :close="close"
+            :needs-confirm="needsConfirm"
+            :value="toRemove"
+            :names="names"
+            :type="type"
+            :done-location="doneLocation"
+            @errors="e => error = e"
+            @done="done"
+          />
+          <div
+            v-if="needsConfirm"
+            class="mt-10"
+          >
+            <span
+              v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
             />
-            <div
-              v-if="needsConfirm"
-              class="mt-10"
-            >
-              <span
-                v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              />
-            </div>
-          </template>
+          </div>
         </div>
         <LabeledInput
           v-if="needsConfirm"
           id="confirm"
-          v-model="confirmName"
+          v-model:value="confirmName"
           v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
@@ -412,21 +409,21 @@ export default {
           </div>
           <Checkbox
             v-if="chartsToRemoveIsApp"
-            v-model="chartsDeleteCrd"
+            v-model:value="chartsDeleteCrd"
             label-key="promptRemoveApp.removeCrd"
             class="mt-10 type"
-            @input="chartAddCrdToRemove"
+            @update:value="chartAddCrdToRemove"
           />
-        </labeledinput>
-        <template v-else>
+        </LabeledInput>
+        <div v-else-if="!hasCustomRemove">
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
           </div>
           <div class="text-error mb-10 mt-10">
             {{ error }}
           </div>
-        </template>
-      </div>
+        </div>
+      </template>
       <template #actions>
         <button
           class="btn role-secondary"

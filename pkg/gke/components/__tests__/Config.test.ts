@@ -4,15 +4,6 @@ import flushPromises from 'flush-promises';
 import Config from '@pkg/gke/components/Config.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
-
 const mockedStore = (versionSetting: any) => {
   return {
     getters: {
@@ -35,11 +26,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(versionSetting),
-      $route:      mockedRoute,
-      $fetchState: {},
+    // mixins: [mockedValidationMixin],
+    global: {
+      mocks: {
+        $store:      mockedStore(versionSetting),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -88,7 +81,7 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const versionDropdown = wrapper.find('[data-testid="gke-version-select"]');
+    const versionDropdown = wrapper.getComponent('[data-testid="gke-version-select"]');
 
     expect(versionDropdown.props().options).toHaveLength(numVersionsAvailable);
   });
@@ -112,7 +105,7 @@ describe('gke Config', () => {
     wrapper.setProps({ cloudCredentialId: 'abc' });
     await flushPromises();
 
-    const locationModeRadio = wrapper.find('[data-testid="gke-location-mode-radio"]');
+    const locationModeRadio = wrapper.getComponent('[data-testid="gke-location-mode-radio"]');
 
     expect(locationModeRadio.props().value).toBe(isUsingRegion);
   });
@@ -191,7 +184,7 @@ describe('gke Config', () => {
 
     // verify that each location has a checkbox and it is checked
     locations.forEach((location) => {
-      const extraZonesCheckbox = wrapper.find(`[data-testid="gke-extra-zones-${ location }"]`);
+      const extraZonesCheckbox = wrapper.findComponent(`[data-testid="gke-extra-zones-${ location }"]`);
 
       expect(extraZonesCheckbox.exists()).toBe(true);
       expect(extraZonesCheckbox.props().value).toBe(true);
@@ -201,9 +194,34 @@ describe('gke Config', () => {
 
     // verify that there are no checked zone checkboxes NOT in locations
     const checkedNotInLocations = allExtraZoneCheckboxes.filter((zoneCheckbox) => {
-      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().name);
+      return !!zoneCheckbox.props().value && !locations.includes(zoneCheckbox.props().label);
     });
 
     expect(Object.keys(checkedNotInLocations)).toHaveLength(0);
+  });
+
+  it('should add newly selected zone to the list of extra zones (gkeConfig.locations) and remove old extra zones', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        zone:              'us-east1-b',
+        region:            '',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        locations:         ['us-east1-a']
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    const zoneSelect = wrapper.getComponent('[data-testid="gke-zone-select"]');
+
+    zoneSelect.vm.$emit('selecting', { name: 'us-east4-b' });
+
+    await flushPromises();
+    expect(wrapper.emitted('update:locations')[0][0]).toStrictEqual(['us-east4-b']);
   });
 });

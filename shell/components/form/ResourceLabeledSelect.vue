@@ -27,7 +27,7 @@ export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
    */
   overrideRequest?: LabelSelectPaginateFn,
   /**
-   * Override the default settings used in the convience function to fetch a page of results
+   * Override the default settings used in the convenience function to fetch a page of results
    */
   requestSettings?: PaginateTypeOverridesFn,
 }
@@ -52,14 +52,14 @@ export enum RESOURCE_LABEL_SELECT_MODE {
 }
 
 /**
- * Convenance wrapper around the LabelSelect component to support pagination
+ * Convenience  wrapper around the LabelSelect component to support pagination
  *
  * Handles
  *
  * 1) Conditionally enabling the pagination feature given system settings
  * 2) Helper function to fetch the pagination result
  *
- * A number of ways can be provided to override the convienences (see props)
+ * A number of ways can be provided to override the conveniences (see props)
  */
 export default defineComponent({
   name: 'ResourceLabeledSelect',
@@ -190,6 +190,5 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
-    v-on="$listeners"
   />
 </template>

@@ -1,8 +1,8 @@
+import { toRaw } from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
 import { JSONPath } from 'jsonpath-plus';
-import Vue from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
@@ -24,10 +24,10 @@ export function set(obj, path, value) {
     const key = parts[i];
 
     if ( i === parts.length - 1 ) {
-      Vue.set(ptr, key, value);
+      ptr[key] = value;
     } else if ( !ptr[key] ) {
       // Make sure parent keys exist
-      Vue.set(ptr, key, {});
+      ptr[key] = {};
     }
 
     ptr = ptr[key];
@@ -95,14 +95,14 @@ export function remove(obj, path) {
   // Remove the very last part of the path
 
   if (parentAry.length === 1) {
-    Vue.set(obj, path, undefined);
+    obj[path] = undefined;
     delete obj[path];
   } else {
     const leafKey = parentAry.pop();
     const parent = get(obj, joinObjectPath(parentAry));
 
     if ( parent ) {
-      Vue.set(parent, leafKey, undefined);
+      parent[leafKey] = undefined;
       delete parent[leafKey];
     }
   }
@@ -433,5 +433,41 @@ export function dropKeys(obj, keys) {
 
   for ( const k of keys ) {
     delete obj[k];
+  }
+}
+
+/**
+ * Recursively convert a reactive object to a raw object
+ * @param {*} obj
+ * @param {*} cache
+ * @returns
+ */
+export function deepToRaw(obj, cache = new WeakSet()) {
+  if (obj === null || typeof obj !== 'object') {
+    // If obj is null or a primitive, return it as is
+    return obj;
+  }
+
+  // If the object has already been processed, return it to prevent circular references
+  if (cache.has(obj)) {
+    return obj;
+  }
+  cache.add(obj);
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepToRaw(item, cache));
+  } else {
+    const rawObj = toRaw(obj);
+    const result = {};
+
+    for (const key in rawObj) {
+      if (typeof rawObj[key] === 'function' || typeof rawObj[key] === 'symbol') {
+        result[key] = null;
+      } else {
+        result[key] = deepToRaw(rawObj[key], cache);
+      }
+    }
+
+    return result;
   }
 }

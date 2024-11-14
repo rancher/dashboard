@@ -12,12 +12,15 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
 import Tab from '@shell/components/Tabbed/Tab';
+import Tabbed from '@shell/components/Tabbed';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
 import { CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
 
 export default {
+  emits: ['register-before-hook', 'input'],
+
   components: {
     Alerting,
     Checkbox,
@@ -26,10 +29,9 @@ export default {
     LabeledInput,
     Loading,
     Prometheus,
-    Tab
+    Tab,
+    Tabbed
   },
-
-  hasTabs: true,
 
   props: {
     chart: {
@@ -109,7 +111,7 @@ export default {
     });
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.workloadTypes.forEach((type) => {
       this.$store.dispatch('cluster/forgetType', type);
     });
@@ -188,14 +190,14 @@ export default {
       merge(this.value, extendedDefaults);
 
       if (this.provider.startsWith('rke2')) {
-        this.$set(this.value.rke2IngressNginx, 'enabled', true);
-        this.$set(this.value.rke2Etcd, 'enabled', true);
-        this.$set(this.value.rkeEtcd, 'enabled', false);
+        this.value.rke2IngressNginx['enabled'] = true;
+        this.value.rke2Etcd['enabled'] = true;
+        this.value.rkeEtcd['enabled'] = false;
       } else if (this.provider.startsWith('rke')) {
-        this.$set(this.value, 'ingressNginx', this.value.ingressNginx || {});
-        this.$set(this.value.ingressNginx, 'enabled', true);
+        this.value['ingressNginx'] = this.value.ingressNginx || {};
+        this.value.ingressNginx['enabled'] = true;
       } else {
-        this.$set(this.value.rkeEtcd, 'enabled', false);
+        this.value.rkeEtcd['enabled'] = false;
       }
     }
 
@@ -224,6 +226,10 @@ export default {
 
     mergeValue(value, defaultValue) {
       return value === undefined || (typeof value === 'string' && !value.length) ? defaultValue : value;
+    },
+
+    onTabChanged() {
+      window.scrollTop = 0;
     }
   },
 };
@@ -238,114 +244,121 @@ export default {
     v-else
     class="config-monitoring-container"
   >
-    <Tab
-      name="general"
-      :label="t('monitoring.tabs.general')"
-      :weight="99"
+    <Tabbed
+      :side-tabs="true"
+      :hide-single-tab="true"
+      class="step__values__content with-name"
+      @changed="onTabChanged"
     >
-      <div>
-        <div class="row mb-20">
-          <div class="col span-6">
-            <ClusterSelector
-              :value="value"
-              :mode="mode"
-              @onClusterTypeChanged="clusterType = $event"
+      <Tab
+        name="general"
+        :label="t('monitoring.tabs.general')"
+        :weight="99"
+      >
+        <div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <ClusterSelector
+                :value="value"
+                :mode="mode"
+                @onClusterTypeChanged="clusterType = $event"
+              />
+            </div>
+          </div>
+          <div
+            v-if="clusterType.group === 'managed'"
+            class="row mb-20"
+          >
+            <Checkbox
+              v-model:value="value.prometheusOperator.hostNetwork"
+              label-key="monitoring.hostNetwork.label"
+              :tooltip="t('monitoring.hostNetwork.tip', {}, true)"
             />
           </div>
+          <div class="row">
+            <div class="col span-6">
+              <Checkbox
+                v-model:value="value.global.rbac.userRoles.create"
+                label-key="monitoring.createDefaultRoles.label"
+                :tooltip="t('monitoring.createDefaultRoles.tip', {}, true)"
+              />
+            </div>
+            <div class="col span-6">
+              <Checkbox
+                v-model:value="value.global.rbac.userRoles.aggregateToDefaultRoles"
+                label-key="monitoring.aggregateDefaultRoles.label"
+                :tooltip="{
+                  content: t('monitoring.aggregateDefaultRoles.tip', {}, true),
+                  autoHide: false,
+                }"
+                :disabled="disableAggregateRoles"
+              />
+            </div>
+          </div>
+          <div
+            v-if="provider === 'rke' && value.rkeEtcd"
+            class="row mt-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.rkeEtcd.clients.https.certDir"
+                :label="t('monitoring.etcdNodeDirectory.label')"
+                :tooltip="t('monitoring.etcdNodeDirectory.tooltip', {}, true)"
+                :hover-tooltip="true"
+                :mode="mode"
+              />
+            </div>
+          </div>
         </div>
-        <div
-          v-if="clusterType.group === 'managed'"
-          class="row mb-20"
-        >
-          <Checkbox
-            v-model="value.prometheusOperator.hostNetwork"
-            label-key="monitoring.hostNetwork.label"
-            :tooltip="t('monitoring.hostNetwork.tip', {}, true)"
+      </Tab>
+      <Tab
+        name="prometheus"
+        :label="t('monitoring.tabs.prometheus')"
+        :weight="98"
+      >
+        <div>
+          <Prometheus
+            :value="value"
+            v-bind="$attrs"
+            :access-modes="accessModes"
+            :mode="mode"
+            :storage-classes="storageClasses"
+            :prometheus-pods="prometheusResources"
+            :filteredWorkloads="filteredWorkloads"
+            @update:value="$emit('input', $event)"
           />
         </div>
-        <div class="row">
-          <div class="col span-6">
-            <Checkbox
-              v-model="value.global.rbac.userRoles.create"
-              label-key="monitoring.createDefaultRoles.label"
-              :tooltip="t('monitoring.createDefaultRoles.tip', {}, true)"
-            />
-          </div>
-          <div class="col span-6">
-            <Checkbox
-              v-model="value.global.rbac.userRoles.aggregateToDefaultRoles"
-              label-key="monitoring.aggregateDefaultRoles.label"
-              :tooltip="{
-                content: t('monitoring.aggregateDefaultRoles.tip', {}, true),
-                autoHide: false,
-              }"
-              :disabled="disableAggregateRoles"
-            />
-          </div>
+      </Tab>
+      <Tab
+        name="alerting"
+        :label="t('monitoring.tabs.alerting')"
+        :weight="97"
+      >
+        <div>
+          <Alerting
+            :value="value"
+            :mode="mode"
+            :monitoringSecrets="monitoringSecrets"
+            @update:value="$emit('input', $event)"
+          />
         </div>
-        <div
-          v-if="provider === 'rke' && value.rkeEtcd"
-          class="row mt-20"
-        >
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.rkeEtcd.clients.https.certDir"
-              :label="t('monitoring.etcdNodeDirectory.label')"
-              :tooltip="t('monitoring.etcdNodeDirectory.tooltip', {}, true)"
-              :hover-tooltip="true"
-              :mode="mode"
-            />
-          </div>
+      </Tab>
+      <Tab
+        name="grafana"
+        :label="t('monitoring.tabs.grafana')"
+        :weight="96"
+      >
+        <div>
+          <Grafana
+            :value="value"
+            :access-modes="accessModes"
+            :mode="mode"
+            :pvcs="pvcs"
+            :storage-classes="storageClasses"
+            @update:value="$emit('input', $event)"
+          />
         </div>
-      </div>
-    </Tab>
-    <Tab
-      name="prometheus"
-      :label="t('monitoring.tabs.prometheus')"
-      :weight="98"
-    >
-      <div>
-        <Prometheus
-          :value="value"
-          v-bind="$attrs"
-          :access-modes="accessModes"
-          :mode="mode"
-          :storage-classes="storageClasses"
-          :prometheus-pods="prometheusResources"
-          :filteredWorkloads="filteredWorkloads"
-          @input="$emit('input', $event)"
-        />
-      </div>
-    </Tab>
-    <Tab
-      name="alerting"
-      :label="t('monitoring.tabs.alerting')"
-      :weight="97"
-    >
-      <div>
-        <Alerting
-          :value="value"
-          :mode="mode"
-          :monitoringSecrets="monitoringSecrets"
-          @input="$emit('input', $event)"
-        />
-      </div>
-    </Tab>
-    <Tab
-      name="grafana"
-      :label="t('monitoring.tabs.grafana')"
-      :weight="96"
-    >
-      <div>
-        <Grafana
-          :value="value"
-          :access-modes="accessModes"
-          :mode="mode"
-          :pvcs="pvcs"
-          :storage-classes="storageClasses"
-          @input="$emit('input', $event)"
-        />
-      </div>
-    </Tab>
+      </Tab>
+    </Tabbed>
   </div>
 </template>

@@ -37,27 +37,29 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   async fetch() {
     await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
   },
 
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
+    this.value['spec'] = this.value.spec || {};
 
     if (this.mode === _EDIT || this.mode === _VIEW) {
       for (let i = 0; i < this.value.spec.email_configs.length; i++) {
         if (this.value.spec.email_configs[i].smarthost) {
           const hostPort = this.value.spec.email_configs[i].smarthost.split(':');
 
-          this.$set(this.value.spec.email_configs[i], 'host', hostPort[0] || '');
-          this.$set(this.value.spec.email_configs[i], 'port', hostPort[1] || '');
+          this.value.spec.email_configs[i]['host'] = hostPort[0] || '';
+          this.value.spec.email_configs[i]['port'] = hostPort[1] || '';
           delete this.value.spec.email_configs[i]['smarthost'];
         }
       }
     }
 
     RECEIVERS_TYPES.forEach((receiverType) => {
-      this.$set(this.value.spec, receiverType.key, this.value.spec[receiverType.key] || []);
+      this.value.spec[receiverType.key] = this.value.spec[receiverType.key] || [];
     });
 
     const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
@@ -108,7 +110,7 @@ export default {
         // We need this step so we don't just keep adding new keys when modifying the custom field
         Object.keys(this.value.spec).forEach((key) => {
           if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value.spec, key);
+            delete this.value.spec[key];
           }
         });
 
@@ -206,7 +208,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.name"
+          v-model:value="value.spec.name"
           :disabled="!isCreate"
           :label="t('generic.name')"
           :mode="mode"
@@ -259,7 +261,7 @@ export default {
         <YamlEditor
           v-if="receiverType.name === 'custom'"
           ref="customEditor"
-          v-model="suffixYaml"
+          v-model:value="suffixYaml"
           :scrolling="false"
           :editor-mode="editorMode"
         />
@@ -271,7 +273,7 @@ export default {
             :mode="mode"
           />
           <ArrayListGrouped
-            v-model="value.spec[receiverType.key]"
+            v-model:value="value.spec[receiverType.key]"
             class="namespace-list"
             :mode="mode"
             :default-add-value="{}"

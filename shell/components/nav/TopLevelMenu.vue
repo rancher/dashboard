@@ -4,19 +4,24 @@ import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
+import { MENU_MAX_CLUSTERS, PINNED_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
-import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
+import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
+import devConsole from 'utils/dev-console';
+import { debounce } from 'lodash';
+
+// TODO: RC wire in socket updates to pagination wrapper
+// TODO: RC test search properly
+// TODO: RC loading indicators?
 
 export default {
   components: {
@@ -30,6 +35,19 @@ export default {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
+    const canPagination = this.$store.getters[`management/paginationEnabled`]({
+      id:      MANAGEMENT.CLUSTER,
+      context: 'side-bar',
+    }) && this.$store.getters[`management/paginationEnabled`]({
+      id:      CAPI.RANCHER_CLUSTER,
+      context: 'side-bar',
+    });
+    const helper = canPagination ? new TopLevelMenuHelperPagination({ $store: this.$store }) : new TopLevelMenuHelperLegacy({ $store: this.$store });
+    const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
+    const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
+
+    devConsole.warn(provClusters, mgmtClusters);
+
     return {
       shown:             false,
       displayVersion,
@@ -38,27 +56,25 @@ export default {
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
-      showPinClusters:   false,
-      searchActive:      false,
       routeCombo:        false,
-    };
-  },
 
-  fetch() {
-    if (this.hasProvCluster) {
-      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    }
+      canPagination,
+      helper,
+      debouncedHelperUpdate: debounce((...args) => this.helper.update(...args), 200),
+      provClusters,
+      mgmtClusters,
+    };
   },
 
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
-    value: {
-      get() {
-        return this.$store.getters['productId'];
-      },
+
+    pinnedIds() {
+      return this.$store.getters['prefs/get'](PINNED_CLUSTERS);
     },
+
     sideMenuStyle() {
       const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
 
@@ -68,112 +84,58 @@ export default {
       };
     },
 
-    legacyEnabled() {
-      return this.features(LEGACY);
-    },
-
     showClusterSearch() {
-      return this.clusters.length > this.maxClustersToShow;
+      return this.allClustersCount > this.maxClustersToShow;
     },
 
-    clusters() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
-      let pClusters = null;
+    allClustersCount() {
+      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
+      const count = counts[MANAGEMENT.CLUSTER] || {};
 
-      if (this.hasProvCluster) {
-        pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-        const available = pClusters.reduce((p, c) => {
-          p[c.mgmt] = true;
-
-          return p;
-        }, {});
-
-        // Filter to only show mgmt clusters that exist for the available provisioning clusters
-        // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
-        // provisioning cluster has been deleted
-        kubeClusters = kubeClusters.filter((c) => !!available[c]);
-      }
-
-      return kubeClusters?.map((x) => {
-        const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
-
-        return {
-          id:              x.id,
-          label:           x.nameDisplay,
-          ready:           x.isReady && !pCluster?.hasError,
-          osLogo:          x.providerOsLogo,
-          providerNavLogo: x.providerMenuLogo,
-          badge:           x.badge,
-          isLocal:         x.isLocal,
-          isHarvester:     x.isHarvester,
-          pinned:          x.pinned,
-          description:     pCluster?.description || x.description,
-          pin:             () => x.pin(),
-          unpin:           () => x.unpin(),
-          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: x.id } }
-        };
-      }) || [];
+      return count?.summary.count;
     },
 
-    clustersFiltered() {
-      const search = (this.clusterFilter || '').toLowerCase();
-      const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
-      const sorted = sortBy(out, ['ready:desc', 'label']);
-
-      // put local cluster on top of list always
-      // https://github.com/rancher/dashboard/issues/10975
-      if (sorted.findIndex((c) => c.id === 'local') > 0) {
-        const localCluster = sorted.find((c) => c.id === 'local');
-        const localIndex = sorted.findIndex((c) => c.id === 'local');
-
-        sorted.splice(localIndex, 1);
-        sorted.unshift(localCluster);
-      }
-
-      if (search) {
-        this.showPinClusters = false;
-        this.searchActive = !sorted.length > 0;
-
-        return sorted;
-      }
-      this.showPinClusters = true;
-      this.searchActive = false;
-
-      if (sorted.length >= this.maxClustersToShow) {
-        const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
-
-        return sortedPinOut;
-      } else {
-        return sorted.filter((item) => !item.pinned);
-      }
+    // New
+    search() {
+      return (this.clusterFilter || '').toLowerCase();
     },
 
+    // New
+    showPinClusters() {
+      return !this.search;
+    },
+
+    // New
+    searchActive() {
+      return !!this.search;
+    },
+
+    /**
+     * Only Clusters that are pinned
+     *
+     * (see description of helper.clustersPinned for more details)
+     */
     pinFiltered() {
-      const out = this.clusters.filter((item) => item.pinned);
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      return this.hasProvCluster ? this.helper.clustersPinned : [];
+    },
 
-      // put local cluster on top of list always
-      // https://github.com/rancher/dashboard/issues/10975
-      if (sorted.findIndex((c) => c.id === 'local') > 0) {
-        const localCluster = sorted.find((c) => c.id === 'local');
-        const localIndex = sorted.findIndex((c) => c.id === 'local');
-
-        sorted.splice(localIndex, 1);
-        sorted.unshift(localCluster);
-      }
-
-      return sorted;
+    /**
+     * Used to shown unpinned clusters OR results of text search
+     *
+     * (see description of helper.clustersOthers for more details)
+     */
+    clustersFiltered() {
+      return this.hasProvCluster ? this.helper.clustersOthers : [];
     },
 
     pinnedClustersHeight() {
-      const pinCount = this.clusters.filter((item) => item.pinned).length;
+      const pinCount = this.pinFiltered.length;
       const height = pinCount > 2 ? (pinCount * 43) : 90;
 
       return `min-height: ${ height }px`;
     },
     clusterFilterCount() {
-      return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
+      return this.clusterFilter ? this.clustersFiltered.length : this.allClustersCount;
     },
 
     multiClusterApps() {
@@ -189,12 +151,6 @@ export default {
           return filterApps;
         }
       });
-    },
-
-    legacyApps() {
-      const options = this.options;
-
-      return options.filter((opt) => opt.inStore === 'management' && opt.category === 'legacy');
     },
 
     configurationApps() {
@@ -283,7 +239,6 @@ export default {
       const appBar = {
         hciApps:           this.hciApps,
         multiClusterApps:  this.multiClusterApps,
-        legacyApps:        this.legacyApps,
         configurationApps: this.configurationApps,
         pinFiltered:       this.pinFiltered,
         clustersFiltered:  this.clustersFiltered,
@@ -311,14 +266,42 @@ export default {
   watch: {
     $route() {
       this.shown = false;
-    }
+    },
+
+    pinnedIds: {
+      immediate: true,
+      handler(ids) {
+        this.updateClusters(ids);
+      }
+    },
+
+    search() {
+      this.updateClusters(this.pinnedIds);
+    },
+
+    provClusters: {
+      handler() {
+        // Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds);
+      },
+      deep: true
+    },
+
+    mgmtClusters: {
+      handler() {
+        // Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds);
+      },
+      deep: true
+    },
+
   },
 
   mounted() {
     document.addEventListener('keyup', this.handler);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
   },
 
@@ -390,7 +373,7 @@ export default {
 
       let contentText = '';
       let content;
-      let classes = '';
+      let popperClass = '';
 
       // this is the normal tooltip scenario where we are just passing a string
       if (typeof item === 'string') {
@@ -415,7 +398,7 @@ export default {
       } else {
         contentText = item.label;
         // this adds a class to the tooltip container so that we can control the max width
-        classes = 'menu-description-tooltip';
+        popperClass = 'menu-description-tooltip';
 
         if (item.description) {
           contentText += `<br><br>${ item.description }`;
@@ -427,7 +410,7 @@ export default {
           content = this.shown ? contentText : null;
 
           // this adds a class to adjust tooltip position so it doesn't overlap the cluster pinning action
-          classes += ' description-tooltip-pos-adjustment';
+          popperClass += ' description-tooltip-pos-adjustment';
         }
       }
 
@@ -435,12 +418,21 @@ export default {
         content,
         placement:     'right',
         popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
-        classes
+        popperClass
       };
     },
+
+    updateClusters(pinnedIds) {
+      this.debouncedHelperUpdate({
+        pinnedIds,
+        searchTerm:  this.search,
+        unPinnedMax: this.maxClustersToShow
+      });
+    }
   }
 };
 </script>
+
 <template>
   <div>
     <!-- Overlay -->
@@ -494,7 +486,7 @@ export default {
                 :to="{ name: 'home' }"
               >
                 <svg
-                  v-tooltip="getTooltipConfig(t('nav.home'))"
+                  v-clean-tooltip="getTooltipConfig(t('nav.home'))"
                   xmlns="http://www.w3.org/2000/svg"
                   height="24"
                   viewBox="0 0 24 24"
@@ -561,8 +553,8 @@ export default {
               </a>
             </div>
             <div
-              v-for="a in appBar.hciApps"
-              :key="a.label"
+              v-for="(a, i) in appBar.hciApps"
+              :key="i"
               @click="hide()"
             >
               <router-link
@@ -580,7 +572,8 @@ export default {
           </template>
 
           <!-- Cluster menu -->
-          <template v-if="clusters && !!clusters.length">
+          <!-- <template v-if="clusters && !!clusters.length"> -->
+          <template v-if="!!allClustersCount">
             <div
               ref="clusterList"
               class="clusters"
@@ -593,7 +586,7 @@ export default {
               >
                 <div
                   v-for="(c, index) in appBar.pinFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`pinned-ready-cluster-${index}`"
                   @click="hide()"
                 >
@@ -608,13 +601,13 @@ export default {
                     @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c, true)"
+                      v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
-                      v-tooltip="getTooltipConfig(c)"
+                      v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
@@ -635,12 +628,12 @@ export default {
                     :data-testid="`pinned-menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c, true)"
+                      v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
                     <div
-                      v-tooltip="getTooltipConfig(c)"
+                      v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
@@ -668,7 +661,7 @@ export default {
               <div class="clustersList">
                 <div
                   v-for="(c, index) in appBar.clustersFiltered"
-                  :key="c.id"
+                  :key="index"
                   :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
@@ -683,15 +676,16 @@ export default {
                     @shortkey="handleKeyComboClick"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c, true)"
+                      v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       :route-combo="routeCombo"
                       class="rancher-provider-icon"
                     />
                     <div
-                      v-tooltip="getTooltipConfig(c)"
+                      v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
+                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -711,12 +705,12 @@ export default {
                     :data-testid="`menu-cluster-disabled-${ c.id }`"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c, true)"
+                      v-clean-tooltip="getTooltipConfig(c, true)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
                     <div
-                      v-tooltip="getTooltipConfig(c)"
+                      v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
                       <p>{{ c.label }}</p>
@@ -747,7 +741,7 @@ export default {
 
             <!-- See all clusters -->
             <router-link
-              v-if="clusters.length > maxClustersToShow"
+              v-if="allClustersCount > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
                 cluster: emptyCluster,
@@ -773,8 +767,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.multiClusterApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.multiClusterApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -783,39 +777,11 @@ export default {
                   :to="a.to"
                 >
                   <IconOrSvg
-                    v-tooltip="getTooltipConfig(a.label)"
+                    v-clean-tooltip="getTooltipConfig(a.label)"
                     :icon="a.icon"
                     :src="a.svg"
                   />
                   <span class="option-link">{{ a.label }}</span>
-                </router-link>
-              </div>
-            </template>
-            <template v-if="legacyEnabled">
-              <div
-                class="category-title"
-              >
-                <hr>
-                <span>
-                  {{ t('nav.categories.legacy') }}
-                </span>
-              </div>
-              <div
-                v-for="a in appBar.legacyApps"
-                :key="a.label"
-                @click="hide()"
-              >
-                <router-link
-                  class="option"
-                  :class="{'active-menu-link': a.isMenuActive }"
-                  :to="a.to"
-                >
-                  <IconOrSvg
-                    v-tooltip="getTooltipConfig(a.label)"
-                    :icon="a.icon"
-                    :src="a.svg"
-                  />
-                  <div>{{ a.label }}</div>
                 </router-link>
               </div>
             </template>
@@ -831,8 +797,8 @@ export default {
                 </span>
               </div>
               <div
-                v-for="a in appBar.configurationApps"
-                :key="a.label"
+                v-for="(a, i) in appBar.configurationApps"
+                :key="i"
                 @click="hide()"
               >
                 <router-link
@@ -841,7 +807,7 @@ export default {
                   :to="a.to"
                 >
                   <IconOrSvg
-                    v-tooltip="getTooltipConfig(a.label)"
+                    v-clean-tooltip="getTooltipConfig(a.label)"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -903,15 +869,15 @@ export default {
   }
 
   .localeSelector {
-    .popover-inner {
+    .v-popper__inner {
       padding: 10px 0;
     }
 
-    .popover-arrow {
+    .v-popper__arrow-container {
       display: none;
     }
 
-    .popover:focus {
+    .v-popper:focus {
       outline: 0;
     }
   }
@@ -1450,15 +1416,15 @@ export default {
   }
 
   .localeSelector {
-    ::v-deep .popover-inner {
+    :deep() .v-popper__inner {
       padding: 50px 0;
     }
 
-    ::v-deep .popover-arrow {
+    :deep() .v-popper__arrow-container {
       display: none;
     }
 
-    ::v-deep .popover:focus {
+    :deep() .v-popper:focus {
       outline: 0;
     }
 

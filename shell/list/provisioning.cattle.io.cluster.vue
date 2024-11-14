@@ -10,10 +10,11 @@ import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/feature
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
+import CloudCredExpired from '@shell/components/formatter/CloudCredExpired';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead, BadgeState
+    Banner, ResourceTable, Masthead, BadgeState, CloudCredExpired
   },
   mixins: [ResourceFetch],
   props:  {
@@ -40,6 +41,8 @@ export default {
       normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
       mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
+
+    this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
@@ -141,17 +144,36 @@ export default {
       // This will be used when there's clusters from extension based provisioners
       // We should re-visit this for scaling reasons
       return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
+    },
+
+    tokenExpiredData() {
+      const counts = this.rows.reduce((res, provCluster) => {
+        const expireData = provCluster.cloudCredential?.expireData;
+
+        if (expireData?.expiring) {
+          res.expiring++;
+        }
+        if (expireData?.expired) {
+          res.expired++;
+        }
+
+        return res;
+      }, {
+        expiring: 0,
+        expired:  0
+      });
+
+      return {
+        expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
+        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
+      };
     }
   },
 
   $loadingResources() {
     // results are filtered so we wouldn't get the correct count on indicator...
     return { loadIndeterminate: true };
-  },
-
-  mounted() {
-    window.c = this;
-  },
+  }
 };
 </script>
 
@@ -174,7 +196,7 @@ export default {
     >
       <template
         v-if="canImport"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="importLocation"
@@ -186,6 +208,17 @@ export default {
       </template>
     </Masthead>
 
+    <Banner
+      v-if="tokenExpiredData.expiring"
+      color="warning"
+      :label="tokenExpiredData.expiring"
+    />
+    <Banner
+      v-if="tokenExpiredData.expired"
+      color="error"
+      :label="tokenExpiredData.expired"
+    />
+
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
@@ -194,6 +227,7 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :sub-rows="true"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
@@ -207,19 +241,32 @@ export default {
       </template>
       <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
         <tr
-          v-if="row.stateDescription"
           :key="row[keyField] + '-description'"
           :data-testid="componentTestid + '-' + i + '-row-description'"
           class="state-description sub-row"
           @mouseenter="onRowMouseEnter"
           @mouseleave="onRowMouseLeave"
         >
-          <td>&nbsp;</td>
+          <td v-if="row.cloudCredentialWarning || row.stateDescription">
+&nbsp;
+          </td>
           <td
+            v-if="row.cloudCredentialWarning || row.stateDescription"
             :colspan="fullColspan - 1"
-            :class="{ 'text-error' : row.stateObj.error }"
           >
-            {{ row.stateDescription }}
+            <CloudCredExpired
+              v-if="row.cloudCredentialWarning"
+              :value="row.cloudCredential.expires"
+              :row="row.cloudCredential"
+              :verbose="true"
+              :class="{'mb-10': row.stateDescription}"
+            />
+            <div
+              v-if="row.stateDescription"
+              :class="{ 'text-error' : row.stateObj.error }"
+            >
+              {{ row.stateDescription }}
+            </div>
           </td>
         </tr>
       </template>

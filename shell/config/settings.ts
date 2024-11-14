@@ -2,10 +2,7 @@
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
 import {
-  CAPI, EVENT, SCHEMA, NAMESPACE, CATALOG,
-  HPA,
-  INGRESS,
-  SERVICE
+  CAPI, MANAGEMENT, EVENT, CATALOG, HPA, INGRESS, SERVICE
 } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
@@ -114,6 +111,7 @@ export const SETTING = {
   USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
   DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
+  K3S_UPGRADER_UNINSTALL_CONCURRENCY:   'k3s-based-upgrader-uninstall-concurrency'
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -171,6 +169,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
   },
+  [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
+  }
 };
 
 /**
@@ -264,7 +266,10 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: [{ resource: CAPI.RANCHER_CLUSTER, context: ['home'] }],
+            enabled: [
+              { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+              { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+            ],
             generic: false,
           }
         }

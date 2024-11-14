@@ -8,7 +8,6 @@ import {
   _UNFLAG,
   _EDIT
 } from '@shell/config/query-params';
-import Vue from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { STORAGE_CLASS } from '@shell/config/types';
@@ -18,12 +17,12 @@ export default class PVC extends SteveModel {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
     const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
 
-    Vue.set(this, 'spec', {
+    this['spec'] = {
       accessModes,
       storageClassName: '',
       volumeName:       '',
       resources:        { requests: { storage } }
-    });
+    };
   }
 
   get bound() {

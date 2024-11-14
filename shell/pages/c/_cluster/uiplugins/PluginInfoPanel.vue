@@ -65,10 +65,9 @@ export default {
     async loadPluginVersionInfo(version) {
       const versionName = version || this.info.displayVersion;
 
-      const isVersionNotCompatibleWithUi = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithUi);
-      const isVersionNotCompatibleWithKubeVersion = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithKubeVersion);
+      const isVersionNotCompatible = this.info.versions?.find((v) => v.version === versionName && !v.isVersionCompatible);
 
-      if (!this.info.chart || isVersionNotCompatibleWithUi || isVersionNotCompatibleWithKubeVersion) {
+      if (!this.info.chart || isVersionNotCompatible) {
         return;
       }
 
@@ -107,18 +106,15 @@ export default {
     },
 
     handleVersionBtnTooltip(version) {
-      if (version.requiredUiVersion) {
-        return this.t('plugins.info.requiresRancherVersion', { version: version.requiredUiVersion });
-      }
-      if (version.requiredKubeVersion) {
-        return this.t('plugins.info.requiresKubeVersion', { version: version.requiredKubeVersion });
+      if (!version.isVersionCompatible && Object.keys(version.versionIncompatibilityData).length) {
+        return this.t(version.versionIncompatibilityData?.tooltipKey, { required: version.versionIncompatibilityData?.required, mainHost: version.versionIncompatibilityData?.mainHost });
       }
 
       return '';
     },
 
     handleVersionBtnClass(version) {
-      return { 'version-active': version.version === this.infoVersion, disabled: !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion };
+      return { 'version-active': version.version === this.infoVersion, disabled: !version.isVersionCompatible };
     }
   }
 };
@@ -186,12 +182,6 @@ export default {
         </div>
         <div>
           <Banner
-            v-if="info.error"
-            color="error"
-            :label="info.error"
-            class="mt-10"
-          />
-          <Banner
             v-if="info.builtin"
             color="warning"
             :label="t('plugins.descriptions.built-in')"
@@ -219,7 +209,7 @@ export default {
         <div class="plugin-versions mb-10">
           <div
             v-for="v in info.versions"
-            :key="v.version"
+            :key="`${v.name}-${v.version}`"
           >
             <a
               v-clean-tooltip="handleVersionBtnTooltip(v)"
@@ -424,7 +414,7 @@ export default {
 
         padding-bottom: 10px;
 
-        ::v-deep .chart-readmes {
+        :deep() .chart-readmes {
           flex: 1;
           overflow: auto;
         }

@@ -32,8 +32,6 @@ const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
 describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
-  const podName = `e2e-test-${ +new Date() }`;
-
   before(() => {
     cy.login();
   });
@@ -56,9 +54,15 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('has the correct title', () => {
-    ClusterDashboardPagePo.goTo('local');
+    ClusterDashboardPagePo.navTo();
 
     cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+  });
+
+  it('shows fleet controller status', () => {
+    ClusterDashboardPagePo.navTo();
+    clusterDashboard.waitForPage();
+    clusterDashboard.fleetStatus().should('exist');
   });
 
   it('can import a YAML successfully, using the header action "Import YAML"', () => {
@@ -133,6 +137,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     // update color
     clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
     clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
@@ -150,11 +155,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.customBadge().should('contain', settings.description.new);
     const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusters().first().find('span').should('contain', settings.iconText);
+    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
 
     // Reset
     clusterDashboard.customizeAppearanceButton().click();
     clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
     // Apply Changes
@@ -164,11 +170,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     header.clusterIcon().children().should('have.class', 'cluster-local-logo');
     header.clusterName().should('contain', 'local');
     header.customBadge().should('not.exist');
-    burgerMenu.clusters().first().find('svg').should('have.class', 'cluster-local-logo');
+    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
   });
 
   it('can view deployments', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
+    clusterDashboard.waitForPage();
     cy.getRancherResource('v1', 'apps.deployments', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
 
@@ -183,7 +190,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view nodes', () => {
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage();
 
     cy.getRancherResource('v1', 'nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
@@ -206,6 +213,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   let removePod = false;
+  let podName = `e2e-test`;
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
@@ -227,11 +235,14 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         // create pod
         // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then(() => removePod = true);
+        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
+          podName = resp.body.metadata.name;
+          removePod = true;
+        });
       });
     });
 
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
@@ -282,9 +293,85 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       });
   });
 
+  describe('Cluster dashboard with limited permissions', () => {
+    let stdProjectName;
+    let stdNsName;
+    let stdUsername;
+
+    beforeEach(() => {
+      stdProjectName = `standard-user-project${ +new Date() }`;
+      stdNsName = `standard-user-ns${ +new Date() }`;
+      stdUsername = `standard-user`;
+      const password = Cypress.env('password');
+
+      // log in as admin
+      cy.login();
+      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+        const adminUserId = resp.body.data[0].id.trim();
+
+        // create project
+        return cy.createProject(stdProjectName, 'local', adminUserId).then((resp: Cypress.Response<any>) => {
+          cy.wrap(resp.body.id.trim()).as('standardUserProject');
+
+          // create ns in project
+          return cy.get<string>('@standardUserProject').then((projId) => {
+            cy.createNamespaceInProject(stdNsName, projId);
+
+            // create std user and assign to project
+            cy.createUser({
+              username:    stdUsername,
+              globalRole:  { role: 'user' },
+              projectRole: {
+                clusterId: 'local', projectName: stdProjectName, role: 'project-owner'
+              },
+              password
+            })
+              .as('createUserRequest')
+              .then((resp) => {
+                stdUsername = resp.body.username;
+
+                // log in as new standard user
+                cy.login(stdUsername, password, false);
+
+                // go to cluster dashboard
+                ClusterDashboardPagePo.navTo();
+
+                return clusterDashboard.waitForPage();
+              });
+          });
+        });
+      });
+    });
+
+    // note - this would be 'fleet agent' on downstream clusters
+    it('does not show fleet controller status if the user does not have permission to view the fleet controller deployment', () => {
+      clusterDashboard.fleetStatus().should('not.exist');
+
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
+    });
+
+    // log back in as admin and delete the project, ns, and user from previous test
+    afterEach(() => {
+      cy.login();
+      cy.deleteRancherResource('v1', 'namespaces', stdNsName);
+
+      cy.get<string>('@standardUserProject').then((projectId) => {
+        cy.deleteRancherResource('v3', 'projects', projectId);
+      });
+
+      cy.get('@createUserRequest').then((req) => {
+        const userId = req.body.id;
+
+        cy.deleteRancherResource('v3', 'users', userId);
+      });
+    });
+  });
+
   after(function() {
     if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `pod-${ podName }`);
+      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }

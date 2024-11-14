@@ -18,6 +18,8 @@ export default {
 
   mixins: [createEditView],
 
+  inheritAttrs: false,
+
   props: {
     value: {
       type:    Object,
@@ -34,7 +36,7 @@ export default {
 
   data() {
     if (!this.value.spec) {
-      this.$set(this.value, 'spec', {});
+      this.value['spec'] = {};
     }
 
     return {
@@ -57,8 +59,8 @@ export default {
       set(neu) {
         const { name, namespace } = neu.metadata;
 
-        this.$set(this.value.spec, 'customBenchmarkConfigMapName', name);
-        this.$set(this.value.spec, 'customBenchmarkConfigMapNamespace', namespace);
+        this.value.spec['customBenchmarkConfigMapName'] = name;
+        this.value.spec['customBenchmarkConfigMapNamespace'] = namespace;
       }
     },
 
@@ -111,7 +113,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.spec.clusterProvider"
+          v-model:value="value.spec.clusterProvider"
           :clearable="true"
           :options="providers"
           :mode="mode"
@@ -120,7 +122,7 @@ export default {
       </div>
       <div class="col span-6">
         <ResourceLabeledSelect
-          v-model="customConfigMap"
+          v-model:value="customConfigMap"
           :clearable="true"
           option-key="id"
           option-label="id"
@@ -134,14 +136,14 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.minKubernetesVersion"
+          v-model:value="value.spec.minKubernetesVersion"
           :mode="mode"
           :label="t('cis.minKubernetesVersion')"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.maxKubernetesVersion"
+          v-model:value="value.spec.maxKubernetesVersion"
           :mode="mode"
           :label="t('cis.maxKubernetesVersion')"
         />

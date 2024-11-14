@@ -23,6 +23,8 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 export default defineComponent({
   name: 'GKEConfig',
 
+  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:labels'],
+
   components: {
     RadioGroup,
     LabeledSelect,
@@ -202,7 +204,7 @@ export default defineComponent({
           this.$emit('update:region', this.defaultRegion);
         } else {
           this.$emit('update:region', null);
-          this.$emit('update:zone', this.defaultZone);
+          this.setZone({ name: this.defaultZone });
         }
       }
     },
@@ -387,6 +389,8 @@ export default defineComponent({
     setZone(neu: {name: string}) {
       this.selectedZone = neu;
       this.$emit('update:zone', neu.name);
+
+      this.$emit('update:locations', [neu.name]);
     },
 
     setExtraZone(add: boolean, zone: string) {
@@ -441,6 +445,7 @@ export default defineComponent({
           :value="zone"
           :disabled="!isNewOrUnprovisioned"
           :loading="loadingZones"
+          data-testid="gke-zone-select"
           @selecting="setZone"
         />
       </div>
@@ -455,19 +460,19 @@ export default defineComponent({
           class="text-muted"
         >&mdash;</span>
         <Checkbox
-          v-for="zoneOpt in extraZoneOptions"
-          :key="zoneOpt.name"
+          v-for="(zoneOpt, i) in extraZoneOptions"
+          :key="i"
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
-          :disabled="!isNewOrUnprovisioned"
+          :disabled="isView"
           class="extra-zone-checkbox"
-          @input="e=>setExtraZone(e, zoneOpt.name)"
+          @update:value="e=>setExtraZone(e, zoneOpt.name)"
         />
       </div>
       <div class="col">
         <RadioGroup
-          v-model="useRegion"
+          v-model:value="useRegion"
           :mode="mode"
           :options="zoneRadioOptions"
           name="regionmode"
@@ -484,7 +489,7 @@ export default defineComponent({
           :as-map="true"
           :title="t('gke.clusterLabels.label')"
           :add-label="t('gke.clusterLabels.add')"
-          @input="$emit('update:labels', $event)"
+          @update:value="$emit('update:labels', $event)"
         >
           <template #title>
             <!-- keyvalue title by default is an h3 and looks bad with the accordion header also being an h3 -->

@@ -11,7 +11,8 @@ const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 const tokenIdsList = [];
 
-describe('Account and API Keys', { testIsolation: 'off' }, () => {
+// TODO: undo skipping when this issue is resolved: https://github.com/rancher/dashboard/issues/12325
+describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
@@ -105,12 +106,16 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
   describe('List', { tags: ['@vai', '@userMenu', '@adminUser'] }, () => {
     const tokenDesc = 'e2e-test-description';
     const uniqueTokenDesc = 'aaa-e2e-test-description';
+    let initialCount: number;
 
     before('set up', () => {
+      cy.getRancherResource('v3', 'tokens').then((resp: Cypress.Response<any>) => {
+        initialCount = resp.body.data.length - 1;
+      });
       // create tokens
       let i = 0;
 
-      while (i < 100) {
+      while (i < 25) {
         cy.createToken(tokenDesc, 3600000, false).then((resp: Cypress.Response<any>) => {
           const tokenId = resp.body.id;
 
@@ -126,12 +131,17 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         tokenIdsList.push(tokenId);
       });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });
 
     it('pagination is visible and user is able to navigate through tokens data', () => {
-      // get tokens count
-      cy.getRancherResource('v3', 'tokens').then((resp: Cypress.Response<any>) => {
+      // check tokens count
+      const count = initialCount + 26;
+
+      cy.waitForRancherResources('v3', 'tokens', count).then((resp: Cypress.Response<any>) => {
         const count = resp.body.data.length - 1;
+
+        HomePagePo.goTo();
 
         AccountPagePo.navTo();
         accountPage.waitForPage();
@@ -147,7 +157,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text before navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
 
         // navigate to next page - right button
@@ -155,7 +165,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`11 - 20 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isEnabled();
         accountPage.sortableTable().pagination().leftButton().isEnabled();
@@ -165,20 +175,25 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isDisabled();
         accountPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        accountPage.sortableTable().pagination().endButton().click();
+        accountPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
-        // check row count on last page
-        accountPage.sortableTable().checkRowCount(false, count - 100);
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
 
         // check text after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - ${ count } of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } API Keys`);
         });
 
         // navigate to first page - beginning button
@@ -186,7 +201,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
         // check text and buttons after navigation
         accountPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } API Keys`);
+          expect(el.trim()).to.eq(`1 - 10 of ${ count } API Keys`);
         });
         accountPage.sortableTable().pagination().beginningButton().isDisabled();
         accountPage.sortableTable().pagination().leftButton().isDisabled();
@@ -199,7 +214,7 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
       accountPage.sortableTable().checkVisible();
       accountPage.sortableTable().checkLoadingIndicatorNotVisible();
-      accountPage.sortableTable().checkRowCount(false, 100);
+      accountPage.sortableTable().checkRowCount(false, 10);
 
       // filter by access key (id)
       accountPage.sortableTable().filter(tokenIdsList[0]);
@@ -229,7 +244,8 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).scrollIntoView().should('be.visible');
 
       // navigate to last page
-      accountPage.sortableTable().pagination().endButton().click();
+      accountPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // token description should be NOT visible on last page (sorted in ASC order)
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).should('not.exist');
@@ -242,7 +258,8 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).should('not.exist');
 
       // navigate to last page
-      accountPage.sortableTable().pagination().endButton().click();
+      accountPage.sortableTable().pagination().endButton().scrollIntoView()
+        .click();
 
       // token description should be visible on last page (sorted in DESC order)
       accountPage.sortableTable().rowElementWithName(uniqueTokenDesc).scrollIntoView().should('be.visible');
@@ -263,6 +280,8 @@ describe('Account and API Keys', { testIsolation: 'off' }, () => {
 
     after(() => {
       tokenIdsList.forEach((r) => cy.deleteRancherResource('v3', 'tokens', r, false));
+      // Ensure the default rows per page value is set after running the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
   });
 });

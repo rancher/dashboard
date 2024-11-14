@@ -9,7 +9,10 @@ const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
-  name:       'ActionMenu',
+  name: 'ActionMenu',
+
+  emits: ['close'],
+
   components: { IconOrSvg },
   props:      {
     customActions: {
@@ -257,8 +260,8 @@ export default {
     >
       <li
         v-for="(opt, i) in menuOptions"
-        :key="opt.action"
-        :disabled="opt.disabled"
+        :key="i"
+        :disabled="opt.disabled ? true : null"
         :class="{divider: opt.divider}"
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"

@@ -1,4 +1,4 @@
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { ToggleSwitch } from './index';
 
 describe('toggleSwitch.vue', () => {
@@ -33,18 +33,18 @@ describe('toggleSwitch.vue', () => {
   });
 
   it('emits an input event with a true value', async() => {
-    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(ToggleSwitch);
+    const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(ToggleSwitch);
 
     wrapper.vm.toggle(true);
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(true);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(true);
   });
 
   it('emits an input event with a false value', async() => {
-    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
+    const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       { propsData: { value: true } }
     );
@@ -53,14 +53,14 @@ describe('toggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(false);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(false);
   });
 
   it('emits an input event with a custom onValue', async() => {
     const onValue = 'THE TRUTH';
 
-    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
+    const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       { propsData: { onValue } });
 
@@ -68,14 +68,14 @@ describe('toggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(onValue);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(onValue);
   });
 
   it('emits an input event with a custom offValue', async() => {
     const offValue = 'NOT THE TRUTH';
 
-    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
+    const wrapper: VueWrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       {
         propsData: {
@@ -88,7 +88,7 @@ describe('toggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBe(offValue);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(offValue);
   });
 });

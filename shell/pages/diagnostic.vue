@@ -1,7 +1,6 @@
 <script>
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
-import PromptModal from '@shell/components/PromptModal';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { sortBy } from '@shell/utils/sort';
@@ -9,7 +8,7 @@ import { sortBy } from '@shell/utils/sort';
 export default {
   name: 'Diagnostic',
 
-  components: { AsyncButton, PromptModal },
+  components: { AsyncButton },
 
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
@@ -164,7 +163,7 @@ export default {
           const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
-            this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
+            cluster.counts[countIndex]['durationMs'] = res.durationMs;
           }
         }
       });
@@ -216,6 +215,7 @@ export default {
         'linode',
         'targetRoute', // contains circular references, isn't useful (added later to store)
         '$router', // also contains a circular reference to $store, not useful for diagnostics
+        '$route', // also contains a circular reference to $store, not useful for diagnostics
       ];
 
       const clearListsKeys = [
@@ -341,8 +341,8 @@ export default {
       </h2>
       <div class="resources-count-container">
         <table
-          v-for="cluster in finalCounts"
-          :key="cluster.id"
+          v-for="(cluster, i) in finalCounts"
+          :key="i"
           class="full-width"
         >
           <thead @click="toggleTable(cluster.id)">
@@ -376,8 +376,8 @@ export default {
             </tr>
 
             <tr
-              v-for="item in cluster.counts"
-              :key="item.resource"
+              v-for="(item, j) in cluster.counts"
+              :key="j"
             >
               <template v-if="item.count > 0">
                 <td scope="row">
@@ -391,8 +391,6 @@ export default {
         </table>
       </div>
     </div>
-
-    <PromptModal />
   </div>
 </template>
 

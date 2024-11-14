@@ -80,7 +80,7 @@ export default {
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.dismissRouteHandler();
   }
 };

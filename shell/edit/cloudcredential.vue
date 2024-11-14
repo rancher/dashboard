@@ -20,6 +20,8 @@ import { rke1Supports } from '@shell/store/plugins';
 export default {
   name: 'CruCloudCredential',
 
+  emits: ['set-subtype', 'input'],
+
   components: {
     Loading,
     NameNsDescription,
@@ -89,6 +91,12 @@ export default {
     };
   },
 
+  watch: {
+    'value._name'(newValue) {
+      this.nameRequiredValidation = newValue?.length > 0;
+    }
+  },
+
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
@@ -152,13 +160,17 @@ export default {
       }
 
       for ( const id of types ) {
-        let bannerImage, bannerAbbrv;
+        let bannerAbbrv;
 
-        try {
-          bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
-        } catch (e) {
-          bannerImage = null;
-          bannerAbbrv = this.initialDisplayFor(id);
+        let bannerImage = this.$store.app.$plugin.getDynamic('image', `providers/${ id }.svg`);
+
+        if (!bannerImage) {
+          try {
+            bannerImage = require(`~shell/assets/images/providers/${ id }.svg`);
+          } catch (e) {
+            bannerImage = null;
+            bannerAbbrv = this.initialDisplayFor(id);
+          }
         }
 
         out.push({
@@ -182,9 +194,6 @@ export default {
   },
 
   methods: {
-    handleNameRequiredValidation() {
-      this.nameRequiredValidation = !!this.value?._name?.length;
-    },
 
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
@@ -241,7 +250,7 @@ export default {
         set(this.value, `${ field }credentialConfig`, {});
       }
 
-      this.$set(this.value, '_type', type);
+      this.value['_type'] = type;
       this.$emit('set-subtype', this.typeDisplay(type, driver));
     },
 
@@ -254,6 +263,10 @@ export default {
 
       return this.$store.getters['i18n/withFallback'](`secret.initials."${ type }"`, null, fallback);
     },
+
+    updateValue(key, value) {
+      this.value.setData(key, value);
+    }
   },
 };
 </script>
@@ -284,8 +297,7 @@ export default {
         name-placeholder="cluster.credential.name.placeholder"
         :mode="mode"
         :namespaced="false"
-        @input="$emit('input', $event)"
-        @change="handleNameRequiredValidation"
+        @update:value="$emit('input', $event)"
       />
       <keep-alive>
         <component
@@ -296,6 +308,7 @@ export default {
           :mode="mode"
           :hide-sensitive-data="hideSensitiveData"
           @validationChanged="createValidationChanged"
+          @valueChanged="updateValue"
         />
       </keep-alive>
     </CruResource>

@@ -124,6 +124,7 @@ export function init(store) {
   });
 
   virtualType({
+    ifHaveType: MANAGEMENT.CLUSTER_PROXY_CONFIG,
     labelKey:   'manager.jwtAuthentication.label',
     name:       VIRTUAL_TYPES.JWT_AUTHENTICATION,
     group:      'Root',

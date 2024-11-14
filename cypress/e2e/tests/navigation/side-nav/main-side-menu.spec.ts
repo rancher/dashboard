@@ -1,3 +1,4 @@
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
@@ -69,7 +70,7 @@ describe('Side Menu: main', () => {
         })
         .click();
 
-      cy.url().should('include', 'https://ranchermanager.docs.rancher.com/v2.9/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api');
+      cy.url().should('include', `https://ranchermanager.docs.rancher.com/v${ CURRENT_RANCHER_VERSION }/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api`);
     });
 
     it('Local cluster should show a name and description on the side menu and display a tooltip when hovering it show the full name and description', { tags: ['@navigation', '@adminUser'] }, () => {
@@ -101,7 +102,7 @@ describe('Side Menu: main', () => {
     it('Can display list of available clusters', { tags: ['@navigation', '@adminUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.clusters().should('exist');
+      burgerMenuPo.clusterNotPinnedList().should('exist');
     });
 
     it('Pinned and unpinned cluster', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
@@ -122,25 +123,25 @@ describe('Side Menu: main', () => {
     it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.clusters().first().trigger('mouseover');
+      burgerMenuPo.allClusters().first().trigger('mouseover');
       BurgerMenuPo.checkIconTooltipOff();
       BurgerMenuPo.toggle();
       BurgerMenuPo.checkIconTooltipOn();
     });
 
     // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-    it.skip('Contains valid links', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
-      const burgerMenuPo = new BurgerMenuPo();
-      // Navigate through all the links
+    // it.skip('Contains valid links', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
+    //   const burgerMenuPo = new BurgerMenuPo();
+    //   // Navigate through all the links
 
-      burgerMenuPo.links().each((_, idx) => {
-      // Cant bind to looped element due DOM changes while opening/closing side bar
-        burgerMenuPo.links().eq(idx).should('be.visible').click({ force: true })
-          .then((linkEl) => {
-            cy.location('href').should('exist');
-          });
-      });
-    });
+    //   burgerMenuPo.links().each((_, idx) => {
+    //   // Cant bind to looped element due DOM changes while opening/closing side bar
+    //     burgerMenuPo.links().eq(idx).should('be.visible').click({ force: true })
+    //       .then((linkEl) => {
+    //         cy.location('href').should('exist');
+    //       });
+    //   });
+    // });
 
     it('Check first item in global section is Cluster Management', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       HomePagePo.goTo();

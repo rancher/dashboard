@@ -149,7 +149,7 @@ export default {
 
       const defaultSnapshot = this.toRestore[0]?.type === SNAPSHOT ? this.toRestore[0].name : this.clusterSnapshots[0]?.value;
 
-      this.$set(this, 'selectedSnapshot', defaultSnapshot);
+      this['selectedSnapshot'] = defaultSnapshot;
     },
 
     async apply(buttonDone) {
@@ -220,76 +220,75 @@ export default {
       class="prompt-restore"
       :show-highlight-border="false"
     >
-      <h4
-        slot="title"
-        v-clean-html="t('promptRestore.title', null, true)"
-        class="text-default-text"
-      />
+      <template #title>
+        <h4
+          v-clean-html="t('promptRestore.title', null, true)"
+          class="text-default-text"
+        />
+      </template>
 
-      <div
-        slot="body"
-        class="pl-10 pr-10"
-      >
-        <form>
-          <h3 v-t="'promptRestore.name'" />
-          <div v-if="!isCluster">
-            {{ snapshot.nameDisplay }}
-          </div>
+      <template #body>
+        <div class="pl-10 pr-10">
+          <form>
+            <h3 v-t="'promptRestore.name'" />
+            <div v-if="!isCluster">
+              {{ snapshot.nameDisplay }}
+            </div>
 
-          <LabeledSelect
-            v-if="isCluster"
-            v-model="selectedSnapshot"
-            :label="t('promptRestore.label')"
-            :placeholder="t('promptRestore.placeholder')"
-            :options="clusterSnapshots"
+            <LabeledSelect
+              v-if="isCluster"
+              v-model:value="selectedSnapshot"
+              :label="t('promptRestore.label')"
+              :placeholder="t('promptRestore.placeholder')"
+              :options="clusterSnapshots"
+            />
+
+            <div class="spacer" />
+
+            <h3 v-t="'promptRestore.date'" />
+            <div>
+              <p>
+                <Date
+                  v-if="snapshot"
+                  :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
+                />
+              </p>
+            </div>
+            <div class="spacer" />
+            <RadioGroup
+              v-model:value="restoreMode"
+              name="restoreMode"
+              label="Restore Type"
+              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
+              :options="restoreModeOptions"
+            />
+          </form>
+        </div>
+      </template>
+
+      <template #actions>
+        <div class="dialog-actions">
+          <button
+            class="btn role-secondary"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+
+          <AsyncButton
+            mode="restore"
+            :disabled="!hasSnapshot"
+            @click="apply"
           />
 
-          <div class="spacer" />
-
-          <h3 v-t="'promptRestore.date'" />
-          <div>
-            <p>
-              <Date
-                v-if="snapshot"
-                :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
-              />
-            </p>
-          </div>
-          <div class="spacer" />
-          <RadioGroup
-            v-model="restoreMode"
-            name="restoreMode"
-            label="Restore Type"
-            :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-            :options="restoreModeOptions"
+          <Banner
+            v-for="(err, i) in errors"
+            :key="i"
+            color="error"
+            :label="err"
           />
-        </form>
-      </div>
-
-      <div
-        slot="actions"
-        class="dialog-actions"
-      >
-        <button
-          class="btn role-secondary"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-
-        <AsyncButton
-          mode="restore"
-          :disabled="!hasSnapshot"
-          @click="apply"
-        />
-
-        <Banner
-          v-for="(err, i) in errors"
-          :key="i"
-          color="error"
-          :label="err"
-        />
-      </div>
+        </div>
+      </template>
     </Card>
   </app-modal>
 </template>
@@ -314,7 +313,7 @@ export default {
     }
   }
 
-  .prompt-restore ::v-deep .card-wrap .card-actions {
+  .prompt-restore :deep() .card-wrap .card-actions {
     display: block;
 
     button:not(:last-child) {

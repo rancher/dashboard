@@ -29,11 +29,11 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'iscsi', this.value.spec.iscsi || {});
-    this.$set(this.value.spec.iscsi, 'readOnly', this.value.spec.iscsi.readOnly || false);
-    this.$set(this.value.spec.iscsi, 'secretRef', this.value.spec.iscsi.secretRef || {});
-    this.$set(this.value.spec.iscsi, 'chapAuthDiscovery', this.value.spec.iscsi.chapAuthDiscovery || false);
-    this.$set(this.value.spec.iscsi, 'chapAuthSession', this.value.spec.iscsi.chapAuthSession || false);
+    this.value.spec['iscsi'] = this.value.spec.iscsi || {};
+    this.value.spec.iscsi['readOnly'] = this.value.spec.iscsi.readOnly || false;
+    this.value.spec.iscsi['secretRef'] = this.value.spec.iscsi.secretRef || {};
+    this.value.spec.iscsi['chapAuthDiscovery'] = this.value.spec.iscsi.chapAuthDiscovery || false;
+    this.value.spec.iscsi['chapAuthSession'] = this.value.spec.iscsi.chapAuthSession || false;
 
     return { yesNoOptions };
   },
@@ -43,7 +43,7 @@ export default {
         return this.value.spec.iscsi.lun;
       },
       set(value) {
-        this.$set(this.value.spec.iscsi, 'lun', Number.parseInt(value, 10));
+        this.value.spec.iscsi['lun'] = Number.parseInt(value, 10);
       }
     },
   }
@@ -55,7 +55,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.initiatorName"
+          v-model:value="value.spec.iscsi.initiatorName"
           :mode="mode"
           :label="t('persistentVolume.iscsi.initiatorName.label')"
           :placeholder="t('persistentVolume.iscsi.initiatorName.placeholder')"
@@ -63,7 +63,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.iscsiInterface"
+          v-model:value="value.spec.iscsi.iscsiInterface"
           :mode="mode"
           :label="t('persistentVolume.iscsi.iscsiInterface.label')"
           :placeholder="t('persistentVolume.iscsi.iscsiInterface.placeholder')"
@@ -73,7 +73,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.iscsi.chapAuthDiscovery"
+          v-model:value="value.spec.iscsi.chapAuthDiscovery"
           name="chap-auth-discovery"
           :mode="mode"
           :label="t('persistentVolume.iscsi.chapAuthDiscovery.label')"
@@ -83,7 +83,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.iscsi.chapAuthSession"
+          v-model:value="value.spec.iscsi.chapAuthSession"
           name="chap-auth-session"
           :mode="mode"
           :label="t('persistentVolume.iscsi.chapAuthSession.label')"
@@ -95,7 +95,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.iqn"
+          v-model:value="value.spec.iscsi.iqn"
           :mode="mode"
           :label="t('persistentVolume.iscsi.iqn.label')"
           :placeholder="t('persistentVolume.iscsi.iqn.placeholder')"
@@ -103,7 +103,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="lun"
+          v-model:value="lun"
           :mode="mode"
           :label="t('persistentVolume.iscsi.lun.label')"
           :placeholder="t('persistentVolume.iscsi.lun.placeholder')"
@@ -114,7 +114,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.targetPortal"
+          v-model:value="value.spec.iscsi.targetPortal"
           :mode="mode"
           :label="t('persistentVolume.iscsi.targetPortal.label')"
           :placeholder="t('persistentVolume.iscsi.targetPortal.placeholder')"
@@ -122,7 +122,7 @@ export default {
       </div>
       <div class="col span-6">
         <ArrayList
-          v-model="value.spec.iscsi.portals"
+          v-model:value="value.spec.iscsi.portals"
           :mode="mode"
           :add-label="t('persistentVolume.iscsi.portals.add')"
         />
@@ -131,7 +131,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.secretRef.name"
+          v-model:value="value.spec.iscsi.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -139,7 +139,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.secretRef.namespace"
+          v-model:value="value.spec.iscsi.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -149,7 +149,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.iscsi.fsType"
+          v-model:value="value.spec.iscsi.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -157,7 +157,7 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.iscsi.readOnly"
+          v-model:value="value.spec.iscsi.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

@@ -14,19 +14,23 @@ import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
-
+import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
 export default {
+  emits: ['input'],
+
   components: {
     ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
+  inheritAttrs: false,
+
   mixins: [CreateEditView, FormValidation],
   data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['podSecurityPolicyTemplateId'] = this.value.status?.podSecurityPolicyTemplateId || '';
 
     return {
       projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
@@ -48,7 +52,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
     canViewMembers() {
       return canViewProjectMembershipEditor(this.$store);
@@ -96,9 +100,13 @@ export default {
     }
   },
   created() {
-    this.$set(this.value.metadata, 'namespace', this.$store.getters['currentCluster'].id);
-    this.$set(this.value, 'spec', this.value.spec || {});
-    this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
+    this.value.metadata['namespace'] = this.$store.getters['currentCluster'].id;
+    this.value['spec'] = this.value.spec || {};
+    this.value.spec['containerDefaultResourceLimit'] = this.value.spec.containerDefaultResourceLimit || {};
+    // norman (and matching steve) resources treat annotations containing `cattle.io` as immutable, so only do this for the create world
+    if (this.isCreate && !this.$store.getters['auth/principalId'].includes('local://')) {
+      this.value.metadata.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
+    }
   },
   methods: {
     async save(saveCb) {
@@ -141,11 +149,11 @@ export default {
     },
 
     onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'membershipHasOwner', hasOwner);
+      this['membershipHasOwner'] = hasOwner;
     },
 
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
 
     removeQuota(key) {
@@ -185,7 +193,7 @@ export default {
       name-key="spec.displayName"
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
     <Tabbed :side-tabs="true">
       <Tab
@@ -214,8 +222,7 @@ export default {
         <ResourceQuota
           :value="value"
           :mode="canEditTabElements"
-          :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
-          @input="$emit('input', $event)"
+          :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
           @remove="removeQuota"
         />
       </Tab>
@@ -225,7 +232,7 @@ export default {
         :weight="8"
       >
         <ContainerResourceLimit
-          v-model="value.spec.containerDefaultResourceLimit"
+          v-model:value="value.spec.containerDefaultResourceLimit"
           :mode="canEditTabElements"
           :show-tip="false"
           :register-before-hook="registerBeforeHook"

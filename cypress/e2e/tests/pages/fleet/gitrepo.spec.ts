@@ -108,7 +108,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
           prefPage.languageDropdownMenu().toggle();
           prefPage.languageDropdownMenu().isOpened();
 
-          cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateZhHans`);
+          cy.intercept({
+            method: 'PUT', url: 'v1/userpreferences/*', times: 1
+          }).as(`prefUpdateZhHans`);
           prefPage.languageDropdownMenu().clickOption(2);
           cy.wait('@prefUpdateZhHans').then(({ response }) => {
             expect(response?.statusCode).to.eq(200);
@@ -134,10 +136,10 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
           prefPage.languageDropdownMenu().isOpened();
 
           cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-          prefPage.languageDropdownMenu().clickOption(1);
+          prefPage.languageDropdownMenu().clickOptionWithLabel('English');
           cy.wait('@prefUpdateEnUs').then(({ response }) => {
             expect(response?.statusCode).to.eq(200);
-            expect(response?.body.data).to.have.property('locale', 'en-us');
+            expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
           });
           prefPage.languageDropdownMenu().isClosed();
         })

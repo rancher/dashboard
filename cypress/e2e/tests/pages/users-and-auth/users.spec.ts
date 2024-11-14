@@ -5,6 +5,7 @@ import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -265,17 +266,23 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueUserName = 'aaa-e2e-test-name';
+    let uniqueUserName = SortableTablePo.firstByDefaultName('user');
+
     const userIdsList = [];
+    let initialCount;
 
     before('set up', () => {
       cy.login();
+      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+        initialCount = resp.body.data.length - 1;
+      });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
 
       // create users
       let i = 0;
 
-      while (i < 100) {
-        const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+      while (i < 25) {
+        const userName = Cypress._.uniqueId(Date.now().toString());
 
         cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
           const userId = resp.body.id;
@@ -287,9 +294,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
+      cy.createUser({ username: uniqueUserName }, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const userId = resp.body.id;
 
+        uniqueUserName = resp.body.username;
         userIdsList.push(userId);
       });
     });
@@ -297,9 +305,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('pagination is visible and user is able to navigate through users data', () => {
       usersPo.goTo(); // This is needed for the @vai only world
       usersPo.waitForPage();
+      const count = initialCount + 26;
 
-      // get users count
-      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+      // check users count
+      cy.waitForRancherResources('v3', 'users', count).then((resp: Cypress.Response<any>) => {
         const count = resp.body.data.length;
 
         // pagination is visible
@@ -324,7 +333,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
 
         // navigate to next page - right button
@@ -336,7 +345,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -354,7 +363,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -366,16 +375,21 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         // navigate to last page - end button
         usersPo.list().resourceTable().sortableTable().pagination()
           .endButton()
+          .scrollIntoView()
           .click();
 
-        // check row count on last page
-        usersPo.list().resourceTable().sortableTable().checkRowCount(false, count - 100);
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
 
         // check text after navigation
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`101 - ${ count } of ${ count } Users`);
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Users`);
           });
 
         // navigate to first page - beginning button
@@ -387,7 +401,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         usersPo.list().resourceTable().sortableTable().pagination()
           .paginationText()
           .then((el) => {
-            expect(el.trim()).to.eq(`1 - 100 of ${ count } Users`);
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
           });
         usersPo.list().resourceTable().sortableTable().pagination()
           .beginningButton()
@@ -429,12 +443,17 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .checkSortOrder(3, 'down');
 
       // user name should be visible on first page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
       usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
         .should('be.visible');
 
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should NOT be visible on last page (sorted in ASC order)
@@ -454,6 +473,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should be visible on last page (sorted in DESC order)
@@ -478,6 +498,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     after(() => {
       userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      // Ensure the default rows per page value is set after executing the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
   });
 });

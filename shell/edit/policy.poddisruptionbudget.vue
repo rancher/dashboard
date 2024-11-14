@@ -11,9 +11,11 @@ import { POD } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  name: 'PodDisruptionBudget',
+  name:  'PodDisruptionBudget',
+  emits: ['input'],
 
-  components: {
+  inheritAttrs: false,
+  components:   {
     ResourceSelector,
     CruResource,
     Labels,
@@ -27,12 +29,12 @@ export default {
 
   data() {
     if ( !this.value.spec ) {
-      this.$set(this.value, 'spec', {
+      this.value['spec'] = {
         selector: {
           matchExpressions: [],
           matchLabels:      {},
         }
-      });
+      };
     }
 
     return { POD };
@@ -47,11 +49,11 @@ export default {
         const isNumeric = /^\d+$/;
 
         if (val && isNumeric.test(val)) {
-          this.$set(this.value.spec, 'minAvailable', Number.parseInt(val));
+          this.value.spec['minAvailable'] = Number.parseInt(val);
         } else if (val) {
-          this.$set(this.value.spec, 'minAvailable', val);
+          this.value.spec['minAvailable'] = val;
         } else {
-          this.$delete(this.value.spec, 'minAvailable');
+          delete this.value.spec['minAvailable'];
         }
       }
     },
@@ -63,11 +65,11 @@ export default {
         const isNumeric = /^\d+$/;
 
         if (val && isNumeric.test(val)) {
-          this.$set(this.value.spec, 'maxUnavailable', Number.parseInt(val));
+          this.value.spec['maxUnavailable'] = Number.parseInt(val);
         } else if (val) {
-          this.$set(this.value.spec, 'maxUnavailable', val);
+          this.value.spec['maxUnavailable'] = val;
         } else {
-          this.$delete(this.value.spec, 'maxUnavailable');
+          delete this.value.spec['maxUnavailable'];
         }
       }
     },
@@ -98,7 +100,7 @@ export default {
       :value="value"
       :mode="mode"
       :side-tabs="true"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     >
       <Tab
         name="volumeclaim"
@@ -108,14 +110,14 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledInput
-              v-model="minAvailable"
+              v-model:value="minAvailable"
               :mode="mode"
               :label="t('podDisruptionBudget.minAvailable.label')"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="maxUnavailable"
+              v-model:value="maxUnavailable"
               :mode="mode"
               :label="t('podDisruptionBudget.maxUnavailable.label')"
             />

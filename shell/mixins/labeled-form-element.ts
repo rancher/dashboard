@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';
 
@@ -8,8 +7,10 @@ interface LabeledFormElement {
   blurred: number | null;
 }
 
-export default Vue.extend({
+export default {
   inheritAttrs: false,
+
+  emits: ['update:validation', 'on-focus', 'on-blur'],
 
   props: {
     mode: {
@@ -221,4 +222,4 @@ export default Vue.extend({
       this.blurred = Date.now();
     }
   }
-});
+};

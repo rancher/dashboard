@@ -1,7 +1,7 @@
 import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import {
-  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT
+  BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
 } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -60,6 +60,11 @@ export function returnTo(opt, vm) {
     returnToUrl = addParam(returnToUrl, 'config', opt.config);
   }
 
+  if (opt.isSlo) {
+    returnToUrl = addParam(returnToUrl, IS_SLO, _FLAGGED);
+    returnToUrl = addParam(returnToUrl, LOGGED_OUT, _FLAGGED);
+  }
+
   return returnToUrl;
 }
 
@@ -67,7 +72,19 @@ export function returnTo(opt, vm) {
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
 export const authProvidersInfo = async(store) => {
-  const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
+  try {
+    const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
+
+    return parseAuthProvidersInfo(rows);
+  } catch (error) {
+    return {};
+  }
+};
+
+/**
+ * Parses auth provider's info to return if there's an auth provider enabled
+ */
+export function parseAuthProvidersInfo(rows) {
   const nonLocal = rows.filter((x) => x.name !== 'local');
   const enabled = nonLocal.filter((x) => x.enabled === true );
 
@@ -84,7 +101,7 @@ export const authProvidersInfo = async(store) => {
     enabledLocation,
     enabled
   };
-};
+}
 
 export const checkSchemasForFindAllHash = (types, store) => {
   const hash = {};
@@ -99,7 +116,7 @@ export const checkSchemasForFindAllHash = (types, store) => {
     const validSchema = value.schemaValidator ? value.schemaValidator(schema) : !!schema;
 
     if (validSchema) {
-      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type, opt: value.opt } );
     }
   }
 

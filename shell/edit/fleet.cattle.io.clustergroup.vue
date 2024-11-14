@@ -16,7 +16,10 @@ import { allHash } from '@shell/utils/promise';
 export default {
   name: 'CruClusterGroup',
 
-  components: {
+  emits: ['input'],
+
+  inheritAttrs: false,
+  components:   {
     Banner,
     CruResource,
     Labels,
@@ -144,7 +147,7 @@ export default {
       :namespaced="false"
       namespace-label="nameNsDescription.workspace.label"
       :namespace-type="FLEET_WORKSPACE"
-      @input="$emit('input', $event)"
+      @update:value="$emit('input', $event)"
     />
 
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
@@ -152,7 +155,7 @@ export default {
       :mode="mode"
       :value="expressions"
       :show-remove="false"
-      @input="matchChanged($event)"
+      @update:value="matchChanged($event)"
     />
     <Banner
       v-if="matchingClusters"

@@ -15,6 +15,8 @@ import {
 } from 'lodash';
 
 export default {
+  emits: ['input'],
+
   components: {
     ResourcesSummary,
     ResourceTable,

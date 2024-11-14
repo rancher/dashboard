@@ -6,6 +6,8 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { ROW_COMPUTED } from './shared';
 
 export default {
+  emits: ['update:value'],
+
   components: {
     Select, PercentageBar, UnitInput
   },
@@ -163,7 +165,7 @@ export default {
         addSuffixSpace: false
       });
 
-      this.$emit('input', this.type, value);
+      this.$emit('update:value', this.type, value);
     }
   }
 };
@@ -184,7 +186,7 @@ export default {
       <PercentageBar
         v-clean-tooltip="tooltip"
         class="percentage-bar"
-        :value="percentageUsed"
+        :modelValue="percentageUsed"
         :slices="slices"
         :color-stops="{'100': '--primary'}"
       />
@@ -197,7 +199,7 @@ export default {
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
-      @input="update"
+      @update:value="update"
     />
   </div>
 </template>
