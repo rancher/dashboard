@@ -11,7 +11,6 @@ import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
 import { setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
-import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
@@ -101,7 +100,6 @@ export default {
 
   async fetch() {
     const serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
-    const rancherVersionSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
 
     let plSetting;
 

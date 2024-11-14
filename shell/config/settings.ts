@@ -155,8 +155,8 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.BRAND]:                        { canReset: true },
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
-  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
-  [SETTING.AGENT_TLS_MODE]:     {
+  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:               {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
