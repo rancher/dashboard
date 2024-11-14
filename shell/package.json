@@ -36,7 +36,6 @@
     "@babel/plugin-proposal-private-property-in-object": "7.14.5",
     "@babel/preset-typescript": "7.16.7",
     "@novnc/novnc": "1.2.0",
-    "@nuxtjs/axios": "5.13.6",
     "@popperjs/core": "2.4.4",
     "@rancher/icons": "2.0.29",
     "@types/is-url": "1.2.30",
@@ -51,6 +50,8 @@
     "@vue/vue3-jest": "^27.0.0-alpha.1",
     "add": "2.0.6",
     "ansi_up": "5.0.0",
+    "axios": "0.21.4",
+    "axios-retry": "3.1.9",
     "babel-eslint": "10.1.0",
     "babel-plugin-module-resolver": "4.0.0",
     "babel-preset-vue": "2.0.2",
@@ -73,6 +74,7 @@
     "d3-selection": "1.4.1",
     "dagre-d3": "0.6.4",
     "dayjs": "1.8.29",
+    "defu": "5.0.1",
     "diff2html": "3.4.24",
     "dompurify": "2.5.4",
     "element-matches": "^0.1.2",
@@ -160,7 +162,7 @@
     "semver": "7.5.4",
     "@types/lodash": "4.17.5",
     "@types/node": "~20.10.0",
-    "@vue/cli-service/html-webpack-plugin": "^5.0.0"  
+    "@vue/cli-service/html-webpack-plugin": "^5.0.0"
   },
   "nyc": {
     "extension": [
