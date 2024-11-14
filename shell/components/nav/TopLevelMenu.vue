@@ -1309,7 +1309,6 @@ export default {
           display: block;
           margin-right: 0;
         }
-
       }
 
       .category {
