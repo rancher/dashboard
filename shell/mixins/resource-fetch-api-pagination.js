@@ -13,6 +13,16 @@ import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
  */
 export default {
 
+  props: {
+    /**
+     * Where in the ui this mixin is used. For instance the home page cluster list would be `home`
+     */
+    context: {
+      type:    String,
+      default: null,
+    },
+  },
+
   data() {
     return {
       forceUpdateLiveAndDelayed: 0,
@@ -68,7 +78,7 @@ export default {
     },
 
     namespaceFilterChanged(neu) {
-      if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+      if (!this.canPaginate || !this.schema?.attributes?.namespaced || !this.namespaced) {
         return;
       }
 
@@ -166,7 +176,12 @@ export default {
         return;
       }
 
-      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     },
 
     paginationResult() {
@@ -182,7 +197,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.currentProduct?.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -197,6 +212,10 @@ export default {
       */
     showDynamicRancherNamespaces() {
       return this.$store.getters['prefs/get'](ALL_NAMESPACES);
+    },
+
+    inStore() {
+      return this.$store.getters['currentStore'](this.resource) || this.currentProduct?.inStore;
     }
   },
 
@@ -298,7 +317,9 @@ export default {
         return;
       }
 
-      await this.fetchPageSecondaryResources();
+      await this.fetchPageSecondaryResources({
+        canPaginate: this.canPaginate, force: false, page: this.rows, pagResult: this.paginationResult
+      });
     }
   },
 };

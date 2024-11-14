@@ -60,16 +60,37 @@ export default {
     }
   },
 
+  props: {
+    /**
+     * Add additional filtering to the rows
+     */
+    filterRows: {
+      type:    Function,
+      default: null,
+    },
+  },
+
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
-        return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
-      } else {
+        const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+
+        if (this.canPaginate) {
+          if (this.havePaginated) {
+            return rows;
+          }
+        } else {
+          return rows;
+        }
+
+        // return this.filterRows ? this.filterRows(rows) : rows;
         return [];
       }
+
+      return [];
     },
     loading() {
       if (this.canPaginate) {
@@ -86,7 +107,9 @@ export default {
       if (this.init && neu) {
         await this.$fetch();
         if (this.canPaginate && this.fetchPageSecondaryResources) {
-          this.fetchPageSecondaryResources(true);
+          this.fetchPageSecondaryResources({
+            canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
+          });
         }
       }
     }
