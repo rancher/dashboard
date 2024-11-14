@@ -196,8 +196,7 @@ function clone_repo_test_extension_build() {
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
   rm package.json.bak
 
-  # we need to remove yarn.lock, otherwise it would install a version that we don't want
-  rm yarn.lock
+  yarn remove @rancher/shell
 
   echo -e "\nInstalling newly built shell version\n"
 
