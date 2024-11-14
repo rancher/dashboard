@@ -998,7 +998,7 @@ export default {
     }
 
      &.menu-open {
-      width: 315px;
+      width: 300px;
       box-shadow: 3px 1px 3px var(--shadow);
     }
 
@@ -1034,7 +1034,7 @@ export default {
       display: flex;
       flex-direction: column;
       margin: 10px 0;
-      width: 315px;
+      width: 300px;
       overflow: auto;
 
       .option {
@@ -1069,7 +1069,6 @@ export default {
           line-height: normal;
 
           & > p {
-            width: 195px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1308,7 +1307,9 @@ export default {
         }
         .pin {
           display: block;
+          margin-right: 0;
         }
+
       }
 
       .category {
