@@ -78,7 +78,7 @@ export default defineComponent({
   async fetch() {
     await this.$fetchType(this.resource, [], this.inStore);
 
-    if (this.canPaginate && this.fetchSecondaryResources) {
+    if (!this.canPaginate && this.fetchSecondaryResources) {
       await this.fetchSecondaryResources({ });
     }
   },

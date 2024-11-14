@@ -191,7 +191,7 @@ export default {
     },
 
     setDefaults() {
-      Vue.set(this, 'value', { ...DEFAULT_PERF_SETTING });
+      this.value = { ...DEFAULT_PERF_SETTING };
     }
   },
 };
