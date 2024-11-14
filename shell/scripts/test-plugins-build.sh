@@ -169,8 +169,9 @@ fi
 
 # function to clone repos and install dependencies (including the newly published shell version)
 function clone_repo_test_extension_build() {
-  REPO_NAME=$1
-  PKG_NAME=$2
+  REPO_ORG=$1
+  REPO_NAME=$2
+  PKG_NAME=$3
 
   echo -e "\nSetting up $REPO_NAME repository locally\n"
 
@@ -183,7 +184,7 @@ function clone_repo_test_extension_build() {
   fi
 
   # cloning repo
-  git clone https://github.com/rancher/$REPO_NAME.git
+  git clone https://github.com/$REPO_ORG/$REPO_NAME.git
   pushd ${BASE_DIR}/$REPO_NAME
 
   echo -e "\nInstalling dependencies for $REPO_NAME\n"
@@ -195,9 +196,6 @@ function clone_repo_test_extension_build() {
   # update package.json to use a specific version of shell
   sed -i.bak -e "s/\"\@rancher\/shell\": \"[0-9]*.[0-9]*.[0-9]*\",/\"\@rancher\/shell\": \"${SHELL_VERSION}\",/g" package.json
   rm package.json.bak
-
-  # we need to remove yarn.lock, otherwise it would install a version that we don't want
-  rm yarn.lock
 
   echo -e "\nInstalling newly built shell version\n"
 
@@ -223,8 +221,9 @@ function clone_repo_test_extension_build() {
 
 # Here we just add the extension that we want to include as a check (all our official extensions should be included here)
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
-# clone_repo_test_extension_build "kubewarden-ui" "kubewarden"
-# clone_repo_test_extension_build "elemental-ui" "elemental"
-# clone_repo_test_extension_build "capi-ui-extension" "capi"
+clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
+clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
+clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
+# clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
 
 echo "All done"
