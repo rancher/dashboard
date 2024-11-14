@@ -1138,6 +1138,11 @@
     de-indent "^1.0.2"
     he "^1.2.0"
 
+"@vue/devtools-api@^6.6.4":
+  version "6.6.4"
+  resolved "https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-6.6.4.tgz#cbe97fe0162b365edc1dba80e173f90492535343"
+  integrity sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==
+
 "@vue/language-core@2.1.10":
   version "2.1.10"
   resolved "https://registry.npmjs.org/@vue/language-core/-/language-core-2.1.10.tgz#5988e9ea155f3e09ccbbb3b2a0ddd530dad912e6"
@@ -4366,6 +4371,13 @@ static-extend@^0.1.1:
     define-property "^0.2.5"
     object-copy "^0.1.0"
 
+storybook-vue3-router@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/storybook-vue3-router/-/storybook-vue3-router-5.0.0.tgz#7e2f52f7c5cbf78324cdbdeb98f909cea7a1a0dc"
+  integrity sha512-Q5ePPv8xyYT+9IzcEMSAQeCT8OlPDX0rfUfYCmiYDXsGPvvDej2Oyid3wyaxZmU/LXt1XzMDRO3v9qk/EN6pXg==
+  dependencies:
+    vue-router "^4.2.5"
+
 storybook@^8.4.2:
   version "8.4.5"
   resolved "https://registry.npmjs.org/storybook/-/storybook-8.4.5.tgz#ba9589e2887958d1353dbc1a2cb6142e80e36a2c"
@@ -4760,6 +4772,13 @@ vue-loader@^16.0.0:
     chalk "^4.1.0"
     hash-sum "^2.0.0"
     loader-utils "^2.0.0"
+
+vue-router@^4.2.5:
+  version "4.5.0"
+  resolved "https://registry.npmjs.org/vue-router/-/vue-router-4.5.0.tgz#58fc5fe374e10b6018f910328f756c3dae081f14"
+  integrity sha512-HDuk+PuH5monfNuY+ct49mNmkCRK4xJAV9Ts4z9UFc4rzdDnxQLyCMGGc8pKhZhHTVzfanpNwB/lwqevcBwI4w==
+  dependencies:
+    "@vue/devtools-api" "^6.6.4"
 
 vue-tsc@^2.1.6:
   version "2.1.10"
