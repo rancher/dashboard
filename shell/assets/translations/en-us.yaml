@@ -1954,7 +1954,7 @@ cluster:
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
     rackspace: RackSpace
-    rancherkubernetesengine: RKE1
+    rancherkubernetesengine: RKE
     rke2: RKE2
     rke: RKE1
     rkeWindows: Windows (RKE1 only)
