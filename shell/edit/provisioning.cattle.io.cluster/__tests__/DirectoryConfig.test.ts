@@ -113,7 +113,7 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(k8sDistroValue);
   });
 
-  it('should render the component with configuration being an empty object, without errors and radio be of value DATA_DIR_RADIO_OPTIONS.CUSTOM (edit scenario)', () => {
+  it('should render the component with configuration being an empty object, without errors and radio be of value DATA_DIR_RADIO_OPTIONS.DEFAULT (edit scenario)', () => {
     const newMountOptions = clone(mountOptions);
 
     newMountOptions.propsData.value = {};
@@ -131,21 +131,17 @@ describe('component: DirectoryConfig', () => {
     const k8sDistroInput = wrapper.find('[data-testid="rke2-directory-config-k8sDistro-data-dir"]');
 
     expect(title.exists()).toBe(true);
-    expect(radioInput.isVisible()).toBe(false);
+    expect(radioInput.exists()).toBe(true);
 
-    expect(wrapper.vm.dataConfigRadioValue).toBe(DATA_DIR_RADIO_OPTIONS.CUSTOM);
+    expect(wrapper.vm.dataConfigRadioValue).toBe(DATA_DIR_RADIO_OPTIONS.DEFAULT);
 
     // since we have all of the vars empty, then the inputs should not be there
-    expect(systemAgentInput.exists()).toBe(true);
-    expect(provisioningInput.exists()).toBe(true);
-    expect(k8sDistroInput.exists()).toBe(true);
-
-    expect(systemAgentInput.attributes().disabled).toBeDefined();
-    expect(provisioningInput.attributes().disabled).toBeDefined();
-    expect(k8sDistroInput.attributes().disabled).toBeDefined();
+    expect(systemAgentInput.exists()).toBe(false);
+    expect(provisioningInput.exists()).toBe(false);
+    expect(k8sDistroInput.exists()).toBe(false);
   });
 
-  it('radio input should be set to DATA_DIR_RADIO_OPTIONS.CUSTOM with all data dir values existing and different (edit scenario)', () => {
+  it('radio input should be set to DATA_DIR_RADIO_OPTIONS.CUSTOM with all data dir values existing and different (edit scenario)', async() => {
     const newMountOptions = clone(mountOptions);
     const inputPath = 'some-data-dir';
 
@@ -161,19 +157,13 @@ describe('component: DirectoryConfig', () => {
 
     expect(wrapper.vm.dataConfigRadioValue).toBe(DATA_DIR_RADIO_OPTIONS.CUSTOM);
 
-    const radioInput = wrapper.find('[data-testid="rke2-directory-config-radio-input"]');
     const systemAgentInput = wrapper.find('[data-testid="rke2-directory-config-systemAgent-data-dir"]');
     const provisioningInput = wrapper.find('[data-testid="rke2-directory-config-provisioning-data-dir"]');
     const k8sDistroInput = wrapper.find('[data-testid="rke2-directory-config-k8sDistro-data-dir"]');
 
-    expect(radioInput.isVisible()).toBe(false);
     expect(systemAgentInput.isVisible()).toBe(true);
     expect(provisioningInput.isVisible()).toBe(true);
     expect(k8sDistroInput.isVisible()).toBe(true);
-
-    expect(systemAgentInput.attributes().disabled).toBeDefined();
-    expect(provisioningInput.attributes().disabled).toBeDefined();
-    expect(k8sDistroInput.attributes().disabled).toBeDefined();
 
     expect(wrapper.vm.value.systemAgent).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.AGENT }`);
     expect(wrapper.vm.value.provisioning).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.PROVISIONING }`);
