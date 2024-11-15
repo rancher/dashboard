@@ -1467,6 +1467,14 @@ cluster:
     placeholder: A unique name for the cluster
   directoryConfig:
     title: Data directory configuration
+    banner: Data directory configuration can not be changed once the cluster has been created
+    radioInput:
+      defaultLabel: Use default data directory configuration
+      commonLabel: Use a common base directory for data directory configuration (sub-directories will be used for the system-agent, provisioning and distro paths)
+      customLabel: Use custom data directories
+    common: 
+      label: Data directory base path
+      tooltip: Data directory base path. We will append the sub-directories appropriate for each directory (/agent, /provisioning and either /rke2 or /k3s)
     systemAgent: 
       label: System-agent directory path
       tooltip: Data directory for the system-agent connection info and plans
