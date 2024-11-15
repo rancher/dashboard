@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
   emits: ['update:value', 'blur'],
@@ -36,7 +37,11 @@ export default {
     ignorePasswordManagers: {
       default: false,
       type:    Boolean,
-    }
+    },
+    mode: {
+      type:    String,
+      default: _CREATE,
+    },
   },
   data() {
     return { reveal: false };
@@ -104,6 +109,7 @@ export default {
       :required="required"
       :disabled="isRandom"
       :ignore-password-managers="ignorePasswordManagers"
+      :mode="mode"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>

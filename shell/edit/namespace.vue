@@ -15,9 +15,9 @@ import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import Labels from '@shell/components/form/Labels';
 import { randomStr } from '@shell/utils/string';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 export default {
   emits:      ['input'],

@@ -319,13 +319,17 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('can update telemetry-opt', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting: Prompt
     SettingsPagePo.navTo();
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('telemetry-opt').contains('Opt-out of Telemetry');
+
     settingsPage.editSettingsByLabel('telemetry-opt');
 
     const settingsEdit = settingsPage.editSettings('local', 'telemetry-opt');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: telemetry-opt').should('be.visible');
-    settingsEdit.useDefaultButton().should('be.disabled'); // button should be disabled for this settings option
+    settingsEdit.useDefaultButton().should('not.be.disabled');
     settingsEdit.selectSettingsByLabel('Prompt');
     settingsEdit.saveAndWait('telemetry-opt', 'prompt').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);

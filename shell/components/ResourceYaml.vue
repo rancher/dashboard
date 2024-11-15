@@ -346,7 +346,7 @@ export default {
 </script>
 
 <template>
-  <div class="root resource-yaml">
+  <div class="root resource-yaml flex-content">
     <YamlEditor
       ref="yamleditor"
       v-model:value="currentYaml"
