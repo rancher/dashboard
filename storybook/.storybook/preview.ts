@@ -45,7 +45,8 @@ const preview: Preview = {
       },
     },
     docs: {
-      theme: RancherTheme
+      theme: RancherTheme,
+      toc: true, // 👈 Enables the table of contents
     },
   },
 
