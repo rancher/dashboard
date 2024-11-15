@@ -38,5 +38,9 @@ export default {
 </script>
 
 <template>
-  <span>{{ formattedValue }}</span>
+  <span v-if="value">{{ formattedValue }}</span>
+  <span
+    v-else
+    class="text-muted"
+  >&mdash;</span>
 </template>

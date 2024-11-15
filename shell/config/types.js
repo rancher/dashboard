@@ -172,6 +172,8 @@ export const LONGHORN = {
 };
 
 export const LONGHORN_DRIVER = 'driver.longhorn.io';
+export const LONGHORN_VERSION_V1 = 'LonghornV1';
+export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
@@ -313,6 +315,7 @@ export const HCI = {
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
   SETTING:          'harvesterhci.io.setting',
+  RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };
 
