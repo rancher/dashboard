@@ -2,7 +2,13 @@
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
 import {
-  CAPI, MANAGEMENT, EVENT, CATALOG, HPA, INGRESS, SERVICE
+  CAPI, MANAGEMENT, EVENT, CATALOG, HPA, INGRESS, SERVICE,
+  CONFIG_MAP,
+  SECRET,
+  POD, NODE,
+  STORAGE_CLASS,
+  PVC,
+  PV
 } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
@@ -257,7 +263,13 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: ['configmap', 'secret', 'pod', 'node', EVENT, CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION, HPA, INGRESS, SERVICE],
+            enabled: [
+              POD, NODE, EVENT,
+              CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
+              HPA, INGRESS, SERVICE,
+              PV, STORAGE_CLASS, CONFIG_MAP, PVC, SECRET
+            ],
+
             generic: true,
           }
         }

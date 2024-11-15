@@ -1,12 +1,9 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
-import { STORAGE_CLASS } from '@shell/config/types';
-import ResourceFetch from '@shell/mixins/resource-fetch';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name:       'ListPersistentVolumeClaim',
-  components: { ResourceTable },
-  mixins:     [ResourceFetch],
+  components: { PaginatedResourceTable },
   props:      {
     resource: {
       type:     String,
@@ -24,21 +21,12 @@ export default {
     }
   },
 
-  async fetch() {
-    this.$initializeFetchData(this.resource);
-
-    this.$fetchType(STORAGE_CLASS);
-    await this.$fetchType(this.resource);
-  }
 };
 </script>
 
 <template>
-  <ResourceTable
-    :loading="loading"
+  <PaginatedResourceTable
     :schema="schema"
-    :rows="rows"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

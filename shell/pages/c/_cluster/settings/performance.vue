@@ -111,10 +111,10 @@ export default {
           }
         }
 
-        storeResources.push(`Store Name: ${ store }, Resources ${ resources.join(', ') }`);
+        storeResources.push(`Resources in store '${ store }': ${ resources.join(', ') }`);
       });
 
-      return storeResources.join('. ');
+      return storeResources.join('<br><br>');
     }
   },
 
@@ -238,9 +238,10 @@ export default {
           <p :class="{ 'text-muted': !value.serverPagination.enabled }">
             {{ t('performance.serverPagination.applicable') }}
           </p>
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ steveCacheApplicableResources }}
-          </p>
+          <p
+            v-clean-html="steveCacheApplicableResources"
+            :class="{ 'text-muted': !value.serverPagination.enabled }"
+          />
         </div>
         <!-- Inactivity -->
         <div class="mt-20">

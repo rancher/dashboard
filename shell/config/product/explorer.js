@@ -31,6 +31,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
+import { STORAGE } from 'config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -216,7 +217,26 @@ export function init(store) {
    */
   configureType(MANAGEMENT.PSA, { localOnly: true });
 
-  headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
+  headers(PV,
+    [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      { ...RECLAIM_POLICY },
+      {
+        // TODO: RC Regression
+        ...PERSISTENT_VOLUME_CLAIM,
+        sort:   ['metadata.fields.5'], // TODO: RC should be spec.volumeName of PVC --> PV, this is PV --> PVC
+        search: ['metadata.fields.5'],
+      }, {
+        // TODO: RC Regression
+        ...PERSISTENT_VOLUME_SOURCE,
+        sort:   false,
+        search: false,
+      }, { ...PV_REASON },
+      STEVE_AGE_COL,
+    ]
+  );
 
   headers(CONFIG_MAP,
     [NAME_COL, NAMESPACE_COL, KEYS, AGE],
@@ -432,7 +452,23 @@ export function init(store) {
     ...DESCRIPTION,
     width: undefined
   }, AGE]);
-  headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
+  headers(STORAGE_CLASS,
+    [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      {
+        ...STORAGE_CLASS_PROVISIONER,
+        sort:   ['provisioner'],
+        search: ['provisioner']
+      },
+      {
+        ...STORAGE_CLASS_DEFAULT,
+        sort: [`annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"`],
+      },
+      STEVE_AGE_COL
+    ]
+  );
 
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
     listGroups: [

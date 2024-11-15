@@ -6,7 +6,9 @@ import { uniq } from '@shell/utils/array';
 import {
   CAPI,
   CATALOG,
-  CONFIG_MAP, MANAGEMENT, EVENT, MANAGEMENT, NAMESPACE, NODE, POD
+  CONFIG_MAP, MANAGEMENT, EVENT, NAMESPACE, NODE, POD, PVC,
+  PV,
+  STORAGE_CLASS
 } from '@shell/config/types';
 import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -173,9 +175,20 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.allocatable.cpu' }, // TODO: RC TEST
       { field: 'status.allocatable.memory' }, // TODO: RC TEST
       { field: 'status.allocatable.pods' }, // TODO: RC TEST
-
       // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+    ],
+    [PVC]: [
+      // { field: 'spec.volumeName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [PV]: [
+      // { field: 'status.reason' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.persistentVolumeReclaimPolicy' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [STORAGE_CLASS]: [
+      // { field: 'provisioner' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: `annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48103
     ]
+
   }
 
   private convertArrayPath(path: string): string {

@@ -9,6 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import { PAGINATED_RESOURCE_TABLE_NAME } from 'components/PaginatedResourceTable.vue';
 
 export default {
   name: ResourceListComponentName,
@@ -66,6 +67,11 @@ export default {
 
         this.loadResources = loadResources || [resource];
         this.loadIndeterminate = loadIndeterminate || false;
+      }
+
+      // If the custom component contains the paginated resource table it'll control the fetching
+      if (component?.components?.[PAGINATED_RESOURCE_TABLE_NAME]) {
+        this.componentWillFetch = true;
       }
     }
 
