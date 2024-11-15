@@ -4,6 +4,7 @@ import fs from "fs";
 import path, { join, dirname } from "path";
 import webpack from "webpack";
 import remarkGfm from 'remark-gfm';
+import { get } from "lodash";
 
 const baseFolder = path.resolve(__dirname, '..', '..');
 
@@ -15,7 +16,7 @@ function getAbsolutePath(value: string): any {
   return dirname(require.resolve(join(value, "package.json")));
 }
 
-const getSassLoader = () => ({
+const sassLoader = {
     loader: 'sass-loader',
     options: {
       additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss';`,
@@ -37,7 +38,7 @@ const getSassLoader = () => ({
         }
       }
     },
-});
+};
 
 /**
  * Replace js-modal and xterm imports with absolute paths
@@ -61,45 +62,34 @@ const replaceModulePath = (resource) => {
 /**
  * Add aliases 
  * https://storybook.js.org/docs/writing-stories/mocking-data-and-modules/mocking-modules#builder-aliases
- * @param config 
  */
-const setAliases = (config: webpack.Configuration) => {
-  if (config.resolve) {
-    config.resolve.alias = {
-      ...config.resolve?.alias,
-      '~': baseFolder,
-      '@': baseFolder,
-      '@shell': path.join(baseFolder, 'shell'),
-      '@components': path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components'),
-      '~shell': path.join(baseFolder, 'shell'),
-    };
-  };
-}
+const webpackAliases = {
+  '~': baseFolder,
+  '@': baseFolder,
+  '@shell': path.join(baseFolder, 'shell'),
+  '@components': path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components'),
+  '~shell': path.join(baseFolder, 'shell'),
+};
 
-const setLoaders = (config: webpack.Configuration) => {
-  if (config.module?.rules) {
-    config.module?.rules?.push({
-      test: /\.scss$/,
-      use: ['style-loader', 'css-loader', getSassLoader()],
-      include: baseFolder,
-    });
-
-    // Map YAML to JSON
-    config.module?.rules?.push({
-      test: /\.ya?ml$/i,
-      loader: 'js-yaml-loader',
-      options: { name: '[path][name].[ext]' },
-    });
+const webpackLoaders = [
+  {
+    test: /\.scss$/,
+    use: ['style-loader', 'css-loader', sassLoader],
+    include: baseFolder,
+  },
+  // Map YAML to JSON
+  {
+    test: /\.ya?ml$/i,
+    loader: 'js-yaml-loader',
+    options: { name: '[path][name].[ext]' },
   }
-}
+];
 
-const setPlugins = (config: webpack.Configuration) => {
-  if (config.plugins) {
+const webpackPlugins = [
+  new NodePolyfillPlugin() as any,
     // BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default.
-    config.plugins.push(new NodePolyfillPlugin() as any);
-    config.plugins.push(new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath));
-  }
-}
+  new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, replaceModulePath)
+]
 
 const config: StorybookConfig = {
   framework: {
@@ -133,12 +123,27 @@ const config: StorybookConfig = {
     disableTelemetry: true,
   },
   docs: {},
-  webpackFinal: (config) => {
-    setAliases(config);
-    setLoaders(config);
-    setPlugins(config);
- 
-    return config
-  },
+  // https://storybook.js.org/docs/builders/webpack#import-a-custom-webpack-configuration
+  webpackFinal: (config: webpack.Configuration) => ({
+    ...config,
+    resolve: {
+      ...config.resolve,
+      alias: {
+        ...config.resolve?.alias,
+        ...webpackAliases,
+      }
+    },
+    module: {
+      ...config.module,
+      rules: [
+        ...config.module?.rules || [],
+        ...webpackLoaders,
+      ],
+    },
+    plugins: [
+      ...config.plugins || [],
+      ...webpackPlugins,
+    ]
+  }),
 };
 export default config;
