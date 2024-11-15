@@ -1069,6 +1069,7 @@ export default {
           line-height: normal;
 
           & > p {
+            width: 182px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1116,9 +1117,11 @@ export default {
 
         > i, > img {
           display: block;
-          width: 42px;
           font-size: $icon-size;
           margin-right: 14px;
+          &.group-icon {
+            width: 42px;
+          }
         }
 
         .rancher-provider-icon,
@@ -1307,7 +1310,6 @@ export default {
         }
         .pin {
           display: block;
-          margin-right: 0;
         }
       }
 
