@@ -8,7 +8,9 @@ import {
   CATALOG,
   CONFIG_MAP, MANAGEMENT, EVENT, NAMESPACE, NODE, POD, PVC,
   PV,
-  STORAGE_CLASS
+  STORAGE_CLASS,
+  SERVICE,
+  INGRESS
 } from '@shell/config/types';
 import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -103,6 +105,7 @@ class NamespaceProjectFilters {
  * Helper functions for steve pagination
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
+  // TODO: RC how to extensions add to this list?!
   /**
    * Filtering with the vai cache supports specific fields
    * 1) Those listed here
@@ -176,6 +179,16 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.allocatable.memory' }, // TODO: RC TEST
       { field: 'status.allocatable.pods' }, // TODO: RC TEST
       // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+    ],
+    [SERVICE]: [
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.selector' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.type' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [INGRESS]: [
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.rules' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.ingressClassName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
     ],
     [PVC]: [
       // { field: 'spec.volumeName' }, // Pending API support https://github.com/rancher/rancher/issues/48103

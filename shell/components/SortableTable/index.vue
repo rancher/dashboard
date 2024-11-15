@@ -1118,7 +1118,6 @@ export default {
             </template>
           </slot>
         </div>
-        <!-- v-if="!hasAdvancedFiltering && $slots['header-middle']" TODO: RC -->
         <div
           v-if="!hasAdvancedFiltering && $slots['header-middle']"
           class="middle"
@@ -1126,7 +1125,6 @@ export default {
           <slot name="header-middle" />
         </div>
 
-        <!-- v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']" TODO: RC -->
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
           class="search row"
@@ -1410,7 +1408,6 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
-                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"

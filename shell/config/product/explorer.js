@@ -83,7 +83,6 @@ export function init(store) {
     RESOURCE_QUOTA,
   ], 'policy');
 
-  // TODO: RC bug two x namespace column
   // TODO: RC bug refresh icon
   basicType([
     SERVICE,
@@ -282,11 +281,10 @@ export function init(store) {
     [
       STEVE_STATE_COL,
       STEVE_NAMESPACE_COL,
-      STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // TODO: RC is this from fields? if not add to index list
-        search: 'spec.rules', // TODO: RC test
+        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48103
+        search: 'spec.rules', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       {
         ...INGRESS_DEFAULT_BACKEND,
@@ -296,32 +294,31 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // TODO: RC is this from fields? if not add to index list
+        search: 'spec.ingressClassName', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       STEVE_AGE_COL
     ]
   );
-  // TODO: RC test  HPA, ingress and service list
+
   headers(SERVICE,
     [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE],
     [
       STEVE_STATE_COL,
       STEVE_NAMESPACE_COL,
-      STEVE_NAMESPACE_COL,
       {
         ...TARGET_PORT,
-        sort:   'spec.targetPort', /// / TODO: RC is this from fields? if not add to index list
-        search: 'spec.targetPort', // TODO: RC is this from fields? if not add to index list
+        sort:   'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103
+        search: 'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       {
         ...SELECTOR,
-        sort:   'spec.selector', /// / TODO: RC is this from fields? if not add to index list
-        search: 'spec.selector', // TODO: RC is this from fields? if not add to index list
+        sort:   'spec.selector', // Pending API support https://github.com/rancher/rancher/issues/48103
+        search: 'spec.selector', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       {
         ...SPEC_TYPE,
-        sort:   'spec.type', // TODO: RC is this from fields? if not add to index list
-        search: 'spec.type', // TODO: RC is this from fields? if not add to index list
+        sort:   'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103
+        search: 'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       STEVE_AGE_COL
     ]
@@ -360,10 +357,11 @@ export function init(store) {
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
-      HPA_REFERENCE, // spec.scaleTargetRef.name TODO: RC is this from fields? if not add to index list
-      MIN_REPLICA, // spec.minReplicas TODO: RC is this from fields? if not add to index list
-      MAX_REPLICA, // spec.maxReplicas TODO: RC is this from fields? if not add to index list
-      CURRENT_REPLICA, // spec.currentReplicas TODO: RC is this from fields? if not add to index list
+      STEVE_NAMESPACE_COL,
+      HPA_REFERENCE, // Pending API support https://github.com/rancher/rancher/issues/48103
+      MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
+      MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
+      CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
     ]
   );
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
