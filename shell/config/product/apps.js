@@ -79,8 +79,7 @@ export function init(store) {
     name:        'branch',
     labelKey:    'tableHeaders.branch',
     sort:        'spec.gitBranch',
-    getValue:    (row) => row,
-    formatter:   'ClusterRepoBranch',
+    getValue:    (row) => row?.isOciType ? store.getters['i18n/t']('generic.na') : row?.spec?.gitBranch || undefined,
     dashIfEmpty: true,
   };
 
