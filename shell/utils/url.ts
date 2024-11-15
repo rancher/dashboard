@@ -169,3 +169,24 @@ export function stringify(uri: ParsedUri): string {
 
   return out;
 }
+
+/**
+ * Strips the origin from a given URL and returns the path with any search query.
+ *
+ * @param url The URL to be processed.
+ * @returns The path and search query part of the URL, or the original URL if parsing fails.
+ */
+export function stripOrigin(url: string) {
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = URL.canParse(url) ? new URL(url) : new URL(url, process.env.BASE_URL);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(`Failed to parse url: ${ url }`, { e });
+
+    return url;
+  }
+
+  return `${ parsedUrl.pathname }${ parsedUrl.search }`;
+}
