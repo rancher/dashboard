@@ -82,6 +82,9 @@ export function init(store) {
     POD_DISRUPTION_BUDGET,
     RESOURCE_QUOTA,
   ], 'policy');
+
+  // TODO: RC bug two x namespace column
+  // TODO: RC bug refresh icon
   basicType([
     SERVICE,
     INGRESS,

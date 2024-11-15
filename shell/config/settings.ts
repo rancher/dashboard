@@ -8,7 +8,11 @@ import {
   POD, NODE,
   STORAGE_CLASS,
   PVC,
-  PV
+  PV,
+  LIMIT_RANGE,
+  NETWORK_POLICY,
+  POD_DISRUPTION_BUDGET,
+  RESOURCE_QUOTA
 } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
@@ -263,13 +267,17 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
+            // custom list or headers? not generic
             enabled: [
-              POD, NODE, EVENT,
+              NODE, EVENT,
+              POD,
               CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
               HPA, INGRESS, SERVICE,
-              PV, STORAGE_CLASS, CONFIG_MAP, PVC, SECRET
+              PV, CONFIG_MAP, PVC, SECRET,
             ],
-
+            // Currently covers more resources plus (at time of comment)
+            // STORAGE_CLASS
+            // LIMIT_RANGE, NETWORK_POLICY, POD_DISRUPTION_BUDGET, RESOURCE_QUOTA
             generic: true,
           }
         }
