@@ -196,11 +196,11 @@ function canParse(url: string, base?: string): boolean {
  * @param url The URL to be processed.
  * @returns The path and search query part of the URL, or the original URL if parsing fails.
  */
-export function stripOrigin(url: string) {
+export function stripOrigin(url: string, base = process.env.BASE_URL) {
   let parsedUrl: URL;
 
   try {
-    parsedUrl = canParse(url) ? new URL(url) : new URL(url, process.env.BASE_URL);
+    parsedUrl = canParse(url) ? new URL(url) : new URL(url, base);
   } catch (e) {
     return url;
   }
