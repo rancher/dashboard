@@ -83,7 +83,6 @@ export function init(store) {
     RESOURCE_QUOTA,
   ], 'policy');
 
-  // TODO: RC bug refresh icon
   basicType([
     SERVICE,
     INGRESS,

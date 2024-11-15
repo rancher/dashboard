@@ -272,6 +272,13 @@ export default {
         v-bind="$data"
       />
     </div>
+    <!-- TODO: RC throw exception in findX that are no longer supported.. or will all be supported with tweak? should they use findPage? -->
+    <!-- this.uiServices = await this.$store.dispatch('cluster/findMatching', {
+        type:     SERVICE,
+        selector: 'app=longhorn-ui'
+      }); -->
+    <!-- // TODO: RC BUG. Switching between lists can show the 'no rows to show' message before populating with existing rows. only happens for below and not custom? -->
+    <!-- ||{{ hasListComponent }}||{{ canPaginate }}|| TODO: track if canPaginate is first brielfy false. block on it being populated? -->
     <ResourceTable
       v-else
       :schema="schema"
