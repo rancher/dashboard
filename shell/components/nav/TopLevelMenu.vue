@@ -920,7 +920,7 @@ export default {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
-    left: 35px !important;
+    left: 48px !important;
   }
 
   .localeSelector, .footer-tooltip {
