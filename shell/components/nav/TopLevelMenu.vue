@@ -920,7 +920,7 @@ export default {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
-    left: 35px !important;
+    left: 48px !important;
   }
 
   .localeSelector, .footer-tooltip {
@@ -1069,7 +1069,7 @@ export default {
           line-height: normal;
 
           & > p {
-            width: 195px;
+            width: 182px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1117,9 +1117,11 @@ export default {
 
         > i, > img {
           display: block;
-          width: 42px;
           font-size: $icon-size;
           margin-right: 14px;
+          &.group-icon {
+            width: 42px;
+          }
         }
 
         .rancher-provider-icon,
