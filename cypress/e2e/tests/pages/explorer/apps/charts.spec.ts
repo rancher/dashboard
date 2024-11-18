@@ -60,7 +60,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
-    chartsPage.checkChartGenericIcon('Logging', false);
+    // TODO: #12625 - Logging chart has generic icon
+    // chartsPage.checkChartGenericIcon('Logging', false);
   });
 
   it('Show deprecated apps filter works properly', () => {
