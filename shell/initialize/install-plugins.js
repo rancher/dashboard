@@ -48,7 +48,8 @@ export async function installInjectedPlugins(app, vueApp) {
     if (typeof pluginDefinition === 'function') {
       await pluginDefinition(
         app.context,
-        (key, value) => inject(key, value, app.context, vueApp)
+        (key, value) => inject(key, value, app.context, vueApp),
+        vueApp, // Expose app instance to plugins to allow adding components and such
       );
     }
   });

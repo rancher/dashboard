@@ -37,7 +37,8 @@ export default function(context, inject, vueApp) {
           store,
           $axios,
           redirect,
-          plugins: this
+          plugins: this,
+          vueApp, // Expose app instance to plugins to allow adding components and such
         };
 
         return internal;
