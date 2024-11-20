@@ -14,8 +14,8 @@
   ],
   "types": "./types/index.d.ts",
   "scripts": {
-    "build:lib": "vue-cli-service build --target lib --name @rancher/components src/main.ts",
-    "lint": "vue-cli-service lint"
+    "build:lib": "vue-cli-service build --skip-plugins eslint --target lib --name @rancher/components src/main.ts",
+    "lint": "vue-cli-service lint --rulesdir ../../eslint-local-rules"
   },
   "engines": {
     "node": ">=20.0.0"
