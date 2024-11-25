@@ -4,6 +4,8 @@ GITHUB_RELEASE_TAG=$1
 GITHUB_RUN_ID=$2
 GITHUB_WORKFLOW_TYPE=$3
 
+echo "Parse tag name - evaluating release tag $GITHUB_RELEASE_TAG"
+
 # Ensure "catalog" workflow release tag name does not match a pkg/<pkg-name>
 if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
   for d in pkg/*/ ; do
