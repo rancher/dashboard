@@ -168,7 +168,8 @@ export default {
           },
           bundle: {
             inStoreType: 'management',
-            type:        FLEET.BUNDLE
+            type:        FLEET.BUNDLE,
+            opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
           },
 
           bundleDeployment: {

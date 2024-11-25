@@ -1,7 +1,7 @@
 <script>
 import merge from 'lodash/merge';
 import { ucFirst } from '@shell/utils/string';
-import { isSimpleKeyValue } from '@shell/utils/object';
+import { isSimpleKeyValue, set } from '@shell/utils/object';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -222,6 +222,9 @@ export default {
         this.value.spec.match.namespaces = [];
         this.value.spec.match.excludedNamespaces = [];
       }
+    },
+    setParameters(e) {
+      return set(this.value.spec, 'parameters', e);
     }
   }
 };
@@ -356,7 +359,7 @@ export default {
             v-model:value="parametersYaml"
             class="yaml-editor"
             :editor-mode="editorMode"
-            @newObject="$set(value.spec, 'parameters', $event)"
+            @newObject="setParameters"
           />
         </Tab>
       </Tabbed>

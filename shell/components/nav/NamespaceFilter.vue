@@ -140,9 +140,11 @@ export default {
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
       const params = { ...this.$route.params };
       const resource = params.resource;
+
       // Sometimes, different pages may have different namespaces to filter
       const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
 
@@ -197,8 +199,6 @@ export default {
 
         divider(out);
       }
-
-      const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
       if (!inStore) {
         return out;
@@ -893,9 +893,6 @@ export default {
     width: 280px;
     display: inline-block;
 
-    $glass-z-index: 2;
-    $dropdown-z-index: 1000;
-
     .ns-glass {
       height: 100vh;
       left: 0;
@@ -903,7 +900,7 @@ export default {
       position: absolute;
       top: 0;
       width: 100vw;
-      z-index: $glass-z-index;
+      z-index: z-index('overContent');
     }
 
     .ns-controls {
@@ -955,7 +952,7 @@ export default {
       margin-top: -1px;
       padding-bottom: 10px;
       position: relative;
-      z-index: $dropdown-z-index;
+      z-index: z-index('dropdownOverlay');
 
       .ns-options {
         max-height: 50vh;
@@ -1067,7 +1064,7 @@ export default {
       height: 40px;
       padding: 0 10px;
       position: relative;
-      z-index: $dropdown-z-index;
+      z-index: z-index('dropdownOverlay');
 
       &.ns-open {
         border-bottom-left-radius: 0;

@@ -23,6 +23,10 @@ export default {
       type:    Object,
       default: null
     },
+    enableDefaultAddValue: {
+      type:    Boolean,
+      default: true
+    },
     loading: {
       type:    Boolean,
       default: false
@@ -43,7 +47,7 @@ export default {
     },
 
     defaultAddValue() {
-      return this.options[0]?.value;
+      return this.enableDefaultAddValue ? this.options[0]?.value : '';
     },
 
     getOptionLabel() {
