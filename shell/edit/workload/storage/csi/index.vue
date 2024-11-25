@@ -44,6 +44,33 @@ export default {
 
     ...mapGetters({ t: 'i18n/t' })
   },
+
+  methods: {
+    /**
+    * Retrieves the label for a given option
+    * @param option The option for which to retrieve the label. option can be
+    * either a string or an object. If it is an object, is should have a `label`
+    * property associated with it.
+    */
+    getOptionLabel(option) {
+      if (typeof option === 'string') {
+        return this.getOptionLabelString(option);
+      }
+
+      const { label } = option;
+
+      return this.getOptionLabelString(label);
+    },
+    /**
+    * Translates a given key into a localized string.
+    * @param key The key to be translated.
+    */
+    getOptionLabelString(key) {
+      // Periods are replaced with `-` to prevent conflict with the default key
+      // separator.
+      return this.t(`workload.storage.csi.drivers.'${ key.replaceAll('.', '-') }'`);
+    }
+  }
 };
 </script>
 
@@ -74,7 +101,7 @@ export default {
             :mode="mode"
             :label="t('workload.storage.driver')"
             :options="driverOpts"
-            :get-option-label="opt=>t(`workload.storage.csi.drivers.'${opt}'`)"
+            :get-option-label="getOptionLabel"
             :required="true"
           />
         </div>
