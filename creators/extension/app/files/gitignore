@@ -68,3 +68,6 @@ jspm_packages/
 # System Files
 .DS_Store
 Thumbs.db
+
+# Locally built assets (extensions)
+dist-pkg
