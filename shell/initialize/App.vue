@@ -1,15 +1,10 @@
 <script>
-import NuxtError from '@shell/components/templates/error.vue';
 import NuxtLoading from '@shell/components/nav/GlobalLoading.vue';
 
 import '@shell/assets/styles/app.scss';
 
 export default {
-  data: () => ({
-    isOnline: true,
-
-    showErrorPage: false,
-  }),
+  data: () => ({ isOnline: true }),
 
   created() {
     // add to window so we can listen when ready
@@ -60,7 +55,7 @@ export default {
     },
   },
 
-  components: { NuxtLoading, NuxtError }
+  components: { NuxtLoading }
 };
 </script>
 <template>
@@ -68,10 +63,8 @@ export default {
     <NuxtLoading ref="loading" />
     <div
       id="__layout"
-      :key="showErrorPage"
     >
-      <NuxtError v-if="showErrorPage" />
-      <router-view v-else />
+      <router-view />
     </div>
   </div>
 </template>
