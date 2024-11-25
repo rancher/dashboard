@@ -85,7 +85,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
         run: |
-          OUTPUT_ARRAY=("${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.release-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
+          OUTPUT_ARRAY=("${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="Workflows testing for extensions failed! 🆘"
@@ -97,19 +97,17 @@ jobs:
 
           TAGS_OUTPUT_STRING="status for retrieve-tags-master - build => ${{ needs.retrieve-tags-master.outputs.tags-job-status }}"
           EXT_CHART_BUILD_OUTPUT_STRING="status for test-build-extension-charts-master - build => ${{ needs.test-build-extension-charts-master.outputs.build-job-status }}"    
-          EXT_CHART_RELEASE_OUTPUT_STRING="status for test-build-extension-charts-master - release => ${{ needs.test-build-extension-charts-master.outputs.release-job-status }}"    
           EXT_CATALOG_BUILD_OUTPUT_STRING="status for test-build-extension-catalog-master - build => ${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}"    
           RELEASE_SHELL_PKG_OUTPUT_STRING="status for test-release-shell-pkg-master - release => ${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}"    
           RELEASE_CREATORS_PKG_OUTPUT_STRING="status for test-release-creators-pkg-master - release => ${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}"    
 
           echo $TAGS_OUTPUT_STRING    
           echo $EXT_CHART_BUILD_OUTPUT_STRING    
-          echo $EXT_CHART_RELEASE_OUTPUT_STRING
           echo $EXT_CATALOG_BUILD_OUTPUT_STRING
           echo $RELEASE_SHELL_PKG_OUTPUT_STRING    
           echo $RELEASE_CREATORS_PKG_OUTPUT_STRING    
         
-          MSG="$MSG_PREFIX ::: $TAGS_OUTPUT_STRING ::: $EXT_CHART_BUILD_OUTPUT_STRING ::: $EXT_CHART_RELEASE_OUTPUT_STRING ::: $EXT_CATALOG_BUILD_OUTPUT_STRING ::: $RELEASE_SHELL_PKG_OUTPUT_STRING ::: $RELEASE_CREATORS_PKG_OUTPUT_STRING"
+          MSG="$MSG_PREFIX ::: $TAGS_OUTPUT_STRING ::: $EXT_CHART_BUILD_OUTPUT_STRING ::: $EXT_CATALOG_BUILD_OUTPUT_STRING ::: $RELEASE_SHELL_PKG_OUTPUT_STRING ::: $RELEASE_CREATORS_PKG_OUTPUT_STRING"
 
           echo "message sent: $MSG"
 
