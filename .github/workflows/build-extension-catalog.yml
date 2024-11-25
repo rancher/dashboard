@@ -12,22 +12,44 @@ on:
       tagged_release:
         required: false
         type: string
+      is_test:
+        required: false
+        type: string
+      test_ext_repo:
+        required: false
+        type: string
+      test_ext_branch:
+        required: false
+        type: string
     secrets:
       registry_token:
         required: true
+    outputs:
+      build-extension-catalog-job-status: 
+        value: ${{ jobs.build-extension-catalog.outputs.build-status }}
 
 jobs:
   build-extension-catalog:
     name: Build container image
-    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
     runs-on: ubuntu-latest
     permissions:
       actions: write
       contents: read
       packages: write
+    outputs:
+      build-status: ${{ job.status }}
 
     steps:
-      - name: Checkout repository
+      - if: inputs.is_test == 'true'
+        name: Checkout repository (test flow)
+        uses: actions/checkout@v4
+        with:
+          repository: rancher/${{ inputs.test_ext_repo }}
+          ref: ${{ inputs.test_ext_branch }}
+
+      - if: inputs.is_test != 'true'
+        name: Checkout repository (normal flow)
         uses: actions/checkout@v4
 
       - name: Setup Nodejs for corepack
@@ -64,7 +86,7 @@ jobs:
         run: yarn
 
       - name: Parse Extension Name
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || inputs.is_test == 'true'
         id: parsed-name
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,7 +95,13 @@ jobs:
 
       - name: Build and push UI image
         run: |
-          publish="yarn publish-pkgs -cp -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
+          publish="yarn publish-pkgs -c"
+          
+          if [[ "${{ inputs.is_test }}" != "true" ]]; then
+            publish="$publish -p"
+          fi
+          
+          publish="$publish -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
 
           if [[ -n "${{ inputs.tagged_release }}" ]]; then
             publish="$publish -t ${{ inputs.tagged_release }}"

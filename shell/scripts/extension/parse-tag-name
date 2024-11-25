@@ -4,6 +4,8 @@ GITHUB_RELEASE_TAG=$1
 GITHUB_RUN_ID=$2
 GITHUB_WORKFLOW_TYPE=$3
 
+echo "Parse tag name - evaluating release tag $GITHUB_RELEASE_TAG"
+
 # Check packages for released tag name
 if [[ "${GITHUB_WORKFLOW_TYPE}" == "container" ]]; then
   for d in pkg/*/ ; do
