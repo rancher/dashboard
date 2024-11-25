@@ -248,9 +248,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     // delete project and ns
     cy.deleteRancherResource('v1', 'namespaces', nsName);
     cy.deleteRancherResource('v3', 'projects', projectId);
+
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });
