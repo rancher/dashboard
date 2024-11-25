@@ -6,6 +6,10 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const namespacePicker = new NamespaceFilterPo();
 
 describe('Namespace picker', { testIsolation: 'off' }, () => {
+  let projectId: string | undefined;
+  const projName = `project${ +new Date() }`;
+  const nsName = `namespace${ +new Date() }`;
+
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -192,39 +196,62 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
-    const projName = `project${ +new Date() }`;
-    const nsName = `namespace${ +new Date() }`;
-
     // get user id
     cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
       const userId = resp.body.data[0].id.trim();
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
-        const projId = resp.body.id.trim();
+        projectId = resp.body.id.trim();
 
         // create ns
-        cy.createNamespaceInProject(nsName, projId);
+        cy.createNamespaceInProject(nsName, projectId);
 
         // check ns picker
         namespacePicker.toggle();
         cy.contains(projName).should('exist').scrollIntoView().and('be.visible');
         cy.contains(nsName).should('exist').scrollIntoView().and('be.visible');
+      });
+    });
+  });
+
+  it('deleted project/namespace gets removed from namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
+    const projNameToDelete = `project-to-delete${ +new Date() }`;
+    const nsNameToDelete = `namespace-to-delete${ +new Date() }`;
+
+    // get user id
+    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.data[0].id.trim();
+
+      // create project
+      cy.createProject(projNameToDelete, 'local', userId).then((resp: Cypress.Response<any>) => {
+        const projIdToDelete = resp.body.id.trim();
+
+        // create ns
+        cy.createNamespaceInProject(nsNameToDelete, projIdToDelete);
+
+        // check ns picker
+        namespacePicker.toggle();
+        cy.contains(projNameToDelete).should('exist').scrollIntoView().and('be.visible');
+        cy.contains(nsNameToDelete).should('exist').scrollIntoView().and('be.visible');
 
         // delete project and ns
-        cy.deleteRancherResource('v1', 'namespaces', nsName);
-        cy.deleteRancherResource('v3', 'projects', projId);
+        cy.deleteRancherResource('v1', 'namespaces', nsNameToDelete);
+        cy.deleteRancherResource('v3', 'projects', projIdToDelete);
 
         // check ns picker
         cy.reload();
         namespacePicker.toggle();
-        cy.contains(projName, { timeout: 20000 }).should('not.exist');
-        cy.contains(nsName, { timeout: 20000 }).should('not.exist');
+        cy.contains(projNameToDelete, { timeout: 20000 }).should('not.exist');
+        cy.contains(nsNameToDelete, { timeout: 20000 }).should('not.exist');
       });
     });
   });
 
   after('clean up', () => {
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    // delete project and ns
+    cy.deleteRancherResource('v1', 'namespaces', nsName);
+    cy.deleteRancherResource('v3', 'projects', projectId);
   });
 });
