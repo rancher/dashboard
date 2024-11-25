@@ -240,7 +240,6 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         cy.deleteRancherResource('v3', 'projects', projIdToDelete);
 
         // check ns picker
-        cy.reload();
         namespacePicker.toggle();
         cy.contains(projNameToDelete, { timeout: 20000 }).should('not.exist');
         cy.contains(nsNameToDelete, { timeout: 20000 }).should('not.exist');
