@@ -1473,6 +1473,7 @@ cluster:
     placeholder: A unique name for the cluster
   directoryConfig:
     title: Data directory configuration
+    banner: Data directory configuration can not be changed once the cluster has been created
     radioInput:
       defaultLabel: Use default data directory configuration
       commonLabel: Use a common base directory for data directory configuration (sub-directories will be used for the system-agent, provisioning and distro paths)
