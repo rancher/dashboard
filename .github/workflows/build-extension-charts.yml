@@ -21,8 +21,6 @@ on:
     outputs:
       build-job-status: 
         value: ${{ jobs.build-extension-artifact.outputs.build-status }}
-      release-job-status: 
-        value: ${{ jobs.release.outputs.release-status }}
 
 env:
   ACTIONS_RUNNER_DEBUG: false
