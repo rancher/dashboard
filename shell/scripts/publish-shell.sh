@@ -64,6 +64,13 @@ function publish() {
     PUBLISH_ARGS="$PUBLISH_ARGS --tag legacy-v2"
   fi
 
+  # when testing the workflow, we don't want to actually do an npm publish but only a dry run
+  if [ ${DRY_RUN} == "true" ]; then
+    PUBLISH_ARGS="$PUBLISH_ARGS --dry-run"
+  fi
+
+  echo "Publish to NPM - arguments ::: ${PUBLISH_ARGS}"
+
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
