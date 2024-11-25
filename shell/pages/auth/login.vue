@@ -31,6 +31,7 @@ import {
 import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 export default {
   name:       'Login',
@@ -64,7 +65,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isStandaloneHarvester']),
+    ...mapGetters(['isSingleProduct']),
     ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
 
     loggedOutSuccessMsg() {
@@ -75,6 +76,10 @@ export default {
       }
 
       return this.t('login.loggedOut');
+    },
+
+    isHarvester() {
+      return this.isSingleProduct?.productName === HARVESTER;
     },
 
     singleProvider() {
@@ -498,7 +503,7 @@ export default {
           </div>
         </template>
         <div
-          v-if="showLocaleSelector && hasMultipleLocales && !isStandaloneHarvester"
+          v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"
           class="locale-selector"
         >
           <LocaleSelector
