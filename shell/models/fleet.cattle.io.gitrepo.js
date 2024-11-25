@@ -338,6 +338,11 @@ export default class GitRepo extends SteveModel {
     for (const bd of bundleDeployments) {
       const clusterId = FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels);
       const c = clusters[clusterId];
+
+      if (!c) {
+        continue;
+      }
+
       const resources = FleetUtils.resourcesFromBundleDeploymentStatus(bd.status);
 
       resources.forEach((r) => {
