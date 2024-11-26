@@ -26,7 +26,7 @@ jobs:
           ref: release-2.9
 
       - name: Retrieve Shell and Creators versions
-        run: source ./shell/scripts/retrieve-versions.sh
+        run: source ./.github/workflows/scripts/retrieve-versions.sh
         id: retrieve-data
         shell: bash
   test-build-extension-charts-release-2-dot-9:
@@ -112,4 +112,4 @@ jobs:
           echo "message sent: $MSG"
 
           curl -X POST -H 'Content-type: application/json; charset=utf-8' \
-          --data '{ branch: "release-2.9", message: $MSG }' $SLACK_WEBHOOK
+          --data '{ "branch": "release-2.9", "message": $MSG, "workflow_run": ${{ github.run_id }} }' $SLACK_WEBHOOK
