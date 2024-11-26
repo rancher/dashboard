@@ -197,17 +197,17 @@ customValidationRules() {
 
 > #### A validation rule can contain the following keys:
 > 
-> `path` {string}: the model property to validate
+> `path` \{string\}: the model property to validate
 > 
-> `nullable` {boolean}: asserts if property accepts `null` value
+> `nullable` \{boolean\}: asserts if property accepts `null` value
 > 
-> `required` {boolean}: asserts if property requires a value
+> `required` \{boolean\}: asserts if property requires a value
 > 
-> `translationKey` {string}: path to validation key in `assets/translations`
+> `translationKey` \{string\}: path to validation key in `assets/translations`
 > 
-> `type` {string}: name of built-in validation rule to assert
+> `type` \{string\}: name of built-in validation rule to assert
 > 
-> `validators` {string}: name of custom validation rule to assert
+> `validators` \{string\}: name of custom validation rule to assert
 
 Add `:${arg}` to pass custom arguments to a validation function:
 

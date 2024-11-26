@@ -12,15 +12,15 @@ A good base knowledge of Vue, Vuex and Nuxt should be reached before going throu
 
 | Description                       | Link                                                                                                   |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Core Vue Docs                     | <https://vuejs.org/v2/guide>                                                                           |
-| Typescript in Vue                 | <https://vuejs.org/v2/guide/typescript.html>                                                           |
-| Vue Template/Directive Shorthands | <https://vuejs.org/v2/guide/syntax.html>                                                               |
-| Vue Conditional rendering         | <https://vuejs.org/v2/guide/conditional.html>                                                          |
-| Vuex Core Docs                    | <https://vuex.vuejs.org/>                                                                              |
-| Nuxt Get Started                  | <https://nuxtjs.org/docs/2.x/get-started/installation>                                                 |
-| Nuxt Structure                    | <https://nuxtjs.org/docs/2.x/directory-structure>                                                      |
-| Axios (HTTP Requests)             | <https://axios.nuxtjs.org/options>                                                                     |
-| HTTP Proxy middleware             | <https://github.com/nuxt-community/proxy-module> (<https://github.com/chimurai/http-proxy-middleware>) |
+| Core Vue Docs                     | https://vuejs.org/v2/guide                                                                           |
+| Typescript in Vue                 | https://vuejs.org/v2/guide/typescript.html                                                           |
+| Vue Template/Directive Shorthands | https://vuejs.org/v2/guide/syntax.html                                                               |
+| Vue Conditional rendering         | https://vuejs.org/v2/guide/conditional.html                                                          |
+| Vuex Core Docs                    | https://vuex.vuejs.org/                                                                              |
+| Nuxt Get Started                  | https://nuxtjs.org/docs/2.x/get-started/installation                                                 |
+| Nuxt Structure                    | https://nuxtjs.org/docs/2.x/directory-structure                                                      |
+| Axios (HTTP Requests)             | https://axios.nuxtjs.org/options                                                                     |
+| HTTP Proxy middleware             | https://github.com/nuxt-community/proxy-module (https://github.com/chimurai/http-proxy-middleware) |
 
 ## Platform
 
@@ -28,7 +28,7 @@ The Dashboard is shipped with the Rancher package which contains the Rancher API
 
 ### Installing Rancher
 
-See <https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
+See https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
 
 The above linked installation docs cover two methods confirmed to work with the Dashboard:
 

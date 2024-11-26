@@ -62,7 +62,7 @@ Localisation files can be found in `./assets/translations/en-us.yaml`.
 
 Please follow precedents in file to determine where new translations should be place.
 
-Form fields are conventionally defined in translations as `<some prefix>`.`<field name>`.{label,description,enum options if applicable} e.g.
+Form fields are conventionally defined in translations as `<some prefix>`.`<field name>`.\{label,description,enum options if applicable\} e.g.
 
 ```yml
 account:
