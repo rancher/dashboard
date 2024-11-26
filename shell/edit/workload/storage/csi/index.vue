@@ -98,6 +98,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-model:value="value.csi.driver"
+            data-testid="workload-storage-driver"
             :mode="mode"
             :label="t('workload.storage.driver')"
             :options="driverOpts"
