@@ -6,27 +6,32 @@ GITHUB_WORKFLOW_TYPE=$3
 
 echo "Parse tag name - evaluating release tag $GITHUB_RELEASE_TAG"
 
-# Check packages for released tag name
-if [[ "${GITHUB_WORKFLOW_TYPE}" == "container" ]]; then
+# Ensure "catalog" workflow release tag name matches the root <pkg-name>
+if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
+  BASE_EXT=$(jq -r .name package.json)
+  EXT_VERSION=$(jq -r .version package.json)
+
+  if [[ "${GITHUB_RELEASE_TAG}" != "${BASE_EXT}-${EXT_VERSION}" ]]; then
+    echo -e "release tag doesn't match catalog tag: release tag -> ${GITHUB_RELEASE_TAG} ::: curr catalog tag -> ${BASE_EXT}-${EXT_VERSION}"
+    gh run cancel ${GITHUB_RUN_ID}
+  fi
+# Ensure "chart" workflow release tag name matches some pkg/<pkg-name>
+else
+  NO_MATCHES="true"
+
   for d in pkg/*/ ; do
     pkg=$(basename $d)
 
     PKG_VERSION=$(jq -r .version pkg/${pkg}/package.json)
-    PKG_NAME="${pkg}-${PKG_VERSION}"
+    CURR_PKG_TAG="${pkg}-${PKG_VERSION}"
 
-    if [[ "${GITHUB_RELEASE_TAG}" == "${PKG_NAME}" ]]; then
-      gh run cancel ${GITHUB_RUN_ID}
-    else
-      continue
+    if [[ "${GITHUB_RELEASE_TAG}" == "${CURR_PKG_TAG}" ]]; then
+      NO_MATCHES="false"
     fi
   done
-else
-  # Check base extension name for tag name
-  BASE_EXT=$(jq -r .name package.json)
-  EXT_VERSION=$(jq -r .version package.json)
 
-  if [[ "${GITHUB_RELEASE_TAG}" == "${BASE_EXT}-${EXT_VERSION}" ]]; then
-    echo -e "tag: ${GITHUB_RELEASE_TAG}"
+  if [[ "${NO_MATCHES}" == "true" ]]; then
+    echo -e "release tag doesn't match any chart tag: ${GITHUB_RELEASE_TAG}. Check your pkg/<!-YOUR-EXT-> folders and corresponding versions to complete the match"
     gh run cancel ${GITHUB_RUN_ID}
   fi
 fi
