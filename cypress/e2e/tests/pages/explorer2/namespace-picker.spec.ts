@@ -6,7 +6,8 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const namespacePicker = new NamespaceFilterPo();
 
 describe('Namespace picker', { testIsolation: 'off' }, () => {
-  let projectId: string | undefined;
+  let removeProjectAndNs = false;
+  let projectId: string;
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
@@ -211,6 +212,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
         namespacePicker.toggle();
         cy.contains(projName).should('exist').scrollIntoView().and('be.visible');
         cy.contains(nsName).should('exist').scrollIntoView().and('be.visible');
+        removeProjectAndNs = true;
       });
     });
   });
@@ -248,10 +250,12 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    // delete project and ns
-    cy.deleteRancherResource('v1', 'namespaces', nsName);
-    cy.deleteRancherResource('v3', 'projects', projectId);
-
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+
+    if (removeProjectAndNs) {
+      // delete project and ns
+      cy.deleteRancherResource('v1', 'namespaces', nsName);
+      cy.deleteRancherResource('v3', 'projects', projectId);
+    }
   });
 });
