@@ -90,7 +90,7 @@ describe('Cluster Explorer', () => {
         deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
 
         // open the pod storage tab
-        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage');
+        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage-pod');
 
         // check that there is a component rendered for each workload volume and that that component has rendered some information about the volume
         deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().value()
