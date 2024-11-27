@@ -109,8 +109,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     mgmtUserEditPo.globalRoleBindings().globalOptions().then((list) => {
       expect(list.length).to.eq(3);
       expect(list[0]).to.eq('Administrator');
-      expect(list[2]).to.eq('Standard User');
-      expect(list[3]).to.eq('User-Base');
+      expect(list[1]).to.eq('Standard User');
+      expect(list[2]).to.eq('User-Base');
     });
   });
 
