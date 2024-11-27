@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-const { execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
-const https = require('https');
 
 const files = [
   'tsconfig.json',
@@ -36,13 +34,10 @@ const args = process.argv;
 const name = args[2];
 const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
-let shellVersion = '';
 
 let addTypeFolders = true;
 
 if ( args.length >= 3 ) {
-  shellVersion = args[3];
-
   for ( let i = 3; i < args.length; i++ ) {
     switch (args[i]) {
     case '--skip-templates':
