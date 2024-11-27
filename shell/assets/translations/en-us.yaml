@@ -4878,10 +4878,6 @@ rbac:
       admin:
         label: Administrator
         description: Administrators have full control over the entire installation and all resources in all clusters.
-      restricted-admin:
-        label: Restricted Administrator
-        description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
-        deprecation: 'Warning: The Restricted Administrator role has been deprecated as of Rancher 2.8.0 and will be removed in a future release - Check out the <a href="{releaseNotesUrl}" target="_blank" rel="noopener noreferrer nofollow">Release Notes</a>'
       user:
         label: Standard User
         description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
