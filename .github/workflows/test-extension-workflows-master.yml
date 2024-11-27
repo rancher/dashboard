@@ -112,4 +112,4 @@ jobs:
           echo "message sent: $MSG"
 
           curl -X POST -H 'Content-type: application/json; charset=utf-8' \
-          --data '{ "branch": "master", "message": $MSG, "workflow_run": ${{ github.run_id }} }' $SLACK_WEBHOOK
+          --data "{\"branch\": \"master\", \"message\": \"$MSG\", \"workflow_run\": \"${{ github.run_id }}\"}" $SLACK_WEBHOOK
