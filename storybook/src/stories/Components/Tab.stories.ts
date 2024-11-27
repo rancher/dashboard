@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import { vueRouter } from 'storybook-vue3-router'
+import { vueRouter } from 'storybook-vue3-router';
 
 const meta: Meta<typeof Tabbed> = {
   component: Tabbed,
@@ -32,13 +32,13 @@ export const Default: Story = {
   }),
   args: {
     useHash: false,
-    value: [{ name: 'tab 1', content: 'content 1' }, { name: 'tab 2', content: 'content 2' }],
+    value:   [{ name: 'tab 1', content: 'content 1' }, { name: 'tab 2', content: 'content 2' }],
   },
 };
 
 Default.decorators = [
   vueRouter()
-]
+];
 
 export const Editable: Story = {
   ...Default,
