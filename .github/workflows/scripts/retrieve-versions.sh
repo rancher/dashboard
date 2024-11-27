@@ -51,4 +51,4 @@ function generate_tag_export() {
 
 generate_tag_export "shell"
 generate_tag_export "creators"
-generate_tag_export "extension" "ui-plugin-examples" "main" "clock"
+generate_tag_export "extension" "elemental-ui" "release-2.9.x" "elemental"
