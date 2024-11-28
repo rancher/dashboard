@@ -8,6 +8,62 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+
+const globalRoleNameYaml = 'test-global-role-yaml';
+const globalRoleYaml = `apiVersion: management.cattle.io/v3
+kind: GlobalRole
+displayName: ${ globalRoleNameYaml }
+description: Base user + Read-only on all downstream clusters
+metadata:
+  name: ${ globalRoleNameYaml }
+inheritedClusterRoles:
+  - projects-view
+rules:
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - preferences
+  verbs:
+  - '*'
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - settings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - features
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - project.cattle.io
+  resources:
+  - sourcecodecredentials
+  verbs:
+  - '*'
+- apiGroups:
+  - project.cattle.io
+  resources:
+  - sourcecoderepositories
+  verbs:
+  - '*'
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - rancherusernotifications
+  verbs:
+  - get
+  - list
+  - watch
+`;
 
 const roles = new RolesPo(BLANK_CLUSTER);
 const usersPo = new UsersPo(BLANK_CLUSTER);
@@ -259,6 +315,44 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       promptRemove.remove();
       cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
       roles.list('GLOBAL').elementWithName(globalRoleName).should('not.exist');
+    });
+
+    it('Cloning a Global Role with "inheritedClusterRoles" should pass the property correctly', () => {
+      const clusterDashboard = new ClusterDashboardPagePo('local');
+      const header = new HeaderPo();
+
+      // import YAML for test
+      clusterDashboard.goTo();
+      clusterDashboard.waitForPage();
+
+      header.importYamlHeaderAction().click();
+      header.importYaml().importYamlEditor().set(globalRoleYaml);
+      header.importYaml().importYamlImportClick();
+
+      header.importYaml().importYamlSuccessTitleCheck();
+      header.importYaml().importYamlCloseClick();
+
+      roleTemplatesToDelete.push(globalRoleNameYaml);
+
+      // clone role
+      roles.goTo(undefined, 'GLOBAL');
+      roles.waitForPage(undefined, 'GLOBAL');
+      roles.list('GLOBAL').elementWithName(globalRoleNameYaml).click();
+      roles.list('GLOBAL').rowCloneYamlClick(globalRoleNameYaml);
+
+      cy.intercept('POST', '/v3/globalroles').as('cloneYamlRole');
+
+      const clusterRoleName = 'cloned-global-role';
+      const editGlobalRole = roles.createRole();
+
+      editGlobalRole.name().set(clusterRoleName);
+      editGlobalRole.saveCreateForm().click();
+
+      // check property exists
+      cy.wait('@cloneYamlRole', { requestTimeout: 15000 }).then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect('projects-view').to.be.oneOf(response?.body?.inheritedClusterRoles);
+      });
     });
 
     after(() => {
