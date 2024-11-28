@@ -50,7 +50,7 @@ These are the most common Vue3 syntax changes that you may encounter on your ext
 
 ## New mandatory annotation
 
-One of the new changes that we've introduced is that for a published extension to be loaded into a Rancher `2.10` system, the published helm chart for a particular version **must** include the `catalog.cattle.io/ui-extensions-version` annotation, being the minimum version needed `>= 3.0.0`.
+One of the new changes that we've introduced is that for a published extension to be loaded into a Rancher `2.10` system, the published helm chart for a particular version **must** include the `catalog.cattle.io/ui-extensions-version` annotation, being the minimum version needed `>= 3.0.0`. We also recommend to set a maximum of `< 4.0.0` on this new annotation.
 
 We also recommend that you update the `catalog.cattle.io/rancher-version` to `>= 2.10.0`.
 
@@ -64,7 +64,7 @@ You should check that your extension `pkg/<-YOUR EXTENSION->/package.json` shows
   "rancher": {
     "annotations": {
       "catalog.cattle.io/rancher-version": ">= 2.10.0",
-      "catalog.cattle.io/ui-extensions-version": ">= 3.0.0"
+      "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0"
     }
   },
   ....
