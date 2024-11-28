@@ -4556,9 +4556,6 @@ rbac:
       admin:
         label: 管理员
         description: 管理员可以完全控制整个安装以及所有集群中的所有资源。
-      restricted-admin:
-        label: 受限管理员
-        description: 受限管理员可以完全控制所有下游集群的所有资源，但不能访问本地集群。
       user:
         label: 普通用户
         description: 普通用户可以创建集群，并管理其授权访问的集群和项目。
