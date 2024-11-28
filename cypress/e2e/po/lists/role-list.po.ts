@@ -5,6 +5,11 @@ export default class RoleListPo extends BaseResourceList {
     return this.resourceTable().downloadYamlButton().first();
   }
 
+  rowCloneYamlClick(name: string) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem('Clone')
+      .click();
+  }
+
   delete() {
     return this.resourceTable().sortableTable().deleteButton().first();
   }
