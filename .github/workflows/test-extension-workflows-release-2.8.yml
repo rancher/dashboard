@@ -42,7 +42,7 @@ jobs:
       tagged_release:  ${{ needs.retrieve-tags-release-2-dot-8.outputs.EXTENSIONS_TAG }}
       is_test:  'true'
       test_ext_repo: 'elemental-ui'
-      test_ext_branch:  'main'
+      test_ext_branch:  'release-2.8.x'
   test-build-extension-catalog-release-2-dot-8:
     needs: retrieve-tags-release-2-dot-8
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@release-2.8
@@ -56,7 +56,7 @@ jobs:
       tagged_release: ${{ needs.retrieve-tags-release-2-dot-8.outputs.ECI_TAG }}
       is_test:  'true'
       test_ext_repo: 'elemental-ui'
-      test_ext_branch:  'main'
+      test_ext_branch:  'release-2.8.x'
     secrets: 
       registry_token: ${{ secrets.GITHUB_TOKEN }}
   test-release-shell-pkg-release-2-dot-8:
