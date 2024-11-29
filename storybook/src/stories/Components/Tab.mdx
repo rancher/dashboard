@@ -1,0 +1,54 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as TabStories from './Tab.stories';
+
+<Meta of={TabStories} />
+
+# Tab
+
+Tabs are used to separate information into logical sections and to quickly navigate between them.
+
+### Description
+- Use tabs when there is a large amount of content that can be separated.
+- Use tabs to make the content accessible without reloading the page or compromising on space.
+- Write short tab labels. Try not to use more than two words for a tab label.
+
+- Secondary tabs never appear without a parent set of primary tabs.
+- The number of secondary tabs inside vertical tabs should be as small as possible – not more than six are recommended.
+
+<Canvas of={TabStories.Default} />
+
+#### Horizontal Tabs
+- Horizontal tabs are best used with ten or fewer tabs. This maintains an uncluttered UI and reduces cognitive load for users.
+- Write short tab labels. Especially with a large number of tabs and little horizontal screen space.
+- Stick to only one row of tabs. Use tab navigation when the content categories fit in a single row.
+
+<Canvas of={TabStories.Horizontal} />
+
+#### Side/Vertical Tabs
+- Vertical tabs provide better scalability for a large number of tabs (ten and more).
+
+<Canvas of={TabStories.Vertical} />
+
+#### Nested
+
+- Primary tabs can either be arranged horizontally or vertically. 
+- Secondary tabs only appear as nested tab.
+- Tabs can be nested in two levels.
+
+##### Vertical tabs with Vertical secondary tabs.
+
+<Canvas of={TabStories.NestedHorizontal} />
+
+##### Horizontal tabs with vertical secondary tabs
+
+<Canvas of={TabStories.NestedVertical} />
+
+##### Editable
+
+<Canvas of={TabStories.Editable} />
+
+##### Slots
+
+You can have customize elements in the tab row by using `tab-row-extras` slot.
+
+<Canvas of={TabStories.Slots} />

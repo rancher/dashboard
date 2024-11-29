@@ -1,0 +1,151 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as TableStories from './Table.stories';
+
+<Meta of={TableStories} />
+
+# Table
+
+Table with multiple functionalities. 
+
+Note: Within our project 2 tables exists for this purpose: `SortableTable` and `ResourceTable`. 
+The first one is an abstracted version, while the `ResourceTable` is a wrapper bound to the state.
+
+## Description
+
+This is just a visual rapresentation of the Rancher tables.
+As the component ties in to product config, models, stores, etc, consider some existing docs as well during the development
+
+- https://rancher.github.io/dashboard/code-base-works/sortable-table
+- https://rancher.github.io/dashboard/code-base-works/kubernetes-resources-data-load
+- https://rancher.github.io/dashboard/code-base-works/customising-how-k8s-resources-are-presented#list
+
+<br/>
+
+### Styles and sections
+
+#### Default view
+
+Default view case without change any prop and just providing required data.
+
+<Canvas of={TableStories.Default} />
+
+#### Grouped
+
+Rows can be grouped by matching types.
+
+<Canvas of={TableStories.Grouped} />
+
+#### Simplified
+
+The default table can also be stripped out of each interactive functionality by props.
+
+<Canvas of={TableStories.Simplified} />
+
+#### Loading
+
+Loading status for the table.
+
+<Canvas of={TableStories.Loading} />
+
+### Slots
+
+#### Custom Loading slot
+
+Custom loading slot element.
+
+<Canvas of={TableStories.SlotLoading} />
+
+#### Custom No Row slot
+
+Custom no row element.
+
+<Canvas of={TableStories.SlotNoRow} />
+
+#### Custom No Results slot
+
+Custom no results element, got while searching for an entry without results.
+
+<Canvas of={TableStories.SlotNoResults} />
+
+#### Title slot
+
+Title for the table.
+
+<Canvas of={TableStories.SlotTitle} />
+
+#### Header slots
+
+Slots reserved for adding elements on the header.
+Areas are left, middle, right and generic.
+
+<Canvas of={TableStories.SlotHeader} />
+
+#### Group Row and Group By slots
+
+Elements added in case of groupped rows using `groupBy`.
+
+<Canvas of={TableStories.SlotGroupBy} />
+
+#### Main Row slot
+
+<Canvas of={TableStories.SlotMainRow} />
+
+#### Main Row Key	slot
+
+<Canvas of={TableStories.SlotMainRowKey} />
+
+#### Column Name	slot
+
+<Canvas of={TableStories.SlotColumnName} />
+
+#### Cell Name	slot
+
+<Canvas of={TableStories.SlotCellName} />
+
+#### Row actions slot
+
+<Canvas of={TableStories.SlotRowActions} />
+
+#### Sub Row slot
+
+Rows may have extra sub rows, but it's necessary to enable them by prop `subRows`.
+
+<Canvas of={TableStories.SlotSubRow} />
+
+#### Sub Row slot - Expandable
+
+Sub rows may be turned expandable row by enabling `subExpandable`.
+
+<Canvas of={TableStories.SlotSubRowExpandable} />
+
+#### Shortkeys slot
+
+Footer area slot used to add messages related to shortkeys.
+
+<Canvas of={TableStories.SlotShortkey} />
+
+### Functionalities
+
+#### Advanced Filtering
+
+Entries can be optionally filtered by key and term or optionally hide them.
+
+<Canvas of={TableStories.Filtering} />
+
+#### Sorting
+
+Sorting is defined by header configuration using the key `sort` and a list of key to be used.
+
+<Canvas of={TableStories.Sorting} />
+
+#### Action menu
+
+Row can have action menu enabled by the configuration `rowActions`.
+
+<Canvas of={TableStories.Default} />
+
+#### Pagination
+
+Table pagination can be enabled with `paging` and set the amount of entries with `rowsPerPage`.
+
+<Canvas of={TableStories.Pagination} />
