@@ -66,7 +66,7 @@ function comparePart(in1, in2) {
   return in1.localeCompare(in2);
 }
 
-export function isPrerelease(version) {
+export function isPrerelease(version = '') {
   if (!semver.valid(version)) {
     version = semver.clean(version, { loose: true });
   }
