@@ -462,7 +462,7 @@ const getWatcherIgnored = (excludes) => {
     /dist-pkg/,
     /scripts\/standalone/,
   ];
-  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
   const pathsCombined = [...paths, ...pathExcludedPkg];
   const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
 
