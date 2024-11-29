@@ -429,7 +429,7 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: flex;
+        display: inline-flex;
 
         .content {
           display: flex;
