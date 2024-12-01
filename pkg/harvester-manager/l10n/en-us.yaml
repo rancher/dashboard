@@ -1,10 +1,14 @@
 harvesterManager:
   manage: Manage
+  tableHeaders:
+    kubernetesVersion: Kubernetes Version
+    harvesterVersion: Harvester Version
   cluster:
     label: Harvester Clusters
     none: There are no Harvester Clusters
-    learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
+    learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
     description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
+    supportMessage: Harvester ui extension only supports Harvester cluster versions greater or equal to 1.3.0
   plugins:
     loadError: Error loading harvester plugin
   extension:

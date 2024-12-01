@@ -2,9 +2,22 @@ import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { DEFAULT_WORKSPACE, HCI, MANAGEMENT } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { SETTING } from '@shell/config/settings';
+import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class HciCluster extends ProvCluster {
+  get isSupportedHarvester() {
+    return this._isSupportedHarvester === undefined ? true : this._isSupportedHarvester;
+  }
+
+  get harvesterVersion() {
+    return this._harvesterVersion || this.$rootGetters['i18n/t']('generic.provisioning');
+  }
+
   get stateObj() {
+    if (!this.isSupportedHarvester) {
+      return { error: true, message: this.t('harvesterManager.cluster.supportMessage') };
+    }
+
     return this._stateObj;
   }
 
@@ -29,9 +42,21 @@ export default class HciCluster extends ProvCluster {
     return false;
   }
 
-  cachedHarvesterClusterVersion = '';
+  get stateColor() {
+    if (!this.isSupportedHarvester) {
+      return colorForState(STATES_ENUM.DENIED);
+    }
 
-  _uiInfo = undefined;
+    return colorForState(this.state);
+  }
+
+  get stateDisplay() {
+    if (!this.isSupportedHarvester) {
+      return stateDisplay(STATES_ENUM.DENIED);
+    }
+
+    return stateDisplay(this.state);
+  }
 
   /**
    * Fetch and cache the response for /ui-info
@@ -168,60 +193,31 @@ export default class HciCluster extends ProvCluster {
     return uiInfo ? this._supportedClusterPkgDetails(uiInfo, clusterId) : this._legacyClusterPkgDetails();
   }
 
-  async loadClusterPlugin() {
-    // Skip loading if it's built in
-    const plugins = this.$rootState.$plugin.getPlugins();
-    const loadedPkgs = Object.keys(plugins);
-
-    if (loadedPkgs.find((pkg) => pkg === HARVESTER_NAME)) {
-      console.info('Harvester plugin built is built in, skipping load from external sources'); // eslint-disable-line no-console
-
-      return;
-    }
-
-    // Determine the plugin name and the url it can be fetched from
-    const { pkgUrl, pkgName } = await this._pkgDetails();
-
-    console.info('Harvester plugin details: ', pkgName, pkgUrl); // eslint-disable-line no-console
-
-    // Skip loading if we've previously loaded the correct one
-    if (!!plugins[pkgName]) {
-      console.info('Harvester plugin already loaded, no need to load', pkgName); // eslint-disable-line no-console
-
-      return;
-    }
-
-    console.info('Attempting to load Harvester plugin', pkgName); // eslint-disable-line no-console
-
-    const res = await this.$rootState.$plugin.loadAsync(pkgName, pkgUrl);
-
-    console.info('Loaded Harvester plugin', pkgName); // eslint-disable-line no-console
-
-    return res;
+  async goToCluster() {
+    this.currentRouter().push({
+      name:   `${ VIRTUAL }-c-cluster-resource`,
+      params: {
+        cluster:  this.status.clusterName,
+        product:  VIRTUAL,
+        resource: HCI.DASHBOARD // Go directly to dashboard to avoid blip of components on screen
+      }
+    });
   }
 
-  async goToCluster() {
-    await this.loadClusterPlugin()
-      .then(() => {
-        this.currentRouter().push({
-          name:   `${ VIRTUAL }-c-cluster-resource`,
-          params: {
-            cluster:  this.status.clusterName,
-            product:  VIRTUAL,
-            resource: HCI.DASHBOARD // Go directly to dashboard to avoid blip of components on screen
-          }
-        });
-      })
-      .catch((err) => {
-        const message = typeof error === 'object' ? JSON.stringify(err) : err;
+  async setSupportedHarvesterVersion() {
+    if (this._isSupportedHarvester !== undefined) {
+      return;
+    }
 
-        console.error('Failed to load harvester package: ', message); // eslint-disable-line no-console
+    const url = `/k8s/clusters/${ this.status.clusterName }/v1`;
 
-        this.$dispatch('growl/error', {
-          title:   this.t('harvesterManager.plugins.loadError'),
-          message,
-          timeout: 5000
-        }, { root: true });
-      });
+    try {
+      const setting = await this.$dispatch('request', { url: `${ url }/${ HCI.SETTING }s/server-version` });
+
+      this._harvesterVersion = setting?.value;
+      this._isSupportedHarvester = this.$rootGetters['harvester-common/getFeatureEnabled']('supportHarvesterClusterVersion', setting?.value);
+    } catch (error) {
+      console.error('unable to get harvester version from settings/server-version', error); // eslint-disable-line no-console
+    }
   }
 }
