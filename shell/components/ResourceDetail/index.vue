@@ -78,7 +78,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'resource-details'
-    }
+    },
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
   },
 
   async fetch() {
@@ -205,17 +209,17 @@ export default {
         notFound = fqid;
       }
 
-      if (realMode === _VIEW) {
-        model = liveModel;
-      } else {
-        try {
-          model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
-        } catch (e) {
-          this.errors.push(e);
-        }
-      }
       try {
+        if (realMode === _VIEW) {
+          model = liveModel;
+        } else {
+          model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+        }
         initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+
+        if ( as === _YAML ) {
+          yaml = await getYaml(this.$store, liveModel);
+        }
       } catch (e) {
         this.errors.push(e);
       }
@@ -240,7 +244,9 @@ export default {
     // Ensure common properties exists
     try {
       model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
-    } catch (e) {}
+    } catch (e) {
+      this.errors.push(e);
+    }
 
     const out = {
       hasGraph,
