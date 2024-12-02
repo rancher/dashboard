@@ -16,12 +16,9 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
-import devConsole from 'utils/dev-console';
 import { debounce } from 'lodash';
 
-// TODO: RC wire in socket updates to pagination wrapper
-// TODO: RC test search properly
-// TODO: RC loading indicators?
+// TODO: RC (home page/side bar) test search properly
 
 export default {
   components: {
@@ -45,8 +42,6 @@ export default {
     const helper = canPagination ? new TopLevelMenuHelperPagination({ $store: this.$store }) : new TopLevelMenuHelperLegacy({ $store: this.$store });
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
-
-    devConsole.warn(provClusters, mgmtClusters);
 
     return {
       shown:             false,

@@ -125,10 +125,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.nodeName' },
     ],
     [MANAGEMENT.NODE_POOL]: [
-      { field: 'spec.clusterName' }, // TODO: RC TEST
+      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
     ],
     [MANAGEMENT.NODE_TEMPLATE]: [
-      { field: 'spec.clusterName' }, // TODO: RC TEST
+      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
     ],
     [MANAGEMENT.CLUSTER]: [
       // { field: 'spec.internal' }, // Pending API support https://github.com/rancher/rancher/issues/48011
@@ -141,14 +141,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' } // TODO: RC TEST
+      { field: 'spec.clusterName' } // TODO: RC (home page/side bar) TEST
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC TEST
-      { field: `status.provider` }, // TODO: RC TEST
-      { field: 'status.allocatable.cpu' }, // TODO: RC TEST
-      { field: 'status.allocatable.memory' }, // TODO: RC TEST
-      { field: 'status.allocatable.pods' }, // TODO: RC TEST
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC (home page/side bar) TEST
+      { field: `status.provider` }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.cpu' }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.memory' }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.pods' }, // TODO: RC (home page/side bar) TEST
 
       // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
     ]

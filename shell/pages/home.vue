@@ -26,7 +26,6 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
-import devConsole from 'utils/dev-console';
 import ProvCluster from 'models/provisioning.cattle.io.cluster';
 
 export default defineComponent({
@@ -131,14 +130,12 @@ export default defineComponent({
           value: '',
           name:  'cpu',
           sort:  ['status.allocatable.cpu', 'status.available.cpu']
-
         },
         {
           label: this.t('tableHeaders.memory'),
           value: '',
           name:  'memory',
           sort:  ['status.allocatable.memory', 'status.available.memory']
-
         },
         {
           label:        this.t('tableHeaders.pods'),
@@ -159,8 +156,6 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          // TODO: RC ISSUE describe. search sort on prov meta namespace
-          // getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay || row.metadata?.name
           getValue:      (row: ProvCluster) => row.metadata?.name
         },
         {
@@ -244,8 +239,15 @@ export default defineComponent({
   },
 
   methods: {
-    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts) {
-      // TODO: RC TEST with pagination off and on
+    /**
+     * Of type FetchSecondaryResources
+     */
+    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): Promise<any> {
+      if (opts.canPaginate) {
+        return Promise.resolve({});
+      }
+
+      // TODO: RC (home page/side bar) TEST with pagination off and on
       if ( this.canViewMgmtClusters ) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
       }
@@ -266,6 +268,8 @@ export default defineComponent({
       if ( this.canViewMgmtTemplates ) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
       }
+
+      return Promise.resolve({});
     },
 
     async fetchPageSecondaryResources({
@@ -296,7 +300,7 @@ export default defineComponent({
       if ( this.canViewMachine ) {
         const opt: ActionFindPageArgs = {
           force,
-          // TODO: RC Validate
+          // TODO: RC (home page/side bar) Validate
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -305,17 +309,17 @@ export default defineComponent({
           })
         };
 
-        this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
       }
 
       if ( this.canViewMgmtNodes ) {
         const opt: ActionFindPageArgs = {
           force,
-          // TODO: RC Validate
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'id',
-              value: r.mgmtClusterId
+              value: r.mgmtClusterId,
+              exact: false,
             }))),
           })
         };
@@ -327,7 +331,7 @@ export default defineComponent({
       if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
         const poolOpt: ActionFindPageArgs = {
           force,
-          // TODO: RC Validate
+          // TODO: RC (home page/side bar) Validate
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -340,8 +344,7 @@ export default defineComponent({
 
         const templateOpt: ActionFindPageArgs = {
           force,
-          // pagination: new FilterArgs({}),
-          // TODO: RC Validate
+          // TODO: RC (home page/side bar) Validate
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -496,7 +499,7 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
-              <!-- // TODO: RC check loading indicator when pagination off -->
+              <!-- // TODO: RC (home page/side bar) TEST with pagination off and on. check loading indicator when pagination off -->
               <PaginatedResourceTable
                 :schema="provClusterSchema"
                 :table-actions="false"
