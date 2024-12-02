@@ -11,9 +11,17 @@ Migration of Rancher plugins can be easily done using the migration script. This
 
 At this point the plugin should be Vue3 compatible.
 
-Allowed flags for the migration script:
+## Migration Options
 
-- `--files`, list all the files
-- `--log`, create a `stats.json` log file in the root
-- `--dry`, run script without modify files, e.g. for log preview
-- `--verbose`, print all the changes in console
+The migration script supports several options to customize the update process:
+
+| Option              | Description                                                                                     |
+| :-----------------: | ----------------------------------------------------------------------------------------------- |
+| --dry               | Dry Run Mode: Run the script without making any changes to your files.                          |
+| --verbose           | Verbose Output: Enable detailed logging.                                                        |
+| --suggest           | Suggest Mode: Generate a 'suggested_changes.diff' file with proposed changes.                   |
+| --paths             | Specify Paths: Limit migration to specific paths or files (accepts glob patterns).              |
+| --ignore            | Ignore Patterns: Exclude specific files or directories (accepts comma-separated glob patterns). |
+| --files             | Output Modified Files: List all files modified during the migration.                            |
+| --log               | Generate Log File: Write detailed migration statistics to 'stats.json'.                         |
+|--help, -h           | Display this help message and exit.                                                             |

@@ -16,6 +16,7 @@ const files = [
   'gitignore',
   '.eslintignore',
   '.eslintrc.js',
+  '.nvmrc',
   '.yarnrc.yml',
   'babel.config.js',
   '.vscode/settings.json'
