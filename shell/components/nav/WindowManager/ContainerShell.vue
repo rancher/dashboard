@@ -287,7 +287,7 @@ export default {
 
         // If we had an error message, try connecting with the next command
         if (this.errorMsg) {
-          this.terminal.write(this.errorMsg);
+          this.terminal.writeln(this.errorMsg);
           if (this.backupShells.length && this.retries < 2) {
             this.retries++;
             // we're not really counting on this being a reactive change so there's no need to fire the whole action
@@ -299,7 +299,7 @@ export default {
             this.connect();
           } else {
             // Output an message to let he user know none of the shell commands worked
-            this.terminal.write(this.t('wm.containerShell.failed'));
+            this.terminal.writeln(this.t('wm.containerShell.failed'));
           }
         }
       });
