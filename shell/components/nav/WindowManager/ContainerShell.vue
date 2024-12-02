@@ -14,6 +14,7 @@ import Socket, {
   EVENT_CONNECT_ERROR,
 } from '@shell/utils/socket';
 import Window from './Window';
+import dayjs from 'dayjs';
 
 const commands = {
   linux: [
@@ -299,7 +300,9 @@ export default {
             this.connect();
           } else {
             // Output an message to let he user know none of the shell commands worked
-            this.terminal.writeln(this.t('wm.containerShell.failed'));
+            const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+            this.terminal.writeln(`[${ timestamp }] ${ this.t('wm.containerShell.logLevel.info') }: ${ this.t('wm.containerShell.failed') }`);
           }
         }
       });
@@ -317,10 +320,16 @@ export default {
           }
           this.terminal.write(msg);
         } else {
-          console.error(msg); // eslint-disable-line no-console
+          const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
+          let customError = `[${ timestamp }] ${ this.t('wm.containerShell.logLevel.error') }: ${ this.container }: ${ msg }`;
+
+          if (msg.includes('stat /bin/sh: no such file or directory')) {
+            customError = `[${ timestamp }] ${ this.t('wm.containerShell.logMessage.containerError', { logLevel: this.t('wm.containerShell.logLevel.error') }) }: ${ msg }`;
+          }
+          console.error(customError); // eslint-disable-line no-console
 
           if (`${ type }` === '3') {
-            this.errorMsg = msg;
+            this.errorMsg = customError;
           }
         }
       });
