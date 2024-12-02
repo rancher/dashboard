@@ -1,5 +1,5 @@
 #!/bin/bash
-DIST=publish-storybook
+DIST=storybook/publish-storybook
 
 echo "Building and publishing Storybook"
 
@@ -8,7 +8,8 @@ if [ -z "${STORYBOOK_TOKEN}" ]; then
   exit 1
 fi
 
-if [ ! -d "storybook-static" ]; then
+if [ ! -d "storybook/storybook-static" ]; then
+  ls
   echo "Storybook has not been built"
   exit 1
 fi
