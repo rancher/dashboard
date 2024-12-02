@@ -66,37 +66,37 @@ function packageUpdatesLibraries(file, oldContent) {
 
   // [Library name, new version or new library, new library version]
   const librariesUpdates = [
-    ['@rancher/shell', '^3.0.0'],
-    ['@rancher/components', '^0.3.0-alpha.1'],
-    ['@nuxt/babel-preset-app', removePlaceholder],
-    ['@types/jest', '^29.5.2'],
-    ['@typescript-eslint/eslint-plugin', '~5.4.0'],
-    ['@typescript-eslint/parser', '~5.4.0'],
-    ['@vue/cli-plugin-babel', '~5.0.0'],
-    ['@vue/cli-plugin-e2e-cypress', '~5.0.0'],
-    ['@vue/cli-plugin-eslint', '~5.0.0'],
-    ['@vue/cli-plugin-router', '~5.0.0'],
-    ['@vue/cli-plugin-typescript', '~5.0.0'],
-    ['@vue/cli-plugin-unit-jest', '~5.0.0'],
-    ['@vue/cli-plugin-vuex', '~5.0.0'],
-    ['@vue/cli-service', '~5.0.0'],
-    ['@vue/eslint-config-typescript', '~9.1.0'],
-    ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'],
-    ['@vue/test-utils', '~2.0.0-0'],
-    ['core-js', '3.25.3'],
-    ['cache-loader', '^4.1.0'],
-    ['node-polyfill-webpack-plugin', '^3.0.0'],
-    ['portal-vue', '~3.0.0'],
-    ['require-extension-hooks-babel', '1.0.0'],
-    ['require-extension-hooks-vue', '3.0.0'],
-    ['require-extension-hooks', '0.3.3'],
-    ['sass-loader', '~12.0.0'],
-    ['typescript', '~4.5.5'],
-    ['vue-router', '~4.0.3'],
-    ['vue-virtual-scroll-list', 'vue3-virtual-scroll-list', '0.2.1'],
-    ['vue', '~3.2.13'],
-    ['vuex', '~4.0.0'],
-    ['xterm', '5.2.1'],
+    ['@rancher/shell', '^3.0.0'], // ok - dependency - root package.json - DONE!!!
+    ['@rancher/components', '^0.3.0-alpha.1'], // ok - dependency - root package.json - DONE!!!
+    ['@nuxt/babel-preset-app', removePlaceholder], // ok - DONE!!!
+    ['@types/jest', '^29.5.2'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@typescript-eslint/eslint-plugin', '~5.4.0'], // why didn't it add this to elemental 2.0.0? - // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['@typescript-eslint/parser', '~5.4.0'], // why didn't it add this to elemental 2.0.0? - // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['@vue/cli-plugin-babel', '~5.0.0'], // ok - devDependency - pkg/package.json - DONE!!!
+    ['@vue/cli-plugin-e2e-cypress', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/cli-plugin-eslint', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/cli-plugin-router', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/cli-plugin-typescript', '~5.0.0'], // ok - devDependency - pkg/package.json - DONE!!!
+    ['@vue/cli-plugin-unit-jest', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/cli-plugin-vuex', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/cli-service', '~5.0.0'], // ok - devDependency - pkg/package.json - DONE!!!
+    ['@vue/eslint-config-typescript', '~9.1.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'], // ok - replacing - will only happen if exists
+    ['@vue/test-utils', '~2.0.0-0'], // why didn't it add this to elemental 2.0.0? - // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['core-js', '3.25.3'], // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['cache-loader', '^4.1.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['node-polyfill-webpack-plugin', '^3.0.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['portal-vue', '~3.0.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['require-extension-hooks-babel', '1.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['require-extension-hooks-vue', '3.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['require-extension-hooks', '0.3.3'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
+    ['sass-loader', '~12.0.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['typescript', '~4.5.5'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['vue-router', '~4.0.3'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['vue-virtual-scroll-list', 'vue3-virtual-scroll-list', '0.2.1'], // SOMETHING WRONG HERE AS IT ADDED IT to devDependencies and dependencies in both files!!!!!
+    ['vue', '~3.2.13'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['vuex', '~4.0.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
+    ['xterm', '5.2.1'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
   ];
 
   types.forEach((type) => {
@@ -166,18 +166,19 @@ function packageUpdatesResolution(file, oldContent) {
   let parsedJson = JSON.parse(content);
   const replaceResolution = [];
   const resolutions = [
-    ['@vue/cli-service/html-webpack-plugin', '^5.0.0'],
     ['**/webpack', removePlaceholder],
   ];
 
   if (parsedJson.resolutions) {
     resolutions.forEach(([library, newVersion]) => {
       if (newVersion === removePlaceholder) {
+        replaceResolution.push([library, [parsedJson.resolutions[library], removePlaceholder]]);
         delete parsedJson.resolutions[library];
         content = JSON.stringify(parsedJson, null, 2);
         parsedJson = JSON.parse(content);
       } else if (!parsedJson.resolutions[library]) {
         parsedJson.resolutions[library] = newVersion;
+        replaceResolution.push([library, [null, newVersion]]);
         content = JSON.stringify(parsedJson, null, 2);
         parsedJson = JSON.parse(content);
       } else {
