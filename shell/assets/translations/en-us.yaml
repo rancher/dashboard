@@ -4878,6 +4878,9 @@ rbac:
       admin:
         label: Administrator
         description: Administrators have full control over the entire installation and all resources in all clusters.
+      restricted-admin:
+        label: Restricted Administrator
+        description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
       user:
         label: Standard User
         description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
