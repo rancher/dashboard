@@ -1,5 +1,5 @@
 #!/bin/bash
-DIST=storybook/publish-storybook
+DIST=publish-storybook
 
 echo "Building and publishing Storybook"
 
