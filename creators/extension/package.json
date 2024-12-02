@@ -6,7 +6,7 @@
   "author": "SUSE",
   "packageManager": "yarn@4.4.1",
   "bin": {
-    "create-extension": "./init"
+    "create-extension": "init"
   },
   "files": [
     "**/*",
