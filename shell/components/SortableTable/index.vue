@@ -1676,7 +1676,7 @@ export default {
         margin-right: 10px;
         font-size: 11px;
       }
-     .cross {
+      .cross {
         font-size: 12px;
         font-weight: bold;
         cursor: pointer;

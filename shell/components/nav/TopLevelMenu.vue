@@ -16,12 +16,9 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
-import devConsole from 'utils/dev-console';
 import { debounce } from 'lodash';
 
-// TODO: RC wire in socket updates to pagination wrapper
-// TODO: RC test search properly
-// TODO: RC loading indicators?
+// TODO: RC (home page/side bar) test search properly
 
 export default {
   components: {
@@ -45,8 +42,6 @@ export default {
     const helper = canPagination ? new TopLevelMenuHelperPagination({ $store: this.$store }) : new TopLevelMenuHelperLegacy({ $store: this.$store });
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
-
-    devConsole.warn(provClusters, mgmtClusters);
 
     return {
       shown:             false,
@@ -861,7 +856,7 @@ export default {
     // needs !important so that we can
     // offset the tooltip a bit so it doesn't
     // overlap the pin icon and cause bad UX
-    left: 35px !important;
+    left: 48px !important;
   }
 
   .localeSelector, .footer-tooltip {
@@ -1010,7 +1005,7 @@ export default {
           line-height: normal;
 
           & > p {
-            width: 195px;
+            width: 182px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1058,9 +1053,11 @@ export default {
 
         > i, > img {
           display: block;
-          width: 42px;
           font-size: $icon-size;
           margin-right: 14px;
+          &.group-icon {
+            width: 42px;
+          }
         }
 
         .rancher-provider-icon,

@@ -1,0 +1,185 @@
+import { Meta } from "@storybook/addon-docs";
+
+<Meta title="Foundation/Colors"  />
+
+<style>
+{`
+table {
+  tr {
+    background: transparent;
+  }
+  .color-sample {
+    width: 25px;
+    height: 25px;
+    border: 1px solid $medium;
+    margin: 0 10px 0 0;
+    display: inline-flex;
+    vertical-align: text-bottom;
+  }
+}
+`}
+</style>
+
+# Colors
+
+Color palette comprises the primary and accent colors to be used in all applications. They have been designed to work harmoniously together.
+
+
+<div className="conainer mt-50">
+  <h1 className="mt-50">Base color variables</h1>
+  <p>With Color Variables, you can set colors that synchronize across the Rancher applications.</p>
+  <table style={{ width: '70%' }}>
+    <tbody>
+      <tr>
+        <th>Color Variables</th>
+        <th>Light theme</th>
+        <th>Dark theme</th>
+      </tr>
+      <tr>
+        <td>`$darkest`</td>
+        <td><div className="color-sample" style={{ background: '#141419' }}></div>#141419<p>Use as main text</p></td>
+        <td><div className="color-sample" style={{ background: '#141419' }}></div>#141419<p>Use for sidebar</p></td>
+      </tr>
+      <tr>
+        <td>`$darker`</td>
+        <td><div className="color-sample" style={{ background: '#6C6C76' }}></div>#6C6C76<p>Use as secondary color</p></td>
+        <td><div className="color-sample" style={{ background: '#1b1c21' }}></div>#1b1c21<p>Use for body body bg</p></td>
+      </tr>
+      <tr>
+        <td>`$dark`</td>
+        <td><div className="color-sample" style={{ background: '#B6B6C2' }}></div>#B6B6C2<p>Use for disabled state</p></td>
+        <td><div className="color-sample" style={{ background: '#27292e' }}></div>#27292e<p>Use for inputs</p></td>
+      </tr>
+      <tr>
+        <td>`$medium`</td>
+        <td><div className="color-sample" style={{ background: '#4a4b52' }}></div>'#4a4b52<p>Use for border and buttons</p></td>
+        <td><div className="color-sample" style={{ background: '#DCDEE7' }}></div>#DCDEE7<p>Use for borders and button</p></td>
+      </tr>
+      <tr>
+        <td>`$light`</td>
+        <td><div className="color-sample" style={{ background: '#6c6c76' }}></div>'#6c6c76<p>Use for inputs</p></td>
+        <td><div className="color-sample" style={{ background: '#EEEFF4' }}></div>#EEEFF4<p>Use for disabled state</p></td>
+      </tr>
+      <tr>
+        <td>`$lighter`</td>
+        <td><div className="color-sample" style={{ background: '#F4F5FA' }}></div>#F4F5FA<p>Use for sidebar and box</p></td>
+        <td><div className="color-sample" style={{ background: '#b6b6c2' }}></div>#b6b6c2<p>Use as secondary color</p></td>
+      </tr>
+      <tr>
+        <td>`$lightes`</td>
+        <td><div className="color-sample" style={{ background: '#ffffff' }}></div>#FFFFFF<p>Use for body bg</p></td>
+        <td><div className="color-sample" style={{ background: '#ffffff' }}></div>#FFFFFF<p>Use for main text</p></td>
+      </tr>
+      <tr>
+        <td>`$primary`</td>
+        <td><div className="color-sample" style={{ background: 'var(--primary)' }}></div>#3D98D3</td>
+        <td><div className="color-sample" style={{ background: 'var(--primary)' }}></div>#3D98D3</td>
+      </tr>
+      <tr>
+        <td>`$success`</td>
+        <td><div className="color-sample" style={{ background: 'var(--success)' }}></div>#5D995D</td>
+        <td><div className="color-sample" style={{ background: 'var(--success)' }}></div>#5D995D</td>
+      </tr>
+      <tr>
+        <td>`$warning`</td>
+        <td><div className="color-sample" style={{ background: 'var(--warning)' }}></div>#DAC342</td>
+        <td><div className="color-sample" style={{ background: 'var(--warning)' }}></div>#DAC342</td>
+      </tr>
+      <tr>
+        <td>`$info`</td>
+        <td><div className="color-sample" style={{ background: 'var(--info)' }}></div>#3D98D3</td>
+        <td><div className="color-sample" style={{ background: 'var(--info)' }}></div>#3D98D3</td>
+      </tr>
+      <tr>
+        <td>`$error`</td>
+        <td><div className="color-sample" style={{ background: 'var(--error)' }}></div>#F64747</td>
+        <td><div className="color-sample" style={{ background: 'var(--error)' }}></div>#F64747</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h1 className="mt-50">Theme color variables</h1>
+  <p>A theme is a collection of color variables designed to create a specific aesthetic. Themes control the color value assigned to a variable.
+    There are two default themes light and dark.</p>
+  <table style={{ width: '70%' }}>
+    <tbody>
+      <tr>
+        <th>Color Variables</th>
+        <th>Light theme</th>
+        <th>Dark theme</th>
+      </tr>
+      <tr>
+        <td>--body-bg</td>
+        <td><div className="color-sample" style={{ background: '#ffffff' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#1b1c21' }}></div></td>
+      </tr>
+      <tr>
+        <td>--body-text</td>
+        <td><div className="color-sample" style={{ background: '#141419' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#ffffff' }}></div></td>
+      </tr>
+      <tr>
+        <td>--primary</td>
+        <td><div className="color-sample" style={{ background: '#3D98D3' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#3D98D3' }}></div></td>
+      </tr>
+      <tr>
+        <td>--success</td>
+        <td><div className="color-sample" style={{ background: 'var(--success)' }}></div></td>
+        <td><div className="color-sample" style={{ background: 'var(--success)' }}></div></td>
+      </tr>
+      <tr>
+        <td>--warning</td>
+        <td><div className="color-sample" style={{ background: 'var(--warning)' }}></div></td>
+        <td><div className="color-sample" style={{ background: 'var(--warning)' }}></div></td>
+      </tr>
+      <tr>
+        <td>--info</td>
+        <td><div className="color-sample" style={{ background: 'var(--info)' }}></div></td>
+        <td><div className="color-sample" style={{ background: 'var(--info)' }}></div></td>
+      </tr>
+      <tr>
+        <td>--error</td>
+        <td><div className="color-sample" style={{ background: 'var(--error)' }}></div></td>
+        <td><div className="color-sample" style={{ background: 'var(--error)' }}></div></td>
+      </tr>
+      <tr>
+        <td>--link</td>
+        <td><div className="color-sample" style={{ background: 'var(--link)' }}></div></td>
+        <td><div className="color-sample" style={{ background: 'var(--link)' }}></div></td>
+      </tr>
+      <tr>
+        <td> --border</td>
+        <td><div className="color-sample" style={{ background: '#4a4b52' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#DCDEE7' }}></div></td>
+      </tr>
+      <tr>
+        <td> --disabled-bg</td>
+        <td><div className="color-sample" style={{ background: '#DCDEE7' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#{darken(#6c6c76, 10%)}' }}></div></td>
+      </tr>
+      <tr>
+        <td> --disabled-text</td>
+        <td><div className="color-sample" style={{ background: '#6C6C76' }}></div></td>
+        <td><div className="color-sample" style={{ background: '#b6b6c2' }}></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 className="mt-50">Example of usage:</h3>
+  <p>Let's say we are creating a new variable for element that requires darker borders in light theme and lighter borders in dark theme.
+   We should create same name variable in light and dark theme with different base color variables.</p>
+  
+</div>
+
+**_light.scss**
+
+> `--element-border-color: #{$darker};`
+
+<br/>
+
+**_dark.scss**
+
+  >  `--element-border-color: #{$lightest};`
+
+<br/>

@@ -131,11 +131,11 @@ const instrumentCode = () => {
 };
 
 const getLoaders = (SHELL_ABS) => [
-  // Ensure there is a fallback for browsers that don't support web workers
+  // no fallback for pre-2013 browsers https://caniuse.com/webworkers
   {
     test:    /web-worker.[a-z-]+.js/i,
     loader:  'worker-loader',
-    options: { inline: 'fallback' },
+    options: { inline: 'no-fallback' },
   },
   // Handler for csv files (e.g. ec2 instance data)
   {
@@ -462,7 +462,7 @@ const getWatcherIgnored = (excludes) => {
     /dist-pkg/,
     /scripts\/standalone/,
   ];
-  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }`));
+  const pathExcludedPkg = excludes.map((excluded) => new RegExp(`/pkg.${ excluded }/`));
   const pathsCombined = [...paths, ...pathExcludedPkg];
   const regexCombined = new RegExp(pathsCombined.map(({ source }) => source).join('|'));
 
@@ -516,6 +516,7 @@ module.exports = function(dir, _appConfig) {
             @import "~shell/assets/styles/base/_variables.scss";
             @import "~shell/assets/styles/base/_functions.scss";
             @import "~shell/assets/styles/base/_mixins.scss";
+            @import 'node_modules/xterm/css/xterm.css';
           `
         }
       }

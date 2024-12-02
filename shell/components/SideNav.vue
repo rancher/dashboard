@@ -111,8 +111,10 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
-    ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters({
+      locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales', hasMultipleLocales: 'i18n/hasMultipleLocales'
+    }),
     ...mapGetters('type-map', ['activeProducts']),
 
     favoriteTypes: mapPref(FAVORITE_TYPES),
@@ -437,7 +439,7 @@ export default {
       </span>
 
       <!-- locale selector -->
-      <span v-if="isSingleProduct">
+      <span v-if="isSingleProduct && hasMultipleLocales && !isStandaloneHarvester">
         <v-dropdown
           popperClass="localeSelector"
           placement="top"

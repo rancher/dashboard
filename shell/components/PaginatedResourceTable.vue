@@ -4,7 +4,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { StorePaginationResult } from 'types/store/pagination.types';
 
-export type FetchSecondaryResourcesOpts = { }
+export type FetchSecondaryResourcesOpts = { canPaginate: boolean }
 export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
 
 export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[], pagResult: StorePaginationResult }
@@ -63,7 +63,7 @@ export default defineComponent({
     /**
      * Information may be required from resources other than the primary one shown per row
      *
-     * This will fetch only those relevent to the current page using server-side pagination based filters
+     * This will fetch only those relevant to the current page using server-side pagination based filters
      *
      * called from shell/mixins/resource-fetch-api-pagination.js
      */
@@ -80,8 +80,8 @@ export default defineComponent({
   async fetch() {
     await this.$fetchType(this.resource, [], this.inStore);
 
-    if (!this.canPaginate && this.fetchSecondaryResources) {
-      await this.fetchSecondaryResources({ });
+    if (this.fetchSecondaryResources) {
+      await this.fetchSecondaryResources({ canPaginate: this.canPaginate });
     }
   },
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, inject, PropType } from 'vue';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 interface NonReactiveProps {

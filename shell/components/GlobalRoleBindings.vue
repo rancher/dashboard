@@ -108,7 +108,6 @@ export default {
       // This not only identifies global roles but the order here is the order we want to display them in the UI
       globalPermissions: [
         'admin',
-        'restricted-admin',
         'user',
         'user-base',
       ],
@@ -121,7 +120,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['releaseNotesUrl']),
     ...mapGetters({ t: 'i18n/t' }),
 
     isCreate() {
@@ -375,11 +373,6 @@ export default {
                     </div>
                   </template>
                 </Checkbox>
-                <p
-                  v-if="role.id === 'restricted-admin'"
-                  v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)"
-                  class="deprecation-notice"
-                />
               </div>
             </div>
           </template>

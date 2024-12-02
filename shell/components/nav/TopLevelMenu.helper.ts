@@ -2,7 +2,6 @@ import { CAPI, MANAGEMENT } from 'config/types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from 'types/store/pagination.types';
 import { VuexStore } from 'types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from 'utils/cluster';
-import devConsole from 'utils/dev-console';
 import PaginationWrapper from 'utils/pagination-wrapper';
 import { allHash } from 'utils/promise';
 import { sortBy } from 'utils/sort';
@@ -98,6 +97,8 @@ export abstract class BaseTopLevelMenuHelper {
   * 2. If local or not (filterHiddenLocalCluster)
   * 3. Is pinned
   *
+  * Why aren't we filtering these by search term? Because we don't show pinned when filtering on search term
+  *
   * Sort By
   * 1. is local cluster (appears at top)
   * 2. ready
@@ -143,6 +144,9 @@ export abstract class BaseTopLevelMenuHelper {
   }
 }
 
+/**
+ * Helper designed to supply paginated results for the top level menu cluster resources
+ */
 export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private args?: UpdateArgs;
 
@@ -152,14 +156,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
   private commonClusterFilters: PaginationParam[];
 
-  /**
-   *
-   */
   constructor({ $store }: {
       $store: VuexStore,
   }) {
-    devConsole.warn('TLM.helper', 'TopLevelMenuHelperPagination');
-
     super({ $store });
 
     this.commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
@@ -167,7 +166,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
       onUpdate: () => {
-        // TODO: RC trigger on websocket update (only need 1 trigger for this cluster type)
+        // trigger on websocket update (only need 1 trigger for this cluster type)
+        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {
           this.update(this.args);
         }
@@ -183,7 +183,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       onUpdate: (res) => {
-        // TODO: RC trigger on websocket update (only need 1 trigger for this cluster type)
+        // trigger on websocket update (only need 1 trigger for this cluster type)
+        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {
           this.update(this.args);
         }
@@ -199,7 +200,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       onUpdate: (res) => {
-        // TODO: RC trigger on websocket update
+        // trigger on websocket update (only need 1 trigger for this cluster type)
+        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {
           this.update(this.args);
         }
@@ -277,7 +279,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       }
 
       if (excludePinned) {
-        // cluster id is NOT 1 AND NOT 2 OR 3 OR 4...
+        // cluster id is NOT 1 AND NOT 2 AND NOT 3 AND NOT 4...
         filters.push(...pinnedIds.map((id) => PaginationParamFilter.createSingleField({
           field: 'id', equals: false, value: id
         })));
@@ -302,6 +304,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    * See `clustersPinned` description for details
    */
   private async updatePinned(args: UpdateArgs): Promise<MgmtCluster[]> {
+    if (args.pinnedIds?.length < 1) {
+      // Return early, otherwise we're fetching all clusters...
+      return Promise.resolve([]);
+    }
+
     return this.clustersPinnedWrapper.request({
       pagination: {
         filters: this.constructParams({
@@ -364,13 +371,15 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }
 }
 
+/**
+ * Helper designed to supply non-paginated results for the top level menu cluster resources
+ */
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private hasProvCluster: boolean;
 
   constructor({ $store }: {
     $store: VuexStore,
   }) {
-    devConsole.warn('TLM.helper', 'TopLevelMenuHelperLegacy');
     super({ $store });
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
@@ -381,12 +390,9 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
   }
 
   async update(args: UpdateArgs) {
-    devConsole.warn('TLM.helper', 'TopLevelMenuHelperLegacy', 'update');
     const clusters = this.updateClusters();
     const _clustersNotPinned = this.clustersFiltered(clusters, args);
     const _clustersPinned = this.pinFiltered(clusters, args);
-
-    devConsole.warn('TLM.helper', 'TopLevelMenuHelperLegacy', 'update', 'res', _clustersPinned, _clustersNotPinned);
 
     this.clustersPinned.length = 0;
     this.clustersOthers.length = 0;
@@ -404,7 +410,6 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
    * Convert remaining clusters to special format
    */
   private updateClusters(): TopLevelMenuCluster[] {
-    devConsole.warn('');
     if (!this.hasProvCluster) {
       // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
       // exit early

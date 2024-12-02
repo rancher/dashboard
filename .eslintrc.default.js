@@ -190,7 +190,10 @@ module.exports = {
     'vue/one-component-per-file':       'off',
     'vue/no-deprecated-slot-attribute': 'off',
     'vue/require-explicit-emits':       'error',
-    'vue/v-on-event-hyphenation':       'off'
+    'vue/v-on-event-hyphenation':       'off',
+
+    // Locally defined rules, you can find these defined in the `eslint-local-rules` directory.
+    'v-clean-tooltip': 'error',
   },
   overrides: [
     {

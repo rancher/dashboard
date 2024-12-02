@@ -31,7 +31,7 @@ This command will create a new folder `my-app` and populate it with the minimum 
 
 ### Installing Rancher
 
-See <https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
+See https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions
 
 The above linked installation docs cover two methods confirmed to work with the Dashboard:
 

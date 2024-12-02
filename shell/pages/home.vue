@@ -26,7 +26,6 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
-import devConsole from 'utils/dev-console';
 import ProvCluster from 'models/provisioning.cattle.io.cluster';
 
 export default defineComponent({
@@ -131,14 +130,12 @@ export default defineComponent({
           value: '',
           name:  'cpu',
           sort:  ['status.allocatable.cpu', 'status.available.cpu']
-
         },
         {
           label: this.t('tableHeaders.memory'),
           value: '',
           name:  'memory',
           sort:  ['status.allocatable.memory', 'status.available.memory']
-
         },
         {
           label:        this.t('tableHeaders.pods'),
@@ -159,8 +156,6 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          // TODO: RC ISSUE describe. search sort on prov meta namespace
-          // getValue:      (row: ProvCluster) => row.mgmt?.nameDisplay || row.metadata?.name
           getValue:      (row: ProvCluster) => row.metadata?.name
         },
         {
@@ -355,6 +350,124 @@ export default defineComponent({
     },
 
     /**
+     * Of type FetchSecondaryResources
+     */
+    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): Promise<any> {
+      if (opts.canPaginate) {
+        return Promise.resolve({});
+      }
+
+      // TODO: RC (home page/side bar) TEST with pagination off and on
+      if ( this.canViewMgmtClusters ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+      }
+
+      if ( this.canViewMachine ) {
+        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      }
+
+      if ( this.canViewMgmtNodes ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+      if ( this.canViewMgmtPools ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.canViewMgmtTemplates ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+
+      return Promise.resolve({});
+    },
+
+    async fetchPageSecondaryResources({
+      canPaginate, force, page, pagResult
+    }: FetchPageSecondaryResourcesOpts) {
+      if (!canPaginate || !page?.length) {
+        this.clusterCount = 0;
+
+        return;
+      }
+
+      this.clusterCount = pagResult.count;
+
+      if ( this.canViewMgmtClusters ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'id',
+              value: r.mgmtClusterId
+            }))),
+          })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt });
+      }
+
+      if ( this.canViewMachine ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          // TODO: RC (home page/side bar) Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.metadata.name
+            }))),
+          })
+        };
+
+        await this.$store.dispatch(`management/findPage`, { type: CAPI.MACHINE, opt });
+      }
+
+      if ( this.canViewMgmtNodes ) {
+        const opt: ActionFindPageArgs = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'id',
+              value: r.mgmtClusterId,
+              exact: false,
+            }))),
+          })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE, opt });
+      }
+
+      // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
+        const poolOpt: ActionFindPageArgs = {
+          force,
+          // TODO: RC (home page/side bar) Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.status?.clusterName// TODO: handle empty spec
+            }))),
+          })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
+
+        const templateOpt: ActionFindPageArgs = {
+          force,
+          // TODO: RC (home page/side bar) Validate
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.status?.clusterName// TODO: handle empty spec
+            }))),
+          })
+        };
+
+        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_TEMPLATE, opt: templateOpt });
+      }
+    },
+
+    /**
      * Define actions for each navigation link
      * @param {*} action
      */
@@ -496,7 +609,7 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
-              <!-- // TODO: RC check loading indicator when pagination off -->
+              <!-- // TODO: RC (home page/side bar) TEST with pagination off and on. check loading indicator when pagination off -->
               <PaginatedResourceTable
                 :schema="provClusterSchema"
                 :table-actions="false"

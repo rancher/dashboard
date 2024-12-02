@@ -1,0 +1,21 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as ToggleSwitchStories from './ToggleSwitch.stories';
+
+<Meta of={ToggleSwitchStories} />
+
+# Toggle switch
+
+The toggle switch is a digital on/off controller that enables the user to switch between settings without submitting the form.
+
+### Description
+
+- Always associate a label to every checkbox for good accessibility. Do not include a colon at the end of the label.
+- Use a toggle switch when users have to choose between two mutually exclusive options.
+- Toggle switches should take immediate effect and should not require the user to submit the form to apply the new state.
+- If immediate results are not achievable, use an alternative like radio buttons or a single checkbox.
+
+### Default
+
+<Canvas>
+  <Story of={ToggleSwitchStories.Default} />
+</Canvas>

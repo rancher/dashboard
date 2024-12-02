@@ -287,12 +287,3 @@ export default {
     />
   </form>
 </template>
-
-<style lang="scss">
-  span.oci-experimental-badge {
-    background-color: var(--warning);
-    color: var(--darker-active-bg);
-    font-size: 12px;
-    padding: 2px 6px;
-  }
-</style>

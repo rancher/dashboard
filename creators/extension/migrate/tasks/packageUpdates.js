@@ -213,8 +213,8 @@ function packageUpdatesAnnotations(file, oldContent) {
   if (parentDirName === 'pkg') {
     // The file is in pkg/<extension-name>/package.json
     const annotations = {
-      'catalog.cattle.io/rancher-version':      '>= 2.10.0-0',
-      'catalog.cattle.io/ui-extension-version': '>= 3.0.0',
+      'catalog.cattle.io/rancher-version':       '>= 2.10.0-0',
+      'catalog.cattle.io/ui-extensions-version': '>= 3.0.0 < 4.0.0',
     };
 
     if (!parsedJson.rancher) {

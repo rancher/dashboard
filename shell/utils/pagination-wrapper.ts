@@ -7,10 +7,22 @@ interface Result<T> {
   pagination: StorePagination
 }
 
+/**
+ * This is a helper class that will assist in fetching a resource
+ * - Handle if the resource can be fetched by the new pagination api
+ * - Make a request to get a page (including classify)
+ * - Provide updates when the resource changes
+ *
+ * This is designed to work in places where we don't/can't store the resource in the store
+ * - There already exists a resource we don't want to overwrite
+ * - We're transient and want something nicer than just cluster/request
+ */
 class PaginationWrapper<T = any> {
     private $store: VuexStore;
     private enabledFor: PaginationResourceContext;
-    private onUpdate: (out: Result<T>) => void; // TODO: RC wire in to web socket (when new socket stuff is available)
+
+    // Blocked on https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
+    private onUpdate: (out: Result<T>) => void;
 
     public isEnabled: boolean;
 

@@ -12,7 +12,7 @@ import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagina
  * @returns PaginationParam[]
  */
 export function paginationFilterClusters(store) {
-  // TODO: RC TEST both facets
+  // TODO: RC (home page/side bar) TEST both facets
   const paginationRequestFilters = [];
   const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
   const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store);

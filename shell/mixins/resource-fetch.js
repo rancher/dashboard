@@ -64,7 +64,7 @@ export default {
     /**
      * Add additional filtering to the rows
      *
-     * Should only be used when we have all results, otherwise we're filtering a page...
+     * Should only be used when we have all results, otherwise we're filtering a page which already has been filtered...
      */
     localFilter: {
       type:    Function,

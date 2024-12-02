@@ -76,68 +76,6 @@ const pkg = JSON.parse(rawdata);
 pkg.name = name;
 pkg.description = `${ name } plugin`;
 
-// Add annotation for the latest Rancher version by default
-function fetchLatestVersion() {
-  console.log('  Fetching latest Rancher Version');
-  const options = { headers: { 'User-Agent': 'nodejs' } };
-
-  https.get('https://api.github.com/repos/rancher/rancher/releases/latest', options, (res) => {
-    const { statusCode } = res;
-    const contentType = res.headers['content-type'];
-
-    let error;
-
-    if ( statusCode !== 200 ) {
-      error = new Error('  Request Failed.\n' +
-                        `  Status Code: ${ statusCode }`);
-    } else if ( !/^application\/json/.test(contentType) ) {
-      error = new Error('  Invalid content-type.\n' +
-                        `  Expected application/json but received ${ contentType }`);
-    }
-
-    if ( error ) {
-      console.log(error.message);
-
-      res.resume();
-
-      return;
-    }
-
-    res.setEncoding('utf8');
-    let rawData = '';
-
-    res.on('data', (chunk) => {
-      rawData += chunk;
-    });
-    res.on('end', () => {
-      try {
-        const release = JSON.parse(rawData);
-
-        if ( release.tag_name ) {
-          console.log(`  Adding rancher-version annotation '>= ${ release.tag_name }' to package.json`);
-
-          pkg.rancher = { annotations: { 'catalog.cattle.io/rancher-version': `>= ${ release.tag_name }` } };
-
-          if ( !shellVersion ) {
-            console.log('Could not get a shell version from npm, skipping adding catalog.cattle.io/ui-extensions-version annotation to package.json');
-          } else {
-            console.log(`  Adding catalog.cattle.io/ui-extensions-version '>= ${ shellVersion }' to package.json`);
-
-            pkg.rancher.annotations['catalog.cattle.io/ui-extensions-version'] = `>= ${ shellVersion }`;
-          }
-
-          writePackageJson();
-        }
-      } catch (e) {
-        console.log('  Error parsing release data', e);
-      }
-    });
-  }).on('error', (e) => {
-    console.log('  Error fetching latest Rancher Version', e);
-  });
-}
-
-fetchLatestVersion();
 writePackageJson();
 
 function writePackageJson() {
