@@ -95,12 +95,12 @@ export function init(store) {
     [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE],
     [STEVE_STATE_COL, STEVE_NAME_COL, {
       ...repoType,
-      // spec.gitRepo 'git || spec.url oci | http || ?
+      // spec.gitRepo 'git || spec.url oci | http || ? // TODO: RC
       sort:   ['spec.gitRepo'],
       search: false,
     }, {
       ...repoUrl,
-      // urlDisplay --> status.url || spec.gitRepo || spec.url
+      // urlDisplay --> status.url || spec.gitRepo || spec.url // TODO: RC
       sort:   false,
       search: false,
     },
