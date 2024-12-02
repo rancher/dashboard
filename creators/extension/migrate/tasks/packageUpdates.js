@@ -81,7 +81,7 @@ function packageUpdatesLibraries(file, oldContent) {
     ['@vue/cli-plugin-vuex', '~5.0.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
     ['@vue/cli-service', '~5.0.0'], // ok - devDependency - pkg/package.json - DONE!!!
     ['@vue/eslint-config-typescript', '~9.1.0'], // why didn't it add this to elemental 2.0.0? - NOT IN SHELL!
-    ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'], // ok - replacing - will only happen if exists
+    ['@vue/vue2-jest', '@vue/vue3-jest', '^27.0.0-alpha.1'], // ok - replacing - will only happen if exists - DONE!!!
     ['@vue/test-utils', '~2.0.0-0'], // why didn't it add this to elemental 2.0.0? - // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
     ['core-js', '3.25.3'], // **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
     ['cache-loader', '^4.1.0'], // why didn't it add this to elemental 2.0.0? - **** TO REMOVE !!!! was a dependency in root package.json, now is a shell dependency!!!
@@ -133,6 +133,8 @@ function packageUpdatesLibraries(file, oldContent) {
           replaceLibraries.push([library, [null, newLibraryVersion]]);
           content = JSON.stringify(parsedJson, null, 2);
         }
+
+        // TODO: we are missing usecase to add dependency if it doesn't exist.....
       });
     }
   });
