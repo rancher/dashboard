@@ -281,6 +281,41 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
+  describe('When creating a pod using the web Form', () => {
+    const singlePodName = Cypress._.uniqueId(Date.now().toString());
+
+    it(`should have the default input units displayed`, () => {
+      workloadsPodPage.goTo();
+      workloadsPodPage.createPod();
+
+      const podDetails = new PodPo();
+
+      podDetails.nameNsDescription().name().set(singlePodName);
+
+      const podDetailsGeneral = podDetails.containerButton().general();
+
+      podDetailsGeneral.inputImageName().set('nginx:alpine');
+      const podDetailsResources = podDetails.containerButton().resources();
+
+      podDetailsResources.clickResources();
+      podDetailsResources.inputCpuLimit().getAttributeValue('placeholder').should('contain', 'e.g. 1000');
+      podDetailsResources.inputCpuReservation().getAttributeValue('placeholder').should('contain', 'e.g. 1000');
+      podDetailsResources.inputMemoryReservation().getAttributeValue('placeholder').should('contain', 'e.g. 128');
+      podDetailsResources.inputMemoryLimit().getAttributeValue('placeholder').should('contain', 'e.g. 128');
+      podDetailsResources.inputGpuLimit().getAttributeValue('placeholder').should('contain', 'e.g. 1');
+
+      podDetailsResources.inputCpuLimit().set('100');
+      podDetailsResources.inputCpuReservation().set('100');
+      podDetailsResources.inputMemoryLimit().set('128');
+      podDetailsResources.inputMemoryLimit().set('128');
+      podDetailsResources.inputGpuLimit().set('0');
+
+      podDetails.saveCreateForm().cruResource().saveOrCreate().click();
+      workloadsPodPage.waitForPage();
+      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+    });
+  });
+
   // describe.skip('[Vue3 Skip]: should delete pod', () => {
   //   const podName = `pod-${ Date.now() }`;
 
