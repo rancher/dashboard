@@ -1,4 +1,6 @@
-import { ref, computed, ComputedRef, Ref } from 'vue';
+import {
+  ref, computed, ComputedRef, Ref, defineEmits
+} from 'vue';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
@@ -70,7 +72,9 @@ export const labeledFormElementProps = {
   }
 };
 
-export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (event: string, ...args: any[]) => void): UseLabeledFormElement => {
+const labeledFormElementEmits = defineEmits(['update:validation']);
+
+export const useLabeledFormElement = (props: LabeledFormElementProps, emit: typeof labeledFormElementEmits): UseLabeledFormElement => {
   const raised = ref(props.mode === _VIEW || !!`${ props.value }`);
   const focused = ref(false);
   const blurred = ref<number | null>(null);

@@ -103,6 +103,8 @@ export default defineComponent({
     }
   },
 
+  emits: ['update:value'],
+
   computed: {
     /**
      * Creates a collection of Options from the provided props.

@@ -116,6 +116,8 @@ export default defineComponent({
     },
   },
 
+  emits: ['update:value'],
+
   computed: {
     /**
      * Determines if the checkbox is disabled.

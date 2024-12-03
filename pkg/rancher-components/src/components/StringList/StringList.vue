@@ -83,6 +83,9 @@ export default defineComponent({
       default: null,
     }
   },
+
+  emits: ['type:item', 'errors', 'change', 'update:value', 'blur', 'update:validation'],
+
   data() {
     return {
       value:        undefined as string | undefined,
