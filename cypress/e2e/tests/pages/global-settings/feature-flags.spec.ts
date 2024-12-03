@@ -133,6 +133,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
 
     // Activate
+    featureFlagsPage.list().elementWithName('unsupported-storage-drivers').scrollIntoView().should('be.visible');
     featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Activate');
     featureFlagsPage.clickCardActionButtonAndWait('Activate', 'unsupported-storage-drivers', true);
 
@@ -142,6 +143,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     // Deactivate
     FeatureFlagsPagePo.navTo();
 
+    featureFlagsPage.list().elementWithName('unsupported-storage-drivers').scrollIntoView().should('be.visible');
     featureFlagsPage.list().clickRowActionMenuItem('unsupported-storage-drivers', 'Deactivate');
     featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'unsupported-storage-drivers', false);
 
