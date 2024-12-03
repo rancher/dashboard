@@ -18,7 +18,7 @@ export default class NodeDriver extends Driver {
         icon:       'icon icon-play',
         bulkable:   true,
         bulkAction: 'activateBulk',
-        enabled:    !!this.actions.activate && this.state === 'inactive',
+        enabled:    !!this.actions?.activate && this.state === 'inactive',
       },
       {
         action:     'deactivate',
@@ -26,7 +26,7 @@ export default class NodeDriver extends Driver {
         icon:       'icon icon-pause',
         bulkable:   true,
         bulkAction: 'deactivateBulk',
-        enabled:    !!this.actions.deactivate && this.state === 'active',
+        enabled:    !!this.actions?.deactivate && this.state === 'active',
         weight:     -1,
       },
       { divider: true },
