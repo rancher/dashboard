@@ -90,10 +90,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provisioner() {
-    if (this.status?.provider ) {
-      return this.status.provider;
-    }
-
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -117,7 +113,8 @@ export default class MgmtCluster extends SteveModel {
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
-    // Provisioner is the "<something>Config" in the model
+
+    //  provisioner is status.driver
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
     if ( provisioner === 'rancherKubernetesEngine' ) {
