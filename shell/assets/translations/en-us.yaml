@@ -6544,7 +6544,7 @@ workload:
           managed: Managed
           shared: Shared
       drivers:
-        driver.longhorn.io: Longhorn
+        driver-longhorn-io: Longhorn
       fsType: Filesystem Type
       shareName: Share Name
       secretName: Secret Name
