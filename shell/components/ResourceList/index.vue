@@ -102,11 +102,9 @@ export default {
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
     return {
-      // inStore,
       schema,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
-      resource,
       extensionType:                    ExtensionPoint.PANEL,
       extensionLocation:                PanelLocation.RESOURCE_LIST,
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)

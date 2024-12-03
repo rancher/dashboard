@@ -217,10 +217,6 @@ export default {
     showDynamicRancherNamespaces() {
       return this.$store.getters['prefs/get'](ALL_NAMESPACES);
     },
-
-    inStore() {
-      return this.$store.getters['currentStore'](this.resource) || this.currentProduct?.inStore;
-    }
   },
 
   watch: {
