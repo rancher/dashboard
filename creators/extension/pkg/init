@@ -1,12 +1,8 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 const fs = require('fs-extra');
 const path = require('path');
-
-const targets = {
-  dev:  './node_modules/.bin/nuxt dev',
-  nuxt: './node_modules/.bin/nuxt',
-};
 
 const files = [
   'tsconfig.json',
@@ -30,47 +26,28 @@ const typeFolders = [
   'detail'
 ];
 
-const shellPkgPath = 'node_modules/@rancher/shell';
-
 console.log('');
 console.log('Creating Skeleton UI Package');
 
 const args = process.argv;
 
-if (args.length !== 3) {
-  console.log('Expected single argument of package name');
-}
-
 const name = args[2];
 const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
 
-let addTypeFolders = false;
-let addWorkflowFolder = false;
-let ignoreShellPkgPathCheck = false;
+let addTypeFolders = true;
 
 if ( args.length >= 3 ) {
   for ( let i = 3; i < args.length; i++ ) {
     switch (args[i]) {
+    case '--skip-templates':
     case '-t':
-      addTypeFolders = true;
-      break;
-    case '-w':
-      addWorkflowFolder = true;
-      break;
-    case '-i':
-      ignoreShellPkgPathCheck = true;
+      addTypeFolders = false;
       break;
     default:
       break;
     }
   }
-}
-
-if (!ignoreShellPkgPathCheck && !fs.existsSync(path.join(pkgFolder, `../../${ shellPkgPath }/package.json`))) {
-  console.log('');
-  console.log('@rancher/shell not found in node_modules! Please do "yarn install" and make sure you run this command from the base folder of your app');
-  process.exit(1);
 }
 
 const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
@@ -94,18 +71,7 @@ const pkg = JSON.parse(rawdata);
 pkg.name = name;
 pkg.description = `${ name } plugin`;
 
-Object.keys(targets).forEach((target) => {
-  if (!pkg.scripts[target]) {
-    pkg.scripts[target] = targets[target];
-    console.log(`  Adding script '${ target }' to package.json`);
-  }
-});
-
 writePackageJson();
-
-// Add dependencies
-// pkg.dependencies['@rancher/shell'] = '^0.6.2';
-// pkg.dependencies['core-js'] = '3.18.3';
 
 function writePackageJson() {
   fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
@@ -123,31 +89,6 @@ if (addTypeFolders) {
   });
 }
 
-// Add workflow folder if needed
-if (addWorkflowFolder) {
-  const workflowDir = path.join(folder, '.github/workflows');
-
-  if (!fs.existsSync(workflowDir)) {
-    fs.mkdirSync(workflowDir, { recursive: true });
-  }
-
-  const files = [
-    'build-extension-catalog.yml',
-    'build-extension-charts.yml'
-  ];
-
-  files.forEach((fileName) => {
-    const file = path.join(workflowDir, fileName);
-
-    if (!fs.existsSync(file)) {
-      const src = path.join(__dirname, 'files/.github/workflows', fileName);
-
-      console.log(`  Adding file ${ fileName } to root workflows`);
-      fs.copySync(src, file);
-    }
-  });
-}
-
 // Copy base files
 files.forEach((file) => {
   const src = path.join(__dirname, 'files', file);
@@ -158,13 +99,6 @@ files.forEach((file) => {
     fs.copySync(src, dest);
   }
 });
-
-// require("child_process").spawn('yarn', ['install'], {
-//   cwd: process.cwd(),
-//   stdio: "inherit"
-// });
-
-// Update tsconfig
 
 const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
 const topLevelPkg = JSON.parse(topLevelRawdata);
@@ -210,3 +144,5 @@ function updateArray(data) {
 
   return updated;
 }
+
+/* eslint-enable no-console */
