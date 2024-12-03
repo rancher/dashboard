@@ -24,7 +24,16 @@ harvesterManager:
           1: Go to the
           2: Extensions
           3: page and install the Harvester Extension
-      admin: Please contact your system administrator
+    update:
+      warning: "The Harvester UI Extension is not updated"
+      prompt: "A new version is available. Please click on Update button to install the latest Harvester UI Extension"
+    missingRepo:
+      warning: "The Harvester UI Extension repository is missing"
+      prompt: "Please click on Update button to add the Harvester repository and install the latest Harvester UI Extension"
+    error:
+      warning: "Warning, the Harvester UI extension automatic check failed"
+      prompt: "Please try to install or update the Harvester UI extension manually"
+    admin: Please contact your system administrator
   rke:
     templateError: Incorrect template format
   affinity:
