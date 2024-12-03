@@ -2940,6 +2940,7 @@ istio:
   policy: Enable Policy
   pilotRequired: Pilot must be enabled in order to enable Kiali
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
+  telemetry: Enable Telemetry
   titles:
     components: Components
     customAnswers: Custom Answers

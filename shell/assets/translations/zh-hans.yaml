@@ -2685,6 +2685,7 @@ istio:
   policy: 启用 Policy
   pilotRequired: 必须启用 Pilot 才能启用 Kiali
   poweredBy: 由 <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a> 提供支持
+  telemetry: 启用遥测
   titles:
     components: 组件
     customAnswers: 自定义回复
