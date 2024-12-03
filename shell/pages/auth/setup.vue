@@ -434,6 +434,9 @@ export default {
             </h4>
           </div>
         </div>
+        <div>
+          &nbsp;
+        </div>
       </div>
       <BrandImage
         class="col span-6 landscape"
@@ -490,10 +493,13 @@ export default {
       width: 51%;
 
       & > div:first-of-type {
-        flex:3;
+        flex: 3;
       }
       & > div:nth-of-type(2) {
         flex: 9;
+      }
+      & > div:nth-of-type(3) {
+        flex: 2;
       }
     }
 
