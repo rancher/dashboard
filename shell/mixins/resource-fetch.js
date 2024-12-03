@@ -31,11 +31,18 @@ export default {
       perfConfig = DEFAULT_PERF_SETTING;
     }
 
+    // Normally owner components supply `resource` and `inStore` as part of their data, however these are needed here before parent data runs
+    // So set up both here
+    const params = { ...this.$route.params };
+    const resource = params.resource || this.schema.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
+    const inStore = this.$store.getters['currentStore'](resource);
+
     return {
+      inStore,
       perfConfig,
       init:                       false,
       multipleResources:          [],
-      loadResources:              [this.resource],
+      loadResources:              [resource],
       // manual refresh vars
       hasManualRefresh:           false,
       watch:                      true,
@@ -72,6 +79,7 @@ export default {
 
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
+
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
@@ -92,6 +100,7 @@ export default {
 
       return [];
     },
+
     loading() {
       if (this.canPaginate) {
         return this.paginating;
