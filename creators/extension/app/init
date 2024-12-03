@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 const path = require('path');
 const fs = require('fs-extra');
@@ -65,6 +66,7 @@ if ( addGitlabWorkflow ) {
 
 let setName = false;
 
+// Check that there is a package file
 if (!fs.existsSync(path.join(appFolder, './package.json'))) {
   console.log('  Adding package.json');
   fs.copySync(path.join(__dirname, 'app.package.json'), path.join(appFolder, 'package.json'));
@@ -109,6 +111,32 @@ if (creatorPkg._pkgs) {
 
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 
+// Add workflow folder if needed
+if ( addWorkflowFolder ) {
+  // Point to the workflow directory inside the skeleton application
+  const workflowDir = path.join(appFolder, '.github/workflows');
+
+  if ( !fs.existsSync(workflowDir) ) {
+    console.log('  Creating folder: .github/workflows');
+    fs.mkdirSync(workflowDir, { recursive: true });
+  }
+
+  const workflowFiles = [
+    'build-extension-catalog.yml',
+    'build-extension-charts.yml'
+  ];
+
+  workflowFiles.forEach((fileName) => {
+    const dest = path.join(workflowDir, fileName); // Destination in the skeleton application
+    const src = path.join(__dirname, 'files/.github/workflows', fileName); // Source in the package
+
+    if ( !fs.existsSync(dest) ) {
+      console.log(`  Adding file ${ fileName } to root workflows`);
+      fs.copySync(src, dest);
+    }
+  });
+}
+
 // Copy base files
 files.forEach((file) => {
   const destinationFile = file === 'gitignore' ? '.gitignore' : file;
@@ -118,7 +146,7 @@ files.forEach((file) => {
   if (!fs.existsSync(dest)) {
     console.log(`  Adding file: ${ file }`);
 
-    const folder = path.dirname(file);
+    const folder = path.dirname(dest);
 
     fs.ensureDirSync(folder);
 
@@ -127,4 +155,6 @@ files.forEach((file) => {
   }
 });
 
-console.log('');
+console.log('Skeleton Application creation complete.\n');
+
+/* eslint-enable no-console */
