@@ -11,7 +11,7 @@
     "init"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=16.0.0"
   },
   "dependencies": {
     "fs-extra": "^10.0.0"
