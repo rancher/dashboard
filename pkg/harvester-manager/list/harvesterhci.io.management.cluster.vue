@@ -8,14 +8,13 @@ import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { CAPI, HCI, MANAGEMENT, CATALOG } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { HARVESTER_CHART, HARVESTER_REPO } from '../types';
+import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO } from '../types';
 import {
   getHelmRepository,
   ensureHelmRepository,
@@ -25,6 +24,9 @@ import {
   waitForUIExtension,
   waitForUIPackage,
 } from '@shell/utils/ui-plugins';
+import { isRancherPrime } from '@shell/config/version';
+
+const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
 export default {
   components: {
@@ -70,7 +72,6 @@ export default {
     return {
       isAdmin:         isAdminUser(this.$store.getters),
       navigating:      false,
-      VIRTUAL,
       hciDashboard:    HCI.DASHBOARD,
       resource,
       hResource:       HCI.CLUSTER,
@@ -511,7 +512,7 @@ export default {
     }
   }
 
-   .link {
+ .link {
     cursor: pointer;
   }
 
