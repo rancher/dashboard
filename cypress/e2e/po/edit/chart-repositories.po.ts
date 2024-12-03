@@ -65,6 +65,10 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
     return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
   }
 
+  refreshIntervalInput() {
+    return new LabeledInputPo('[data-testid="clusterrepo-refresh-interval"]');
+  }
+
   saveAndWaitForRequests(method: string, url: string) {
     cy.intercept(method, url).as('request');
     this.saveCreateForm().click();

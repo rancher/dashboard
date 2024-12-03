@@ -91,15 +91,27 @@ export default {
 
       this.value.spec.exponentialBackOffValues[key] = Number(newVal);
     },
+    updateRefreshInterval(newVal) {
+      // when user removes the value we don't send refreshInterval along with the payload
+      if (newVal === '') {
+        delete this.value.spec.refreshInterval;
+
+        return;
+      }
+
+      this.value.spec.refreshInterval = Number(newVal);
+    },
     resetGitRepoValues() {
       delete this.value.spec['gitRepo'];
       delete this.value.spec['gitBranch'];
+      delete this.value.spec['refreshInterval'];
     },
     resetOciValues() {
       delete this.value.spec['url'];
       delete this.value.spec['insecurePlainHttp'];
       delete this.value.spec['insecureSkipTLSVerify'];
       delete this.value.spec['caBundle'];
+      delete this.value.spec['refreshInterval'];
       delete this.value.spec['exponentialBackOffValues'];
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
@@ -268,6 +280,24 @@ export default {
             @update:value="updateExponentialBackOffValues('maxRetries', $event)"
           />
         </div>
+      </div>
+    </div>
+
+    <h4 class="mb-10 mt-20">
+      {{ t('catalog.repo.refreshInterval.title') }}
+    </h4>
+    <div class="row">
+      <div class="col span-4">
+        <LabeledInput
+          v-model:value.trim="value.spec.refreshInterval"
+          :label="t('catalog.repo.refreshInterval.label')"
+          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
+          :mode="mode"
+          type="number"
+          min="0"
+          data-testid="clusterrepo-refresh-interval"
+          @update:value="updateRefreshInterval($event)"
+        />
       </div>
     </div>
 

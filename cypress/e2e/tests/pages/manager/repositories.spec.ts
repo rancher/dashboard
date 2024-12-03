@@ -209,6 +209,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     const ociMinWait = '2';
     const expectedOciMinWaitInPayload = 2;
     const ociMaxWait = '7';
+    const refreshInterval = '12';
 
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
@@ -219,6 +220,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
     repositoriesPage.createEditRepositories().ociMaxWaitInput().set(ociMaxWait);
     repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
+    // set refresh interval
+    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 
@@ -231,6 +234,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
       expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
+      // check refreshInterval
+      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval));
     });
 
     repositoriesPage.waitForPage();
