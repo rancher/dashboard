@@ -9,7 +9,8 @@ module.exports = {
   },
   plugins: [
     'jest',
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'local-rules'
   ],
   extends: [
     'standard',
@@ -18,7 +19,8 @@ module.exports = {
     '@vue/standard',
     '@vue/typescript/recommended',
     'plugin:vue/vue3-recommended',
-    'plugin:cypress/recommended'
+    'plugin:cypress/recommended',
+    'plugin:local-rules/all'
   ],
   rules: {
     'semi-spacing':          'off',
@@ -191,9 +193,6 @@ module.exports = {
     'vue/no-deprecated-slot-attribute': 'off',
     'vue/require-explicit-emits':       'error',
     'vue/v-on-event-hyphenation':       'off',
-
-    // Locally defined rules, you can find these defined in the `eslint-local-rules` directory.
-    'v-clean-tooltip': 'error',
   },
   overrides: [
     {

@@ -18,7 +18,7 @@
     "serve-pkgs": "./shell/scripts/serve-pkgs",
     "publish-shell-reset-reg": "cd shell && npm publish",
     "clean": "./shell/scripts/clean",
-    "lint": "./node_modules/.bin/eslint --rulesdir ./eslint-local-rules --max-warnings 0 --ext .js,.ts,.vue .",
+    "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
     "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest --watch",
@@ -200,7 +200,8 @@
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18"
+    "yarn": "1.22.18",
+    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules"
   },
   "resolutions": {
     "html-webpack-plugin": "^5.0.0"
