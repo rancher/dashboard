@@ -1,12 +1,12 @@
 {
   "name": "@rancher/create-extension",
   "description": "Rancher UI Extension generator",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "license": "Apache-2.0",
   "author": "SUSE",
   "packageManager": "yarn@4.4.1",
   "bin": {
-    "create-extension": "./init"
+    "create-extension": "init"
   },
   "files": [
     "**/*",

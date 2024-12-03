@@ -2,7 +2,6 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const https = require('https');
 
 const targets = {
   dev:  './node_modules/.bin/nuxt dev',
@@ -45,15 +44,12 @@ if (args.length !== 3) {
 const name = args[2];
 const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
-let shellVersion = '';
 
 let addTypeFolders = false;
 let addWorkflowFolder = false;
 let ignoreShellPkgPathCheck = false;
 
 if ( args.length >= 3 ) {
-  shellVersion = args[3];
-
   for ( let i = 3; i < args.length; i++ ) {
     switch (args[i]) {
     case '-t':

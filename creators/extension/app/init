@@ -15,6 +15,7 @@ const files = [
   'gitignore',
   '.eslintignore',
   '.eslintrc.js',
+  '.nvmrc',
   '.yarnrc.yml',
   'babel.config.js',
   '.vscode/settings.json'
@@ -27,7 +28,7 @@ const args = process.argv;
 let appFolder = path.resolve('.');
 let shellVersion = '';
 
-if (args.length === 3) {
+if (args.length >= 3 && !args[2].includes('@rancher/create-extension/app/init')) {
   const name = args[2];
   const folder = path.resolve('.');
 
