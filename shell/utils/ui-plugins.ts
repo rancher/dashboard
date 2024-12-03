@@ -11,7 +11,7 @@ export type HelmChart = any;
 
 /**
  * Wait for a given UI Extension to be available
- * 
+ *
  * @param store Vue store
  * @param name Name of the extension
  * @returns the extension object when available, null if timed out waiting for it to be available
@@ -43,13 +43,13 @@ export async function waitForUIExtension(store: any, name: string): Promise<any>
       return null;
     }
 
-    await new Promise(r => setTimeout(r, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
   }
 }
 
 /**
  * Wait for a given UI Extension package to be available
- * 
+ *
  * @param store Vue store
  * @param extension Extension object
  * @returns true when available, false if timed out waiting for it to be available
@@ -78,13 +78,13 @@ export async function waitForUIPackage(store: any, extension: any): Promise<bool
       return false;
     }
 
-    await new Promise(r => setTimeout(r, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
   }
 }
 
 /**
  * Install Helm Chart
- * 
+ *
  * Note: This should really be provided via the shell rather than copied here
  */
 export async function installHelmChart(repo: any, chart: any, values: any = {}, namespace = 'default', action: Action = 'install') {
@@ -112,14 +112,14 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
     upgrade operation.
   */
   const installRequest = {
-    charts:    [chartInstall],
-    noHooks:   false,
-    timeout:   '600s',
-    wait:      true,
+    charts:                   [chartInstall],
+    noHooks:                  false,
+    timeout:                  '600s',
+    wait:                     true,
     namespace,
-    projectId: '',
+    projectId:                '',
     disableOpenAPIValidation: false,
-    skipCRDs: false,
+    skipCRDs:                 false,
   };
 
   // Install the Chart
@@ -130,7 +130,7 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
 
 /**
  * Get the Helm repository object
- * 
+ *
  * @param store Vue store
  * @param url The url of the Helm repostitory
  * @param branch The branch of the Helm repostitory
@@ -138,12 +138,16 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
  */
 export async function getHelmRepository(store: any, url: string, branch?: string): Promise<HelmRepository> {
   if (store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-    const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch:false } });
+    const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch: false } });
 
     if (branch) {
-      return repos.find((r: any) => { return r.spec?.gitRepo === url });
+      return repos.find((r: any) => {
+        return r.spec?.gitRepo === url;
+      });
     } else {
-      return repos.find((r: any) => { return r.spec?.url === url });
+      return repos.find((r: any) => {
+        return r.spec?.url === url;
+      });
     }
   } else {
     throw new Error('No permissions');
@@ -153,26 +157,26 @@ export async function getHelmRepository(store: any, url: string, branch?: string
 /**
  * Refresh the Helm repository
  * Ensures that we find the latest extension versions
- * 
+ *
  * @param repository The Helm repository
  */
 export async function refreshHelmRepository(repository: any): Promise<void> {
   const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
   repository.spec.forceUpdate = now;
-  
+
   await repository.save();
 
   await repository.waitForState('active', 10000, 1000);
 
-  await new Promise(r => setTimeout(r, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 /**
  * Ensure the required Helm Repository exits, if it does not, add it with the specified name
- * 
+ *
  * Wait until the newly added repository has been downloaded
- * 
+ *
  * @param store Vue store
  * @param url The url of the Helm repostitory
  * @param name The name of the cluster repository
@@ -185,11 +189,9 @@ export async function ensureHelmRepository(store: any, url: string, name: string
   // Add the Helm repository, if it is not there
   if (!helmRepo) {
     const data = {
-      type: CATALOG.CLUSTER_REPO,
-      metadata: {
-        name
-      },
-      spec: {} as any
+      type:     CATALOG.CLUSTER_REPO,
+      metadata: { name },
+      spec:     {} as any
     };
 
     if (branch) {
@@ -233,7 +235,7 @@ export async function ensureHelmRepository(store: any, url: string, name: string
         throw new Error('Failed to add Helm Chart Repository');
       }
 
-      await new Promise(r => setTimeout(r, RETRY_WAIT));
+      await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
     }
 
     fetched = true;
@@ -245,7 +247,7 @@ export async function ensureHelmRepository(store: any, url: string, name: string
 
 /**
  * Get the given Helm Chart from the specified Helm Repository
- * 
+ *
  * @param store Vue store
  * @param repository Helm Repository
  * @param chartName Helm Chart name
@@ -254,7 +256,7 @@ export async function ensureHelmRepository(store: any, url: string, name: string
 export async function getHelmChart(store: any, repository: any, chartName: string): Promise<HelmChart> {
   const versionInfo = await store.dispatch('management/request', {
     method: 'GET',
-    url: `${repository?.links?.info}&chartName=${ chartName }`,
+    url:    `${ repository?.links?.info }&chartName=${ chartName }`,
   });
 
   return versionInfo.chart;

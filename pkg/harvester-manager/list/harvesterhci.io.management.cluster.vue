@@ -70,20 +70,20 @@ export default {
     const resource = CAPI.RANCHER_CLUSTER;
 
     return {
-      isAdmin:         isAdminUser(this.$store.getters),
-      navigating:      false,
-      hciDashboard:    HCI.DASHBOARD,
+      isAdmin:                        isAdminUser(this.$store.getters),
+      navigating:                     false,
+      hciDashboard:                   HCI.DASHBOARD,
       resource,
-      hResource:       HCI.CLUSTER,
-      realSchema:      this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      hciClusters:     [],
-      mgmtClusters:    [],
-      harvesterRepository: null,
-      harvesterLatestVersion: null,
-      harvesterRepositoryError: false,
+      hResource:                      HCI.CLUSTER,
+      realSchema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      hciClusters:                    [],
+      mgmtClusters:                   [],
+      harvesterRepository:            null,
+      harvesterLatestVersion:         null,
+      harvesterRepositoryError:       false,
       harvesterExtensionInstallError: false,
-      harvesterExtensionUpdateError: false,
-      clusterRepoLink: {
+      harvesterExtensionUpdateError:  false,
+      clusterRepoLink:                {
         name:   'c-cluster-product-resource',
         params: {
           cluster:  'local',
@@ -118,7 +118,7 @@ export default {
       const missingRepository = !!extension && !this.harvesterRepository;
       const isLatestVersionAvailable = !!this.harvesterLatestVersion;
 
-      const action = async (btnCb) => {
+      const action = async(btnCb) => {
         const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
 
         await this[action](btnCb);
@@ -147,7 +147,7 @@ export default {
         let key = `harvesterManager.extension.${ action }.${ label }`;
 
         if (label === 'prompt' && !this.isAdmin) {
-          key = 'harvesterManager.extension.admin'
+          key = 'harvesterManager.extension.admin';
         }
 
         return {
@@ -161,7 +161,7 @@ export default {
         missingRepository,
         isLatestVersionAvailable,
         toInstall: !extension,
-        toUpdate: missingRepository || isLatestVersionAvailable,
+        toUpdate:  missingRepository || isLatestVersionAvailable,
         action,
         panelLabel,
         hasErrors,
@@ -391,7 +391,10 @@ export default {
         </div>
       </template>
       <template v-if="harvester.hasErrors || harvester.toInstall || harvester.toUpdate">
-        <div v-if="harvester.hasErrors || harvester.toInstall || !rows || !rows.length" class="tagline">
+        <div
+          v-if="harvester.hasErrors || harvester.toInstall || !rows || !rows.length"
+          class="tagline"
+        >
           <div class="extensions-separator" />
         </div>
         <div class="tagline extension-warning-panel">
