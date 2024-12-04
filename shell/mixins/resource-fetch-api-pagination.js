@@ -78,7 +78,7 @@ export default {
     },
 
     namespaceFilterChanged(neu) {
-      if (!this.canPaginate || !this.schema?.attributes?.namespaced || !this.namespaced) {
+      if (!this.canPaginate || !this.isNamespaced) {
         return;
       }
 
@@ -176,6 +176,10 @@ export default {
         return;
       }
 
+      if (!this.resource) {
+        return false;
+      }
+
       const args = {
         id:      this.resource.id || this.resource,
         context: this.context,
@@ -213,6 +217,15 @@ export default {
     showDynamicRancherNamespaces() {
       return this.$store.getters['prefs/get'](ALL_NAMESPACES);
     },
+
+    isNamespaced() {
+      if (typeof this.namespaced !== 'undefined') {
+        // This is an override, but only if it's set
+        return !!this.namespaced;
+      }
+
+      return this.schema?.attributes?.namespaced;
+    }
   },
 
   watch: {
@@ -236,7 +249,7 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
-        if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+        if (!this.canPaginate || !this.isNamespaced) {
           return;
         }
 
