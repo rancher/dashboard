@@ -12,7 +12,7 @@ const args = process.argv;
 
 args.splice(0, 2);
 
-const res = spawnSync(`${ __dirname }/upgrade`, args, {
+const res = spawnSync(path.join(__dirname, 'upgrade'), args, {
   cwd:   dest,
   shell: false,
   stdio: ['ignore', process.stdout, process.stderr],
@@ -31,9 +31,13 @@ rawdata = fs.readFileSync(path.join(baseFolder, 'app', 'package.json'));
 const latestPackage = JSON.parse(rawdata);
 
 // Update dependency versions to match the latest from the creator
-Object.keys(latestPackage._pkgs).forEach((key) => {
-  appPackage.dependencies[key] = latestPackage._pkgs[key];
-});
+if ( latestPackage.dependencies ) {
+  Object.keys(latestPackage.dependencies).forEach((key) => {
+    appPackage.dependencies[key] = latestPackage.dependencies[key];
+  });
+} else {
+  console.warn('No dependencies found in latestPackage.'); // eslint-disable-line no-console
+}
 
 // Add in the webpack resolution
 appPackage.resolutions = appPackage.resolutions || {};
