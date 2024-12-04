@@ -26,7 +26,6 @@ export default defineComponent({
      * Filter out hidden repos from list of all repos
      */
     filterRowsLocal(rows: ClusterRepo[]) {
-      // TODO: RC Test - no-vai
       return rows.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
     },
 

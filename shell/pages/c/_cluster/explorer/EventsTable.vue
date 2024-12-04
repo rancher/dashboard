@@ -87,7 +87,6 @@ export default {
 </script>
 
 <template>
-  <!-- TODO: RC TEST - no-vai -->
   <PaginatedResourceTable
     :schema="schema"
     :headers="eventHeaders"

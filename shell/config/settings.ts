@@ -267,17 +267,15 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            // custom list or headers? not generic
+            // if a resource list is shown by a custom resource list component or has specific list headers then it's not generically shown
+            // and must be included here.
             enabled: [
               NODE, EVENT,
               POD,
               CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
               HPA, INGRESS, SERVICE,
-              PV, CONFIG_MAP, PVC, SECRET,
+              PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
             ],
-            // Currently covers more resources plus (at time of comment)
-            // STORAGE_CLASS
-            // LIMIT_RANGE, NETWORK_POLICY, POD_DISRUPTION_BUDGET, RESOURCE_QUOTA
             generic: true,
           }
         }
