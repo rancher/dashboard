@@ -147,7 +147,7 @@ export default {
         let key = `harvesterManager.extension.${ action }.${ label }`;
 
         if (label === 'prompt' && !this.isAdmin) {
-          key = 'harvesterManager.extension.admin';
+          key = `harvesterManager.extension.${ action }.${ label }-standard-user`;
         }
 
         return {
