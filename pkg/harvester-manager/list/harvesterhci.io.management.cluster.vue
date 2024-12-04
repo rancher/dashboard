@@ -230,7 +230,7 @@ export default {
       let installed = false;
 
       try {
-        const harvesterRepo = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_CHART.name, HARVESTER_REPO.spec.gitBranch);
+        const harvesterRepo = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
 
         const chart = await getHelmChart(this.$store, harvesterRepo, HARVESTER_CHART.name);
 
@@ -258,7 +258,7 @@ export default {
         let harvesterRepository = this.harvesterRepository;
 
         if (this.harvester.missingRepository) {
-          harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_CHART.name, HARVESTER_REPO.spec.gitBranch);
+          harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
 
           await this.setHarvesterLatestVersion(harvesterRepository);
         }
@@ -338,6 +338,7 @@ export default {
         :is-creatable="true"
         :namespaced="false"
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+        :rows-per-page="5"
       >
         <template #col:name="{row}">
           <td>

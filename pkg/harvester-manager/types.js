@@ -19,7 +19,7 @@ export const HARVESTER_COMMUNITY_REPO = {
 
 export const HARVESTER_RANCHER_REPO = {
   type:     'catalog.cattle.io.clusterrepo',
-  metadata: { name: 'harvester' },
+  metadata: { name: 'rancher' },
   spec:     {
     clientSecret: null,
     gitRepo:      UI_PLUGINS_REPOS.OFFICIAL.URL,

@@ -253,11 +253,26 @@ export async function ensureHelmRepository(store: any, url: string, name: string
  * @param chartName Helm Chart name
  * @returns Helm Chart
  */
-export async function getHelmChart(store: any, repository: any, chartName: string): Promise<HelmChart> {
-  const versionInfo = await store.dispatch('management/request', {
-    method: 'GET',
-    url:    `${ repository?.links?.info }&chartName=${ chartName }`,
-  });
+export async function getHelmChart(store: any, repository: any, chartName: string): Promise<HelmChart | null> {
+  let tries = 0;
 
-  return versionInfo.chart;
+  while (true) {
+    try {
+      const versionInfo = await store.dispatch('management/request', {
+        method: 'GET',
+        url:    `${ repository?.links?.info }&chartName=${ chartName }`,
+      });
+
+      return versionInfo.chart;
+    } catch (error) {
+    }
+
+    tries++;
+
+    if (tries > MAX_RETRIES) {
+      return null;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
+  }
 }
