@@ -73,6 +73,7 @@ fi
 
 echo "Dashboard UI is ready"
 
+# TODO: RC add this to e2-k3s-start
 echo "Waiting for webhook to be running..."
 okay=0
 while [ $okay -lt 30 ] ; do

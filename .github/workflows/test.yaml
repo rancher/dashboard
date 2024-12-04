@@ -19,8 +19,8 @@ env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  TEST_BASE_URL: https://127.0.0.1/dashboard
-  API: https://127.0.0.1
+  TEST_BASE_URL: https://127.0.0.1.sslip.io
+  API: https://127.0.0.1.sslip.io
   TEST_PROJECT_ID: rancher-dashboard
   TEST_DISABLE_DASHBOARD: ${{ vars.TEST_DISABLE_DASHBOARD }} # This is required to get it from the project configuration
   TEST_DISABLE_DASHBOARD_LABEL: "${{ contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e-cypress-dashboard')}}"
@@ -117,7 +117,7 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:docker
+        run: yarn e2e:k3s
       
       - name: Setup Rancher and user
         run: |
