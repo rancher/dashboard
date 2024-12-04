@@ -1,4 +1,4 @@
-import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkLoadsPodEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 // import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
@@ -313,6 +313,33 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       podDetails.saveCreateForm().cruResource().saveOrCreate().click();
       workloadsPodPage.waitForPage();
       workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+    });
+
+    it('Footer controls should stick to bottom in YAML Editor', () => {
+      // testing https://github.com/rancher/dashboard/issues/10880
+      const workloadsPodEditPage = new WorkLoadsPodEditPagePo(singlePodName);
+
+      cy.intercept('GET', `/api/v1/namespaces/default/pods/${ singlePodName }`).as('getPod');
+
+      workloadsPodPage.goTo();
+      workloadsPodPage.waitForPage();
+      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().actionMenu(singlePodName).getMenuItem('Edit YAML').click();
+      workloadsPodEditPage.waitForPage('mode=edit&as=yaml');
+      cy.wait('@getPod');
+
+      // clear the form
+      workloadsPodEditPage.saveCreateForm().resourceYaml().codeMirror().set('');
+
+      // footer should maintain its position on the page
+      workloadsPodEditPage.saveCreateForm().resourceYaml().footer().then(($el) => {
+        const elementRect = $el[0].getBoundingClientRect();
+        const viewportHeight = Cypress.config('viewportHeight');
+        const pageHeight = Cypress.$(cy.state('window')).height();
+
+        expect(elementRect.bottom).to.be.closeTo(pageHeight, 0.1);
+        expect(elementRect.bottom).to.be.closeTo(viewportHeight, 0.1);
+      });
     });
   });
 
