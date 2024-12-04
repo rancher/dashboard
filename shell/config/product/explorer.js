@@ -31,7 +31,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { STORAGE } from 'config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from 'config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -363,13 +363,64 @@ export function init(store) {
       CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
     ]
   );
+
+  const STEVE_WORKLOAD_IMAGES = {
+    ...WORKLOAD_IMAGES,
+    sort:   false,
+    search: false,
+  };
+
+  const STEVE_WORKLOAD_ENDPOINTS = {
+    ...WORKLOAD_ENDPOINTS,
+    sort:   [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
+    search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
+  };
+
+  // TODO: RC test for regressions - incremental loading, manual refresh
+
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.DEPLOYMENT,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      STEVE_WORKLOAD_IMAGES,
+      STEVE_WORKLOAD_ENDPOINTS,
+      'Ready', 'Up-to-date', 'Available',
+      // POD_RESTARTS, // TODO: RC NO!
+      STEVE_AGE_COL,
+    ],
+  );
+  headers(WORKLOAD_TYPES.DAEMON_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      STEVE_WORKLOAD_IMAGES,
+      STEVE_WORKLOAD_ENDPOINTS,
+      'Ready', 'Current', 'Desired',
+      // POD_RESTARTS, // TODO: RC NO!
+      STEVE_AGE_COL,
+    ]
+  );
   headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.CRON_JOB,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      STEVE_WORKLOAD_IMAGES,
+      STEVE_WORKLOAD_ENDPOINTS,
+      'Schedule', 'Last Schedule',
+      // POD_RESTARTS, // TODO: RC NO!
+      STEVE_AGE_COL,
+    ]
+  );
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
 
   headers(POD,

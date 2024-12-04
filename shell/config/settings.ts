@@ -12,7 +12,8 @@ import {
   LIMIT_RANGE,
   NETWORK_POLICY,
   POD_DISRUPTION_BUDGET,
-  RESOURCE_QUOTA
+  RESOURCE_QUOTA,
+  WORKLOAD_TYPES
 } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
@@ -271,7 +272,7 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
             // and must be included here.
             enabled: [
               NODE, EVENT,
-              POD,
+              WORKLOAD_TYPES.CRON_JOB, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET, POD,
               CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
               HPA, INGRESS, SERVICE,
               PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,

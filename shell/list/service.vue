@@ -1,10 +1,10 @@
 <script>
-import PaginationResourceTable from '@shell/components/PaginatedResourceTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { NODE } from '@shell/config/types';
 
 export default {
   name:       'ListService',
-  components: { PaginationResourceTable },
+  components: { PaginatedResourceTable },
   props:      {
     resource: {
       type:     String,
@@ -39,7 +39,7 @@ export default {
 </script>
 
 <template>
-  <PaginationResourceTable
+  <PaginatedResourceTable
     :schema="schema"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"

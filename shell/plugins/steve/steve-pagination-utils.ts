@@ -10,9 +10,10 @@ import {
   PV,
   STORAGE_CLASS,
   SERVICE,
-  INGRESS
+  INGRESS,
+  WORKLOAD_TYPES
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -192,7 +193,25 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [STORAGE_CLASS]: [
       // { field: 'provisioner' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: `annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: `metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [CATALOG.APP]: [
+      // { field: 'spec.chart.metadata.name' }, // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.CRON_JOB]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.DAEMON_SET]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.DEPLOYMENT]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.JOB]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.STATEFUL_SET]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ]
 
   }

@@ -5,8 +5,9 @@ import {
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { WORKLOAD_HEALTH_SCALE } from '@shell/config/table-headers';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
-const schema = {
+const workloadSchema = {
   id:         'workload',
   type:       SCHEMA,
   attributes: {
@@ -26,7 +27,7 @@ const $loadingResources = ($route, $store) => {
     }
   });
 
-  const allTypes = $route.params.resource === schema.id;
+  const allTypes = $route.params.resource === workloadSchema.id;
 
   return {
     loadResources:     allTypes ? allowedResources : [$route.params.resource],
@@ -36,7 +37,7 @@ const $loadingResources = ($route, $store) => {
 
 export default {
   name:       'ListWorkload',
-  components: { ResourceTable },
+  components: { ResourceTable, PaginatedResourceTable },
   mixins:     [ResourceFetch],
 
   props: {
@@ -47,6 +48,11 @@ export default {
   },
 
   async fetch() {
+    if (this.paginationEnabled) {
+      // this.$fetchType(NODE); // TODO: RC
+      return;
+    }
+
     if (this.allTypes && this.loadResources.length) {
       this.$initializeFetchData(this.loadResources[0], this.loadResources);
     } else {
@@ -82,7 +88,15 @@ export default {
     // Ensure these are set on load (to determine if the NS filter is required) rather than too late on `fetch`
     const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
 
+    const { params:{ resource: type } } = this.$route;
+    const allTypes = this.$route.params.resource === workloadSchema.id;
+    const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
+    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type }); // TODO: RC test vai off workloads page
+
     return {
+      allTypes,
+      schema,
+      paginationEnabled,
       resources: [],
       loadResources,
       loadIndeterminate
@@ -90,24 +104,6 @@ export default {
   },
 
   computed: {
-    allTypes() {
-      return this.$route.params.resource === schema.id;
-    },
-
-    paginationEnabled() {
-      return !this.allTypes && this.$store.getters[`cluster/paginationEnabled`]();
-    },
-
-    schema() {
-      const { params:{ resource:type } } = this.$route;
-
-      if (type !== schema.id) {
-        return this.$store.getters['cluster/schemaFor'](type);
-      }
-
-      return schema;
-    },
-
     filteredRows() {
       const out = [];
 
@@ -127,14 +123,7 @@ export default {
     },
 
     headers() {
-      const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
-
-      if (this.paginationEnabled) {
-        // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
-        return headers.filter((h) => h.name !== WORKLOAD_HEALTH_SCALE.name);
-      }
-
-      return headers;
+      return this.$store.getters['type-map/headersFor'](this.schema, false);
     }
   },
 
@@ -171,27 +160,27 @@ export default {
     }
   },
 
-  typeDisplay() {
-    const { params:{ resource:type } } = this.$route;
-    let paramSchema = schema;
-
-    if (type !== schema.id) {
-      paramSchema = this.$store.getters['cluster/schemaFor'](type);
-    }
-
-    return this.$store.getters['type-map/labelFor'](paramSchema, 99);
-  },
 };
 </script>
 
 <template>
-  <ResourceTable
-    :loading="$fetchState.pending"
-    :schema="schema"
-    :headers="headers"
-    :rows="filteredRows"
-    :overflow-y="true"
-    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-  />
+  <div>
+    <PaginatedResourceTable
+      v-if="paginationEnabled"
+      :schema="schema"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    />
+    <!-- :fetchSecondaryResources="fetchSecondaryResources"
+    :fetchPageSecondaryResources="fetchPageSecondaryResources" -->
+    <ResourceTable
+      v-else
+      :loading="$fetchState.pending"
+      :schema="schema"
+      :headers="headers"
+      :rows="filteredRows"
+      :overflow-y="true"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    />
+  </div>
 </template>

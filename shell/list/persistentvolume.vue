@@ -24,7 +24,17 @@ export default defineComponent({
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    overflowX: {
+      type:    Boolean,
+      default: false
+    },
+
+    overflowY: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   methods: {
@@ -66,5 +76,8 @@ export default defineComponent({
     :fetchSecondaryResources="fetchSecondaryResources"
     :fetchPageSecondaryResources="fetchPageSecondaryResources"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+
+    :overflow-x="overflowX"
+    :overflow-y="overflowY"
   />
 </template>
