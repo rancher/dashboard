@@ -17,6 +17,7 @@ import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
+import { sameContents } from '@shell/utils/array';
 
 // TODO: RC (home page/side bar) test search properly
 
@@ -265,8 +266,12 @@ export default {
 
     pinnedIds: {
       immediate: true,
-      handler(ids) {
-        this.updateClusters(ids);
+      handler(neu, old) {
+        if (sameContents(neu, old)) {
+          return;
+        }
+
+        this.updateClusters(neu);
       }
     },
 

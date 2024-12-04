@@ -34,7 +34,7 @@ export default {
     // Normally owner components supply `resource` and `inStore` as part of their data, however these are needed here before parent data runs
     // So set up both here
     const params = { ...this.$route.params };
-    const resource = params.resource || this.schema.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
+    const resource = params.resource || this.schema?.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
     const inStore = this.$store.getters['currentStore'](resource);
 
     return {
