@@ -51,7 +51,6 @@ export const SETTING = {
   INGRESS_IP_DOMAIN:                    'ingress-ip-domain',
   SERVER_URL:                           'server-url',
   RKE_METADATA_CONFIG:                  'rke-metadata-config',
-  TELEMETRY:                            'telemetry-opt',
   EULA_AGREED:                          'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:       'auth-user-info-max-age-seconds',
   AUTH_USER_SESSION_TTL_MINUTES:        'auth-user-session-ttl-minutes',
@@ -156,12 +155,8 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.BRAND]:                        { canReset: true },
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
-  [SETTING.TELEMETRY]:                    {
-    kind:    'enum',
-    options: ['prompt', 'in', 'out']
-  },
-  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
-  [SETTING.AGENT_TLS_MODE]:     {
+  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:               {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
