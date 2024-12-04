@@ -116,6 +116,7 @@ export default defineComponent({
       <template
         v-for="(_, slot) of $slots"
         v-slot:[slot]="scope"
+        :key="slot"
       >
         <slot
           :name="slot"

@@ -190,8 +190,11 @@ export default {
       });
     },
 
-    setDefaults() {
-      this.value = { ...DEFAULT_PERF_SETTING };
+    setPaginationDefaults() {
+      this.value = {
+        ...this.value,
+        serverPagination: { ...DEFAULT_PERF_SETTING.serverPagination }
+      };
     }
   },
 };
@@ -203,14 +206,6 @@ export default {
     <h1 class="mb-20">
       {{ t('performance.label') }}
     </h1>
-    <button
-      class="btn btn-sm role-primary"
-      style="width: fit-content;"
-      @click.prevent="setDefaults()"
-    >
-      <!-- TODO: RC tidy  -->
-      Populate with Defaults
-    </button>
     <div>
       <div class="ui-perf-setting">
         <!-- Server Side Pagination -->
@@ -242,6 +237,13 @@ export default {
             v-clean-html="steveCacheApplicableResources"
             :class="{ 'text-muted': !value.serverPagination.enabled }"
           />
+          <button
+            class="btn btn-sm role-primary"
+            style="width: fit-content;"
+            @click.prevent="setPaginationDefaults()"
+          >
+            {{ t('performance.serverPagination.populateDefaults') }}
+          </button>
         </div>
         <!-- Inactivity -->
         <div class="mt-20">

@@ -105,7 +105,6 @@ class NamespaceProjectFilters {
  * Helper functions for steve pagination
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
-  // TODO: RC how to extensions add to this list?!
   /**
    * Filtering with the vai cache supports specific fields
    * 1) Those listed here
@@ -149,28 +148,21 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [CAPI.MACHINE]: [
       { field: 'spec.clusterName' } // TODO: RC (home page/side bar) TEST
     ],
-    [CAPI.RANCHER_CLUSTER]: [
-      // { field: `metadata.labels."${ CAPI.PROVIDER }"` } // Pending API support // TODO: RC
-      // { field: `status.provider` } // Pending API support // TODO: RC
-      // { field: 'status.allocatable.cpu' } // Pending API support // TODO: RC
-      // { field: 'status.allocatable.memory' } // Pending API support // TODO: RC
-      // { field: 'status.allocatable.pods' } // Pending API support // TODO: RC
-    ],
     [EVENT]: [
-      // { field: '_type' }, // Pending API support // TODO: RC
-      // { field: 'reason' }, // Pending API support // TODO: RC
-      // { field: 'involvedObject.kind' }, // Pending API support // TODO: RC
-      // { field: 'message' }, // Pending API support // TODO: RC
+      { field: '_type' },
+      { field: 'reason' },
+      { field: 'involvedObject.kind' },
+      { field: 'message' },
     ],
     [CATALOG.CLUSTER_REPO]: [
-      // { field: 'spec.gitRepo' }, // Pending API support // TODO: RC
-      // { field: 'spec.gitBranch' }, // Pending API support // TODO: RC
-      // { field: `metadata.annotations.\"clusterrepo.cattle.io/hidden\"` } // Pending API support // TODO: RC
+      { field: 'spec.gitRepo' },
+      { field: 'spec.gitBranch' },
+      { field: `metadata.annotations[clusterrepo.cattle.io/hidden]` }
     ],
     [CATALOG.OPERATION]: [
-      // { field: 'status.action' }, // Pending API support // TODO: RC
-      // { field: 'status.namespace' }, // Pending API support // TODO: RC
-      // { field: 'status.releaseName' }, // Pending API support // TODO: RC
+      { field: 'status.action' },
+      { field: 'status.namespace' },
+      { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC (home page/side bar) TEST
@@ -370,18 +362,21 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     state.checked.push(field);
 
     // First check in our hardcoded list of supported filters
-    if ([
-      StevePaginationUtils.VALID_FIELDS[''], // Global
-      StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
-    ].find((fields) => fields?.find((f) => {
-      if (f.startsWith) {
-        if (field.startsWith(f.field)) {
-          return true;
+    if (
+      process.env.NODE_ENV === 'dev' &&
+      [
+        StevePaginationUtils.VALID_FIELDS[''], // Global
+        StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
+      ].find((fields) => fields?.find((f) => {
+        if (f.startsWith) {
+          if (field.startsWith(f.field)) {
+            return true;
+          }
+        } else {
+          return field === f.field;
         }
-      } else {
-        return field === f.field;
-      }
-    }))) {
+      }))
+    ) {
       return;
     }
 

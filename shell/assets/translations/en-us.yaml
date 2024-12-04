@@ -7547,6 +7547,7 @@ performance:
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
+    populateDefaults: Populate with latest pagination defaults
 banner:
   label: Fixed Banners
   settingName: Banners

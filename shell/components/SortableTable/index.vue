@@ -23,7 +23,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
-import devConsole from 'utils/dev-console';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -497,7 +496,6 @@ export default {
 
     loading: {
       handler(neu, old) {
-        devConsole.warn('SS', 'watch', 'loading', neu, old);
         // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
         this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
 

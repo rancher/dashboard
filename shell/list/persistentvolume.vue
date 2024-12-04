@@ -48,7 +48,7 @@ export default defineComponent({
           filters: [],
           // Pending API support https://github.com/rancher/rancher/issues/48103
           // filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //   field: 'spec.volumeName', // TODO: RC id??
+          //   field: 'spec.volumeName',
           //   value: r.metadata.name
           // }))),
         })

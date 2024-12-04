@@ -326,12 +326,9 @@ export default {
         return;
       }
 
-      // TODO: RC fix in parent commit (make calls to fetchPageX null safe)
-      if (this.fetchPageSecondaryResources) {
-        await this.fetchPageSecondaryResources({
-          canPaginate: this.canPaginate, force: false, page: this.rows, pagResult: this.paginationResult
-        });
-      }
+      await this.fetchPageSecondaryResources({
+        canPaginate: this.canPaginate, force: false, page: this.rows, pagResult: this.paginationResult
+      });
     }
   },
 };

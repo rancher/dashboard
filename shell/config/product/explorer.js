@@ -184,7 +184,7 @@ export function init(store) {
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
-  // configureType(EVENT, { limit: 500 }); // TODO: RC search for where EVENT is requested
+  configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
 
   configureType(POD, {
@@ -225,7 +225,7 @@ export function init(store) {
       STEVE_NAME_COL,
       { ...RECLAIM_POLICY },
       {
-        // TODO: RC Regression
+        // TODO: RC TEST once 48103
         ...PERSISTENT_VOLUME_CLAIM,
         sort:   ['metadata.fields.5'], // TODO: RC should be spec.volumeName of PVC --> PV, this is PV --> PVC
         search: ['metadata.fields.5'],
@@ -338,7 +338,7 @@ export function init(store) {
       }, {
         ...EVENT_TYPE,
         value: '_type',
-        sort:  '_type', // TODO: RC API request
+        sort:  '_type',
       },
       REASON,
       STEVE_EVENT_OBJECT,

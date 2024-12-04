@@ -11,21 +11,9 @@ export default defineComponent({
   components: { PaginatedResourceTable },
 
   props: {
-    resource: {
-      type:     String,
-      required: true,
-    },
     schema: {
       type:     Object,
       required: true,
-    },
-    rows: {
-      type:     Array,
-      required: true,
-    },
-    loading: {
-      type:     Boolean,
-      required: false,
     },
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
@@ -34,24 +22,24 @@ export default defineComponent({
   },
 
   methods: {
+    /**
+     * Filter out hidden repos from list of all repos
+     */
     filterRowsLocal(rows: ClusterRepo[]) {
-      // TODO: RC Test
+      // TODO: RC Test - no-vai
       return rows.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
     },
 
+    /**
+     * Filter out hidden repos via api
+     */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
-      // TODO: RC Test once API updated
       if (!pagination.filters) {
         pagination.filters = [];
       }
 
-      const field = `metadata.annotations."${ CATALOG_ANNOTATIONS.HIDDEN_REPO }"`;
-      const required = PaginationParamFilter.createSingleField({
-        field,
-        exact:  true,
-        value:  'true',
-        equals: true
-      });
+      const field = `metadata.annotations[${ CATALOG_ANNOTATIONS.HIDDEN_REPO }]`;
+
       let existing: PaginationParamFilter | null = null;
 
       for (let i = 0; i < pagination.filters.length; i++) {
@@ -62,6 +50,13 @@ export default defineComponent({
           break;
         }
       }
+
+      const required = PaginationParamFilter.createSingleField({
+        field,
+        exact:  true,
+        value:  'true',
+        equals: false
+      });
 
       if (!!existing) {
         Object.assign(existing, required);

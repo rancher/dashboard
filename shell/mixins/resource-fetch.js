@@ -102,7 +102,7 @@ export default {
             return rows;
           }
         } else {
-          return this.localFilter ? this.localFilter(rows) : rows; // TODO: RC test after merge
+          return this.localFilter ? this.localFilter(rows) : rows; // TODO: RC Test - no-vai
         }
 
         return [];

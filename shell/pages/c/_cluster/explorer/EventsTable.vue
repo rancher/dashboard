@@ -87,8 +87,7 @@ export default {
 </script>
 
 <template>
-  <!-- TODO: RC test paging (create events) -->
-  <!-- TODO: RC test no-vai again -->
+  <!-- TODO: RC TEST - no-vai -->
   <PaginatedResourceTable
     :schema="schema"
     :headers="eventHeaders"
@@ -101,7 +100,7 @@ export default {
     :groupable="false"
     :rows-per-page="10"
   >
-    <template slot="header-right">
+    <template v-slot:header-right>
       <router-link
         :to="allEventsLink"
         class="events-link"

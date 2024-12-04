@@ -186,8 +186,6 @@ export default defineComponent({
     },
 
     fetchSecondaryResources(): { [key: string]: Promise<any>} {
-      devConsole.warn('node', 'methods', 'fetchSecondaryResources');
-
       const hash: { [key: string]: Promise<any>} = {};
 
       if (this.canViewMgmtNodes) {
@@ -315,7 +313,6 @@ export default defineComponent({
       data-testid="cluster-node-list"
     >
       <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
-        <!-- TODO: RC TEST -->
         <tr
           class="taints sub-row"
           :class="{'empty-taints': ! row.displayTaintsAndLabels}"
