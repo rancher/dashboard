@@ -108,6 +108,8 @@ export default defineComponent({
     }
   },
 
+  emits: ['change', 'update:value', 'blur', 'update:validation'],
+
   setup(props, { emit }) {
     const {
       focused,
