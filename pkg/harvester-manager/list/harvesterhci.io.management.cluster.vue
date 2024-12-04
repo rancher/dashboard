@@ -232,6 +232,12 @@ export default {
       try {
         const harvesterRepo = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
 
+        /**
+         * Server issue
+         * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
+         */
+        await refreshHelmRepository(harvesterRepo);
+
         const chart = await getHelmChart(this.$store, harvesterRepo, HARVESTER_CHART.name);
 
         await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version: chart.version }, {}, UI_PLUGIN_NAMESPACE, 'install');
