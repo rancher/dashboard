@@ -1122,7 +1122,6 @@ export default {
           &:not(.pin){
             width: 42px;
           }
-
         }
 
         .rancher-provider-icon,
