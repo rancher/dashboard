@@ -205,58 +205,6 @@ export default {
       cm.getMode().fold = saved;
     },
 
-    onChanges(cm, changes) {
-      if ( changes.length !== 1 ) {
-        return;
-      }
-
-      const change = changes[0];
-
-      if ( change.from.line !== change.to.line ) {
-        return;
-      }
-
-      let line = change.from.line;
-      let str = cm.getLine(line);
-      let maxIndent = indentChars(str);
-
-      if ( maxIndent === null ) {
-        return;
-      }
-
-      cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-      while ( line > 0 ) {
-        line--;
-        str = cm.getLine(line);
-        const indent = indentChars(str);
-
-        if ( indent === null ) {
-          break;
-        }
-
-        if ( indent < maxIndent ) {
-          cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-          if ( indent === 0 ) {
-            break;
-          }
-
-          maxIndent = indent;
-        }
-      }
-
-      function indentChars(str) {
-        const match = str.match(/^#(\s+)/);
-
-        if ( match ) {
-          return match[1].length;
-        }
-
-        return null;
-      }
-    },
-
     updateValue(value) {
       this.$refs.yamleditor.updateValue(value);
     },
@@ -354,7 +302,6 @@ export default {
       class="yaml-editor flex-content"
       :editor-mode="editorMode"
       @onReady="onReady"
-      @onChanges="onChanges"
     />
     <slot
       name="yamlFooter"
