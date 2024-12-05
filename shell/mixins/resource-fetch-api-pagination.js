@@ -219,7 +219,7 @@ export default {
     },
 
     isNamespaced() {
-      if (typeof this.namespaced !== 'undefined') {
+      if (this.namespaced !== null) { // null is the default value
         // This is an override, but only if it's set
         return !!this.namespaced;
       }
