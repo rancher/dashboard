@@ -49,7 +49,6 @@ export default {
 
   async fetch() {
     if (this.paginationEnabled) {
-      // this.$fetchType(NODE); // TODO: RC
       return;
     }
 

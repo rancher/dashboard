@@ -80,12 +80,10 @@ export function init(store) {
     [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, APP_SUMMARY, AGE],
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, {
       ...CHART,
-      // TODO: RC REGRESSION
       sort:   ['spec.chart.metadata.name'],
       search: ['spec.chart.metadata.name'],
     }, {
       ...CHART_UPGRADE,
-      // TODO: RC REGRESSION
       sort:   false,
       search: false,
     },
@@ -97,12 +95,10 @@ export function init(store) {
     [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE],
     [STEVE_STATE_COL, STEVE_NAME_COL, {
       ...repoType,
-      // TODO: RC REGRESSION Either 'git' (spec.gitRepo), 'oci' (spec.url && isOciType), 'http' (spec.url)
       sort:   false,
       search: false,
     }, {
       ...repoUrl,
-      // TODO: RC REGRESSION Either status.url || spec.gitRepo || spec.url
       sort:   false,
       search: false,
     },

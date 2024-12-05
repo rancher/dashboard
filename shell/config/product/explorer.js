@@ -223,18 +223,17 @@ export function init(store) {
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
-      { ...RECLAIM_POLICY },
+      RECLAIM_POLICY,
       {
-        // TODO: RC TEST once 48103
         ...PERSISTENT_VOLUME_CLAIM,
-        sort:   ['metadata.fields.5'], // TODO: RC should be spec.volumeName of PVC --> PV, this is PV --> PVC
+        sort:   ['metadata.fields.5'],
         search: ['metadata.fields.5'],
       }, {
-        // TODO: RC Regression
         ...PERSISTENT_VOLUME_SOURCE,
         sort:   false,
         search: false,
-      }, { ...PV_REASON },
+      },
+      PV_REASON,
       STEVE_AGE_COL,
     ]
   );
@@ -367,8 +366,7 @@ export function init(store) {
   const STEVE_WORKLOAD_ENDPOINTS = {
     ...WORKLOAD_ENDPOINTS,
     sort:   [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
-    // search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`], // TODO: RC
-    search: false, // TODO: RC
+    search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`], // Pending API support https://github.com/rancher/rancher/issues/48256
   };
 
   const createSteveWorkloadImageCol = (resourceFieldPos) => ({
@@ -399,7 +397,7 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
       ...DURATION,
       value:     'metadata.fields.3',
-      sort:      false, // TODO: RC regression. Value is in units. Xs, Ym, Zh, etc
+      sort:      false,
       search:    'metadata.fields.3',
       formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
     }, STEVE_AGE_COL],
