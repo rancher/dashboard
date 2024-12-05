@@ -1,5 +1,3 @@
-// shell/plugins/rancher-api/index.ts
-
 import { Store } from 'vuex';
 import { ApiPrototype } from '@shell/types/rancher-api';
 // import RancherApi from './rancher-api-class';
@@ -12,7 +10,7 @@ interface PluginContext {
   [key: string]: any;
 }
 
-export default function (context: PluginContext, inject: (key: string, value: any) => void) {
+export default function(context: PluginContext, inject: (key: string, value: any) => void) {
   const { store } = context;
 
   /**
