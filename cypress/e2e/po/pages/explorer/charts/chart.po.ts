@@ -27,6 +27,14 @@ export class ChartPage extends PagePo {
     chartsPage.charts().select(chartName);
   }
 
+  chartHeader(options?: any) {
+    return this.self().find('.name-logo h1', options).invoke('text');
+  }
+
+  waitForChartHeader(title: string, options?: any) {
+    return this.chartHeader(options).should('contain', title);
+  }
+
   goToInstall() {
     const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
 
