@@ -1,6 +1,6 @@
 import paginationUtils from '@shell/utils/pagination-utils';
-import { PaginationArgs, PaginationResourceContext, StorePagination } from 'types/store/pagination.types';
-import { VuexStore } from 'types/store/vuex';
+import { PaginationArgs, PaginationResourceContext, StorePagination } from '@shell/types/store/pagination.types';
+import { VuexStore } from '@shell/types/store/vuex';
 
 interface Result<T> {
   data: Array<T>

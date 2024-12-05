@@ -3,7 +3,7 @@ import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagination.types';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters

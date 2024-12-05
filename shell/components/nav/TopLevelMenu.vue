@@ -15,7 +15,7 @@ import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
-import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
+import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
 
@@ -284,7 +284,8 @@ export default {
         // Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds);
       },
-      deep: true
+      deep:      true,
+      immediate: true,
     },
 
     mgmtClusters: {
@@ -292,7 +293,8 @@ export default {
         // Shouldn't get here if SSP
         this.updateClusters(this.pinnedIds);
       },
-      deep: true
+      deep:      true,
+      immediate: true,
     },
 
   },
@@ -730,7 +732,7 @@ export default {
 
               <!-- No clusters message -->
               <div
-                v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                v-if="clustersFiltered.length === 0 && searchActive"
                 data-testid="top-level-menu-no-results"
                 class="none-matching"
               >

@@ -24,9 +24,9 @@ import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
-import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
-import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
-import ProvCluster from 'models/provisioning.cattle.io.cluster';
+import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
+import { PaginationParamFilter, FilterArgs, PaginationFilterField } from '@shell/types/store/pagination.types';
+import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 
 export default defineComponent({
   name:       'Home',

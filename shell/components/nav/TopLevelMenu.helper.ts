@@ -1,10 +1,10 @@
-import { CAPI, MANAGEMENT } from 'config/types';
-import { PaginationParam, PaginationParamFilter, PaginationSort } from 'types/store/pagination.types';
-import { VuexStore } from 'types/store/vuex';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from 'utils/cluster';
-import PaginationWrapper from 'utils/pagination-wrapper';
-import { allHash } from 'utils/promise';
-import { sortBy } from 'utils/sort';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
+import { VuexStore } from '@shell/types/store/vuex';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import PaginationWrapper from '@shell/utils/pagination-wrapper';
+import { allHash } from '@shell/utils/promise';
+import { sortBy } from '@shell/utils/sort';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 interface TopLevelMenuCluster {
