@@ -111,6 +111,12 @@ export default {
     @finish="saveOverride"
     @error="e=>errors = e"
   >
+    <Banner
+      v-if="isCreate"
+      color="warning"
+    >
+      {{ t('harvesterManager.cluster.supportMessage') }}
+    </Banner>
     <div class="mt-20">
       <NameNsDescription
         v-if="!isView"

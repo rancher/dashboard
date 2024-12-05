@@ -111,15 +111,23 @@ export default {
     },
 
     rows() {
-      return this.hciClusters.filter((c) => {
-        const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
+      return this.hciClusters
+        .filter((c) => {
+          const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
 
-        return isHarvesterCluster(cluster);
-      });
+          return isHarvesterCluster(cluster);
+        })
+        .map((row) => {
+          if (row.isReady) {
+            row.setSupportedHarvesterVersion();
+          }
+
+          return row;
+        });
     },
 
     typeDisplay() {
-      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.row?.length || 0 });
+      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.rows?.length || 0 });
     },
   },
 
@@ -183,7 +191,7 @@ export default {
           <td>
             <span class="cluster-link">
               <a
-                v-if="row.isReady"
+                v-if="row.isReady && row.isSupportedHarvester"
                 class="link"
                 :disabled="navigating ? true : null"
                 @click="goToCluster(row)"
