@@ -1119,7 +1119,7 @@ export default {
           display: block;
           font-size: $icon-size;
           margin-right: 14px;
-          &.group-icon {
+          &:not(.pin){
             width: 42px;
           }
         }
