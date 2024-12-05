@@ -572,7 +572,6 @@ export default {
           </template>
 
           <!-- Cluster menu -->
-          <!-- <template v-if="clusters && !!clusters.length"> -->
           <template v-if="!!allClustersCount">
             <div
               ref="clusterList"
