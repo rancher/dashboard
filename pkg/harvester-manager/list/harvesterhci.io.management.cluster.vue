@@ -23,7 +23,7 @@ import {
   installHelmChart,
   waitForUIExtension,
   waitForUIPackage,
-} from '@shell/utils/ui-plugins';
+} from '@shell/utils/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
