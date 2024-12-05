@@ -11,15 +11,19 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
  * @param {*} store
  * @returns PaginationParam[]
  */
-export function paginationFilterClusters(store) {
+export function paginationFilterClusters(store, filterMgmtCluster = true) {
   // TODO: RC (home page/side bar) TEST both facets
   const paginationRequestFilters = [];
-  const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
-  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store);
 
-  if (pFilterOnlyKubernetesClusters) {
-    paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
-  }
+  // Commenting out for the moment. This is broken for non-paginated world
+  // filterOnlyKubernetesClusters expects a mgmt cluster, however in the home page it's given a prov cluster
+  // note - filterHiddenLocalCluster works because it uses model isLocal which is on both cluster types
+  // const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
+  // if (pFilterOnlyKubernetesClusters) {
+  //   paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
+  // }
+  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store, filterMgmtCluster);
+
   if (pFilterHiddenLocalCluster) {
     paginationRequestFilters.push(pFilterHiddenLocalCluster);
   }
@@ -34,7 +38,7 @@ export function paginationFilterClusters(store) {
  * @param {*} store
  * @returns PaginationParam | null
  */
-export function paginationFilterHiddenLocalCluster(store) {
+export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = true) {
   const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
   const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
   const hideLocal = value === 'true';
@@ -43,12 +47,21 @@ export function paginationFilterHiddenLocalCluster(store) {
     return null;
   }
 
-  return PaginationParamFilter.createMultipleFields([
+  const filter = filterMgmtCluster ? [
     new PaginationFilterField({
       field: `spec.internal`, // Pending API support https://github.com/rancher/rancher/issues/48011
       value: false,
-    }),
-  ]);
+    })
+  ] : [
+    new PaginationFilterField({
+      field:  `id`,
+      value:  'fleet-local/local',
+      exact:  true,
+      equals: false,
+    })
+  ];
+
+  return PaginationParamFilter.createMultipleFields(filter);
 }
 
 /**

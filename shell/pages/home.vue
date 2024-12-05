@@ -2,12 +2,12 @@
 import { defineComponent } from 'vue';
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import { Banner } from '@components/Banner';
-import BannerGraphic from '@shell/components/BannerGraphic';
-import IndentedPanel from '@shell/components/IndentedPanel';
+import BannerGraphic from '@shell/components/BannerGraphic.vue';
+import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
-import CommunityLinks from '@shell/components/CommunityLinks';
-import SingleClusterInfo from '@shell/components/SingleClusterInfo';
+import CommunityLinks from '@shell/components/CommunityLinks.vue';
+import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -19,14 +19,16 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { paginationFilterClusters } from '@shell/utils/cluster';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
-import { PaginationParamFilter, FilterArgs, PaginationFilterField } from '@shell/types/store/pagination.types';
+import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
+import devConsole from 'utils/dev-console';
+import { sameContents } from 'utils/array';
 
 export default defineComponent({
   name:       'Home',
@@ -45,8 +47,6 @@ export default defineComponent({
   mixins: [PageHeaderActions],
 
   data() {
-    const paginationRequestFilters = paginationFilterClusters(this.$store);
-
     return {
       HIDE_HOME_PAGE_CARDS,
       fullVersion: getVersionInfo(this.$store).fullVersion,
@@ -63,8 +63,6 @@ export default defineComponent({
         },
       ],
       vendor: getVendor(),
-
-      paginationRequestFilters,
 
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
 
@@ -423,6 +421,48 @@ export default defineComponent({
       if (retry === 0 && res?.type === 'error' && res?.status === 500) {
         await this.closeSetLoginBanner(retry + 1);
       }
+    },
+
+    /**
+     * Filter out hidden clusters from list of all clusters
+     */
+    filterRowsLocal(rows: any[]) {
+      devConsole.warn('filterRowsLocal', rows, filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store));
+
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store);
+    },
+
+    /**
+     * Filter out hidden clusters via api
+     */
+    filterRowsApi(pagination: PaginationArgs): PaginationArgs {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      // Pending API Support https://github.com/rancher/rancher/issues/48011
+      const existingFilters = pagination.filters;
+      const requiredFilters = paginationFilterClusters(this.$store, false);
+
+      for (let i = 0; i < requiredFilters.length; i++) {
+        const required = requiredFilters[i];
+
+        for (let j = 0; j < existingFilters.length; j++) {
+          const candidate = existingFilters[j];
+
+          if (
+            required.fields.length === candidate.fields.length &&
+            sameContents(required.fields.map((e) => e.field), candidate.fields.map((e) => e.field))
+          ) {
+            Object.assign(candidate, required);
+            break;
+          }
+        }
+
+        pagination.filters.push(required);
+      }
+
+      return pagination;
     }
   }
 });
@@ -500,6 +540,7 @@ export default defineComponent({
               class="col span-12"
             >
               <!-- // TODO: RC (home page/side bar) TEST with pagination off and on. check loading indicator when pagination off -->
+              <!-- TODO: RC namespaced: false now doesn't work -->
               <PaginatedResourceTable
                 :schema="provClusterSchema"
                 :table-actions="false"
@@ -509,8 +550,10 @@ export default defineComponent({
                 :pagination-headers="paginationHeaders"
                 context="home"
 
+                :local-filter="filterRowsLocal"
+                :api-filter="filterRowsApi"
+
                 :namespaced="false"
-                :request-filters="paginationRequestFilters"
                 manualRefreshButtonSize="sm"
                 :fetchSecondaryResources="fetchSecondaryResources"
                 :fetchPageSecondaryResources="fetchPageSecondaryResources"
