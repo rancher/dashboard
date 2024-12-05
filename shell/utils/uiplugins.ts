@@ -147,23 +147,19 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
  * Get the Helm repository object
  *
  * @param store Vue store
- * @param url The url of the Helm repostitory
- * @param branch The branch of the Helm repostitory
+ * @param url The url of the Helm repository
+ * @param branch The branch of the Helm repository
  * @returns HelmRepository
  */
 export async function getHelmRepository(store: any, url: string, branch?: string): Promise<HelmRepository> {
   if (store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
     const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch: false } });
 
-    if (branch) {
-      return repos.find((r: any) => {
-        return r.spec?.gitRepo === url;
-      });
-    } else {
-      return repos.find((r: any) => {
-        return r.spec?.url === url;
-      });
-    }
+    return repos.find((r: any) => {
+      const target = branch ? r.spec?.gitRepo : r.spec?.url ;
+
+      return target === url;
+    });
   } else {
     throw new Error('No permissions');
   }
@@ -193,9 +189,9 @@ export async function refreshHelmRepository(repository: any): Promise<void> {
  * Wait until the newly added repository has been downloaded
  *
  * @param store Vue store
- * @param url The url of the Helm repostitory
+ * @param url The url of the Helm repository
  * @param name The name of the cluster repository
- * @param branch The branch of the Helm repostitory
+ * @param branch The branch of the Helm repository
  * @returns HelmRepository object
  */
 export async function ensureHelmRepository(store: any, url: string, name: string, branch?: string): Promise<HelmRepository> {

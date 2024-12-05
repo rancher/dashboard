@@ -246,6 +246,9 @@ export default {
 
         installed = await waitForUIPackage(this.$store, extension);
       } catch (error) {
+        this.harvesterExtensionInstallError = true;
+
+        btnCb(false);
       }
 
       this.harvesterExtensionInstallError = !installed;
@@ -275,6 +278,9 @@ export default {
 
         updated = await waitForUIPackage(this.$store, { ...extension, version: this.harvesterLatestVersion });
       } catch (error) {
+        this.harvesterExtensionUpdateError = true;
+
+        btnCb(false);
       }
 
       this.harvesterExtensionUpdateError = !updated;
