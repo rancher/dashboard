@@ -19,8 +19,8 @@ env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  TEST_BASE_URL: https://127.0.0.1/dashboard
-  API: https://127.0.0.1
+  TEST_BASE_URL: https://127.0.0.1.sslip.io
+  API: https://127.0.0.1.sslip.io
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
@@ -37,30 +37,29 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup env
-        uses: ./.github/actions/setup
-      - name: Build e2e
-        run: yarn e2e:build
-      - name: Upload e2e build
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.E2E_BUILD_DIST_NAME }}
-          path: ${{ env.E2E_BUILD_DIST_DIR }}/
-          if-no-files-found: error
-          retention-days: 10
-          compression-level: 9
-      - name: Upload e2e build ember
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
-          if-no-files-found: error
-          retention-days: 10
-          compression-level: 9
-
+     - uses: actions/checkout@v3
+       with:
+        fetch-depth: 1
+     - name: Setup env
+       uses: ./.github/actions/setup
+     - name: Build e2e
+       run: yarn e2e:build
+     - name: Upload e2e build
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
+     - name: Upload e2e build ember
+       uses: actions/upload-artifact@v4
+       with:
+        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
+        if-no-files-found: error
+        retention-days: 10
+        compression-level: 9
 
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -115,7 +114,7 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:docker
+        run: yarn e2e:k3s
       
       - name: Setup Rancher and user
         run: |
