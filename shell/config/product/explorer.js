@@ -364,64 +364,54 @@ export function init(store) {
     ]
   );
 
-  const STEVE_WORKLOAD_IMAGES = {
-    ...WORKLOAD_IMAGES,
-    sort:   false,
-    search: false,
-  };
-
   const STEVE_WORKLOAD_ENDPOINTS = {
     ...WORKLOAD_ENDPOINTS,
     sort:   [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
-    search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
+    // search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`], // TODO: RC
+    search: false, // TODO: RC
   };
 
-  // TODO: RC test for regressions - incremental loading, manual refresh
+  const createSteveWorkloadImageCol = (resourceFieldPos) => ({
+    ...WORKLOAD_IMAGES,
+    sort:   `metadata.fields.${ resourceFieldPos }`,
+    search: `metadata.fields.${ resourceFieldPos }`,
+  });
 
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [
-      STEVE_STATE_COL,
-      STEVE_NAME_COL,
-      STEVE_NAMESPACE_COL,
-      STEVE_WORKLOAD_IMAGES,
-      STEVE_WORKLOAD_ENDPOINTS,
-      'Ready', 'Up-to-date', 'Available',
-      // POD_RESTARTS, // TODO: RC NO!
-      STEVE_AGE_COL,
-    ],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL],
   );
   headers(WORKLOAD_TYPES.DAEMON_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [
-      STEVE_STATE_COL,
-      STEVE_NAME_COL,
-      STEVE_NAMESPACE_COL,
-      STEVE_WORKLOAD_IMAGES,
-      STEVE_WORKLOAD_ENDPOINTS,
-      'Ready', 'Current', 'Desired',
-      // POD_RESTARTS, // TODO: RC NO!
-      STEVE_AGE_COL,
-    ]
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL]
   );
-  headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.REPLICA_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.STATEFUL_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.JOB,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
+      ...DURATION,
+      value:     'metadata.fields.3',
+      sort:      false, // TODO: RC regression. Value is in units. Xs, Ym, Zh, etc
+      search:    'metadata.fields.3',
+      formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
+    }, STEVE_AGE_COL],
+  );
   headers(WORKLOAD_TYPES.CRON_JOB,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [
-      STEVE_STATE_COL,
-      STEVE_NAME_COL,
-      STEVE_NAMESPACE_COL,
-      STEVE_WORKLOAD_IMAGES,
-      STEVE_WORKLOAD_ENDPOINTS,
-      'Schedule', 'Last Schedule',
-      // POD_RESTARTS, // TODO: RC NO!
-      STEVE_AGE_COL,
-    ]
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(8), STEVE_WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', STEVE_AGE_COL]
   );
-  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+  );
 
   headers(POD,
     [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
@@ -437,7 +427,8 @@ export function init(store) {
         search: 'spec.nodeName'
       },
       STEVE_AGE_COL
-    ]);
+    ]
+  );
 
   headers(NODE,
     [
@@ -497,12 +488,14 @@ export function init(store) {
         search:     false,
       },
       STEVE_AGE_COL
-    ]);
+    ]
+  );
 
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
     width: undefined
   }, AGE]);
+
   headers(STORAGE_CLASS,
     [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE],
     [
