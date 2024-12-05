@@ -1,6 +1,6 @@
 import { Store } from 'vuex';
 
-export interface ErrorMessage {
+export interface Message {
   data?: {
     _statusText: string,
     message: string
@@ -10,7 +10,7 @@ export interface ErrorMessage {
 }
 
 export interface GrowlConfig {
-  error: ErrorMessage,
+  message: Message,
   store: Store<any>,
   type?: string,
   timeout?: number
@@ -22,7 +22,7 @@ export interface GrowlConfig {
  * @param config - Configuration for the growl notification.
  *
  * The `config` parameter is an object of type `GrowlConfig`, which includes:
- * - `error`: An `ErrorMessage` object containing the details of the error to be displayed.
+ * - `message`: An `Message` object containing the details of the error to be displayed.
  *   This object can have an optional `data` property with `_statusText` and `message`,
  *   or these properties can be directly on the `error` object.
  * - `store`: A parameter representing the Vuex store used to dispatch actions.
@@ -43,11 +43,11 @@ export interface GrowlConfig {
  * - `timeout`: The specified or default timeout duration.
  */
 export function handleGrowl(config: GrowlConfig): void {
-  const error = config.error?.data || config.error;
+  const message = config.message?.data || config.message;
 
   config.store.dispatch(`growl/${ config.type || 'error' }`, {
-    title:   error._statusText,
-    message: error.message,
+    title:   message._statusText,
+    message: message.message,
     timeout: config.timeout || 5000,
   }, { root: true });
 }
