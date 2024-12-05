@@ -101,7 +101,7 @@ export default {
   watch: {
     async harvesterRepository(value) {
       if (value) {
-        await refreshHelmRepository(value);
+        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
         if (this.harvester.extension) {
           await this.setHarvesterLatestVersion();
@@ -236,7 +236,7 @@ export default {
          * Server issue
          * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
          */
-        await refreshHelmRepository(harvesterRepo);
+        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
         const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
 

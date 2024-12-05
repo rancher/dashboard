@@ -169,9 +169,13 @@ export async function getHelmRepository(store: any, url: string, branch?: string
  * Refresh the Helm repository
  * Ensures that we find the latest extension versions
  *
- * @param repository The Helm repository
+ * @param store Vue store
+ * @param gitRepo Extension Repository url
+ * @param gitBranch Extension Repository branch
  */
-export async function refreshHelmRepository(repository: any): Promise<void> {
+export async function refreshHelmRepository(store: any, gitRepo: string, gitBranch: string): Promise<void> {
+  const repository = await getHelmRepository(store, gitRepo, gitBranch);
+
   const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
   repository.spec.forceUpdate = now;
