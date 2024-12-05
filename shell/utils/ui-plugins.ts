@@ -10,6 +10,21 @@ export type HelmRepository = any;
 export type HelmChart = any;
 
 /**
+ *
+ * @param store Vue store
+ * @param chartName The chartName
+ * @param opt Store options
+ * @returns The latest compatible version of the extension
+ */
+export async function getLatestExtensionVersion(store: any, chartName: string, opt = { reset: true, force: true }) {
+  await store.dispatch('catalog/load', opt);
+
+  const chart = store.getters['catalog/chart']({ chartName });
+
+  return chart?.versions?.[0]?.version;
+}
+
+/**
  * Wait for a given UI Extension to be available
  *
  * @param store Vue store
@@ -114,7 +129,7 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
   const installRequest = {
     charts:                   [chartInstall],
     noHooks:                  false,
-    timeout:                  '600s',
+    timeout:                  '1000s',
     wait:                     true,
     namespace,
     projectId:                '',

@@ -16,11 +16,11 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO } from '../types';
 import {
+  getLatestExtensionVersion,
   getHelmRepository,
   ensureHelmRepository,
   refreshHelmRepository,
   installHelmChart,
-  getHelmChart,
   waitForUIExtension,
   waitForUIPackage,
 } from '@shell/utils/ui-plugins';
@@ -104,7 +104,7 @@ export default {
         await refreshHelmRepository(value);
 
         if (this.harvester.extension) {
-          await this.setHarvesterLatestVersion(value);
+          await this.setHarvesterLatestVersion();
         }
       }
     }
@@ -214,12 +214,12 @@ export default {
       }
     },
 
-    async setHarvesterLatestVersion(repository) {
+    async setHarvesterLatestVersion() {
       try {
-        const chart = await getHelmChart(this.$store, repository, HARVESTER_CHART.name);
+        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
 
-        if (semver.gt(chart.version, this.harvester.extension.version)) {
-          this.harvesterLatestVersion = chart.version;
+        if (semver.gt(version, this.harvester.extension.version)) {
+          this.harvesterLatestVersion = version;
         }
       } catch (error) {
         this.harvesterExtensionUpdateError = true;
@@ -238,9 +238,9 @@ export default {
          */
         await refreshHelmRepository(harvesterRepo);
 
-        const chart = await getHelmChart(this.$store, harvesterRepo, HARVESTER_CHART.name);
+        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
 
-        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version: chart.version }, {}, UI_PLUGIN_NAMESPACE, 'install');
+        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version }, {}, UI_PLUGIN_NAMESPACE, 'install');
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
 
@@ -266,7 +266,7 @@ export default {
         if (this.harvester.missingRepository) {
           harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
 
-          await this.setHarvesterLatestVersion(harvesterRepository);
+          await this.setHarvesterLatestVersion();
         }
 
         await installHelmChart(harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterLatestVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
