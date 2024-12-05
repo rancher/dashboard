@@ -20,8 +20,7 @@ export class HorizontalPodAutoscalersPagePo extends PagePo {
     const burgerMenu = new BurgerMenuPo();
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.toggle();
-    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
+    burgerMenu.goToCluster(clusterId);
     sideNav.navToSideMenuGroupByLabel('Service Discovery');
     sideNav.navToSideMenuEntryByLabel('HorizontalPodAutoscalers');
   }

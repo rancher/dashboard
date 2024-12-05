@@ -21,10 +21,9 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     cy.login();
 
     HomePagePo.goTo();
-    BurgerMenuPo.toggle();
     const burgerMenuPo = new BurgerMenuPo();
 
-    burgerMenuPo.goToCluster('local').click();
+    burgerMenuPo.goToCluster('local');
   });
 
   it('Can access to first navigation link on click', () => {
