@@ -195,7 +195,6 @@
     "ts-jest": "27.1.4",
     "typescript": "4.5.5",
     "vue": "3.2.47",
-    "vue-template-compiler": "2.7.16",
     "webpack-bundle-analyzer": "4.5.0",
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
