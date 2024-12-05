@@ -1,11 +1,10 @@
 /* eslint-disable */
-import type { DefineComponent } from 'vue'
-import { ComponentCustomProperties } from 'vue';
+import { ApiPrototype } from '@shell/types/rancher-api';
 
-declare module '*.vue' {
-  const component: DefineComponent<{}, {}, any>
-  export default component
-}
+import RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
+import ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
+import ShellApi from '@shell/plugins/rancher-api/shell-api-class';
+import ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -21,6 +20,13 @@ declare module '@vue/runtime-core' {
       getters: Record<string, any>,
       dispatch: (action: string, payload?: any) => Promise<any>,
       commit: (mutation: string, payload?: any) => void,
-    }
+    },
+    /**
+     * Prototypes for Rancher API classes.
+     */
+    [ApiPrototype.RANCHER_API]: RancherApi;
+    [ApiPrototype.CLUSTER_API]: ClusterApi;
+    [ApiPrototype.SHELL_API]: ShellApi;
+    [ApiPrototype.EXTENSION_API]: ExtensionApi;
   }
 }
