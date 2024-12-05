@@ -56,7 +56,7 @@ describe('Apps', () => {
 
         // Ensure this runs after an attempt, rather than all attemps (`after` only runs once after all cypress retries)
         afterEach(() => {
-          reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r));
+          reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', r, false));
         });
       });
 
