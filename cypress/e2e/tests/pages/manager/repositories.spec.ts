@@ -237,6 +237,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    // check branch column to display 'n/a' for OCI type
+    repositoriesPage.list().details(this.repoName, 5).then((el) => {
+      expect(el.text()).to.equal('n/a');
+    });
 
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
 
