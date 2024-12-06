@@ -9,6 +9,7 @@ import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { stripOrigin } from '@shell/utils/url';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
@@ -43,7 +44,7 @@ export const urlFor = (state, getters) => (type, id, opt) => {
 
   url = getters.urlOptions(url, opt, schema);
 
-  return url;
+  return stripOrigin(url);
 };
 
 /**

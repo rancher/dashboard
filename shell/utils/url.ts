@@ -169,3 +169,41 @@ export function stringify(uri: ParsedUri): string {
 
   return out;
 }
+
+/**
+* Checks whether or not a URL is parsable and valid
+* @param url A string that represents an absolute or relative URL.
+* @param base A string representing the base URL to use in cases where `url` is
+* a relative URL.
+* @returns true if the URL can be parsed and is valid; false otherwise.
+*/
+function canParse(url: string, base?: string): boolean {
+  try {
+    new URL(url, base);
+
+    return true;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(`Failed to parse url: ${ url }`, { e });
+
+    return false;
+  }
+}
+
+/**
+ * Strips the origin from a given URL and returns the path with any search query.
+ *
+ * @param url The URL to be processed.
+ * @returns The path and search query part of the URL, or the original URL if parsing fails.
+ */
+export function stripOrigin(url: string, base = process.env.BASE_URL) {
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = canParse(url) ? new URL(url) : new URL(url, base);
+  } catch (e) {
+    return url;
+  }
+
+  return `${ parsedUrl.pathname }${ parsedUrl.search }`;
+}
