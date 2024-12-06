@@ -60,8 +60,8 @@ echo "// Auto-generated type definitions for shell" > ${INDEX}
 echo "// Do not modify this file as changes will get overwritten" >> ${INDEX}
 
 # Copy in the vue shim type definitions
-if [ -f "$BASE_DIR/shell/types/vue-shim.d" ]; then
-  cat "$BASE_DIR/shell/types/vue-shim.d" >> ${INDEX}
+if [ -f "$BASE_DIR/shell/types/vue-shim.d.ts" ]; then
+  cat "$BASE_DIR/shell/types/vue-shim.d.ts" >> ${INDEX}
 fi
 
 function processDir() {

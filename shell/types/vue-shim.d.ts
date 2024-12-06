@@ -3,10 +3,10 @@ import Vue, { ComponentCustomProperties } from 'vue';
 
 import { ApiPrototype } from '@shell/types/rancher-api';
 
-import RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
-import ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
+// import RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
+// import ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
+// import ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
 import ShellApi from '@shell/plugins/rancher-api/shell-api-class';
-import ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
 
 declare module '*.vue' {
   export default Vue;
@@ -18,14 +18,23 @@ declare module '*.vue' {
 declare module 'vue/types/vue' {
   // eslint-disable-next-line no-unused-vars
   interface Vue {
-      /**
-       * Lookup a given string with the given arguments
-       * @param raw if set, do not do HTML escaping.
-       */
-      t: {
-        (key: string, args?: Record<string, any>, raw?: boolean): string;
-        (options: { k: string; raw?: boolean; tag?: string | Record<string, any>; escapehtml?: boolean }): string;
-      };
+    /**
+     * Lookup a given string with the given arguments
+     * @param raw if set, do not do HTML escaping.
+     */
+    t: {
+      (key: string, args?: Record<string, any>, raw?: boolean): string;
+      (options: { k: string; raw?: boolean; tag?: string | Record<string, any>; escapehtml?: boolean }): string;
+    };
+    /**
+     * TODO: Add prototypes for Rancher API classes.
+     *
+     * Prototypes for Rancher API classes.
+     */
+    // [ApiPrototype.RANCHER_API]: RancherApi;
+    // [ApiPrototype.CLUSTER_API]: ClusterApi;
+    // [ApiPrototype.EXTENSION_API]: ExtensionApi;
+    [ApiPrototype.SHELL_API]: ShellApi;
   }
 }
 
@@ -54,12 +63,14 @@ declare module '@vue/runtime-core' {
       commit: (mutation: string, payload?: any) => void,
     },
     /**
+     * TODO: Add prototypes for Rancher API classes.
+     *
      * Prototypes for Rancher API classes.
      */
-    [ApiPrototype.RANCHER_API]: RancherApi;
-    [ApiPrototype.CLUSTER_API]: ClusterApi;
+    // [ApiPrototype.RANCHER_API]: RancherApi;
+    // [ApiPrototype.CLUSTER_API]: ClusterApi;
+    // [ApiPrototype.EXTENSION_API]: ExtensionApi;
     [ApiPrototype.SHELL_API]: ShellApi;
-    [ApiPrototype.EXTENSION_API]: ExtensionApi;
   }
 }
 
