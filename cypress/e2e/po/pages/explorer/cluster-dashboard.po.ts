@@ -22,8 +22,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   static navTo(clusterId = 'local') {
     const burgerMenu = new BurgerMenuPo();
 
-    BurgerMenuPo.toggle();
-    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
+    burgerMenu.goToCluster(clusterId);
   }
 
   customizeAppearanceButton() {

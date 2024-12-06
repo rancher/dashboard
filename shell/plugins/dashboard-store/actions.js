@@ -384,7 +384,7 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if (!opt.force && getters['havePaginatedPage'](type, opt)) {
+    if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       return findAllGetter(getters, type, opt);
     }
 
@@ -408,24 +408,26 @@ export default {
       return Promise.reject(e);
     }
 
-    commit('loadPage', {
-      ctx,
-      type,
-      data:       out.data,
-      pagination: opt.pagination ? {
-        request: {
-          namespace:  opt.namespaced,
-          pagination: opt.pagination
-        },
-        result: {
-          count:     out.count,
-          pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
-          timestamp: new Date().getTime()
-        }
-      } : undefined,
-    });
+    const pagination = opt.pagination ? {
+      request: {
+        namespace:  opt.namespaced,
+        pagination: opt.pagination
+      },
+      result: {
+        count:     out.count,
+        pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
+        timestamp: new Date().getTime()
+      }
+    } : undefined;
 
-    const all = findAllGetter(getters, type, opt);
+    if (!opt.transient) {
+      commit('loadPage', {
+        ctx,
+        type,
+        data: out.data,
+        pagination,
+      });
+    }
 
     if (opt.hasManualRefresh) {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
@@ -433,7 +435,10 @@ export default {
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return all;
+    return opt.transient ? {
+      data: out.data,
+      pagination
+    } : findAllGetter(getters, type, opt);
   },
 
   async findMatching(ctx, {
