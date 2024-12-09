@@ -141,6 +141,8 @@ aks:
     label: User Assigned Identity
   managedIdentity:
     label: Managed Identity
+  clusterToRegister: Cluster to register
+  importedRbac: This cluster has Kubernetes RBAC disabled. Importing a cluster without RBAC enabled may cause unexpected behavior.
   errors:
     regions: 'An error occured while fetching the available regions: {e}'
     vmSizes: 
