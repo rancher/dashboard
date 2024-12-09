@@ -200,7 +200,7 @@ function clone_repo_test_extension_build() {
   echo -e "\nInstalling newly built shell version\n"
 
   # installing new version of shell
-  yarn add @rancher/shell@${SHELL_VERSION}
+  yarn add @rancher/shell@${SHELL_VERSION} -W 
 
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
@@ -224,6 +224,7 @@ function clone_repo_test_extension_build() {
 clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
 clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
-# clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
+clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
+clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
 
 echo "All done"
