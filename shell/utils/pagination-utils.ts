@@ -9,7 +9,7 @@ import {
   NAMESPACE_FILTER_NS_FULL_PREFIX,
   NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
-import { PaginationArgs, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationResourceContext, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 import { STEVE_CACHE } from '@shell/store/features';
@@ -40,12 +40,7 @@ class PaginationUtils {
   /**
    * Is pagination enabled at a global level or for a specific resource
    */
-  isEnabled({ rootGetters }: any, enabledFor: {
-    store: string,
-    resource?: {
-      id: string,
-    }
-  }) {
+  isEnabled({ rootGetters }: any, enabledFor: PaginationResourceContext) {
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
       return false;
@@ -95,7 +90,21 @@ class PaginationUtils {
       return true;
     }
 
-    if (storeSettings.resources.enableSome.enabled.includes(enabledFor.resource.id)) {
+    if (storeSettings.resources.enableSome.enabled.find((setting) => {
+      if (typeof setting === 'string') {
+        return setting === enabledFor.resource?.id;
+      }
+
+      if (setting.resource === enabledFor.resource?.id) {
+        if (!!setting.context) {
+          return enabledFor.resource?.context ? setting.context.includes(enabledFor.resource.context) : false;
+        }
+
+        return true;
+      }
+
+      return false;
+    })) {
       return true;
     }
 
