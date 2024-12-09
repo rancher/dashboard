@@ -103,7 +103,7 @@ export default class ClusterDashboardPagePo extends PagePo {
     const instance = new ClusterDashboardPagePo(cluster);
     const nsfilter = new NamespaceFilterPo();
 
-    instance.goTo(cluster);
+    instance.goTo();
     instance.waitForPage();
     nsfilter.checkVisible();
 

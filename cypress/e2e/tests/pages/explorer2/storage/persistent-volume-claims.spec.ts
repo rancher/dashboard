@@ -1,6 +1,8 @@
 import { generatePersistentVolumeClaimsDataSmall, persistentVolumeClaimsNoData } from '@/cypress/e2e/blueprints/explorer/storage/persistent-volume-claims-get';
 import { PersistentVolumeClaimsPagePo } from '@/cypress/e2e/po/pages/explorer/persistent-volume-claims.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
+const cluster = 'local';
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
 describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
@@ -14,10 +16,12 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     });
 
     it('validate persistent volume claims table in empty state', () => {
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
+
       const tag = 'persistentvolumeclaimsNoData';
 
       persistentVolumeClaimsNoData(tag);
-      persistentVolumeClaimsPage.goTo();
+      PersistentVolumeClaimsPagePo.navTo();
       persistentVolumeClaimsPage.waitForPage();
       cy.wait(`@${ tag }`);
 

@@ -23,7 +23,7 @@ export class ServicesPagePo extends PagePo {
 
     burgerMenu.goToCluster(clusterId);
     sideNav.navToSideMenuGroupByLabel('Service Discovery');
-    sideNav.navToSideMenuEntryByLabel('Ingresses');
+    sideNav.navToSideMenuEntryByLabel('Service');
   }
 
   constructor(clusterId = 'local') {

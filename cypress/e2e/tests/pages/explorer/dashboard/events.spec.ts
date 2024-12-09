@@ -55,7 +55,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
-      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { nsProject: { values: [nsName1, nsName2] } });
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
 
       clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();

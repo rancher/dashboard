@@ -1,6 +1,8 @@
 import { ServicesPagePo } from '@/cypress/e2e/po/pages/explorer/services.po';
 import { generateServicesDataSmall, servicesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/services-get';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
+const cluster = 'local';
 const servicesPagePo = new ServicesPagePo();
 
 describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
@@ -10,12 +12,14 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });
 
     it('validate services table in empty state', () => {
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
+
       servicesNoData();
-      servicesPagePo.goTo();
+      ServicesPagePo.navTo();
       servicesPagePo.waitForPage();
       cy.wait('@servicesNoData');
 
@@ -86,7 +90,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     });
 
     after('clean up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
     });
   });
 });
