@@ -22,7 +22,7 @@ export default class CapiMachineDeployment extends SteveModel {
     return cluster;
   }
 
-  get groupByLabel() {
+  get groupByCluster() {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
