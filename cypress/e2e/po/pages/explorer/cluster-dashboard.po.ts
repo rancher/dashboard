@@ -105,6 +105,7 @@ export default class ClusterDashboardPagePo extends PagePo {
 
     instance.goTo(cluster);
     instance.waitForPage();
+    nsfilter.checkVisible();
 
     if (nsProject) {
       for (let i = 0; i < nsProject.values.length; i++) {

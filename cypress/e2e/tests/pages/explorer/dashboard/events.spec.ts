@@ -4,8 +4,9 @@ import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/clust
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
-const clusterDashboard = new ClusterDashboardPagePo('local');
-const events = new EventsPagePo('local');
+const cluster = 'local';
+const clusterDashboard = new ClusterDashboardPagePo(cluster);
+const events = new EventsPagePo(cluster);
 
 describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -19,7 +20,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     let nsName2: string;
 
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
 
       cy.createE2EResourceName('ns1').then((ns1) => {
         nsName1 = ns1;
@@ -54,7 +55,8 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
-      ClusterDashboardPagePo.goTo('local');
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { nsProject: { values: [nsName1, nsName2] } });
+
       clusterDashboard.waitForPage(undefined, 'cluster-events');
       EventsPagePo.navTo();
       events.waitForPage();
@@ -199,7 +201,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     after('clean up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all pods in it)
       cy.deleteRancherResource('v1', 'namespaces', nsName1);
