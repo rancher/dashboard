@@ -1,10 +1,11 @@
-/* eslint-disable */
-import { ApiPrototype } from '@shell/types/rancher-api';
 
-// import RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
-// import ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
-// import ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
-import ShellApi from '@shell/plugins/rancher-api/shell-api-class';
+/* eslint-disable */
+import type { ApiPrototype } from '@shell/types/rancher-api';
+
+// import type RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
+// import type ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
+// import type ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
+import type ShellApi from '@shell/plugins/rancher-api/shell-api-class';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {

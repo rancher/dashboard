@@ -59,10 +59,9 @@ rm -rf ${INDEX}
 echo "// Auto-generated type definitions for shell" > ${INDEX}
 echo "// Do not modify this file as changes will get overwritten" >> ${INDEX}
 
-# Copy in the vue shim type definitions
-if [ -f "$BASE_DIR/shell/types/vue-shim.d.ts" ]; then
-  cat "$BASE_DIR/shell/types/vue-shim.d.ts" >> ${INDEX}
-fi
+# Add references to vue-shim and global-vue modules
+echo "/// <reference types=\"@rancher/shell/types/vue-shim\" />" >> ${INDEX}
+echo "/// <reference types=\"@rancher/shell/types/global-vue\" />" >> ${INDEX}
 
 function processDir() {
   local dir=$1
