@@ -15,6 +15,10 @@ export default class ClusterDashboardPagePo extends PagePo {
     return super.goTo(ClusterDashboardPagePo.createPath(clusterId));
   }
 
+  urlPath(clusterId = 'local') {
+    return ClusterDashboardPagePo.createPath(clusterId);
+  }
+
   constructor(clusterId: string) {
     super(ClusterDashboardPagePo.createPath(clusterId));
   }

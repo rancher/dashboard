@@ -6,9 +6,15 @@ import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+
+const cluster = 'local';
 
 describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
-  const workloadsPodPage = new WorkloadsPodsListPagePo('local');
+  const workloadsPodPage = new WorkloadsPodsListPagePo(cluster);
+  const clusterDashboard = new ClusterDashboardPagePo(cluster);
+  const nsFilter = new NamespaceFilterPo();
 
   before(() => {
     cy.login();
@@ -55,13 +61,19 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
             uniquePod = resp.body.metadata.name;
           });
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
       });
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
-      WorkloadsPodsListPagePo.goTo('local');
+      // Confirm that the ns filter is set correctly before navigating to a page that will use it
+      clusterDashboard.goTo();
+      clusterDashboard.waitForPage();
+      nsFilter.selectedValues().contains(nsName1);
+      nsFilter.selectedValues().contains(nsName2);
+
+      WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
       // check pods count
@@ -178,7 +190,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('pagination is hidden', () => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{"local":[]}');
+      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{"local":[]}');
 
       // generate small set of pods data
       generatePodsDataSmall();
@@ -195,7 +207,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
     after('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
-      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
+      cy.tableRowsPerPageAndNamespaceFilter(100, cluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all pods in it)
       cy.deleteRancherResource('v1', 'namespaces', nsName1);
@@ -289,14 +301,14 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
   //   });
 
   //   it('dialog should open/close as expected', () => {
-  //     const podCreatePage = new WorkloadsPodsCreatePagePo('local');
+  //     const podCreatePage = new WorkloadsPodsCreatePagePo(cluster);
 
   //     podCreatePage.goTo();
 
   //     podCreatePage.createWithUI(podName, 'nginx', 'default');
 
   //     // Should be on the list view
-  //     const podsListPage = new WorkloadsPodsListPagePo('local');
+  //     const podsListPage = new WorkloadsPodsListPagePo(cluster);
 
   //     // Filter the list to just show the newly created pod
   //     podsListPage.list().resourceTable().sortableTable().filter(podName);
