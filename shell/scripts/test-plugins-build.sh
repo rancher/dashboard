@@ -200,7 +200,7 @@ function clone_repo_test_extension_build() {
   echo -e "\nInstalling newly built shell version\n"
 
   # installing new version of shell
-  yarn add @rancher/shell@${SHELL_VERSION}
+  yarn add @rancher/shell@${SHELL_VERSION} -W 
 
   # test build-pkg
   FORCE_COLOR=true yarn build-pkg $PKG_NAME | cat
