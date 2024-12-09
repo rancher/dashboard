@@ -56,12 +56,12 @@ describe('Apps', () => {
 
         // Ensure this runs after an attempt, rather than all attemps (`after` only runs once after all cypress retries)
         afterEach(() => {
-          for(let repo of reposToDelete){
-            cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, false).then((res: Cypress.Response<any>)=>{
-              if(res.status === 201){
-                reposToDelete.splice(reposToDelete.indexOf(repo), 1)
+          for (const repo of reposToDelete) {
+            cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, false).then((res: Cypress.Response<any>) => {
+              if (res.status === 201) {
+                reposToDelete.splice(reposToDelete.indexOf(repo), 1);
               }
-            })
+            });
           }
         });
       });
