@@ -259,6 +259,7 @@ export default {
     }
   },
 
+  // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
       this.shown = false;

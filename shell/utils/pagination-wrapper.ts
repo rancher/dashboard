@@ -1,6 +1,7 @@
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext, StorePagination } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
+import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 interface Result<T> {
   data: Array<T>
@@ -49,7 +50,7 @@ class PaginationWrapper<T = any> {
         throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
       }
       const { pagination, classify: doClassify } = args;
-      const opt = {
+      const opt: ActionFindPageArgs = {
         transient: true,
         pagination
       };

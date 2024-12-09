@@ -76,11 +76,15 @@ export default defineComponent({
   },
 
   async fetch() {
-    await this.$fetchType(this.resource, [], this.inStore);
+    const promises = [
+      this.$fetchType(this.resource, [], this.inStore),
+    ];
 
     if (this.fetchSecondaryResources) {
-      await this.fetchSecondaryResources({ canPaginate: this.canPaginate });
+      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
     }
+
+    await Promise.all(promises);
   },
 
   computed: {
