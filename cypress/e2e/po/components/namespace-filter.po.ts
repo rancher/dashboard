@@ -1,4 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+
 export class NamespaceFilterPo extends ComponentPo {
   constructor() {
     super('[data-testid="namespaces-filter"]');
@@ -50,6 +51,10 @@ export class NamespaceFilterPo extends ComponentPo {
 
   selectedValues() {
     return this.namespaceDropdown().find('[data-testid="namespaces-values"]');
+  }
+
+  allSelected() {
+    return this.self().find('[data-testid="namespaces-values-none"]').should('exist');
   }
 
   moreOptionsSelected() {

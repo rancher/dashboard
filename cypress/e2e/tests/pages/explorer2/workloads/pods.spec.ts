@@ -6,15 +6,12 @@ import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
-import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
 const cluster = 'local';
 
 describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(cluster);
-  const clusterDashboard = new ClusterDashboardPagePo(cluster);
-  const nsFilter = new NamespaceFilterPo();
 
   before(() => {
     cy.login();
@@ -67,11 +64,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
-      // Confirm that the ns filter is set correctly before navigating to a page that will use it
-      clusterDashboard.goTo();
-      clusterDashboard.waitForPage();
-      nsFilter.selectedValues().contains(nsName1);
-      nsFilter.selectedValues().contains(nsName2);
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { nsProject: { values: [nsName1, nsName2] } });
 
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
