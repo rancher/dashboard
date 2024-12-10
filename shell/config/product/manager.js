@@ -1,4 +1,4 @@
-import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
+import { AGE, NAME as NAME_COL, NAMESPACE, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
@@ -211,6 +211,7 @@ export function init(store) {
   headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
     NAME_COL,
+    NAMESPACE,
     MACHINE_SUMMARY,
     AGE
   ]);
