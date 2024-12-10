@@ -1087,6 +1087,10 @@ catalog:
         maxRetries:
           label: Max Number of Retries
           placeholder: 5 (default)
+    refreshInterval:
+      title: Refresh Interval
+      label: Refresh Interval (in Hours)
+      placeholder: '{hours} (default)'
   tools:
     header: Cluster Tools
     noTools: "No Cluster Tools found"
