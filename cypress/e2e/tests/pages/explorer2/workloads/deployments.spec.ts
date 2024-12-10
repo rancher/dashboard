@@ -90,7 +90,7 @@ describe('Cluster Explorer', () => {
         deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
 
         // open the pod storage tab
-        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage');
+        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage-pod');
 
         // check that there is a component rendered for each workload volume and that that component has rendered some information about the volume
         deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().value()
@@ -150,6 +150,29 @@ describe('Cluster Explorer', () => {
           expect(request.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([]);
           expect(response.body.spec.template.spec.containers[0].volumeMounts).to.eq(undefined);
         });
+      });
+
+      it('should be able to select Pod CSI storage option', () => {
+        deploymentsCreatePage.goTo();
+        deploymentsCreatePage.waitForPage();
+
+        // open the pod tab
+        deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#pod');
+
+        // open the pod storage tab
+        deploymentsCreatePage.podTabs().clickTabWithSelector('li#storage-pod');
+
+        deploymentsCreatePage.podStorage().addVolumeButton().toggle();
+        deploymentsCreatePage.podStorage().addVolumeButton().getOptions().should('contain', 'CSI');
+
+        deploymentsCreatePage.podStorage().addVolumeButton().clickOptionWithLabel('CSI');
+
+        // open the driver input
+        deploymentsCreatePage.podStorage().driverInput().toggle();
+        deploymentsCreatePage.podStorage().driverInput().getOptions().should('contain', 'Longhorn');
+
+        // select the Longhorn option from the driver input
+        deploymentsCreatePage.podStorage().driverInput().clickOptionWithLabel('Longhorn');
       });
     });
 

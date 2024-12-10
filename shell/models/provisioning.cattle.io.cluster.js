@@ -245,7 +245,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canDelete() {
-    return super.canDelete && this.stateObj.name !== 'removing';
+    return super.canDelete && this.stateObj?.name !== 'removing';
   }
 
   get canEditYaml() {
@@ -282,7 +282,29 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImported() {
-    return this.mgmt?.isImported;
+    if (this.isLocal) {
+      return false;
+    }
+
+    // imported rke2 and k3s have status.driver === rke2 and k3s respectively
+    // Provisioned rke2 and k3s have status.driver === imported
+    if (this.mgmt?.status?.provider === 'k3s' || this.mgmt?.status?.provider === 'rke2') {
+      return this.mgmt?.status?.driver === this.mgmt?.status?.provider;
+    }
+
+    // imported KEv2
+    // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
+    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
+
+    const isImportedKontainer = kontainerConfigs.filter((key) => {
+      return this.mgmt?.spec?.[key]?.imported === true;
+    }).length;
+
+    if (isImportedKontainer) {
+      return true;
+    }
+
+    return this.provisioner === 'imported';
   }
 
   get isCustom() {

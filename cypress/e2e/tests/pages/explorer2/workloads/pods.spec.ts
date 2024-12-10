@@ -1,4 +1,4 @@
-import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkLoadsPodEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 // import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo, WorkloadsPodsCreatePagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
@@ -283,6 +283,68 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
+    });
+  });
+
+  describe('When creating a pod using the web Form', () => {
+    const singlePodName = Cypress._.uniqueId(Date.now().toString());
+
+    it(`should have the default input units displayed`, () => {
+      workloadsPodPage.goTo();
+      workloadsPodPage.createPod();
+
+      const podDetails = new PodPo();
+
+      podDetails.nameNsDescription().name().set(singlePodName);
+
+      const podDetailsGeneral = podDetails.containerButton().general();
+
+      podDetailsGeneral.inputImageName().set('nginx:alpine');
+      const podDetailsResources = podDetails.containerButton().resources();
+
+      podDetailsResources.clickResources();
+      podDetailsResources.inputCpuLimit().getAttributeValue('placeholder').should('contain', 'e.g. 1000');
+      podDetailsResources.inputCpuReservation().getAttributeValue('placeholder').should('contain', 'e.g. 1000');
+      podDetailsResources.inputMemoryReservation().getAttributeValue('placeholder').should('contain', 'e.g. 128');
+      podDetailsResources.inputMemoryLimit().getAttributeValue('placeholder').should('contain', 'e.g. 128');
+      podDetailsResources.inputGpuLimit().getAttributeValue('placeholder').should('contain', 'e.g. 1');
+
+      podDetailsResources.inputCpuLimit().set('100');
+      podDetailsResources.inputCpuReservation().set('100');
+      podDetailsResources.inputMemoryLimit().set('128');
+      podDetailsResources.inputMemoryLimit().set('128');
+      podDetailsResources.inputGpuLimit().set('0');
+
+      podDetails.saveCreateForm().cruResource().saveOrCreate().click();
+      workloadsPodPage.waitForPage();
+      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+    });
+
+    it('Footer controls should stick to bottom in YAML Editor', () => {
+      // testing https://github.com/rancher/dashboard/issues/10880
+      const workloadsPodEditPage = new WorkLoadsPodEditPagePo(singlePodName);
+
+      cy.intercept('GET', `/api/v1/namespaces/default/pods/${ singlePodName }`).as('getPod');
+
+      workloadsPodPage.goTo();
+      workloadsPodPage.waitForPage();
+      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().actionMenu(singlePodName).getMenuItem('Edit YAML').click();
+      workloadsPodEditPage.waitForPage('mode=edit&as=yaml');
+      cy.wait('@getPod');
+
+      // clear the form
+      workloadsPodEditPage.saveCreateForm().resourceYaml().codeMirror().set('');
+
+      // footer should maintain its position on the page
+      workloadsPodEditPage.saveCreateForm().resourceYaml().footer().then(($el) => {
+        const elementRect = $el[0].getBoundingClientRect();
+        const viewportHeight = Cypress.config('viewportHeight');
+        const pageHeight = Cypress.$(cy.state('window')).height();
+
+        expect(elementRect.bottom).to.be.closeTo(pageHeight, 0.1);
+        expect(elementRect.bottom).to.be.closeTo(viewportHeight, 0.1);
+      });
     });
   });
 

@@ -6,7 +6,7 @@ import { _EDIT } from '@shell/config/query-params';
 export default {
   components: { LabeledInput },
 
-  emits: ['update:value'],
+  emits: ['update:value', 'update:validation', 'change', 'blur'],
 
   props: {
     /**

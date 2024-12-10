@@ -14,6 +14,8 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { stringify } from '@shell/utils/error';
+import { Banner } from '@components/Banner';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -48,6 +50,7 @@ export default {
     ResourceYaml,
     Masthead,
     IconMessage,
+    Banner
   },
 
   mixins: [CreateEditView],
@@ -75,7 +78,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'resource-details'
-    }
+    },
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
   },
 
   async fetch() {
@@ -202,16 +209,26 @@ export default {
         notFound = fqid;
       }
 
-      if (realMode === _VIEW) {
-        model = liveModel;
-      } else {
-        model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+      try {
+        if (realMode === _VIEW) {
+          model = liveModel;
+        } else {
+          model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+        }
+        initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+
+        if ( as === _YAML ) {
+          yaml = await getYaml(this.$store, liveModel);
+        }
+      } catch (e) {
+        this.errors.push(e);
       }
-
-      initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
-
       if ( as === _YAML ) {
-        yaml = await getYaml(this.$store, liveModel);
+        try {
+          yaml = await getYaml(this.$store, liveModel);
+        } catch (e) {
+          this.errors.push(e);
+        }
       }
 
       if ( as === _GRAPH ) {
@@ -225,7 +242,11 @@ export default {
     }
 
     // Ensure common properties exists
-    model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
+    try {
+      model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
+    } catch (e) {
+      this.errors.push(e);
+    }
 
     const out = {
       hasGraph,
@@ -272,6 +293,7 @@ export default {
       notFound:        null,
       canViewChart:    true,
       canViewYaml:     null,
+      errors:          []
     };
   },
 
@@ -310,6 +332,18 @@ export default {
       }
 
       return null;
+    },
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    },
+    mappedErrors() {
+      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: {
+          message: error?.data?.message || error,
+          icon:    null
+        }
+      }), {});
     },
   },
 
@@ -360,6 +394,7 @@ export default {
   },
 
   methods: {
+    stringify,
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
     },
@@ -370,6 +405,9 @@ export default {
       if ( m?.[act] ) {
         m[act]();
       }
+    },
+    closeError(index) {
+      this.errors = this.errors.filter((_, i) => i !== index);
     },
   }
 };
@@ -398,6 +436,22 @@ export default {
         :value="liveModel"
       />
     </Masthead>
+    <div
+      v-if="hasErrors"
+      id="cru-errors"
+      class="cru__errors"
+    >
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :data-testid="`error-banner${i}`"
+        :label="stringify(mappedErrors[err].message)"
+        :icon="mappedErrors[err].icon"
+        :closable="true"
+        @close="closeError(i)"
+      />
+    </div>
 
     <ForceDirectedTreeChart
       v-if="isGraph && canViewChart"
@@ -413,8 +467,9 @@ export default {
       :yaml="yaml"
       :offer-preview="offerPreview"
       :done-route="doneRoute"
-      :done-override="value.doneOverride"
+      :done-override="value ? value.doneOverride : null"
       @update:value="$emit('input', $event)"
+      @error="e=>errors.push(e)"
     />
 
     <component

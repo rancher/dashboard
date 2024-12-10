@@ -1480,16 +1480,16 @@ cluster:
       defaultLabel: Use default data directory configuration
       commonLabel: Use a common base directory for data directory configuration (sub-directories will be used for the system-agent, provisioning and distro paths)
       customLabel: Use custom data directories
-    common: 
+    common:
       label: Data directory base path
       tooltip: Data directory base path. We will append the sub-directories appropriate for each directory (/agent, /provisioning and either /rke2 or /k3s)
-    systemAgent: 
+    systemAgent:
       label: System-agent directory path
       tooltip: Data directory for the system-agent connection info and plans
-    provisioning: 
+    provisioning:
       label: Provisioning directory path
       tooltip: Data directory for provisioning related files
-    k8sDistro: 
+    k8sDistro:
       label: K8s Distro directory path
       tooltip: Data directory for the k8s distro
   machineConfig:
@@ -5300,7 +5300,6 @@ setup:
     skip: Skip
     tip: What URL should be used for this {vendor} installation? All the nodes in your clusters will need to be able to reach this.
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
   welcome: Welcome to {vendor}!
@@ -6139,6 +6138,14 @@ wm:
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
+    logLevel:
+      info: INFO
+      error: ERROR
+      warning: WARN
+      debug: DEBUG
+    logMessage:
+      containerError: "{ logLevel }: Container missing shell executable (/bin/sh)"
+
   kubectlShell:
     title: "Kubectl: {name}"
 
@@ -6544,7 +6551,7 @@ workload:
           managed: Managed
           shared: Shared
       drivers:
-        driver.longhorn.io: Longhorn
+        driver-longhorn-io: Longhorn
       fsType: Filesystem Type
       shareName: Share Name
       secretName: Secret Name
@@ -7415,7 +7422,6 @@ advancedSettings:
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-index and ui-dashboard-index settings. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
-    'telemetry-opt': 'Telemetry reporting opt-in.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
@@ -7440,10 +7446,6 @@ advancedSettings:
     'ui-default-landing':
       ember: Cluster Manager
       vue: Cluster Explorer
-    'telemetry-opt':
-      prompt: Prompt
-      in: Opt-in to Telemetry
-      out: Opt-out of Telemetry
     'ui-offline-preferred':
       dynamic: Dynamic
       true: Local
