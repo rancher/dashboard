@@ -62,7 +62,7 @@ export default {
 
     this.hciClusters = hash.hciClusters;
     this.mgmtClusters = hash.mgmtClusters;
-    
+
     this.harvesterRepository = await this.getHarvesterRepository();
   },
 
