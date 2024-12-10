@@ -43,6 +43,11 @@ export default defineComponent({
       default: null,
     },
 
+    groupable: {
+      type:    Boolean,
+      default: null, // Null: auto based on namespaced and type custom groupings
+    },
+
     namespaced: {
       type:    Boolean,
       default: null, // Automatic from schema
@@ -106,6 +111,7 @@ export default defineComponent({
       :rows="rows"
       :alt-loading="canPaginate"
       :loading="loading"
+      :groupable="groupable"
 
       :headers="safeHeaders"
       :namespaced="namespaced"

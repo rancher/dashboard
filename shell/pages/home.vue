@@ -551,6 +551,7 @@ export default defineComponent({
                 :api-filter="filterRowsApi"
 
                 :namespaced="false"
+                :groupable="false"
                 manualRefreshButtonSize="sm"
                 :fetchSecondaryResources="fetchSecondaryResources"
                 :fetchPageSecondaryResources="fetchPageSecondaryResources"
