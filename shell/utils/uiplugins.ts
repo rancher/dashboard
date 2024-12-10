@@ -1,6 +1,6 @@
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
-import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { UI_PLUGIN_BASE_URL, isSupportedChartVersion } from '@shell/config/uiplugins';
 
 const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500;
@@ -13,15 +13,29 @@ export type HelmChart = any;
  *
  * @param store Vue store
  * @param chartName The chartName
+ * @param rancherVersion Rancher version
+ * @param kubeVersion K8s version
  * @param opt Store options
- * @returns The latest compatible version of the extension
+ * @returns The latest compatible version of the extension; return null If there are no compatible versions.
  */
-export async function getLatestExtensionVersion(store: any, chartName: string, opt = { reset: true, force: true }) {
+export async function getLatestExtensionVersion(
+  store: any,
+  chartName: string,
+  rancherVersion: string,
+  kubeVersion: string,
+  opt = { reset: true, force: true },
+) {
   await store.dispatch('catalog/load', opt);
 
   const chart = store.getters['catalog/chart']({ chartName });
 
-  return chart?.versions?.[0]?.version;
+  const versions = chart?.versions || [];
+
+  const compatibleVersions = versions.filter((version: any) => isSupportedChartVersion({
+    version, rancherVersion, kubeVersion
+  }));
+
+  return compatibleVersions[0]?.version;
 }
 
 /**
