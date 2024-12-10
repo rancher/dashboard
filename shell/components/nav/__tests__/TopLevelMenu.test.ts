@@ -47,7 +47,7 @@ const generateStore = (clusters: any[], settings = [{}]) => {
 };
 
 const waitForIt = async() => {
-  jest.advanceTimersByTime(250); // Wait for debounced call to fetch updated cluster list
+  jest.advanceTimersByTime(1000); // Wait for debounced call to fetch updated cluster list
   await nextTick(); // Wait for changes to cluster list to trigger changes
 };
 

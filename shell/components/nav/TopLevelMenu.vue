@@ -57,7 +57,7 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdateSlow: debounce((...args) => this.helper.update(...args), 750),
+      debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 750),
       debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
       provClusters,
       mgmtClusters,
@@ -432,15 +432,15 @@ export default {
         pinnedIds,
         searchTerm:  this.search,
         unPinnedMax: this.maxClustersToShow
-      }
+      };
 
       switch (speed) {
-        case 'slow':
-          this.debouncedHelperUpdateSlow(args);
-          return;
-        case 'quick':
-          this.debouncedHelperUpdateQuick(args);
-          return;
+      case 'slow':
+        this.debouncedHelperUpdateSlow(args);
+        break;
+      case 'quick':
+        this.debouncedHelperUpdateQuick(args);
+        break;
       }
     }
   }
