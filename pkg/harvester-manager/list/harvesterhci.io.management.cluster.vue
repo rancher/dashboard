@@ -24,7 +24,7 @@ import {
   waitForUIExtension,
   waitForUIPackage,
 } from '@shell/utils/uiplugins';
-import { isRancherPrime } from '@shell/config/version';
+import { isRancherPrime, getVersionData } from '@shell/config/version';
 
 const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
@@ -62,6 +62,7 @@ export default {
 
     this.hciClusters = hash.hciClusters;
     this.mgmtClusters = hash.mgmtClusters;
+    this.kubeVersion = hash.mgmtClusters.find((c) => c.id === 'local')?.kubernetesVersionBase || '';
 
     this.harvesterRepository = await this.getHarvesterRepository();
   },
@@ -78,6 +79,8 @@ export default {
       realSchema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       hciClusters:                    [],
       mgmtClusters:                   [],
+      rancherVersion:                 getVersionData()?.Version || '',
+      kubeVersion:                    null,
       harvesterRepository:            null,
       harvesterInstallVersion:        true,
       harvesterUpdateVersion:         null,
@@ -218,7 +221,7 @@ export default {
 
     async setHarvesterUpdateVersion() {
       try {
-        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
+        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
         if (semver.gt(version, this.harvester.extension.version)) {
           this.harvesterUpdateVersion = version;
@@ -240,7 +243,7 @@ export default {
          */
         await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
-        this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
+        this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
         if (!this.harvesterInstallVersion) {
           btnCb(false);
