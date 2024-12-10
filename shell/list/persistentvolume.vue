@@ -3,7 +3,7 @@ import { defineComponent } from 'vue';
 import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
 import { PVC } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export default defineComponent({
   name: 'ListPersistentVolume',

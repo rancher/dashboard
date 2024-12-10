@@ -4,7 +4,6 @@ import {
   WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { WORKLOAD_HEALTH_SCALE } from '@shell/config/table-headers';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
 const workloadSchema = {

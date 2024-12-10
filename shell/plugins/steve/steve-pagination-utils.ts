@@ -13,7 +13,7 @@ import {
   INGRESS,
   WORKLOAD_TYPES
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
