@@ -255,6 +255,7 @@ suffix:
       =1 { Revision }
       other { Revisions }
     }
+  hours: Hours
   seconds: |-
     {count, plural,
       =1 { Second }
@@ -1088,9 +1089,8 @@ catalog:
           label: Max Number of Retries
           placeholder: 5 (default)
     refreshInterval:
-      title: Refresh Interval
-      label: Refresh Interval (in Hours)
-      placeholder: '{hours} (default)'
+      label: Refresh Interval
+      placeholder: 'default: {hours}'
   tools:
     header: Cluster Tools
     noTools: "No Cluster Tools found"

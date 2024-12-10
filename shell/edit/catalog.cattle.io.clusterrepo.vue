@@ -9,6 +9,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
+import UnitInput from '@shell/components/form/UnitInput.vue';
 
 export default {
   name: 'CruCatalogRepo',
@@ -23,7 +24,8 @@ export default {
     Labels,
     SelectOrCreateAuthSecret,
     InfoBox,
-    Checkbox
+    Checkbox,
+    UnitInput
   },
 
   mixins: [CreateEditView],
@@ -93,7 +95,7 @@ export default {
     },
     updateRefreshInterval(newVal) {
       // when user removes the value we don't send refreshInterval along with the payload
-      if (newVal === '') {
+      if (newVal === null) {
         delete this.value.spec.refreshInterval;
 
         return;
@@ -283,18 +285,15 @@ export default {
       </div>
     </div>
 
-    <h4 class="mb-10 mt-20">
-      {{ t('catalog.repo.refreshInterval.title') }}
-    </h4>
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-4">
-        <LabeledInput
+        <UnitInput
           v-model:value.trim="value.spec.refreshInterval"
           :label="t('catalog.repo.refreshInterval.label')"
-          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
           :mode="mode"
-          type="number"
           min="0"
+          :suffix="t('suffix.hours')"
+          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
           data-testid="clusterrepo-refresh-interval"
           @update:value="updateRefreshInterval($event)"
         />
