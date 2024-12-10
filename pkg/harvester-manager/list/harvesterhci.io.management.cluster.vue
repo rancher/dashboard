@@ -62,8 +62,7 @@ export default {
 
     this.hciClusters = hash.hciClusters;
     this.mgmtClusters = hash.mgmtClusters;
-    this.kubeVersion = hash.mgmtClusters.find((c) => c.id === 'local')?.kubernetesVersionBase || '';
-
+    
     this.harvesterRepository = await this.getHarvesterRepository();
   },
 
@@ -80,7 +79,7 @@ export default {
       hciClusters:                    [],
       mgmtClusters:                   [],
       rancherVersion:                 getVersionData()?.Version || '',
-      kubeVersion:                    null,
+      kubeVersion:                    this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, 'local')?.kubernetesVersionBase || '',
       harvesterRepository:            null,
       harvesterInstallVersion:        true,
       harvesterUpdateVersion:         null,
