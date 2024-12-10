@@ -117,4 +117,11 @@ export default class ClusterDashboardPagePo extends PagePo {
       throw new Error('Bad Config');
     }
   }
+
+  static goToAndWait(cluster: string) {
+    const instance = new ClusterDashboardPagePo(cluster);
+
+    instance.goTo();
+    instance.clusterActionsHeader().checkVisible();
+  }
 }

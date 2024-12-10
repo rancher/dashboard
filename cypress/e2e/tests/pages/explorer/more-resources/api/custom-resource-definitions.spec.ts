@@ -16,6 +16,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
+      ClusterDashboardPagePo.goToAndWait(cluster); // Ensure we're at a solid state before messing with preferences (given login/load might change them)
       cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}');
     });
 
