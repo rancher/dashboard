@@ -35,7 +35,7 @@ harvesterManager:
       prompt-standard-user: Please contact your system administrator to install the latest Harvester UI Extension, if any
     missingVersion:
       warning: "Could not find a compatible version"
-      prompt: "Please update Rancher to get the latest version of the Harvester UI extension"
+      prompt: "Please update Rancher to get the latest compatible version of the Harvester UI extension"
       prompt-standard-user: Please contact your system administrator
     error:
       warning: "Warning, Harvester UI extension automatic installation failed"
