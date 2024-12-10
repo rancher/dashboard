@@ -1,27 +1,21 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Cluster Explorer', () => {
-  beforeEach(() => {
-    cy.login();
-  });
-
-  describe('Workloads', { tags: ['@explorer2', '@standardUser', '@adminUser', '@flaky'] }, () => {
+  describe('Workloads', { tags: ['@explorer2', '@standardUser', '@adminUser'] }, () => {
     let deploymentsListPage: WorkloadsDeploymentsListPagePo;
     let deploymentsCreatePage: WorkloadsDeploymentsCreatePagePo;
 
-    // collect name/namespace of all workloads created in this test suite & delete them afterwards
-    // edit deployment tests each create a workload per run to improve their retryability
-    const e2eWorkloads: { name: string; namespace: string; }[] = [];
-
     beforeEach(() => {
+      cy.login();
       deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
     describe('Create: Deployments', () => {
-      beforeEach(() => {
+      let deploymentId;
+
+      before(() => {
         cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       });
 
@@ -43,16 +37,20 @@ describe('Cluster Explorer', () => {
           expect(response.statusCode).to.eq(201);
           expect(response.body.metadata.name).to.eq(name);
           expect(response.body.metadata.namespace).to.eq(namespace);
-        });
 
-        // Collect the name of the workload for cleanup
-        e2eWorkloads.push({ name, namespace });
+          deploymentId = response.body.id;
+        });
+      });
+
+      afterEach(() => {
+        cy.deleteRancherResource('v1', 'apps.deployment', deploymentId);
       });
     });
 
     describe('Update: Deployments', () => {
       let workloadName;
       let workloadDetailsPage;
+      let updatedDeploymentId;
 
       const { namespace } = createDeploymentBlueprint.metadata;
       let deploymentEditConfigPage;
@@ -65,26 +63,35 @@ describe('Cluster Explorer', () => {
         deploymentEditConfigPage = new WorkloadsDeploymentsCreatePagePo();
 
         testDeployment.metadata.name = workloadName;
-        deploymentsListPage.goTo();
-        deploymentsListPage.waitForPage();
-        deploymentsListPage.createWithKubectl(createDeploymentBlueprint, undefined, MEDIUM_TIMEOUT_OPT);
 
-        // Collect the name of the workload for cleanup
-        e2eWorkloads.push({ name: workloadName, namespace });
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(testDeployment)).then((resp: Cypress.Response<any>) => {
+          updatedDeploymentId = resp.body.id;
+        });
+      });
+
+      afterEach(() => {
+        cy.deleteRancherResource('v1', 'apps.deployment', updatedDeploymentId);
       });
 
       it('Should be able to scale the number of pods', () => {
         workloadDetailsPage.goTo();
         workloadDetailsPage.waitForPage();
-        workloadDetailsPage.mastheadTitle().should('contain', e2eWorkloads[1].name);
+        workloadDetailsPage.mastheadTitle().should('contain', workloadName);
+        workloadDetailsPage.podsRunningTotal().should('contain', '1');
+        workloadDetailsPage.podScaleUp().click();
+        workloadDetailsPage.gaugesPods().should('contain', 'Containercreating');
+        workloadDetailsPage.gaugesPods().should('contain', 'Running');
+        workloadDetailsPage.podsRunningTotal().should('contain', '2');
+        workloadDetailsPage.podScaleDown().click();
+        workloadDetailsPage.podsRunningTotal().should('contain', '1');
       });
 
       it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
-        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ e2eWorkloads[2].name }`).as('editDeployment');
+        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('editDeployment');
 
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
-        deploymentsListPage.goToEditConfigPage(e2eWorkloads[2].name);
+        deploymentsListPage.goToEditConfigPage(workloadName);
 
         // open the pod tab
         deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
@@ -116,12 +123,12 @@ describe('Cluster Explorer', () => {
         });
       });
 
-      it('should be able to add container volume mounts', () => {
-        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ e2eWorkloads[3].name }`).as('editDeployment');
+      it('should be able to add and remove container volume mounts', () => {
+        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('editDeployment');
 
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
-        deploymentsListPage.goToEditConfigPage(e2eWorkloads[3].name);
+        deploymentsListPage.goToEditConfigPage(workloadName);
         deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
 
         deploymentEditConfigPage.containerStorage().addVolume('test-vol1');
@@ -134,14 +141,12 @@ describe('Cluster Explorer', () => {
           expect(request.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([{ mountPath: 'test-123', name: 'test-vol1' }]);
           expect(response.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([{ mountPath: 'test-123', name: 'test-vol1' }]);
         });
-      });
 
-      it('should be able to remove container volume mounts', () => {
-        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ e2eWorkloads[3].name }`).as('editDeployment');
+        cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('editDeployment');
 
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
-        deploymentsListPage.goToEditConfigPage(e2eWorkloads[3].name);
+        deploymentsListPage.goToEditConfigPage(workloadName);
         deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
         deploymentEditConfigPage.containerStorage().removeVolume(0);
         deploymentEditConfigPage.saveCreateForm().click();
@@ -177,34 +182,47 @@ describe('Cluster Explorer', () => {
     });
 
     describe('List: Deployments', () => {
+      let listedDeploymentName1Id;
+      let listedDeploymentName2Id;
+
       it('Should list the workloads', () => {
+        const listedWorkloadName1 = Cypress._.uniqueId(Date.now().toString());
+        const listedWorkloadName2 = Cypress._.uniqueId(Date.now().toString());
+        const testDeployment = { ...createDeploymentBlueprint };
+
+        testDeployment.metadata.name = listedWorkloadName1;
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(testDeployment)).then((resp: Cypress.Response<any>) => {
+          listedDeploymentName1Id = resp.body.id;
+        });
+
+        testDeployment.metadata.name = listedWorkloadName2;
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(testDeployment)).then((resp: Cypress.Response<any>) => {
+          listedDeploymentName2Id = resp.body.id;
+        });
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
-        e2eWorkloads.forEach(({ name }) => {
-          deploymentsListPage.listElementWithName(name).should('exist');
-        });
+        deploymentsListPage.listElementWithName(listedWorkloadName1).should('exist');
+        deploymentsListPage.listElementWithName(listedWorkloadName2).should('exist');
+      });
+
+      after(() => {
+        cy.deleteRancherResource('v1', 'apps.deployment', listedDeploymentName1Id);
+        cy.deleteRancherResource('v1', 'apps.deployment', listedDeploymentName2Id);
       });
     });
 
     describe('Delete: Deployments', () => {
       it('Should be able to delete a workload', () => {
-        const deploymentName = e2eWorkloads[0].name;
+        const workloadName = Cypress._.uniqueId(Date.now().toString());
+        const testDeployment = { ...createDeploymentBlueprint };
 
+        testDeployment.metadata.name = workloadName;
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(testDeployment));
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
-        deploymentsListPage.listElementWithName(deploymentName).should('exist');
-        deploymentsListPage.deleteAndWaitForRequest(deploymentName);
-        deploymentsListPage.listElementWithName(deploymentName).should('not.exist');
-      });
-    });
-
-    // This is here because need to delete the workload after the test
-    // But need to reuse the same workload for multiple tests
-    after(() => {
-      deploymentsListPage.goTo();
-      deploymentsListPage.waitForPage();
-      e2eWorkloads?.forEach(({ name, namespace }) => {
-        deploymentsListPage.deleteWithKubectl(name, namespace);
+        deploymentsListPage.listElementWithName(workloadName).should('exist');
+        deploymentsListPage.deleteAndWaitForRequest(workloadName);
+        deploymentsListPage.listElementWithName(workloadName).should('not.exist');
       });
     });
   });
