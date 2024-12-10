@@ -25,7 +25,7 @@ export interface ModalConfig {
    *
    * - The `component` value should still match the file name without the `.vue` extension.
    * - Example:
-   *   ```typescript
+   *   ```ts
    *   component: 'MyCustomDialog' // Dynamically imports MyCustomDialog.vue
    *   ```
    *
@@ -38,7 +38,7 @@ export interface ModalConfig {
    * values are the corresponding prop values for the component.
    *
    * Example:
-   * ```
+   * ```ts
    * componentProps: { title: 'Hello Modal', isVisible: true }
    * ```
    */
@@ -49,7 +49,7 @@ export interface ModalConfig {
    * These resources are passed directly to the modal's `resources` prop.
    *
    * Example:
-   * ```
+   * ```ts
    * resources: [myResource, anotherResource]
    * ```
    */
@@ -61,7 +61,7 @@ export interface ModalConfig {
    * with a valid unit, such as `px` or `%`.
    *
    * Example:
-   * ```
+   * ```ts
    * modalWidth: '800px' // Width in pixels
    * modalWidth: '75%'   // Width as a percentage
    * ```
@@ -74,7 +74,7 @@ export interface ModalConfig {
    * explicitly closes it.
    *
    * Example:
-   * ```
+   * ```ts
    * closeOnClickOutside: false
    * ```
    */
