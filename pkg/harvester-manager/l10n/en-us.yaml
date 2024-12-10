@@ -33,6 +33,10 @@ harvesterManager:
       warning: "The Harvester UI Extension repository is missing"
       prompt: "Please click on Update button to add the Harvester repository and install the latest Harvester UI Extension, if any"
       prompt-standard-user: Please contact your system administrator to install the latest Harvester UI Extension, if any
+    missingVersion:
+      warning: "Could not find a compatible version"
+      prompt: "Please update Rancher to get the latest version of the Harvester UI extension"
+      prompt-standard-user: Please contact your system administrator
     error:
       warning: "Warning, Harvester UI extension automatic installation failed"
       prompt: "Please refresh the page and try again or install the Harvester UI extension manually"
