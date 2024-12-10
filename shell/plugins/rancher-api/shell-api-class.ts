@@ -2,6 +2,7 @@ import { Store } from 'vuex';
 
 import { GrowlConfig } from '@shell/types/rancher-api/growl';
 import { ModalConfig } from '@shell/types/rancher-api/modal';
+import { SlideInConfig } from '@shell/types/rancher-api/slideIn';
 
 interface ShellApiOptions {
   store: Store<any>;
@@ -22,7 +23,7 @@ export default class ShellApi {
    * - If `message` is a `DetailedMessage` object, `title` and `description` are extracted.
    *
    * Example:
-   * ```
+   * ```ts
    * this.$shell.growl({ message: 'Operation successful!', type: 'success' });
    * this.$shell.growl({ message: { title: 'Warning', description: 'Check your input.' }, type: 'warning' });
    * ```
@@ -61,7 +62,7 @@ export default class ShellApi {
    * @param config A `ModalConfig` object defining the modal’s content and behavior.
    *
    * Example:
-   * ```
+   * ```ts
    * this.$shell.modal({
    *   component: 'MyCustomDialog',
    *   componentProps: { title: 'Hello Modal' },
@@ -78,6 +79,35 @@ export default class ShellApi {
       resources:           config.resources || [],
       modalWidth:          config.modalWidth || '600px',
       closeOnClickOutside: config.closeOnClickOutside ?? true,
+    });
+  }
+
+  /**
+   * Opens the slide-in panel with the specified component and props.
+   *
+   * This method commits the `open` mutation to the `slideInPanel` Vuex module,
+   * which sets the current component to be rendered and its associated props.
+   * The slide-in panel becomes visible after the mutation.
+   *
+   * @param config - The configuration object for the slide-in panel.
+   *
+   * Example Usage:
+   * ```ts
+   * import MyComponent from '@/components/MyComponent.vue';
+   *
+   * this.$shell.slideInPanel({
+   *   component: MyComponent,
+   *   componentProps: { foo: 'bar' }
+   * });
+   * ```
+   *
+   * @param config.component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
+   * @param config.componentProps - (Optional) Props to pass to the component. These should align with the component's defined props.
+   */
+  slideInPanel(config: SlideInConfig): void {
+    this.$store.commit('slideInPanel/open', {
+      component:      config.component,
+      componentProps: config.componentProps || {}
     });
   }
 }

@@ -2,6 +2,9 @@
 /* eslint-disable */
 import type { ApiPrototype } from '@shell/types/rancher-api';
 
+/**
+ * TODO: Add prototypes for Rancher API classes.
+ */
 // import type RancherApi from '@shell/plugins/rancher-api/rancher-api-class';
 // import type ClusterApi from '@shell/plugins/rancher-api/cluster-api-class';
 // import type ExtensionApi from '@shell/plugins/rancher-api/extension-api-class';
@@ -23,8 +26,6 @@ declare module '@vue/runtime-core' {
       commit: (mutation: string, payload?: any) => void,
     },
     /**
-     * TODO: Add prototypes for Rancher API classes.
-     *
      * Prototypes for Rancher API classes.
      */
     // [ApiPrototype.RANCHER_API]: RancherApi;

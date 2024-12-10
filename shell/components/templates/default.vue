@@ -7,6 +7,7 @@ import {
 } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
+import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
@@ -41,6 +42,7 @@ export default {
     Header,
     ActionMenu,
     GrowlManager,
+    SlideInPanelManager,
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
@@ -302,6 +304,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <SlideInPanelManager />
     <Inactivity />
     <DraggableZone ref="draggableZone" />
   </div>
