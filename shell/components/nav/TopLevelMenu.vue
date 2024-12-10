@@ -19,8 +19,9 @@ import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/c
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
 
-// TODO: RC (home page/side bar) test search properly
-
+// TODO: RC test with rke2 cluster
+// TODO: RC test vai off (home and side bar)
+// TODO: RC test permissions (user-base, standard-user)
 export default {
   components: {
     BrandImage,
@@ -56,7 +57,8 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdate: debounce((...args) => this.helper.update(...args), 200),
+      debouncedHelperUpdateSlow: debounce((...args) => this.helper.update(...args), 750),
+      debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
       provClusters,
       mgmtClusters,
     };
@@ -272,18 +274,18 @@ export default {
           return;
         }
 
-        this.updateClusters(neu);
+        this.updateClusters(neu, 'quick');
       }
     },
 
     search() {
-      this.updateClusters(this.pinnedIds);
+      this.updateClusters(this.pinnedIds, 'slow');
     },
 
     provClusters: {
       handler() {
         // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds);
+        this.updateClusters(this.pinnedIds, 'slow');
       },
       deep:      true,
       immediate: true,
@@ -292,7 +294,7 @@ export default {
     mgmtClusters: {
       handler() {
         // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds);
+        this.updateClusters(this.pinnedIds, 'slow');
       },
       deep:      true,
       immediate: true,
@@ -425,12 +427,21 @@ export default {
       };
     },
 
-    updateClusters(pinnedIds) {
-      this.debouncedHelperUpdate({
+    updateClusters(pinnedIds, speed = 'slow' | 'quick') {
+      const args = {
         pinnedIds,
         searchTerm:  this.search,
         unPinnedMax: this.maxClustersToShow
-      });
+      }
+
+      switch (speed) {
+        case 'slow':
+          this.debouncedHelperUpdateSlow(args);
+          return;
+        case 'quick':
+          this.debouncedHelperUpdateQuick(args);
+          return;
+      }
     }
   }
 };

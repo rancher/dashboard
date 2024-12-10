@@ -12,7 +12,6 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
  * @returns PaginationParam[]
  */
 export function paginationFilterClusters(store, filterMgmtCluster = true) {
-  // TODO: RC (home page/side bar) TEST both facets
   const paginationRequestFilters = [];
 
   // Commenting out for the moment. This is broken for non-paginated world
@@ -49,7 +48,7 @@ export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = tr
 
   const filter = filterMgmtCluster ? [
     new PaginationFilterField({
-      field: `spec.internal`, // Pending API support https://github.com/rancher/rancher/issues/48011
+      field: `spec.internal`,
       value: false,
     })
   ] : [
@@ -80,13 +79,13 @@ export function paginationFilterOnlyKubernetesClusters(store) {
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: RC (home page/side bar) TEST
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
     }),
     new PaginationFilterField({
-      field:  `status.provider`, // TODO: RC (home page/side bar) TEST
+      field:  `status.provider`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true

@@ -244,7 +244,6 @@ export default defineComponent({
         return Promise.resolve({});
       }
 
-      // TODO: RC (home page/side bar) TEST with pagination off and on
       if ( this.canViewMgmtClusters ) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
       }
@@ -297,7 +296,7 @@ export default defineComponent({
       if ( this.canViewMachine ) {
         const opt: ActionFindPageArgs = {
           force,
-          // TODO: RC (home page/side bar) Validate
+          // TODO: RC test with rke2 cluster
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -328,7 +327,7 @@ export default defineComponent({
       if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
         const poolOpt: ActionFindPageArgs = {
           force,
-          // TODO: RC (home page/side bar) Validate
+          // TODO: RC test with rke2 cluster
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -341,7 +340,7 @@ export default defineComponent({
 
         const templateOpt: ActionFindPageArgs = {
           force,
-          // TODO: RC (home page/side bar) Validate
+          // TODO: RC test with rke2 cluster
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -437,26 +436,29 @@ export default defineComponent({
         pagination.filters = [];
       }
 
-      // Pending API Support https://github.com/rancher/rancher/issues/48011
       const existingFilters = pagination.filters;
       const requiredFilters = paginationFilterClusters(this.$store, false);
 
       for (let i = 0; i < requiredFilters.length; i++) {
+        let found = false;
         const required = requiredFilters[i];
 
         for (let j = 0; j < existingFilters.length; j++) {
-          const candidate = existingFilters[j];
+          const existing = existingFilters[j];
 
           if (
-            required.fields.length === candidate.fields.length &&
-            sameContents(required.fields.map((e) => e.field), candidate.fields.map((e) => e.field))
+            required.fields.length === existing.fields.length &&
+            sameContents(required.fields.map((e) => e.field), existing.fields.map((e) => e.field))
           ) {
-            Object.assign(candidate, required);
+            Object.assign(existing, required);
+            found = true;
             break;
           }
         }
 
-        pagination.filters.push(required);
+        if (!found) {
+          pagination.filters.push(required);
+        }
       }
 
       return pagination;
@@ -536,8 +538,7 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
-              <!-- // TODO: RC (home page/side bar) TEST with pagination off and on. check loading indicator when pagination off -->
-              <!-- TODO: RC namespaced: false now doesn't work -->
+              <!-- // TODO: RC test vai off check loading indicator when pagination off -->
               <PaginatedResourceTable
                 :schema="provClusterSchema"
                 :table-actions="false"

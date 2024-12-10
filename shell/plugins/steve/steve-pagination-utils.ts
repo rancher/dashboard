@@ -125,14 +125,17 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.nodeName' },
     ],
     [MANAGEMENT.NODE_POOL]: [
-      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
+      { field: 'spec.clusterName' },
     ],
     [MANAGEMENT.NODE_TEMPLATE]: [
-      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
+      { field: 'spec.clusterName' },
     ],
     [MANAGEMENT.CLUSTER]: [
-      // { field: 'spec.internal' }, // Pending API support https://github.com/rancher/rancher/issues/48011
-      // { field: 'spec.displayName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+      { field: 'spec.internal' },
+      { field: 'spec.displayName' },
+      // { field: `status.provider` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
@@ -141,16 +144,16 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
-      { field: 'spec.clusterName' } // TODO: RC (home page/side bar) TEST
+      { field: 'spec.clusterName' }
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC (home page/side bar) TEST
-      { field: `status.provider` }, // TODO: RC (home page/side bar) TEST
-      { field: 'status.allocatable.cpu' }, // TODO: RC (home page/side bar) TEST
-      { field: 'status.allocatable.memory' }, // TODO: RC (home page/side bar) TEST
-      { field: 'status.allocatable.pods' }, // TODO: RC (home page/side bar) TEST
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `status.provider` },
+      { field: 'status.allocatable.cpu' }, // TODO: RC test with rke2 cluster
+      { field: 'status.allocatable.memory' }, // TODO: RC test with rke2 cluster
+      { field: 'status.allocatable.pods' }, // TODO: RC test with rke2 cluster
 
-      // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+      { field: 'status.clusterName' },
     ]
   }
 

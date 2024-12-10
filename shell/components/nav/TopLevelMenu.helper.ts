@@ -42,18 +42,18 @@ type ProvCluster = {
  * 3. name
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
-  // {
-  //   asc:   true,
-  //   field: 'spec.internal', // Pending API support https://github.com/rancher/rancher/issues/48011
-  // },
+  {
+    asc:   false,
+    field: 'spec.internal',
+  },
   // {
   //   asc:   true,
   //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
   // },
-  // {
-  //   asc:   true,
-  //   field: 'spec.displayName' // Pending API support https://github.com/rancher/rancher/issues/48011
-  // },
+  {
+    asc:   true,
+    field: 'spec.displayName',
+  },
 ];
 
 export interface TopLevelMenuHelper {
@@ -287,10 +287,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     if (searchTerm && includeSearchTerm) {
-      // Pending API support https://github.com/rancher/rancher/issues/48011
-      // filters.push(PaginationParamFilter.createSingleField({
-      //   field: 'spec.displayName', exact: false, value: searchTerm
-      // }));
+      filters.push(PaginationParamFilter.createSingleField({
+        field: 'spec.displayName', exact: false, value: searchTerm
+      }));
     }
 
     if (includeLocal) {
@@ -355,9 +354,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           PaginationParamFilter.createMultipleFields(
             [...notPinned, ...pinned]
               .map((mgmtCluster) => ({
-                // Pending API support https://github.com/rancher/rancher/issues/48011
-                // field: 'status.clusterName', value: mgmtCluster.id, equals: true, exact: true
-                field: 'metadata.name', value: 'local', equals: true, exact: true
+                field: 'status.clusterName', value: mgmtCluster.id, equals: true, exact: true
               }))
           )
         ],
