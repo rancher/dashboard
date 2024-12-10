@@ -16,8 +16,10 @@ export default class CapiMachineSet extends SteveModel {
   }
 
   get groupByCluster() {
+    const ns = this.metadata.namespace;
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
+    const nsName = escapeHtml(`${ ns }/${ name }`);
 
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: nsName });
   }
 }
