@@ -32,6 +32,9 @@ describe('Side Menu: main', () => {
       pagePoFake.navToClusterMenuEntry(fakeProvClusterId);
       sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
 
+      BurgerMenuPo.burgerMenuGetNavClusterbyLabel('local').should('exist');
+      BurgerMenuPo.burgerMenuGetNavClusterbyLabel(fakeProvClusterId).should('exist');
+
       // press key combo
       cy.get('body').focus().type('{alt}', { release: false });
 

@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
-import { StorePaginationResult } from 'types/store/pagination.types';
+import { StorePaginationResult } from '@shell/types/store/pagination.types';
 
 export type FetchSecondaryResourcesOpts = { canPaginate: boolean }
 export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
@@ -78,11 +78,15 @@ export default defineComponent({
   },
 
   async fetch() {
-    await this.$fetchType(this.resource, [], this.inStore);
+    const promises = [
+      this.$fetchType(this.resource, [], this.inStore),
+    ];
 
     if (this.fetchSecondaryResources) {
-      await this.fetchSecondaryResources({ canPaginate: this.canPaginate });
+      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
     }
+
+    await Promise.all(promises);
   },
 
   computed: {

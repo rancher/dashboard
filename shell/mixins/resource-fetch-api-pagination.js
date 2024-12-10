@@ -14,6 +14,11 @@ import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 export default {
 
   props: {
+    namespaced: {
+      type:    Boolean,
+      default: null, // Automatic from schema
+    },
+
     /**
      * Where in the ui this mixin is used. For instance the home page cluster list would be `home`
      */
