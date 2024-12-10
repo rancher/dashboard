@@ -4,8 +4,16 @@ import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTE
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
-  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+  CAPI,
+  CATALOG,
+  CONFIG_MAP, MANAGEMENT, EVENT, NAMESPACE, NODE, POD, PVC,
+  PV,
+  STORAGE_CLASS,
+  SERVICE,
+  INGRESS,
+  WORKLOAD_TYPES
 } from '@shell/config/types';
+import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -107,8 +115,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      // { field: 'id' }, // Pending API support
-      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'id' },
+      { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
@@ -122,12 +130,90 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
     ],
+    [MANAGEMENT.NODE_POOL]: [
+      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
+    ],
+    [MANAGEMENT.NODE_TEMPLATE]: [
+      { field: 'spec.clusterName' }, // TODO: RC (home page/side bar) TEST
+    ],
+    [MANAGEMENT.CLUSTER]: [
+      // { field: 'spec.internal' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+      // { field: 'spec.displayName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+    ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
+    ],
+    [CAPI.MACHINE]: [
+      { field: 'spec.clusterName' } // TODO: RC (home page/side bar) TEST
+    ],
+    [EVENT]: [
+      { field: '_type' },
+      { field: 'reason' },
+      { field: 'involvedObject.kind' },
+      { field: 'message' },
+    ],
+    [CATALOG.CLUSTER_REPO]: [
+      { field: 'spec.gitRepo' },
+      { field: 'spec.gitBranch' },
+      { field: `metadata.annotations[clusterrepo.cattle.io/hidden]` }
+    ],
+    [CATALOG.OPERATION]: [
+      { field: 'status.action' },
+      { field: 'status.namespace' },
+      { field: 'status.releaseName' },
+    ],
+    [CAPI.RANCHER_CLUSTER]: [
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // TODO: RC (home page/side bar) TEST
+      { field: `status.provider` }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.cpu' }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.memory' }, // TODO: RC (home page/side bar) TEST
+      { field: 'status.allocatable.pods' }, // TODO: RC (home page/side bar) TEST
+
+      // { field: 'status.clusterName' }, // Pending API support https://github.com/rancher/rancher/issues/48011
+    ],
+    [SERVICE]: [
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.selector' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.type' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [INGRESS]: [
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.rules' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.ingressClassName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [PVC]: [
+      // { field: 'spec.volumeName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [PV]: [
+      // { field: 'status.reason' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.persistentVolumeReclaimPolicy' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [STORAGE_CLASS]: [
+      // { field: 'provisioner' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: `metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48103
+    ],
+    [CATALOG.APP]: [
+      // { field: 'spec.chart.metadata.name' }, // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.CRON_JOB]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.DAEMON_SET]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.DEPLOYMENT]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.JOB]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+    ],
+    [WORKLOAD_TYPES.STATEFUL_SET]: [
+      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ]
+
   }
 
   private convertArrayPath(path: string): string {
@@ -295,18 +381,21 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     state.checked.push(field);
 
     // First check in our hardcoded list of supported filters
-    if ([
-      StevePaginationUtils.VALID_FIELDS[''], // Global
-      StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
-    ].find((fields) => fields?.find((f) => {
-      if (f.startsWith) {
-        if (field.startsWith(f.field)) {
-          return true;
+    if (
+      process.env.NODE_ENV === 'dev' &&
+      [
+        StevePaginationUtils.VALID_FIELDS[''], // Global
+        StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
+      ].find((fields) => fields?.find((f) => {
+        if (f.startsWith) {
+          if (field.startsWith(f.field)) {
+            return true;
+          }
+        } else {
+          return field === f.field;
         }
-      } else {
-        return field === f.field;
-      }
-    }))) {
+      }))
+    ) {
       return;
     }
 
