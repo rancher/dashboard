@@ -455,3 +455,16 @@ export interface StorePagination {
    */
   result: StorePaginationResult
 }
+
+/**
+ * The resource and context that the pagination request will be used
+ *
+ * Used to determine if the request is supported
+*/
+export interface PaginationResourceContext {
+  store: string,
+  resource?: {
+    id: string,
+    context?: string,
+  }
+}

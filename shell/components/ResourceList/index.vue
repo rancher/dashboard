@@ -96,7 +96,6 @@ export default {
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
     return {
-      inStore,
       schema,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
