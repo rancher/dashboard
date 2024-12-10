@@ -79,7 +79,7 @@ export default {
       hciClusters:                    [],
       mgmtClusters:                   [],
       harvesterRepository:            null,
-      harvesterLatestVersion:         null,
+      harvesterUpdateVersion:         null,
       harvesterRepositoryError:       false,
       harvesterExtensionInstallError: false,
       harvesterExtensionUpdateError:  false,
@@ -104,7 +104,7 @@ export default {
         await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
         if (this.harvester.extension) {
-          await this.setHarvesterLatestVersion();
+          await this.setHarvesterUpdateVersion();
         }
       }
     }
@@ -116,8 +116,7 @@ export default {
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
       const missingRepository = !!extension && !this.harvesterRepository;
-      const isLatestVersionAvailable = !!this.harvesterLatestVersion;
-
+      
       const action = async(btnCb) => {
         const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
 
@@ -138,7 +137,7 @@ export default {
           action = 'error';
         } else if (missingRepository) {
           action = 'missingRepo';
-        } else if (isLatestVersionAvailable) {
+        } else if (!!this.harvesterUpdateVersion) {
           action = 'update';
         } else if (!extension) {
           action = 'install';
@@ -159,9 +158,8 @@ export default {
       return {
         extension,
         missingRepository,
-        isLatestVersionAvailable,
-        toInstall: !extension,
-        toUpdate:  missingRepository || isLatestVersionAvailable,
+                toInstall: !extension,
+        toUpdate:  missingRepository || !!this.harvesterUpdateVersion,
         action,
         panelLabel,
         hasErrors,
@@ -214,12 +212,12 @@ export default {
       }
     },
 
-    async setHarvesterLatestVersion() {
+    async setHarvesterUpdateVersion() {
       try {
         const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
 
         if (semver.gt(version, this.harvester.extension.version)) {
-          this.harvesterLatestVersion = version;
+          this.harvesterUpdateVersion = version;
         }
       } catch (error) {
         this.harvesterExtensionUpdateError = true;
@@ -246,10 +244,7 @@ export default {
 
         installed = await waitForUIPackage(this.$store, extension);
       } catch (error) {
-        this.harvesterExtensionInstallError = true;
-
-        btnCb(false);
-      }
+              }
 
       this.harvesterExtensionInstallError = !installed;
 
@@ -264,24 +259,20 @@ export default {
       let updated = false;
 
       try {
-        let harvesterRepository = this.harvesterRepository;
-
         if (this.harvester.missingRepository) {
-          harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
+          this.harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
 
-          await this.setHarvesterLatestVersion();
+          await this.setHarvesterUpdateVersion();
         }
 
-        await installHelmChart(harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterLatestVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
+
+        await installHelmChart(this.harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterUpdateVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
 
-        updated = await waitForUIPackage(this.$store, { ...extension, version: this.harvesterLatestVersion });
+        updated = await waitForUIPackage(this.$store, { ...extension, version: this.harvesterUpdateVersion });
       } catch (error) {
-        this.harvesterExtensionUpdateError = true;
-
-        btnCb(false);
-      }
+              }
 
       this.harvesterExtensionUpdateError = !updated;
 
