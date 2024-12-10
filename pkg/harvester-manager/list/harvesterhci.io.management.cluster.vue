@@ -79,6 +79,7 @@ export default {
       hciClusters:                    [],
       mgmtClusters:                   [],
       harvesterRepository:            null,
+      harvesterInstallVersion:        true,
       harvesterUpdateVersion:         null,
       harvesterRepositoryError:       false,
       harvesterExtensionInstallError: false,
@@ -116,14 +117,15 @@ export default {
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
       const missingRepository = !!extension && !this.harvesterRepository;
-      
+
       const action = async(btnCb) => {
         const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
 
         await this[action](btnCb);
       };
 
-      const hasErrors = this.harvesterRepositoryError ||
+      const hasErrors = !this.harvesterInstallVersion ||
+        this.harvesterRepositoryError ||
         this.harvesterExtensionInstallError ||
         this.harvesterExtensionUpdateError;
 
@@ -133,7 +135,9 @@ export default {
       ].reduce((acc, label) => {
         let action = '';
 
-        if (hasErrors) {
+        if (!this.harvesterInstallVersion) {
+          action = 'missingVersion';
+        } else if (hasErrors) {
           action = 'error';
         } else if (missingRepository) {
           action = 'missingRepo';
@@ -158,7 +162,7 @@ export default {
       return {
         extension,
         missingRepository,
-                toInstall: !extension,
+        toInstall: !extension,
         toUpdate:  missingRepository || !!this.harvesterUpdateVersion,
         action,
         panelLabel,
@@ -236,15 +240,21 @@ export default {
          */
         await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
-        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
+        this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
 
-        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version }, {}, UI_PLUGIN_NAMESPACE, 'install');
+        if (!this.harvesterInstallVersion) {
+          btnCb(false);
+
+          return;
+        }
+
+        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version: this.harvesterInstallVersion }, {}, UI_PLUGIN_NAMESPACE, 'install');
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
 
         installed = await waitForUIPackage(this.$store, extension);
       } catch (error) {
-              }
+      }
 
       this.harvesterExtensionInstallError = !installed;
 
@@ -265,6 +275,11 @@ export default {
           await this.setHarvesterUpdateVersion();
         }
 
+        if (!this.harvesterUpdateVersion) {
+          btnCb(true);
+
+          return;
+        }
 
         await installHelmChart(this.harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterUpdateVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
 
@@ -272,7 +287,7 @@ export default {
 
         updated = await waitForUIPackage(this.$store, { ...extension, version: this.harvesterUpdateVersion });
       } catch (error) {
-              }
+      }
 
       this.harvesterExtensionUpdateError = !updated;
 
@@ -413,7 +428,7 @@ export default {
             />
           </div>
         </div>
-        <template v-if="isAdmin">
+        <template v-if="isAdmin && harvesterInstallVersion">
           <div
             v-if="harvester.hasErrors"
             class="extension-info"
