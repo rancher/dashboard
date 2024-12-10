@@ -103,7 +103,10 @@ export default {
               class="close hand icon icon-close"
               @click="close(growl)"
             />
-            <div class="growl-text-title">
+            <div
+              v-if="growl.title"
+              class="growl-text-title"
+            >
               {{ growl.title }}
             </div>
             <p v-if="growl.message">

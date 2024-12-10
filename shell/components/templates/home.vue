@@ -3,6 +3,7 @@ import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
@@ -17,6 +18,7 @@ export default {
     Header,
     FixedBanner,
     GrowlManager,
+    SlideInPanelManager,
     AzureWarning,
     AwsComplianceBanner,
     Inactivity,
@@ -76,6 +78,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <SlideInPanelManager />
     <button
       v-if="themeShortcut"
       v-shortkey.once="['shift','t']"
