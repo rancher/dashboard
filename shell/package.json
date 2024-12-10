@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
