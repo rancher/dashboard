@@ -349,19 +349,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.mgmt?.id || this.id?.replace(`${ this.metadata.namespace }/`, '');
+    return this.status?.clusterName;
   }
 
   get mgmt() {
-    const name = this.status?.clusterName;
-
-    if ( !name ) {
-      return null;
-    }
-
-    const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-
-    return out;
+    return this.mgmtClusterId ? this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId) : null;
   }
 
   get isReady() {

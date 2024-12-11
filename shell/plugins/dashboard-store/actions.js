@@ -408,6 +408,12 @@ export default {
       return Promise.reject(e);
     }
 
+    // TODO: RC Test
+    await dispatch('unwatch', {
+      type,
+      all: true,
+    });
+
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,

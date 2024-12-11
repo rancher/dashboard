@@ -149,10 +149,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [CAPI.RANCHER_CLUSTER]: [
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
       { field: `status.provider` },
-      { field: 'status.allocatable.cpu' }, // TODO: RC test with rke2 cluster
-      { field: 'status.allocatable.memory' }, // TODO: RC test with rke2 cluster
-      { field: 'status.allocatable.pods' }, // TODO: RC test with rke2 cluster
-
       { field: 'status.clusterName' },
     ]
   }

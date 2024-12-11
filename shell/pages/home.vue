@@ -175,21 +175,21 @@ export default defineComponent({
           label:  this.t('tableHeaders.cpu'),
           value:  '',
           name:   'cpu',
-          sort:   ['status.allocatable.cpu'],
+          sort:   false,
           search: false,
         },
         {
           label:  this.t('tableHeaders.memory'),
           value:  '',
           name:   'memory',
-          sort:   ['status.allocatable.memory'],
+          sort:   false,
           search: false,
         },
         {
           label:        this.t('tableHeaders.pods'),
           name:         'pods',
           value:        '',
-          sort:         ['status.allocatable.pods'],
+          sort:         false,
           search:       false,
           formatter:    'PodsUsage',
           delayLoading: true
@@ -296,7 +296,6 @@ export default defineComponent({
       if ( this.canViewMachine ) {
         const opt: ActionFindPageArgs = {
           force,
-          // TODO: RC test with rke2 cluster
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -325,15 +324,17 @@ export default defineComponent({
 
       // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
       if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
+        const filters = PaginationParamFilter.createMultipleFields(page
+          .filter((p: any) => p.status?.clusterName)
+          .map((r: any) => new PaginationFilterField({
+            field: 'spec.clusterName',
+            value: r.status?.clusterName
+          })));
+
         const poolOpt: ActionFindPageArgs = {
           force,
           // TODO: RC test with rke2 cluster
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.status?.clusterName// TODO: handle empty spec
-            }))),
-          })
+          pagination: new FilterArgs({ filters })
         };
 
         this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
@@ -344,7 +345,7 @@ export default defineComponent({
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
-              value: r.status?.clusterName// TODO: handle empty spec
+              value: r.status?.clusterName
             }))),
           })
         };
