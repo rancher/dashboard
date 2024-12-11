@@ -216,12 +216,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().ociMinWaitInput().set(ociMinWait);
+    repositoriesPage.createEditRepositories().ociMinWaitInput().focus().type(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
-    repositoriesPage.createEditRepositories().ociMaxWaitInput().set(ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().focus().type(ociMaxWait);
     repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
     // set refresh interval
-    repositoriesPage.createEditRepositories().refreshIntervalInput().set(refreshInterval);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().focus().type(refreshInterval);
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 

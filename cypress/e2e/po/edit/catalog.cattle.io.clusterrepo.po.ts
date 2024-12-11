@@ -96,7 +96,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   enterOciMinWait(value: string) {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-min-wait-input"]').set(value);
+    return cy.get('[data-testid="clusterrepo-oci-min-wait-input"]').focus().type(value);
   }
 
   ociMaxWait() {
@@ -104,7 +104,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   enterOciMaxWait(value: string) {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-max-wait-input"]').set(value);
+    return cy.get('[data-testid="clusterrepo-oci-max-wait-input"]').focus().type(value);
   }
 
   ociMaxRetries() {

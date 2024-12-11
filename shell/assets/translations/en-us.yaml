@@ -255,7 +255,6 @@ suffix:
       =1 { Revision }
       other { Revisions }
     }
-  hours: Hours
   seconds: |-
     {count, plural,
       =1 { Second }
@@ -1080,14 +1079,14 @@ catalog:
       exponentialBackOff:
         label: Exponential Back Off
         minWait:
-          label: Min Wait Time (in Seconds)
-          placeholder: 1 (default)
+          label: Min Wait Time
+          placeholder: 'default: 1'
         maxWait:
-          label: Max Wait Time (in Seconds)
-          placeholder: 5 (default)
+          label: Max Wait Time
+          placeholder: 'default: 5'
         maxRetries:
           label: Max Number of Retries
-          placeholder: 5 (default)
+          placeholder: 'default: 5'
     refreshInterval:
       label: Refresh Interval
       placeholder: 'default: {hours}'

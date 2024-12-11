@@ -38,11 +38,11 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
   }
 
   ociMinWaitInput() {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-min-wait-input"]');
+    return cy.get('[data-testid="clusterrepo-oci-min-wait-input"]');
   }
 
   ociMaxWaitInput() {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-max-wait-input"]');
+    return cy.get('[data-testid="clusterrepo-oci-max-wait-input"]');
   }
 
   authentication(): LabeledSelectPo {
@@ -66,7 +66,7 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
   }
 
   refreshIntervalInput() {
-    return new LabeledInputPo('[data-testid="clusterrepo-refresh-interval"]');
+    return cy.get('[data-testid="clusterrepo-refresh-interval"]');
   }
 
   saveAndWaitForRequests(method: string, url: string) {
