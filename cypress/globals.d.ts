@@ -162,6 +162,11 @@ declare global {
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;
+
+      /**
+       * Run an accessibility check on the current page or the specified element
+       */
+      checkAccessibility(selector?: string);
     }
   }
 }

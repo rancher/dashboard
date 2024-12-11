@@ -160,6 +160,8 @@
     "@vue/test-utils": "2.0.2",
     "@vue/vue3-jest": "27.0.0",
     "add": "2.0.6",
+    "axe-core": "^4.10.2",
+    "axe-html-reporter": "^2.2.11",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "27.5.1",
@@ -172,6 +174,7 @@
     "csv-loader": "3.0.3",
     "cy2": "4.0.9",
     "cypress": "11.1.0",
+    "cypress-axe": "^1.5.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "^3.8.2",
     "eslint": "7.32.0",
@@ -181,6 +184,7 @@
     "eslint-plugin-cypress": "2.12.1",
     "eslint-plugin-import": "2.23.4",
     "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-vue": "9.10.0",
     "flush-promises": "1.0.2",
@@ -199,8 +203,7 @@
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18",
-    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules"
+    "yarn": "1.22.18"
   },
   "resolutions": {
     "html-webpack-plugin": "^5.0.0"
