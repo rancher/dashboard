@@ -3,6 +3,7 @@ import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
 import { getSpecPattern } from '@/scripts/cypress';
 import websocketTasks from './cypress/support/utils/webSocket-utils';
+import path from 'path';
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
@@ -11,12 +12,18 @@ require('dotenv').config();
  * VARIABLES
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-const testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
+let testDirs = ['accessibility', 'priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+
+if (process.env.TEST_DIRS) {
+  testDirs = process.env.TEST_DIRS.split(',').map((s) => s.trim());
+
+  console.log(` Using test dirs: ${ testDirs }`);
+}
 
 /**
  * LOGS:
@@ -97,6 +104,7 @@ export default defineConfig({
     azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
     customNodeIp:        process.env.CUSTOM_NODE_IP,
     customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    a11yFolder:          path.join('.', 'cypress', 'accessibility'),
     gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
   },
   e2e: {
@@ -106,6 +114,9 @@ export default defineConfig({
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
+
+      require('./cypress/support/plugins/accessibility').default(on, config);
+
       on('task', { removeDirectory });
       websocketTasks(on, config);
 
