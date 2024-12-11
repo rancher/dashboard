@@ -415,7 +415,7 @@ export default {
           >
             <Tab
               :label="t('workload.storage.title')"
-              name="storage"
+              name="storage-pod"
               :weight="tabWeightMap['storage']"
               @active="$refs.storage.refresh()"
             >

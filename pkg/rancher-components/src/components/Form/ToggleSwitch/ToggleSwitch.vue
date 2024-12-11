@@ -30,6 +30,9 @@ export default defineComponent({
       default: '',
     },
   },
+
+  emits: ['update:value'],
+
   data() {
     return { state: false as StateType };
   },

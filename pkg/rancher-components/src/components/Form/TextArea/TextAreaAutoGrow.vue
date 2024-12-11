@@ -80,6 +80,8 @@ export default defineComponent({
     }
   },
 
+  emits: ['update:value', 'paste', 'focus', 'blur'],
+
   setup() {
     const queueResize = inject('queueResize', provideProps.queueResize);
 

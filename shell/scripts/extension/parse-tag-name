@@ -14,6 +14,7 @@ if [[ "${GITHUB_WORKFLOW_TYPE}" == "catalog" ]]; then
   if [[ "${GITHUB_RELEASE_TAG}" != "${BASE_EXT}-${EXT_VERSION}" ]]; then
     echo -e "release tag doesn't match catalog tag: release tag -> ${GITHUB_RELEASE_TAG} ::: curr catalog tag -> ${BASE_EXT}-${EXT_VERSION}"
     gh run cancel ${GITHUB_RUN_ID}
+    exit 1
   fi
 # Ensure "chart" workflow release tag name matches some pkg/<pkg-name>
 else
@@ -33,5 +34,6 @@ else
   if [[ "${NO_MATCHES}" == "true" ]]; then
     echo -e "release tag doesn't match any chart tag: ${GITHUB_RELEASE_TAG}. Check your pkg/<!-YOUR-EXT-> folders and corresponding versions to complete the match"
     gh run cancel ${GITHUB_RUN_ID}
+    exit 1
   fi
 fi
