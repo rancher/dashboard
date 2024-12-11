@@ -82,7 +82,7 @@ jobs:
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@vai']
+          # ['@vai'] // https://github.com/rancher/dashboard/issues/12858
         ]
     runs-on: ubuntu-latest
     steps:
