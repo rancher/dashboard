@@ -156,7 +156,7 @@ export default defineComponent({
       }
 
       // track original version on edit to ensure we don't offer k8s downgrades
-      const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion);
+      const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion)?.version;
 
       this.originalVersion = kubernetesVersion;
     } else {
