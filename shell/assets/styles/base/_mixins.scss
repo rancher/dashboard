@@ -153,10 +153,10 @@
 @mixin form-focus {
   // Focus for form like elements (not to be confused with basic :focus style)
   outline: none;
-  border-color: var(--primary-focus);
+  border-color: var(--primary);
 }
 
 @mixin focus-outline {
   // Focus for form like elements (not to be confused with basic :focus style)
-  outline: 2px solid var(--primary-focus);
+  outline: 2px solid var(--primary-keyboard-focus);
 }
