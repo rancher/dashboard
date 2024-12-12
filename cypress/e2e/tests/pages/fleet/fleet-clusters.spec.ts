@@ -10,11 +10,13 @@ import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 
 describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterListPage = new FleetClusterListPagePo();
   const fleetGitRepoListPage = new FleetGitRepoListPagePo();
   const clusterList = new ClusterManagerListPagePo();
+  const featureFlagsPage = new FeatureFlagsPagePo();
   const headerPo = new HeaderPo();
   const gitRepoUrl = 'https://github.com/rancher/fleet-test-data';
   const branch = 'master';
@@ -26,12 +28,20 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
     const namespace = 'fleet-default';
     let removeCluster = false;
     let removeGitRepo = false;
+    let removeWorkspace = false;
+    let disableFeature = false;
     let clusterId = '';
     let clusterName = '';
     let gitRepo = '';
+    let customWorkspace = '';
+    const feature = 'provisioningv2-fleet-workspace-back-population';
 
     before(() => {
       cy.login();
+      cy.createE2EResourceName('fleet-workspace').then((name) => {
+        customWorkspace = name;
+      });
+
       cy.createE2EResourceName('git-repo').then((name) => {
         gitRepo = name;
       });
@@ -76,6 +86,8 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
           });
         });
       });
+
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
 
     it('data is populated in fleet cluster list and detail view', () => {
@@ -242,6 +254,54 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
     });
 
+    it('can assign cluster to different fleet workspaces', () => {
+      // create workspace
+      cy.createRancherResource('v3', 'fleetworkspaces', `{"type":"fleetworkspace","name":"${ customWorkspace }","annotations":{},"labels":{}}`).then(() => {
+        removeWorkspace = true;
+      });
+
+      // enable feature: provisioningv2-fleet-workspace-back-population
+      FeatureFlagsPagePo.navTo();
+      featureFlagsPage.waitForPage();
+      featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
+      featureFlagsPage.list().clickRowActionMenuItem(feature, 'Activate');
+      featureFlagsPage.clickCardActionButtonAndWait('Activate', feature, true, { waitForModal: true, waitForRequest: true });
+      featureFlagsPage.list().details(feature, 0).should('include.text', 'Active').then(() => {
+        disableFeature = true;
+      });
+
+      // go to fleet clusters
+      fleetClusterListPage.goTo();
+      fleetClusterListPage.waitForPage();
+      headerPo.selectWorkspace(namespace);
+
+      cy.intercept('PUT', '/v1/userpreferences/*').as('changeWorkspace');
+      fleetClusterListPage.clusterList().actionMenu(clusterName).getMenuItem('Change workspace').click();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(customWorkspace);
+      fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
+      fleetClusterListPage.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+
+      FleetClusterListPagePo.navTo();
+      fleetClusterListPage.waitForPage();
+      headerPo.selectWorkspace(customWorkspace);
+      cy.wait('@changeWorkspace');
+      fleetClusterListPage.clusterList().details(clusterName, 2).isVisible();
+
+      // restore
+      fleetClusterListPage.clusterList().actionMenu(clusterName).getMenuItem('Change workspace').click();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(namespace);
+      fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
+      fleetClusterListPage.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+
+      FleetClusterListPagePo.navTo();
+      fleetClusterListPage.waitForPage();
+      headerPo.selectWorkspace(namespace);
+      cy.wait('@changeWorkspace');
+      fleetClusterListPage.clusterList().details(clusterName, 2).isVisible();
+    });
+
     it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
       const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
 
@@ -253,7 +313,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       deploymentsList.goTo();
       deploymentsList.waitForPage();
       deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
-      deploymentsList.sortableTable().checkRowCount(true, 1);
+      deploymentsList.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
     });
 
     it('cluster should be removed from fleet cluster list once deleted', () => {
@@ -267,7 +327,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
-      fleetClusterListPage.sortableTable().checkRowCount(true, 1);
+      fleetClusterListPage.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
     });
 
     after('clean up', () => {
@@ -278,6 +338,20 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       if (removeGitRepo) {
         // delete gitrepo
         cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo, false);
+      }
+      if (removeWorkspace) {
+        // delete workspace
+        cy.deleteRancherResource('v3', 'fleetWorkspaces', customWorkspace, false);
+      }
+
+      if (disableFeature) {
+        // disable feature: provisioningv2-fleet-workspace-back-population
+        FeatureFlagsPagePo.navTo();
+        featureFlagsPage.waitForPage();
+        featureFlagsPage.list().details(feature, 0).should('include.text', 'Active');
+        featureFlagsPage.list().clickRowActionMenuItem(feature, 'Deactivate');
+        featureFlagsPage.clickCardActionButtonAndWait('Deactivate', feature, false, { waitForModal: true, waitForRequest: true });
+        featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
       }
     });
   });

@@ -132,6 +132,7 @@ export default {
           <form>
             <LabeledSelect
               v-model:value="moveTo"
+              data-testid="workspace_options"
               :label="t('assignTo.workspace')"
               :options="workspaceOptions"
               placement="bottom"
