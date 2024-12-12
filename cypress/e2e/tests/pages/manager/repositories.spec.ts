@@ -207,7 +207,6 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
     const ociMinWait = '2';
-    const expectedOciMinWaitInPayload = 2;
     const ociMaxWait = '7';
     const refreshInterval = '12';
 
@@ -215,13 +214,15 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().focus().type(refreshInterval)
+      .should('have.value', refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().ociMinWaitInput().focus().type(ociMinWait);
+    repositoriesPage.createEditRepositories().ociMinWaitInput().focus().type(ociMinWait)
+      .should('have.value', ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
-    repositoriesPage.createEditRepositories().ociMaxWaitInput().focus().type(ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().focus().type(ociMaxWait)
+      .should('have.value', ociMaxWait);
     repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
-    // set refresh interval
-    repositoriesPage.createEditRepositories().refreshIntervalInput().focus().type(refreshInterval);
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 
@@ -230,7 +231,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.url).to.equal(ociUrl);
-      expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(expectedOciMinWaitInPayload);
+      expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(Number(ociMinWait));
       expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
