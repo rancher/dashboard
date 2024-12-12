@@ -211,7 +211,10 @@ export default {
         />
       </div>
 
-      <div class="col span-3">
+      <div
+        class="col span-3"
+        data-testid="clusterrepo-refresh-interval"
+      >
         <UnitInput
           v-model:value.trim="value.spec.refreshInterval"
           :label="t('catalog.repo.refreshInterval.label')"
@@ -219,7 +222,6 @@ export default {
           min="0"
           :suffix="t('unit.hour', { count: value.spec.refreshInterval })"
           :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
-          data-testid="clusterrepo-refresh-interval"
           @update:value="updateRefreshInterval($event)"
         />
       </div>
@@ -269,7 +271,10 @@ export default {
         {{ t('catalog.repo.oci.exponentialBackOff.label') }}
       </h4>
       <div class="row mb-40 mt-10">
-        <div class="col span-4">
+        <div
+          class="col span-4"
+          data-testid="clusterrepo-oci-min-wait-input"
+        >
           <UnitInput
             v-model:value.trim="ociMinWait"
             :label="t('catalog.repo.oci.exponentialBackOff.minWait.label')"
@@ -277,11 +282,13 @@ export default {
             :mode="mode"
             min="1"
             :suffix="t('suffix.seconds', { count: ociMinWait })"
-            data-testid="clusterrepo-oci-min-wait-input"
             @update:value="updateExponentialBackOffValues('minWait', $event)"
           />
         </div>
-        <div class="col span-4">
+        <div
+          class="col span-4"
+          data-testid="clusterrepo-oci-max-wait-input"
+        >
           <UnitInput
             v-model:value.trim="ociMaxWait"
             :label="t('catalog.repo.oci.exponentialBackOff.maxWait.label')"
@@ -289,7 +296,6 @@ export default {
             :mode="mode"
             min="1"
             :suffix="t('suffix.seconds', { count: ociMaxWait })"
-            data-testid="clusterrepo-oci-max-wait-input"
             @update:value="updateExponentialBackOffValues('maxWait', $event)"
           />
         </div>

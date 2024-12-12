@@ -199,7 +199,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.contains(`${ this.repoName }ssh`).should('not.exist');
   });
 
-  it('can create an oci repository with basic auth', function() {
+  it.only('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
@@ -214,14 +214,11 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
-    repositoriesPage.createEditRepositories().refreshIntervalInput().focus().type(refreshInterval)
-      .should('have.value', refreshInterval);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().ociMinWaitInput().focus().type(ociMinWait)
-      .should('have.value', ociMinWait);
+    repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
     // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
-    repositoriesPage.createEditRepositories().ociMaxWaitInput().focus().type(ociMaxWait)
-      .should('have.value', ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
     repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');

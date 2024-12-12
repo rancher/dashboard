@@ -3,6 +3,7 @@ import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.p
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
@@ -96,7 +97,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   enterOciMinWait(value: string) {
-    return cy.get('[data-testid="clusterrepo-oci-min-wait-input"]').focus().type(value).should('have.value', value);
+    return new UnitInputPo('[data-testid="clusterrepo-oci-min-wait-input"]').setValue(value);
   }
 
   ociMaxWait() {
@@ -104,7 +105,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   enterOciMaxWait(value: string) {
-    return cy.get('[data-testid="clusterrepo-oci-max-wait-input"]').focus().type(value).should('have.value', value);
+    return new UnitInputPo('[data-testid="clusterrepo-oci-max-wait-input"]').setValue(value);
   }
 
   ociMaxRetries() {
