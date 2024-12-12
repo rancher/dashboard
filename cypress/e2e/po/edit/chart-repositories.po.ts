@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
@@ -38,11 +39,11 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
   }
 
   ociMinWaitInput() {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-min-wait-input"]');
+    return new UnitInputPo('[data-testid="clusterrepo-oci-min-wait-input"]');
   }
 
   ociMaxWaitInput() {
-    return new LabeledInputPo('[data-testid="clusterrepo-oci-max-wait-input"]');
+    return new UnitInputPo('[data-testid="clusterrepo-oci-max-wait-input"]');
   }
 
   authentication(): LabeledSelectPo {
@@ -63,6 +64,10 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
 
   clusterRepoAuthSelectOrCreate() {
     return this.authSelectOrCreate('[data-testid="clusterrepo-auth-secret"]');
+  }
+
+  refreshIntervalInput() {
+    return new UnitInputPo('[data-testid="clusterrepo-refresh-interval"]');
   }
 
   saveAndWaitForRequests(method: string, url: string) {
