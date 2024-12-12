@@ -58,6 +58,22 @@ export class workloadDetailsPageBasePo extends PagePo {
   createWithKubectl(blueprintJson: string | Object, wait = 6000 ) {
     this.workload().createWithKubectl(blueprintJson, wait);
   }
+
+  podScaleUp(): Cypress.Chainable {
+    return this.self().find('.btn-sm .icon-plus');
+  }
+
+  podScaleDown(): Cypress.Chainable {
+    return this.self().find('.btn-sm .icon-minus');
+  }
+
+  podsRunningTotal(): Cypress.Chainable {
+    return this.self().find('.count-gauge h1').first();
+  }
+
+  gaugesPods(): Cypress.Chainable {
+    return this.self().find('.gauges__pods');
+  }
 }
 
 export class WorkloadsListPageBasePo extends PagePo {

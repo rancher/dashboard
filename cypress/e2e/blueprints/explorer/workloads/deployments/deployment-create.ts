@@ -15,7 +15,7 @@ export const createDeploymentBlueprint = {
         containers: [
           {
             name:      'nginx',
-            image:     'nginx',
+            image:     'nginx:alpine',
             resources: {
               requests: {
                 cpu:    '200m',
