@@ -557,15 +557,14 @@ export default defineComponent({
 
         const keyPairRes: {KeyPairs: {KeyName: string}[]} = await ec2Client.describeKeyPairs({ DryRun: false });
 
-        this['sshKeyPairs'] = (keyPairRes.KeyPairs || [].map((key) => {
+        this.sshKeyPairs = (keyPairRes.KeyPairs || []).map((key) => {
           return key.KeyName;
-        }).sort());
+        }).sort();
       } catch (err: any) {
         const errors = this.errors as any[];
 
         errors.push(err);
       }
-
       this.loadingSshKeyPairs = false;
     },
   }
