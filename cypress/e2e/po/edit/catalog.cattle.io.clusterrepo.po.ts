@@ -93,7 +93,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   ociMinWait() {
-    return this.self().get('[data-testid="clusterrepo-oci-min-wait-input"]').invoke('val');
+    return this.self().get('[data-testid="clusterrepo-oci-min-wait-input"] input').invoke('val');
   }
 
   enterOciMinWait(value: string) {
@@ -101,7 +101,7 @@ export default class AppClusterRepoEditPo extends PagePo {
   }
 
   ociMaxWait() {
-    return this.self().get('[data-testid="clusterrepo-oci-max-wait-input"]').invoke('val');
+    return this.self().get('[data-testid="clusterrepo-oci-max-wait-input"] input').invoke('val');
   }
 
   enterOciMaxWait(value: string) {
