@@ -125,6 +125,13 @@ export default {
       ROLES,
     ];
 
+    const clusterServiceIcons = {
+      [STATES_ENUM.IN_PROGRESS]: 'icon-spinner icon-spin',
+      [STATES_ENUM.HEALTHY]:     'icon-checkmark',
+      [STATES_ENUM.WARNING]:     'icon-warning',
+      [STATES_ENUM.UNHEALTHY]:   'icon-warning',
+    };
+
     return {
       nodeHeaders,
       constraints:        [],
@@ -148,6 +155,7 @@ export default {
       clusterCounts,
       selectedTab:        'cluster-events',
       extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+clusterServiceIcons,
     };
   },
 
@@ -284,10 +292,13 @@ export default {
       const services = [];
 
       CLUSTER_COMPONENTS.forEach((cs) => {
+const status = this.getComponentStatus(cs);
+
         services.push({
           name:     cs,
-          status:   this.getComponentStatus(cs),
+          status,
           labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
+icon:     this.clusterServiceIcons[status],
         });
       });
 
@@ -296,6 +307,7 @@ export default {
           name:     'cattle',
           status:   this.cattleStatus,
           labelKey: 'clusterIndexPage.sections.componentStatus.cattle',
+icon:     this.clusterServiceIcons[this.cattleStatus],
         });
       }
 
@@ -304,6 +316,7 @@ export default {
           name:     'fleet',
           status:   this.fleetStatus,
           labelKey: 'clusterIndexPage.sections.componentStatus.fleet',
+icon:     this.clusterServiceIcons[this.fleetStatus],
         });
       }
 
@@ -727,16 +740,8 @@ export default {
         :data-testid="`k8s-service-${ service.name }`"
       >
         <i
-          v-if="service.status === STATES_ENUM.IN_PROGRESS"
-          class="icon icon-spinner icon-spin"
-        />
-        <i
-          v-else-if="service.status === STATES_ENUM.HEALTHY"
-          class="icon icon-checkmark"
-        />
-        <i
-          v-else
-          class="icon icon-warning"
+                    class="icon"
+:class="service.icon"
         />
         <div class="label">
           {{ t(service.labelKey) }}
