@@ -8,6 +8,7 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
@@ -27,6 +28,7 @@ export default {
     PromptModal,
     FixedBanner,
     GrowlManager,
+    ModalManager,
     SlideInPanelManager,
     AwsComplianceBanner,
     AzureWarning,
@@ -80,6 +82,7 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <PromptModal />
+        <ModalManager />
         <AssignTo />
         <button
           v-if="themeShortcut"

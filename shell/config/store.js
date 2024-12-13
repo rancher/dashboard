@@ -27,6 +27,7 @@ let store = {};
   resolveStoreModules(require('../store/growl.js'), 'growl.js');
   resolveStoreModules(require('../store/i18n.js'), 'i18n.js');
   resolveStoreModules(require('../store/linode.js'), 'linode.js');
+  resolveStoreModules(require('../store/modal.ts'), 'modal.ts');
   resolveStoreModules(require('../store/plugins.js'), 'plugins.js');
   resolveStoreModules(require('../store/pnap.js'), 'pnap.js');
   resolveStoreModules(require('../store/prefs.js'), 'prefs.js');
@@ -55,6 +56,7 @@ let store = {};
       '../store/i18n.js',
       '../store/index.js',
       '../store/linode.js',
+      '../store/modal.ts',
       '../store/plugins.js',
       '../store/pnap.js',
       '../store/prefs.js',

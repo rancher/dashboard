@@ -1,41 +1,27 @@
+import { Component } from 'vue';
+
 /**
  * Configuration object for opening a modal.
  */
 export interface ModalConfig {
   /**
-   * TODO: Understand how this works with extensions
+   * The Vue component to be displayed inside the modal.
+   * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
    *
-   * The name of the component to be displayed inside the modal.
+   * Example:
+   * ```ts
+   * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * The component must reside in the `dialog` directory, depending on the environment:
-   *
-   * 1. **When Using the Shell as Part of the Core Project**:
-   *    - Components must live in the `@shell/dialog` directory.
-   *    - Example:
-   *      ```
-   *      shell/dialog/MyCustomDialog.vue
-   *      ```
-   *
-   * 2. **When Using the Shell as a Library (Extensions)**:
-   *    - Components must live in the `pkg/<extension-pkg>/dialog` directory within the extension.
-   *    - Example, in an extension named `my-extension`:
-   *      ```
-   *      <extension-root>/pkg/my-extension/dialog/MyCustomDialog.vue
-   *      ```
-   *
-   * - The `component` value should still match the file name without the `.vue` extension.
-   * - Example:
-   *   ```ts
-   *   component: 'MyCustomDialog' // Dynamically imports MyCustomDialog.vue
-   *   ```
-   *
+   * this.$shell.modal({
+   *   component: MyCustomModal,
+   *   componentProps: { title: 'Hello Modal' }
+   * });
+   * ```
    */
-  component: string;
+  component: Component;
 
   /**
    * Optional props to pass directly to the component rendered inside the modal.
-   * This can be a record of key-value pairs where keys are the prop names, and
-   * values are the corresponding prop values for the component.
    *
    * Example:
    * ```ts
@@ -46,7 +32,7 @@ export interface ModalConfig {
 
   /**
    * Optional array of resources that the modal component might need.
-   * These resources are passed directly to the modal's `resources` prop.
+   * These are passed directly into the modal's `resources` prop.
    *
    * Example:
    * ```ts
@@ -57,10 +43,9 @@ export interface ModalConfig {
 
   /**
    * Custom width for the modal. Defaults to `600px`.
-   * The width can be specified as a number (pixels) or as a string
-   * with a valid unit, such as `px` or `%`.
+   * The width can be specified as a string with a valid unit (`px`, `%`, `rem`, etc.).
    *
-   * Example:
+   * Examples:
    * ```ts
    * modalWidth: '800px' // Width in pixels
    * modalWidth: '75%'   // Width as a percentage
@@ -69,9 +54,8 @@ export interface ModalConfig {
   modalWidth?: string;
 
   /**
-   * If true, clicking outside the modal will close it. Defaults to `true`.
-   * Set this to `false` if you want the modal to remain open until the user
-   * explicitly closes it.
+   * Determines if clicking outside the modal will close it. Defaults to `true`.
+   * Set this to `false` to prevent closing via outside clicks.
    *
    * Example:
    * ```ts
@@ -79,4 +63,15 @@ export interface ModalConfig {
    * ```
    */
   closeOnClickOutside?: boolean;
+
+  /**
+   * If true, the modal is considered "sticky" and may not close automatically
+   * on certain user interactions. Defaults to `false`.
+   *
+   * Example:
+   * ```ts
+   * modalSticky: true
+   * ```
+   */
+  // modalSticky?: boolean; // Not implemented yet
 }

@@ -7,6 +7,7 @@ import {
 } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
+import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
@@ -42,6 +43,7 @@ export default {
     Header,
     ActionMenu,
     GrowlManager,
+    ModalManager,
     SlideInPanelManager,
     WindowManager,
     FixedBanner,
@@ -255,6 +257,7 @@ export default {
         <PromptRestore />
         <AssignTo />
         <PromptModal />
+        <ModalManager />
         <button
           v-if="noLocaleShortcut"
           v-shortkey.once="['shift','l']"
