@@ -109,7 +109,7 @@ export default defineComponent({
       v-bind="$attrs"
       :schema="schema"
       :rows="rows"
-      :alt-loading="canPaginate"
+      :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :groupable="groupable"
 

@@ -52,6 +52,7 @@ export default {
       incremental:                false,
       fetchedResourceType:        [],
       paginating:                 null,
+      isFirstLoad:                true,
     };
   },
 
@@ -110,7 +111,7 @@ export default {
 
     loading() {
       if (this.canPaginate) {
-        return this.paginating;
+        return this.paginating === null ? true : this.paginating;
       }
 
       return this.rows.length ? false : this.$fetchState.pending;
@@ -127,6 +128,12 @@ export default {
             canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
           });
         }
+      }
+    },
+
+    loading(newValue, oldValue) {
+      if (oldValue && !newValue) {
+        this.isFirstLoad = false;
       }
     }
   },

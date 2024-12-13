@@ -271,7 +271,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
-      :alt-loading="canPaginate"
+      :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
