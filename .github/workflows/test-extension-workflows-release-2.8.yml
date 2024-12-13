@@ -89,8 +89,10 @@ jobs:
           OUTPUT_ARRAY=("${{ needs.retrieve-tags-release-2-dot-8.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-release-2-dot-8.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-release-2-dot-8.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-release-2-dot-8.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-release-2-dot-8.outputs.build-release-shell-creators-status }}")
           JOB_NAME_ARRAY=("retrieve-tags-release-2-dot-8" "test-build-extension-charts-release-2-dot-8" "test-build-extension-catalog-release-2-dot-8" "test-release-shell-pkg-release-2-dot-8" "test-release-creators-pkg-release-2-dot-8")
 
-          if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ] || [ ${OUTPUT_ARRAY[@]} =~ "" ]]; then
+          if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
+          elif [[ ${OUTPUT_ARRAY[@]} =~ "" ]]; then
+            MSG_PREFIX="\nSomething went wrong during the workflows testing! ⭕"
           else
             MSG_PREFIX="\nWorkflows testing for extensions succedded! ✅"
           fi
