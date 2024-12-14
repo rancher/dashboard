@@ -38,7 +38,7 @@
         "../../shell/*"
       ],
       "@components/*": [
-        "@rancher/components/*"
+        "../../pkg/rancher-components/src/components/*"
       ]
     }
   },
