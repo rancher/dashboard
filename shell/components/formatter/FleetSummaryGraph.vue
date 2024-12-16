@@ -14,7 +14,7 @@ export default {
       required: true
     },
 
-    clusterLabel: {
+    clusterId: {
       type:     String,
       required: false,
       default:  null,
@@ -23,10 +23,8 @@ export default {
 
   computed: {
     summary() {
-      if (this.clusterLabel) {
-        return this.row.clusterResourceStatus.find((x) => {
-          return x.clusterLabel === this.clusterLabel;
-        })?.status.resourceCounts || {};
+      if (this.clusterId) {
+        return this.row.clusterResourceStatus.find((x) => x.clusterId === this.clusterId)?.status?.resourceCounts || {};
       }
 
       return this.row.status?.resourceCounts || {};
