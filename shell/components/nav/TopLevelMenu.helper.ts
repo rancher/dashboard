@@ -90,6 +90,7 @@ export interface TopLevelMenuHelper {
 
 export abstract class BaseTopLevelMenuHelper {
   protected $store: VuexStore;
+  protected hasProvCluster: boolean;
 
   /**
   * Filter mgmt clusters by
@@ -125,6 +126,8 @@ export abstract class BaseTopLevelMenuHelper {
     $store: VuexStore,
 }) {
     this.$store = $store;
+
+    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -218,6 +221,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
   // ---------- requests ----------
   async update(args: UpdateArgs) {
+    if (!this.hasProvCluster) {
+      // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
+      // exit early
+      return;
+    }
+
     this.args = args;
     const promises = {
       pinned:    this.updatePinned(args),
@@ -372,14 +381,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
  * Helper designed to supply non-pagainted results for the top level menu cluster resources
  */
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
-  private hasProvCluster: boolean;
-
   constructor({ $store }: {
     $store: VuexStore,
   }) {
     super({ $store });
-
-    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     if (this.hasProvCluster) {
       $store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });

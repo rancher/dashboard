@@ -19,11 +19,6 @@ import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/c
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
 
-// TODO: RC test with rke1/2 cluster
-// TODO: RC test vai off (home and side bar)
-// TODO: RC test permissions (user-base, standard-user)
-
-// TODO: RC bug - nav from page 1 (no mgmt clusters) --> page 2 (requires mgmt clusters from page, fetches, however model getters for provider do not update...)
 export default {
   components: {
     BrandImage,

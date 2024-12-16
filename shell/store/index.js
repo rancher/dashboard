@@ -226,6 +226,13 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   }
 };
 
+/**
+ * Are we in the vai enabled world where mgmt clusters are paginated?
+ */
+const paginateClusters = (rootGetters) => {
+  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+};
+
 export const state = () => {
   return {
     managementReady:         false,
@@ -820,10 +827,9 @@ export const actions = {
 
     res = await allHash(promises);
 
-    // TODO: RC test
-    if (!res.settings && !paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } })) {
-      // This introduces a synchronous request, however we need settings to determine if pagination is enabled
-      // Eventually it will be removed when pagination is always on
+    if (!res.settings || !paginateClusters(rootGetters)) {
+      // This introduces a synchronous request, however we need settings to determine if SSP is enabled
+      // Eventually it will be removed when SSP is always on
       res.clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
       toWatch.push(MANAGEMENT.CLUSTER);
     }
@@ -988,8 +994,8 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
-    // Do we need to wait on loadManagement to fetch required resources?
-    if (!paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } })) {
+    // If SSP is on we won't have requested all clusters
+    if (!paginateClusters(rootGetters)) {
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
@@ -1088,15 +1094,14 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch, rootGetters}) {
-    if (paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } })) {
+  async cleanNamespaces({ getters, dispatch, rootGetters }) {
+    if (paginateClusters(rootGetters)) {
       // See https://github.com/rancher/dashboard/issues/12864
-      // old world..
+      // old world...
       // - loadManagement makes a request to fetch all mgmt clusters
-      // - we would block on that that request above before getting here (otherwise x2 requests were made)
-      // new world..
-      // - we won't have all mgmt clusters, this is another place that needs updating (see issue)
-
+      // - we would block on that that request above before getting here (otherwise x2 requests for all clusters were made)
+      // new world...
+      // - we won't have all mgmt clusters, so this whole function needs updating (see issue)
       return;
     }
 

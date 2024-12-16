@@ -353,7 +353,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmt() {
-    return this.mgmtClusterId ? this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId) : null;
+    return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.mgmtClusterId);
   }
 
   get isReady() {

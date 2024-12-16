@@ -150,6 +150,7 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_STATE_COL,
+        // https://github.com/rancher/dashboard/issues/12890 BUG - rke1 cluster's prov cluster metadata.name is the mgmt cluster id rather than true name
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
@@ -323,34 +324,36 @@ export default defineComponent({
       }
 
       // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
-        const filters = PaginationParamFilter.createMultipleFields(page
+      if ( this.canViewMgmtPools && this.canViewMgmtTemplates ) {
+        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
           .filter((p: any) => p.status?.clusterName)
           .map((r: any) => new PaginationFilterField({
             field: 'spec.clusterName',
             value: r.status?.clusterName
           })));
+        const nodePools = await this.$store.dispatch(`management/findPage`, {
+          type: MANAGEMENT.NODE_POOL,
+          opt:  {
+            force,
+            pagination: new FilterArgs({ filters: nodePoolFilters })
+          }
+        });
 
-        const poolOpt: ActionFindPageArgs = {
-          force,
-          // TODO: RC test with rke2 cluster
-          pagination: new FilterArgs({ filters })
-        };
+        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
+          .filter((np: any) => !!np.nodeTemplateId)
+          .map((np: any) => new PaginationFilterField({
+            field: 'id',
+            value: np.nodeTemplateId,
+            exact: true,
+          })));
 
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
-
-        const templateOpt: ActionFindPageArgs = {
-          force,
-          // TODO: RC test with rke2 cluster
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.status?.clusterName
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_TEMPLATE, opt: templateOpt });
+        this.$store.dispatch(`management/findPage`, {
+          type: MANAGEMENT.NODE_TEMPLATE,
+          opt:  {
+            force,
+            pagination: new FilterArgs({ filters: templateOpt })
+          }
+        });
       }
     },
 
@@ -539,8 +542,8 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
-              <!-- // TODO: RC test vai off check loading indicator when pagination off -->
               <PaginatedResourceTable
+                v-if="provClusterSchema"
                 :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"

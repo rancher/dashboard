@@ -408,7 +408,6 @@ export default {
       return Promise.reject(e);
     }
 
-    // TODO: RC Test
     await dispatch('unwatch', {
       type,
       all: true,
