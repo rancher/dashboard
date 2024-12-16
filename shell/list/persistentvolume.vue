@@ -55,12 +55,10 @@ export default defineComponent({
       const opt: ActionFindPageArgs = {
         force,
         pagination: new FilterArgs({
-          filters: [],
-          // Pending API support https://github.com/rancher/rancher/issues/48103
-          // filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-          //   field: 'spec.volumeName',
-          //   value: r.metadata.name
-          // }))),
+          filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
+            field: 'spec.volumeName',
+            value: r.metadata.name
+          }))),
         })
       };
 

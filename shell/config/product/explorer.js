@@ -281,8 +281,8 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48103
-        search: 'spec.rules', // Pending API support https://github.com/rancher/rancher/issues/48103
+        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+        search: 'spec.rules', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
       },
       {
         ...INGRESS_DEFAULT_BACKEND,
@@ -292,7 +292,7 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // Pending API support https://github.com/rancher/rancher/issues/48103
+        search: 'spec.ingressClassName', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
       },
       STEVE_AGE_COL
     ]
@@ -305,8 +305,8 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...TARGET_PORT,
-        sort:   'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103
-        search: 'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103
+        sort:   'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+        search: 'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
       },
       {
         // Selector is an object. This is broken in non-SSP world anyway (won't sort on object, filtering on `$[x][y]` paths are broken )
@@ -316,8 +316,8 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103
-        search: 'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103
+        sort:   'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+        search: 'spec.type', // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
       },
       STEVE_AGE_COL
     ]
@@ -357,10 +357,10 @@ export function init(store) {
       STEVE_STATE_COL,
       STEVE_NAME_COL,
       STEVE_NAMESPACE_COL,
-      HPA_REFERENCE, // Pending API support https://github.com/rancher/rancher/issues/48103
-      MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
-      MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
-      CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103
+      HPA_REFERENCE, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
     ]
   );
 
@@ -507,7 +507,7 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort: [`annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"`],
+        sort: [`metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"`],
       },
       STEVE_AGE_COL
     ]

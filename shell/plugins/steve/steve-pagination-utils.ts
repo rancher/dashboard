@@ -11,9 +11,10 @@ import {
   STORAGE_CLASS,
   SERVICE,
   INGRESS,
-  WORKLOAD_TYPES
+  WORKLOAD_TYPES,
+  HPA
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -174,24 +175,30 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.clusterName' },
     ],
     [SERVICE]: [
-      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: 'spec.type' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.type' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
     ],
     [INGRESS]: [
-      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: 'spec.rules' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: 'spec.ingressClassName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.rules' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.ingressClassName' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+    ],
+    [HPA]: [
+      // { field: 'spec.scaleTargetRef.name' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.minReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.maxReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
+      // { field: 'spec.currentReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48103 (blocked https://github.com/rancher/rancher/issues/48384)
     ],
     [PVC]: [
-      // { field: 'spec.volumeName' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      { field: 'spec.volumeName' },
     ],
     [PV]: [
-      // { field: 'status.reason' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: 'spec.persistentVolumeReclaimPolicy' }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      { field: 'status.reason' },
+      { field: 'spec.persistentVolumeReclaimPolicy' },
     ],
     [STORAGE_CLASS]: [
-      // { field: 'provisioner' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: `metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48103
+      { field: 'provisioner' },
+      // { field: `metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [CATALOG.APP]: [
       // { field: 'spec.chart.metadata.name' }, // Pending API support https://github.com/rancher/rancher/issues/48256
