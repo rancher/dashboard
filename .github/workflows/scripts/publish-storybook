@@ -1,5 +1,6 @@
 #!/bin/bash
-DIST=storybook/publish-storybook
+DIST=publish-storybook
+STORYBOOK_PATH=./storybook/storybook-static/
 
 echo "Building and publishing Storybook"
 
@@ -8,7 +9,7 @@ if [ -z "${STORYBOOK_TOKEN}" ]; then
   exit 1
 fi
 
-if [ ! -d "storybook/storybook-static" ]; then
+if [ ! -d "${STORYBOOK_PATH}" ]; then
   ls
   echo "Storybook has not been built"
   exit 1
@@ -29,7 +30,7 @@ rm *.txt
 rm *.map
 popd
 
-cp -R ./storybook-static/* ${DIST}/docs
+cp -R ${STORYBOOK_PATH}* ${DIST}/docs
 
 MSG=$(git log -1  --pretty='%s')
 echo $MSG

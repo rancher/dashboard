@@ -140,17 +140,12 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   after('clean up', () => {
     if (removeCluster0) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName0').then((name) => {
-        cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
-        removeCluster0 = false;
-      });
+      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance0);
     }
+
     if (removeCluster1) {
       //  delete cluster
-      cy.get<string>('@rke2Ec2ClusterName1').then((name) => {
-        cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
-        removeCluster1 = false;
-      });
+      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance1);
     }
   });
 });

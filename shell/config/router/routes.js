@@ -5,7 +5,7 @@ import { CAPI, MANAGEMENT, BACKUP_RESTORE, CIS } from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
-import { installRedirectRouteMeta } from 'config/router/navigation-guards/install-redirect';
+import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
 import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
 import { NAME as CIS_NAME, CHART_NAME as CIS_CHART_NAME } from '@shell/config/product/cis';
 import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';

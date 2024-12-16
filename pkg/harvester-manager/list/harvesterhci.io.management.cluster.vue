@@ -1,21 +1,36 @@
 <script>
+import semver from 'semver';
 import { mapGetters } from 'vuex';
 import { isAdminUser } from '@shell/store/type-map';
+import AsyncButton from '@shell/components/AsyncButton';
 import BrandImage from '@shell/components/BrandImage';
 import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { CAPI, HCI, MANAGEMENT, CATALOG } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { HARVESTER_EXTENSION, HARVESTER_REPO } from '../types';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO } from '../types';
+import {
+  getLatestExtensionVersion,
+  getHelmRepository,
+  ensureHelmRepository,
+  refreshHelmRepository,
+  installHelmChart,
+  waitForUIExtension,
+  waitForUIPackage,
+} from '@shell/utils/uiplugins';
+import { isRancherPrime } from '@shell/config/version';
+
+const HARVESTER_REPO = isRancherPrime() ? HARVESTER_RANCHER_REPO : HARVESTER_COMMUNITY_REPO;
 
 export default {
   components: {
+    AsyncButton,
     BrandImage,
     ResourceTable,
     Masthead,
@@ -43,32 +58,32 @@ export default {
       catalogLoad:  this.$store.dispatch('catalog/load', { reset: true }),
     };
 
-    if (this.$store.getters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO)) {
-      _hash.clusterrepos = this.$store.dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO, force: true });
-    }
-
     const hash = await allHash(_hash);
 
     this.hciClusters = hash.hciClusters;
     this.mgmtClusters = hash.mgmtClusters;
-    this.clusterrepos = hash.clusterrepos;
+
+    this.harvesterRepository = await this.getHarvesterRepository();
   },
 
   data() {
     const resource = CAPI.RANCHER_CLUSTER;
 
     return {
-      isAdmin:         isAdminUser(this.$store.getters),
-      navigating:      false,
-      VIRTUAL,
-      hciDashboard:    HCI.DASHBOARD,
+      isAdmin:                        isAdminUser(this.$store.getters),
+      navigating:                     false,
+      hciDashboard:                   HCI.DASHBOARD,
       resource,
-      hResource:       HCI.CLUSTER,
-      realSchema:      this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      hciClusters:     [],
-      mgmtClusters:    [],
-      clusterrepos:    [],
-      clusterRepoLink: {
+      hResource:                      HCI.CLUSTER,
+      realSchema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      hciClusters:                    [],
+      mgmtClusters:                   [],
+      harvesterRepository:            null,
+      harvesterLatestVersion:         null,
+      harvesterRepositoryError:       false,
+      harvesterExtensionInstallError: false,
+      harvesterExtensionUpdateError:  false,
+      clusterRepoLink:                {
         name:   'c-cluster-product-resource',
         params: {
           cluster:  'local',
@@ -79,19 +94,78 @@ export default {
       extensionsLink: {
         name:   'c-cluster-uiplugins',
         params: { cluster: BLANK_CLUSTER }
-      },
+      }
     };
+  },
+
+  watch: {
+    async harvesterRepository(value) {
+      if (value) {
+        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+
+        if (this.harvester.extension) {
+          await this.setHarvesterLatestVersion();
+        }
+      }
+    }
   },
 
   computed: {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
 
-    harvesterRepo() {
-      return this.clusterrepos?.find((c) => c.spec?.gitRepo?.includes(HARVESTER_REPO));
-    },
+    harvester() {
+      const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
+      const missingRepository = !!extension && !this.harvesterRepository;
+      const isLatestVersionAvailable = !!this.harvesterLatestVersion;
 
-    harvesterExtension() {
-      return this.uiplugins?.find((c) => c.name === HARVESTER_EXTENSION);
+      const action = async(btnCb) => {
+        const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
+
+        await this[action](btnCb);
+      };
+
+      const hasErrors = this.harvesterRepositoryError ||
+        this.harvesterExtensionInstallError ||
+        this.harvesterExtensionUpdateError;
+
+      const panelLabel = [
+        'warning',
+        'prompt'
+      ].reduce((acc, label) => {
+        let action = '';
+
+        if (hasErrors) {
+          action = 'error';
+        } else if (missingRepository) {
+          action = 'missingRepo';
+        } else if (isLatestVersionAvailable) {
+          action = 'update';
+        } else if (!extension) {
+          action = 'install';
+        }
+
+        let key = `harvesterManager.extension.${ action }.${ label }`;
+
+        if (label === 'prompt' && !this.isAdmin) {
+          key = `harvesterManager.extension.${ action }.${ label }-standard-user`;
+        }
+
+        return {
+          ...acc,
+          [label]: this.t(key, {}, true),
+        };
+      }, {});
+
+      return {
+        extension,
+        missingRepository,
+        isLatestVersionAvailable,
+        toInstall: !extension,
+        toUpdate:  missingRepository || isLatestVersionAvailable,
+        action,
+        panelLabel,
+        hasErrors,
+      };
     },
 
     importLocation() {
@@ -111,19 +185,117 @@ export default {
     },
 
     rows() {
-      return this.hciClusters.filter((c) => {
-        const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
+      return this.hciClusters
+        .filter((c) => {
+          const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
 
-        return isHarvesterCluster(cluster);
-      });
+          return isHarvesterCluster(cluster);
+        })
+        .map((row) => {
+          if (row.isReady) {
+            row.setSupportedHarvesterVersion();
+          }
+
+          return row;
+        });
     },
 
     typeDisplay() {
-      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.row?.length || 0 });
+      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.rows?.length || 0 });
     },
   },
 
   methods: {
+    async getHarvesterRepository() {
+      try {
+        return await getHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+      } catch (error) {
+        this.harvesterRepositoryError = true;
+      }
+    },
+
+    async setHarvesterLatestVersion() {
+      try {
+        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
+
+        if (semver.gt(version, this.harvester.extension.version)) {
+          this.harvesterLatestVersion = version;
+        }
+      } catch (error) {
+        this.harvesterExtensionUpdateError = true;
+      }
+    },
+
+    async installHarvesterExtension(btnCb) {
+      let installed = false;
+
+      try {
+        const harvesterRepo = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
+
+        /**
+         * Server issue
+         * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
+         */
+        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+
+        const version = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name);
+
+        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version }, {}, UI_PLUGIN_NAMESPACE, 'install');
+
+        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
+
+        installed = await waitForUIPackage(this.$store, extension);
+      } catch (error) {
+        this.harvesterExtensionInstallError = true;
+
+        btnCb(false);
+      }
+
+      this.harvesterExtensionInstallError = !installed;
+
+      btnCb(installed);
+
+      if (installed) {
+        this.reload();
+      }
+    },
+
+    async updateHarvesterExtension(btnCb) {
+      let updated = false;
+
+      try {
+        let harvesterRepository = this.harvesterRepository;
+
+        if (this.harvester.missingRepository) {
+          harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
+
+          await this.setHarvesterLatestVersion();
+        }
+
+        await installHelmChart(harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterLatestVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
+
+        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
+
+        updated = await waitForUIPackage(this.$store, { ...extension, version: this.harvesterLatestVersion });
+      } catch (error) {
+        this.harvesterExtensionUpdateError = true;
+
+        btnCb(false);
+      }
+
+      this.harvesterExtensionUpdateError = !updated;
+
+      btnCb(updated);
+
+      if (updated) {
+        this.reload();
+      }
+    },
+
+    reload() {
+      this.$router.go();
+    },
+
     async goToCluster(row) {
       const timeout = setTimeout(() => {
         // Don't show loading indicator for quickly fetched plugins
@@ -148,7 +320,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div v-if="!!harvesterExtension">
+    <div v-if="!!harvester.extension">
       <Masthead
         :schema="realSchema"
         :resource="resource"
@@ -178,12 +350,13 @@ export default {
         :is-creatable="true"
         :namespaced="false"
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+        :rows-per-page="5"
       >
         <template #col:name="{row}">
           <td>
             <span class="cluster-link">
               <a
-                v-if="row.isReady"
+                v-if="row.isReady && row.isSupportedHarvester"
                 class="link"
                 :disabled="navigating ? true : null"
                 @click="goToCluster(row)"
@@ -215,60 +388,72 @@ export default {
         <hr class="info-section">
       </div>
     </div>
-    <template v-if="!harvesterExtension || !rows || !rows.length">
+    <template v-if="harvester.toInstall || harvester.toUpdate || !rows || !rows.length">
       <div class="logo">
         <BrandImage
           file-name="harvester.png"
           height="64"
         />
       </div>
-      <div class="tagline">
-        <div>{{ t('harvesterManager.cluster.description') }}</div>
-      </div>
-      <div class="tagline">
-        <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
-      </div>
-      <template v-if="!harvesterExtension">
+      <template v-if="harvester.toInstall || !rows || !rows.length">
+        <div class="tagline">
+          <div>{{ t('harvesterManager.cluster.description') }}</div>
+        </div>
+        <div class="tagline">
+          <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
+        </div>
+      </template>
+      <template v-if="harvester.hasErrors || harvester.toInstall || harvester.toUpdate">
+        <div
+          v-if="harvester.hasErrors || harvester.toInstall || !rows || !rows.length"
+          class="tagline"
+        >
+          <div class="extensions-separator" />
+        </div>
         <div class="tagline extension-warning-panel">
-          <div class="extensions-separator"></div>
           <div
-            v-clean-html="t('harvesterManager.extension.install.warning', {}, true)"
+            v-clean-html="harvester.panelLabel.warning"
             class="extension-warning"
           />
           <div class="tagline">
             <div
-              v-clean-html="t('harvesterManager.extension.install.prompt', {}, true)"
+              v-clean-html="harvester.panelLabel.prompt"
               class="extension-prompt"
             />
           </div>
         </div>
-        <div
-          v-if="isAdmin"
-          class="extension-info"
-        >
-          <ol class="steps">
-            <li v-if="!harvesterRepo">
-              {{ t('harvesterManager.extension.install.steps.repo.1') }}
-              <router-link :to="clusterRepoLink">
-                {{ t('harvesterManager.extension.install.steps.repo.2') }}
-              </router-link>
-              <span v-clean-html="t('harvesterManager.extension.install.steps.repo.3', {}, true)"></span>
-            </li>
-            <li>
-              {{ t('harvesterManager.extension.install.steps.ui.1') }}
-              <router-link :to="extensionsLink">
-                {{ t('harvesterManager.extension.install.steps.ui.2') }}
-              </router-link>
-              {{ t('harvesterManager.extension.install.steps.ui.3') }}
-            </li>
-          </ol>
-        </div>
-        <div
-          v-else
-          class="tagline"
-        >
-          <div v-clean-html="t('harvesterManager.extension.install.admin', {}, true)" />
-        </div>
+        <template v-if="isAdmin">
+          <div
+            v-if="harvester.hasErrors"
+            class="extension-info"
+          >
+            <ol class="steps">
+              <li>
+                {{ t('harvesterManager.extension.install.steps.repo.1') }}
+                <router-link :to="clusterRepoLink">
+                  {{ t('harvesterManager.extension.install.steps.repo.2') }}
+                </router-link>
+                <span v-clean-html="t('harvesterManager.extension.install.steps.repo.3', {}, true)"></span>
+              </li>
+              <li>
+                {{ t('harvesterManager.extension.install.steps.ui.1') }}
+                <router-link :to="extensionsLink">
+                  {{ t('harvesterManager.extension.install.steps.ui.2') }}
+                </router-link>
+                {{ t('harvesterManager.extension.install.steps.ui.3') }}
+              </li>
+            </ol>
+          </div>
+          <div
+            v-else
+            class="tagline"
+          >
+            <AsyncButton
+              :mode="harvester.toInstall ? 'install' : 'update'"
+              @click="harvester.action"
+            />
+          </div>
+        </template>
       </template>
     </template>
   </div>
@@ -318,7 +503,6 @@ export default {
 
   .extensions-separator {
     border: 1px solid var(--border);
-    margin-bottom: 20px;
     width: 50%;
   }
 

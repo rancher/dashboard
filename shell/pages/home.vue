@@ -2,12 +2,12 @@
 import { defineComponent } from 'vue';
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import { Banner } from '@components/Banner';
-import BannerGraphic from '@shell/components/BannerGraphic';
-import IndentedPanel from '@shell/components/IndentedPanel';
+import BannerGraphic from '@shell/components/BannerGraphic.vue';
+import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
-import CommunityLinks from '@shell/components/CommunityLinks';
-import SingleClusterInfo from '@shell/components/SingleClusterInfo';
+import CommunityLinks from '@shell/components/CommunityLinks.vue';
+import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -19,14 +19,15 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { paginationFilterClusters } from '@shell/utils/cluster';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
-import { STEVE_NAME_COL, STEVE_STATE_COL } from 'config/pagination-table-headers';
-import { PaginationParamFilter, FilterArgs, PaginationFilterField } from 'types/store/pagination.types';
-import ProvCluster from 'models/provisioning.cattle.io.cluster';
+import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
+import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
+import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
+import { sameContents } from 'utils/array';
 
 export default defineComponent({
   name:       'Home',
@@ -45,8 +46,6 @@ export default defineComponent({
   mixins: [PageHeaderActions],
 
   data() {
-    const paginationRequestFilters = paginationFilterClusters(this.$store);
-
     return {
       HIDE_HOME_PAGE_CARDS,
       fullVersion: getVersionInfo(this.$store).fullVersion,
@@ -63,8 +62,6 @@ export default defineComponent({
         },
       ],
       vendor: getVendor(),
-
-      paginationRequestFilters,
 
       provClusterSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
 
@@ -153,6 +150,7 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_STATE_COL,
+        // https://github.com/rancher/dashboard/issues/12890 BUG - rke1 cluster's prov cluster metadata.name is the mgmt cluster id rather than true name
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
@@ -178,21 +176,21 @@ export default defineComponent({
           label:  this.t('tableHeaders.cpu'),
           value:  '',
           name:   'cpu',
-          sort:   ['status.allocatable.cpu'],
+          sort:   false,
           search: false,
         },
         {
           label:  this.t('tableHeaders.memory'),
           value:  '',
           name:   'memory',
-          sort:   ['status.allocatable.memory'],
+          sort:   false,
           search: false,
         },
         {
           label:        this.t('tableHeaders.pods'),
           name:         'pods',
           value:        '',
-          sort:         ['status.allocatable.pods'],
+          sort:         false,
           search:       false,
           formatter:    'PodsUsage',
           delayLoading: true
@@ -247,7 +245,6 @@ export default defineComponent({
         return Promise.resolve({});
       }
 
-      // TODO: RC (home page/side bar) TEST with pagination off and on
       if ( this.canViewMgmtClusters ) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
       }
@@ -300,7 +297,6 @@ export default defineComponent({
       if ( this.canViewMachine ) {
         const opt: ActionFindPageArgs = {
           force,
-          // TODO: RC (home page/side bar) Validate
           pagination: new FilterArgs({
             filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
               field: 'spec.clusterName',
@@ -328,32 +324,36 @@ export default defineComponent({
       }
 
       // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
-      if ( this.canViewMgmtPools && this.canViewMgmtTemplates) {
-        const poolOpt: ActionFindPageArgs = {
-          force,
-          // TODO: RC (home page/side bar) Validate
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.status?.clusterName// TODO: handle empty spec
-            }))),
-          })
-        };
+      if ( this.canViewMgmtPools && this.canViewMgmtTemplates ) {
+        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
+          .filter((p: any) => p.status?.clusterName)
+          .map((r: any) => new PaginationFilterField({
+            field: 'spec.clusterName',
+            value: r.status?.clusterName
+          })));
+        const nodePools = await this.$store.dispatch(`management/findPage`, {
+          type: MANAGEMENT.NODE_POOL,
+          opt:  {
+            force,
+            pagination: new FilterArgs({ filters: nodePoolFilters })
+          }
+        });
 
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_POOL, opt: poolOpt });
+        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
+          .filter((np: any) => !!np.nodeTemplateId)
+          .map((np: any) => new PaginationFilterField({
+            field: 'id',
+            value: np.nodeTemplateId,
+            exact: true,
+          })));
 
-        const templateOpt: ActionFindPageArgs = {
-          force,
-          // TODO: RC (home page/side bar) Validate
-          pagination: new FilterArgs({
-            filters: PaginationParamFilter.createMultipleFields(page.map((r: any) => new PaginationFilterField({
-              field: 'spec.clusterName',
-              value: r.status?.clusterName// TODO: handle empty spec
-            }))),
-          })
-        };
-
-        this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.NODE_TEMPLATE, opt: templateOpt });
+        this.$store.dispatch(`management/findPage`, {
+          type: MANAGEMENT.NODE_TEMPLATE,
+          opt:  {
+            force,
+            pagination: new FilterArgs({ filters: templateOpt })
+          }
+        });
       }
     },
 
@@ -423,6 +423,49 @@ export default defineComponent({
       if (retry === 0 && res?.type === 'error' && res?.status === 500) {
         await this.closeSetLoginBanner(retry + 1);
       }
+    },
+
+    /**
+     * Filter out hidden clusters from list of all clusters
+     */
+    filterRowsLocal(rows: any[]) {
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rows || [], this.$store), this.$store);
+    },
+
+    /**
+     * Filter out hidden clusters via api
+     */
+    filterRowsApi(pagination: PaginationArgs): PaginationArgs {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const existingFilters = pagination.filters;
+      const requiredFilters = paginationFilterClusters(this.$store, false);
+
+      for (let i = 0; i < requiredFilters.length; i++) {
+        let found = false;
+        const required = requiredFilters[i];
+
+        for (let j = 0; j < existingFilters.length; j++) {
+          const existing = existingFilters[j];
+
+          if (
+            required.fields.length === existing.fields.length &&
+            sameContents(required.fields.map((e) => e.field), existing.fields.map((e) => e.field))
+          ) {
+            Object.assign(existing, required);
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          pagination.filters.push(required);
+        }
+      }
+
+      return pagination;
     }
   }
 });
@@ -499,8 +542,8 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
-              <!-- // TODO: RC (home page/side bar) TEST with pagination off and on. check loading indicator when pagination off -->
               <PaginatedResourceTable
+                v-if="provClusterSchema"
                 :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"
@@ -509,8 +552,11 @@ export default defineComponent({
                 :pagination-headers="paginationHeaders"
                 context="home"
 
+                :local-filter="filterRowsLocal"
+                :api-filter="filterRowsApi"
+
                 :namespaced="false"
-                :request-filters="paginationRequestFilters"
+                :groupable="false"
                 manualRefreshButtonSize="sm"
                 :fetchSecondaryResources="fetchSecondaryResources"
                 :fetchPageSecondaryResources="fetchPageSecondaryResources"

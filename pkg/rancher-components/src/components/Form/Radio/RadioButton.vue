@@ -71,6 +71,8 @@ export default defineComponent({
     }
   },
 
+  emits: ['update:value'],
+
   data() {
     return {
       isChecked:    this.value === this.val,

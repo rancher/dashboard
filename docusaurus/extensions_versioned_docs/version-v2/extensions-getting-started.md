@@ -6,7 +6,7 @@ This guide will walk through creating a new extension from scratch.
 
 > Note: Extensions development is only currently supported on Mac and Linux. Windows is not currently supported.
 
-You will need a recent version of nodejs installed (Tested with node version: `v16.19.1`).
+You will need nodejs `v16` installed (Tested with node version: `v16.19.1`).
 
 You'll also need the yarn package manager installed, which can be done with `npm install -g yarn`.
 
@@ -16,18 +16,41 @@ To develop a new extension, you need an application UI to host it during develop
 
 Rancher now publishes a single npm package, `@rancher/extension`, to help bootstrap the creation of the application and extension. This replaces the previous separate creators (`@rancher/app` and `@rancher/pkg`).
 
+---
+
+### Building Extensions for Different Rancher Versions
+
+When creating extensions, it is important to match the version of the `@rancher/extension` package with the target Rancher version:
+
+- **For Rancher `v2.7` and `v2.8`:** Use the `legacy-v1` tag.
+- **For Rancher `v2.9`:** Use the `legacy-v2` tag.
+- **For Rancher `v2.10` or later:** Use the latest version of `@rancher/extension`. ***Follow the latest documentation for this version***
+
 ### Creating an Extension
 
 Create a new folder and run:
 
 ```sh
-yarn create @rancher/extension my-app [OPTIONS]
+npm init @rancher/extension@legacy-v2 my-app [OPTIONS]
 cd my-app
 ```
 
 This command will create a new folder `my-app` and populate it with the minimum files needed.
 
 > Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
+
+### **_Extension Options_**
+
+There are a few options available to be passed as an argument to the `@rancher/extension` script:
+
+|          Option           | Description                                                                                                                                                                                                                                                                             |
+| :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|     `--update \| -u`      | This will update all dependencies within the extension to match the declared version of the `@rancher/shell` library based on the tag. See the [Updating Guide](./updating-extensions.md) for usage.                                                                                               |
+| `--app-name \| -a <name>` | Allows specifying a different name for the skeleton application instead of using the extension name.                                                                                                                                                                                    |
+|  `--skeleton-only \| -s`  | Installs only the skeleton application without creating the extension package.                                                                                                                                                                                                          |
+|           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
+|           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
+|           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
 
 ### Installing Rancher
 
@@ -38,10 +61,10 @@ The above linked installation docs cover two methods confirmed to work with the 
 - [Single Docker Container](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker)
 - [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster)
 
-To use the most recent version of Rancher that is actively in development, use the version tag `v2.10-head` when installing Rancher. For example, the Docker installation command would look like this:
+To use the most recent and compatible version of Rancher that is actively in development, use the version tag `v2.9-head` when installing Rancher. For example, the Docker installation command would look like this:
 
 ```bash
-sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.10-head
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.9-head
 ```
 
 Dashboard provides convenience methods to start and stop Rancher in a single docker container
@@ -63,20 +86,7 @@ Also for consideration:
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
 
-#### **_Extension Options_**
-
-There are a few options available to be passed as an argument to the `@rancher/extension` script:
-
-|          Option           | Description                                                                                                                                                                                                                                                                             |
-| :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|     `--update \| -u`      | This will update all dependencies within the extension to match the declared versions in the shell. Update can be ran independently or along with creating an extension (e.g. `yarn create @rancher/extension my-extension --update`                                                    |
-| `--app-name \| -a <name>` | Allows specifying a different name for the skeleton application instead of using the extension name.                                                                                                                                                                                    |
-|  `--skeleton-only \| -s`  | Installs only the skeleton application without creating the extension package.                                                                                                                                                                                                          |
-|           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
-|           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
-|           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
-
----
+### Running the Development Environment
 
 You can run the app with:
 
@@ -95,13 +105,54 @@ The next step is to create an extension. As a Getting Started example, we'll dem
 
 Rancher provides a helper to add an extension, allowing you to manage multiple extensions or a single extension within the parent folder.
 
-To create a new extension, run the following command:
+To create a new extension, the command and configuration depend on the Rancher version you are targeting:
+
+- **For Rancher `v2.7` and `v2.8`**, use the `legacy-v1` tag.
+- **For Rancher `v2.9`**, use the `legacy-v2` tag.
+
+#### Examples by Rancher Version
+
+1. **For Rancher `v2.7` and `v2.8`:**
 
 ```sh
-yarn create @rancher/extension my-app [OPTIONS]
+npm init @rancher/extension@legacy-v1 my-app [OPTIONS]
 ```
 
-This will create a new UI Package in the `./pkg/my-app` folder.
+2. For Rancher v2.9:
+
+```sh
+npm init @rancher/extension@legacy-v2 my-app [OPTIONS]
+```
+
+> Refer to the [prerequisites](#prerequisites) section at the beginning of this document for the appropriate Node.js version to use based on the Rancher version you are targeting.
+
+#### Matching Tags for Skeleton Applications and Extension Packages
+
+When creating additional extension packages within a skeleton application, the tag of the extension package must match the skeleton application's tag. For example:
+
+- If you create a skeleton application using legacy-v1:
+
+```sh
+npm init @rancher/extension@legacy-v1 my-app
+```
+
+Any subsequent packages must also use the legacy-v1 tag:
+
+```sh
+npm init @rancher/extension@legacy-v1 another-extension
+```
+
+- If you create a skeleton application using legacy-v2:
+
+```sh
+npm init @rancher/extension@legacy-v2 my-app
+```
+
+Any subsequent packages must use the legacy-v2 tag:
+
+```sh
+npm init @rancher/extension@legacy-v2 another-extension
+```
 
 #### Logic Behind the init Script
 
@@ -110,7 +161,7 @@ When you run this command, the init script creates a skeleton application along 
 - If you want the skeleton application to have a different name than the extension package, you can use the `--app-name` (or `-a`) option:
 
 ```sh
-yarn create @rancher/extension new-extension --app-name my-app
+npm init @rancher/extension@legacy-v2 new-extension --app-name my-app
 ```
 
 This will create a skeleton application named `my-app` and an extension package named `new-extension`.
@@ -118,7 +169,7 @@ This will create a skeleton application named `my-app` and an extension package 
 - If you are already within a skeleton application and want to create another extension package within the same application, simply run the same command:
 
 ```sh
-yarn create @rancher/extension another-extension
+npm init @rancher/extension@legacy-v2 another-extension
 ```
 
 In this case, only a new extension package (`another-extension`) will be created under the existing skeleton application. No additional skeleton application will be generated.
@@ -126,12 +177,16 @@ In this case, only a new extension package (`another-extension`) will be created
 - If you only want to create the skeleton application without any extension package, you can use the `--skeleton-only` (or `-s`) option:
 
 ```sh
-yarn create @rancher/extension my-app --skeleton-only
+npm init @rancher/extension@legacy-v2 my-app --skeleton-only
 ```
 
 This will create only the skeleton application, and you can later add extension packages as needed.
 
 This flexibility allows you to structure your development environment based on your specific needs, whether you're starting fresh or adding to an existing setup.
+
+### Compatibility Note
+
+When building multiple extensions, ensure that all packages and the skeleton application share the same tag. The Node.js version required depends on the tag, as outlined in the prerequisites section. Matching tags and Node.js versions is critical to avoid compatibility issues.
 
 ### Configuring an Extension
 

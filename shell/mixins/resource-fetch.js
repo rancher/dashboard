@@ -104,8 +104,6 @@ export default {
         } else {
           return this.localFilter ? this.localFilter(rows) : rows;
         }
-
-        return [];
       }
 
       return [];

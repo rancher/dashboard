@@ -15,11 +15,9 @@ import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
-import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from 'components/nav/TopLevelMenu.helper';
+import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
-
-// TODO: RC (home page/side bar) test search properly
 
 export default {
   components: {
@@ -56,7 +54,8 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdate: debounce((...args) => this.helper.update(...args), 200),
+      debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 750),
+      debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
       provClusters,
       mgmtClusters,
     };
@@ -98,7 +97,7 @@ export default {
 
     // New
     showPinClusters() {
-      return !this.search;
+      return !this.clusterFilter;
     },
 
     // New
@@ -259,6 +258,7 @@ export default {
     }
   },
 
+  // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
       this.shown = false;
@@ -271,28 +271,30 @@ export default {
           return;
         }
 
-        this.updateClusters(neu);
+        this.updateClusters(neu, 'quick');
       }
     },
 
     search() {
-      this.updateClusters(this.pinnedIds);
+      this.updateClusters(this.pinnedIds, 'slow');
     },
 
     provClusters: {
       handler() {
         // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds);
+        this.updateClusters(this.pinnedIds, 'slow');
       },
-      deep: true
+      deep:      true,
+      immediate: true,
     },
 
     mgmtClusters: {
       handler() {
         // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds);
+        this.updateClusters(this.pinnedIds, 'slow');
       },
-      deep: true
+      deep:      true,
+      immediate: true,
     },
 
   },
@@ -422,12 +424,21 @@ export default {
       };
     },
 
-    updateClusters(pinnedIds) {
-      this.debouncedHelperUpdate({
+    updateClusters(pinnedIds, speed = 'slow' | 'quick') {
+      const args = {
         pinnedIds,
         searchTerm:  this.search,
         unPinnedMax: this.maxClustersToShow
-      });
+      };
+
+      switch (speed) {
+      case 'slow':
+        this.debouncedHelperUpdateSlow(args);
+        break;
+      case 'quick':
+        this.debouncedHelperUpdateQuick(args);
+        break;
+      }
     }
   }
 };
@@ -572,7 +583,6 @@ export default {
           </template>
 
           <!-- Cluster menu -->
-          <!-- <template v-if="clusters && !!clusters.length"> -->
           <template v-if="!!allClustersCount">
             <div
               ref="clusterList"
@@ -731,7 +741,7 @@ export default {
 
               <!-- No clusters message -->
               <div
-                v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                v-if="clustersFiltered.length === 0 && searchActive"
                 data-testid="top-level-menu-no-results"
                 class="none-matching"
               >
@@ -1060,7 +1070,7 @@ export default {
           display: block;
           font-size: $icon-size;
           margin-right: 14px;
-          &.group-icon {
+          &:not(.pin){
             width: 42px;
           }
         }

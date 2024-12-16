@@ -1,10 +1,10 @@
-import { CAPI, MANAGEMENT } from 'config/types';
-import { PaginationParam, PaginationParamFilter, PaginationSort } from 'types/store/pagination.types';
-import { VuexStore } from 'types/store/vuex';
-import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from 'utils/cluster';
-import PaginationWrapper from 'utils/pagination-wrapper';
-import { allHash } from 'utils/promise';
-import { sortBy } from 'utils/sort';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
+import { VuexStore } from '@shell/types/store/vuex';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import PaginationWrapper from '@shell/utils/pagination-wrapper';
+import { allHash } from '@shell/utils/promise';
+import { sortBy } from '@shell/utils/sort';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 interface TopLevelMenuCluster {
@@ -42,18 +42,18 @@ type ProvCluster = {
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
   // Put local cluster at top of list - https://github.com/rancher/dashboard/issues/10975
-  // {
-  //   asc:   true,
-  //   field: 'spec.internal', // Pending API support https://github.com/rancher/rancher/issues/48011
-  // },
+  {
+    asc:   false,
+    field: 'spec.internal',
+  },
   // {
   //   asc:   true,
   //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
   // },
-  // {
-  //   asc:   true,
-  //   field: 'spec.displayName' // Pending API support https://github.com/rancher/rancher/issues/48011
-  // },
+  {
+    asc:   true,
+    field: 'spec.displayName',
+  },
 ];
 
 export interface TopLevelMenuHelper {
@@ -90,6 +90,7 @@ export interface TopLevelMenuHelper {
 
 export abstract class BaseTopLevelMenuHelper {
   protected $store: VuexStore;
+  protected hasProvCluster: boolean;
 
   /**
   * Filter mgmt clusters by
@@ -125,6 +126,8 @@ export abstract class BaseTopLevelMenuHelper {
     $store: VuexStore,
 }) {
     this.$store = $store;
+
+    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -218,6 +221,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
   // ---------- requests ----------
   async update(args: UpdateArgs) {
+    if (!this.hasProvCluster) {
+      // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
+      // exit early
+      return;
+    }
+
     this.args = args;
     const promises = {
       pinned:    this.updatePinned(args),
@@ -287,10 +296,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     if (searchTerm && includeSearchTerm) {
-      // Pending API support https://github.com/rancher/rancher/issues/48011
-      // filters.push(PaginationParamFilter.createSingleField({
-      //   field: 'spec.displayName', exact: false, value: searchTerm
-      // }));
+      filters.push(PaginationParamFilter.createSingleField({
+        field: 'spec.displayName', exact: false, value: searchTerm
+      }));
     }
 
     if (includeLocal) {
@@ -355,9 +363,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           PaginationParamFilter.createMultipleFields(
             [...notPinned, ...pinned]
               .map((mgmtCluster) => ({
-                // Pending API support https://github.com/rancher/rancher/issues/48011
-                // field: 'status.clusterName', value: mgmtCluster.id, equals: true, exact: true
-                field: 'metadata.name', value: 'local', equals: true, exact: true
+                field: 'status.clusterName', value: mgmtCluster.id, equals: true, exact: true
               }))
           )
         ],
@@ -375,14 +381,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
  * Helper designed to supply non-paginated results for the top level menu cluster resources
  */
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
-  private hasProvCluster: boolean;
-
   constructor({ $store }: {
     $store: VuexStore,
   }) {
     super({ $store });
-
-    this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     if (this.hasProvCluster) {
       $store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });

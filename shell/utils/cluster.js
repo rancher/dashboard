@@ -3,7 +3,7 @@ import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagination.types';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
@@ -11,15 +11,18 @@ import { PaginationFilterField, PaginationParamFilter } from 'types/store/pagina
  * @param {*} store
  * @returns PaginationParam[]
  */
-export function paginationFilterClusters(store) {
-  // TODO: RC (home page/side bar) TEST both facets
+export function paginationFilterClusters(store, filterMgmtCluster = true) {
   const paginationRequestFilters = [];
-  const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
-  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store);
 
-  if (pFilterOnlyKubernetesClusters) {
-    paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
-  }
+  // Commenting out for the moment. This is broken for non-paginated world
+  // filterOnlyKubernetesClusters expects a mgmt cluster, however in the home page it's given a prov cluster
+  // note - filterHiddenLocalCluster works because it uses model isLocal which is on both cluster types
+  // const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
+  // if (pFilterOnlyKubernetesClusters) {
+  //   paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
+  // }
+  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store, filterMgmtCluster);
+
   if (pFilterHiddenLocalCluster) {
     paginationRequestFilters.push(pFilterHiddenLocalCluster);
   }
@@ -34,7 +37,7 @@ export function paginationFilterClusters(store) {
  * @param {*} store
  * @returns PaginationParam | null
  */
-export function paginationFilterHiddenLocalCluster(store) {
+export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = true) {
   const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
   const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
   const hideLocal = value === 'true';
@@ -43,12 +46,21 @@ export function paginationFilterHiddenLocalCluster(store) {
     return null;
   }
 
-  return PaginationParamFilter.createMultipleFields([
+  const filter = filterMgmtCluster ? [
     new PaginationFilterField({
-      field: `spec.internal`, // Pending API support https://github.com/rancher/rancher/issues/48011
+      field: `spec.internal`,
       value: false,
-    }),
-  ]);
+    })
+  ] : [
+    new PaginationFilterField({
+      field:  `id`,
+      value:  'fleet-local/local',
+      exact:  true,
+      equals: false,
+    })
+  ];
+
+  return PaginationParamFilter.createMultipleFields(filter);
 }
 
 /**
@@ -67,13 +79,13 @@ export function paginationFilterOnlyKubernetesClusters(store) {
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // TODO: TEST
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
     }),
     new PaginationFilterField({
-      field:  `status.provider`, // TODO: TEST
+      field:  `status.provider`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true

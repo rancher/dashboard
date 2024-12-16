@@ -17,6 +17,9 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
       });
 
       it('Creating a job while creating a new namespace should succeed', () => {
+        cy.intercept('POST', 'v1/namespaces').as('createNamespace');
+        cy.intercept('POST', 'v1/batch.jobs').as('createJob');
+
         // list view jobs
         const workloadsJobsListPage = new WorkloadsJobsListPagePo('local');
 
@@ -31,6 +34,8 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
         workloadsJobDetailsPage.name().set(jobName);
         workloadsJobDetailsPage.containerImage().set(containerImageName);
         workloadsJobDetailsPage.saveCreateForm().click();
+        cy.wait('@createNamespace').its('response.statusCode').should('eq', 201);
+        cy.wait('@createJob').its('response.statusCode').should('eq', 201);
 
         workloadsJobsListPage.listElementWithName(jobName).should('exist');
 

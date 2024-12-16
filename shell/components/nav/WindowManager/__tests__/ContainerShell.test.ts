@@ -29,6 +29,7 @@ describe('component: ContainerShell', () => {
     return { rows: 1 };
   });
   const write = jest.fn();
+  const writeln = jest.fn();
   const reset = jest.fn();
 
   jest.mock(/* webpackChunkName: "xterm" */ 'xterm', () => {
@@ -39,6 +40,7 @@ describe('component: ContainerShell', () => {
         open = open;
         focus = focus;
         write = write;
+        writeln = writeln;
         reset = reset
       }
     };
@@ -277,10 +279,10 @@ describe('component: ContainerShell', () => {
     eventConnected();
     eventMessage({ detail: { data: `3${ errorMessage }` } });
 
-    expect(consoleError.mock.calls[0][0]).toBe(errorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(errorMessage);
     expect(wrapper.vm.isOpen).toBe(true);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe(errorMessage);
+    expect(wrapper.vm.errorMsg).toContain(errorMessage);
     expect(wrapper.vm.os).toBe('linux');
   });
 
@@ -325,10 +327,10 @@ describe('component: ContainerShell', () => {
 
     eventDisconnected();
 
-    expect(consoleError.mock.calls[0][0]).toBe(errorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(errorMessage);
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe('eventMessageError');
+    expect(wrapper.vm.errorMsg).toContain('eventMessageError');
     // the backup shell that was leftover was windows so it became the new os in dataprops
     expect(wrapper.vm.os).toBeUndefined();
     // but we still didn't write it to the pod itself since we don't know if it worked
@@ -370,11 +372,11 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ windowsErrorMessage }` } });
     eventDisconnected();
 
-    expect(consoleError.mock.calls[0][0]).toBe(linuxErrorMessage);
-    expect(consoleError.mock.calls[1][0]).toBe(windowsErrorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(linuxErrorMessage);
+    expect(consoleError.mock.calls[1][0]).toContain(windowsErrorMessage);
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe(windowsErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(windowsErrorMessage);
     expect(wrapper.vm.os).toBeUndefined();
     // we never found a shell that worked so we're going to leave the pod os as undefined
     expect(defaultContainerShellParams.propsData.pod.os).toBeUndefined();
@@ -426,11 +428,11 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ windowsErrorMessage }` } });
     eventDisconnected();
 
-    expect(consoleError.mock.calls[0][0]).toBe(linuxErrorMessage);
-    expect(consoleError.mock.calls[1][0]).toBe(windowsErrorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(linuxErrorMessage);
+    expect(consoleError.mock.calls[1][0]).toContain(windowsErrorMessage);
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe(windowsErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(windowsErrorMessage);
     expect(wrapper.vm.os).toBeUndefined();
     expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
     expect(connect.mock.calls).toHaveLength(3);
@@ -472,13 +474,13 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.backupShells).toHaveLength(1);
     expect(wrapper.vm.os).toBeUndefined();
     expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
-    expect(wrapper.vm.errorMsg).toBe(linuxErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(linuxErrorMessage);
 
     eventConnecting();
     eventConnected();
     eventMessage({ detail: { data: `1${ windowsShellMessage }` } });
 
-    expect(consoleError.mock.calls[0][0]).toBe(linuxErrorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(linuxErrorMessage);
     expect(consoleError.mock.calls[1]).toBeUndefined();
     expect(wrapper.vm.isOpen).toBe(true);
     expect(wrapper.vm.isOpening).toBe(false);
@@ -532,7 +534,7 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.backupShells).toHaveLength(1);
     expect(wrapper.vm.os).toBe('linux');
     expect(testNodeDefinedOsParams.propsData.pod.os).toBe('linux');
-    expect(wrapper.vm.errorMsg).toBe(linuxErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(linuxErrorMessage);
 
     eventConnecting();
     eventConnected();
@@ -542,7 +544,7 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.backupShells).toHaveLength(1);
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe(linuxErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(linuxErrorMessage);
     expect(wrapper.vm.os).toBe('linux');
     expect(testNodeDefinedOsParams.propsData.pod.os).toBe('linux');
     expect(connect.mock.calls).toHaveLength(3);
@@ -552,13 +554,13 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ linuxErrorMessage }` } });
     eventDisconnected();
 
-    expect(consoleError.mock.calls[0][0]).toBe(linuxErrorMessage);
-    expect(consoleError.mock.calls[1][0]).toBe(linuxErrorMessage);
-    expect(consoleError.mock.calls[2][0]).toBe(linuxErrorMessage);
+    expect(consoleError.mock.calls[0][0]).toContain(linuxErrorMessage);
+    expect(consoleError.mock.calls[1][0]).toContain(linuxErrorMessage);
+    expect(consoleError.mock.calls[2][0]).toContain(linuxErrorMessage);
     expect(wrapper.vm.backupShells).toHaveLength(1);
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
-    expect(wrapper.vm.errorMsg).toBe(linuxErrorMessage);
+    expect(wrapper.vm.errorMsg).toContain(linuxErrorMessage);
     expect(wrapper.vm.os).toBe('linux');
     expect(testNodeDefinedOsParams.propsData.pod.os).toBe('linux');
     // at some point we have to stop retying and if we're not burning through backup shells, there's a retry limit of 2 for a total of 3 attempts

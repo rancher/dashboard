@@ -3,9 +3,9 @@
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
-const createProxyMiddleware = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const express = require('express');
-const request = require('request');
+const axios = require('axios');
 
 const base = path.resolve(__dirname, '..');
 const shell = path.resolve(base, 'shell');
@@ -45,7 +45,7 @@ const version = process.argv[3].trim();
 const harData = har.loadFile(harFile, PORT, '/dashboard');
 const dashboardUrl = `https://releases.rancher.com/dashboard/${ version }/index.html`;
 
-let harFolder = process.argv.length > 4 ? process.argv[4] : '';
+const harFolder = process.argv.length > 4 ? process.argv[4] : '';
 
 console.log(dashboardUrl);
 
@@ -56,18 +56,22 @@ const app = express();
 
 // Catch reload on a dynamic page
 // Check that the requestor will accept html and send them the index file
-app.use('*', (req, res, next) => {
+app.use('*', async(req, res, next) => {
   const accept = req.headers.accept || '';
   const acceptArray = accept.split(',');
   const html = acceptArray.find((h) => h.trim() === 'text/html');
 
   if (html) {
-    request(dashboardUrl, function (error, response, body) {
+    try {
+      const response = await axios.get(dashboardUrl, { responseType: 'arraybuffer' });
+
       res.type('text/html');
-      res.status(response.statusCode);
-      res.send(Buffer.from(body));
-      res.end();
-    });
+      res.status(response.status);
+      res.send(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard URL:', error);
+      res.status(500).send('Error fetching dashboard URL');
+    }
 
     return;
   }

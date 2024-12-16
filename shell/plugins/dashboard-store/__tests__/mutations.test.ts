@@ -375,6 +375,8 @@ describe('dashboard-store: mutations', () => {
     it.each([
       ['Add a new pod', mutationHelpers.loadAll.createNewEntry()],
     ])('%s', (_, run) => { // eslint-disable-line jest/no-identical-title
+      run.expected.types[POD].havePage = false;
+
       loadAdd(...run.params);
       const { map: cacheMap, ...cacheState } = run.params[0].types?.[POD] || {};
       const { map: expectedMap, ...expected } = run.expected.types?.[POD];

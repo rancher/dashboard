@@ -8,6 +8,7 @@ import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
+import mergeWith from 'lodash/mergeWith';
 import { splitObjectPath, joinObjectPath } from '@shell/utils/string';
 import { addObject } from '@shell/utils/array';
 
@@ -470,4 +471,31 @@ export function deepToRaw(obj, cache = new WeakSet()) {
 
     return result;
   }
+}
+
+/**
+ * Helper function to alter Lodash merge function default behaviour on merging arrays while updating machine pool configuration.
+ *
+ * In rke2.vue, the syncMachineConfigWithLatest function updates machine pool configuration by
+ * merging the latest configuration received from the backend with the current configuration updated by the user.
+ * However, Lodash's merge function treats arrays like object so index values are merged and not appended to arrays
+ * resulting in undesired outcomes for us, Example:
+ *
+ * const lastSavedConfigFromBE = { a: ["test"] };
+ * const currentConfigByUser = { a: [] };
+ * merge(lastSavedConfigFromBE, currentConfigByUser); // returns { a: ["test"] }; but we expect { a: [] };
+ *
+ * More info: https://github.com/lodash/lodash/issues/1313
+ *
+ * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
+ *
+ * This helper is used for another case in rke2.vue to handle merging addon chart default values with the user's current values.
+ * It fixed https://github.com/rancher/dashboard/issues/12418
+ */
+export function mergeWithReplaceArrays(obj1 = {}, obj2 = {}) {
+  return mergeWith(obj1, obj2, (obj1Value, obj2Value) => {
+    if (Array.isArray(obj1Value) && Array.isArray(obj2Value)) {
+      return obj2Value;
+    }
+  });
 }

@@ -7,6 +7,7 @@ import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 const namespaceFilter = new NamespaceFilterPo();
+const cluster = 'local';
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -150,7 +151,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Extensions');
 
     // catching regression https://github.com/rancher/dashboard/issues/10576
-    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local', false);
+    BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted(cluster, false);
 
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();
@@ -161,7 +162,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.addReposModal().should('not.exist');
 
     // go to repos list page
-    const appRepoList = new RepositoriesPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     appRepoList.goTo();
     appRepoList.waitForPage();
@@ -185,7 +186,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       }
     });
 
-    const appRepoList = new RepositoriesPagePo('local', 'apps');
+    const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();
@@ -344,7 +345,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
-  it('An extension larger than 30mb, which will trigger chacheState disabled, should install and work fine', () => {
+  it('An extension larger than 30mb, which will trigger cacheState disabled, should install and work fine', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -378,7 +379,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // cy.get('h1').should('have.text', DISABLED_CACHE_EXTENSION_TITLE);
 
     // check if cache state is disabled
-    const uiPluginsPo = new UiPluginsPagePo('local');
+    const uiPluginsPo = new UiPluginsPagePo(cluster);
 
     uiPluginsPo.goTo();
     uiPluginsPo.waitForPage();
@@ -460,7 +461,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
 
-  it('Should uninstall unathenticated extensions', () => {
+  it('Should uninstall unauthenticated extensions', () => {
     // Because we logged out in the previous test this one will also have to use an uncached login
     cy.login(undefined, undefined, false);
     const extensionsPo = new ExtensionsPagePo();

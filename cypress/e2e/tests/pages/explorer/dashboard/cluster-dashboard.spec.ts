@@ -9,7 +9,6 @@ import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -258,12 +257,19 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
-    const events = new EventsPagePo('local');
-
-    HomePagePo.goTo();
+    cy.visit(clusterDashboard.urlPath(), {
+      onBeforeLoad(win) {
+        cy.stub(win.console, 'error').as('consoleError');
+        cy.stub(win.console, 'warn').as('consoleWarn');
+      },
+    });
 
     eventsNoDataset();
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
+
+    cy.get('@consoleError').should('not.be.called'); // See error lot
+    cy.get('@consoleWarn').should('not.be.called'); // See warning log (there will be some....)
+
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
@@ -279,6 +285,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.fullEventsLink().click();
     cy.wait('@eventsNoData');
+    const events = new EventsPagePo('local');
+
     events.waitForPage();
 
     events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);

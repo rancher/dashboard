@@ -27,98 +27,6 @@ describe('Home Page', () => {
     cy.get('@settingsReq.all').should('have.length', 1);
   });
 
-  describe('Home Page', { testIsolation: 'off' }, () => {
-    before(() => {
-      cy.login();
-    });
-
-    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Verify changelog banner is hidden after clicking link
-     * Verify release notes link is valid github page
-     * Verify correct Rancher version is displayed
-     */
-      HomePagePo.navTo();
-      homePage.waitForPage();
-      homePage.restoreAndWait();
-
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
-        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
-
-        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-          cy.request(releaseNotesUrl).then((res) => {
-            expect(res.status).equals(200);
-          });
-        });
-
-        homePage.whatsNewBannerLink().click();
-        homePage.changelog().self().should('not.exist');
-      });
-    });
-
-    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click link and verify user lands on preferences page
-     */
-
-      HomePagePo.navTo();
-      homePage.waitForPage();
-      const prefPage = new PreferencesPagePo();
-
-      homePage.prefPageLink().click();
-      prefPage.waitForPage();
-      prefPage.checkIsCurrentPage();
-      prefPage.title();
-    });
-
-    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Hide home page banners
-     * Click the restore link
-     * Verify banners display on home page
-     */
-      HomePagePo.navTo();
-      homePage.waitForPage();
-      homePage.restoreAndWait();
-
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.bannerGraphic().graphicBannerCloseButton();
-      homePage.bannerGraphic().graphicBanner().should('not.exist');
-
-      homePage.getLoginPageBanner().checkVisible();
-      homePage.getLoginPageBanner().closeButton();
-      homePage.getLoginPageBanner().checkNotExists();
-
-      homePage.restoreAndWait();
-
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.getLoginPageBanner().checkVisible();
-    });
-
-    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click 'Manage' button and verify user lands on the Cluster Management page
-     * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
-     * Click on the Create button and verify user lands on the cluster creation page
-     */
-      const clusterManagerPage = new ClusterManagerListPagePo('_');
-      const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
-
-      HomePagePo.navTo();
-      homePage.manageButton().click();
-      clusterManagerPage.waitForPage();
-
-      HomePagePo.goToAndWaitForGet();
-      homePage.importExistingButton().click();
-      genericCreateClusterPage.waitForPage('mode=import');
-
-      HomePagePo.goToAndWaitForGet();
-      homePage.createButton().click();
-      genericCreateClusterPage.waitForPage();
-    });
-  });
-
   describe('List', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
@@ -282,6 +190,100 @@ describe('Home Page', () => {
       homePage.clickSupportLink(5);
 
       cy.url().should('include', '/support');
+    });
+  });
+
+  describe('Home Page', { testIsolation: 'off' }, () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    /**
+     * Click link and verify user lands on preferences page
+     */
+
+      HomePagePo.navTo();
+      homePage.waitForPage();
+      const prefPage = new PreferencesPagePo();
+
+      homePage.prefPageLink().click();
+      prefPage.waitForPage();
+      prefPage.checkIsCurrentPage();
+      prefPage.title();
+    });
+
+    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    /**
+     * Hide home page banners
+     * Click the restore link
+     * Verify banners display on home page
+     */
+      HomePagePo.navTo();
+      homePage.waitForPage();
+      homePage.restoreAndWait();
+
+      homePage.bannerGraphic().graphicBanner().should('be.visible');
+      homePage.bannerGraphic().graphicBannerCloseButton();
+      homePage.bannerGraphic().graphicBanner().should('not.exist');
+
+      homePage.getLoginPageBanner().checkVisible();
+      homePage.getLoginPageBanner().closeButton();
+      homePage.getLoginPageBanner().checkNotExists();
+
+      homePage.restoreAndWait();
+
+      homePage.bannerGraphic().graphicBanner().should('be.visible');
+      homePage.getLoginPageBanner().checkVisible();
+    });
+
+    it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    /**
+     * Click 'Manage' button and verify user lands on the Cluster Management page
+     * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
+     * Click on the Create button and verify user lands on the cluster creation page
+     */
+      const clusterManagerPage = new ClusterManagerListPagePo('_');
+      const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
+
+      HomePagePo.navTo();
+      homePage.manageButton().click();
+      clusterManagerPage.waitForPage();
+
+      HomePagePo.goToAndWaitForGet();
+      homePage.importExistingButton().click();
+      genericCreateClusterPage.waitForPage('mode=import');
+
+      HomePagePo.goToAndWaitForGet();
+      homePage.createButton().click();
+      genericCreateClusterPage.waitForPage();
+    });
+
+    // Note: This must be the last test to run in this test suite.
+    // When the test clicks on a link that opens a new tab it causes failures in tests that run after it.
+    it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      /**
+       * Verify changelog banner is hidden after clicking link
+       * Verify release notes link is valid github page
+       * Verify correct Rancher version is displayed
+       */
+      HomePagePo.navTo();
+      homePage.waitForPage();
+      homePage.restoreAndWait();
+
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
+        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
+        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
+
+        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
+          cy.request(releaseNotesUrl).then((res) => {
+            expect(res.status).equals(200);
+          });
+        });
+
+        homePage.whatsNewBannerLink().click();
+        homePage.changelog().self().should('not.exist');
+      });
     });
   });
 });

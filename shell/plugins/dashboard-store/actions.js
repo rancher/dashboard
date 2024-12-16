@@ -146,7 +146,7 @@ export default {
   /**
    *
    * @param {*} ctx
-   * @param { {type: string, opt: ActionFindPageArgs} } opt
+   * @param { {type: string, opt: ActionFindAllArgs} } opt
    */
   async findAll(ctx, { type, opt }) {
     const {
@@ -364,7 +364,7 @@ export default {
   /**
    *
    * @param {*} ctx
-   * @param { {type: string, opt: FindPageOpt} } opt
+   * @param { {type: string, opt: ActionFindPageArgs} } opt
    */
   async findPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
@@ -407,6 +407,11 @@ export default {
 
       return Promise.reject(e);
     }
+
+    await dispatch('unwatch', {
+      type,
+      all: true,
+    });
 
     const pagination = opt.pagination ? {
       request: {

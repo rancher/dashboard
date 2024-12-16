@@ -447,7 +447,7 @@ export default {
               {{ parent.displayName }}:
             </router-link>
             <span v-else>{{ parent.displayName }}:</span>
-            <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
+            <span v-if="value?.detailPageHeaderActionOverride && value?.detailPageHeaderActionOverride(realMode)">{{ value?.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
               class="masthead-resource-title"

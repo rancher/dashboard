@@ -109,6 +109,7 @@ const sidebars = {
             }
           ]
         },
+        'updating-extensions',
         'known-issues',
       ]
     },
