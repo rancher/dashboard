@@ -7,7 +7,7 @@ import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import {
-  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
+  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, STATES_ENUM, stateSort,
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 import FleetUtils from '@shell/utils/fleet';
@@ -458,6 +458,12 @@ export default class GitRepo extends SteveModel {
           }
         };
       });
+  }
+
+  clusterState(clusterId) {
+    const resourceCounts = this.statusResourceCountsForCluster(clusterId);
+
+    return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
   }
 
   get clustersList() {
