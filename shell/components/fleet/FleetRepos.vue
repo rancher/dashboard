@@ -15,7 +15,6 @@ import {
   NAME,
   STATE,
 } from '@shell/config/table-headers';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 // i18n-ignore repoDisplay
 export default {
@@ -84,11 +83,7 @@ export default {
       // if hasPerClusterState then use the repo state
       const state = this.isClusterView ? {
         ...FLEET_REPO_PER_CLUSTER_STATE,
-        value: (repo) => {
-          const statePerCluster = repo.clusterResourceStatus?.find((c) => c.id === this.clusterId);
-
-          return statePerCluster ? statePerCluster?.status?.displayStatus : STATES_ENUM.ACTIVE;
-        },
+        value: (repo) => repo.clusterState(this.clusterId),
       } : STATE;
 
       return [
