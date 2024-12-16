@@ -309,9 +309,10 @@ export function init(store) {
         search: 'spec.targetPort', // Pending API support https://github.com/rancher/rancher/issues/48103
       },
       {
+        // Selector is an object. This is broken in non-SSP world anyway (won't sort on object, filtering on `$[x][y]` paths are broken )
         ...SELECTOR,
-        sort:   'spec.selector', // Pending API support https://github.com/rancher/rancher/issues/48103
-        search: 'spec.selector', // Pending API support https://github.com/rancher/rancher/issues/48103
+        sort:   'false',
+        search: 'false',
       },
       {
         ...SPEC_TYPE,

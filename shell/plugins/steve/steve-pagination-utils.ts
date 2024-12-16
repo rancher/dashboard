@@ -175,7 +175,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [SERVICE]: [
       // { field: 'spec.targetPort' }, // Pending API support https://github.com/rancher/rancher/issues/48103
-      // { field: 'spec.selector' }, // Pending API support https://github.com/rancher/rancher/issues/48103
       // { field: 'spec.type' }, // Pending API support https://github.com/rancher/rancher/issues/48103
     ],
     [INGRESS]: [
