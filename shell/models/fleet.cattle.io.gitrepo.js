@@ -428,38 +428,6 @@ export default class GitRepo extends SteveModel {
     };
   }
 
-  get clusterResourceStatus() {
-    const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
-      const { clusterId, state } = curr;
-
-      if (!prev[clusterId]) {
-        prev[clusterId] = { resourceCounts: { [state]: 0, desiredReady: 0 } };
-      }
-
-      if (!prev[clusterId].resourceCounts[state]) {
-        prev[clusterId].resourceCounts[state] = 0;
-      }
-
-      prev[clusterId].resourceCounts[state] += 1;
-      prev[clusterId].resourceCounts.desiredReady += 1;
-
-      return prev;
-    }, {});
-
-    return Object.keys(clusterStatuses)
-      .map((key) => {
-        const { resourceCounts } = clusterStatuses[key];
-
-        return {
-          clusterId: key,
-          status:    {
-            displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
-            resourceCounts: { ...resourceCounts }
-          }
-        };
-      });
-  }
-
   clusterState(clusterId) {
     const resourceCounts = this.statusResourceCountsForCluster(clusterId);
 
