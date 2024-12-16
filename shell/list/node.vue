@@ -1,5 +1,5 @@
 <script lang="ts">
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
 import Tag from '@shell/components/Tag.vue';
 import { Banner } from '@components/Banner';
 import { PODS } from '@shell/config/table-headers';

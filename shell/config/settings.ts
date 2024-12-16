@@ -9,10 +9,6 @@ import {
   STORAGE_CLASS,
   PVC,
   PV,
-  LIMIT_RANGE,
-  NETWORK_POLICY,
-  POD_DISRUPTION_BUDGET,
-  RESOURCE_QUOTA,
   WORKLOAD_TYPES
 } from '@shell/config/types';
 
