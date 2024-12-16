@@ -24,7 +24,7 @@ export default {
   computed: {
     summary() {
       if (this.clusterId) {
-        return this.row.clusterResourceStatus.find((x) => x.clusterId === this.clusterId)?.status?.resourceCounts || {};
+        return this.row.statusResourceCountsForCluster(this.clusterId);
       }
 
       return this.row.status?.resourceCounts || {};

@@ -325,6 +325,27 @@ export default class GitRepo extends SteveModel {
     return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
   }
 
+  statusResourceCountsForCluster(clusterId) {
+    if (!this.targetClusters.some((c) => c.id === clusterId)) {
+      return {};
+    }
+
+    return this.bundleDeployments
+      .filter((bd) => FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels) === clusterId)
+      .map((bd) => FleetUtils.resourcesFromBundleDeploymentStatus(bd.status))
+      .flat()
+      .map((r) => r.state)
+      .reduce((prev, state) => {
+        if (!prev[state]) {
+          prev[state] = 0;
+        }
+        prev[state]++;
+        prev.desiredReady++;
+
+        return prev;
+      }, { desiredReady: 0 });
+  }
+
   get resourcesStatuses() {
     const bundleDeployments = this.bundleDeployments || [];
     const clusters = (this.targetClusters || []).reduce((res, c) => {
