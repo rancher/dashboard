@@ -35,7 +35,8 @@ export default {
     },
 
     stateParts() {
-      const keys = Object.keys(this.summary).filter((x) => !x.startsWith('desired'));
+      const summary = this.summary;
+      const keys = Object.keys(summary).filter((x) => !x.startsWith('desired'));
 
       const out = keys.map((key) => {
         const textColor = colorForState(key);
@@ -44,7 +45,7 @@ export default {
           label: ucFirst(key),
           color: textColor.replace(/text-/, 'bg-'),
           textColor,
-          value: this.summary[key],
+          value: summary[key],
           sort:  stateSort(textColor, key),
         };
       }).filter((x) => x.value > 0);
