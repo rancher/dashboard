@@ -176,7 +176,7 @@ export default {
         const opt = {
           hasManualRefresh: this.hasManualRefresh,
           pagination:       { ...this.pagination },
-          force:            this.paginating !== null // Fix for manual refresh (before ripped out).
+          force:            true
         };
 
         if (this.apiFilter) {
