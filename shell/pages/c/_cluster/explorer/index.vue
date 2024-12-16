@@ -155,7 +155,7 @@ export default {
       clusterCounts,
       selectedTab:        'cluster-events',
       extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
-clusterServiceIcons,
+      clusterServiceIcons,
     };
   },
 
@@ -291,57 +291,51 @@ clusterServiceIcons,
     clusterServices() {
       const services = [];
 
-      CLUSTER_COMPONENTS.forEach((cs) => {
-const status = this.getComponentStatus(cs);
+      CLUSTER_COMPONENTS.forEach((name) => {
+        const component = this.getComponentStatus(name);
 
         services.push({
-          name:     cs,
-          status,
-          labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
-icon:     this.clusterServiceIcons[status],
+          name,
+          status:   component.state,
+          labelKey: `clusterIndexPage.sections.componentStatus.component.${ name }.label`,
+          icon:     this.clusterServiceIcons[component.state],
+          tooltip:  component.tooltip,
+          goTo:     () => null,
         });
       });
 
       if (this.cattleAgentNamespace) {
         services.push({
           name:     'cattle',
-          status:   this.cattleStatus,
-          labelKey: 'clusterIndexPage.sections.componentStatus.cattle',
-icon:     this.clusterServiceIcons[this.cattleStatus],
+          status:   this.cattleAgent.state,
+          labelKey: 'clusterIndexPage.sections.componentStatus.component.cattle.label',
+          icon:     this.clusterServiceIcons[this.cattleAgent.state],
+          tooltip:  this.cattleAgent.tooltip,
+          goTo:     () => this.goToClusterService(this.cattleAgent),
         });
       }
 
       if (this.fleetAgentNamespace) {
         services.push({
           name:     'fleet',
-          status:   this.fleetStatus,
-          labelKey: 'clusterIndexPage.sections.componentStatus.fleet',
-icon:     this.clusterServiceIcons[this.fleetStatus],
+          status:   this.fleetAgent.state,
+          labelKey: 'clusterIndexPage.sections.componentStatus.component.fleet.label',
+          icon:     this.clusterServiceIcons[this.fleetAgent.state],
+          tooltip:  this.fleetAgent.tooltip,
+          goTo:     () => this.goToClusterService(this.fleetAgent),
         });
       }
 
       return services;
     },
 
-    cattleStatus() {
-      const resource = this.cattleDeployment;
+    cattleAgent() {
+      const resources = [this.cattleDeployment];
 
-      if (resource === 'loading') {
-        return STATES_ENUM.IN_PROGRESS;
-      }
-
-      if (!resource || this.disconnected || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
-        return STATES_ENUM.UNHEALTHY;
-      }
-
-      if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
-        return STATES_ENUM.WARNING;
-      }
-
-      return STATES_ENUM.HEALTHY;
+      return this.getAgentStatus(resources, { checkDisconnected: true });
     },
 
-    fleetStatus() {
+    fleetAgent() {
       const resources = this.currentCluster.isLocal ? [
         /**
          * 'fleetStatefulSet' could take a while to be created by rancher.
@@ -352,23 +346,7 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
         this.fleetStatefulSet
       ];
 
-      if (resources.find((r) => r === 'loading')) {
-        return STATES_ENUM.IN_PROGRESS;
-      }
-
-      for (const resource of resources) {
-        if (!resource || resource.status.conditions?.find((c) => c.status !== 'True') || resource.metadata.state?.error) {
-          return STATES_ENUM.UNHEALTHY;
-        }
-      }
-
-      for (const resource of resources) {
-        if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
-          return STATES_ENUM.WARNING;
-        }
-      }
-
-      return STATES_ENUM.HEALTHY;
+      return this.getAgentStatus(resources);
     },
 
     totalCountGaugeInput() {
@@ -545,25 +523,61 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
       }
     },
 
+    getAgentStatus(resources, opt = { checkDisconnected: false }) {
+      if (resources.find((resource) => resource === 'loading')) {
+        return { state: STATES_ENUM.IN_PROGRESS };
+      }
+
+      for (const resource of resources) {
+        if (
+          !resource ||
+          (opt.checkDisconnected && this.disconnected) || // cattle
+          resource.status.conditions?.find((c) => c.status !== 'True') ||
+          resource.metadata.state?.error
+        ) {
+          return {
+            resource,
+            tooltip: resource?.stateDescription || this.t(`clusterIndexPage.sections.componentStatus.tooltip.disconnected`),
+            state:   STATES_ENUM.UNHEALTHY,
+          };
+        }
+      }
+
+      for (const resource of resources) {
+        if (resource.spec.replicas !== resource.status.readyReplicas || resource.status.unavailableReplicas > 0) {
+          return {
+            resource,
+            tooltip: resource?.stateDescription || this.t(`clusterIndexPage.sections.componentStatus.tooltip.unavailableReplicas`),
+            state:   STATES_ENUM.WARNING,
+          };
+        }
+      }
+
+      return { state: STATES_ENUM.HEALTHY };
+    },
+
     getComponentStatus(field) {
       const matching = (this.currentCluster?.status?.componentStatuses || []).filter((s) => s.name.startsWith(field));
 
       // If there's no matching component status, it's "healthy"
       if ( !matching.length ) {
-        return STATES_ENUM.HEALTHY;
+        return { state: STATES_ENUM.HEALTHY };
       }
 
-      const count = matching.reduce((acc, status) => {
-        const conditions = status.conditions.find((c) => c.status !== 'True');
+      const errorConditions = matching.reduce((acc, status) => {
+        const condition = status.conditions.find((c) => c.status !== 'True');
 
-        return !conditions ? acc : acc + 1;
-      }, 0);
+        return !condition ? acc : [...acc, condition];
+      }, []);
 
-      if (count > 0) {
-        return STATES_ENUM.UNHEALTHY;
+      if (errorConditions.length > 0) {
+        return {
+          tooltip: errorConditions[0].message,
+          state:   STATES_ENUM.UNHEALTHY
+        };
       }
 
-      return STATES_ENUM.HEALTHY;
+      return { state: STATES_ENUM.HEALTHY };
     },
 
     showActions() {
@@ -591,6 +605,23 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
         await provCluster.goToHarvesterCluster();
       } catch {
       }
+    },
+
+    goToClusterService(agent) {
+      if (!agent.resource || agent.state === STATES_ENUM.HEALTHY) {
+        return;
+      }
+
+      this.$router.push({
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          cluster:   this.currentCluster.id,
+          product:   'explorer',
+          resource:  agent.resource.type,
+          namespace: agent.resource.metadata.namespace,
+          id:        agent.resource.metadata.name,
+        }
+      });
     }
   },
 };
@@ -735,13 +766,15 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
       <div
         v-for="(service, i) in clusterServices"
         :key="i"
+        v-clean-tooltip="service.tooltip"
         class="k8s-service-status"
         :class="{[service.status]: true }"
         :data-testid="`k8s-service-${ service.name }`"
+        @click="service.goTo"
       >
         <i
-                    class="icon"
-:class="service.icon"
+          class="icon"
+          :class="service.icon"
         />
         <div class="label">
           {{ t(service.labelKey) }}
@@ -953,6 +986,7 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
 
   &.unhealthy {
     border-color: var(--error-border);
+    cursor: pointer;
 
     > I {
       color: var(--error)
@@ -960,6 +994,8 @@ icon:     this.clusterServiceIcons[this.fleetStatus],
   }
 
   &.warning {
+    cursor: pointer;
+
     > I {
       color: var(--warning)
     }

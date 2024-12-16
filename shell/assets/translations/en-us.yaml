@@ -2201,11 +2201,20 @@ clusterIndexPage:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
     componentStatus:
-      etcd: Etcd
-      scheduler: Scheduler
-      controller-manager: Controller Manager
-      cattle: Cattle
-      fleet: Fleet
+      component:
+        etcd:
+          label: Etcd
+        scheduler:
+          label: Scheduler
+        controller-manager:
+          label: Controller Manager
+        cattle:
+          label: Cattle
+        fleet:
+          label: Fleet
+      tooltip:
+        disconnected: Agent disconnected
+        unavailableReplicas: Replicas not available
     certs:
       label: Certificates
 
