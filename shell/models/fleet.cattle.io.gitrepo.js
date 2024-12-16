@@ -357,7 +357,7 @@ export default class GitRepo extends SteveModel {
           name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
           params: {
             product:   NAME,
-            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
             resource:  type,
             namespace: r.namespace,
             id:        r.name,
@@ -385,7 +385,6 @@ export default class GitRepo extends SteveModel {
           creationTimestamp: r.createdAt,
 
           // other properties
-          clusterLabel:    c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),
@@ -410,14 +409,10 @@ export default class GitRepo extends SteveModel {
 
   get clusterResourceStatus() {
     const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
-      const { clusterId, clusterLabel, state } = curr;
+      const { clusterId, state } = curr;
 
       if (!prev[clusterId]) {
-        prev[clusterId] = {
-          clusterLabel,
-          resourceCounts: { [state]: 0, desiredReady: 0 }
-
-        };
+        prev[clusterId] = { resourceCounts: { [state]: 0, desiredReady: 0 } };
       }
 
       if (!prev[clusterId].resourceCounts[state]) {
@@ -430,20 +425,18 @@ export default class GitRepo extends SteveModel {
       return prev;
     }, {});
 
-    const values = Object.keys(clusterStatuses).map((key) => {
-      const { clusterLabel, resourceCounts } = clusterStatuses[key];
+    return Object.keys(clusterStatuses)
+      .map((key) => {
+        const { resourceCounts } = clusterStatuses[key];
 
-      return {
-        clusterId: key,
-        clusterLabel, // FLEET LABEL
-        status:    {
-          displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
-          resourceCounts: { ...resourceCounts }
-        }
-      };
-    });
-
-    return values;
+        return {
+          clusterId: key,
+          status:    {
+            displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
+            resourceCounts: { ...resourceCounts }
+          }
+        };
+      });
   }
 
   get clustersList() {
