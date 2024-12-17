@@ -20,6 +20,21 @@ function quacksLikeAHash(str) {
   return false;
 }
 
+function normalizeStateCounts(data) {
+  if (!data || data === {}) {
+    return {
+      total:  0,
+      states: {},
+    };
+  }
+  const { desiredReady, ...rest } = data ;
+
+  return {
+    total:  desiredReady,
+    states: rest,
+  };
+}
+
 export default class GitRepo extends SteveModel {
   applyDefaults() {
     const spec = this.spec || {};
@@ -323,6 +338,16 @@ export default class GitRepo extends SteveModel {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
     return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+  }
+
+  get allBundlesStatuses() {
+    const { nonReadyResources, ...bundlesSummary } = this.status?.summary || {};
+
+    return normalizeStateCounts(bundlesSummary);
+  }
+
+  get allResourceStatuses() {
+    return normalizeStateCounts(this.status?.resourceCounts || {});
   }
 
   statusResourceCountsForCluster(clusterId) {
