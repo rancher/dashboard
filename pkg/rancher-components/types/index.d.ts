@@ -2,6 +2,7 @@ import { VueConstructor } from 'vue';
 
 export const BadgeState: VueConstructor;
 export const Banner: VueConstructor;
+export const RdButton: VueConstructor;
 export const Card: VueConstructor;
 export const Checkbox: VueConstructor;
 export const LabeledInput: VueConstructor;
