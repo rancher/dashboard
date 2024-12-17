@@ -1,6 +1,6 @@
 name: Tests
 on:
-  push:
+  push:    
     branches:
       - master
       - 'release-*'
@@ -259,3 +259,21 @@ jobs:
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
+  
+  visual-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      - name: Run tests
+        shell: bash
+        run: |
+          yarn build-storybook
+          yarn add -D -W concurrently
+          yarn visual:ci
+          

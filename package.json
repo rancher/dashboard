@@ -26,6 +26,7 @@
     "visual": "cypress run --config-file cypress.visual.config.ts --env requireSnapshots=true",
     "visual:update": "cypress run --config-file cypress.visual.config.ts --env updateSnapshots=true",
     "visual:open": "cypress open --config-file cypress.visual.config.ts",
+    "visual:ci": "npx concurrently \"yarn storybook\" \"yarn visual\"",
     "install:ci": "yarn install --frozen-lockfile",
     "dev": "bash -c 'source ./scripts/version && NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve'",
     "mem-dev": "bash -c 'source ./scripts/version && NODE_ENV=dev node --max-old-space-size=8192 ./node_modules/.bin/vue-cli-service serve'",
