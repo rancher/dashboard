@@ -575,6 +575,7 @@ export default {
     },
 
     showHeaderRow() {
+      // All of these are used to show content in the header
       return this.search ||
         this.tableActions ||
         this.$slots['header-left'] ||
@@ -1406,6 +1407,7 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
+                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"

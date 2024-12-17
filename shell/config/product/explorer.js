@@ -366,8 +366,8 @@ export function init(store) {
 
   const STEVE_WORKLOAD_ENDPOINTS = {
     ...WORKLOAD_ENDPOINTS,
-    sort:   [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`],
-    search: [`metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"`], // Pending API support https://github.com/rancher/rancher/issues/48256
+    sort:   [`metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]`], // Pending API support https://github.com/rancher/rancher/issues/48256
+    search: [`metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]`], // Pending API support https://github.com/rancher/rancher/issues/48256
   };
 
   const createSteveWorkloadImageCol = (resourceFieldPos) => ({
@@ -507,7 +507,8 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort: [`metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"`],
+        sort: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
+        search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
       },
       STEVE_AGE_COL
     ]

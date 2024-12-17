@@ -198,25 +198,25 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [STORAGE_CLASS]: [
       { field: 'provisioner' },
-      // { field: `metadata.annotations."${ STORAGE.DEFAULT_STORAGE_CLASS }"` }, // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS]` }, // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [CATALOG.APP]: [
       // { field: 'spec.chart.metadata.name' }, // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
-      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
-      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
-      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [WORKLOAD_TYPES.JOB]: [
-      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
-      // { field: `metadata.annotations."${ CATTLE_PUBLIC_ENDPOINTS }"` } // Pending API support https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256
     ]
 
   }

@@ -34,8 +34,6 @@ export default {
   <PaginatedResourceTable
     :schema="schema"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-
     :fetchSecondaryResources="fetchSecondaryResources"
   />
 </template>
