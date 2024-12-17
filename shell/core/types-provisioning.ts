@@ -102,7 +102,7 @@ export interface IClusterProvisioner {
   group?: string;
 
   /**
-   * Disable the cluster provider card
+   * Hide the cluster provider card
    */
   disabled?: boolean;
 

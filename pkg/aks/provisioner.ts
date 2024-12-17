@@ -2,6 +2,7 @@ import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/type
 import CruAks from './components/CruAks.vue';
 import { mapDriver } from '@shell/store/plugins';
 import type { Component } from 'vue';
+import { MANAGEMENT } from '@shell/config/types';
 
 export class AKSProvisioner implements IClusterProvisioner {
   static ID = 'azureaks'
@@ -28,6 +29,12 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get component(): Component {
     return CruAks;
+  }
+
+  get disabled(): boolean {
+    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'azurekubernetesservice');
+
+    return !kontainerDriver?.spec?.active;
   }
 
   get detailTabs(): any {
