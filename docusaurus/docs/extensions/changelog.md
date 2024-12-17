@@ -8,6 +8,7 @@
 
 | Date | Version | Description |
 |---|---|---|
+| TBD | [**3.1.0**](https://github.com/rancher/dashboard/releases) | [BREAKING] Bump TypeScript from 4.5.5 to 5.6.3: Extension developers need to bump TypeScript to version 5.6.3 in their projects. |
 | 01&#160;November&#160;2024 | [**2.0.2**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.2) | Remove upper limit on kube version for default annotations on extensions. Update creators package. Minor bug fixes |
 | 09&#160;July&#160;2024 | 1.2.3 | Minor bug fixes |
 | 09&#160;July&#160;2024 | [**2.0.1**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v2.0.1) | Minor bug fixes |
