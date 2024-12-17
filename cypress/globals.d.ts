@@ -166,7 +166,12 @@ declare global {
       /**
        * Run an accessibility check on the current page or the specified element
        */
-      checkAccessibility(selector?: string);
+      checkPageAccessibility(description?: string);
+
+      /**
+       * Run an accessibility check on the specified element
+       */
+      checkElementAccessibility(selector: any, description?: string);
     }
   }
 }
