@@ -1,19 +1,23 @@
-// const WAIT = 600;
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
-describe('Login page a11y testing', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('Login page a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
+  const loginPage = new LoginPagePo();
+
   it('wcag21aa test', () => {
-    cy.visit(`${ Cypress.config().baseUrl }/auth/login?local`);
+    loginPage.goTo();
+    loginPage.waitForPage();
+
     cy.injectAxe();
-    // cy.wait(WAIT);
-    cy.checkAccessibility();
+    cy.checkPageAccessibility();
   });
 
-  it('username fieldt', () => {
-    cy.visit(`${ Cypress.config().baseUrl }/auth/login?local`);
-    cy.injectAxe();
-    // cy.wait(WAIT);
-    // cy.checkPageAccessibility();
+  it('locale selector', () => {
+    loginPage.goTo();
+    loginPage.waitForPage();
 
-    cy.checkAccessibility('#username');
+    cy.injectAxe();
+    cy.get('[data-testid="locale-selector"]').click();
+    cy.checkPageAccessibility();
+    cy.checkElementAccessibility('#username', 'Username field checks');
   });
 });

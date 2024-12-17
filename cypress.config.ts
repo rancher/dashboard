@@ -12,17 +12,15 @@ require('dotenv').config();
  * VARIABLES
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-let testDirs = ['accessibility', 'priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
+let testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 
-if (process.env.TEST_DIRS) {
-  testDirs = process.env.TEST_DIRS.split(',').map((s) => s.trim());
-
-  console.log(` Using test dirs: ${ testDirs }`);
+if (process.env.TEST_A11Y) {
+  testDirs = ['accessibility'];
 }
 
 /**
