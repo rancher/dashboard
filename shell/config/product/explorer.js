@@ -507,7 +507,7 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
+        sort:   [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
         search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
       },
       STEVE_AGE_COL
