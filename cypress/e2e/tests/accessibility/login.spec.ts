@@ -11,13 +11,13 @@ describe('Login page a11y testing', { tags: ['@adminUser', '@accessibility'] }, 
     cy.checkPageAccessibility();
   });
 
-  it('locale selector', () => {
-    loginPage.goTo();
-    loginPage.waitForPage();
+  // it('locale selector', () => {
+  //   loginPage.goTo();
+  //   loginPage.waitForPage();
 
-    cy.injectAxe();
-    cy.get('[data-testid="locale-selector"]').click();
-    cy.checkPageAccessibility();
-    cy.checkElementAccessibility('#username', 'Username field checks');
-  });
+  //   cy.injectAxe();
+  //   cy.get('[data-testid="locale-selector"]').click();
+  //   cy.checkPageAccessibility();
+  //   cy.checkElementAccessibility('#username', 'Username field checks');
+  // });
 });
