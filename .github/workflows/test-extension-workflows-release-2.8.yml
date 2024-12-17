@@ -91,7 +91,7 @@ jobs:
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
-          elif [[ ${OUTPUT_ARRAY[@]} =~ "" ]]; then
+          elif [[ ${OUTPUT_ARRAY[@]} =~ (^|[[:space:]])""($|[[:space:]]) ]]; then
             MSG_PREFIX="\nSomething went wrong during the workflows testing! ⭕"
           else
             MSG_PREFIX="\nWorkflows testing for extensions succedded! ✅"
