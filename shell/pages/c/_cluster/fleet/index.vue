@@ -42,11 +42,6 @@ export default {
         inStoreType: 'management',
         type:        FLEET.CLUSTER_GROUP
       },
-      allBundles: {
-        inStoreType: 'management',
-        type:        FLEET.BUNDLE,
-        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
-      },
       gitRepos: {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO,
@@ -103,7 +98,6 @@ export default {
         }
       ],
       schema:              {},
-      allBundles:          [],
       gitRepos:            [],
       fleetWorkspacesData: [],
       isCollapsed:         {},
