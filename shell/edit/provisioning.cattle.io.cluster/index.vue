@@ -367,6 +367,9 @@ export default {
 
         // Add from extensions
         this.extensions.forEach((ext) => {
+          if (ext.disabled) {
+            return;
+          }
           // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
           // default group is rke2
           if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
