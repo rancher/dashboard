@@ -6,7 +6,7 @@ import { createHtmlReport } from 'axe-html-reporter';
 
 const calcHash = function(str) {
   return sha.default('sha256').update(str).digest('hex');
-}
+};
 
 function createPath(testPath: string[]) {
   const currentSpec = chain[chain.length - 1];
@@ -20,10 +20,10 @@ function createPath(testPath: string[]) {
       found = f[0];
     } else {
       const c = {
-        name: p,
-        children: [],
+        name:       p,
+        children:   [],
         violations: [],
-        leaf: false,
+        leaf:       false,
       };
 
       found.children.push(c);
@@ -49,10 +49,10 @@ export type Options = {
 
 // Root chain
 const chain: TestViolation[] = [{
-  name: 'Root',
-  children: [],
+  name:       'Root',
+  children:   [],
   violations: [],
-  leaf: false,
+  leaf:       false,
 }];
 
 const allViolations = [] as any[];
@@ -72,7 +72,7 @@ function tidy(item: TestViolation) {
 }
 
 export function a11yScreenshot(options: any) {
-  const { titlePath, props} = options;
+  const { titlePath, props } = options;
   const found = createPath(titlePath);
 
   found.screenshot = props.path;
@@ -121,7 +121,7 @@ function registerHooks(on, config) {
 
   on('task', {
     a11y(options: Options) {
-      const { violations, titlePath} = options;
+      const { violations, titlePath } = options;
       const found = createPath(titlePath);
 
       allViolations.push(...violations);
@@ -133,10 +133,8 @@ function registerHooks(on, config) {
     },
 
     a11yScreenshot(options: any ) {
-      const { titlePath, name} = options;
+      const { titlePath, name } = options;
       const found = createPath(titlePath);
-
-      console.log('>>>>>>>>>>>>>>>>>>> SCREEN SHOT');
 
       found.screenshot = name;
 
@@ -159,10 +157,10 @@ function registerHooks(on, config) {
 
   on('before:spec', (spec) => {
     const newSpec = {
-      name: spec.baseName,
-      children: [],
+      name:       spec.baseName,
+      children:   [],
       violations: [],
-      leaf: false,
+      leaf:       false,
     };
 
     chain[0].children.push(newSpec);
@@ -174,13 +172,13 @@ function registerHooks(on, config) {
   on('after:spec', (spec) => {
     // Pop the spec off of the chain
     chain.pop();
-  });  
+  });
 
   on('after:run', () => {
     const root = chain[0];
 
     tidy(root);
-    
+
     fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
 
     const reportHTML = createHtmlReport({

@@ -1,5 +1,3 @@
-import { a11yScreenshot } from '../plugins/accessibility';
-
 // Custom violation callback function that prints a list of violations
 // Used when logging to the Cypress log
 const severityIndicators = {
@@ -134,7 +132,7 @@ function getAccessibilityViolationsCallback(description?: string) {
         });
       });
     });
-  }
+  };
 }
 
 /**
