@@ -1,6 +1,7 @@
-import { createHtmlReport } from 'axe-html-reporter';
+import { a11yScreenshot } from '../plugins/accessibility';
 
 // Custom violation callback function that prints a list of violations
+// Used when logging to the Cypress log
 const severityIndicators = {
   minor:    '⚪',
   moderate: '🟡',
@@ -8,9 +9,14 @@ const severityIndicators = {
   critical: '🔴',
 };
 
+// Ignore color contrast for now
 const RULES = { rules: { 'color-contrast': { enabled: false } } };
 
-// Define at the top of the spec file or just import it
+// Used to track where multiple checks are done in a test to ensure we save
+// the screenshots for them to unique filenames
+const screenshotIndexes: {[key: string]: number} = {};
+
+// Log violations to the terminal
 function terminalLog(violations) {
   cy.task(
     'log',
@@ -33,50 +39,116 @@ function terminalLog(violations) {
   cy.task('table', violationData);
 }
 
-function logToFile(violations) {
-  cy.writeFile('accessibilityReport.json', `${ JSON.stringify(violations, null, 2) } \n`, { flag: 'a+' });
-}
+/**
+ * Log the violations in several ways:
+ * 1. Log to the terminal
+ * 2. Log to a file
+ * 3. Log to the Cypress log
+ * 4. Save screenshot of the violations
+ */
+function getAccessibilityViolationsCallback(description?: string) {
+  return function printAccessibilityViolations(violations) {
+    terminalLog(violations); // Log to the console
 
-function printAccessibilityViolations(violations) {
-  // Log to the console
-  terminalLog(violations);
-  logToFile(violations);
+    const title = Cypress.currentTest.titlePath.join(', ');
+    const index = screenshotIndexes[title] || 1;
+    const testPath = Cypress.currentTest.titlePath;
+    const lastName = Cypress.currentTest.titlePath[Cypress.currentTest.titlePath.length - 1];
 
-  cy.task('a11y', violations);
+    testPath.push(description || `${ lastName } (#${ index })`);
 
-  // Log in Cypress
-  violations.forEach((violation) => {
-    const nodes = Cypress.$(violation.nodes.map((item) => item.target).join(','));
-
-    Cypress.log({
-      name:         `${ severityIndicators[violation.impact] } A11y`,
-      consoleProps: () => violation,
-      $el:          nodes,
-      message:      `[${ violation.help }][${ violation.helpUrl }]`
+    cy.task('a11y', {
+      violations,
+      titlePath: testPath,
     });
 
-    violation.nodes.forEach(({ target }) => {
+    // Log in Cypress
+    violations.forEach((violation) => {
+      const nodes = Cypress.$(violation.nodes.map((item) => item.target).join(','));
+
       Cypress.log({
-        name:         `🔨`,
+        name:         `${ severityIndicators[violation.impact] } A11y`,
         consoleProps: () => violation,
-        $el:          Cypress.$(target.join(',')),
-        message:      target
+        $el:          nodes,
+        message:      `[${ violation.help }][${ violation.helpUrl }]`
       });
 
-      cy.get(target.join(', ')).then(($el) => {
-        $el.css('border', '2px solid red');
-      });
+      violation.nodes.forEach(({ target }) => {
+        Cypress.log({
+          name:         `🔨`,
+          consoleProps: () => violation,
+          $el:          Cypress.$(target.join(',')),
+          message:      target
+        });
 
-      // Highlight each node so that they are visible when we take a screenshot
-      // Cypress.$(target.join(',')).css('style', 'border: 2px solid red');
+        // Store the existing border and change it to clearly show the elements with violations
+        cy.get(target.join(', ')).invoke('css', 'border').then((border) => {
+          cy.get(target.join(', ')).then(($el) => {
+            const existingBorder = $el.data('border');
+
+            // If we have the original border, don't store again = covers a case an element has multiple violations
+            // and we would lose the original border
+            if (!existingBorder) {
+              $el.data('border', border);
+            }
+
+            $el.css('border', '2px solid red');
+          });
+        });
+      });
     });
-  });
 
-  cy.task('log', Cypress.currentTest);
-  cy.screenshot(`a11y_${ Cypress.currentTest.title }`);
+    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
+
+    // cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`, {
+    //     onAfterScreenshot($el, props) {
+    //       a11yScreenshot({
+    //         titlePath: testPath,
+    //         props,
+    //       });
+    //   },
+    // });
+
+    cy.task('a11yScreenshot', {
+      titlePath: testPath,
+      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
+    });
+
+    screenshotIndexes[title] = index + 1;
+
+    // Reset the borders that were added to mark the elements with violations
+    violations.forEach((violation) => {
+      violation.nodes.forEach(({ target }) => {
+        cy.get(target.join(', ')).then(($el) => {
+          const border = $el.data('border');
+
+          if (!border.startsWith('0px none')) {
+            $el.css('border', $el.data('border'));
+          } else {
+            $el.css('border', '');
+          }
+
+          if ($el.attr('style')?.length === 0) {
+            $el.removeAttr('style');
+          }
+        });
+      });
+    });
+  }
 }
 
+/**
+ * Checks accessibility of the entire page
+ */
 // skipFailures = true will not fail the test when there are accessibility failures
-Cypress.Commands.add('checkAccessibility', (subject: any) => {
-  cy.checkA11y(subject, RULES, printAccessibilityViolations, true);
+Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
+  cy.checkA11y(undefined, RULES, getAccessibilityViolationsCallback(description), true);
+});
+
+/**
+ * Checks accessibility of a specific element
+ */
+// skipFailures = true will not fail the test when there are accessibility failures
+Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
+  cy.checkA11y(subject, RULES, getAccessibilityViolationsCallback(description), true);
 });
