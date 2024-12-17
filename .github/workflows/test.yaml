@@ -192,7 +192,7 @@ jobs:
         env: 
           TEST_A11Y: true
           TEST_SKIP: setup
-          GREP_TAGS: "@admin+@accessibility --@jenkins"
+          GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           
       # - name: Upload screenshots
