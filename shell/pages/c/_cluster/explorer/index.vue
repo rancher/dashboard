@@ -148,6 +148,7 @@ export default {
       clusterCounts,
       selectedTab:        'cluster-events',
       extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+      canViewEvents:      !!this.$store.getters['cluster/schemaFor'](EVENT)
     };
   },
 
@@ -737,6 +738,7 @@ export default {
     <div class="mt-30">
       <Tabbed @changed="tabChange">
         <Tab
+          v-if="canViewEvents"
           name="cluster-events"
           :label="t('clusterIndexPage.sections.events.label')"
           :weight="2"

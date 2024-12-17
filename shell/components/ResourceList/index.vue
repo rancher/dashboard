@@ -9,7 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
-import { PAGINATED_RESOURCE_TABLE_NAME } from '@shell/components/PaginatedResourceTable.vue';
+// import { PAGINATED_RESOURCE_TABLE_NAME } from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name: ResourceListComponentName,

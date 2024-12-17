@@ -101,6 +101,7 @@ export default {
   >
     <template v-slot:header-right>
       <router-link
+        data-testid="events-link"
         :to="allEventsLink"
         class="events-link"
       >

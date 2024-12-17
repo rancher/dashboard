@@ -311,8 +311,8 @@ export function init(store) {
       {
         // Selector is an object. This is broken in non-SSP world anyway (won't sort on object, filtering on `$[x][y]` paths are broken )
         ...SELECTOR,
-        sort:   'false',
-        search: 'false',
+        sort:   false,
+        search: false,
       },
       {
         ...SPEC_TYPE,
