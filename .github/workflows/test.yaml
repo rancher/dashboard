@@ -194,6 +194,12 @@ jobs:
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
+
+      - name: Upload html report
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: cypress/accessibility/accessibility.html
           
       # - name: Upload screenshots
       #   uses: actions/upload-artifact@v4
