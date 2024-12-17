@@ -25,6 +25,8 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import KontainerDriversPagePo from '~/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
+import DeactivateDriverDialogPo from '~/cypress/e2e/po/prompts/deactivateDriverDialog.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -86,6 +88,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       // check that the nav group isn't visible anymore
       sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
     });
+  });
+
+  it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
+    const driversPage = new KontainerDriversPagePo();
+    const clusterCreatePage = new ClusterManagerCreatePagePo();
+    const deactivateDialog = new DeactivateDriverDialogPo();
+
+    // deactivate the AKS driver
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
+    deactivateDialog.deactivate();
+
+    // verify that the AKS card is not shown
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
+
+    // re-enable the AKS kontainer driver
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
+
+    // verify that the AKS card is back
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'exist');
   });
 
   describe('All providers', () => {
