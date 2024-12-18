@@ -120,6 +120,7 @@ locale:
   none: (None)
 
 nav:
+  expandCollapseAppBar: Expand/Collapse the Application Bar
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
   tools: Tools
