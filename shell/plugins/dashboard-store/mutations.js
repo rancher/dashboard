@@ -1,4 +1,4 @@
-import { markRaw, reactive } from 'vue';
+import { reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -36,7 +36,7 @@ function registerType(state, type) {
       loadCounter:   0,
 
       // Not enumerable so they don't get sent back to the client for SSR
-      map: markRaw(new Map()),
+      map: new Map(),
     };
 
     state.types[type] = cache;
@@ -163,6 +163,8 @@ export function load(state, {
       cache.map.set(id, entry);
     }
   }
+
+  cache.havePage = false;
 
   return entry;
 }
