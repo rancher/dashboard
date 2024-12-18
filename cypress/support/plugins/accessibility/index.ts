@@ -147,9 +147,10 @@ function registerHooks(on, config) {
       const details = screenshots.find((s) => s.name === name);
 
       if (details) {
-        found.screenshot = path.join(details.specName, `${ name }.png`);
-        const screenFolder = path.join(folder, found.screenshot);
+        const screenFolder = path.join(folder, details.specName);
         const destFile = path.join(screenFolder, `${ name }.png`);
+
+        found.screenshot = path.join(details.specName, `${ name }.png`);
 
         if (!fs.existsSync(screenFolder)) {
           fs.mkdirSync(screenFolder);
