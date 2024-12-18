@@ -8,6 +8,7 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'azure' );
+    mapDriver(this.id, 'aks' );
   }
 
   get id(): string {
@@ -28,6 +29,10 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get component(): Component {
     return CruAks;
+  }
+
+  get showImport(): boolean {
+    return true;
   }
 
   get detailTabs(): any {
