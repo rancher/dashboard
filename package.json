@@ -52,7 +52,6 @@
     "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "cd storybook && yarn storybook",
     "build-storybook": "cd storybook && yarn install --no-lockfile && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
-    "storybook-test": "cd storybook && yarn test-storybook --stories-json ",
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
