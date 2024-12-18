@@ -2,7 +2,7 @@
 
 import { MESSAGE, NAME, OBJECT, REASON } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
-import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';

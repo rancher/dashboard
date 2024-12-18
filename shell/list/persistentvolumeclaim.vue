@@ -1,5 +1,5 @@
 <script>
-import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
 export default {
   name:       'ListPersistentVolumeClaim',
