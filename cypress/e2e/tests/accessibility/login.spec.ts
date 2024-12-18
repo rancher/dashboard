@@ -1,7 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 describe('Login page a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
-
   it('wcag21aa test', () => {
     const loginPage = new LoginPagePo();
 
