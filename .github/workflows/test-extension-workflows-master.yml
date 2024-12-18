@@ -1,4 +1,4 @@
-name: Test Extension workflows
+name: Test Extension workflows - Master (3.x)
 
 on:
   schedule:
@@ -11,6 +11,7 @@ defaults:
 
 jobs:
   test-extensions-creators-and-update-paths:
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     outputs:
       test-extensions-creators-and-update-paths-job-status: ${{ job.status }}
@@ -23,6 +24,7 @@ jobs:
         id: test-extensions-and-creators
         shell: bash
   retrieve-tags-master:
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     outputs:
       SHELL_TAG: ${{ steps.retrieve-data.outputs.SHELL_TAG }}
@@ -97,11 +99,13 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
         run: |
-          OUTPUT_ARRAY=("${{ needs.test-extensions-creators-and-update-paths-job-status.outputs.test-legacy-v1-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
-          JOB_NAME_ARRAY=("test-extensions-creators-and-update-paths-job-status" "retrieve-tags-master" "test-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
+          OUTPUT_ARRAY=("${{ needs.test-extensions-creators-and-update-paths.outputs.test-extensions-creators-and-update-paths-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
+          JOB_NAME_ARRAY=("test-extensions-creators-and-update-paths" "retrieve-tags-master" "test-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
-            MSG_PREFIX="\nWorkflows testing for extensions failed! 🆘"
+            MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
+          elif [[ ${OUTPUT_ARRAY[@]} =~ (^|[[:space:]])""($|[[:space:]]) ]]; then
+            MSG_PREFIX="\nSomething went wrong during the workflows testing! ⭕"
           else
             MSG_PREFIX="\nWorkflows testing for extensions succedded! ✅"
           fi
@@ -113,7 +117,9 @@ jobs:
           for index in "${!OUTPUT_ARRAY[@]}"
           do
             if [[ ${OUTPUT_ARRAY[$index]} == "failure" ]]; then
-              EMOJI="🆘"
+              EMOJI="❌"
+            elif [[ ${OUTPUT_ARRAY[$index]} == "" ]]; then
+              EMOJI="NO JOB STATUS! ⭕"
             else
               EMOJI="✅"
             fi
