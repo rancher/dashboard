@@ -182,7 +182,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
-          GREP_TAGS: "@adminSetup+@accessibility --@jenkins"
+          GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
       - name: Run user tests
