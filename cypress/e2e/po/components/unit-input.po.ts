@@ -5,4 +5,8 @@ export default class UnitInputPo extends ComponentPo {
   setValue(value: string): Cypress.Chainable {
     return new LabeledInputPo(this.self().find('input')).set(value);
   }
+
+  clear() {
+    return this.self().clear();
+  }
 }

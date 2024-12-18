@@ -99,7 +99,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]]
   ])('%p cluster - %p agent health box :', (_, agentId, isLocal, agentResources, statuses) => {
-    it.each(statuses)('should  NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
+    it.each(statuses)('should NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = clone(mountOptions);
 
       options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
@@ -138,40 +138,47 @@ describe('page: cluster dashboard', () => {
 
   describe.each([
     ['local', 'fleet', true, ['fleetDeployment', 'fleetStatefulSet'], [
-      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
-      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]],
     ['downstream RKE2', 'fleet', false, ['fleetStatefulSet'], [
-      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
-      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]],
     ['downstream RKE2', 'cattle', false, ['cattleDeployment'], [
-      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 0],
-      [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
-      [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]]
   ])('%p cluster - %p agent health box ::', (_, agentId, isLocal, agentResources, statuses) => {
-    it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
+    it.each(statuses)('should show %p status', async(status, iconClass, clickable, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
+      let agentRoute = null;
+
       const options = clone(mountOptions);
 
       options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
 
-      // let's pass the canList now
       options.global.mocks.$store.getters['cluster/canList'] = (type: string) => !!(type === WORKLOAD_TYPES.DEPLOYMENT) || !!(type === WORKLOAD_TYPES.STATEFUL_SET);
+
+      options.global.mocks.$router = {
+        push: (route: any) => {
+          agentRoute = route;
+        }
+      };
 
       const resources = agentResources.reduce((acc, r) => {
         const agent = {
@@ -204,7 +211,12 @@ describe('page: cluster dashboard', () => {
 
       expect(box.element).toBeDefined();
       expect(box.element.classList).toContain(status);
+      expect(!!(box.element as any).$_popper).toBe(clickable);
       expect(icon.element.classList).toContain(iconClass);
+
+      await box.trigger('click');
+
+      expect(!!agentRoute).toBe(clickable);
     });
   });
 

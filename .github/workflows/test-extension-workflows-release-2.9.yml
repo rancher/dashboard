@@ -1,4 +1,4 @@
-name: Test Extension workflows
+name: Test Extension workflows - Release 2.9 (2.x)
 
 on:
   schedule:
@@ -11,6 +11,7 @@ defaults:
 
 jobs:
   retrieve-tags-release-2-dot-9:
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     outputs:
       SHELL_TAG: ${{ steps.retrieve-data.outputs.SHELL_TAG }}
@@ -89,7 +90,9 @@ jobs:
           JOB_NAME_ARRAY=("retrieve-tags-release-2-dot-9" "test-build-extension-charts-release-2-dot-9" "test-build-extension-catalog-release-2-dot-9" "test-release-shell-pkg-release-2-dot-9" "test-release-creators-pkg-release-2-dot-9")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
-            MSG_PREFIX="\nWorkflows testing for extensions failed! 🆘"
+            MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
+          elif [[ ${OUTPUT_ARRAY[@]} =~ (^|[[:space:]])""($|[[:space:]]) ]]; then
+            MSG_PREFIX="\nSomething went wrong during the workflows testing! ⭕"
           else
             MSG_PREFIX="\nWorkflows testing for extensions succedded! ✅"
           fi
@@ -101,7 +104,9 @@ jobs:
           for index in "${!OUTPUT_ARRAY[@]}"
           do
             if [[ ${OUTPUT_ARRAY[$index]} == "failure" ]]; then
-              EMOJI="🆘"
+              EMOJI="❌"
+            elif [[ ${OUTPUT_ARRAY[$index]} == "" ]]; then
+              EMOJI="NO JOB STATUS! ⭕"
             else
               EMOJI="✅"
             fi

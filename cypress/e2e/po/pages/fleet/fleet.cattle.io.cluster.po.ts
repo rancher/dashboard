@@ -3,6 +3,7 @@ import FleetClusterList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clust
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetClusterEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.cluster.po';
+import AssignToDialogPo from '@/cypress/e2e/po/components/assign-to-dialog.po';
 
 export class FleetClusterListPagePo extends PagePo {
     static url = `/c/_/fleet/fleet.cattle.io.cluster`
@@ -48,5 +49,9 @@ export class FleetClusterListPagePo extends PagePo {
 
     editFleetCluster(workspace: string, clusterName: string): FleetClusterEditPo {
       return new FleetClusterEditPo(workspace, clusterName);
+    }
+
+    changeWorkspaceForm(): AssignToDialogPo {
+      return new AssignToDialogPo();
     }
 }

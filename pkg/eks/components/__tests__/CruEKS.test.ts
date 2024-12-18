@@ -1,7 +1,10 @@
+/* eslint-disable jest/no-mocks-import */
 import flushPromises from 'flush-promises';
 import { mount, shallowMount, Wrapper } from '@vue/test-utils';
 import { EKSConfig, EKSNodeGroup } from 'types';
 import CruEKS, { DEFAULT_EKS_CONFIG } from '@pkg/eks/components/CruEKS.vue';
+import describeKeyPairs from '../__mocks__/describeKeyPairs';
+import describeLaunchTemplates from '../__mocks__/describeLaunchTemplates';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -19,7 +22,19 @@ const mockedStore = (versionSetting: any) => {
         return {};
       }
     },
-    dispatch: jest.fn()
+    dispatch: () => {
+      return {
+        describeKeyPairs: () => {
+          return describeKeyPairs;
+        },
+        describeLaunchTemplates: () => {
+          return describeLaunchTemplates;
+        },
+        listRoles: () => {
+          return { Roles: [] };
+        }
+      };
+    }
   };
 };
 
@@ -39,8 +54,9 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 };
 
 const setCredential = async(wrapper :Wrapper<any>, config = {} as EKSConfig) => {
-  config.amazonCredentialSecret = 'foo';
   wrapper.setData({ config });
+  wrapper.vm.updateCredential('foo');
+  wrapper.vm.updateRegion('bar');
   await flushPromises();
 };
 
@@ -215,5 +231,18 @@ describe('eKS provisioning form', () => {
     expect(wrapper.vm.fvFormIsValid).toBe(true);
 
     expect(wrapper.vm.fvUnreportedValidationErrors).toStrictEqual([]);
+  });
+
+  it('should fetch ssh keys from the aws api and save response as list of keypair KeyNames', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(CruEKS, {
+      propsData: { value: {}, mode: 'create' },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+
+    expect(wrapper.vm.sshKeyPairs).toStrictEqual(['test-key1', 'test-key2']);
   });
 });
