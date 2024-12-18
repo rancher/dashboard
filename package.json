@@ -146,6 +146,7 @@
     "@cypress/grep": "3.1.5",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
+    "@emerson-eps/cypress-image-snapshot": "^1.5.3",
     "@types/copy-webpack-plugin": "5.0.3",
     "@types/dompurify": "3.0.0",
     "@types/is-url": "1.2.30",
@@ -173,8 +174,12 @@
     "cy2": "4.0.9",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "^3.8.2",
+<<<<<<< HEAD
     "cypress": "11.1.0",
     "cypress-plugin-snapshots": "^1.4.4",
+=======
+    "eslint": "7.32.0",
+>>>>>>> 10f0670a0a (Update everything to new forked library)
     "eslint-config-standard": "16.0.3",
     "eslint-import-resolver-node": "0.3.4",
     "eslint-module-utils": "2.6.1",

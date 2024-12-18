@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
-const { initPlugin } = require('cypress-plugin-snapshots/plugin');
+import { addMatchImageSnapshotPlugin } from '@emerson-eps/cypress-image-snapshot/plugin'
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
@@ -21,12 +21,6 @@ export default defineConfig({
   },
   env: {
     baseUrl,
-    // https://github.com/meinaart/cypress-plugin-snapshots?tab=readme-ov-file#make-changes-to-default-configuration
-    "cypress-plugin-snapshots": {
-      imageConfig: {
-        "threshold": 0.001,             // Amount in pixels or percentage before snapshot image is invalid
-      },
-    },
   },
   component: {
     devServer: {
@@ -43,8 +37,7 @@ export default defineConfig({
     specPattern: './cypress/visual/*.visual.{js,jsx,ts,tsx}',
     baseUrl,
     setupNodeEvents(on, config) {
-      initPlugin(on, config);
-      return config;
+      addMatchImageSnapshotPlugin(on);
     },
   },
 });

@@ -1,5 +1,4 @@
 import { Matcher } from '@/cypress/support/types';
-import 'cypress-plugin-snapshots/commands';
 
 /**
  * Get input field for given label

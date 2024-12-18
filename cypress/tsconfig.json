@@ -20,11 +20,12 @@
     "types": [
       "cypress",
       "@cypress/grep",
-      "cypress-plugin-snapshots"
+      "@emerson-eps/cypress-image-snapshot"
     ]
   },
   "include": [
     "./**/*.ts",
-    "../types/*.ts"
+    "../types/*.ts",
+    "@emerson-eps/cypress-image-snapshot"
   ]
 }
