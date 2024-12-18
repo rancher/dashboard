@@ -102,9 +102,14 @@ export interface IClusterProvisioner {
   group?: string;
 
   /**
-   * Hide the cluster provider card
+   * Disable the cluster provider card
    */
   disabled?: boolean;
+
+  /**
+   * Hide the cluster provider card
+   */
+  hidden?: boolean;
 
   /**
    * Custom Dashboard route to navigate to when the cluster provider card is clicked
