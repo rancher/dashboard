@@ -101,6 +101,7 @@ export default defineConfig({
     azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
     customNodeIp:        process.env.CUSTOM_NODE_IP,
     customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    accessibility:       !!process.env.TEST_A11Y, // Are we running accessibility tests?
     a11yFolder:          path.join('.', 'cypress', 'accessibility'),
   },
   e2e: {
