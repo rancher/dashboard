@@ -93,12 +93,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
     const driversPage = new KontainerDriversPagePo();
     const clusterCreatePage = new ClusterManagerCreatePagePo();
-    const deactivateDialog = new DeactivateDriverDialogPo();
 
     // deactivate the AKS driver
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
+    const deactivateDialog = new DeactivateDriverDialogPo();
+
     deactivateDialog.deactivate();
 
     // verify that the AKS card is not shown
