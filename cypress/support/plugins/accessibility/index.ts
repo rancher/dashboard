@@ -47,6 +47,12 @@ export type Options = {
   titlePath: string[];
 };
 
+type Screenshot = {
+  name: string;
+  specName: string;
+  path: string;
+};
+
 // Root chain
 const chain: TestViolation[] = [{
   name:       'Root',
@@ -56,6 +62,7 @@ const chain: TestViolation[] = [{
 }];
 
 const allViolations = [] as any[];
+const screenshots = [] as Screenshot[];
 let folder;
 
 // Tidy up the chain
@@ -136,7 +143,19 @@ function registerHooks(on, config) {
       const { titlePath, name } = options;
       const found = createPath(titlePath);
 
-      found.screenshot = name;
+      // Move the screenshot to the accessibility folder
+      const details = screenshots.find((s) => s.name === name);
+
+      if (details) {
+        found.screenshot = path.join(details.specName, `${ name }.png`);
+        const screenFolder = path.join(folder, found.screenshot);
+        const destFile = path.join(screenFolder, `${ name }.png`);
+
+        if (!fs.existsSync(screenFolder)) {
+          fs.mkdirSync(screenFolder);
+        }
+        fs.renameSync(details.path, destFile);
+      }
 
       return null;
     }
@@ -169,9 +188,19 @@ function registerHooks(on, config) {
     chain.push(newSpec);
   });
 
-  on('after:spec', (spec) => {
+  on('after:spec', () => {
     // Pop the spec off of the chain
     chain.pop();
+  });
+
+  on('after:screenshot', (details) => {
+    const { name, specName, path } = details;
+
+    screenshots.push({
+      name,
+      specName,
+      path
+    });
   });
 
   on('after:run', () => {
@@ -190,8 +219,6 @@ function registerHooks(on, config) {
     });
 
     fs.writeFileSync(path.join(folder, 'accessibility.html'), reportHTML);
-
-    // Write the validation data to disk and transform to HTML
 
     return null;
   });
