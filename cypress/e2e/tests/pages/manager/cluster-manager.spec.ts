@@ -25,8 +25,8 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import KontainerDriversPagePo from '~/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
-import DeactivateDriverDialogPo from '~/cypress/e2e/po/prompts/deactivateDriverDialog.po';
+import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
+import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
