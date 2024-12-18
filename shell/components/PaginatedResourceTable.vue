@@ -96,8 +96,8 @@ export default defineComponent({
   },
 
   computed: {
-    safeHeaders() {
-      const customHeaders = this.canPaginate ? this.paginationHeaders : this.headers;
+    safeHeaders(): any[] {
+      const customHeaders: any[] = this.canPaginate ? this.paginationHeaders : this.headers;
 
       return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }
