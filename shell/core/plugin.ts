@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { RouteRecordRaw } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
+import { _DETAIL } from '@shell/config/query-params';
 import {
   CoreStoreInit,
   Action,
@@ -11,7 +12,7 @@ import {
   IPlugin,
   LocationConfig,
   ExtensionPoint,
-
+  TabLocation,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -162,6 +163,12 @@ export class Plugin implements IPlugin {
    * Adds a tab to the UI
    */
   addTab(where: string, when: LocationConfig | string, tab: Tab): void {
+    // tackling https://github.com/rancher/dashboard/issues/11122, we don't want the tab to added in _EDIT view, unless overriden
+    // on extensions side we won't document the mode param for this extension point
+    if (where === TabLocation.RESOURCE_DETAIL && (typeof when === 'object' && !when.mode)) {
+      when.mode = [_DETAIL];
+    }
+
     this._addUIConfig(ExtensionPoint.TAB, where, when, this._createAsyncComponent(tab));
   }
 
