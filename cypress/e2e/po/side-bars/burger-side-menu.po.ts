@@ -134,7 +134,13 @@ export default class BurgerMenuPo extends ComponentPo {
     return this.self().find('.body .cluster.selector.option');
   }
 
-  goToCluster(clusterId = 'local') {
+  goToCluster(clusterId = 'local', toggleOpen = true) {
+    if (toggleOpen) {
+      BurgerMenuPo.toggle();
+    }
+
+    this.self().find('.cluster-name').contains(clusterId).should('exist');
+
     return this.self().find('.cluster-name').contains(clusterId).click();
   }
 

@@ -15,9 +15,10 @@ describe('steve-store: mutations', () => {
           list: [new Resource(pod)],
           map:  new Map([
             [pod.id, new Resource(pod)]
-          ])
+          ]),
         }
       };
+      res.expected.types[POD].havePage = false;
 
       return res;
     };
