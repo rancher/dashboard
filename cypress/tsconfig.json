@@ -15,6 +15,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "baseUrl": "..",
+    "resolveJsonModule": true,
     "noEmit": true,
     "types": [
       "cypress",
