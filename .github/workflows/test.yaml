@@ -190,10 +190,10 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          TEST_A11Y: true
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
+          TEST_A11Y: true
 
       - name: Upload html report
         uses: actions/upload-artifact@v4
