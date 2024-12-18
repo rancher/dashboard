@@ -14,7 +14,7 @@ export default {
       required: true
     },
 
-    clusterLabel: {
+    clusterId: {
       type:     String,
       required: false,
       default:  null,
@@ -23,10 +23,8 @@ export default {
 
   computed: {
     summary() {
-      if (this.clusterLabel) {
-        return this.row.clusterResourceStatus.find((x) => {
-          return x.clusterLabel === this.clusterLabel;
-        })?.status.resourceCounts || {};
+      if (this.clusterId) {
+        return this.row.statusResourceCountsForCluster(this.clusterId);
       }
 
       return this.row.status?.resourceCounts || {};
@@ -37,7 +35,8 @@ export default {
     },
 
     stateParts() {
-      const keys = Object.keys(this.summary).filter((x) => !x.startsWith('desired'));
+      const summary = this.summary;
+      const keys = Object.keys(summary).filter((x) => !x.startsWith('desired'));
 
       const out = keys.map((key) => {
         const textColor = colorForState(key);
@@ -46,7 +45,7 @@ export default {
           label: ucFirst(key),
           color: textColor.replace(/text-/, 'bg-'),
           textColor,
-          value: this.summary[key],
+          value: summary[key],
           sort:  stateSort(textColor, key),
         };
       }).filter((x) => x.value > 0);
