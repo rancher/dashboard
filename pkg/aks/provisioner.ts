@@ -31,7 +31,7 @@ export class AKSProvisioner implements IClusterProvisioner {
     return CruAks;
   }
 
-  get disabled(): boolean {
+  get hidden(): boolean {
     const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'azurekubernetesservice');
 
     return !kontainerDriver?.spec?.active;

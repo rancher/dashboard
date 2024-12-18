@@ -359,9 +359,6 @@ export default {
 
         // Add from extensions
         this.extensions.forEach((ext) => {
-          if (ext.disabled) {
-            return;
-          }
           // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
           // default group is rke2
           if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
@@ -399,7 +396,8 @@ export default {
           disabled:    ext.disabled || false,
           link:        ext.link,
           tag:         ext.tag,
-          component:   ext.component
+          component:   ext.component,
+          hidden:      ext.hidden,
         };
 
         out.push(subtype);
@@ -444,10 +442,14 @@ export default {
       }
     },
 
+    filteredSubTypes() {
+      return this.subTypes.filter((subtype) => !subtype.hidden);
+    },
+
     groupedSubTypes() {
       const out = {};
 
-      for ( const row of this.subTypes ) {
+      for ( const row of this.filteredSubTypes ) {
         const name = row.group;
         let entry = out[name];
 

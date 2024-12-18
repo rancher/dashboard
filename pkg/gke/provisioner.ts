@@ -31,7 +31,7 @@ export class GKEProvisioner implements IClusterProvisioner {
     return CruGKE;
   }
 
-  get disabled(): boolean {
+  get hidden(): boolean {
     const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'googlekubernetesengine');
 
     return !kontainerDriver?.spec?.active;

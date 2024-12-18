@@ -31,7 +31,7 @@ export class EKSProvisioner implements IClusterProvisioner {
     return CruEKS;
   }
 
-  get disabled(): boolean {
+  get hidden(): boolean {
     const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'amazonelasticcontainerservice');
 
     return !kontainerDriver?.spec?.active;
