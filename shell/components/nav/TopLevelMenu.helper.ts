@@ -48,7 +48,7 @@ const DEFAULT_SORT: Array<PaginationSort> = [
   },
   // {
   //   asc:   true,
-  //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
+  //   field: 'status.conditions[0].status' // Pending API support https://github.com/rancher/rancher/issues/48092
   // },
   {
     asc:   true,

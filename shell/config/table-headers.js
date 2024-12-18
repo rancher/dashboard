@@ -663,8 +663,8 @@ export const TARGET_PORT = {
   formatter: 'ServiceTargets',
   labelKey:  'tableHeaders.targetPort',
   name:      'targetPort',
-  sort:      `$['spec']['targetPort']`,
-  value:     `$['spec']['targetPort']`,
+  sort:      false,
+  value:     false,
 };
 
 export const SELECTOR = {
