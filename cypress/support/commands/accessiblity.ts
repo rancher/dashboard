@@ -98,17 +98,10 @@ function getAccessibilityViolationsCallback(description?: string) {
 
     cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
 
-    // cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`, {
-    //     onAfterScreenshot($el, props) {
-    //       a11yScreenshot({
-    //         titlePath: testPath,
-    //         props,
-    //       });
-    //   },
-    // });
-
+    // Record the screenshot against the test and move it into the a11y folder
     cy.task('a11yScreenshot', {
       titlePath: testPath,
+      test:      Cypress.currentTest,
       name:      `a11y_${ Cypress.currentTest.title }_${ index }`
     });
 

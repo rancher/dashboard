@@ -114,7 +114,10 @@ export default defineConfig({
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
-      require('./cypress/support/plugins/accessibility').default(on, config);
+      // Load Accessibility plugin if configured
+      if (process.env.TEST_A11Y) {
+        require('./cypress/support/plugins/accessibility').default(on, config);
+      }
 
       on('task', { removeDirectory });
       websocketTasks(on, config);

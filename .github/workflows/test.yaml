@@ -195,17 +195,11 @@ jobs:
           TEST_USERNAME: admin
           TEST_A11Y: true
 
-      - name: Upload html report
+      - name: Upload report
         uses: actions/upload-artifact@v4
         with:
           name: accessibility-report
-          path: cypress/accessibility/accessibility.html
-          
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-a11y-screenshots
-          path: cypress/screenshots
+          path: cypress/accessibility
         
   unit-test:
     runs-on: ubuntu-latest
