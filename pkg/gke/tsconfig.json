@@ -38,7 +38,7 @@
         "../../shell/*"
       ],
       "@components/*": [
-        "@rancher/components/*"
+        "../../pkg/rancher-components/src/components/*"
       ]
     }
   },
@@ -46,7 +46,8 @@
     "**/*.ts",
     "**/*.d.ts",
     "**/*.tsx",
-    "**/*.vue"
+    "**/*.vue",
+    "../../shell/types/vue-shim.d.ts"
   ],
   "exclude": [
     "../../node_modules"

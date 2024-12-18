@@ -465,7 +465,12 @@ export default {
         <div class="title">
           <div
             data-testid="top-level-menu"
+            :aria-label="t('nav.expandCollapseAppBar')"
+            role="button"
+            tabindex="0"
             class="menu"
+            @keyup.enter="toggle()"
+            @keyup.space="toggle()"
             @click="toggle()"
           >
             <svg
@@ -922,6 +927,15 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+
+      &:focus-visible {
+        outline: none;
+
+        .menu-icon {
+          @include focus-outline;
+          outline-offset: 4px;  // Ensure there is space around the menu icon for the focus indication
+        }
+      }
 
       .menu-icon {
         width: 25px;
