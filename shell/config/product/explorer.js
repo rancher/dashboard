@@ -9,6 +9,7 @@ import {
   NORMAN,
   SNAPSHOT,
   VIRTUAL_TYPES,
+  CAPI
 } from '@shell/config/types';
 
 import {
@@ -194,6 +195,34 @@ export function init(store) {
         hideColumn:    NODE_COL.name,
         groupLabelKey: 'groupByNode',
         tooltipKey:    'resourceTable.groupBy.node'
+      }
+    ],
+    listGroupsWillOverride: true,
+  });
+  configureType(CAPI.MACHINE_SET, {
+    listGroups: [
+      ...STEVE_LIST_GROUPS,
+      {
+        icon:          'icon-cluster',
+        value:         'cluster',
+        field:         'groupByCluster',
+        tooltipKey:    'resourceTable.groupBy.cluster',
+        groupLabelKey: 'groupByCluster',
+        hideColumn:    'cluster',
+      }
+    ],
+    listGroupsWillOverride: true,
+  });
+  configureType(CAPI.MACHINE_DEPLOYMENT, {
+    listGroups: [
+      ...STEVE_LIST_GROUPS,
+      {
+        icon:          'icon-cluster',
+        value:         'cluster',
+        field:         'groupByCluster',
+        tooltipKey:    'resourceTable.groupBy.cluster',
+        groupLabelKey: 'groupByCluster',
+        hideColumn:    'cluster',
       }
     ],
     listGroupsWillOverride: true,
