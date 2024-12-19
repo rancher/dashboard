@@ -2,9 +2,12 @@ import '@cypress/code-coverage/support';
 import './commands/commands';
 import './commands/chainable';
 import './commands/rancher-api-commands';
+import './commands/accessiblity';
+
 import registerCypressGrep from '@cypress/grep/src/support';
 import { addCustomCommand } from 'cypress-delete-downloads-folder';
 import 'cypress-mochawesome-reporter/register';
+import 'cypress-axe';
 
 registerCypressGrep();
 addCustomCommand();
