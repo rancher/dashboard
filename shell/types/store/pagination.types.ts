@@ -1,4 +1,5 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
+import { KubeLabelSelector } from 'types/kube/kube-api';
 
 // Pagination Typing
 // These structures are designed to offer both convenience and flexibility based on a common structure and are
@@ -317,6 +318,11 @@ export class PaginationArgs {
   projectsOrNamespaces: PaginationParamProjectOrNamespace[];
 
   /**
+   * TODO: RC
+   */
+  labelSelector: KubeLabelSelector | null;
+
+  /**
    * Creates an instance of PaginationArgs.
    *
    * Contains defaults to avoid creating complex json objects all the time
@@ -327,6 +333,7 @@ export class PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
+    labelSelector = null,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -354,6 +361,10 @@ export class PaginationArgs {
      * For definition see {@link PaginationArgs} `projectsOrNamespaces`
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
+    /**
+     * TODO: RC
+     */
+    labelSelector: KubeLabelSelector | null,
   }) {
     this.page = page;
     this.pageSize = pageSize;
@@ -368,6 +379,7 @@ export class PaginationArgs {
     } else {
       this.projectsOrNamespaces = [];
     }
+    this.labelSelector = labelSelector;
   }
 }
 
@@ -386,6 +398,7 @@ export class FilterArgs extends PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
+    labelSelector = null,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -405,9 +418,13 @@ export class FilterArgs extends PaginationArgs {
      * For definition see {@link PaginationArgs} `projectsOrNamespaces`
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
+    /**
+     * TODO: RC
+     */
+    labelSelector: KubeLabelSelector | null
   }) {
     super({
-      page: null, pageSize: null, sort, filters, projectsOrNamespaces
+      page: null, pageSize: null, sort, filters, projectsOrNamespaces, labelSelector
     });
   }
 }

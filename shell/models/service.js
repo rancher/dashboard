@@ -1,6 +1,10 @@
 import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { parse } from '@shell/utils/selector';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { isEmpty } from 'lodash';
+
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -49,7 +53,7 @@ export const CLUSTERIP = (() => {
   return clusterIp.id;
 })();
 
-export default class extends SteveModel {
+export default class Service extends SteveModel {
   get customValidationRules() {
     return [
       {
@@ -136,19 +140,61 @@ export default class extends SteveModel {
     return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
-  async fetchPods() {
-    if (this.podRelationship) {
-      await this.$dispatch('cluster/findMatching', {
-        type:      POD,
-        selector:  this.podRelationship.selector,
-        namespace: this.namespace
-      }, { root: true });
+  /**
+   * TODO: RC docs. always return object (relationship selectors are strings)
+   */
+  get podSelector() {
+    const { spec: { selector = { } } } = this;
+
+    // const selector = this.podRelationship?.selector;
+    // if (typeof selector === 'string') {
+    //   return {
+    //     matchExpressions: parse(selector)
+    //   }
+    // }
+
+    if (isEmpty(selector)) {
+      return;
     }
+
+    return {
+      matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
+    };
   }
 
-  get pods() {
-    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+  async fetchPods(podSelector = this.podSelector) {
+    if (podSelector) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.metadata.namespace,
+        pagination: new FilterArgs({
+          labelSelector: podSelector
+        }),
+      };
+
+      return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
+    }
+
+    return Promise.resolve(undefined)
   }
+
+
+  // async fetchPods() {
+  //   if (this.podSelector) {
+  //     await this.$dispatch('cluster/findMatching', {
+  //       type:      POD,
+  //       selector:  this.podRelationship.selector,
+  //       namespace: this.namespace
+  //     }, { root: true });
+  //   }
+  // }
+
+  get pods() {
+    console.warn('Anything using this must be updated to ????!!!')
+    return []
+  }
+  // get pods() {
+  //   return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+  // }
 
   get serviceType() {
     const serviceType = this.spec?.type;

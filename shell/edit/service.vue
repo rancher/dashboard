@@ -20,13 +20,14 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
-import { POD, CAPI, HCI } from '@shell/config/types';
+import { POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
 import { _CLONE } from '@shell/config/query-params';
+
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -98,7 +99,6 @@ export default {
 
     return {
       matchingPods,
-      allPods:                     [],
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
@@ -109,7 +109,8 @@ export default {
       ),
       fvFormRuleSets:            [],
       fvReportedValidationPaths: ['spec'],
-      closedErrorMessages:       []
+      closedErrorMessages:       [],
+      inStore: this.$store.getters['currentStore'](POD),
     };
   },
 
@@ -257,24 +258,28 @@ export default {
   },
 
   methods: {
-    updateMatchingPods: throttle(function() {
-      const { value: { spec: { selector = { } } } } = this;
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
-      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
+    updateMatchingPods: throttle(async function() {
 
-      if (isEmpty(selector)) {
+      const { value: { spec: { selector = { } } } } = this;
+
+      debugger;
+      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+      const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0
+
+      if (isEmpty(selector) || namespaceCount === 0) {
         this.matchingPods = {
           matched: 0,
-          total:   allInNamespace.length,
+          total:   namespaceCount,
           none:    true,
           sample:  null,
         };
       } else {
-        const match = matching(allInNamespace, selector);
+        debugger;
+        const match = await this.value.fetchPods();
 
         this.matchingPods = {
           matched: match.length,
-          total:   allInNamespace.length,
+          total:   namespaceCount,
           none:    match.length === 0,
           sample:  match[0] ? match[0].nameDisplay : null,
         };
@@ -283,17 +288,15 @@ export default {
 
     async loadPods() {
       try {
-        const inStore = this.$store.getters['currentStore'](POD);
-
         const hash = {
           provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          // pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
         const res = await allHash(hash);
 
-        this.allPods = res.pods;
+        // this.allPods = res.pods;
         this.updateMatchingPods();
       } catch (e) { }
     },
