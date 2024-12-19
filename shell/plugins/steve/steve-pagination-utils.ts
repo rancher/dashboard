@@ -4,8 +4,10 @@ import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTE
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
+  CAPI,
   CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
 } from '@shell/config/types';
+import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -107,8 +109,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      // { field: 'id' }, // Pending API support
-      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'id' },
+      { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
@@ -122,11 +124,32 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
     ],
+    [MANAGEMENT.NODE_POOL]: [
+      { field: 'spec.clusterName' },
+    ],
+    [MANAGEMENT.NODE_TEMPLATE]: [
+      { field: 'spec.clusterName' },
+    ],
+    [MANAGEMENT.CLUSTER]: [
+      { field: 'spec.internal' },
+      { field: 'spec.displayName' },
+      // { field: `status.provider` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+      // { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+
+    ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
+    ],
+    [CAPI.MACHINE]: [
+      { field: 'spec.clusterName' }
+    ],
+    [CAPI.RANCHER_CLUSTER]: [
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `status.provider` },
+      { field: 'status.clusterName' },
     ]
   }
 
