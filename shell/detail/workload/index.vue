@@ -16,6 +16,7 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -48,13 +49,32 @@ export default {
 
     const hash = {
       // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
-      allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
-      allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      // allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
+      // allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.
       allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
     };
+
+    debugger;
+    if (this.podSchema) {
+      hash.matchingPods = this.value.fetchPods();
+    }
+
+    // if (this.serviceSchema) {
+    //   const findPageArgs = { // Of type ActionFindPageArgs
+    //     namespaced: this.value.metadata.namespace,
+    //     pagination: new FilterArgs({
+    //       filters: PaginationParamFilter.createSingleField({
+    //         field: 'metadata.fields.1',
+    //         value: TYPES.TLS
+    //       })
+    //     }),
+    //   };
+
+    //   hash.matchingServices = this.$store.dispatch('cluster/findPage', { type: SERVICE, opt: findPageArgs });
+    // }
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
       hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
@@ -80,17 +100,20 @@ export default {
         this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_PROJECT_METRICS_DETAIL_URL, this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
       }
     }
-    this.findMatchingServices();
+    // this.findMatchingServices();
     this.findMatchingIngresses();
   },
 
+  // TODO: RC https://github.com/rancher/dashboard/pull/6311
+
   data() {
     return {
-      allPods:                         [],
-      allServices:                     [],
+      // allPods:                         [],
+      // allServices:                     [],
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
+      matchingPods: [],
       allJobs:                         [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
@@ -180,21 +203,22 @@ export default {
       }, 0);
     },
 
-    podRestarts() {
-      return this.value.pods.reduce((total, pod) => {
-        const { status:{ containerStatuses = [] } } = pod;
+    // Not used anywhere!
+    // podRestarts() {
+    //   return this.value.pods.reduce((total, pod) => {
+    //     const { status:{ containerStatuses = [] } } = pod;
 
-        if (containerStatuses.length) {
-          total += containerStatuses.reduce((tot, container) => {
-            tot += container.restartCount;
+    //     if (containerStatuses.length) {
+    //       total += containerStatuses.reduce((tot, container) => {
+    //         tot += container.restartCount;
 
-            return tot;
-          }, 0);
-        }
+    //         return tot;
+    //       }, 0);
+    //     }
 
-        return total;
-      }, 0);
-    },
+    //     return total;
+    //   }, 0);
+    // },
 
     podHeaders() {
       return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
@@ -213,15 +237,19 @@ export default {
     },
 
     showPodGaugeCircles() {
-      const podGauges = Object.values(this.value.podGauges);
-      const total = this.value.pods.length;
+      const podGauges = Object.values(this.podGauges);
+      const total = this.matchingPods.length;
 
       return !podGauges.find((pg) => pg.count === total);
     },
 
+    podGauges() {
+      return this.value.calcPodGauges(this.matchingPods);
+    },
+
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
-      const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
+      const total = this.isCronJob ? this.totalRuns : this.matchingPods.length;
 
       return !jobGauges.find((jg) => jg.count === total);
     },
@@ -252,30 +280,30 @@ export default {
     async scaleUp() {
       await this.scale(true);
     },
-    findMatchingServices() {
-      if (!this.serviceSchema) {
-        return [];
-      }
-      const matchingPods = this.value.pods;
+    // findMatchingServices() {
+    //   if (!this.serviceSchema) {
+    //     return [];
+    //   }
+    //   const matchingPods = this.value.pods;
 
-      // Find Services that have selectors that match this
-      // workload's Pod(s).
-      const matchingServices = this.allServices.filter((service) => {
-        const selector = service.spec.selector;
+    //   // Find Services that have selectors that match this
+    //   // workload's Pod(s).
+    //   const matchingServices = this.allServices.filter((service) => {
+    //     const selector = service.spec.selector;
 
-        for (let i = 0; i < matchingPods.length; i++) {
-          const pod = matchingPods[i];
+    //     for (let i = 0; i < matchingPods.length; i++) {
+    //       const pod = matchingPods[i];
 
-          if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
-            return true;
-          }
-        }
+    //       if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
+    //         return true;
+    //       }
+    //     }
 
-        return false;
-      });
+    //     return false;
+    //   });
 
-      this.matchingServices = matchingServices;
-    },
+    //   this.matchingServices = matchingServices;
+    // },
     findMatchingIngresses() {
       if (!this.ingressSchema) {
         return [];
@@ -341,15 +369,15 @@ export default {
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
     <div
-      v-if="value.pods || value.jobGauges"
+      v-if="matchingPods || value.jobGauges"
       class="gauges mb-20"
-      :class="{'gauges__pods': !!value.pods}"
+      :class="{'gauges__pods': !!matchingPods}"
     >
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
           :key="key"
-          :total="isCronJob? totalRuns : value.pods.length"
+          :total="isCronJob? totalRuns : matchingPods.length"
           :useful="group.count || 0"
           :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -358,9 +386,9 @@ export default {
       </template>
       <template v-else>
         <CountGauge
-          v-for="(group, key) in value.podGauges"
+          v-for="(group, key) in podGauges"
           :key="key"
-          :total="value.pods.length"
+          :total="matchingPods.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -393,8 +421,8 @@ export default {
         :weight="4"
       >
         <ResourceTable
-          v-if="value.pods"
-          :rows="value.pods"
+          v-if="matchingPods?.length"
+          :rows="matchingPods"
           :headers="podHeaders"
           key-field="id"
           :schema="podSchema"
