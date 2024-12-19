@@ -611,7 +611,7 @@ export default {
       <div
         v-for="(obj, i) in groupedSubTypes"
         :key="obj.id"
-        class="mb-20"
+        class="mt-20"
         style="width: 100%;"
       >
         <h4>
