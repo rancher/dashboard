@@ -164,6 +164,8 @@ export function load(state, {
     }
   }
 
+  cache.havePage = false;
+
   return entry;
 }
 

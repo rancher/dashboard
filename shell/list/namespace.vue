@@ -1,6 +1,9 @@
 <script>
+/**
+ * file used in shell/scripts/test-plugins-build.sh to validate imports
+ */
 import { mapGetters } from 'vuex';
-import { NS_SNAPSHOT_QUOTA } from '../config/table-headers';
+import { NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
 import { HCI } from '@shell/config/types';
 export default {
