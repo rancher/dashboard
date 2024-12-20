@@ -3,9 +3,10 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
+import { convertSelectorObj, matching, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -202,22 +203,35 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
-  get showPodRestarts() {
-    return true;
-  }
+  // When this added... it already existed somewhere else
+  // get restartCount() {
+  //   const pods = this.pods;
+
+  //   let sum = 0;
+
+  //   pods.forEach((pod) => {
+  //     if (pod.status.containerStatuses) {
+  //       sum += pod.status?.containerStatuses[0].restartCount || 0;
+  //     }
+  //   });
+
+  //   return sum;
+  // }
 
   get restartCount() {
-    const pods = this.pods;
+    return this.pods.reduce((total, pod) => {
+      const { status:{ containerStatuses = [] } } = pod;
 
-    let sum = 0;
+      if (containerStatuses.length) {
+        total += containerStatuses.reduce((tot, container) => {
+          tot += container.restartCount || 0;
 
-    pods.forEach((pod) => {
-      if (pod.status.containerStatuses) {
-        sum += pod.status?.containerStatuses[0].restartCount || 0;
+          return tot;
+        }, 0);
       }
-    });
 
-    return sum;
+      return total;
+    }, 0);
   }
 
   get hasSidecars() {
@@ -331,6 +345,10 @@ export default class Workload extends WorkloadService {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
+      restarts: {
+        label: this.t('resourceDetail.masthead.restartCount'),
+        content: this.restartCount
+      },
       endpoint: {
         label:     'Endpoints',
         content:   this.endpoint,
@@ -548,28 +566,48 @@ export default class Workload extends WorkloadService {
   }
 
   get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-      return pods.filter((obj) => {
-        return matches(obj, podRelationship.selector);
-      });
-    } else {
-      return [];
-    }
+    console.warn('Anything using this must be updated to ????!!!')
+    return []
   }
 
-  get podGauges() {
+  // get pods() {
+  //   const relationships = this.metadata?.relationships || [];
+  //   const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
+
+  //   if (podRelationship) {
+  //     const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+
+  //     return pods.filter((obj) => {
+  //       return matches(obj, podRelationship.selector);
+  //     });
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+  /**
+   * TODO: RC docs. always return object (relationship selectors are strings)
+   */
+  get podSelector() {
+    const relationships = this.metadata?.relationships || [];
+    const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
+    if (typeof selector === 'string') {
+      return {
+        matchExpressions: parse(selector)
+      }
+    }
+
+    return selector;
+  }
+
+  calcPodGauges(pods) {
     const out = { };
 
-    if (!this.pods) {
+    if (!pods) {
       return out;
     }
 
-    this.pods.map((pod) => {
+    pods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -583,6 +621,27 @@ export default class Workload extends WorkloadService {
     });
 
     return out;
+  }
+
+  get podGauges() {
+    return this.calcPodGauges(this.pods);
+  }
+
+  async fetchPods() {
+    const podSelector = this.podSelector;
+
+      if (podSelector) {
+        const findPageArgs = { // Of type ActionFindPageArgs
+          namespaced: this.metadata.namespace,
+          pagination: new FilterArgs({
+            labelSelector: podSelector
+          }),
+        };
+
+        return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
+      }
+
+    return Promise.resolve(undefined)
   }
 
   // Job Specific

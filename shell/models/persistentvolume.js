@@ -30,9 +30,7 @@ export default class PV extends SteveModel {
       return null;
     }
 
-    const allClaims = this.$rootGetters['cluster/all'](PVC);
-
-    return allClaims.find((claim) => claim.spec.volumeName === this.name);
+    return this.$getters['all'](PVC).find((claim) => claim.spec.volumeName === this.name);
   }
 
   get claimName() {

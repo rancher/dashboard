@@ -9,7 +9,6 @@ import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -49,7 +48,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    // check if burguer menu nav is highlighted correctly for local cluster
+    // check if burger menu nav is highlighted correctly for local cluster
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
@@ -258,12 +257,9 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
-    const events = new EventsPagePo('local');
-
-    HomePagePo.goTo();
-
     eventsNoDataset();
-    ClusterDashboardPagePo.navTo();
+    clusterDashboard.goTo();
+
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
@@ -279,6 +275,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.fullEventsLink().click();
     cy.wait('@eventsNoData');
+    const events = new EventsPagePo('local');
+
     events.waitForPage();
 
     events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
