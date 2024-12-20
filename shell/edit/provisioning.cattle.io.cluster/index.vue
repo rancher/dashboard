@@ -404,7 +404,8 @@ export default {
           disabled:    ext.disabled || false,
           link:        ext.link,
           tag:         ext.tag,
-          component:   ext.component
+          component:   ext.component,
+          hidden:      ext.hidden,
         };
 
         out.push(subtype);
@@ -449,10 +450,14 @@ export default {
       }
     },
 
+    filteredSubTypes() {
+      return this.subTypes.filter((subtype) => !subtype.hidden);
+    },
+
     groupedSubTypes() {
       const out = {};
 
-      for ( const row of this.subTypes ) {
+      for ( const row of this.filteredSubTypes ) {
         const name = row.group;
         let entry = out[name];
 
@@ -623,7 +628,7 @@ export default {
       <div
         v-for="(obj, i) in groupedSubTypes"
         :key="i"
-        class="mb-20"
+        :class="{'mt-5': i === 0, 'mt-20': i !== 0 }"
         style="width: 100%;"
       >
         <h4>
