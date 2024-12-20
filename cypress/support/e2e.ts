@@ -7,7 +7,6 @@ import { addCustomCommand } from 'cypress-delete-downloads-folder';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 
-
 registerCypressGrep();
 addCustomCommand();
 
