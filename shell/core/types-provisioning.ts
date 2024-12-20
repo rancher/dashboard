@@ -107,6 +107,11 @@ export interface IClusterProvisioner {
   disabled?: boolean;
 
   /**
+   * Hide the cluster provider card
+   */
+  hidden?: boolean;
+
+  /**
    * Custom Dashboard route to navigate to when the cluster provider card is clicked
    */
   link?: string;
