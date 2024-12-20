@@ -42,6 +42,10 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return this.self().contains('.grid .name', name, { timeout: 10000 }).should(assertion);
   }
 
+  gridElementGroupTitles() {
+    return this.self().find('.subtypes-container > div > h4');
+  }
+
   selectKubeProvider(index: number) {
     return this.resourceDetail().cruResource().selectSubType(0, index).click();
   }
