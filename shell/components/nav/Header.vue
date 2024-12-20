@@ -15,6 +15,10 @@ import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
+import RcDropdown from '@shell/components/RcDropdown.vue';
+import RcDropdownCollection from '@shell/components/RcDropdownCollection.vue';
+import RcDropdownItem from '@shell/components/RcDropdownItem.vue';
+import RcButton from '@shell/components/RcButton.vue';
 
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
@@ -39,6 +43,10 @@ export default {
     IconOrSvg,
     AppModal,
     HeaderPageActionMenu,
+    RcDropdown,
+    RcDropdownCollection,
+    RcDropdownItem,
+    RcButton,
   },
 
   props: {
@@ -641,6 +649,31 @@ export default {
         </button>
       </div>
 
+      <rc-dropdown>
+        <template #popper>
+          <rc-dropdown-collection>
+            <rc-dropdown-item>
+              Set as login page
+            </rc-dropdown-item>
+            <hr
+              role="separator"
+              aria-orientation="horizontal"
+            >
+            <rc-dropdown-item>
+              Restore hidden cards
+            </rc-dropdown-item>
+            <rc-dropdown-item>
+              Preferences
+            </rc-dropdown-item>
+            <rc-dropdown-item>
+              Account & API Keys
+            </rc-dropdown-item>
+            <rc-dropdown-item>
+              Logout
+            </rc-dropdown-item>
+          </rc-dropdown-collection>
+        </template>
+      </rc-dropdown>
       <header-page-action-menu v-if="showPageActions" />
 
       <div class="header-spacer" />
