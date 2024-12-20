@@ -628,7 +628,7 @@ export default {
       <div
         v-for="(obj, i) in groupedSubTypes"
         :key="i"
-        class="mt-20"
+        :class="{'mt-5': i === 0, 'mt-20': i !== 0, }"
         style="width: 100%;"
       >
         <h4>
