@@ -69,4 +69,12 @@ export default class LabeledSelectPo extends ComponentPo {
   filterByName(name: string) {
     return this.self().type(name);
   }
+
+  static getGkeVersionSelect() {
+    return new LabeledSelectPo('[data-testid="gke-version-select"]');
+  }
+
+  static getGkeZoneSelect() {
+    return new LabeledSelectPo('[data-testid="gke-zone-select"]');
+  }
 }
