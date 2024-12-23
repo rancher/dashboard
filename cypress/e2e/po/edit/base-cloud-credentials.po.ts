@@ -34,4 +34,8 @@ export default class BaseCloudCredentialsPo extends PagePo {
   saveButton() {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
+
+  authenticateButton() {
+    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  }
 }
