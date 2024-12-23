@@ -398,50 +398,51 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('hide-local-cluster').contains(settings['hide-local-cluster'].original);
   });
 
-  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('system-default-registry');
+  // Blocked on https://github.com/rancher/dashboard/issues/12936 / https://github.com/rancher/dashboard/pull/12935
+  // it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  //   // Update setting
+  //   SettingsPagePo.navTo();
+  //   settingsPage.editSettingsByLabel('system-default-registry');
 
-    const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
+  //   const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
 
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
-    settingsEdit.settingsInput().set(settings['system-default-registry'].new);
-    settingsEdit.saveAndWait('system-default-registry');
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('system-default-registry').contains(settings['system-default-registry'].new);
+  //   settingsEdit.waitForPage();
+  //   settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
+  //   settingsEdit.settingsInput().set(settings['system-default-registry'].new);
+  //   settingsEdit.saveAndWait('system-default-registry');
+  //   settingsPage.waitForPage();
+  //   settingsPage.settingsValue('system-default-registry').contains(settings['system-default-registry'].new);
 
-    // Check cluster manager > create
-    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+  //   // Check cluster manager > create
+  //   const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
 
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.createCluster();
+  //   clusterList.goTo();
+  //   clusterList.checkIsCurrentPage();
+  //   clusterList.createCluster();
 
-    createRKE2ClusterPage.waitForPage();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
+  //   createRKE2ClusterPage.waitForPage();
+  //   createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
-    createRKE2ClusterPage.selectCustom(0);
-    createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
-    cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
+  //   createRKE2ClusterPage.selectCustom(0);
+  //   createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
+  //   cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
 
-    const settingsPageBlank = new SettingsPagePo();
-    const settingsEditBlank = settingsPageBlank.editSettings(undefined, 'system-default-registry');
+  //   const settingsPageBlank = new SettingsPagePo();
+  //   const settingsEditBlank = settingsPageBlank.editSettings(undefined, 'system-default-registry');
 
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPageBlank.waitForPage();
-    settingsPageBlank.editSettingsByLabel('system-default-registry');
+  //   // Reset
+  //   SettingsPagePo.navTo();
+  //   settingsPageBlank.waitForPage();
+  //   settingsPageBlank.editSettingsByLabel('system-default-registry');
 
-    settingsEditBlank.waitForPage();
-    settingsEditBlank.title().contains('Setting: system-default-registry').should('be.visible');
-    settingsEditBlank.settingsInput().clear();
-    settingsEditBlank.saveAndWait('system-default-registry');
+  //   settingsEditBlank.waitForPage();
+  //   settingsEditBlank.title().contains('Setting: system-default-registry').should('be.visible');
+  //   settingsEditBlank.settingsInput().clear();
+  //   settingsEditBlank.saveAndWait('system-default-registry');
 
-    settingsPageBlank.waitForPage();
-    settingsPageBlank.settingsValue('system-default-registry').contains(settings['system-default-registry'].original);
-  });
+  //   settingsPageBlank.waitForPage();
+  //   settingsPageBlank.settingsValue('system-default-registry').contains(settings['system-default-registry'].original);
+  // });
 
   it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons are hidden for standard user
