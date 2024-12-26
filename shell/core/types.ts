@@ -238,6 +238,11 @@ export interface ProductOptions {
   to?: Location;
 
   /**
+   * Alternative to the icon property. Uses require
+   */
+  svg?: Function;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
@@ -384,9 +389,14 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   ifHaveType?: string | RegExp | Object;
 
   /**
+   * The label that this type should display
+   */
+  label?: string;
+
+  /**
    * The translation key displayed anywhere this type is referenced
    */
-  labelKey: string;
+  labelKey?: string;
 
   /**
    * An identifier that should be unique across all types
