@@ -243,6 +243,11 @@ export interface ProductOptions {
   svg?: Function;
 
   /**
+   * Product name
+   */
+  name?: string;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
