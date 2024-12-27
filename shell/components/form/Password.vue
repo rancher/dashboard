@@ -42,6 +42,10 @@ export default {
       type:    String,
       default: _CREATE,
     },
+    tabbingIndex: {
+      type:    Number,
+      default: null,
+    },
   },
   data() {
     return { reveal: false };
@@ -68,6 +72,9 @@ export default {
       }
 
       return attributes;
+    },
+    hideShowLabel() {
+      return this.reveal ? this.t('action.hide') : this.t('action.show');
     }
   },
   watch: {
@@ -92,6 +99,9 @@ export default {
     },
     focus() {
       this.$refs.input.$refs.value.focus();
+    },
+    hideShowFn() {
+      this.reveal ? this.reveal = false : this.reveal = true;
     }
   }
 };
@@ -110,6 +120,7 @@ export default {
       :disabled="isRandom"
       :ignore-password-managers="ignorePasswordManagers"
       :mode="mode"
+      :tab-index="tabbingIndex"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>
@@ -127,17 +138,14 @@ export default {
           class="addon"
         >
           <a
-            v-if="reveal"
-            tabindex="-1"
             href="#"
-            @click.prevent.stop="reveal = false"
-          >{{ t('action.hide') }}</a>
-          <a
-            v-else
-            tabindex="-1"
-            href="#"
-            @click.prevent.stop="reveal=true"
-          >{{ t('action.show') }}</a>
+            :tab-index="tabbingIndex"
+            class="hide-show"
+            @click.prevent.stop="hideShowFn"
+            @keyup.space.prevent.stop="hideShowFn"
+          >
+            {{ hideShowLabel }}
+          </a>
         </div>
       </template>
     </LabeledInput>
@@ -157,10 +165,17 @@ export default {
   .password {
     display: flex;
     flex-direction: column;
+
     .labeled-input {
       .addon {
-          padding-left: 12px;
-          min-width: 65px;
+        padding-left: 12px;
+        min-width: 65px;
+
+        .hide-show:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+          border-radius: 4px;
+        }
       }
     }
     .genPassword {

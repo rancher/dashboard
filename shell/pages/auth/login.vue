@@ -439,6 +439,7 @@ export default {
                   data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
+                  :tab-index="0"
                 />
               </div>
               <div class="">
@@ -447,6 +448,7 @@ export default {
                   ref="password"
                   v-model:value="password"
                   data-testid="local-login-password"
+                  :tabbingIndex="1"
                   :label="t('login.password')"
                   autocomplete="password"
                 />
@@ -462,6 +464,7 @@ export default {
                   :waiting-label="t('login.loggingIn')"
                   :success-label="t('login.loggedIn')"
                   :error-label="t('asyncButton.default.error')"
+                  :tab-index="2"
                   @click="loginLocal"
                 />
                 <div
@@ -472,6 +475,7 @@ export default {
                     v-model:value="remember"
                     :label="t('login.remember.label')"
                     type="checkbox"
+                    :tabbingIndex="3"
                   />
                 </div>
               </div>
@@ -509,6 +513,7 @@ export default {
           <LocaleSelector
             :style="localeSelectorStyle"
             mode="login"
+            :tabbingIndex="4"
           />
         </div>
       </div>
