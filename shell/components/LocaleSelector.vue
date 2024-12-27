@@ -163,9 +163,11 @@ export default {
   &:hover {
     text-decoration: none;
   }
+}
 
-  &:focus-visible {
-    outline-offset: 2px;
-  }
+.locale-login-container:focus-visible {
+  @include focus-outline;
+  border-radius: 4px;
+  outline-offset: 2px;
 }
 </style>
