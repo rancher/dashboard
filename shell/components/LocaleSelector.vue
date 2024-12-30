@@ -68,6 +68,7 @@ export default {
       <div
         v-if="showLocale"
         role="menu"
+        :aria-label="t('locale.ariaLabel.menu')"
         class="locale-login-container"
         tabindex="0"
         @click="openLocaleSelector"
