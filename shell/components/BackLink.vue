@@ -13,15 +13,20 @@ export default {
     v-if="link && link.name"
     :to="link"
     class="back-link"
+    role="link"
+    aria-label="Back to previous page"
+    @keyup.space="$router.push(link)"
   >
-    <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
+    <span><i class="icon icon-chevron-left" /> {{ t('generic.back') }}</span>
   </router-link>
   <router-link
     v-else
     to="/"
     class="back-link"
+    aria-label="Back to home page"
+    @keyup.space="$router.push('/')"
   >
-    <i class="icon icon-chevron-left" /> {{ t('nav.home') }}
+    <span><i class="icon icon-chevron-left" /> {{ t('nav.home') }}</span>
   </router-link>
 </template>
 
@@ -34,5 +39,10 @@ export default {
     outline: 0;
     padding: 10px 0;
     width: fit-content;
+
+    &:focus-visible span {
+      @include focus-outline;
+      outline-offset: 4px;
+    }
   }
 </style>

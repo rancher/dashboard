@@ -108,6 +108,9 @@ export default {
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
         data-testid="about__diagnostics_button"
+        role="link"
+        :aria-label="t('about.ariaLabel.diagnostic')"
+        @keyup.space="$router.push({ name: 'diagnostic' })"
       >
         {{ t('about.diagnostic.title') }}
       </router-link>
@@ -126,6 +129,8 @@ export default {
             href="https://github.com/rancher/rancher"
             target="_blank"
             rel="nofollow noopener noreferrer"
+            role="link"
+            :aria-label="t('about.ariaLabel.rancherRepo')"
           >
             {{ t("about.versions.rancher") }}
           </a>
@@ -137,6 +142,8 @@ export default {
             href="https://github.com/rancher/dashboard"
             target="_blank"
             rel="nofollow noopener noreferrer"
+            role="link"
+            :aria-label="t('about.ariaLabel.dashboardRepo')"
           >
             {{ t("generic.dashboard") }}
           </a>
@@ -148,6 +155,8 @@ export default {
             href="https://github.com/rancher/cli"
             target="_blank"
             rel="nofollow noopener noreferrer"
+            role="link"
+            :aria-label="t('about.ariaLabel.cliRepo')"
           >
             {{ appName }} {{ t("about.versions.cli") }}
           </a>
@@ -159,6 +168,8 @@ export default {
             href="https://github.com/rancher/helm"
             target="_blank"
             rel="nofollow noopener noreferrer"
+            role="link"
+            :aria-label="t('about.ariaLabel.helmRepo')"
           >
             {{ t("about.versions.helm") }}
           </a>
@@ -170,6 +181,8 @@ export default {
             href="https://github.com/rancher/machine"
             target="_blank"
             rel="nofollow noopener noreferrer"
+            role="link"
+            :aria-label="t('about.ariaLabel.machineRepo')"
           >
             {{ t("about.versions.machine") }}
           </a>
@@ -178,9 +191,12 @@ export default {
     </table>
     <p class="pt-20">
       <a
+        class="release-notes-link"
         :href="releaseNotesUrl"
         target="_blank"
         rel="nofollow noopener noreferrer"
+        role="link"
+        :aria-label="t('about.ariaLabel.releaseNotes')"
       >
         {{ t('about.versions.releaseNotes') }}
       </a>
@@ -202,8 +218,13 @@ export default {
           <td>
             <a
               v-if="d.imageList"
+              tabindex="0"
               :data-testid="`image_list_download_link__${d.label}`"
+              role="link"
+              :aria-label="t('about.ariaLabel.downloadImages', { listName: t(d.label) })"
               @click="d.imageList"
+              @keyup.enter="d.imageList"
+              @keyup.space="d.imageList"
             >
               {{ t('asyncButton.download.action') }}
             </a>
@@ -230,6 +251,8 @@ export default {
             <a
               v-if="d.cliLink"
               :href="d.cliLink"
+              role="link"
+              :aria-label="t('about.ariaLabel.downloadCli', { os: t(d.label) })"
             >{{ d.cliFile }}</a>
           </td>
         </tr>
@@ -244,6 +267,11 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .release-notes-link:focus-visible {
+    @include focus-outline;
+    outline-offset: 4px;
   }
 
   table {
@@ -269,6 +297,11 @@ export default {
 
     a {
       cursor: pointer;
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: 4px;
+      }
     }
 
     .os {
