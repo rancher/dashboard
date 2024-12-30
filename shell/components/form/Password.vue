@@ -174,7 +174,6 @@ export default {
         .hide-show:focus-visible {
           @include focus-outline;
           outline-offset: 4px;
-          border-radius: 4px;
         }
       }
     }

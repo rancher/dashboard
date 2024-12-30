@@ -72,7 +72,6 @@ export default {
         tabindex="0"
         @click="openLocaleSelector"
         @blur.capture="closeLocaleSelector"
-        @focus.capture="openLocaleSelector"
         @keyup.enter="openLocaleSelector"
         @keyup.space="openLocaleSelector"
       >
@@ -86,6 +85,7 @@ export default {
           :autoHide="false"
           :flip="false"
           :container="false"
+          @focus.capture="openLocaleSelector"
         >
           <a
             data-testid="locale-selector"
@@ -154,7 +154,6 @@ export default {
 .hand:focus-visible {
   @include focus-outline;
   outline-offset: 4px;
-  border-radius: 4px;
 }
 
 .locale-chooser {
@@ -167,7 +166,6 @@ export default {
 
 .locale-login-container:focus-visible {
   @include focus-outline;
-  border-radius: 4px;
   outline-offset: 2px;
 }
 </style>

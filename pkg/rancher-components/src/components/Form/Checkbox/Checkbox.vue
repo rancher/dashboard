@@ -348,6 +348,7 @@ $fontColor: var(--input-label);
   input:focus-visible ~ .checkbox-custom {
     @include focus-outline;
     outline-offset: 2px;
+    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom {
