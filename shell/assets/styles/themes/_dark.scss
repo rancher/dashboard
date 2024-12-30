@@ -21,6 +21,7 @@
 
   // dark main text
   $lightest: #ffffff;
+  $keyboard-focus: #ffffff;
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
@@ -45,6 +46,7 @@
   --default-light-bg           : #{rgba($dark, 0.05)};
   --slider-light-bg            : #{rgba($darker, 1)};
   --slider-light-bg-right      : #{rgba($darker, 0)};
+  --primary-keyboard-focus     : #{$keyboard-focus};
 
   --muted                      : #{$disabled};
 
