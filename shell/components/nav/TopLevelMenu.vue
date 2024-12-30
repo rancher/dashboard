@@ -511,7 +511,7 @@ export default {
         tabindex="-1"
         role="navigation"
       >
-        <!-- Logo and name DONE!!! -->
+        <!-- Logo and name -->
         <div class="title">
           <div
             data-testid="top-level-menu"
@@ -547,7 +547,7 @@ export default {
         <!-- Menu body -->
         <div class="body">
           <div>
-            <!-- Home button DONE!!! -->
+            <!-- Home button -->
             <div @click="hide()">
               <router-link
                 class="option cluster selector home"
@@ -572,7 +572,7 @@ export default {
                 </div>
               </router-link>
             </div>
-            <!-- Search bar DONE!!! -->
+            <!-- Search bar -->
             <div
               v-if="showClusterSearch"
               class="clusters-search"
@@ -609,7 +609,7 @@ export default {
             </div>
           </div>
 
-          <!-- Harvester extras DONE!!! -->
+          <!-- Harvester extras -->
           <template v-if="appBar.length">
             <div class="category" />
             <div>
@@ -656,7 +656,7 @@ export default {
               class="clusters"
               :style="pinnedClustersHeight"
             >
-              <!-- Pinned Clusters DONE!!! -->
+              <!-- Pinned Clusters -->
               <div
                 v-if="showPinClusters && pinFiltered.length"
                 class="clustersPinned"
@@ -738,7 +738,7 @@ export default {
                 </div>
               </div>
 
-              <!-- Clusters Search result DONE!!! -->
+              <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
                   v-for="(c, index) in appBar.clustersFiltered"
@@ -768,7 +768,6 @@ export default {
                       v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
-                      <!-- HERE LOCAL CLUSTER! DONE!!! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -824,7 +823,7 @@ export default {
               </div>
             </div>
 
-            <!-- See all clusters DONE!!! -->
+            <!-- See all clusters -->
             <router-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
@@ -848,7 +847,7 @@ export default {
             </router-link>
           </template>
 
-          <!-- MULTI CLUSTER APPS DONE!!! -->
+          <!-- MULTI CLUSTER APPS -->
           <div class="category">
             <template v-if="multiClusterApps.length">
               <div
@@ -883,7 +882,7 @@ export default {
               </div>
             </template>
 
-            <!-- Configuration apps menu DONE!!! -->
+            <!-- Configuration apps menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -919,7 +918,7 @@ export default {
           </div>
         </div>
 
-        <!-- Footer DONE!!! -->
+        <!-- Footer -->
         <div
           class="footer"
         >
