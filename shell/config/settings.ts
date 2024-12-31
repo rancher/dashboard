@@ -250,7 +250,7 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: ['configmap', 'secret', 'pod', 'node'],
+            enabled: ['configmap', 'secret', 'pod', 'node', 'namespace'],
             generic: true,
           }
         }
