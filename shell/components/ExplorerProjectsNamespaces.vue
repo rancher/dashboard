@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME, NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
@@ -16,6 +15,7 @@ import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name:       'ListProjectNamespace',
@@ -23,7 +23,7 @@ export default {
     ExtensionPanel,
     Masthead,
     MoveModal,
-    ResourceTable,
+    PaginatedResourceTable,
     ButtonMultiAction,
   },
   mixins: [ResourceFetch],
@@ -46,18 +46,7 @@ export default {
     this.harvesterResourceQuotaSchema = this.$store.getters[`${ inStore }/schemaFor`](HCI.RESOURCE_QUOTA);
     this.schema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
     this.projectSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT);
-
-    if ( !this.schema ) {
-      // clusterReady:   When switching routes, it will cause clusterReady to change, causing itself to repeat rendering。
-      // this.$store.dispatch('loadingError', `Type ${ NAMESPACE } not found`);
-
-      return;
-    }
-
-    await this.$fetchType(NAMESPACE);
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
   },
-
   data() {
     return {
       loadResources:                [NAMESPACE],
@@ -276,6 +265,21 @@ export default {
     }
   },
   methods: {
+    filterRowsApi(existing) {
+      // We should add sorting by the projectId so we can group our namespaces by projects without the namespaces interleaving.
+      // I can't do that right now because the server side sorting is broken on my instance
+      return { ...existing, sort: undefined };
+    },
+
+    async fetchSecondaryResources() {
+      if ( !this.schema ) {
+        return;
+      }
+
+      // await this.$fetchType(NAMESPACE);
+      this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
+    },
+
     /**
      * Get PSA HTML to be displayed in the tooltips
      */
@@ -368,18 +372,9 @@ export default {
       return project?.description;
     },
 
-    clearSelection() {
+    afterNamespaceMoved() {
       this.$refs.table.clearSelection();
-    },
-
-    sortGenerationFn() {
-      // The sort generation function creates a unique value and is used to create a key including sort details.
-      // The unique key determines if the list is redrawn or a cached version is shown.
-      // Because we ensure the 'not in a project' group is there via a row, and timing issues, the unqiue key doesn't change
-      // after a namespace is removed... so the list won't update... so we need to inject a string to ensure the key is fresh
-      const base = defaultTableSortGenerationFn(this.schema, this.$store);
-
-      return base + (this.showMockNotInProjectGroup ? '-mock' : '');
+      this.$refs.table.refreshTableData();
     },
 
   }
@@ -418,16 +413,20 @@ export default {
       :type="extensionType"
       :location="extensionLocation"
     />
-    <ResourceTable
+    <PaginatedResourceTable
       ref="table"
-      v-bind="{...$attrs, class: null }"
       class="table project-namespaces-table"
       :schema="schema"
+
       :headers="headers"
-      :rows="filteredRows"
+      :pagination-headers="headers"
+      context="projectnamespaces"
+      :api-filter="filterRowsApi"
+      :namespaced="false"
       :groupable="true"
-      :sort-generation-fn="sortGenerationFn"
-      :loading="loading"
+      manualRefreshButtonSize="sm"
+      :fetchSecondaryResources="fetchSecondaryResources"
+      :fetchPageSecondaryResources="fetchSecondaryResources"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
     >
@@ -524,8 +523,8 @@ export default {
           </td>
         </tr>
       </template>
-    </ResourceTable>
-    <MoveModal @moving="clearSelection" />
+    </PaginatedResourceTable>
+    <MoveModal @moving="afterNamespaceMoved" />
   </div>
 </template>
 <style lang="scss" scoped>
