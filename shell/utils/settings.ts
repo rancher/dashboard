@@ -104,5 +104,9 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
   // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
   const safeDefaults = Object.assign({}, DEFAULT_PERF_SETTING);
 
-  return Object.assign(safeDefaults, perfSetting || {});
+  const r = Object.assign(safeDefaults, perfSetting || {});
+
+  r.serverPagination.stores.cluster.resources.enableSome.enabled.push('namespace');
+
+  return r;
 };

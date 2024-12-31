@@ -506,6 +506,10 @@ export default {
   },
 
   methods: {
+    refreshTableData() {
+      this.$refs.table.refreshTableData();
+    },
+
     keyAction(action) {
       const table = this.$refs.table;
 

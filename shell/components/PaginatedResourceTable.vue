@@ -54,6 +54,14 @@ export default defineComponent({
     },
 
     /**
+     * This just forwards the prop to the resource table. It allows you to pass a string's key which will show the referenced string as the group by tooltip
+     */
+    groupTooltip: {
+      type:    String,
+      default: null, // Automatic from schema
+    },
+
+    /**
      * Information may be required from resources other than the primary one shown per row
      *
      * This will fetch them ALL and will be run in a non-server-side pagination world
@@ -98,6 +106,16 @@ export default defineComponent({
 
       return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }
+  },
+
+  methods: {
+    refreshTableData() {
+      this.$refs.table.refreshTableData();
+    },
+
+    clearSelection() {
+      this.$refs.table.clearSelection();
+    }
   }
 });
 
@@ -106,12 +124,14 @@ export default defineComponent({
 <template>
   <div>
     <ResourceTable
+      ref="table"
       v-bind="$attrs"
       :schema="schema"
       :rows="rows"
       :alt-loading="canPaginate"
       :loading="loading"
       :groupable="groupable"
+      :group-tooltip="groupTooltip"
 
       :headers="safeHeaders"
       :namespaced="namespaced"

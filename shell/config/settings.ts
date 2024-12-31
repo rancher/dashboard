@@ -9,7 +9,8 @@ import {
   STORAGE_CLASS,
   PVC,
   PV,
-  WORKLOAD_TYPES
+  WORKLOAD_TYPES,
+  NAMESPACE
 } from '@shell/config/types';
 
 interface GlobalSettingRuleset {
@@ -267,7 +268,8 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
               CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
               HPA, INGRESS, SERVICE,
               PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-              WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+              WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+              NAMESPACE
             ],
             generic: true,
           }
