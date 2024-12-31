@@ -16,7 +16,7 @@ defaults:
 
 jobs:
   build-extension-catalog:
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@release-2.8
     permissions:
       actions: write
       contents: read
