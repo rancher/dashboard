@@ -182,7 +182,7 @@ export default {
             :mode="mode"
             :multiple="false"
             :loading="loading"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>
