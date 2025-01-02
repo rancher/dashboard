@@ -264,7 +264,10 @@ export default {
         :disabled="opt.disabled ? true : null"
         :class="{divider: opt.divider}"
         :data-testid="componentTestid + '-' + i + '-item'"
+        :tabindex="opt.divider ? -1 : 0"
         @click="execute(opt, $event)"
+        @keyup.enter="execute(opt, $event)"
+        @keyup.space="execute(opt, $event)"
       >
         <IconOrSvg
           v-if="opt.icon || opt.svg"
@@ -310,6 +313,11 @@ export default {
       display: flex;
       padding: 8px 10px;
       margin: 0;
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: -2px;
+      }
 
       &[disabled] {
         cursor: not-allowed  !important;

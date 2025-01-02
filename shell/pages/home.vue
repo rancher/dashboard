@@ -331,16 +331,18 @@ export default {
               {{ t('landing.seeWhatsNew') }}
             </div>
             <a
-              class="hand"
+              class="hand banner-link"
               :href="releaseNotesUrl"
+              role="link"
               target="_blank"
               rel="noopener noreferrer nofollow"
               @click.stop="showWhatsNew"
+              @keyup.stop.enter="showWhatsNew"
+              @keyup.stop.space="showWhatsNew"
             ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
-
       <div class="row home-panels">
         <div class="col main-panel">
           <div
@@ -359,7 +361,10 @@ export default {
                 </div>
                 <a
                   class="hand mr-20"
+                  tabindex="0"
                   @click.prevent.stop="showUserPrefs"
+                  @keyup.prevent.stop.enter="showUserPrefs"
+                  @keyup.prevent.stop.space="showUserPrefs"
                 ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
@@ -400,6 +405,8 @@ export default {
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
+                      role="link"
+                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
                     </router-link>
@@ -408,6 +415,8 @@ export default {
                       :to="importLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
+                      role="link"
+                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
                     </router-link>
@@ -416,6 +425,8 @@ export default {
                       :to="createLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
+                      role="link"
+                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
                     </router-link>
@@ -431,6 +442,8 @@ export default {
                         <router-link
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                          role="link"
+                          @keyup.space="$router.push({ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }})"
                         >
                           {{ row.nameDisplay }}
                         </router-link>
@@ -503,6 +516,10 @@ export default {
   </div>
 </template>
 <style lang='scss' scoped>
+  .banner-link:focus-visible {
+    @include focus-outline;
+  }
+
   .home-panels {
     display: flex;
     align-items: stretch;

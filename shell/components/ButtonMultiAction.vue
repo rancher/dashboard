@@ -33,6 +33,12 @@ const buttonClass = computed(() => {
 .borderless {
   background-color: transparent;
   border: none;
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
+
   &:hover, &:focus {
     background-color: var(--accent-btn);
     box-shadow: none;

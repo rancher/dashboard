@@ -1216,6 +1216,7 @@ export default {
       class="sortable-table"
       :class="classObject"
       width="100%"
+      role="table"
     >
       <THead
         v-if="showHeaders"
@@ -1445,6 +1446,8 @@ export default {
                       :data-testid="componentTestid + '-' + i + '-action-button'"
                       :borderless="true"
                       @click="handleActionButtonClick(i, $event)"
+                      @keyup.enter="handleActionButtonClick(i, $event)"
+                      @keyup.space="handleActionButtonClick(i, $event)"
                     />
                   </slot>
                 </td>

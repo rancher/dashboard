@@ -235,7 +235,11 @@ export default {
         :align="col.align || 'left'"
         :width="col.width"
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
+        :tabindex="col.sort ? 0 : -1"
+        class="sortable-table-head-element"
         @click.prevent="changeSort($event, col)"
+        @keyup.enter="changeSort($event, col)"
+        @keyup.space="changeSort($event, col)"
       >
         <div
           class="table-header-container"
@@ -427,6 +431,11 @@ export default {
       font-weight: normal;
       border: 0;
       color: var(--body-text);
+
+      &.sortable-table-head-element:focus-visible {
+        @include focus-outline;
+        outline-offset: -4px;
+      }
 
       .table-header-container {
         display: inline-flex;
