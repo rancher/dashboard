@@ -32,6 +32,7 @@ export default {
       type:    String,
       default: 'create'
     },
+
     loading: {
       default: false,
       type:    Boolean
@@ -169,6 +170,7 @@ export default {
         name="selectNode"
         :options="selectNodeOptions"
         :mode="mode"
+        :data-testid="'node-scheduling-selectNode'"
         @input="update"
       />
     </div>
@@ -182,6 +184,7 @@ export default {
             :mode="mode"
             :multiple="false"
             :loading="loading"
+            :data-testid="'node-scheduling-nodeSelector'"
             @update:value="update"
           />
         </div>
@@ -191,6 +194,7 @@ export default {
       <NodeAffinity
         v-model:value="nodeAffinity"
         :mode="mode"
+        :data-testid="'node-scheduling-nodeAffinity'"
         @input="update"
       />
     </template>
