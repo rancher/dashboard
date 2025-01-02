@@ -805,7 +805,10 @@ export default {
               :key="i"
               class="plugin"
               :data-testid="`extension-card-${plugin.name}`"
+              tabindex="0"
               @click="showPluginDetail(plugin)"
+              @keyup.enter="showPluginDetail(plugin)"
+              @keyup.space="showPluginDetail(plugin)"
             >
               <!-- plugin icon -->
               <div
@@ -1089,6 +1092,11 @@ export default {
     max-width: 540px;
     margin-bottom: 20px;
     cursor: pointer;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
 
     .plugin-icon {
       font-size: 40px;

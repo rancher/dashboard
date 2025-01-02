@@ -278,7 +278,10 @@ export default {
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"
+          tabindex="0"
           @click.prevent="select(tab.name, $event)"
+          @keyup.enter="select(tab.name, $event)"
+          @keyup.space="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
           <span
@@ -402,6 +405,12 @@ export default {
         span {
           text-decoration: underline;
         }
+      }
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: -4px;
+        text-decoration: none;
       }
     }
 

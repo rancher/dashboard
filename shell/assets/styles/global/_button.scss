@@ -77,6 +77,11 @@ button,
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
+
+  &:focus-visible {
+    @include focus-outline-primary;
+    outline-offset: -2px;
+  }
 }
 
 .role-secondary {
@@ -138,6 +143,12 @@ button,
   border: solid thin var(--primary);
   color: var(--primary);
   border-radius: 2px;
+
+
+  &:focus-visible {
+    @include focus-outline-primary;
+    outline-offset: -2px;
+  }
 }
 
 .icon-group i {
