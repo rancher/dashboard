@@ -14,7 +14,7 @@ export default {
     :to="link"
     class="back-link"
     role="link"
-    aria-label="Back to previous page"
+    :aria-label="t('generic.back')"
     @keyup.space="$router.push(link)"
   >
     <span><i class="icon icon-chevron-left" /> {{ t('generic.back') }}</span>
@@ -23,7 +23,7 @@ export default {
     v-else
     to="/"
     class="back-link"
-    aria-label="Back to home page"
+    :aria-label="t('nav.home')"
     @keyup.space="$router.push('/')"
   >
     <span><i class="icon icon-chevron-left" /> {{ t('nav.home') }}</span>

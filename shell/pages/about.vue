@@ -109,7 +109,7 @@ export default {
         class="btn role-primary"
         data-testid="about__diagnostics_button"
         role="link"
-        :aria-label="t('about.ariaLabel.diagnostic')"
+        :aria-label="t('about.diagnostic.title')"
         @keyup.space="$router.push({ name: 'diagnostic' })"
       >
         {{ t('about.diagnostic.title') }}
@@ -130,7 +130,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
             role="link"
-            :aria-label="t('about.ariaLabel.rancherRepo')"
+            :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.rancher`) })"
           >
             {{ t("about.versions.rancher") }}
           </a>
@@ -143,7 +143,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
             role="link"
-            :aria-label="t('about.ariaLabel.dashboardRepo')"
+            :aria-label="t('about.versions.githubRepo', {name: t(`generic.dashboard`)})"
           >
             {{ t("generic.dashboard") }}
           </a>
@@ -156,7 +156,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
             role="link"
-            :aria-label="t('about.ariaLabel.cliRepo')"
+            :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.cli`) })"
           >
             {{ appName }} {{ t("about.versions.cli") }}
           </a>
@@ -169,7 +169,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
             role="link"
-            :aria-label="t('about.ariaLabel.helmRepo')"
+            :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.helm`) })"
           >
             {{ t("about.versions.helm") }}
           </a>
@@ -182,7 +182,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
             role="link"
-            :aria-label="t('about.ariaLabel.machineRepo')"
+            :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.machine`) })"
           >
             {{ t("about.versions.machine") }}
           </a>
@@ -196,7 +196,7 @@ export default {
         target="_blank"
         rel="nofollow noopener noreferrer"
         role="link"
-        :aria-label="t('about.ariaLabel.releaseNotes')"
+        :aria-label="t('about.versions.releaseNotes')"
       >
         {{ t('about.versions.releaseNotes') }}
       </a>
@@ -221,7 +221,7 @@ export default {
               tabindex="0"
               :data-testid="`image_list_download_link__${d.label}`"
               role="link"
-              :aria-label="t('about.ariaLabel.downloadImages', { listName: t(d.label) })"
+              :aria-label="t('about.versions.downloadImages', { listName: t(d.label) })"
               @click="d.imageList"
               @keyup.enter="d.imageList"
               @keyup.space="d.imageList"
@@ -252,7 +252,7 @@ export default {
               v-if="d.cliLink"
               :href="d.cliLink"
               role="link"
-              :aria-label="t('about.ariaLabel.downloadCli', { os: t(d.label) })"
+              :aria-label="t('about.versions.downloadCli', { os: t(d.label) })"
             >{{ d.cliFile }}</a>
           </td>
         </tr>
@@ -267,11 +267,6 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-
-  .release-notes-link:focus-visible {
-    @include focus-outline;
-    outline-offset: 4px;
   }
 
   table {
@@ -297,11 +292,6 @@ export default {
 
     a {
       cursor: pointer;
-
-      &:focus-visible {
-        @include focus-outline;
-        outline-offset: 4px;
-      }
     }
 
     .os {

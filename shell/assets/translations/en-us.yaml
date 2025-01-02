@@ -272,18 +272,11 @@ suffix:
 # Components & Pages
 ##############################
 about:
-  ariaLabel:
-    diagnostic: Diagnostic page link
-    rancherRepo: Rancher repository
-    dashboardRepo: Rancher Dashboard repository
-    cliRepo: Rancher CLI repository
-    helmRepo: Rancher Helm repository
-    machineRepo: Rancher Machine repository
-    releaseNotes: Release Notes
-    downloadImages: "Download {listName} images list"
-    downloadCli: "Download CLI for {os}"
   title: About
   versions:
+    downloadImages: "Download {listName} images list"
+    downloadCli: "Download CLI for {os}"
+    githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
     version: Version

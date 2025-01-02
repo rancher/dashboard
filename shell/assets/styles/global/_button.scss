@@ -79,8 +79,8 @@ button,
   }
 
   &:focus-visible {
-    @include focus-outline-primary;
-    outline-offset: -2px;
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
