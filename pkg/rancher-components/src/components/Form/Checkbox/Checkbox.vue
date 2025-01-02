@@ -235,7 +235,7 @@ export default defineComponent({
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
-        :tabindex="isDisabled ? -1 : 0"
+        :tabindex="-1"
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"

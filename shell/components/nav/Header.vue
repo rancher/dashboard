@@ -505,6 +505,7 @@ export default {
 
     <div class="spacer" />
 
+    AAA
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
       <div
@@ -526,7 +527,12 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="header-action-import-yaml"
+            role="button"
+            tabindex="0"
+            aria-label="import yaml"
             @click="openImport()"
+            @keyup.enter="openImport()"
+            @keyup.space="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
           </button>
@@ -553,8 +559,13 @@ export default {
             :disabled="!shellEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            role="button"
+            tabindex="0"
+            aria-label="open kubectl shell"
             @shortkey="currentCluster.openShell()"
             @click="currentCluster.openShell()"
+            @keyup.enter="currentCluster.openShell()"
+            @keyup.space="currentCluster.openShell()"
           >
             <i class="icon icon-terminal icon-lg" />
           </button>
@@ -566,7 +577,12 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-download-kubeconfig"
+            role="button"
+            tabindex="0"
+            aria-label="download kube config"
             @click="currentCluster.downloadKubeConfig()"
+            @keyup.enter="currentCluster.downloadKubeConfig()"
+            @keyup.space="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-file icon-lg" />
           </button>
@@ -578,7 +594,12 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-copy-kubeconfig"
+            role="button"
+            tabindex="0"
+            aria-label="copy kube config"
             @click="copyKubeConfig($event)"
+            @keyup.enter="copyKubeConfig($event)"
+            @keyup.space="copyKubeConfig($event)"
           >
             <i
               v-if="kubeConfigCopying"
@@ -598,8 +619,13 @@ export default {
           type="button"
           class="btn header-btn role-tertiary"
           data-testid="header-resource-search"
+          role="button"
+          tabindex="0"
+          aria-label="open resource search"
           @shortkey="openSearch()"
           @click="openSearch()"
+          @keyup.enter="openSearch()"
+          @keyup.space="openSearch()"
         >
           <i class="icon icon-search icon-lg" />
         </button>
@@ -629,8 +655,13 @@ export default {
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+          role="button"
+          tabindex="0"
+          :aria-label="action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
+          @keyup.enter="handleExtensionAction(action, $event)"
+          @keyup.space="handleExtensionAction(action, $event)"
         >
           <IconOrSvg
             class="icon icon-lg"
@@ -649,9 +680,11 @@ export default {
         class="user user-menu"
         data-testid="nav_header_showUserMenu"
         tabindex="0"
-        @blur="showMenu(false)"
+        role="menu"
         @click="showMenu(true)"
-        @focus.capture="showMenu(true)"
+        @blur.capture="showMenu(false)"
+        @keyup.enter="showMenu(true)"
+        @keyup.space="showMenu(true)"
       >
         <v-dropdown
           :triggers="[]"
@@ -660,6 +693,7 @@ export default {
           :flip="false"
           :container="false"
           :placement="'bottom-end'"
+          @focus.capture="showMenu(true)"
         >
           <div class="user-image text-right hand">
             <img
@@ -668,6 +702,7 @@ export default {
               :class="{'avatar-round': principal.roundAvatar}"
               width="36"
               height="36"
+              alt="user avatar"
             >
             <i
               v-else
@@ -701,6 +736,9 @@ export default {
                   v-slot="{ href, navigate }"
                   custom
                   :to="{name: 'prefs'}"
+                  role="link"
+                  aria-label="preferences page"
+                  @keyup.space="$router.push({name: 'prefs'})"
                 >
                   <li
                     class="user-menu-item"
@@ -715,6 +753,9 @@ export default {
                   v-slot="{ href, navigate }"
                   custom
                   :to="{name: 'account'}"
+                  role="link"
+                  aria-label="account page"
+                  @keyup.space="$router.push({name: 'account'})"
                 >
                   <li
                     class="user-menu-item"
@@ -730,6 +771,7 @@ export default {
                   class="user-menu-item no-link"
                   @click="showSloModal"
                   @keypress.enter="showSloModal"
+                  @keyup.space="showSloModal"
                 >
                   <span>{{ t('nav.userMenu.logOut') }}</span>
                 </li>
@@ -739,6 +781,9 @@ export default {
                   v-slot="{ href, navigate }"
                   custom
                   :to="generateLogoutRoute"
+                  role="link"
+                  aria-label="logout"
+                  @keyup.space="$router.push(generateLogoutRoute)"
                 >
                   <li
                     class="user-menu-item"
@@ -1012,6 +1057,10 @@ export default {
 
       .user.user-menu {
         padding-top: 9.5px;
+
+        &:focus-visible .user-image {
+          @include focus-outline;
+        }
       }
 
       > .user {
