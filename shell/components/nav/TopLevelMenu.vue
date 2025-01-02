@@ -1203,7 +1203,7 @@ export default {
         &.router-link-active, &.active-menu-link {
           &:focus-visible {
             .top-menu-icon, .app-icon {
-              @include focus-outline-primary;
+              @include focus-outline;
             }
           }
 
@@ -1449,7 +1449,7 @@ export default {
       .option {
         &.router-link-active, &.active-menu-link {
           &:focus-visible {
-            @include focus-outline-primary;
+            @include focus-outline;
             border-radius: 0;
             outline-offset: -4px;
 
