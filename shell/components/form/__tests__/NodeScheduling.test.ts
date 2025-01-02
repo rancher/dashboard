@@ -9,8 +9,8 @@ const requiredSetup = () => {
         $store: {
           getters: {
             currentProduct: { inStore: 'cluster' },
-            'i18n/t':                  (text: string) => text,
-            t:                         (text: string) => text,
+            'i18n/t':       (text: string) => text,
+            t:              (text: string) => text,
           }
         }
       },
@@ -19,12 +19,9 @@ const requiredSetup = () => {
 };
 
 describe('component: NodeScheduling', () => {
+  const value = { nodeName: 'node-1' };
 
-  const value = {
-    nodeName: "node-1",
-  };
-
-  const nodes = ["node-0",'node-1'];
+  const nodes = ['node-0', 'node-1'];
 
   it.each([
     _VIEW,
@@ -34,7 +31,9 @@ describe('component: NodeScheduling', () => {
     const wrapper = mount(
       NodeScheduling,
       {
-        props: { mode, loading: false, value, nodes },
+        props: {
+          mode, loading: false, value, nodes
+        },
         ...requiredSetup(),
       }
     );
