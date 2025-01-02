@@ -509,6 +509,7 @@ export default defineComponent({
               role="link"
               target="_blank"
               rel="noopener noreferrer nofollow"
+              :aria-label="t('landing.whatsNewLink')"
               @click.stop="showWhatsNew"
               @keyup.stop.enter="showWhatsNew"
               @keyup.stop.space="showWhatsNew"
@@ -535,6 +536,7 @@ export default defineComponent({
                 <a
                   class="hand mr-20"
                   tabindex="0"
+                  :aria-label="t('landing.landingPrefs.userPrefs')"
                   @click.prevent.stop="showUserPrefs"
                   @keyup.prevent.stop.enter="showUserPrefs"
                   @keyup.prevent.stop.space="showUserPrefs"
@@ -589,6 +591,7 @@ export default defineComponent({
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
                       role="link"
+                      :aria-label="t('cluster.manageAction')"
                       @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
@@ -599,6 +602,7 @@ export default defineComponent({
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
                       role="link"
+                      :aria-label="t('cluster.importAction')"
                       @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
@@ -609,6 +613,7 @@ export default defineComponent({
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
                       role="link"
+                      :aria-label="t('generic.create')"
                       @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
@@ -626,6 +631,7 @@ export default defineComponent({
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
                           role="link"
+                          :aria-label="row.nameDisplay"
                           @keyup.space="$router.push({ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }})"
                         >
                           {{ row.nameDisplay }}
