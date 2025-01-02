@@ -96,7 +96,6 @@ export default defineConfig({
     customNodeIp:        process.env.CUSTOM_NODE_IP,
     customNodeKey:       process.env.CUSTOM_NODE_KEY,
     gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
-    gkeProjectId:        process.env.GKE_PROJECT_ID
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
