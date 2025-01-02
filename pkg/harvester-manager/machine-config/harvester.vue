@@ -3,7 +3,7 @@ import draggable from 'vuedraggable';
 import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import YAML from 'yaml';
-import isBase64 from 'is-base64';
+import { isBase64 } from '@shell/utils/string';
 
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import PodAffinity from '@shell/components/form/PodAffinity';

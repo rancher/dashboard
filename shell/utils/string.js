@@ -330,3 +330,9 @@ export function sanitizeIP(v) {
 export function xOfy(x, y) {
   return `${ typeof x === 'number' ? x : '?' }/${ typeof y === 'number' ? y : '?' }`;
 }
+
+export function isBase64(value) {
+  const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+
+  return base64regex.test(value);
+}
