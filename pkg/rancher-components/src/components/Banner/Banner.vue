@@ -67,6 +67,7 @@ export default defineComponent({
     :class="{
       [color]: true,
     }"
+    role="banner"
   >
     <div
       v-if="icon"
@@ -102,7 +103,12 @@ export default defineComponent({
       <div
         v-if="closable"
         class="banner__content__closer"
+        tabindex="0"
+        role="button"
+        aria-label="close"
         @click="$emit('close')"
+        @keyup.enter="$emit('close')"
+        @keyup.space="$emit('close')"
       >
         <i
           data-testid="banner-close"
@@ -226,6 +232,7 @@ $icon-size: 24px;
       width: $icon-size;
       line-height: $icon-size;
       text-align: center;
+      outline: none;
 
       .closer-icon {
         opacity: 0.7;
@@ -234,6 +241,11 @@ $icon-size: 24px;
           opacity: 1;
           color: var(--link);
         }
+      }
+
+      &:focus-visible i {
+        @include focus-outline;
+        outline-offset: 2px;
       }
     }
 
