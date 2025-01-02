@@ -105,7 +105,7 @@ export default defineComponent({
         class="banner__content__closer"
         tabindex="0"
         role="button"
-        aria-label="close"
+        :aria-label="t('generic.close')"
         @click="$emit('close')"
         @keyup.enter="$emit('close')"
         @keyup.space="$emit('close')"

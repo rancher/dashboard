@@ -56,7 +56,7 @@ export default {
       class="close-button"
       data-testid="graphic-banner-close"
       tabindex="0"
-      aria-label="close"
+      :aria-label="t('generic.close')"
       @click="hide()"
       @keyup.enter="hide()"
       @keyup.space="hide()"
