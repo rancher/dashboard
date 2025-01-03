@@ -77,6 +77,11 @@ button,
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-secondary {

@@ -274,6 +274,9 @@ suffix:
 about:
   title: About
   versions:
+    downloadImages: "Download {listName} images list"
+    downloadCli: "Download CLI for {os}"
+    githubRepo: "Open GitHub repository for the {name} component"
     title: Versions
     component: Component
     version: Version
