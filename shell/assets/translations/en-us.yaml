@@ -7516,6 +7516,7 @@ performance:
   label: UI Performance Settings
   settingName: Performance
   experimental: This setting is experimental and may be removed or updated in future versions.
+  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release. Please use the <a href="#ssp-setting" class="ml-5 mr-5">Server-side Pagination</a> setting instead.
   incrementalLoad:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
