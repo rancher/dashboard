@@ -67,6 +67,11 @@ export default {
         this.loadResources = loadResources || [resource];
         this.loadIndeterminate = loadIndeterminate || false;
       }
+
+      // If the custom component contains the paginated resource table it'll control the fetching
+      if (component?.components?.['PaginatedResourceTable']) {
+        this.componentWillFetch = true;
+      }
     }
 
     if ( !this.componentWillFetch ) {

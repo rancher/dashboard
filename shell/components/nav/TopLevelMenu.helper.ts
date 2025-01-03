@@ -378,7 +378,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 }
 
 /**
- * Helper designed to supply non-pagainted results for the top level menu cluster resources
+ * Helper designed to supply non-paginated results for the top level menu cluster resources
  */
 export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   constructor({ $store }: {

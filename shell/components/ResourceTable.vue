@@ -167,7 +167,7 @@ export default {
       default: false
     },
     /**
-     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     * Manual force the update of live and delayed cells. Change this number to kick off the update
      */
     forceUpdateLiveAndDelayed: {
       type:    Number,
