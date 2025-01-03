@@ -554,7 +554,6 @@ export default {
                 :to="{ name: 'home' }"
                 role="link"
                 :aria-label="t('nav.ariaLabel.homePage')"
-                @keyup.space="$router.push({ name: 'home' })"
               >
                 <svg
                   v-clean-tooltip="getTooltipConfig(t('nav.home'))"
@@ -610,10 +609,11 @@ export default {
           </div>
 
           <!-- Harvester extras -->
-          <template v-if="appBar.length">
+          <template v-if="hciApps.length">
             <div class="category" />
             <div>
               <a
+                v-if="isRancherInHarvester"
                 class="option"
                 tabindex="0"
                 @click="goToHarvesterCluster()"
@@ -637,7 +637,6 @@ export default {
                 :class="{'active-menu-link': a.isMenuActive }"
                 role="link"
                 :aria-label="`${t('nav.ariaLabel.harvesterCluster')} ${ a.label }`"
-                @keyup.space="$router.push(a.to)"
               >
                 <IconOrSvg
                   class="app-icon"
@@ -834,11 +833,6 @@ export default {
               } }"
               role="link"
               :aria-label="t('nav.ariaLabel.seeAll')"
-              @keyup.space="$router.push({name: 'c-cluster-product-resource', params: {
-                cluster: emptyCluster,
-                product: 'manager',
-                resource: 'provisioning.cattle.io.cluster'
-              } })"
             >
               <span>
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
@@ -869,7 +863,6 @@ export default {
                   :to="a.to"
                   role="link"
                   :aria-label="`${t('nav.ariaLabel.multiClusterApps')} ${ a.label }`"
-                  @keyup.space="$router.push(a.to)"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
@@ -903,7 +896,6 @@ export default {
                   :to="a.to"
                   role="link"
                   :aria-label="`${t('nav.ariaLabel.configurationApps')} ${ a.label }`"
-                  @keyup.space="$router.push(a.to)"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
@@ -931,7 +923,6 @@ export default {
               :to="{name: 'support'}"
               role="link"
               :aria-label="t('nav.ariaLabel.support')"
-              @keyup.space="$router.push({ name: 'support' })"
             >
               {{ t('nav.support', {hasSupport}) }}
             </router-link>
@@ -945,7 +936,6 @@ export default {
               :to="{ name: 'about' }"
               role="link"
               :aria-label="t('nav.ariaLabel.about')"
-              @keyup.space="$router.push({ name: 'about' })"
             >
               {{ aboutText }}
             </router-link>

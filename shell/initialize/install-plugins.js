@@ -30,10 +30,6 @@ import ShortKey from '@shell/plugins/shortkey';
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
 
-// prevent tooltip from being displayed with focus
-// as it becomes a focusable element that disrupts keyboard navigation
-FloatingVue.options.themes.tooltip.triggers = ['hover', 'touch'];
-
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
   vueApp.use(PortalVue);
