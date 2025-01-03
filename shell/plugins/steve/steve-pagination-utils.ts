@@ -4,15 +4,29 @@ import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTE
 import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
-  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+  CAPI,
+  CATALOG,
+  CONFIG_MAP, MANAGEMENT, EVENT, NAMESPACE, NODE, POD, PVC,
+  PV,
+  STORAGE_CLASS,
+  SERVICE,
+  INGRESS,
+  WORKLOAD_TYPES,
+  HPA
 } from '@shell/config/types';
+import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
+import { KubeLabelSelector, KubeLabelSelectorExpression } from 'types/kube/kube-api';
+
+interface NamespaceWithName extends Namespace {
+  name: string,
+}
 
 class NamespaceProjectFilters {
   /**
    * User needs all resources.... except if there's some settings which should remove resources in specific circumstances
    */
-  protected handlePrefAndSettingFilter(allNamespaces: Namespace[], showDynamicRancherNamespaces: boolean, productHidesSystemNamespaces: boolean): PaginationParamFilter[] {
+  protected handlePrefAndSettingFilter(allNamespaces: NamespaceWithName[], showDynamicRancherNamespaces: boolean, productHidesSystemNamespaces: boolean): PaginationParamFilter[] {
     // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
@@ -38,7 +52,7 @@ class NamespaceProjectFilters {
    *
    * Users resources are those not in system namespaces
    */
-  protected handleSystemOrUserFilter(allNamespaces: Namespace[], isAllSystem: boolean, isAllUser: boolean) {
+  protected handleSystemOrUserFilter(allNamespaces: NamespaceWithName[], isAllSystem: boolean, isAllUser: boolean) {
     const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
     // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has
@@ -107,8 +121,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     '': [// all types
       { field: 'metadata.name' },
       { field: 'metadata.namespace' },
-      // { field: 'id' }, // Pending API support
-      // { field: 'metadata.state.name' }, // Pending API support
+      { field: 'id' },
+      { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
     ],
     [NODE]: [
@@ -122,12 +136,91 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [MANAGEMENT.NODE]: [
       { field: 'status.nodeName' },
     ],
+    [MANAGEMENT.NODE_POOL]: [
+      { field: 'spec.clusterName' },
+    ],
+    [MANAGEMENT.NODE_TEMPLATE]: [
+      { field: 'spec.clusterName' },
+    ],
+    [MANAGEMENT.CLUSTER]: [
+      { field: 'spec.internal' },
+      { field: 'spec.displayName' },
+      { field: `status.provider` },
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+
+    ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
+    ],
+    [CAPI.MACHINE]: [
+      { field: 'spec.clusterName' }
+    ],
+    [EVENT]: [
+      { field: '_type' },
+      { field: 'reason' },
+      { field: 'involvedObject.kind' },
+      { field: 'message' },
+    ],
+    [CATALOG.CLUSTER_REPO]: [
+      { field: 'spec.gitRepo' },
+      { field: 'spec.gitBranch' },
+      { field: `metadata.annotations[clusterrepo.cattle.io/hidden]` }
+    ],
+    [CATALOG.OPERATION]: [
+      { field: 'status.action' },
+      { field: 'status.namespace' },
+      { field: 'status.releaseName' },
+    ],
+    [CAPI.RANCHER_CLUSTER]: [
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `status.provider` },
+      { field: 'status.clusterName' },
+    ],
+    [SERVICE]: [
+      { field: 'spec.type' },
+    ],
+    [INGRESS]: [
+      // { field: 'spec.ingressClassName' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+    ],
+    [HPA]: [
+      // { field: 'spec.scaleTargetRef.name' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      // { field: 'spec.minReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      // { field: 'spec.maxReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      // { field: 'spec.currentReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+    ],
+    [PVC]: [
+      { field: 'spec.volumeName' },
+    ],
+    [PV]: [
+      { field: 'status.reason' },
+      { field: 'spec.persistentVolumeReclaimPolicy' },
+    ],
+    [STORAGE_CLASS]: [
+      { field: 'provisioner' },
+      // { field: `metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS]` }, // Pending API Support - https://github.com/rancher/rancher/issues/48453
+    ],
+    [CATALOG.APP]: [
+      { field: 'spec.chart.metadata.name' }
+    ],
+    [WORKLOAD_TYPES.CRON_JOB]: [
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+    ],
+    [WORKLOAD_TYPES.DAEMON_SET]: [
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+    ],
+    [WORKLOAD_TYPES.DEPLOYMENT]: [
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+    ],
+    [WORKLOAD_TYPES.JOB]: [
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+    ],
+    [WORKLOAD_TYPES.STATEFUL_SET]: [
+      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
     ]
+
   }
 
   private convertArrayPath(path: string): string {
@@ -153,7 +246,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     showDynamicRancherNamespaces,
     productHidesSystemNamespaces,
   }: {
-    allNamespaces: Namespace[],
+    allNamespaces: NamespaceWithName[],
     selection: string[],
     /**
      * There is no user provided filter
@@ -274,6 +367,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       }
     }
 
+    if (opt.pagination.labelSelector) {
+      const filters = this.convertLabelSelectorPaginationParams(schema, opt.pagination.labelSelector);
+
+      if (filters) {
+        params.push(filters);
+      }
+    }
+
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
@@ -295,18 +396,21 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     state.checked.push(field);
 
     // First check in our hardcoded list of supported filters
-    if ([
-      StevePaginationUtils.VALID_FIELDS[''], // Global
-      StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
-    ].find((fields) => fields?.find((f) => {
-      if (f.startsWith) {
-        if (field.startsWith(f.field)) {
-          return true;
+    if (
+      process.env.NODE_ENV === 'dev' &&
+      [
+        StevePaginationUtils.VALID_FIELDS[''], // Global
+        StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
+      ].find((fields) => fields?.find((f) => {
+        if (f.startsWith) {
+          if (field.startsWith(f.field)) {
+            return true;
+          }
+        } else {
+          return field === f.field;
         }
-      } else {
-        return field === f.field;
-      }
-    }))) {
+      }))
+    ) {
       return;
     }
 
@@ -362,6 +466,94 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     return res;
+  }
+
+  private convertLabelSelectorPaginationParams(schema: Schema, labelSelector: KubeLabelSelector): string {
+    // Get a list of matchExpressions
+    const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
+
+    // matchLabels are just shortcuts on matchExpressions, for ease convert them
+    if (labelSelector.matchLabels) {
+      Object.entries(labelSelector.matchLabels).forEach(([key, value]) => {
+        const expression: KubeLabelSelectorExpression = {
+          key,
+          values:   [value],
+          operator: 'In'
+        };
+
+        expressions.push(expression);
+      });
+    }
+
+    // TODO: RC gt | lt only applicable to NodeSelector. can check on node schema??
+
+    // concert all matchExpressions into string params
+    const filters: string[] = expressions.reduce((res, exp) => {
+      const labelKey = `metadata.labels[${ exp.key }]`;
+
+      // TODO: RC console for all below
+      switch (exp.operator) {
+      case 'In':
+        if (!exp.values?.length) {
+          // The operator 'IN' must have `values` specified
+          return res;
+        }
+
+        res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
+        break;
+      case 'NotIn':
+        if (!exp.values?.length) {
+          // The operator 'NotIn' must have `values` specified
+          return res;
+        }
+
+        res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
+        break;
+      case 'Exists':
+        if (exp.values?.length) {
+          // The operator 'Exist' must not have `values` specified
+          return res;
+        }
+
+        res.push(`filter=${ labelKey }`);
+        break;
+      case 'DoesNotExist':
+        if (exp.values?.length) {
+          // The operator 'DoesNotExist' must not have `values` specified
+          return res;
+        }
+
+        res.push(`filter=!${ labelKey }`);
+        break;
+      case 'Gt': // TODO: RC test
+        if (typeof exp.values !== 'string') {
+          // The operator 'Gt' must not have `values` that is a string
+          return res;
+        }
+        res.push(`filter=${ labelKey } > (${ exp.values })`);
+        break;
+      case 'Lt': // TODO: RC test
+        if (typeof exp.values !== 'string') {
+          // The operator 'Lt' must not have `values` that is a string
+          return res;
+        }
+        res.push(`filter=${ labelKey } < (${ exp.values })`);
+        break;
+      }
+
+      return res;
+    }, [] as string[]);
+
+    return filters.join(',');
+
+    // foo IN [bar] => ?filter=foo+IN+(bar)
+    // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
+    // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
+    // bbb Exists=> ?filter=bbb
+    // ccc DoesNotExist ?filter=!bbb. # or %21bbb
+
+    // ddd Gt 1=> ?filter=ddd+<+1
+    // eee Lt 2=> ?filter=eee+>+2
   }
 }
 

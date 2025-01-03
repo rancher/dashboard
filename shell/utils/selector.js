@@ -221,7 +221,21 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
     }
   }
 
-  return true;
+  // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#poddisruptionbudgetspec-v1-policy
+  // `A null selector will match no pods, while an empty ({}) selector will select all pods within the namespace.`
+
+  // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#servicespec-v1-core
+  // `If empty or not present, the service is assumed to have an external process managing its endpoints` --> none
+
+  // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#networkpolicyspec-v1-networking-k8s-io
+  // `An empty podSelector matches all pods in this namespace.`
+
+  // https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  // null selector - matches no objects
+  // empty selector - matches all objects
+  // populated selector - matches whatever it does
+
+  return true; // TODO: RC if there's no rules... test matches??
 }
 
 export function matching(ary, selector, labelKey) {

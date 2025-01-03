@@ -505,7 +505,8 @@ export default {
             class="live-date"
             :value="value.creationTimestamp"
           /></span>
-          <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
+          <!-- TODO: RC ?? -->
+          <!-- <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span> -->
         </div>
       </div>
       <slot name="right">

@@ -1,6 +1,8 @@
 import { IngressPagePo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
+const cluster = 'local';
 const ingressPagePo = new IngressPagePo();
 
 describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
@@ -32,12 +34,14 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });
 
     it('validate services table in empty state', () => {
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
+
       ingressesNoData();
-      ingressPagePo.goTo();
+      IngressPagePo.navTo();
       ingressPagePo.waitForPage();
       cy.wait('@ingressesNoData');
 
@@ -101,7 +105,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     });
 
     after('clean up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
     });
   });
 });

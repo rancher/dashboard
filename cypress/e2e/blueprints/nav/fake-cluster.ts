@@ -2474,7 +2474,7 @@ function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmt
 }
 
 export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-prov-cluster-id', fakeMgmtClusterId = 'some-mgmt-cluster-id', addEditClusterCapabilities = false): {} {
-  const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-decription';
+  const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
   const fakeNavClusterData = generateFakeNavClusterData(fakeProvClusterId, fakeMgmtClusterId, addEditClusterCapabilities);
 
   // add cluster to fleet clusters for testing https://github.com/rancher/dashboard/issues/9984
