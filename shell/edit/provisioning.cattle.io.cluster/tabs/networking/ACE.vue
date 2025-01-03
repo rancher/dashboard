@@ -49,7 +49,7 @@ export default {
     <h3 v-t="'cluster.tabs.ace'" />
 
     <RadioGroup
-      v-model="config.enabled"
+      v-model:value="config.enabled"
       name="enabled"
       :options="[false, true]"
       :labels="[t('generic.disabled'), t('generic.enabled')]"
@@ -60,7 +60,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="config.fqdn"
+            v-model:value="config.fqdn"
             :mode="mode"
             label="FQDN"
             :tooltip="t('cluster.rke2.address.fqdn.toolTip')"
@@ -68,7 +68,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="config.caCerts"
+            v-model:value="config.caCerts"
             :mode="mode"
             :label="t('cluster.rke2.address.caCerts.label')"
             type="multiline"

@@ -111,8 +111,10 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
-    ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
+    ...mapGetters(['isStandaloneHarvester', 'productId', 'clusterId', 'currentProduct', 'rootProduct', 'isSingleProduct', 'namespaceMode', 'isExplorer', 'isVirtualCluster']),
+    ...mapGetters({
+      locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales', hasMultipleLocales: 'i18n/hasMultipleLocales'
+    }),
     ...mapGetters('type-map', ['activeProducts']),
 
     favoriteTypes: mapPref(FAVORITE_TYPES),
@@ -400,10 +402,12 @@ export default {
   <nav class="side-nav">
     <!-- Actual nav -->
     <div class="nav">
-      <template v-for="(g) in groups">
+      <template
+        v-for="(g) in groups"
+        :key="g.name"
+      >
         <Group
           ref="groups"
-          :key="g.name"
           id-prefix=""
           class="package"
           :group="g"
@@ -435,11 +439,11 @@ export default {
       </span>
 
       <!-- locale selector -->
-      <span v-if="isSingleProduct">
-        <v-popover
-          popover-class="localeSelector"
+      <span v-if="isSingleProduct && hasMultipleLocales && !isStandaloneHarvester">
+        <v-dropdown
+          popperClass="localeSelector"
           placement="top"
-          trigger="click"
+          :triggers="['click']"
         >
           <a
             data-testid="locale-selector"
@@ -448,7 +452,7 @@ export default {
             {{ locale }}
           </a>
 
-          <template slot="popover">
+          <template #popper>
             <ul
               class="list-unstyled dropdown"
               style="margin: -1px;"
@@ -463,7 +467,7 @@ export default {
               </li>
             </ul>
           </template>
-        </v-popover>
+        </v-dropdown>
       </span>
     </div>
     <!-- SideNav footer alternative -->
@@ -480,7 +484,7 @@ export default {
       <template v-else>
         <span
           v-if="isVirtualCluster && isExplorer"
-          v-tooltip="{content: harvesterVersion, placement: 'top'}"
+          v-clean-tooltip="{content: harvesterVersion, placement: 'top'}"
           class="clip text-muted ml-5"
         >
           (Harvester-{{ harvesterVersion }})
@@ -505,7 +509,7 @@ export default {
     overflow-y: auto;
 
     // h6 is used in Group element
-    ::v-deep h6 {
+    :deep() h6 {
       margin: 0;
       letter-spacing: normal;
       line-height: 15px;

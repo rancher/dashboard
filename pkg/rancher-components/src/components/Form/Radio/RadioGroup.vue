@@ -103,6 +103,8 @@ export default defineComponent({
     }
   },
 
+  emits: ['update:value'],
+
   computed: {
     /**
      * Creates a collection of Options from the provided props.
@@ -162,7 +164,7 @@ export default defineComponent({
         newIndex = 0;
       }
 
-      this.$emit('input', opts[newIndex].value);
+      this.$emit('update:value', opts[newIndex].value);
     }
   }
 });
@@ -208,17 +210,16 @@ export default defineComponent({
     >
       <div
         v-for="(option, i) in normalizedOptions"
-        :key="name+'-'+i"
+        :key="i"
       >
         <slot
-          :listeners="$listeners"
+          :v-bind="$attrs"
           :option="option"
           :is-disabled="isDisabled"
           :name="i"
         >
           <!-- Default input -->
           <RadioButton
-            :key="name+'-'+i"
             :name="name"
             :value="value"
             :label="option.label"
@@ -226,7 +227,7 @@ export default defineComponent({
             :val="option.value"
             :disabled="isDisabled"
             :mode="mode"
-            v-on="$listeners"
+            @update:value="$emit('update:value', $event)"
           />
         </slot>
       </div>

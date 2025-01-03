@@ -1,6 +1,7 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+// import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const defaultStubs = {
   Banner:        true,
@@ -10,36 +11,52 @@ const defaultStubs = {
 };
 
 const defaultCiliumStubs = {
-  Banner:        true,
   LabeledSelect: true,
   YamlEditor:    true,
 };
 
-const defaultComputed = {
-  showk8s21LegacyWarning() {
-    return false;
-  },
-  profileOptions() {
-    return [{ label: 'anything', value: 'anything' }];
-  }
-};
+// const defaultComputed = {
+//   showk8s21LegacyWarning() {
+//     return false;
+//   },
+//   profileOptions() {
+//     return [{ label: 'anything', value: 'anything' }];
+//   }
+// };
 
 const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
 const mockServerArgs = { disable: {}, cni: { options: [] } };
 
-const rke2Versions =
-  [
-    {
-      id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    },
-    {
-      id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    },
-    {
-      id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
-    }
-  ];
+const rke2Versions = [
+  {
+    id: 'v1.31.0+rke2r1', value: 'v1.31.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.30.0+rke2r1', value: 'v1.30.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.29.1+rke2r1', value: 'v1.29.1+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  }
+];
 const k3sVersions = [
+  {
+    id: 'v1.31.0+k3s1', value: 'v1.31.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.30.0+k3s1', value: 'v1.30.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.29.1+k3s1', value: 'v1.29.1+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
   {
     id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
   },
@@ -58,7 +75,8 @@ const defaultGetters = {
   'current_store/all':              jest.fn(),
   'i18n/t':                         jest.fn(),
   'i18n/withFallback':              jest.fn(),
-  'plugins/cloudProviderForDriver': jest.fn()
+  'plugins/cloudProviderForDriver': jest.fn(),
+  'features/get':                   jest.fn(),
 };
 
 const defaultMocks = {
@@ -88,11 +106,11 @@ const newOffValue = { ipv6: { enabled: false } };
 const bmOnValue = { bandwidthManager: { enabled: true } };
 const bmOffValue = { bandwidthManager: { enabled: false } };
 
-function createBasicsTab(version : string, userChartValues: any) {
+function createBasicsTab(version : string, userChartValues: any, options = {}) {
   const k8s = mockVersionOptions.find((v) => v.id === version) || mockVersionOptions[0];
   const label = 'whatever';
   const wrapper = mount(Basics, {
-    propsData: {
+    props: {
       mode:  'create',
       value: {
         spec: {
@@ -122,13 +140,17 @@ function createBasicsTab(version : string, userChartValues: any) {
       showCloudProvider:           false,
       unsupportedCloudProvider:    false,
       cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+      ...options
     },
-    computed: defaultComputed,
-    mocks:    {
-      ...defaultMocks,
-      $store: { getters: defaultGetters },
+
+    global: {
+      mocks: {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+
+      stubs: defaultCiliumStubs,
     },
-    stubs: defaultCiliumStubs
   });
 
   return wrapper;
@@ -148,7 +170,7 @@ describe('component: Basics', () => {
   it.each(mockVersionOptions)('should display PSA option', (k8s) => {
     const label = 'whatever';
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -176,17 +198,18 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toBe(`${ label } (Current)`);
+    expect((wrapper.vm as unknown as any).psaOptions[0].label).toBe(`${ label } (Current)`);
   });
 
   it.each([
@@ -199,7 +222,7 @@ describe('component: Basics', () => {
   ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
     const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           spec: {
@@ -227,28 +250,28 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toStrictEqual(`${ label } (Current)`);
+    expect((wrapper.vm as unknown as any).psaOptions[0].label).toStrictEqual(`${ label } (Current)`);
   });
 
   it.each([
-    ['anything', false, true],
+    ['anything', false, false],
     ['', false, false],
-    ['', true, false],
-  ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
+  ])('given CIS profile of %p and override PSACT checkbox state of %p, it should set the PSACT dropdown as disabled %p', (cis, override, disabled) => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
     const wrapper = mount(Basics, {
-      propsData: {
+      props: {
         mode:  'create',
         value: {
           agentConfig: { profile: cis, 'cloud-provider-name': '' },
@@ -281,17 +304,20 @@ describe('component: Basics', () => {
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
       },
-      computed: { ...defaultComputed },
-      mocks:    {
-        ...defaultMocks,
-        $store: { getters: defaultGetters },
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+
+        stubs: defaultStubs,
       },
-      stubs: defaultStubs
     });
 
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
+    const select = wrapper.getComponent('[data-testid="rke2-custom-edit-psa"]');
 
-    expect((select.vm as unknown as any).disabled).toBe(disabled);
+    expect(select.props().disabled).toBe(disabled);
   });
 
   describe('cilium CNI', () => {
@@ -304,8 +330,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox - should enable ipv6
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Check and update user values with the emitted value
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -316,8 +342,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox to turn ipv6 off again
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Update from the emitted value
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -334,8 +360,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox - should enable ipv6
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Check and update user values with the emitted value
       let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -346,8 +372,8 @@ describe('component: Basics', () => {
 
       // Click the checkbox to turn ipv6 off again
       await ipv6Checkbox.find('label').trigger('click');
-      await ipv6Checkbox.vm.$nextTick();
-      await wrapper.vm.$nextTick();
+      await nextTick();
+      await nextTick();
 
       // Update from the emitted value
       latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -360,11 +386,11 @@ describe('component: Basics', () => {
       const wrapper = createBasicsTab('v1.25.0+rke2r1', userChartValues);
 
       // Check that the checkbox is checked
-      const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]') as Checkbox;
+      const ipv6Checkbox = wrapper.find('[data-testid="cluster-rke2-cni-ipv6-checkbox"]').find('input');
 
       expect(ipv6Checkbox.exists()).toBe(true);
       expect(ipv6Checkbox.isVisible()).toBe(true);
-      expect(ipv6Checkbox.vm.value).toBe(true);
+      expect(ipv6Checkbox.attributes().value).toBe('true');
 
       // Change the kubernetes version that needs the legacy format
       const k8s123 = mockVersionOptions.find((v) => v.id === 'v1.23.0+rke2r1');
@@ -394,8 +420,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable bandwidth manager
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Check and update user values with the emitted value
     let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
@@ -406,8 +432,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox to turn ipv6 off again
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Update from the emitted value
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -422,8 +448,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable bandwidth manager
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
 
@@ -431,8 +457,8 @@ describe('component: Basics', () => {
 
     // Click the checkbox - should enable ipv6
     await ipv6Checkbox.find('label').trigger('click');
-    await ipv6Checkbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     // Check and update user values with the emitted value
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
@@ -461,13 +487,78 @@ describe('component: Basics', () => {
 
     // Click the checkbox to turn bandwidth manager off again
     await bmCheckbox.find('label').trigger('click');
-    await bmCheckbox.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    await nextTick();
+    await nextTick();
 
     latest = (wrapper.emitted()['cilium-values-changed'] || [])[2][0];
 
     const expected = '{"bandwidthManager":{"test":true,"enabled":true},"ipv6":{"test":true,"enabled":false}}';
 
     expect(JSON.stringify(latest)).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['create', true, true, '%cluster.banner.cloudProviderUnsupportedAzure%'],
+    ['create', false, true, undefined],
+    ['create', true, false, undefined],
+    ['edit', true, true, undefined],
+    ['view', true, true, undefined],
+  ])('should display Unsupported Azure provider warning message', (mode, showCloudProvider, isAzureProviderUnsupported, warningMessage) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider,
+      isAzureProviderUnsupported,
+      canAzureMigrateOnEdit: true
+    });
+
+    let cloudProviderUnsupportedAzureWarningMessage;
+    const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"]');
+
+    if (warningElement.exists()) {
+      cloudProviderUnsupportedAzureWarningMessage = warningElement.element.textContent;
+    }
+
+    expect(cloudProviderUnsupportedAzureWarningMessage).toBe(warningMessage);
+  });
+
+  it.each([
+    ['edit', true, true, '%cluster.banner.cloudProviderMigrateAzure%'],
+    ['edit', false, true, undefined],
+    ['edit', true, false, undefined],
+    ['create', true, true, undefined],
+    ['view', true, true, undefined],
+  ])('should display Azure Migration warning message', (mode, showCloudProvider, canAzureMigrateOnEdit, warningMessage) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider,
+      canAzureMigrateOnEdit,
+      isAzureProviderUnsupported: true,
+    });
+
+    let cloudProviderMigrateAzureWarningMessage;
+    const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"]');
+
+    if (warningElement.exists()) {
+      cloudProviderMigrateAzureWarningMessage = warningElement.element.textContent;
+    }
+
+    expect(cloudProviderMigrateAzureWarningMessage).toBe(warningMessage);
+  });
+
+  it.each([
+    ['create', true, false],
+    ['edit', false, true],
+    ['edit', true, false],
+    ['view', true, false],
+  ])('should disable Cloud Provider', (mode, canAzureMigrateOnEdit, disabled) => {
+    const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
+      mode,
+      showCloudProvider: true,
+      canAzureMigrateOnEdit,
+    });
+
+    const cloudProvider = wrapper.find('[data-testid="clusterBasics__cloudProvider"]');
+
+    expect(cloudProvider.attributes().disabled).toBe(disabled.toString());
   });
 });

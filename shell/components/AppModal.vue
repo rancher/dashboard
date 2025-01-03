@@ -2,7 +2,10 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name:         'AppModal',
+  name: 'AppModal',
+
+  emits: ['close'],
+
   inheritAttrs: false,
   props:        {
     /**
@@ -57,9 +60,13 @@ export default defineComponent({
   },
   computed: {
     modalWidth(): string {
-      const uom = typeof (this.width) === 'number' ? 'px' : '';
+      if (this.isValidWidth(this.width)) {
+        const uom = typeof (this.width) === 'number' ? 'px' : '';
 
-      return `${ this.width }${ uom }`;
+        return `${ this.width }${ uom }`;
+      }
+
+      return '600px';
     },
     stylesPropToObj(): object {
       return this.styles.split(';')
@@ -81,7 +88,7 @@ export default defineComponent({
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
   },
   methods: {
@@ -98,17 +105,24 @@ export default defineComponent({
       if (this.clickToClose && event.key === 'Escape') {
         this.$emit('close');
       }
+    },
+    isValidWidth(value: number | string) {
+      if (typeof value === 'number') {
+        return value > 0;
+      }
+
+      if (typeof value === 'string') {
+        return /^(0*(?:[1-9][0-9]*|0)\.?\d*)+(px|%)$/.test(value);
+      }
+
+      return false;
     }
   }
 });
 </script>
 
 <template>
-  <mounting-portal
-    mountTo="#modals"
-    name="source"
-    append
-  >
+  <teleport to="#modals">
     <transition
       name="modal-fade"
       appear
@@ -130,7 +144,7 @@ export default defineComponent({
         </div>
       </div>
     </transition>
-  </mounting-portal>
+  </teleport>
 </template>
 
 <style lang="scss">

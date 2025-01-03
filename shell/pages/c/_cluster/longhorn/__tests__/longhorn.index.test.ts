@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 
 import IconMessage from '@shell/components/IconMessage';
@@ -21,6 +22,7 @@ describe('page: LonghornOverview', () => {
     $store:      {
       dispatch: () => jest.fn,
       getters:  {
+        currentCluster:      { id: '_' },
         currentProduct:      () => 'cluster',
         'cluster/findAll':   () => jest.fn(),
         'cluster/schemaFor': () => jest.fn(),
@@ -28,12 +30,14 @@ describe('page: LonghornOverview', () => {
         'i18n/t':            () => jest.fn(),
       },
     },
+    $route: { params: { cluster: '_' } }
   };
 
   const createWrapper = (overrides?: any) => {
     return shallowMount(LonghornOverview, {
-      mocks: commonMocks,
       ...overrides,
+
+      global: { mocks: commonMocks },
     });
   };
 
@@ -60,8 +64,7 @@ describe('page: LonghornOverview', () => {
     }
 
     const wrapper = createWrapper({
-      computed: { currentCluster: () => ({ id: '_' }) },
-      stubs:    {
+      stubs: {
         Banner:    { template: '<span />' },
         LazyImage: { template: '<span />' },
       }
@@ -69,7 +72,7 @@ describe('page: LonghornOverview', () => {
 
     wrapper.setData({ uiServices: [longhornFrontend] });
 
-    await wrapper.vm.$nextTick();
+    await nextTick();
 
     const containsProxyUrl = wrapper.vm.externalLinks.find((link: LinkConfig) => link.link);
 

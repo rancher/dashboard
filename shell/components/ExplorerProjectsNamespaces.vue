@@ -1,24 +1,30 @@
 <script>
 import { mapGetters } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
-import { STATE, AGE, NAME } from '@shell/config/table-headers';
+import { STATE, AGE, NAME, NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
+import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
 import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
+import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
+import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 export default {
   name:       'ListProjectNamespace',
   components: {
-    ExtensionPanel, Masthead, MoveModal, ResourceTable
+    ExtensionPanel,
+    Masthead,
+    MoveModal,
+    ResourceTable,
+    ButtonMultiAction,
   },
   mixins: [ResourceFetch],
 
@@ -37,6 +43,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
+    this.harvesterResourceQuotaSchema = this.$store.getters[`${ inStore }/schemaFor`](HCI.RESOURCE_QUOTA);
     this.schema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
     this.projectSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT);
 
@@ -55,6 +62,7 @@ export default {
     return {
       loadResources:                [NAMESPACE],
       loadIndeterminate:            true,
+      harvesterResourceQuotaSchema: null,
       schema:                       null,
       projects:                     [],
       projectSchema:                null,
@@ -88,20 +96,33 @@ export default {
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
     headers() {
-      const project = {
-        name:  'project',
-        label: this.t('tableHeaders.project'),
-        value: 'project.nameDisplay',
-        sort:  ['projectNameSort', 'nameSort'],
-      };
-
-      return [
+      const headers = [
         STATE,
         NAME,
-        this.groupPreference === 'none' ? project : null,
-        AGE
-      ].filter((h) => h);
+      ];
+
+      if (this.groupPreference === 'none') {
+        const projectHeader = {
+          name:  'project',
+          label: this.t('tableHeaders.project'),
+          value: 'project.nameDisplay',
+          sort:  ['projectNameSort', 'nameSort'],
+        };
+
+        headers.push(projectHeader);
+      }
+
+      if (this.isHarvester && this.harvesterResourceQuotaSchema) {
+        headers.push(NS_SNAPSHOT_QUOTA);
+      }
+
+      headers.push(AGE);
+
+      return headers;
     },
     projectIdsWithNamespaces() {
       const ids = this.rows
@@ -206,7 +227,15 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+      let isDev;
+
+      try {
+        isDev = this.$store.getters['prefs/get'](ALL_NAMESPACES);
+      } catch {
+        isDev = this.$store.getters['prefs/get'](DEV);
+      }
+
+      if (isDev) {
         // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.
@@ -358,7 +387,7 @@ export default {
 </script>
 
 <template>
-  <div class="project-namespaces">
+  <div class="project-namespaces outlet">
     <Masthead
       :schema="projectSchema"
       :type-display="t('projectNamespaces.label')"
@@ -372,7 +401,7 @@ export default {
     >
       <template
         v-if="showCreateNsButton"
-        slot="extraActions"
+        #extraActions
       >
         <router-link
           :to="createNamespaceLocationFlatList()"
@@ -391,8 +420,8 @@ export default {
     />
     <ResourceTable
       ref="table"
+      v-bind="{...$attrs, class: null }"
       class="table project-namespaces-table"
-      v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
@@ -401,7 +430,6 @@ export default {
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
-      v-on="$listeners"
     >
       <template #group-by="group">
         <div
@@ -431,14 +459,12 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </router-link>
-            <button
-              type="button"
-              class="project-action btn btn-sm role-multi-action actions mr-10"
-              :class="{invisible: !showProjectActionButton(group.group)}"
+            <ButtonMultiAction
+              class="project-action mr-10"
+              :borderless="true"
+              :invisible="!showProjectActionButton(group.group)"
               @click="showProjectAction($event, group.group)"
-            >
-              <i class="icon icon-actions" />
-            </button>
+            />
           </div>
         </div>
       </template>
@@ -473,26 +499,26 @@ export default {
         </div>
       </template>
       <template
-        v-for="project in projectsWithoutNamespaces"
-        v-slot:[slotName(project)]
+        v-for="(project, i) in projectsWithoutNamespaces"
+        :key="i"
+        #[slotName(project)]="{ fullColspan }"
       >
         <tr
-          :key="project.id"
           class="main-row"
         >
           <td
             class="empty text-center"
-            colspan="5"
+            :colspan="fullColspan"
           >
             {{ t('projectNamespaces.noNamespaces') }}
           </td>
         </tr>
       </template>
-      <template #main-row:fake-empty>
+      <template #main-row:fake-empty="{ fullColspan }">
         <tr class="main-row">
           <td
             class="empty text-center"
-            colspan="5"
+            :colspan="fullColspan"
           >
             {{ t('projectNamespaces.noProjectNoNamespaces') }}
           </td>
@@ -504,7 +530,7 @@ export default {
 </template>
 <style lang="scss" scoped>
 .project-namespaces {
-  & ::v-deep {
+  & :deep() {
     .project-namespaces-table table {
       table-layout: fixed;
     }

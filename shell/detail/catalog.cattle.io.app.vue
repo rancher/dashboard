@@ -9,7 +9,8 @@ import RelatedResources from '@shell/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import { CATALOG } from '@shell/config/types';
-import { sortBy } from '~shell/utils/sort';
+import { sortBy } from '@shell/utils/sort';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'DetailRelease',
@@ -30,9 +31,15 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    const promises = {
+      catalog:       this.$store.dispatch('catalog/load'),
+      allOperations: this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION }),
+      secrets:       this.value.fetchValues(true),
+    };
 
-    this.allOperations = await this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION });
+    const res = await allHash(promises);
+
+    this.allOperations = res.allOperations;
   },
 
   computed: {
@@ -45,7 +52,7 @@ export default {
     },
 
     valuesYaml() {
-      const combined = merge(merge({}, this.value?.spec?.chart?.values || {}), this.value?.spec?.values || {});
+      const combined = merge(merge({}, this.value?.chartValues || {}), this.value?.values || {});
 
       return jsyaml.dump(combined);
     },
@@ -94,6 +101,12 @@ export default {
         });
       }
     },
+  },
+
+  watch: {
+    'value.secretId'(neu, old) {
+      this.value.fetchValues(true);
+    }
   },
 };
 </script>
@@ -147,7 +160,7 @@ export default {
         :label="t('catalog.app.section.readme')"
         :weight="2"
       >
-        <Markdown v-model="value.spec.info.readme" />
+        <Markdown v-model:value="value.spec.info.readme" />
       </Tab>
       <Tab
         v-if="hasNotes"
@@ -155,7 +168,7 @@ export default {
         :label="t('catalog.app.section.notes')"
         :weight="1"
       >
-        <Markdown v-model="value.spec.info.notes" />
+        <Markdown v-model:value="value.spec.info.notes" />
       </Tab>
     </Tabbed>
   </div>

@@ -23,6 +23,8 @@ export default {
 
   name: 'CruResource',
 
+  emits: ['select-type', 'error', 'cancel', 'finish'],
+
   components: {
     AsyncButton,
     Banner,
@@ -53,7 +55,7 @@ export default {
     },
 
     resource: {
-      type:     Object,
+      type:     [String, Object],
       required: true
     },
 
@@ -275,7 +277,7 @@ export default {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$store.dispatch('cru-resource/setCreateNamespace', false);
   },
 
@@ -416,6 +418,10 @@ export default {
       if (this.preventEnterSubmit) {
         event.preventDefault();
       }
+    },
+
+    shouldProvideSlot(slot) {
+      return slot !== 'default' && typeof this.$slots[slot] === 'function';
     }
   },
 
@@ -443,6 +449,7 @@ export default {
     </p>
     <component
       :is="(isView? 'div' : 'form')"
+      :value="resource"
       data-testid="cru-form"
       class="create-resource-container cru__form"
       @submit.prevent
@@ -473,8 +480,8 @@ export default {
           :subtypes="subtypes"
         >
           <div
-            v-for="subtype in subtypes"
-            :key="subtype.id"
+            v-for="(subtype, i) in subtypes"
+            :key="i"
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
             :data-testid="`subtype-banner-item-${subtype.id}`"
@@ -564,7 +571,10 @@ export default {
               #stepContainer="{activeStep}"
               class="step-container"
             >
-              <template v-for="step in steps">
+              <template
+                v-for="(step, i) in steps"
+                :key="i"
+              >
                 <div
                   v-if="step.name === activeStep.name || step.hidden"
                   :key="step.name"
@@ -579,73 +589,74 @@ export default {
               </template>
             </template>
             <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
-              <template name="form-footer">
-                <CruResourceFooter
-                  class="cru__footer"
-                  :mode="mode"
-                  :is-form="showAsForm"
-                  :show-cancel="showCancel"
-                  @cancel-confirmed="confirmCancel"
+              <CruResourceFooter
+                class="cru__footer"
+                :mode="mode"
+                :is-form="showAsForm"
+                :show-cancel="showCancel"
+                @cancel-confirmed="confirmCancel"
+              >
+                <!-- Pass down templates provided by the caller -->
+                <template
+                  v-for="(_, slot) of $slots"
+                  #[slot]="scope"
+                  :key="slot"
                 >
-                  <!-- Pass down templates provided by the caller -->
-                  <template
-                    v-for="(_, slot) of $scopedSlots"
-                    v-slot:[slot]="scope"
-                  >
+                  <template v-if="shouldProvideSlot(slot)">
                     <slot
                       :name="slot"
                       v-bind="scope"
                     />
                   </template>
-                  <div class="controls-steps">
+                </template>
+                <div class="controls-steps">
+                  <button
+                    v-if="showYaml"
+                    type="button"
+                    class="btn role-secondary"
+                    @click="showPreviewYaml"
+                  >
+                    <t k="cruResource.previewYaml" />
+                  </button>
+                  <template
+                    v-if="showPrevious"
+                    name="back"
+                  >
                     <button
-                      v-if="showYaml"
                       type="button"
                       class="btn role-secondary"
-                      @click="showPreviewYaml"
+                      @click="back()"
                     >
-                      <t k="cruResource.previewYaml" />
+                      <t k="wizard.previous" />
                     </button>
-                    <template
-                      v-if="showPrevious"
-                      name="back"
+                  </template>
+                  <template
+                    v-if="activeStepIndex === visibleSteps.length-1"
+                    name="finish"
+                  >
+                    <AsyncButton
+                      v-if="!showSubtypeSelection && !isView"
+                      ref="save"
+                      :disabled="!activeStep.ready"
+                      :mode="finishButtonMode || mode"
+                      @click="$emit('finish', $event)"
+                    />
+                  </template>
+                  <template
+                    v-else
+                    name="next"
+                  >
+                    <button
+                      :disabled="!canNext"
+                      type="button"
+                      class="btn role-primary"
+                      @click="next()"
                     >
-                      <button
-                        type="button"
-                        class="btn role-secondary"
-                        @click="back()"
-                      >
-                        <t k="wizard.previous" />
-                      </button>
-                    </template>
-                    <template
-                      v-if="activeStepIndex === visibleSteps.length-1"
-                      name="finish"
-                    >
-                      <AsyncButton
-                        v-if="!showSubtypeSelection && !isView"
-                        ref="save"
-                        :disabled="!activeStep.ready"
-                        :mode="finishButtonMode || mode"
-                        @click="$emit('finish', $event)"
-                      />
-                    </template>
-                    <template
-                      v-else
-                      name="next"
-                    >
-                      <button
-                        :disabled="!canNext"
-                        type="button"
-                        class="btn role-primary"
-                        @click="next()"
-                      >
-                        <t k="wizard.next" />
-                      </button>
-                    </template>
-                  </div>
-                </CruResourceFooter>
-              </template>
+                      <t k="wizard.next" />
+                    </button>
+                  </template>
+                </div>
+              </CruResourceFooter>
             </template>
           </Wizard>
         </div>
@@ -670,17 +681,22 @@ export default {
           >
             <!-- Pass down templates provided by the caller -->
             <template
-              v-for="(_, slot) of $scopedSlots"
-              v-slot:[slot]="scope"
+              v-for="(_, slot) of $slots"
+              #[slot]="scope"
+              :key="slot"
             >
-              <slot
-                :name="slot"
-                v-bind="scope"
-              />
+              <template v-if="shouldProvideSlot(slot)">
+                <slot
+                  :name="slot"
+                  v-bind="scope"
+                />
+              </template>
             </template>
-
-            <template #default>
-              <div v-if="!isView">
+            <template
+              v-if="!isView"
+              #default
+            >
+              <div>
                 <button
                   v-if="showYaml"
                   :data-testid="componentTestid + '-yaml'"

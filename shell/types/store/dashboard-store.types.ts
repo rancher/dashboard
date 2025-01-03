@@ -16,6 +16,12 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
   incremental?: boolean,
   hasManualRefresh?: boolean,
   limit?: number,
+  /**
+   * Iterate over all pages and return all resources.
+   *
+   * This is done via the native kube pagination api, not steve
+   */
+  depaginate?: boolean,
 }
 
 /**
@@ -32,5 +38,9 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * The single namespace to filter by (used in url path, not part of pagination params)
    */
   namespaced?: string,
+  /**
+   * Result of request is transient and not persisted to store
+   */
+  transient?: boolean,
   hasManualRefresh?: boolean,
 }

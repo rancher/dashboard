@@ -1,4 +1,4 @@
-function inserted(el) {
+function mounted(el) {
   el.addEventListener('keypress', (e) => {
     e = e || window.event;
     const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
@@ -14,6 +14,6 @@ function inserted(el) {
   });
 }
 
-const positiveIntNumberDirective = { inserted };
+const positiveIntNumberDirective = { mounted };
 
 export default positiveIntNumberDirective;

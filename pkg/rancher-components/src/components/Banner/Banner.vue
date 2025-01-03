@@ -49,6 +49,7 @@ export default defineComponent({
       default: false
     }
   },
+  emits:    ['close'],
   computed: {
     /**
      * Return message text as label.

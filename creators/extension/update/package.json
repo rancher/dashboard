@@ -1,0 +1,20 @@
+{
+  "name": "@rancher/create-update",
+  "description": "Rancher UI Update helper",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "author": "SUSE",
+  "private": false,
+  "bin": "./init",
+  "files": [
+    "**/*.*",
+    "init",
+    "upgrade"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "fs-extra": "^10.0.0"
+  }
+}

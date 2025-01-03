@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 
 export async function downloadFile(fileName, content, contentType = 'text/plain;charset=utf-8') {
   const blob = new Blob([content], { type: contentType });
-  const { saveAs } = await import('file-saver');
+  const saveAs = (await import('file-saver')).default;
 
   return saveAs(blob, fileName);
 }

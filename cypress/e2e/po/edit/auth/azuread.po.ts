@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
@@ -57,6 +58,14 @@ export default class AzureadPo extends PagePo {
 
   enterApplicationSecret(name: string) {
     return new LabeledInputPo('[data-testid="input-azureAD-applicationSecret"]').set(name);
+  }
+
+  groupMembershipFilterCheckbox() {
+    return new CheckboxInputPo('[data-testid="checkbox-azureAD-groupMembershipFilter"]');
+  }
+
+  enterGroupMembershipFilter(text: string) {
+    return new LabeledInputPo('[data-testid="input-azureAD-groupMembershipFilter"]').set(text);
   }
 
   endpointInputField() {

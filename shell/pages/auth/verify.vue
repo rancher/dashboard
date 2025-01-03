@@ -1,5 +1,7 @@
 <script>
-import { GITHUB_CODE, GITHUB_NONCE, BACK_TO } from '@shell/config/query-params';
+import {
+  GITHUB_CODE, GITHUB_NONCE, BACK_TO, IS_SLO, _FLAGGED
+} from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
@@ -35,14 +37,36 @@ export default {
     if (error || errorDescription || errorCode || errorMsg) {
       let out = errorDescription || error || errorCode;
 
-      if (errorMsg) {
-        out = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
-      }
+      if (this.isSlo) {
+        console.error('Failed to log out of auth provider', error, errorDescription, errorCode, errorMsg); // eslint-disable-line no-console
 
-      this.$router.replace(`/auth/login?err=${ escape(out) }`);
+        let out = this.$store.getters['i18n/withFallback'](`logout.specificError.unknown`);
+
+        if (errorCode) {
+          out = this.$store.getters['i18n/withFallback'](`logout.specificError.${ errorCode }`, null, out);
+        }
+
+        this.$router.replace(`/auth/login?${ IS_SLO }&err=${ escape(out) }`);
+
+        return;
+      } else {
+        if (errorMsg) {
+          out = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
+        }
+
+        this.$router.replace(`/auth/login?err=${ escape(out) }`);
+
+        return;
+      }
+    }
+
+    // check for existence of IS_SLO query param to differentiate between a login and a logout
+    if (this.isSlo) {
+      this.$store.dispatch('auth/uiLogout');
 
       return;
     }
+
     let parsed;
 
     try {
@@ -106,7 +130,13 @@ export default {
 
     const { test } = parsed;
 
-    return { testing: test };
+    // Is Single Log Out
+    const isSlo = this.$route.query[IS_SLO] === _FLAGGED;
+
+    return {
+      testing: test,
+      isSlo
+    };
   },
 
   mounted() {
@@ -146,6 +176,9 @@ export default {
     <h1 class="text-center mt-50">
       <span v-if="testing">
         Testing Configuration&hellip;
+      </span>
+      <span v-else-if="isSlo">
+        Logging Out&hellip;
       </span>
       <span v-else>
         Logging In&hellip;

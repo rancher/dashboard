@@ -87,7 +87,7 @@ export default {
         }
       }
 
-      this.$set(this.value, match?.specKey, nueDefault);
+      this.value[match?.specKey] = nueDefault;
       this.quantity = nueDefault;
     },
 
@@ -107,7 +107,7 @@ export default {
 
       delete this.value[toDelete.specKey];
 
-      this.$set(this.value, nue?.specKey, nueDefault);
+      this.value[nue?.specKey] = nueDefault;
       this.quantity = nueDefault;
     },
   },
@@ -137,9 +137,9 @@ export default {
     },
     updateQuantityValue(val) {
       if (this.value?.type === 'Value') {
-        this.$set(this.value, 'value', val);
+        this.value['value'] = val;
       } else {
-        this.$set(this.value, 'averageValue', val);
+        this.value['averageValue'] = val;
       }
     },
   },
@@ -151,7 +151,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.type"
+          v-model:value="value.type"
           :mode="mode"
           :label="t('hpa.metricTarget.type.label')"
           :options="targetTypes"
@@ -163,7 +163,7 @@ export default {
       >
         <UnitInput
           v-if="value.type === 'Utilization'"
-          v-model="value.averageUtilization"
+          v-model:value="value.averageUtilization"
           :label="t('hpa.metricTarget.quantity.label')"
           :mode="mode"
           placeholder="80"
@@ -172,7 +172,7 @@ export default {
         />
         <UnitInput
           v-else-if="resourceName === 'cpu'"
-          v-model="quantity"
+          v-model:value="quantity"
           :input-exponent="-1"
           :label="t('hpa.metricTarget.quantity.label')"
           :mode="mode"
@@ -180,11 +180,11 @@ export default {
           :required="true"
           :base-unit="t('suffix.cpus')"
           :output-modifier="true"
-          @input="updateQuantityValue"
+          @update:value="updateQuantityValue"
         />
         <UnitInput
           v-else-if="resourceName === 'memory'"
-          v-model="quantity"
+          v-model:value="quantity"
           :input-exponent="2"
           :label="t('containerResourceLimit.requestsMemory')"
           :mode="mode"
@@ -192,7 +192,7 @@ export default {
           :required="true"
           :output-modifier="true"
           :increment="1024"
-          @input="updateQuantityValue"
+          @update:value="updateQuantityValue"
         />
       </div>
       <div
@@ -200,13 +200,13 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model="quantity"
+          v-model:value="quantity"
           placeholder="1"
           type="text"
           :label="t('hpa.metricTarget.quantity.label')"
           :mode="mode"
           :required="true"
-          @input="updateQuantityValue"
+          @update:value="updateQuantityValue"
         />
       </div>
     </div>

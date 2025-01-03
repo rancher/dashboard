@@ -9,9 +9,8 @@ import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
-import { fetchInitialSettings, setSetting } from '@shell/utils/settings';
+import { setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
-import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
@@ -66,39 +65,33 @@ export default {
       v3User:             null,
       serverUrl:          null,
       mcmEnabled:         null,
-      telemetry:          null,
       eula:               false,
       principals:         null,
       errors:             []
     };
   },
 
-  async middleware({ store, redirect } ) {
-    try {
-      await fetchInitialSettings(store);
-    } catch (e) {
-    }
-
-    const isFirstLogin = calcIsFirstLogin(store);
-    const mustChangePassword = await calcMustChangePassword(store);
+  async beforeCreate() {
+    const isFirstLogin = calcIsFirstLogin(this.$store);
+    const mustChangePassword = await calcMustChangePassword(this.$store);
 
     if (isFirstLogin) {
       // Always show setup if this is the first log in
       return;
     } else if (mustChangePassword) {
       // If the password needs changing and this isn't the first log in ensure we have the password
-      if (!!store.getters['auth/initialPass']) {
+      if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
         return;
       }
       // Haven't got it... redirect to log in so we get it
-      await store.dispatch('auth/logout', null, { root: true });
+      await this.$store.dispatch('auth/logout', null, { root: true });
 
-      return redirect(302, `/auth/login?${ LOGGED_OUT }`);
+      return this.$router.replace(`/auth/login?${ LOGGED_OUT }`);
     }
 
     // For all other cases we don't need to show setup
-    return redirect('/');
+    return this.$router.replace('/');
   },
 
   components: {
@@ -106,22 +99,11 @@ export default {
   },
 
   async fetch() {
-    const telemetrySetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
     const serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
-    const rancherVersionSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
-    let telemetry = true;
-
-    if (telemetrySetting?.value && telemetrySetting.value !== 'prompt') {
-      telemetry = telemetrySetting.value !== 'out';
-    } else if (!rancherVersionSetting?.value || isDevBuild(rancherVersionSetting?.value)) {
-      telemetry = false;
-    }
 
     let plSetting;
 
     try {
-      await fetchInitialSettings(this.$store);
-
       plSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
     } catch (e) {
       // Older versions used Norman API to get these
@@ -148,7 +130,7 @@ export default {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
     });
 
-    const mcmEnabled = mcmFeature?.spec?.value || mcmFeature?.status?.default;
+    const mcmEnabled = (mcmFeature?.spec?.value || mcmFeature?.status?.default) && productName !== 'Harvester';
 
     let serverUrl;
 
@@ -161,17 +143,16 @@ export default {
     const isFirstLogin = await calcIsFirstLogin(this.$store);
     const mustChangePassword = await calcMustChangePassword(this.$store);
 
-    this.$set(this, 'productName', productName);
-    this.$set(this, 'haveCurrent', !!current);
-    this.$set(this, 'username', me?.loginName || 'admin');
-    this.$set(this, 'isFirstLogin', isFirstLogin);
-    this.$set(this, 'mustChangePassword', mustChangePassword);
-    this.$set(this, 'current', current);
-    this.$set(this, 'v3User', v3User);
-    this.$set(this, 'serverUrl', serverUrl);
-    this.$set(this, 'mcmEnabled', mcmEnabled);
-    this.$set(this, 'telemetry', telemetry);
-    this.$set(this, 'principals', principals);
+    this['productName'] = productName;
+    this['haveCurrent'] = !!current;
+    this['username'] = me?.loginName || 'admin';
+    this['isFirstLogin'] = isFirstLogin;
+    this['mustChangePassword'] = mustChangePassword;
+    this['current'] = current;
+    this['v3User'] = v3User;
+    this['serverUrl'] = serverUrl;
+    this['mcmEnabled'] = mcmEnabled;
+    this['principals'] = principals;
   },
 
   computed: {
@@ -251,7 +232,6 @@ export default {
 
         if (this.isFirstLogin) {
           promises.push( setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString()) );
-          promises.push( setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out') );
 
           if ( this.mcmEnabled && this.serverUrl ) {
             promises.push( setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl) );
@@ -283,10 +263,14 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading
+    v-if="$fetchState.pending"
+    mode="relative"
+  />
   <form
     v-else
     class="setup"
+    @submit.prevent
   >
     <div class="row">
       <div class="col span-6 form-col">
@@ -305,7 +289,7 @@ export default {
             />
             <Password
               v-if="!haveCurrent"
-              v-model.trim="current"
+              v-model:value.trim="current"
               autocomplete="current-password"
               type="password"
               :label="t('setup.currentPassword')"
@@ -322,7 +306,7 @@ export default {
             >
             <div class="mb-20">
               <RadioGroup
-                v-model="useRandom"
+                v-model:value="useRandom"
                 data-testid="setup-password-mode"
                 name="password-mode"
                 :options="passwordOptions"
@@ -332,7 +316,7 @@ export default {
               <LabeledInput
                 v-if="useRandom"
                 ref="password"
-                v-model.trim="password"
+                v-model:value.trim="password"
                 :type="useRandom ? 'text' : 'password'"
                 :disabled="useRandom"
                 data-testid="setup-password-random"
@@ -356,7 +340,7 @@ export default {
               <Password
                 v-else
                 ref="password"
-                v-model.trim="password"
+                v-model:value.trim="password"
                 :label="t('setup.newPassword')"
                 data-testid="setup-password"
                 :required="true"
@@ -364,7 +348,7 @@ export default {
             </div>
             <Password
               v-show="!useRandom"
-              v-model.trim="confirm"
+              v-model:value.trim="confirm"
               autocomplete="new-password"
               data-testid="setup-password-confirm"
               :label="t('setup.confirmPassword')"
@@ -399,34 +383,20 @@ export default {
                   data-testid="setup-error-banner"
                 />
                 <LabeledInput
-                  v-model="serverUrl"
+                  v-model:value="serverUrl"
                   :label="t('setup.serverUrl.label')"
                   data-testid="setup-server-url"
                   :rules="fvGetAndReportPathRules('serverUrl')"
                   :required="true"
-                  @input="onServerUrlChange"
+                  @update:value="onServerUrlChange"
                 />
               </div>
             </template>
 
-            <div class="checkbox mt-40">
-              <Checkbox
-                id="checkbox-telemetry"
-                v-model="telemetry"
-              >
-                <template #label>
-                  <t
-                    k="setup.telemetry"
-                    :raw="true"
-                    :name="productName"
-                  />
-                </template>
-              </Checkbox>
-            </div>
             <div class="checkbox pt-10 eula">
               <Checkbox
                 id="checkbox-eula"
-                v-model="eula"
+                v-model:value="eula"
                 data-testid="setup-agreement"
               >
                 <template #label>
@@ -456,13 +426,16 @@ export default {
 
           <div class="setup-errors mt-20">
             <h4
-              v-for="err in errors"
-              :key="err"
+              v-for="(err, i) in errors"
+              :key="i"
               class="text-error text-center"
             >
               {{ err }}
             </h4>
           </div>
+        </div>
+        <div>
+          &nbsp;
         </div>
       </div>
       <BrandImage
@@ -499,6 +472,7 @@ export default {
 
       .span-6 {
         padding: 0 60px;
+        margin: 0;
       }
 
       .landscape {
@@ -506,6 +480,7 @@ export default {
         margin: 0;
         object-fit: cover;
         padding: 0;
+        width: 49%;
       }
     }
 
@@ -515,17 +490,21 @@ export default {
       overflow-y: auto;
       position: relative;
       height: 100vh;
+      width: 51%;
 
       & > div:first-of-type {
-        flex:3;
+        flex: 3;
       }
       & > div:nth-of-type(2) {
         flex: 9;
       }
+      & > div:nth-of-type(3) {
+        flex: 2;
+      }
     }
 
     .setup-title {
-      ::v-deep code {
+      :deep() code {
         font-size: 12px;
         padding: 0;
       }

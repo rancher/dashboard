@@ -1,0 +1,37 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as BadgeStateStories from './BadgeState.stories';
+
+<Meta of={BadgeStateStories} />
+
+# Badge
+
+Badges are used to highlight important changes of state in an element, mark them, or draw attention to counters.
+
+<br/>
+
+### Description
+
+- Use badges to highlight or differentiate key elements. However, do it with caution. Drawing attention to many pieces may result in creating much noise.
+- Badges are good for counters, for example, to show the number of new messages.
+- Badges should not provide interaction. However, its parent element may.
+- Don't use long texts within a badge. Whenever possible, limit it to a maximum of 3 words or less. 
+
+
+Different contextual variations of the badge can be used to communicate the different states of an element or the content: Blue for information, yellow for warning and red for errors.
+
+### Default
+
+<Canvas of={BadgeStateStories.Default} />
+
+### Info
+
+<Canvas of={BadgeStateStories.Info} />
+
+### Warning
+
+<Canvas of={BadgeStateStories.Warning} />
+
+### Error
+
+<Canvas of={BadgeStateStories.Error} />
+

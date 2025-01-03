@@ -42,7 +42,6 @@ export default {
           value:    'status.display.readyBundles',
           sort:     'status.summary.ready',
           search:   false,
-          align:    'center',
         },
         {
           name:     'reposReady',
@@ -50,7 +49,6 @@ export default {
           value:    'status.readyGitRepos',
           sort:     'status.summary.ready',
           search:   false,
-          align:    'center',
         },
         FLEET_SUMMARY,
         {
@@ -62,7 +60,6 @@ export default {
           formatter:     'LiveDate',
           formatterOpts: { addSuffix: true },
           width:         120,
-          align:         'right'
         },
         AGE,
       ];
@@ -91,7 +88,6 @@ export default {
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     key-field="_key"
-    v-on="$listeners"
   >
     <template #cell:workspace="{row}">
       <span v-if="row.type !== MANAGEMENT_CLUSTER && row.metadata.namespace">{{ row.metadata.namespace }}</span>

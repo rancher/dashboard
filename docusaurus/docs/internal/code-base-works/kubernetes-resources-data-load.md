@@ -31,14 +31,14 @@ import ResourceManager from '@shell/mixins/resource-manager';
 
 Allowed params for the configuration object:
 
-* @param {**String**} `namespace` - Namespace identifier
-* @param {**Object**} `data` - Object containing info about the data needed to be fetched and how it should be parsed. 
+* @param \{**String**\} `namespace` - Namespace identifier
+* @param \{**Object**\} `data` - Object containing info about the data needed to be fetched and how it should be parsed. 
 
 **NOTE: The object KEY NEEDS to be the resource TYPE!**
-* @param {**Array**} `data[TYPE].applyTo` - The array of operations needed to be performed for the specific data TYPE
-* @param {**String**} `data[TYPE].applyTo[x].var` - The 'this' property name that should be populated with the data fetched
-* @param {**Boolean**} `data[TYPE].applyTo[x].classify` - Whether the data fetched should have a model applied to it
-* @param {**Function**} `data[TYPE].applyTo[x].parsingFunc` - Optional parsing function if the fetched data needs to be parsed
+* @param \{**Array**\} `data[TYPE].applyTo` - The array of operations needed to be performed for the specific data TYPE
+* @param \{**String**\} `data[TYPE].applyTo[x].var` - The 'this' property name that should be populated with the data fetched
+* @param \{**Boolean**\} `data[TYPE].applyTo[x].classify` - Whether the data fetched should have a model applied to it
+* @param \{**Function**\} `data[TYPE].applyTo[x].parsingFunc` - Optional parsing function if the fetched data needs to be parsed
 
 Example of a configuration object to be used with the `resource-manager`:
 
@@ -83,8 +83,8 @@ async fetch() {
 #### **resourceManagerFetchSecondaryResources**
 Function used to initialize the data loading procedure
 
-* @param {**Object**} `dataConfig` - Configuration object
-* @param {**Boolean**} `onlyNamespaced` - Flag to enable the fetch from API *ONLY* for namespaced resources (will ignore requests for non-namespaced resources you have defined on the configuration object). Defaults to `false`
+* @param \{**Object**\} `dataConfig` - Configuration object
+* @param \{**Boolean**\} `onlyNamespaced` - Flag to enable the fetch from API *ONLY* for namespaced resources (will ignore requests for non-namespaced resources you have defined on the configuration object). Defaults to `false`
 
 Example:
 ```
@@ -96,8 +96,8 @@ async fetch() {
 #### **resourceManagerClearSecondaryResources**
 Function used to clear the results for the secondary resource data fetch. It's a very useful method in a CREATE screen scenario where a user can "create" a namespace on the UI, operation which will make all our previous namespaced results invalid and in need to be cleared.
 
-* @param {**Object**} `dataConfig` - Configuration object
-* @param {**Boolean**} `onlyNamespaced` - Flag to enable the fetch from API *ONLY* for namespaced resources (will ignore requests for non-namespaced resources you have defined on the configuration object). Defaults to `false`
+* @param \{**Object**\} `dataConfig` - Configuration object
+* @param \{**Boolean**\} `onlyNamespaced` - Flag to enable the fetch from API *ONLY* for namespaced resources (will ignore requests for non-namespaced resources you have defined on the configuration object). Defaults to `false`
 
 Example:
 ```

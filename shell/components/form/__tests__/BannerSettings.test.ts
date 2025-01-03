@@ -22,19 +22,19 @@ describe('view: management.cattle.io.setting should', () => {
       },
       $route:  { query: { AS: '' } },
       $router: { applyQuery: jest.fn() },
+      stubs:   { TypeDescription: true }
     }
   });
 
   it('allowing to save if no rules in settings', () => {
     const wrapper = mount(BannerSettings, {
-      stubs:     { TypeDescription: true },
-      propsData: {
+      props: {
         value:      { foo: { text: '' } },
         mode:       'view',
         bannerType: 'foo'
       },
-      computed: { hideDescriptions: () => true },
-      data:     () => ({
+
+      data: () => ({
         vendor:      'Rancher',
         uiPLSetting: { vendor: 'Rancher' },
 
@@ -43,7 +43,8 @@ describe('view: management.cattle.io.setting should', () => {
 
         errors: [],
       }),
-      ...requiredSetup()
+
+      global: { ...requiredSetup() },
     });
 
     const colorInputPreview = wrapper.find('[data-testid="color-input-color-input_preview-container"]');

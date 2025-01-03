@@ -14,7 +14,7 @@ export function onClickOption(option, e) {
 
   this.value.splice(optionIndex, 1);
 
-  this.$emit('input', this.value);
+  this.$emit('update:value', this.value);
   e.preventDefault();
   e.stopPropagation();
 

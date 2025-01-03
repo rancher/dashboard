@@ -112,12 +112,8 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       expect(isMatch(request.body, requestData)).to.equal(true);
     });
 
-    // Will use the below assertions until this issue is resolved https://github.com/rancher/dashboard/issues/11046.
-    // Using 'downloadUrl' instead of driver name
-    // driversPage.list().details(cloudCaDriver, 1).should('contain', 'Downloading');
-    // driversPage.list().details(cloudCaDriver, 1).contains('Active', { timeout: 15000 });
-    driversPage.list().details(downloadUrl2, 1).should('contain', 'Downloading');
-    driversPage.list().details(downloadUrl2, 1).contains('Active', { timeout: 60000 });
+    driversPage.list().details(cloudCaDriver, 1).should('contain', 'Downloading');
+    driversPage.list().details(cloudCaDriver, 1).contains('Active', { timeout: 15000 });
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
@@ -212,42 +208,41 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(openStackDriver, 'exist');
   });
 
-  it.skip('can deactivate drivers in bulk', () => {
-    // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
-    NodeDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
-    driversPage.list().details(openStackDriver, 1).should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openStackDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
-      .click();
+  // it.skip('can deactivate drivers in bulk', () => {
+  //   // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
+  //   NodeDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
+  //   driversPage.list().details(openStackDriver, 1).should('contain', 'Active');
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openStackDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
+  //     .click();
 
-    cy.intercept('POST', '/v3/nodeDrivers/oci?action=deactivate').as('deactivateOracleDriver');
-    cy.intercept('POST', '/v3/nodeDrivers/openstack?action=deactivate').as('deactivateopenStackDriver');
+  //   cy.intercept('POST', '/v3/nodeDrivers/oci?action=deactivate').as('deactivateOracleDriver');
+  //   cy.intercept('POST', '/v3/nodeDrivers/openstack?action=deactivate').as('deactivateopenStackDriver');
 
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateopenStackDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(openStackDriver, 1).should('contain', 'Inactive');
+  //   deactivateDialog.deactivate();
+  //   cy.wait('@deactivateopenStackDriver').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().details(openStackDriver, 1).should('contain', 'Inactive');
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(openStackDriver, 'not.exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
+  //   createCluster.gridElementExistanceByName(openStackDriver, 'not.exist');
+  // });
 
-  it.skip('can delete drivers in bulk', () => {
-    // Skipping this test until issue is resolved https://github.com/rancher/dashboard/issues/10718
+  it('can delete drivers in bulk', () => {
     NodeDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)

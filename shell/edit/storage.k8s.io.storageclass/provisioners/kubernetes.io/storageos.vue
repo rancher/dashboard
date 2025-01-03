@@ -20,7 +20,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.pool"
+          v-model:value="value.parameters.pool"
           :placeholder="t('storageClass.storageos.pool.placeholder')"
           :label="t('storageClass.storageos.pool.label')"
           :mode="mode"
@@ -28,7 +28,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.description"
+          v-model:value="value.parameters.description"
           :placeholder="t('storageClass.storageos.description.placeholder')"
           :label="t('storageClass.storageos.description.label')"
           :mode="mode"
@@ -36,7 +36,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.fsType"
+          v-model:value="value.parameters.fsType"
           :placeholder="t('storageClass.storageos.filesystemType.placeholder')"
           :label="t('storageClass.storageos.filesystemType.label')"
           :mode="mode"
@@ -46,7 +46,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.adminSecretNamespace"
+          v-model:value="value.parameters.adminSecretNamespace"
           :placeholder="t('storageClass.storageos.adminSecretNamespace.placeholder')"
           :label="t('storageClass.storageos.adminSecretNamespace.label')"
           :mode="mode"
@@ -54,7 +54,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.adminSecretName"
+          v-model:value="value.parameters.adminSecretName"
           :placeholder="t('storageClass.storageos.adminSecretName.placeholder')"
           :label="t('storageClass.storageos.adminSecretName.label')"
           :mode="mode"

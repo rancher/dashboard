@@ -16,8 +16,8 @@ const mockedValidationMixin = {
 const mockedStore = () => {
   return {
     getters: {
-      'i18n/t': (text: string, v = {}) => {
-        return `${ text }${ Object.values(v) }`;
+      'i18n/t': (text: string, v: {[key:string]: string}) => {
+        return `${ text }${ Object.values(v || {}) }`;
       },
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
@@ -34,11 +34,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mixins: [mockedValidationMixin],
+      mocks:  {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -60,7 +62,7 @@ describe('aks node pool component', () => {
       ...requiredSetup()
     });
 
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -78,7 +80,7 @@ describe('aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
 
     expect(versionDisplay.props().value).toBe(clusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -99,8 +101,8 @@ describe('aks node pool component', () => {
       ...requiredSetup()
 
     });
-    const versionDisplay = wrapper.find('[data-testid="aks-pool-version-display"]');
-    const upgradeBanner = wrapper.find('[data-testid="aks-pool-upgrade-banner"]');
+    const versionDisplay = wrapper.getComponent('[data-testid="aks-pool-version-display"]');
+    const upgradeBanner = wrapper.getComponent('[data-testid="aks-pool-upgrade-banner"]');
 
     expect(versionDisplay.props().value).toBe(originalClusterVersion);
     expect(versionDisplay.props().disabled).toBe(true);
@@ -172,10 +174,9 @@ describe('aks node pool component', () => {
 
     });
 
-    const upgradeCheckbox = wrapper.find('[data-testid="aks-pool-upgrade-checkbox"]');
-    const checkboxLabel = upgradeCheckbox.find('.checkbox-label');
+    const upgradeCheckbox = wrapper.getComponent('[data-testid="aks-pool-upgrade-checkbox"]');
 
-    expect(checkboxLabel.text()).toContain(clusterVersion);
+    expect(upgradeCheckbox.props().label).toContain(clusterVersion);
   });
 
   it('should remove taints from the pool spec when the remove button is pressed', async() => {
@@ -190,8 +191,8 @@ describe('aks node pool component', () => {
 
     });
 
-    const firstTaintRow = wrapper.find('[data-testid="aks-pool-taint-0"]');
-    const secondTaintRow = wrapper.find('[data-testid="aks-pool-taint-1"]');
+    const firstTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-0"]');
+    const secondTaintRow = wrapper.getComponent('[data-testid="aks-pool-taint-1"]');
 
     expect(secondTaintRow.exists()).toBe(true);
     firstTaintRow.vm.$emit('remove', 0);
@@ -203,5 +204,62 @@ describe('aks node pool component', () => {
 
     // above verifies that the form is showing the right thing: also verify that the node pool spec has been updated to remove the taint
     expect(wrapper.props().pool.nodeTaints).toStrictEqual([initialTaints[1]]);
+  });
+
+  it('should add nodeLabels to the pool spec when the labels keyvalue is edited', async() => {
+    const labels = { abc: 'def', efg: 'hij' };
+    const newLabels = { abc: 'def' };
+    const wrapper = mount(AksNodePool, {
+      propsData: {
+        pool: { ...defaultPool, nodeLabels: { ...labels } },
+
+        mode: _EDIT
+      },
+      ...requiredSetup()
+
+    });
+    const labelInput = wrapper.getComponent('[data-testid="aks-node-labels-input"]');
+
+    expect(labelInput.props().value).toStrictEqual(labels);
+
+    labelInput.vm.$emit('update:value', newLabels);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.props().pool.nodeLabels).toStrictEqual(newLabels);
+  });
+
+  it('should validate pool count using the provided count validator function', async() => {
+    const countValidator = jest.fn();
+
+    mount(AksNodePool, {
+      propsData: {
+        pool:            { ...defaultPool, count: -1 },
+        validationRules: { count: [countValidator] }
+      },
+      ...requiredSetup()
+
+    });
+
+    expect(countValidator).toHaveBeenCalledWith(-1, false);
+  });
+
+  it.each([
+    ['System', false],
+    ['User', true],
+  ])('should validate node pool count differently if the pool mode is User', async(mode, allowZeroCount) => {
+    const countValidator = jest.fn();
+
+    mount(AksNodePool, {
+      propsData: {
+        pool: {
+          ...defaultPool, count: -1, mode
+        },
+        validationRules: { count: [countValidator] }
+      },
+      ...requiredSetup()
+
+    });
+
+    expect(countValidator).toHaveBeenCalledWith(-1, allowZeroCount);
   });
 });

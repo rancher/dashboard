@@ -23,7 +23,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'tlsConfig', this.value.tlsConfig || {});
+    this.value['tlsConfig'] = this.value.tlsConfig || {};
 
     return {
       initialCaSecretKey:          this.value.tlsConfig.ca?.secret?.key ? this.value.tlsConfig.ca.secret.key : '',
@@ -261,7 +261,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.tlsConfig.serverName"
+          v-model:value="value.tlsConfig.serverName"
           :mode="mode"
           :label="t('monitoringReceiver.tls.serverName')"
           :tooltip="t('monitoringReceiver.tls.serverNameTooltip')"

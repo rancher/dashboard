@@ -11,6 +11,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 /**
  * Explorer members page.
@@ -48,15 +49,15 @@ export default {
 
     const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
-    this.$set(this, 'normanClusterRTBSchema', clusterRoleTemplateBindingSchema);
-    this.$set(this, 'normanProjectRTBSchema', projectRoleTemplateBindingSchema);
+    this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
+    this['normanProjectRTBSchema'] = projectRoleTemplateBindingSchema;
 
     if (clusterRoleTemplateBindingSchema) {
       Promise.all([
         this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
         this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
       ]).then(([normanBindings]) => {
-        this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
+        this['normanClusterRoleTemplateBindings'] = normanBindings;
         this.loadingClusterBindings = false;
       });
     }
@@ -64,13 +65,13 @@ export default {
     if (projectRoleTemplateBindingSchema) {
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
         .then((bindings) => {
-          this.$set(this, 'projectRoleTemplateBindings', bindings);
+          this['projectRoleTemplateBindings'] = bindings;
           this.loadingProjectBindings = false;
         });
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then((projects) => this.$set(this, 'projects', projects));
+      .then((projects) => (this['projects'] = projects));
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -227,6 +228,9 @@ export default {
     canEditClusterMembers() {
       return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
   },
   methods: {
     getMgmtProjectId(group) {
@@ -324,7 +328,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProjectMembers"
+        v-if="canManageProjectMembers && !isHarvester"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -365,7 +369,6 @@ export default {
             <span
               v-for="(role, j) in row.allRoles"
               :key="j"
-
               ref="value"
               :data-testid="`role-value-${j}`"
               class="role"
@@ -385,11 +388,11 @@ export default {
             </span>
           </template>
           <template
-            v-for="project in projectsWithoutRoles"
+            v-for="(project, i) in projectsWithoutRoles"
+            :key="i"
             v-slot:[slotName(project)]
           >
             <tr
-              :key="project.id"
               class="main-row"
             >
               <td
@@ -438,7 +441,7 @@ export default {
 }
 
 .project-members {
-  & ::v-deep .group-bar{
+  & :deep() .group-bar{
     display: flex;
     justify-content: space-between;
   }

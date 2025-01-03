@@ -1,0 +1,243 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+
+const { execSync, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const creatorPkg = require('./package.json');
+
+const args = process.argv.slice(2);
+let extensionName = '';
+let appName = '';
+let migrate = false;
+let updateOnly = false;
+let skeletonOnly = false;
+let ignoreShellDepCheck = false; // Ignore the check for @rancher/shell dependency (Only used for testing)
+let tagUsed = ''; // To store the inferred tag
+
+args.forEach((arg, index) => {
+  switch (arg) {
+  case '--help':
+  case '-h':
+    console.log(`Usage: ${ creatorPkg.name } [options] [extension-name]`);
+    console.log('\nOptions:');
+    console.log('  --help, -h          Show help');
+    console.log('  --migrate           Migrate an existing extension to Vue 3');
+    console.log('  --update, -u        Update applications');
+    console.log('  --app-name, -a      Specify the name of the application');
+    console.log('  --skeleton-only, -s Create only the skeleton application');
+    process.exit(0);
+  case '--migrate':
+    migrate = true;
+    break;
+  case '--update':
+  case '-u':
+    updateOnly = true;
+    break;
+  case '--app-name':
+  case '-a':
+    if (args[index + 1] && !args[index + 1].startsWith('-')) {
+      appName = args[index + 1];
+    } else {
+      console.error('Error: Missing value for --app-name or -a option.');
+      process.exit(1);
+    }
+    break;
+  case '--skeleton-only':
+  case '-s':
+    skeletonOnly = true;
+    break;
+  case '-i':
+    ignoreShellDepCheck = true;
+    break;
+  default:
+    if (!arg.startsWith('-') && extensionName === '') {
+      extensionName = arg;
+      appName = appName || extensionName;
+    }
+  }
+});
+
+if (!extensionName && !updateOnly && !skeletonOnly && !migrate) {
+  console.error('Please provide an extension name.');
+  process.exit(1);
+}
+
+// Infer the tag used based on the installed version and dist-tags
+try {
+  const packageName = creatorPkg.name;
+  const currentVersion = creatorPkg.version;
+
+  // Fetch the dist-tags from npm
+  const distTags = JSON.parse(execSync(`npm view ${ packageName } dist-tags --json`, { stdio: 'pipe' }).toString());
+
+  // Find the tag matching the current version
+  tagUsed = Object.keys(distTags).find((tag) => distTags[tag] === currentVersion) || 'latest';
+
+  console.log(`Inferred tag used: ${ tagUsed }`);
+} catch (error) {
+  console.error('Error inferring tag:', error.message);
+  process.exit(1);
+}
+
+// Now, check the version of `@rancher/shell` package based on the inferred tag
+let shellVersion = 'latest';
+const shellPackageName = '@rancher/shell';
+
+try {
+  // Fetch the version of the `@rancher/shell` package that corresponds to the inferred tag
+  const tagVersion = execSync(`npm view ${ shellPackageName } dist-tags.${ tagUsed }`, { stdio: 'pipe' }).toString().trim();
+
+  if (tagVersion) {
+    shellVersion = tagVersion;
+  } else {
+    const latestVersion = execSync(`npm view ${ shellPackageName } version`, { stdio: 'pipe' }).toString().trim();
+
+    shellVersion = latestVersion;
+  }
+} catch (error) {
+  console.error(`  Failed to determine version for ${ shellPackageName }:`, error.message);
+  process.exit(1);
+}
+
+if (!migrate) {
+  console.log(`  Using version ${ shellVersion } for ${ shellPackageName }`);
+}
+
+const basePath = process.cwd();
+let skeletonPath;
+let isInsideSkeleton = false;
+let directoryExists = false;
+
+// Check if we are inside a skeleton application by looking for package.json
+if (fs.existsSync(path.join(basePath, 'package.json'))) {
+  // Check for @rancher/shell dependency
+  const packageJsonPath = path.join(basePath, 'package.json');
+  const packageJson = require(packageJsonPath);
+
+  if (!ignoreShellDepCheck && (!packageJson.dependencies || !packageJson.dependencies['@rancher/shell'])) {
+    throw new Error('@rancher/shell dependency is missing in package.json.');
+  } else {
+    isInsideSkeleton = true;
+    skeletonPath = basePath;
+  }
+} else {
+  // If not inside a skeleton, check if a directory with the appName already exists
+  skeletonPath = path.join(basePath, appName);
+
+  if (fs.existsSync(skeletonPath)) {
+    directoryExists = true;
+  }
+}
+
+const pkgPath = path.join(skeletonPath, 'pkg', extensionName);
+const updatePath = path.join(__dirname, 'update');
+
+const skeletonExists = fs.existsSync(skeletonPath);
+const pkgExists = fs.existsSync(pkgPath);
+
+try {
+  if (migrate) {
+    if (!isInsideSkeleton) {
+      throw new Error('Migrate option can only be used inside a skeleton application.');
+    }
+
+    console.log(`Migrating extension to Vue 3...`);
+    execSync(`node ${ path.join(__dirname, 'migrate', 'init') } ${ args.join(' ') }`, { stdio: 'inherit' });
+
+    console.log('Migration completed successfully.');
+    process.exit(0);
+  }
+
+  if (updateOnly) {
+    // Run the update script directly
+    console.log('Updating applications...');
+    const updateInitPath = path.join(updatePath, 'init');
+    const updateArgs = [updateInitPath, shellVersion, tagUsed, ...args];
+
+    const result = spawnSync('node', updateArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create skeleton application.');
+    }
+
+    console.log('Update completed successfully.');
+    process.exit(0);
+  }
+
+  // If the directory exists but we're not inside a skeleton, we should exit to prevent overwriting
+  if (directoryExists && !isInsideSkeleton) {
+    throw new Error(`A directory named "${ appName }" already exists. Aborting.`);
+  }
+
+  // Create skeleton application if it doesn't exist
+  if (!isInsideSkeleton && !skeletonExists) {
+    console.log(`Creating skeleton application: ${ appName }...`);
+    // Pass all arguments to the app/init script
+    const appInitPath = path.join(__dirname, 'app', 'init');
+    const appArgs = [appInitPath, appName, shellVersion, ...args];
+
+    const result = spawnSync('node', appArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create skeleton application.');
+    }
+
+    // Ensure the skeleton path directory is created before attempting to change directory
+    if (!fs.existsSync(skeletonPath)) {
+      throw new Error(`Failed to create skeleton application directory: ${ skeletonPath }`);
+    }
+
+    // Change working directory to the newly created skeleton app
+    process.chdir(skeletonPath);
+  } else if (isInsideSkeleton) {
+    // If skeleton exists, ensure the working directory is set correctly
+    process.chdir(skeletonPath);
+  }
+
+  if (skeletonOnly) {
+    console.log('Skeleton application created successfully. No additional packages will be installed.');
+    process.exit(0);
+  }
+
+  if (pkgExists) {
+    throw new Error(`A package directory for "${ extensionName }" already exists.`);
+  }
+
+  // Check for package existence and create it if necessary
+  if (!pkgExists) {
+    console.log(`Creating package: ${ extensionName }...`);
+    const pkgInitPath = path.join(__dirname, 'pkg', 'init');
+    const pkgArgs = [pkgInitPath, extensionName, shellVersion, ...args];
+
+    const result = spawnSync('node', pkgArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create package.');
+    }
+  }
+
+  if (args.includes('--update') || args.includes('-u')) {
+    // Run the update script
+    console.log('Updating applications...');
+    const updatePath = path.join(__dirname, 'update');
+    const updateArgs = [updatePath, ...args];
+
+    const result = spawnSync('node', updateArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to update applications.');
+    }
+  }
+
+  // console.log('Extension created successfully.');
+
+  if (skeletonOnly || !isInsideSkeleton) {
+    console.log(`To begin, run: \n\n\tcd ${ appName } && yarn install\n`);
+  }
+} catch (error) {
+  console.error('Error creating extension:', error);
+  process.exit(1);
+}
+
+/* eslint-enable no-console */

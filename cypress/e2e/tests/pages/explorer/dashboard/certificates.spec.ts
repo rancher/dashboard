@@ -1,6 +1,7 @@
 
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { SecretsPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
 
 const certName = 'expired';
 const certNs = 'defaut';
@@ -31,7 +32,7 @@ const expiredCert = {
     name:            certName,
     namespace:       certNs,
     relationships:   null,
-    resourceVersion: '17963647',
+    resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
     state:           {
       error:         false,
       message:       'Resource is always ready',

@@ -131,10 +131,10 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
 
       homePage.clickSupportLink(5, true);
 
+      cy.url().should('contain', COLLECTIVE_BASE);
+
       // Check the page title
       cy.title().should('eq', 'SUSE Collective');
-
-      cy.url().should('contain', COLLECTIVE_BASE);
     });
   });
 });

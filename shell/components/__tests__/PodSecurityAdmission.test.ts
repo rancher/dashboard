@@ -15,7 +15,7 @@ describe('component: PodSecurityAdmission', () => {
       namespaces: [], runtimeClasses: [], usernames: []
     }]
   ])('should emit %p and exemptions on creation if labels always active', (emission, value) => {
-    const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'create', labelsAlwaysActive: true } });
+    const wrapper = mount(PodSecurityAdmission, { props: { mode: 'create', labelsAlwaysActive: true } });
 
     expect(wrapper.emitted(emission)![0][0]).toStrictEqual(value);
   });
@@ -26,11 +26,18 @@ describe('component: PodSecurityAdmission', () => {
       ['', 'level'],
       ['', 'version'],
     ])('should display default value %p for input %p', (value, inputId) => {
-      const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'edit' } });
+      const wrapper = mount(PodSecurityAdmission, { props: { mode: 'edit' } });
 
-      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+      let element;
 
-      expect(input.value).toStrictEqual(value);
+      if (inputId === 'version') {
+        element = input.element;
+      } else {
+        element = input.find('input').element;
+      }
+
+      expect(element.value).toStrictEqual(value);
     });
 
     describe.each([
@@ -61,7 +68,7 @@ describe('component: PodSecurityAdmission', () => {
         };
 
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:         'edit',
             labels,
             labelsPrefix: prefix
@@ -82,14 +89,14 @@ describe('component: PodSecurityAdmission', () => {
         };
 
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:         'edit',
             labels,
             labelsPrefix: prefix
           }
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).element as HTMLInputElement;
 
         expect(input.value).toStrictEqual(value);
       });
@@ -105,14 +112,14 @@ describe('component: PodSecurityAdmission', () => {
         };
 
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:         'edit',
             labels,
             labelsPrefix: prefix
           }
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).element as HTMLInputElement;
 
         expect(input.value).toStrictEqual(value);
       });
@@ -125,7 +132,7 @@ describe('component: PodSecurityAdmission', () => {
             [`${ prefix }enforce-version`]: version
           };
           const wrapper = mount(PodSecurityAdmission, {
-            propsData: {
+            props: {
               mode:         'edit',
               labels:       {},
               labelsPrefix: prefix
@@ -143,7 +150,7 @@ describe('component: PodSecurityAdmission', () => {
           });
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue(version);
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).setValue(version);
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
@@ -158,7 +165,7 @@ describe('component: PodSecurityAdmission', () => {
             [`${ prefix }enforce-version`]: 'latest',
           };
           const wrapper = mount(PodSecurityAdmission, {
-            propsData: {
+            props: {
               mode:         'edit',
               labels,
               labelsPrefix: prefix
@@ -187,14 +194,14 @@ describe('component: PodSecurityAdmission', () => {
           });
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue('');
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).setValue('');
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
 
         it('should assign default version and level if missing', () => {
           const wrapper = mount(PodSecurityAdmission, {
-            propsData: {
+            props: {
               mode:         'edit',
               labels:       {},
               labelsPrefix: prefix
@@ -216,7 +223,7 @@ describe('component: PodSecurityAdmission', () => {
           };
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue('');
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).setValue('');
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
@@ -226,21 +233,28 @@ describe('component: PodSecurityAdmission', () => {
     describe.each(['level', 'version'])('should keep always %p enabled', (inputId) => {
       it('given labelsAlwaysActive true and no labels', () => {
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:               'edit',
             labelsAlwaysActive: true,
             labels:             {}
           },
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+        let element;
 
-        expect(input.disabled).toBe(false);
+        if (inputId === 'version') {
+          element = input.element;
+        } else {
+          element = input.find('input').element;
+        }
+
+        expect(element.disabled).toBe(false);
       });
 
       it('given existing values', () => {
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:   'edit',
             labels: {
               [`enforce`]:         'baseline',
@@ -249,31 +263,45 @@ describe('component: PodSecurityAdmission', () => {
           },
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+        let element;
 
-        expect(input.disabled).toBe(false);
+        if (inputId === 'version') {
+          element = input.element;
+        } else {
+          element = input.find('input').element;
+        }
+
+        expect(element.disabled).toBe(false);
       });
     });
 
     describe.each(['level', 'version'])('should keep always %p disabled', (inputId) => {
       it('given labelsAlwaysActive false and no labels', () => {
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:               'edit',
             labelsAlwaysActive: false,
             labels:             {}
           },
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+        let element;
 
-        expect(input.disabled).toBe(true);
+        if (inputId === 'version') {
+          element = input.element;
+        } else {
+          element = input.find('input').element;
+        }
+
+        expect(element.disabled).toBe(true);
       });
 
       it('given disabled active status', () => {
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: { mode: 'edit' },
-          data:      () => ({
+          props: { mode: 'edit' },
+          data:  () => ({
             psaControls: {
               enforce: {
                 active:  false,
@@ -284,14 +312,21 @@ describe('component: PodSecurityAdmission', () => {
           }),
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+        let element;
 
-        expect(input.disabled).toBe(true);
+        if (inputId === 'version') {
+          element = input.element;
+        } else {
+          element = input.find('input').element;
+        }
+
+        expect(element.disabled).toBe(true);
       });
 
       it('given view mode and provided labels', () => {
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode:   'view',
             labels: {
               [`enforce`]:         'baseline',
@@ -300,9 +335,16 @@ describe('component: PodSecurityAdmission', () => {
           },
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`);
+        let element;
 
-        expect(input.disabled).toBe(true);
+        if (inputId === 'version') {
+          element = input.element;
+        } else {
+          element = input.find('input').element;
+        }
+
+        expect(element.disabled).toBe(true);
       });
     });
 
@@ -310,13 +352,13 @@ describe('component: PodSecurityAdmission', () => {
       [true, false],
     ])('should display the checkbox %p', (value) => {
       const wrapper = mount(PodSecurityAdmission, {
-        propsData: {
+        props: {
           mode:               'edit',
           labelsAlwaysActive: value
         }
       });
 
-      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-active"]`).element as HTMLInputElement;
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-active"]`).exists();
 
       expect(!input).toBe(value);
     });
@@ -343,7 +385,7 @@ describe('component: PodSecurityAdmission', () => {
       };
 
       const wrapper = mount(PodSecurityAdmission, {
-        propsData: {
+        props: {
           mode: 'edit',
           exemptions,
         }
@@ -358,13 +400,13 @@ describe('component: PodSecurityAdmission', () => {
     ])('should map to the form, with value %p for input %p', (value, inputId) => {
       const exemptions = { usernames: [value] };
       const wrapper = mount(PodSecurityAdmission, {
-        propsData: {
+        props: {
           mode: 'edit',
           exemptions
         }
       });
 
-      const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-${ inputId }"]`).element as HTMLInputElement;
 
       expect(input.value).toStrictEqual(value);
     });
@@ -381,13 +423,13 @@ describe('component: PodSecurityAdmission', () => {
           runtimeClasses: []
         };
         const wrapper = mount(PodSecurityAdmission, {
-          propsData: {
+          props: {
             mode: 'edit',
             exemptions
           },
         });
         // Unable to toggle the checkbox, so we use the input
-        const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-value"]`).find('input');
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-value"]`);
 
         input.setValue(value);
 

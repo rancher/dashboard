@@ -1,7 +1,5 @@
 --ignore-dir=.git
 --ignore-dir=.vscode
---ignore-dir=.nuxt
---ignore-dir=.nuxt-prod
 --ignore-dir=.nyc_output
 --ignore-dir=coverage
 --ignore-dir=dist

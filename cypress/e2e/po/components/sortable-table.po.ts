@@ -1,10 +1,18 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
+import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
 export default class SortableTablePo extends ComponentPo {
+  /**
+   * Create a name that should, when sorted by name, by default appear first
+   */
+  static firstByDefaultName(context = 'resource'): string {
+    return `11111-first-in-list-unique-${ context }`;
+  }
   //
   // sortable-table-header
   //
@@ -35,7 +43,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popover .popover .popover-inner`);
+    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
   }
 
   /**
@@ -50,6 +58,15 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Get group by buttons (flat list, group by namespace, or group by node)
+   * @param index
+   * @returns
+   */
+  groupByButtons(index: number) {
+    return this.self().find(`[data-testid="button-group-child-${ index }"]`);
+  }
+
+  /**
    * Delete button (displays on page after row element selected)
    */
   deleteButton() {
@@ -60,16 +77,26 @@ export default class SortableTablePo extends ComponentPo {
     return cy.get('.action-availability');
   }
 
+  filterComponent() {
+    return this.self().find('[data-testid="search-box-filter-row"] input');
+  }
+
   /**
    * Search box to query rows
    * @param searchText
    * @returns
    */
   filter(searchText: string) {
-    return cy.get('[data-testid="search-box-filter-row"] input')
+    return this.filterComponent()
       .focus()
       .clear()
       .type(searchText);
+  }
+
+  resetFilter() {
+    return this.filterComponent()
+      .focus()
+      .clear();
   }
 
   //
@@ -81,11 +108,11 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowElements(options?: any) {
-    return this.self().find('tbody tr:not(.sub-row)', options);
+    return this.self().find('tbody tr:not(.sub-row):not(.group-row)', options);
   }
 
-  rowElementWithName(name: string) {
-    return this.self().contains('tbody tr', new RegExp(` ${ name } `));
+  rowElementWithName(name: string, options?: GetOptions) {
+    return this.self().contains('tbody tr', new RegExp(`${ name }`), options);
   }
 
   rowElementWithPartialName(name: string) {
@@ -94,6 +121,15 @@ export default class SortableTablePo extends ComponentPo {
 
   tableHeaderRowElementWithPartialName(name: string) {
     return this.self().contains('thead tr', name);
+  }
+
+  tableHeaderRow() {
+    return new HeaderRowPo(this.self());
+  }
+
+  // sort
+  sort(index: number) {
+    return this.tableHeaderRow().column(index).find('.sort');
   }
 
   subRows() {
@@ -140,7 +176,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   noRowsText() {
-    return this.self().find('tbody').find('.no-rows');
+    return this.self().find('tbody', { timeout: 10000 }).find('.no-rows');
   }
 
   /**
@@ -156,12 +192,12 @@ export default class SortableTablePo extends ComponentPo {
    * @param expected number of rows shown
    * @returns
    */
-  checkRowCount(isEmpty: boolean, expected: number) {
-    return this.rowElements().should((el) => {
+  checkRowCount(isEmpty: boolean, expected: number, options?, hasFilter = false) {
+    return this.rowElements(options).should((el) => {
       if (isEmpty) {
         expect(el).to.have.length(expected);
-        expect(el).to.have.text('There are no rows to show.');
-        expect(el).to.have.attr('class', 'no-rows');
+        expect(el).to.have.text(hasFilter ? 'There are no rows which match your search query.' : 'There are no rows to show.');
+        expect(el).to.have.attr('class', hasFilter ? 'no-results' : 'no-rows');
       } else {
         expect(el).to.have.length(expected);
         expect(el).to.have.attr('data-node-id');
@@ -211,6 +247,15 @@ export default class SortableTablePo extends ComponentPo {
 
   // Check that the sortable table loading indicator does not exist (data loading complete)
   checkLoadingIndicatorNotVisible() {
-    cy.get('.data-loading').should('not.exist');
+    cy.get('tbody', { timeout: 10000 }).find('.data-loading').should('not.exist');
+  }
+
+  checkNoRowsNotVisible() {
+    cy.get('tbody', { timeout: 10000 }).find('.no-rows').should('not.exist');
+  }
+
+  // pagination
+  pagination() {
+    return new PaginationPo();
   }
 }

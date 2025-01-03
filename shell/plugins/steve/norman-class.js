@@ -1,6 +1,5 @@
 import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@shell/config/labels-annotations';
 import pickBy from 'lodash/pickBy';
-import Vue from 'vue';
 import { findBy } from '@shell/utils/array';
 import { matchesSomeRegex, coerceStringTypeToScalarType } from '@shell/utils/string';
 import Resource, { DNS_LIKE_TYPES } from '@shell/plugins/dashboard-store/resource-class';
@@ -37,7 +36,7 @@ export default class NormanModel extends Resource {
       return matchesSomeRegex(key, LABELS_TO_IGNORE_REGEX);
     });
 
-    Vue.set(this, 'labels', { ...wasIgnored, ...val });
+    this['labels'] = { ...wasIgnored, ...val };
   }
 
   setLabel(key, val) {
@@ -46,9 +45,9 @@ export default class NormanModel extends Resource {
         this.labels = {};
       }
 
-      Vue.set(this.labels, key, val);
+      this.labels[key] = val;
     } else if ( this.labels ) {
-      Vue.set(this.labels, key, undefined);
+      this.labels[key] = undefined;
       delete this.labels[key];
     }
   }
@@ -59,7 +58,7 @@ export default class NormanModel extends Resource {
       return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
     });
 
-    Vue.set(this, 'annotations', { ...wasIgnored, ...val });
+    this['annotations'] = { ...wasIgnored, ...val };
   }
 
   setAnnotation(key, val) {
@@ -68,9 +67,9 @@ export default class NormanModel extends Resource {
         this.annotations = {};
       }
 
-      Vue.set(this.annotations, key, val);
+      this.annotations[key] = val;
     } else if ( this.annotations ) {
-      Vue.set(this.annotations, key, undefined);
+      this.annotations[key] = undefined;
       delete this.annotations[key];
     }
   }
@@ -79,7 +78,7 @@ export default class NormanModel extends Resource {
     const keys = ['resourceQuota', 'namespaceDefaultResourceQuota'];
 
     keys.forEach((key) => {
-      Vue.set(this, key, { ...spec[key] });
+      this[key] = { ...spec[key] };
     });
   }
 
@@ -153,14 +152,14 @@ export default class NormanModel extends Resource {
 
       if (valIsString) {
         if (fieldType) {
-          Vue.set(data, key, coerceStringTypeToScalarType(val, fieldType));
+          data[key] = coerceStringTypeToScalarType(val, fieldType);
         }
 
         // Empty strings on nullable string fields -> null
         if ( field.nullable && val.length === 0 && STRING_LIKE_TYPES.includes(fieldType)) {
           val = null;
 
-          Vue.set(data, key, val);
+          data[key] = val;
         }
       }
       if (fieldType === 'boolean') {
@@ -184,7 +183,7 @@ export default class NormanModel extends Resource {
         if ( tolower !== val ) {
           val = tolower;
 
-          Vue.set(data, key, val);
+          data[key] = val;
         }
 
         fieldErrors.push(...validateDnsLikeTypes(val, fieldType, displayKey, this.$rootGetters, fieldErrors));

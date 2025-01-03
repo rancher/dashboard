@@ -17,6 +17,8 @@ import { createYaml } from '@shell/utils/create-yaml';
 const REAL_TYPE = CAPI.RANCHER_CLUSTER;
 
 export default {
+  emits: ['input'],
+
   components: {
     Banner,
     ClusterMembershipEditor,
@@ -92,7 +94,7 @@ export default {
       });
     },
     onMembershipUpdate(update) {
-      this.$set(this, 'membershipUpdate', update);
+      this['membershipUpdate'] = update;
     },
   },
 };
@@ -109,16 +111,23 @@ export default {
     @finish="saveOverride"
     @error="e=>errors = e"
   >
+    <Banner
+      v-if="isCreate"
+      color="warning"
+    >
+      {{ t('harvesterManager.cluster.supportMessage') }}
+    </Banner>
     <div class="mt-20">
       <NameNsDescription
         v-if="!isView"
-        v-model="value"
+        :value="value"
         :mode="mode"
         :namespaced="false"
         name-label="cluster.name.label"
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
+        @update:value="$emit('input', $event)"
       />
     </div>
 
@@ -141,12 +150,14 @@ export default {
         />
       </Tab>
       <AgentEnv
-        v-model="value"
+        :value="value"
         :mode="mode"
+        @update:value="$emit('input', $event)"
       />
       <Labels
-        v-model="value"
+        :value="value"
         :mode="mode"
+        @update:value="$emit('input', $event)"
       />
     </Tabbed>
   </CruResource>

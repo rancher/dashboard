@@ -43,7 +43,7 @@ export default {
     return { label: this.update(), value: 0 };
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this.timer);
   },
 

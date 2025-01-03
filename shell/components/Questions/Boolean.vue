@@ -3,6 +3,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { Checkbox },
   mixins:     [Question]
 };
@@ -21,7 +23,7 @@ export default {
         :disabled="disabled"
         :tooltip="displayTooltip"
         :data-testid="`boolean-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

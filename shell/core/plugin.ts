@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { RouteConfig } from 'vue-router';
+import { RouteRecordRaw } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import {
   CoreStoreInit,
@@ -12,9 +12,10 @@ import {
   LocationConfig,
   ExtensionPoint,
 
-  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
+import { defineAsyncComponent, markRaw, Component } from 'vue';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -26,7 +27,7 @@ export class Plugin implements IPlugin {
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
-  public routes: { parent?: string, route: RouteConfig }[] = [];
+  public routes: { parent?: string, route: RouteRecordRaw }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
@@ -97,10 +98,10 @@ export class Plugin implements IPlugin {
     this.register('l10n', locale, fn);
   }
 
-  addRoutes(routes: PluginRouteConfig[] | RouteConfig[]) {
-    routes.forEach((r: PluginRouteConfig | RouteConfig) => {
+  addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]) {
+    routes.forEach((r: PluginRouteRecordRaw | RouteRecordRaw) => {
       if (Object.keys(r).includes('parent')) {
-        const pConfig = r as PluginRouteConfig;
+        const pConfig = r as PluginRouteRecordRaw;
 
         if (pConfig.parent) {
           this.addRoute(pConfig.parent, pConfig.route);
@@ -108,21 +109,21 @@ export class Plugin implements IPlugin {
           this.addRoute(pConfig.route);
         }
       } else {
-        this.addRoute(r as RouteConfig);
+        this.addRoute(r as RouteRecordRaw);
       }
     });
   }
 
-  addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
+  addRoute(parentOrRoute: RouteRecordRaw | string, optionalRoute?: RouteRecordRaw): void {
     // Always add the pkg name to the route metadata
     const hasParent = typeof (parentOrRoute) === 'string';
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
-    const route: RouteConfig = hasParent ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
+    const route: RouteRecordRaw = hasParent ? optionalRoute as RouteRecordRaw : parentOrRoute as RouteRecordRaw;
 
     let parentOverride;
 
     if (!parent) {
-      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteConfig. The type needs to be changed or at least extended.
+      // TODO: Inspecting the route object in the browser clearly indicates it's not a RouteRecordRaw. The type needs to be changed or at least extended.
       const typelessRoute: any = route;
 
       if (typelessRoute.component?.layout) {
@@ -161,21 +162,47 @@ export class Plugin implements IPlugin {
    * Adds a tab to the UI
    */
   addTab(where: string, when: LocationConfig | string, tab: Tab): void {
-    this._addUIConfig(ExtensionPoint.TAB, where, when, tab);
+    this._addUIConfig(ExtensionPoint.TAB, where, when, this._createAsyncComponent(tab));
   }
 
   /**
    * Adds a panel/component to the UI
    */
   addPanel(where: string, when: LocationConfig | string, panel: Panel): void {
-    this._addUIConfig(ExtensionPoint.PANEL, where, when, panel);
+    this._addUIConfig(ExtensionPoint.PANEL, where, when, this._createAsyncComponent(panel));
   }
 
   /**
    * Adds a card to the to the UI
    */
   addCard( where: string, when: LocationConfig | string, card: Card): void {
-    this._addUIConfig(ExtensionPoint.CARD, where, when, card);
+    this._addUIConfig(ExtensionPoint.CARD, where, when, this._createAsyncComponent(card));
+  }
+
+  /**
+   * Wraps a component from an extensionConfig with defineAsyncComponent and
+   * markRaw. This prepares the component to be loaded dynamically and prevents
+   * Vue from making the component reactive.
+   *
+   * @param extensionConfig The extension configuration containing a component
+   * to render.
+   * @returns A new object with the same properties as the extension
+   * configuration, but with the component property wrapped in
+   * defineAsyncComponent and markRaw. If the extension configuration doesn't
+   * have a component property, it returns the extension configuration
+   * unchanged.
+   */
+  private _createAsyncComponent(extensionConfig: Card | Panel | Tab) {
+    const { component } = extensionConfig;
+
+    if (!component) {
+      return extensionConfig;
+    }
+
+    return {
+      ...extensionConfig,
+      component: markRaw(defineAsyncComponent(component as () => Promise<Component>)),
+    };
   }
 
   /**

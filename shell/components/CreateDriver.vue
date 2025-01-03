@@ -36,7 +36,7 @@ export default {
   <div>
     <div class="row mb-20">
       <LabeledInput
-        v-model.trim="value.url"
+        v-model:value.trim="value.url"
         :label="t('drivers.add.downloadUrl.label')"
         :placeholder="t('drivers.add.downloadUrl.placeholder', null, true)"
         :tooltip="t('drivers.add.downloadUrl.tooltip', null, true)"
@@ -48,7 +48,7 @@ export default {
     </div>
     <div class="row mb-20">
       <LabeledInput
-        v-model.trim="value.checksum"
+        v-model:value.trim="value.checksum"
         :label="t('drivers.add.checksum.label')"
         :tooltip="t('drivers.add.checksum.tooltip', null, true)"
         :mode="mode"
@@ -58,7 +58,7 @@ export default {
     </div>
     <div class="row mb-20">
       <LabeledInput
-        v-model.trim="value.uiUrl"
+        v-model:value.trim="value.uiUrl"
         :label="t('drivers.add.customUiUrl.label')"
         :tooltip="t('drivers.add.customUiUrl.tooltip', null, true)"
         :placeholder="t('drivers.add.customUiUrl.placeholder', null, true)"
@@ -69,7 +69,7 @@ export default {
     </div>
     <div class="col span-6">
       <ArrayList
-        v-model="value.whitelistDomains"
+        v-model:value="value.whitelistDomains"
         :protip="false"
         :mode="mode"
         :title="t('drivers.add.whitelist')"

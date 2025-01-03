@@ -7,7 +7,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, OPERATING_SYSTEM
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
 } from '@shell/config/query-params';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
@@ -42,7 +42,7 @@ export default {
     const query = this.$route.query;
 
     this.searchQuery = query[SEARCH_QUERY] || '';
-    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
+    this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
     this.allRepos = this.areAllEnabled();
@@ -241,11 +241,9 @@ export default {
     operatingSystem(os) {
       this.$router.applyQuery({ [OPERATING_SYSTEM]: os || undefined });
     },
-  },
 
-  mounted() {
-    if ( typeof window !== 'undefined' ) {
-      window.c = this;
+    showDeprecated(neu) {
+      this.$router.applyQuery({ [DEPRECATED_QUERY]: neu || undefined });
     }
   },
 
@@ -312,18 +310,24 @@ export default {
         version = versions[0].version;
       }
 
+      const query = {
+        [REPO_TYPE]: chart.repoType,
+        [REPO]:      chart.repoName,
+        [CHART]:     chart.chartName,
+        [VERSION]:   version
+      };
+
+      if (chart.deprecated && this.showDeprecated) {
+        query[DEPRECATED_QUERY] = 'true';
+      }
+
       this.$router.push({
         name:   'c-cluster-apps-charts-chart',
         params: {
           cluster: this.$route.params.cluster,
           product: this.$store.getters['productId'],
         },
-        query: {
-          [REPO_TYPE]: chart.repoType,
-          [REPO]:      chart.repoName,
-          [CHART]:     chart.chartName,
-          [VERSION]:   version,
-        }
+        query
       });
     },
 
@@ -380,7 +384,7 @@ export default {
         class="actions-container"
       >
         <ButtonGroup
-          v-model="chartMode"
+          v-model:value="chartMode"
           :options="chartOptions"
         />
       </div>
@@ -428,7 +432,7 @@ export default {
       </Select>
 
       <Select
-        v-model="category"
+        v-model:value="category"
         :clearable="false"
         :searchable="false"
         :options="categories"
@@ -465,11 +469,19 @@ export default {
           @click="refresh"
         />
       </div>
+
+      <div class="mt-10">
+        <Checkbox
+          v-model:value="showDeprecated"
+          :label="t('catalog.charts.deprecatedChartsFilter.label')"
+          data-testid="charts-show-deprecated-filter"
+        />
+      </div>
     </div>
 
     <Banner
-      v-for="err in loadingErrors"
-      :key="err"
+      v-for="(err, i) in loadingErrors"
+      :key="i"
       color="error"
       :label="err"
     />
@@ -567,7 +579,7 @@ export default {
   padding: 7px 0 6px 13px;
   width: calc(100% + 10px);
 
-  ::v-deep .checkbox-label {
+  :deep() .checkbox-label {
     display: flex;
     align-items: center;
 
@@ -582,7 +594,7 @@ export default {
     }
   }
 
-  &:hover ::v-deep .checkbox-label {
+  &:hover :deep() .checkbox-label {
       color: var(--body-text);
     }
 
@@ -590,7 +602,7 @@ export default {
       &:hover {
       background: var(--app-rancher-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-rancher-accent-text);
     }
     & i {
@@ -602,7 +614,7 @@ export default {
       &:hover {
       background: var(--app-partner-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-partner-accent-text);
     }
     & i {
@@ -614,7 +626,7 @@ export default {
     &:hover {
       background: var(--app-color1-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color1-accent-text);
     }
     & i {
@@ -625,7 +637,7 @@ export default {
     &:hover {
       background: var(--app-color2-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color2-accent-text);
     }
     & i {
@@ -636,7 +648,7 @@ export default {
     &:hover {
       background: var(--app-color3-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color3-accent-text);
     }
     & i {
@@ -647,7 +659,7 @@ export default {
     &:hover {
       background: var(--app-color4-accent);
     }
-    &:hover ::v-deep.checkbox-label {
+    &:hover :deep().checkbox-label {
       color: var(--app-color4-accent-text);
     }
     & i {
@@ -658,7 +670,7 @@ export default {
     &:hover {
       background: var(--app-color5-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color5-accent-text);
     }
     & i {
@@ -669,7 +681,7 @@ export default {
     &:hover {
       background: var(--app-color6-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color6-accent-text);
     }
     & i {
@@ -680,7 +692,7 @@ export default {
     &:hover {
       background: var(--app-color7-accent);
     }
-    &:hover ::v-deep .checkbox-label {
+    &:hover :deep() .checkbox-label {
       color: var(--app-color7-accent-text);
     }
     & i {

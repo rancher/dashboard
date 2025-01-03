@@ -44,6 +44,33 @@ export default {
 
     ...mapGetters({ t: 'i18n/t' })
   },
+
+  methods: {
+    /**
+    * Retrieves the label for a given option
+    * @param option The option for which to retrieve the label. option can be
+    * either a string or an object. If it is an object, is should have a `label`
+    * property associated with it.
+    */
+    getOptionLabel(option) {
+      if (typeof option === 'string') {
+        return this.getOptionLabelString(option);
+      }
+
+      const { label } = option;
+
+      return this.getOptionLabelString(label);
+    },
+    /**
+    * Translates a given key into a localized string.
+    * @param key The key to be translated.
+    */
+    getOptionLabelString(key) {
+      // Periods are replaced with `-` to prevent conflict with the default key
+      // separator.
+      return this.t(`workload.storage.csi.drivers.'${ key.replaceAll('.', '-') }'`);
+    }
+  }
 };
 </script>
 
@@ -53,7 +80,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -61,7 +88,7 @@ export default {
         </div>
         <div class="col span-6">
           <Checkbox
-            v-model="value.csi.readOnly"
+            v-model:value="value.csi.readOnly"
             :mode="mode"
             :label="t('workload.storage.readOnly')"
           />
@@ -70,11 +97,12 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.csi.driver"
+            v-model:value="value.csi.driver"
+            data-testid="workload-storage-driver"
             :mode="mode"
             :label="t('workload.storage.driver')"
             :options="driverOpts"
-            :get-option-label="opt=>t(`workload.storage.csi.drivers.'${opt}'`)"
+            :get-option-label="getOptionLabel"
             :required="true"
           />
         </div>
@@ -85,7 +113,7 @@ export default {
       >
         <component
           :is="driverComponent"
-          v-model="value.csi.volumeAttributes"
+          v-model:value="value.csi.volumeAttributes"
           :mode="mode"
         />
       </div>

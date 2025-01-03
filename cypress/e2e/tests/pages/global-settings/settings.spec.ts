@@ -7,11 +7,13 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 const settingsPage = new SettingsPagePo('local');
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
+const userMenu = new UserMenuPo();
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -223,6 +225,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
+    userMenu.self().click();
+
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
@@ -256,6 +261,34 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPage.waitForPage();
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
+  });
+
+  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    const settingsEdit = settingsPage.editSettings('local', 'agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.selectSettingsByLabel('System Store');
+    settingsEdit.saveAndWait('agent-tls-mode');
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('System Store');
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('agent-tls-mode');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('agent-tls-mode');
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('agent-tls-mode').contains('Strict');
   });
 
   it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {

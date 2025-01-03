@@ -9,6 +9,7 @@ import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
+import PromptModal from '@shell/components/PromptModal';
 
 export default {
 
@@ -18,12 +19,11 @@ export default {
     GrowlManager,
     AzureWarning,
     AwsComplianceBanner,
-    Inactivity
+    Inactivity,
+    PromptModal
   },
 
   mixins: [Brand, BrowserTabVisibility],
-
-  middleware: ['authenticated'],
 
   data() {
     return {
@@ -57,7 +57,7 @@ export default {
     <Inactivity />
     <AwsComplianceBanner />
     <AzureWarning />
-
+    <PromptModal />
     <div
       class="dashboard-content"
       :class="{'dashboard-padding-left': showTopLevelMenu}"

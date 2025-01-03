@@ -1,8 +1,20 @@
-import { shallowMount, Wrapper } from '@vue/test-utils';
-import { _CLONE } from '@shell/config/query-params';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { _CLONE, _CREATE } from '@shell/config/query-params';
 import ServicePage from '@shell/edit/service.vue';
 
 const createEditViewMock = {
+  props: {
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+    realMode: {
+      type:    String,
+      default: _CREATE
+    },
+  },
   data() {
     return { errors: [] };
   },
@@ -24,33 +36,36 @@ const createEditViewMock = {
     doneParams: () => ({}),
   },
   methods: {
-    done:         jest.fn(),
-    conflict:     jest.fn(() => Promise.resolve([])),
-    save:         jest.fn(() => Promise.resolve()),
-    actuallySave: jest.fn(() => Promise.resolve()),
-    setErrors:    jest.fn()
+    done:               jest.fn(),
+    conflict:           jest.fn(() => Promise.resolve([])),
+    save:               jest.fn(() => Promise.resolve()),
+    actuallySave:       jest.fn(() => Promise.resolve()),
+    setErrors:          jest.fn(),
+    registerBeforeHook: jest.fn(),
   }
 };
 
 const formValidationMock = {};
 
 describe('service edit', () => {
-  let wrapper: Wrapper<InstanceType<typeof ServicePage>>;
+  let wrapper: VueWrapper<InstanceType<typeof ServicePage>>;
 
   const createComponent = (propsData: any) => {
     wrapper = shallowMount(ServicePage,
       {
-        propsData,
-        mixins: [createEditViewMock, formValidationMock],
-        mocks:  {
-          $store: {
-            getters: {
-              'management/all': jest.fn(),
-              'i18n/t':         jest.fn()
-            }
-          }
-        },
+        props:    propsData,
+        mixins:   [createEditViewMock, formValidationMock],
         computed: { provisioningCluster: jest.fn() },
+        global:   {
+          mocks: {
+            $store: {
+              getters: {
+                'management/all': jest.fn(),
+                'i18n/t':         jest.fn()
+              }
+            }
+          },
+        },
       }
     );
   };

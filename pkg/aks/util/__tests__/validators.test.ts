@@ -1,4 +1,5 @@
 import * as validators from '@pkg/aks/util/validators';
+import { AKSNodePool } from 'types';
 
 validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
 
@@ -6,7 +7,10 @@ validators.needsValidation = () => true;
 
 const MOCK_TRANSLATION = 'abc';
 
-const mockCtx = { normanCluster: { }, t: () => MOCK_TRANSLATION };
+const mockCtx = {
+  normanCluster: { },
+  t:             () => MOCK_TRANSLATION,
+};
 
 describe('fx: requiredInCluster', () => {
   it('returns an error message containing the field label if field is not defined in cluster', () => {
@@ -78,6 +82,7 @@ describe('fx: privateDnsZone', () => {
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/test-subzone.privatelink.westus.azmk8s.io', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/private.eastus2.azmk8s.io', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/privatelink.eastus2.azmk8s.io', undefined],
+    ['system', undefined],
     ['/subscriptions/abcdef123/resourceGroups/abcdef123/providers/Microsoft.Network/privateDnsZones/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION]
@@ -87,5 +92,93 @@ describe('fx: privateDnsZone', () => {
     const validator = validators.privateDnsZone(ctx, '', 'aksConfig.privateDnsZone');
 
     expect(validator()).toStrictEqual(validatorMsg);
+  });
+});
+
+describe('fx: nodePoolNames', () => {
+  it('returns an error when the provided pool name exceeds 12 characters', () => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator('abcdefghijklm')).toStrictEqual(MOCK_TRANSLATION);
+
+    expect(validator('abcdefghijkl')).toBeUndefined();
+  });
+
+  it('validates each node pool in the provided context when not passed a node pool name', () => {
+    const ctx = { ...mockCtx, nodePools: [{ name: 'abcdefghijklm', _validation: {} }, { name: 'abcdefghijkl', _validation: {} }] as unknown as AKSNodePool[] };
+    const validator = validators.nodePoolNames(ctx);
+
+    validator();
+    expect(ctx.nodePools[0]?._validation?._validName).toStrictEqual(false);
+
+    expect(ctx.nodePools[1]?._validation?._validName).toStrictEqual(true);
+  });
+
+  it.each([
+    ['abc123', undefined],
+    ['abcabc', undefined],
+    ['abc-abc', MOCK_TRANSLATION],
+    ['abc abc', MOCK_TRANSLATION],
+    ['abc_abc', MOCK_TRANSLATION],
+    ['abcABC', MOCK_TRANSLATION],
+    ['abc:abc', MOCK_TRANSLATION],
+  ])('returns an error when the provided pool name includes characters other than lowercase letters and numbers', (name, expected) => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator(name)).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['123abc', MOCK_TRANSLATION],
+    ['Abcabc', MOCK_TRANSLATION],
+  ])('returns an error when the provided pool name does not start with a lowercase letter', (name, expected) => {
+    const validator = validators.nodePoolNames(mockCtx);
+
+    expect(validator(name)).toStrictEqual(expected);
+  });
+});
+
+describe('fx: nodePoolCount', () => {
+  // AksNodePool unit tests check that the second arg is passed in as expected
+  it('validates that count is at least 1 when second arg is false', () => {
+    const validator = validators.nodePoolCount(mockCtx);
+
+    expect(validator(1, false)).toBeUndefined();
+    expect(validator(0, false)).toStrictEqual(MOCK_TRANSLATION);
+  });
+
+  it('validates that count is at least 0 when second arg is true', () => {
+    const validator = validators.nodePoolCount(mockCtx);
+
+    expect(validator(1, true)).toBeUndefined();
+    expect(validator(0, true)).toBeUndefined();
+    expect(validator(-1, true)).toStrictEqual(MOCK_TRANSLATION);
+  });
+
+  it('validates each node pool in the provided context when not passed a count value', () => {
+    const ctx = {
+      ...mockCtx,
+      nodePools: [
+        {
+          name: 'abc', _validation: {}, mode: 'System', count: 0
+        },
+        {
+          name: 'def', _validation: {}, mode: 'System', count: 1
+        },
+        {
+          name: 'hij', _validation: {}, mode: 'User', count: 0
+        },
+        {
+          name: 'klm', _validation: {}, mode: 'User', count: -1
+        }
+      ] as unknown as AKSNodePool[]
+    };
+    const validator = validators.nodePoolCount(ctx);
+
+    validator();
+    expect(ctx.nodePools[0]?._validation?._validCount).toStrictEqual(false);
+    expect(ctx.nodePools[1]?._validation?._validCount).toStrictEqual(true);
+    expect(ctx.nodePools[2]?._validation?._validCount).toStrictEqual(true);
+    expect(ctx.nodePools[3]?._validation?._validCount).toStrictEqual(false);
   });
 });

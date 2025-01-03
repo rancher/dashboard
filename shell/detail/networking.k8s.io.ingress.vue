@@ -6,10 +6,11 @@ import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { PaginationFilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
   name:       'CRUIngress',
+  emits:      ['input'],
   components: {
     ResourceTabs,
     Rules,
@@ -25,7 +26,7 @@ export default {
     if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
-        pagination: new PaginationFilterArgs({
+        pagination: new FilterArgs({
           filters: PaginationParamFilter.createSingleField({
             field: 'metadata.fields.1',
             value: TYPES.TLS
@@ -91,9 +92,10 @@ export default {
 </script>
 <template>
   <ResourceTabs
-    v-model="value"
+    :value="value"
     mode="view"
     class="mt-20"
+    @update:value="$emit('input', $event)"
   >
     <Tab
       :label="t('ingress.rules.title')"
@@ -101,10 +103,11 @@ export default {
       :weight="1"
     >
       <Rules
-        v-model="value"
+        :value="value"
         :mode="mode"
         :service-targets="serviceTargets"
         :certificates="certificates"
+        @update:value="$emit('input', $event)"
       />
     </Tab>
   </ResourceTabs>

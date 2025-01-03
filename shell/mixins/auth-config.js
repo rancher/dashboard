@@ -3,9 +3,23 @@ import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { BASE_SCOPES } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
-import { set } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
+
+export const SLO_OPTION_VALUES = {
+  /**
+   * Log out of only rancher, leaving auth provider logged in
+   */
+  rancher: 'rancher',
+  /**
+   * Log out of rancher AND auth provider
+   */
+  all:     'all',
+  /**
+   * Offer user chose of `rancher` or `all`
+   */
+  both:    'both',
+};
 
 export default {
   beforeCreate() {
@@ -30,6 +44,7 @@ export default {
       originalModel:  null,
       principals:     [],
       authConfigName: this.$route.params.id,
+      sloType:        '',
     };
   },
 
@@ -102,7 +117,18 @@ export default {
       }
       if (this.value.configType === 'saml') {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
-          this.$set(this.model, 'rancherApiHost', this.serverUrl);
+          this.model['rancherApiHost'] = this.serverUrl;
+        }
+
+        // setting data for SLO
+        if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
+          if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.rancher;
+          } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.all;
+          } else if (this.model.logoutAllEnabled && !this.model.logoutAllForced) {
+            this.sloType = SLO_OPTION_VALUES.both;
+          }
         }
       }
 
@@ -269,25 +295,25 @@ export default {
         const serverUrl = this.serverUrl.endsWith('/') ? this.serverUrl.slice(0, this.serverUrl.length - 1) : this.serverUrl;
 
         // AuthConfig
-        set(this.model, 'accessMode', 'unrestricted'); // This should remain as unrestricted, enabling will fail otherwise
+        this.model.accessMode = 'unrestricted'; // This should remain as unrestricted, enabling will fail otherwise
 
         // KeyCloakOIDCConfig --> OIDCConfig
-        set(this.model, 'rancherUrl', `${ serverUrl }/verify-auth`);
-        set(this.model, 'scope', BASE_SCOPES.keycloakoidc[0]);
+        this.model.rancherUrl = `${ serverUrl }/verify-auth`;
+        this.model.scope = this.model.id === 'keycloakoidc' ? BASE_SCOPES.keycloakoidc[0] : BASE_SCOPES.genericoidc[0];
         break;
       }
 
       case 'saml':
-        set(this.model, 'accessMode', 'unrestricted');
+        this.model.accessMode = 'unrestricted';
         break;
       case 'ldap':
-        set(this.model, 'servers', []);
-        set(this.model, 'accessMode', 'unrestricted');
-        set(this.model, 'starttls', false);
+        this.model.servers = [];
+        this.model.accessMode = 'unrestricted';
+        this.model.starttls = false;
         if (this.model.id === 'activedirectory') {
-          set(this.model, 'disabledStatusBitmask', 2);
+          this.model.disabledStatusBitmask = 2;
         } else {
-          set(this.model, 'disabledStatusBitmask', 0);
+          this.model.disabledStatusBitmask = 0;
         }
         break;
       default:

@@ -6,7 +6,7 @@ import defaults from './utils/questions-defaults';
 describe('the String Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
-      propsData: {
+      props: {
         value:           {},
         targetNamespace: 'test',
         source:          [{
@@ -16,8 +16,11 @@ describe('the String Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: defaults.mocks,
-      stubs: defaults.stubs,
+
+      global: {
+        mocks: defaults.mocks,
+        stubs: defaults.stubs,
+      },
     });
 
     const inputFields = wrapper.findAll('[data-testid="string-input-var_name"]');
@@ -36,7 +39,7 @@ describe('the String Component', () => {
 
   it('description is present', () => {
     const wrapper = mount(Questions, {
-      propsData: {
+      props: {
         value:           {},
         targetNamespace: 'test',
         source:          [{
@@ -46,8 +49,11 @@ describe('the String Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: defaults.mocks,
-      stubs: defaults.stubs,
+
+      global: {
+        mocks: defaults.mocks,
+        stubs: defaults.stubs,
+      },
     });
 
     const inputFields = wrapper.findAll('[data-testid="string-input-var_name"]');
@@ -62,7 +68,7 @@ describe('the String Component', () => {
 
   it('label is present', () => {
     const wrapper = mount(Questions, {
-      propsData: {
+      props: {
         value:           {},
         targetNamespace: 'test',
         source:          [{
@@ -72,8 +78,11 @@ describe('the String Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: defaults.mocks,
-      stubs: defaults.stubs,
+
+      global: {
+        mocks: defaults.mocks,
+        stubs: defaults.stubs,
+      },
     });
 
     const inputFields = wrapper.findAll('[data-testid="string-input-var_name"]');
@@ -88,7 +97,7 @@ describe('the String Component', () => {
 
   it('tooltip is present', () => {
     const wrapper = mount(Questions, {
-      propsData: {
+      props: {
         value:           {},
         targetNamespace: 'test',
         source:          [{
@@ -98,8 +107,11 @@ describe('the String Component', () => {
         }],
         mode: _EDIT
       },
-      mocks: defaults.mocks,
-      stubs: defaults.stubs,
+
+      global: {
+        mocks: defaults.mocks,
+        stubs: defaults.stubs,
+      },
     });
 
     const inputFields = wrapper.findAll('[data-testid="string-input-var_name"]');

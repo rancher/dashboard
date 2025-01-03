@@ -1,0 +1,13 @@
+{
+  "name": "NAME",
+  "version": "0.1.0",
+  "private": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {},
+  "resolutions": {
+    "@types/node": "~20.10.0",
+    "@types/lodash": "4.17.5"
+  }
+}

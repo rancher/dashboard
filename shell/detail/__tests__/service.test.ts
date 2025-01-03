@@ -14,12 +14,12 @@ describe('view: service', () => {
 
   it('should return default empty array of ports if the ports are not configured', () => {
     const wrapper = shallowMount(service, {
-      mocks,
-      propsData: {
+      props: {
         value: {
           spec: {}, metadata: {}, pods: []
         }
       },
+      global: { mocks },
     });
 
     expect(wrapper.vm.ports).toStrictEqual([]);
@@ -27,12 +27,12 @@ describe('view: service', () => {
 
   it('should return empty array of ports if ports are set to empty array', () => {
     const wrapper = shallowMount(service, {
-      mocks,
-      propsData: {
+      props: {
         value: {
           spec: { ports: [] }, metadata: {}, pods: []
         }
       },
+      global: { mocks },
     });
 
     expect(wrapper.vm.ports).toStrictEqual([]);
@@ -49,12 +49,12 @@ describe('view: service', () => {
     ];
 
     const wrapper = shallowMount(service, {
-      mocks,
-      propsData: {
+      props: {
         value: {
           spec: { ports }, metadata: {}, pods: []
         }
       },
+      global: { mocks },
     });
 
     expect(wrapper.vm.ports).toStrictEqual(ports.map((p) => ({ ...p, publicPorts: [] })));

@@ -11,6 +11,7 @@ export const CATTLE_PUBLIC_ENDPOINTS = 'field.cattle.io/publicEndpoints';
 export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
+export const CREATOR_PRINCIPAL_ID = 'field.cattle.io/creator-principal-name';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
@@ -90,11 +91,12 @@ export const CATALOG = {
   _CLUSTER_TPL:  'cluster-template',
   _CLUSTER_TOOL: 'cluster-tool',
 
-  COMPONENT:        'catalog.cattle.io/ui-component',
-  SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
-  SOURCE_REPO_NAME: 'catalog.cattle.io/ui-source-repo',
-  COLOR:            'catalog.cattle.io/ui-color',
-  DISPLAY_NAME:     'catalog.cattle.io/display-name',
+  COMPONENT:         'catalog.cattle.io/ui-component',
+  SOURCE_REPO_TYPE:  'catalog.cattle.io/ui-source-repo-type',
+  SOURCE_REPO_NAME:  'catalog.cattle.io/ui-source-repo',
+  COLOR:             'catalog.cattle.io/ui-color',
+  DISPLAY_NAME:      'catalog.cattle.io/display-name',
+  CLUSTER_REPO_NAME: 'catalog.cattle.io/cluster-repo-name',
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',
@@ -111,6 +113,7 @@ export const FLEET = {
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
   MANAGED:              'fleet.cattle.io/managed',
+  CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
   CLUSTER:              'fleet.cattle.io/cluster'
 };
 
@@ -143,6 +146,7 @@ export const HCI = {
   NETWORK_ROUTE:       'network.harvesterhci.io/route',
   IMAGE_NAME:          'harvesterhci.io/image-name',
   NETWORK_TYPE:        'network.harvesterhci.io/type',
+  CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
   PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
 };
 
@@ -172,3 +176,5 @@ export const SYSTEM_LABELS = [
   'node.kubernetes.io',
   'egress.rke2.io'
 ];
+
+export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };

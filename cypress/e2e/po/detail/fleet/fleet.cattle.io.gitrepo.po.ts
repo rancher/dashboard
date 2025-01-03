@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import BundlesTab from '@/cypress/e2e/po/detail/fleet/tabs/bundles-tab.po';
 
 /**
  * Details component for fleet.cattle.io.gitrepo resources
@@ -23,5 +24,21 @@ export default class FleetGitRepoDetailsPo extends PagePo {
 
   bundlesCount(): Cypress.Chainable {
     return this.self().find('[data-testid="gitrepo-bundle-summary"] .count').invoke('text');
+  }
+
+  bundlesTab() {
+    return new BundlesTab();
+  }
+
+  shwoConfig() {
+    this.self().find('[data-testid="button-group-child-1"]').click();
+  }
+
+  showGraph() {
+    this.self().find('[data-testid="button-group-child-2"]').click();
+  }
+
+  graph() {
+    return this.self().find('[data-testid="gitrepo_graph"]');
   }
 }

@@ -52,7 +52,7 @@ export default {
 <template>
   <div class="col span-4">
     <LabeledSelect
-      v-model="ingressClassName"
+      v-model:value="ingressClassName"
       :taggable="true"
       :searchable="true"
       :mode="mode"

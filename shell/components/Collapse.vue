@@ -1,6 +1,9 @@
 <script>
 export default {
-  name:  'Collapse',
+  name: 'Collapse',
+
+  emits: ['update:open'],
+
   props: {
     open: {
       type:    Boolean,

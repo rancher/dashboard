@@ -1,6 +1,16 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
+import {
+  CAPI, MANAGEMENT, EVENT, CATALOG, HPA, INGRESS, SERVICE,
+  CONFIG_MAP,
+  SECRET,
+  POD, NODE,
+  STORAGE_CLASS,
+  PVC,
+  PV,
+  WORKLOAD_TYPES
+} from '@shell/config/types';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -20,7 +30,8 @@ interface GlobalSetting {
     /**
      * Function used from the form validation
      */
-     ruleSet?: GlobalSettingRuleset[],
+    ruleSet?: GlobalSettingRuleset[],
+    warning?: string
   };
 }
 
@@ -50,7 +61,6 @@ export const SETTING = {
   INGRESS_IP_DOMAIN:                    'ingress-ip-domain',
   SERVER_URL:                           'server-url',
   RKE_METADATA_CONFIG:                  'rke-metadata-config',
-  TELEMETRY:                            'telemetry-opt',
   EULA_AGREED:                          'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:       'auth-user-info-max-age-seconds',
   AUTH_USER_SESSION_TTL_MINUTES:        'auth-user-session-ttl-minutes',
@@ -96,9 +106,19 @@ export const SETTING = {
   FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
   /**
    * manage rancher repositories in extensions (official, partners repos)
+  */
+  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner',
+  AGENT_TLS_MODE:                       'agent-tls-mode',
+  /**
+   * User retention settings
    */
-  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner'
-};
+  USER_RETENTION_CRON:                  'user-retention-cron',
+  USER_RETENTION_DRY_RUN:               'user-retention-dry-run',
+  USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
+  DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
+  DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
+  K3S_UPGRADER_UNINSTALL_CONCURRENCY:   'k3s-based-upgrader-uninstall-concurrency'
+} as const;
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
@@ -145,11 +165,16 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.BRAND]:                        { canReset: true },
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
-  [SETTING.TELEMETRY]:                    {
+  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:               {
     kind:    'enum',
-    options: ['prompt', 'in', 'out']
+    options: ['strict', 'system-store'],
+    warning: 'agent-tls-mode'
   },
-  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
+  }
 };
 
 /**
@@ -234,12 +259,32 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
         resources: {
           enableAll:  false,
           enableSome: {
-            enabled: ['configmap', 'secret', 'pod', 'node'],
+            // if a resource list is shown by a custom resource list component or has specific list headers then it's not generically shown
+            // and must be included here.
+            enabled: [
+              NODE, EVENT,
+              WORKLOAD_TYPES.CRON_JOB, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET, POD,
+              CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
+              HPA, INGRESS, SERVICE,
+              PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
+              WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+            ],
             generic: true,
+          }
+        }
+      },
+      management: {
+        resources: {
+          enableAll:  false,
+          enableSome: {
+            enabled: [
+              { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+              { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+            ],
+            generic: false,
           }
         }
       }
     }
   }
-
 };

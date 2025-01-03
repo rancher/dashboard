@@ -73,7 +73,7 @@ export default {
 
   created() {
     if (!this.value.hostPath.type) {
-      this.$set(this.value.hostPath, 'type', '');
+      this.value.hostPath['type'] = '';
     }
   },
 
@@ -85,7 +85,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.name"
+            v-model:value="value.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -95,7 +95,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.hostPath.path"
+            v-model:value="value.hostPath.path"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.nodePath')"
@@ -103,7 +103,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.hostPath.type"
+            v-model:value="value.hostPath.type"
             :mode="mode"
             :options="typeOpts"
             :label="t('workload.storage.hostPath.label')"

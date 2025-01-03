@@ -7,6 +7,8 @@ import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Con
 import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
+  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed'],
+
   components: {
     LabeledInput,
     RadioGroup,
@@ -61,7 +63,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="etcd.disableSnapshots"
+          v-model:value="etcd.disableSnapshots"
           name="etcd-disable-snapshots"
           :options="[true, false]"
           :label="t('cluster.rke2.etcd.disableSnapshots.label')"
@@ -76,7 +78,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="etcd.snapshotScheduleCron"
+          v-model:value="etcd.snapshotScheduleCron"
           type="cron"
           placeholder="0 * * * *"
           :mode="mode"
@@ -85,7 +87,7 @@ export default {
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="etcd.snapshotRetention"
+          v-model:value="etcd.snapshotRetention"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
           :suffix="t('cluster.rke2.snapshots.suffix')"
@@ -103,12 +105,12 @@ export default {
         label="Backup Snapshots to S3"
         :labels="['Disable','Enable']"
         :mode="mode"
-        @input="$emit('s3-backup-changed', $event)"
+        @update:value="$emit('s3-backup-changed', $event)"
       />
 
       <S3Config
         v-if="s3Backup"
-        v-model="etcd.s3"
+        v-model:value="etcd.s3"
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
@@ -127,7 +129,7 @@ export default {
           :label="t('cluster.rke2.etcd.exportMetric.label')"
           :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
           :mode="mode"
-          @input="$emit('config-etcd-expose-metrics-changed', $event)"
+          @update:value="$emit('config-etcd-expose-metrics-changed', $event)"
         />
       </div>
     </div>

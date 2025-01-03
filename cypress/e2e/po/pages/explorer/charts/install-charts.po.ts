@@ -15,6 +15,10 @@ export class InstallChartPage extends PagePo {
     super(InstallChartPage.createPath(clusterId));
   }
 
+  waitForChartPage(repository: string, chart: string) {
+    return this.waitForPage(`repo-type=cluster&repo=${ repository }&chart=${ chart }`);
+  }
+
   nextPage() {
     const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
 
@@ -27,6 +31,10 @@ export class InstallChartPage extends PagePo {
     options.clickTabWithSelector(selector);
 
     return this;
+  }
+
+  selectTab(options: TabbedPo, tabID: string) {
+    return this.editOptions(options, `[data-testid="btn-${ tabID }"]`);
   }
 
   installChart() {

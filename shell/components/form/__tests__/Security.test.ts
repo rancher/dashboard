@@ -4,7 +4,7 @@ import { _EDIT } from '@shell/config/query-params';
 
 describe('component: Security', () => {
   it('should display all the inputs', () => {
-    const wrapper = mount(Security, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Security, { props: { mode: _EDIT } });
 
     const inputWraps = wrapper.findAll('[data-testid^=input-security-]');
 
@@ -14,7 +14,7 @@ describe('component: Security', () => {
   it.each([
     'runAsUser',
   ])('should emit an update on %p input', (field) => {
-    const wrapper = mount(Security, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Security, { props: { mode: _EDIT } });
     const input = wrapper.find(`[data-testid="input-security-${ field }"]`).find('input');
     const newValue = 123;
 
@@ -29,27 +29,27 @@ describe('component: Security', () => {
     'runasNonRoot',
     'readOnlyRootFilesystem',
   ])('should emit an update on %p radio option change', (field) => {
-    const wrapper = mount(Security, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Security, { props: { mode: _EDIT } });
     const radioOption = wrapper
       .find(`[data-testid="input-security-${ field }"]`)
       .find('label');
 
     radioOption.trigger('click');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
     'add',
     'drop',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(Security, { propsData: { mode: _EDIT } });
+    const wrapper = mount(Security, { props: { mode: _EDIT } });
     const select = wrapper.find(`[data-testid="input-security-${ field }"]`);
 
     select.find('button').trigger('click');
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });

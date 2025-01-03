@@ -18,6 +18,13 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     cy.viewport(1380, 720);
     cy.createE2EResourceName('podsecurityadmissions').as('podSecurityAdmissionsName');
   });
+  it('can open "Edit as YAML"', () => {
+    PodSecurityAdmissionsPagePo.navTo();
+    podSecurityAdmissionsPage.waitForPage();
+    podSecurityAdmissionsPage.create();
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().editAsYaml().click();
+    podSecurityAdmissionsPage.createPodSecurityAdmissionForm().yamlEditor().checkExists();
+  });
 
   it('can create a policy security admission', function() {
     PodSecurityAdmissionsPagePo.navTo();

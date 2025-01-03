@@ -26,10 +26,7 @@ export default {
     rows() {
       return this.allDrivers || [];
     },
-  },
-  mounted() {
-    window.c = this;
-  },
+  }
 };
 </script>
 

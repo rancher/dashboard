@@ -12,20 +12,22 @@ describe('component: NameNsDescription', () => {
       },
     ];
     const wrapper = mount(NameNsDescription, {
-      propsData: {
+      props: {
         value:   {},
         mode:    'create',
         cluster: {},
       },
-      mocks: {
-        $store: {
-          dispatch: jest.fn(),
-          getters:  {
-            namespaces:          jest.fn(),
-            allowedNamespaces:   () => ({ [namespaceName]: true }),
-            currentStore:        () => 'cluster',
-            'cluster/schemaFor': jest.fn(),
-            'i18n/t':            jest.fn(),
+      global: {
+        mocks: {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces:          jest.fn(),
+              allowedNamespaces:   () => ({ [namespaceName]: true }),
+              currentStore:        () => 'cluster',
+              'cluster/schemaFor': jest.fn(),
+              'i18n/t':            jest.fn(),
+            },
           },
         },
       },
@@ -38,27 +40,28 @@ describe('component: NameNsDescription', () => {
     const namespaceName = 'test';
     const newNamespaceName = 'bananas';
     const wrapper = mount(NameNsDescription, {
-      propsData: {
+      props: {
         value: { metadata: {} },
         mode:  'create',
       },
-      mocks: {
-        $store: {
-          dispatch: jest.fn(),
-          getters:  {
-            namespaces:                         jest.fn(),
-            allowedNamespaces:                  () => ({ [namespaceName]: true }),
-            'customizations/getPreviewCluster': {
-              ready:   true,
-              isLocal: false,
-              badge:   {},
+      global: {
+        mocks: {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces:                         jest.fn(),
+              allowedNamespaces:                  () => ({ [namespaceName]: true }),
+              'customizations/getPreviewCluster': {
+                ready:   true,
+                isLocal: false,
+                badge:   {},
+              },
+              currentStore:        () => 'cluster',
+              'cluster/schemaFor': jest.fn(),
+              'i18n/t':            jest.fn(),
             },
-            currentStore:        () => 'cluster',
-            'cluster/schemaFor': jest.fn(),
-            'i18n/t':            jest.fn(),
           },
         },
-        $refs: { name: { focus: jest.fn() } },
       },
     });
 

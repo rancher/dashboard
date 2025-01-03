@@ -43,14 +43,14 @@ export default {
   <div>
     <div class="row mb-20">
       <MetricTarget
-        v-model="value.target"
+        v-model:value="value.target"
         :mode="mode"
         metric-resource="external"
       />
     </div>
     <div class="row">
       <MetricIdentifier
-        v-model="value.metric"
+        v-model:value="value.metric"
         :mode="mode"
       />
     </div>

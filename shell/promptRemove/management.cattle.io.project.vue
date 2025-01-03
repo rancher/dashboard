@@ -110,7 +110,7 @@ export default {
         class="mt-20 remove-project-dialog"
       >
         <Checkbox
-          v-model="deleteProjectNamespaces"
+          v-model:value="deleteProjectNamespaces"
           :label="t('promptRemove.deleteAssociatedNamespaces')"
         />
         <div class="mt-10 ml-20">

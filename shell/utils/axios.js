@@ -75,7 +75,7 @@ const createAxiosInstance = (axiosOptions) => {
 };
 
 const setupProgress = (axios) => {
-  // A noop loading inteterface for when $nuxt is not yet ready
+  // A noop loading inteterface for when $loading is not yet ready
   const noopLoading = {
     finish: () => { },
     start:  () => { },

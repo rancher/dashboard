@@ -1,6 +1,8 @@
 // This plugin loads any UI Plugins at app load time
 import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { getKubeVersionData, getVersionData } from '@shell/config/version';
+import versions from '@shell/utils/versions';
 
 export default async function(context) {
   if (process.env.excludeOperatorPkg === 'true') {
@@ -26,31 +28,37 @@ export default async function(context) {
   }
 
   if (loadPlugins) {
-    // TODO: Get rancher version using the new API (can't use setting as we have not loading the store)
-    const rancherVersion = undefined;
-
     // Fetch list of installed plugins from endpoint
     try {
-      const res = await context.store.dispatch('management/request', {
-        url:                  `${ UI_PLUGIN_BASE_URL }`,
-        method:               'GET',
-        headers:              { accept: 'application/json' },
-        redirectUnauthorized: false,
+      const res = await allHashSettled({
+        versions: versions.fetch(context),
+        plugins:  context.store.dispatch('management/request', {
+          url:                  `${ UI_PLUGIN_BASE_URL }`,
+          method:               'GET',
+          headers:              { accept: 'application/json' },
+          redirectUnauthorized: false,
+        })
       });
 
-      if (res) {
-        const entries = res.entries || res.Entries || {};
-
-        Object.values(entries).forEach((plugin) => {
-          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
-
-          if (!shouldNotLoad) {
-            hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
-          } else {
-            context.store.dispatch('uiplugins/setError', { name: plugin.name, error: shouldNotLoad });
-          }
-        });
+      if (res.plugins.status === 'rejected') {
+        throw new Error(res.reason);
       }
+
+      const kubeVersion = getKubeVersionData()?.gitVersion;
+      const rancherVersion = getVersionData().Version;
+
+      const plugins = res.plugins.value;
+      const entries = plugins.entries || plugins.Entries || {};
+
+      Object.values(entries).forEach((plugin) => {
+        const shouldNotLoad = shouldNotLoadPlugin(plugin, { rancherVersion, kubeVersion }, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
+
+        if (!shouldNotLoad) {
+          hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
+        } else {
+          context.store.dispatch('uiplugins/setError', { name: plugin.name, error: shouldNotLoad });
+        }
+      });
     } catch (e) {
       if (e?.code === 404) {
         // Not found, so extensions operator probably not installed

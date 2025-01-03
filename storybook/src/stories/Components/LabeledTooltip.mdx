@@ -1,0 +1,18 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as LabeledTooltipStories from './LabeledTooltip.stories';
+
+<Meta of={LabeledTooltipStories} />
+
+# Labeled Tooltip
+
+Tooltips display additional information upon hovering or focusing on an element on the screen. The information should be contextual, helpful, provide extra nonessential information and give clarity to a user.
+
+### Description
+
+- Tooltips are used to show more information in buttons, links, or important user data (non-actionable) where the space in screen is insufficient.
+- Use tooltip when an element needs more context or explanation.
+- Tooltips should only appear on :hover and :focus.
+
+### Default
+
+<Canvas of={LabeledTooltipStories.Default} />

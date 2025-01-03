@@ -6,6 +6,8 @@ import {
 } from '@shell/utils/position';
 
 export default {
+  emits: ['draggable'],
+
   data() {
     return {
       dragOffset:     0,
@@ -321,8 +323,8 @@ export default {
         <i class="icon icon-code" />
       </div>
       <div
-        v-for="tab in tabs"
-        :key="tab.id"
+        v-for="(tab, i) in tabs"
+        :key="i"
         class="tab"
         :class="{'active': tab.id === active}"
         @click="switchTo(tab.id)"
@@ -358,8 +360,8 @@ export default {
       </div>
     </div>
     <div
-      v-for="tab in tabs"
-      :key="tab.id"
+      v-for="(tab, i) in tabs"
+      :key="i"
       class="body"
       :class="{'active': tab.id === active}"
       draggable="false"

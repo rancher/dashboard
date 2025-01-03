@@ -105,7 +105,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-12">
         <RadioGroup
-          v-model="registryProvider"
+          v-model:value="registryProvider"
           name="registryProvider"
           :mode="mode"
           :options="registryAddresses"
@@ -117,7 +117,7 @@ export default {
       class="row mb-20"
     >
       <LabeledInput
-        v-model="registryUrl"
+        v-model:value="registryUrl"
         required
         :label="t('secret.registry.domainName')"
         placeholder="e.g. index.docker.io"
@@ -127,14 +127,14 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="username"
+          v-model:value="username"
           :label="t('secret.registry.username')"
           :mode="mode"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="password"
+          v-model:value="password"
           :label="t('secret.registry.password')"
           :mode="mode"
           type="password"

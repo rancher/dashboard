@@ -9,15 +9,19 @@ function flatten(node) {
   } else if ( isArray(node) ) {
     return node.map(flatten).join(' ');
   } else if ( node.children ) {
-    return node.children.map(flatten).join(' ');
-  } else if ( node.child ) {
-    return flatten(node.child);
+    if ( isArray(node.children) ) {
+      return node.children.map(flatten).join(' ');
+    } else {
+      return node.children;
+    }
   } else {
     return '';
   }
 }
 
 export default {
+  emits: ['copied', 'error'],
+
   data() {
     return { copied: false };
   },
@@ -27,7 +31,7 @@ export default {
       $event.stopPropagation();
       $event.preventDefault();
 
-      const content = flatten(this.$slots.default).trim();
+      const content = flatten(this.$slots.default()).trim();
 
       copyTextToClipboard(content).then(() => {
         this.copied = true;

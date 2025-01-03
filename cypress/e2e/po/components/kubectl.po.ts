@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import jsyaml from 'js-yaml';
 
 export default class Kubectl extends ComponentPo {
@@ -9,15 +9,19 @@ export default class Kubectl extends ComponentPo {
   readonly kubeCommand: string = 'kubectl'
   readonly terminalRow: string = '.xterm-link-layer'
 
-  openTerminal() {
+  openTerminal(options?: GetOptions) {
     cy.get('#btn-kubectl').click();
-    this.self().get('.window.show-grid .text-success').should('contain', 'Connected');
+    this.self().get('.window.show-grid .text-success', options).should('contain', 'Connected');
 
     return this;
   }
 
   closeTerminal() {
     this.self().get('[data-testid="wm-tab-close-button"]').click();
+  }
+
+  waitForTerminalToBeVisible() {
+    this.self().get('[data-testid="wm-tab-close-button"]').should('be.visible');
   }
 
   /**

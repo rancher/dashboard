@@ -57,6 +57,5 @@ export default {
     :mode="mode"
     parent-key="clusterId"
     :parent-id="parentId"
-    v-on="$listeners"
   />
 </template>

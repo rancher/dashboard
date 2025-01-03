@@ -15,10 +15,10 @@ dynamicPluginLoader.register({
     // - directly (page refresh/load -> have path but no name)
     // - via router name (have name but no path)
     let clusterId;
-    const pathParts = route.path.split('/');
+    const pathParts = route.path?.replace(/^\/{0,1}dashboard/, '').split('/').filter((f) => !!f) || [];
 
-    if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
-      clusterId = pathParts?.[3];
+    if (pathParts[0] === HARVESTER_NAME && pathParts[2] ) {
+      clusterId = pathParts[2];
     } else {
       const nameParts = route.name?.split('-');
 
@@ -105,7 +105,15 @@ export function init($plugin, store) {
     STATE,
     NAME_COL,
     {
+      name:     'harvesterVersion',
+      sort:     'harvesterVersion',
+      labelKey: 'harvesterManager.tableHeaders.harvesterVersion',
+      value:    'harvesterVersion',
+      getValue: (row) => row.harvesterVersion
+    },
+    {
       ...VERSION,
+      labelKey: 'harvesterManager.tableHeaders.kubernetesVersion',
       value:    'kubernetesVersion',
       getValue: (row) => row.kubernetesVersion
     },

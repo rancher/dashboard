@@ -2,20 +2,29 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector from '@shell/components/form/FileSelector';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  components: { LabeledInput, FileSelector },
-  mixins:     [CreateEditView],
+  emits: ['validationChanged', 'valueChanged'],
 
+  components: { LabeledInput, FileSelector },
+  mixins:     [CreateEditView, FormValidation],
+
+  data() {
+    return {
+      fvFormRuleSets: [
+        { path: 'decodedData.authEncodedJson', rules: ['required'] }]
+    };
+  },
   watch: {
-    'value.decodedData.authEncodedJson'(neu) {
-      this.$emit('validationChanged', !!neu);
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
     }
   },
 
   methods: {
     onFileSelected(data) {
-      this.value.setData('authEncodedJson', data);
+      this.$emit('valueChanged', 'authEncodedJson', data);
     },
 
     async test() {
@@ -56,7 +65,9 @@ export default {
       placeholder-key="cluster.credential.gcp.authEncodedJson.placeholder"
       type="multiline"
       :mode="mode"
-      @input="value.setData('authEncodedJson', $event);"
+      :required="true"
+      :rules="fvGetAndReportPathRules('decodedData.authEncodedJson')"
+      @update:value="$emit('valueChanged', 'authEncodedJson', $event)"
     />
     <FileSelector
       class="role-primary btn-sm mt-20 mb-20"

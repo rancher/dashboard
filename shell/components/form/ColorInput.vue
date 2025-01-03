@@ -2,6 +2,8 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value'],
+
   props: {
     value: {
       type:    String,
@@ -38,6 +40,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'color-input'
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -54,12 +61,18 @@ export default {
      */
     inputValue() {
       return this.value ? this.value : this.defaultValue;
+    },
+
+    isDisabled() {
+      const disabled = this.disabled;
+
+      return this.mode !== this.editMode || disabled;
     }
   },
 
   mounted() {
     // Ensures that if the default value is used, the model is updated with it
-    this.$emit('input', this.inputValue);
+    this.$emit('update:value', this.inputValue);
   }
 };
 </script>
@@ -67,7 +80,7 @@ export default {
 <template>
   <div
     class="color-input"
-    :class="{[mode]:mode, disabled: mode !== editMode}"
+    :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
   >
     <label class="text-label"><t
@@ -87,9 +100,9 @@ export default {
         <input
           ref="input"
           type="color"
-          :disabled="mode !== editMode"
+          :disabled="isDisabled"
           :value="inputValue"
-          @input="$emit('input', $event.target.value)"
+          @input="$emit('update:value', $event.target.value)"
         >
       </span>
       <span class="text-muted color-value">{{ inputValue }}</span>

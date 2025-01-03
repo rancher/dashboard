@@ -27,7 +27,7 @@ export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
    */
   overrideRequest?: LabelSelectPaginateFn,
   /**
-   * Override the default settings used in the convience function to fetch a page of results
+   * Override the default settings used in the convenience function to fetch a page of results
    */
   requestSettings?: PaginateTypeOverridesFn,
 }
@@ -52,14 +52,14 @@ export enum RESOURCE_LABEL_SELECT_MODE {
 }
 
 /**
- * Convience wrapper around the LabelSelect component to support pagination
+ * Convenience  wrapper around the LabelSelect component to support pagination
  *
  * Handles
  *
  * 1) Conditionally enabling the pagination feature given system settings
  * 2) Helper function to fetch the pagination result
  *
- * A number of ways can be provided to override the convienences (see props)
+ * A number of ways can be provided to override the conveniences (see props)
  */
 export default defineComponent({
   name: 'ResourceLabeledSelect',
@@ -126,11 +126,17 @@ export default defineComponent({
 
   computed: {
     labelSelectAttributes() {
+      // This component is a wrapper for LabelSelect, so pass through everything
+      const allAttrs = {
+        ...this.$attrs, // Attributes (other than props)
+        ...this.$props, // Attributes that are props
+      };
+
       return this.paginate ? {
-        ...this.$attrs,
+        ...allAttrs,
         ...this.paginatedResourceSettings?.labelSelectOptions || {}
       } : {
-        ...this.$attrs,
+        ...allAttrs,
         ...this.allResourcesSettings?.labelSelectOptions || {}
       };
     },
@@ -156,7 +162,9 @@ export default defineComponent({
       }
 
       const { filter } = opts;
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({
+        field: 'metadata.name', value: filter, exact: false
+      })] : [];
       const defaultOptions: LabelSelectPaginationFunctionOptions = {
         opts,
         filters,
@@ -182,6 +190,5 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
-    v-on="$listeners"
   />
 </template>

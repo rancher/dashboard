@@ -11,12 +11,16 @@ import { FLEET } from '@shell/config/labels-annotations';
 export default {
   name: 'CruFleetCluster',
 
+  emits: ['input'],
+
   components: {
     CruResource,
     Labels,
     Loading,
     NameNsDescription,
   },
+
+  inheritAttrs: false,
 
   mixins: [CreateEditView],
 
@@ -51,6 +55,7 @@ export default {
   methods: {
     async save(buttonDone) {
       try {
+        this.errors = [];
         await this.value.save();
 
         await this.normanCluster.save();
@@ -58,6 +63,7 @@ export default {
         this.done();
         buttonDone(true);
       } catch (e) {
+        this.errors.push(e);
         buttonDone(false);
       }
     },
@@ -80,9 +86,10 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      @update:value="$emit('input', $event)"
     />
 
     <hr class="mt-20 mb-20">

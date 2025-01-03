@@ -41,6 +41,8 @@ export default {
 
   name: 'ResourceTable',
 
+  emits: ['clickedActionButton'],
+
   components: { ButtonGroup, SortableTable },
 
   props: {
@@ -55,6 +57,11 @@ export default {
     },
 
     loading: {
+      type:     Boolean,
+      required: false
+    },
+
+    altLoading: {
       type:     Boolean,
       required: false
     },
@@ -136,7 +143,6 @@ export default {
       type:    Function,
       default: null
     },
-
     ignoreFilter: {
       type:    Boolean,
       default: false
@@ -161,7 +167,7 @@ export default {
       default: false
     },
     /**
-     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     * Manual force the update of live and delayed cells. Change this number to kick off the update
      */
     forceUpdateLiveAndDelayed: {
       type:    Number,
@@ -176,7 +182,12 @@ export default {
     externalPaginationResult: {
       type:    Object,
       default: null
-    }
+    },
+
+    rowsPerPage: {
+      type:    Number,
+      default: null, // Default comes from the user preference
+    },
   },
 
   mounted() {
@@ -189,7 +200,7 @@ export default {
     window.addEventListener('keyup', this.handleEnterKeyPress);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('keyup', this.handleEnterKeyPress);
   },
 
@@ -197,7 +208,31 @@ export default {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
-    return { inStore };
+    return {
+      inStore,
+      /**
+       * Override the sortGenerationFn given changes in the rows we pass through to sortable table
+       *
+       * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
+       * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
+       */
+      sortGeneration: undefined
+    };
+  },
+
+  watch: {
+    filteredRows: {
+      handler() {
+        // This is only prevalent in fleet world and the workspace switcher
+        // - it's singular (a --> b --> c) instead of namespace switchers additive (a --> a+b --> a)
+        // - this means it's much more likely to switch between resource sets containing the same mount of rows
+        //
+        if (this.currentProduct.showWorkspaceSwitcher) {
+          this.sortGeneration = this.safeSortGenerationFn(this.schema, this.$store);
+        }
+      },
+      immediate: true
+    }
   },
 
   computed: {
@@ -394,12 +429,17 @@ export default {
     },
 
     computedGroupBy() {
+      // If we're not showing grouping options we shouldn't have a group by property
+      if (!this.showGrouping) {
+        return null;
+      }
+
       if ( this.groupBy ) {
         // This probably comes from the type-map config for the resource (see ResourceList)
         return this.groupBy;
       }
 
-      if ( this.group === 'namespace' && this.showGrouping ) {
+      if ( this.group === 'namespace' ) {
         // This switches to group rows by a key which is the label for the group (??)
         return 'groupByLabel';
       }
@@ -426,13 +466,16 @@ export default {
           tooltipKey: 'resourceTable.groupBy.none',
           icon:       'icon-list-flat',
           value:      'none',
-        },
-        {
+        }
+      ];
+
+      if (!this.options?.hiddenNamespaceGroupButton) {
+        standard.push( {
           tooltipKey: this.groupTooltip,
           icon:       'icon-folder',
           value:      'namespace',
-        },
-      ];
+        });
+      }
 
       // SUPPLEMENT (instead of REPLACE) defaults with listGroups (given listGroupsWillOverride is false)
       if (!!this.options?.listGroups?.length) {
@@ -532,6 +575,7 @@ export default {
     :headers="_headers"
     :rows="filteredRows"
     :loading="loading"
+    :alt-loading="altLoading"
     :group-by="computedGroupBy"
     :group="group"
     :group-options="groupOptions"
@@ -539,6 +583,7 @@ export default {
     :paging="true"
     :paging-params="parsedPagingParams"
     :paging-label="pagingLabel"
+    :rows-per-page="rowsPerPage"
     :row-actions="rowActions"
     :table-actions="_showBulkActions"
     :overflow-x="overflowX"
@@ -548,6 +593,7 @@ export default {
     :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
     :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     :key-field="keyField"
+    :sortGeneration="sortGeneration"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
@@ -556,8 +602,6 @@ export default {
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
-
-    v-on="$listeners"
   >
     <template
       v-if="showGrouping"
@@ -566,7 +610,7 @@ export default {
       <slot name="more-header-middle" />
 
       <ButtonGroup
-        v-model="group"
+        v-model:value="group"
         :options="groupOptions"
       />
     </template>
@@ -587,7 +631,8 @@ export default {
 
     <!-- Pass down templates provided by the caller -->
     <template
-      v-for="(_, slot) of $scopedSlots"
+      v-for="(_, slot) of $slots"
+      :key="slot"
       v-slot:[slot]="scope"
     >
       <slot

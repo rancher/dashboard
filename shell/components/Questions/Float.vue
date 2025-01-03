@@ -3,6 +3,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledInput },
   mixins:     [Question]
 };
@@ -25,7 +27,7 @@ export default {
         :tooltip="displayTooltip"
         :rules="rules"
         :data-testid="`float-input-${question.variable}`"
-        @input="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
+        @update:value="val = parseFloat($event); if ( !isNaN(val) ) { $emit('update:value', val) }"
       />
     </div>
     <div

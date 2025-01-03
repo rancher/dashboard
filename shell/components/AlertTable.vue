@@ -49,6 +49,7 @@ export default {
     ];
 
     return {
+      inStore:            this.$store.getters['currentProduct'].inStore,
       alertManagerPoller: new Poller(
         this.loadAlertManagerEvents,
         ALERTMANAGER_POLL_RATE_MS,
@@ -64,20 +65,29 @@ export default {
     this.fetchDeps();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.alertManagerPoller.stop();
   },
 
   methods: {
-    async loadAlertManagerEvents() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const alertsEvents = await this.$store.dispatch(
-        `${ inStore }/request`,
-        { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/${ this.monitoringNamespace }/services/http:${ this.alertServiceEndpoint }:9093/proxy/api/v1/alerts` }
+    async fetchAlertManagerEvents(version) {
+      return await this.$store.dispatch(
+        `${ this.inStore }/request`,
+        { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/${ this.monitoringNamespace }/services/http:${ this.alertServiceEndpoint }:9093/proxy/api/${ version }/alerts` }
       );
+    },
 
-      if (alertsEvents.data) {
-        this.allAlerts = alertsEvents.data;
+    async loadAlertManagerEvents() {
+      let alertEvents;
+
+      try {
+        alertEvents = await this.fetchAlertManagerEvents('v2');
+      } catch (err) {
+        alertEvents = await this.fetchAlertManagerEvents('v1').then((res) => res?.data);
+      }
+
+      if (alertEvents) {
+        this.allAlerts = alertEvents;
       }
     },
 

@@ -1,4 +1,4 @@
-import Vue, { markRaw } from 'vue';
+import { reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -36,25 +36,34 @@ function registerType(state, type) {
       loadCounter:   0,
 
       // Not enumerable so they don't get sent back to the client for SSR
-      map: markRaw(new Map()),
+      map: new Map(),
     };
 
-    Vue.set(state.types, type, cache);
+    state.types[type] = cache;
   }
 
   return cache;
 }
 
 export function replace(existing, data) {
+  const existingPropertyMap = {};
+
   for ( const k of Object.keys(existing) ) {
     delete existing[k];
+    existingPropertyMap[k] = true;
   }
+
+  let newProperty = false;
 
   for ( const k of Object.keys(data) ) {
-    Vue.set(existing, k, data[k]);
+    if (!newProperty && !existingPropertyMap[k]) {
+      newProperty = true;
+    }
+
+    existing[k] = data[k];
   }
 
-  return existing;
+  return newProperty ? reactive(existing) : existing;
 }
 
 function replaceResource(existing, data, getters) {
@@ -125,7 +134,7 @@ export function load(state, {
       entry = replaceResource(entry, data, getters);
     } else {
       // There's no entry, make a new proxy
-      entry = classify(ctx, data);
+      entry = reactive(classify(ctx, data));
     }
   }
 
@@ -154,6 +163,8 @@ export function load(state, {
       cache.map.set(id, entry);
     }
   }
+
+  cache.havePage = false;
 
   return entry;
 }
@@ -268,7 +279,7 @@ export function batchChanges(state, { ctx, batch }) {
         if (normalizedType === SCHEMA) {
           addSchemaIndexFields(resource);
         }
-        const classyResource = classify(ctx, resource);
+        const classyResource = reactive(classify(ctx, resource));
 
         if (index === undefined) {
           typeCache.list.push(classyResource);
@@ -324,7 +335,7 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map((x) => classify(ctx, x));
+  const proxies = reactive(data.map((x) => classify(ctx, x)));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -396,6 +407,9 @@ export default {
     }
   },
 
+  /**
+   * Load the results of a request that used a selector (like label)
+   */
   loadSelector(state, {
     type, entries, ctx, selector, revision
   }) {
@@ -412,6 +426,9 @@ export default {
     cache.revision = revision || 0;
   },
 
+  /**
+   * Load the results of a request to fetch all resources or all resources in a namespace
+   */
   loadAll,
 
   /**
@@ -441,8 +458,14 @@ export default {
     });
   },
 
+  /**
+   * Load resources, but don't set `haveAll`
+   */
   loadAdd,
 
+  /**
+   * Load the results of a request for a page. Often used to exercise advanced filtering
+   */
   loadPage(state, {
     type,
     data,
@@ -454,7 +477,7 @@ export default {
     }
 
     const keyField = ctx.getters.keyFieldForType(type);
-    const proxies = data.map((x) => classify(ctx, x));
+    const proxies = reactive(data.map((x) => classify(ctx, x)));
     const cache = registerType(state, type);
 
     clear(cache.list);

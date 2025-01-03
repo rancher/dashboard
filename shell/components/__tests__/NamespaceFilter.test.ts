@@ -10,7 +10,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: { $fetchState: { pending: false } }
+        global: { mocks: { $fetchState: { pending: false } } }
       });
       const filter = wrapper.find(`[data-testid="namespaces-filter"]`);
 
@@ -18,21 +18,22 @@ describe('component: NamespaceFilter', () => {
     });
 
     it('should display no namespace selection', () => {
-      const text = 'none';
       const wrapper = mount(NamespaceFilter, {
         computed: {
           filtered: () => [],
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const element = wrapper.find(`[data-testid="namespaces-values-none"]`).element.textContent;
 
-      expect(element).toContain(text);
+      expect(element).toContain('nav.ns.all');
     });
 
     it('should display the default namespace', () => {
@@ -45,8 +46,9 @@ describe('component: NamespaceFilter', () => {
             label: text,
             kind:  'special',
           }]),
+          isSingleSpecial: () => true
         },
-        mocks: { $fetchState: { pending: false } }
+        global: { mocks: { $fetchState: { pending: false } } }
       });
 
       const element = wrapper.find(`[data-testid="namespaces-values-label"]`).element.textContent;
@@ -62,9 +64,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [{ label: text }],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         },
       });
 
@@ -93,16 +97,19 @@ describe('component: NamespaceFilter', () => {
           }],
           currentProduct: () => undefined,
           key:            () => key,
+          value:          () => [{ label: text }]
         },
-        mocks: {
-          $store: {
-            getters: {
-              'i18n/t':            () => text,
-              'prefs/get':         () => preferences,
-              namespaceFilterMode: () => undefined,
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/t':            () => text,
+                'prefs/get':         () => preferences,
+                namespaceFilterMode: () => undefined,
+              },
             },
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 
@@ -120,9 +127,11 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -134,16 +143,18 @@ describe('component: NamespaceFilter', () => {
     });
 
     it('should contain no options', async() => {
-      const text = 'no options';
+      const text = '%namespaceFilter.noMatchingOptions%';
       const wrapper = mount(NamespaceFilter, {
         computed: {
           filtered: () => [],
           options:  () => [],
           value:    () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -161,9 +172,11 @@ describe('component: NamespaceFilter', () => {
           options: () => [],
           value:   () => [],
         },
-        mocks: {
-          $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
-          $fetchState: { pending: false }
+        global: {
+          mocks: {
+            $store:      { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } },
+            $fetchState: { pending: false }
+          },
         }
       });
 
@@ -193,18 +206,22 @@ describe('component: NamespaceFilter', () => {
       const action = jest.fn();
 
       jest.spyOn(NamespaceFilter.computed.value, 'get').mockReturnValue([]);
+
       const wrapper = mount(NamespaceFilter, {
         computed: {
+          ...NamespaceFilter.computed,
           options:        () => [],
           currentProduct: () => undefined,
           key:            () => key,
         },
-        mocks: {
-          $store: {
-            getters:  { 'i18n/t': () => text, namespaceFilterMode: () => undefined },
-            dispatch: action
+        global: {
+          mocks: {
+            $store: {
+              getters:  { 'i18n/t': () => text, namespaceFilterMode: () => undefined },
+              dispatch: action
+            },
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 

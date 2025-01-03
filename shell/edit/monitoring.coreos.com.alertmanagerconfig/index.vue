@@ -16,6 +16,7 @@ import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@shell/config/query-params';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 
 export default {
+  emits:      ['input'],
   components: {
     ActionMenu,
     CruResource,
@@ -28,6 +29,8 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  inheritAttrs: false,
 
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
@@ -194,9 +197,10 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      @input="$emit('input', $event)"
     />
 
     <Tabbed>

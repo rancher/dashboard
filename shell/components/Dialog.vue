@@ -3,6 +3,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {
+  emits: ['okay', 'closed'],
+
   components: { AsyncButton, AppModal },
 
   props: {

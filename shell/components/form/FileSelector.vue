@@ -9,6 +9,8 @@ export function createOnSelected(field) {
 }
 
 export default {
+  emits: ['error', 'selected'],
+
   props: {
     label: {
       type:     String,

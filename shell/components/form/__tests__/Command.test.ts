@@ -5,8 +5,8 @@ import { _EDIT } from '@shell/config/query-params';
 describe('component: Command', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
 
     const inputWraps = wrapper.findAll('[data-testid^=input-command-]');
@@ -19,21 +19,22 @@ describe('component: Command', () => {
     'args',
     'workingDir',
   ])('should emit an update on %p input', (field) => {
-    const wrapper = mount(Command, { propsData: { mode: _EDIT } });
-    const input = wrapper.find(`[data-testid="input-command-${ field }"]`).find('input');
-    const newValue = 123;
+    const wrapper = mount(Command, { props: { mode: _EDIT } });
+    const inputComponent = wrapper.getComponent(`[data-testid="input-command-${ field }"]>*`);
 
-    input.setValue(newValue);
+    const newValue = ['123'];
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    inputComponent.vm.$emit('update:value', newValue);
+
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
     'tty',
   ])('should emit an update on %p checkbox change', (field) => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
     const checkboxLabel = wrapper
       .find(`[data-testid="input-command-${ field }"]`)
@@ -41,15 +42,15 @@ describe('component: Command', () => {
 
     checkboxLabel.trigger('click');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 
   it.each([
     'stdin',
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(Command, {
-      propsData: { mode: _EDIT },
-      data:      () => ({ stdin: true })
+      props: { mode: _EDIT },
+      data:  () => ({ stdin: true })
     });
     const select = wrapper.find(`[data-testid="input-command-${ field }"]`);
 
@@ -57,7 +58,7 @@ describe('component: Command', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('update:value')).toHaveLength(1);
   });
 });
 //

@@ -1,5 +1,6 @@
 import ToggleSwitchPo from '@/cypress/e2e/po/components/toggle-switch.po';
 import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/cluster-create-import.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
 /**
  * Covers core functionality that's common to the dashboard's create cluster pages
@@ -37,10 +38,6 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     this.self().find('.toggle-container').should(assertion);
   }
 
-  gridElementExistance(groupIndex = 0, itemIndex = 0, assertion: string) {
-    this.self().find(`[data-testid="cluster-manager-create-grid-${ groupIndex }-${ itemIndex }"]`).should(assertion);
-  }
-
   gridElementExistanceByName(name: string, assertion: string) {
     return this.self().contains('.grid .name', name, { timeout: 10000 }).should(assertion);
   }
@@ -67,5 +64,9 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
 
   customClusterRegistrationCmd(cmd: string) {
     return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
+  }
+
+  credentialsBanner() {
+    return new BannersPo(this.self().find('.banner').contains(`Ok, Let's create a new credential`));
   }
 }

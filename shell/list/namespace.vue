@@ -1,7 +1,11 @@
 <script>
+/**
+ * file used in shell/scripts/test-plugins-build.sh to validate imports
+ */
 import { mapGetters } from 'vuex';
+import { NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
-
+import { HCI } from '@shell/config/types';
 export default {
   name:       'ListNamespace',
   components: { ResourceTable },
@@ -27,13 +31,23 @@ export default {
       default: false
     }
   },
-  data() {
-    return { asddsa: true };
-  },
 
   computed: {
     ...mapGetters(['currentProduct']),
+    hasHarvesterResourceQuotaSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
 
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.RESOURCE_QUOTA);
+    },
+    headers() {
+      const headersFromSchema = this.$store.getters['type-map/headersFor'](this.schema);
+
+      if (this.hasHarvesterResourceQuotaSchema) {
+        headersFromSchema.splice(2, 0, NS_SNAPSHOT_QUOTA);
+      }
+
+      return headersFromSchema;
+    },
     filterRow() {
       if (this.currentProduct.hideSystemResources) {
         return this.rows.filter( (N) => {
@@ -56,10 +70,10 @@ export default {
     v-bind="$attrs"
     :rows="filterRow"
     :groupable="false"
+    :headers="headers"
     :schema="schema"
     key-field="_key"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    v-on="$listeners"
   />
 </template>

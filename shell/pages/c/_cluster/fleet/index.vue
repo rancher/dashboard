@@ -12,6 +12,7 @@ import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import { NAME } from '@shell/config/product/fleet';
+import { xOfy } from '@shell/utils/string';
 
 export default {
   name:       'FleetDashboard',
@@ -39,6 +40,7 @@ export default {
       allBundles: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
+        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
       },
       gitRepos: {
         inStoreType: 'management',
@@ -175,7 +177,12 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
+          };
+        }
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -223,7 +230,7 @@ export default {
       }
 
       if (area === 'clusters') {
-        group = row.targetClusters;
+        group = '';
       } else if (area === 'bundles') {
         group = row.bundles;
       } else if (area === 'resources') {
@@ -262,23 +269,23 @@ export default {
       }
 
       if (area === 'clusters') {
-        value = `${ row.targetClustersReady?.length || '0' }/${ row.targetClusters?.length || '?' }`;
+        return `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
       } else if (area === 'bundles') {
-        value = `${ row.bundlesReady?.length || '0' }/${ row.bundles?.length || '?' }`;
+        value = xOfy(row.bundlesReady?.length, row.bundles?.length);
       } else if (area === 'resources') {
-        value = `${ row.status?.resourceCounts?.ready || '0' }/${ row.status?.resourceCounts?.desiredReady || '?' }`;
+        value = xOfy(row.status?.resourceCounts?.ready, row.status?.resourceCounts?.desiredReady);
       }
 
       return value;
     },
     toggleCollapse(val, key) {
-      this.$set(this.isCollapsed, key, val);
+      this.isCollapsed[key] = val;
     },
     toggleAll(action) {
       const val = action !== 'expand';
 
       Object.keys(this.isCollapsed).forEach((key) => {
-        this.$set(this.isCollapsed, key, val);
+        this.isCollapsed[key] = val;
       });
     }
   },
@@ -286,7 +293,7 @@ export default {
   watch: {
     fleetWorkspaces(value) {
       value?.filter((ws) => ws.repos?.length).forEach((ws) => {
-        this.$set(this.isCollapsed, ws.id, false);
+        this.isCollapsed[ws.id] = false;
       });
     }
   }
@@ -294,7 +301,7 @@ export default {
 </script>
 
 <template>
-  <div class="fleet-dashboard">
+  <div>
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <FleetNoWorkspaces
@@ -366,8 +373,8 @@ export default {
         </p>
       </div>
       <CollapsibleCard
-        v-for="ws in workspacesData"
-        :key="ws.id"
+        v-for="(ws, i) in workspacesData"
+        :key="i"
         class="mt-20 mb-40"
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
@@ -394,14 +401,12 @@ export default {
         </template>
         <template v-slot:content>
           <ResourceTable
-            v-bind="$attrs"
             :schema="schema"
             :headers="headers"
             :rows="ws.repos"
             key-field="_key"
             :search="false"
             :table-actions="false"
-            v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
               <span v-if="ws.type === 'namespace'"> - </span>
@@ -446,9 +451,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.fleet-dashboard {
-  min-height: 100vh;
-}
 .fleet-empty-dashboard {
   flex: 1;
   display: flex;

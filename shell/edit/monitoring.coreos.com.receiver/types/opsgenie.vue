@@ -63,9 +63,9 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
-    this.$set(this.value, 'responders', this.value.responders || []);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
+    this.value['responders'] = this.value.responders || [];
 
     const responders = this.value.responders.map((responder) => {
       const target = TARGETS.find((target) => responder[target.value]);
@@ -106,7 +106,7 @@ export default {
           };
         });
 
-        this.$set(this.value, 'responders', responders);
+        this.value['responders'] = responders;
       }
     }
   },
@@ -136,7 +136,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.api_key"
+          v-model:value="value.api_key"
           :mode="mode"
           label="API Key"
         />
@@ -145,7 +145,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.http_config.proxy_url"
+          v-model:value="value.http_config.proxy_url"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
@@ -154,7 +154,7 @@ export default {
     </div>
     <div class="row mb-20">
       <Checkbox
-        v-model="value.send_resolved"
+        v-model:value="value.send_resolved"
         :mode="mode"
         label="Enable send resolved alerts"
       />
@@ -163,7 +163,7 @@ export default {
       <div class="col span-12">
         <h3>Responders</h3>
         <ArrayList
-          v-model="responders"
+          v-model:value="responders"
           :mode="mode"
           :default-add-value="defaultResponder"
           :show-header="true"
@@ -189,7 +189,7 @@ export default {
                 <span v-if="isView">{{ typeLabel(scope.row.value.type) }}</span>
                 <Select
                   v-else
-                  v-model="scope.row.value.type"
+                  v-model:value="scope.row.value.type"
                   :mode="mode"
                   :options="TYPES"
                 />
@@ -203,7 +203,7 @@ export default {
                   :options="TARGETS"
                   :select-value="scope.row.value.target"
                   :text-value="scope.row.value.value"
-                  @input="updateResponder($event, scope.row.value)"
+                  @update:value="updateResponder($event, scope.row.value)"
                 />
               </div>
             </div>
@@ -225,7 +225,7 @@ export default {
       width: 100%;
     }
 
-    .target-container ::v-deep .unlabeled-select {
+    .target-container :deep() .unlabeled-select {
       min-width: 35%;
       height: 100%;
     }

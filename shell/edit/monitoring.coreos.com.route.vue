@@ -35,6 +35,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   async fetch() {
     const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
     const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
@@ -44,12 +46,12 @@ export default {
     if (this.isCreate) {
       const nonRootRoutes = (await routes).filter((route) => !route.isRoot);
 
-      this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
+      this.value.spec['name'] = createDefaultRouteName(nonRootRoutes.length);
     }
   },
 
   data() {
-    this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
+    this.value.spec['group_by'] = this.value.spec.group_by || [];
 
     return {
       receiverOptions:      [],
@@ -84,7 +86,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.name"
+          v-model:value="value.spec.name"
           :disabled="true"
           :label="t('generic.name')"
           :mode="mode"
@@ -110,7 +112,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.spec.receiver"
+              v-model:value="value.spec.receiver"
               :options="receiverOptions"
               :label="t('monitoringRoute.receiver.label')"
               :mode="mode"
@@ -130,7 +132,7 @@ export default {
             </span>
             <ArrayList
               v-if="!isView || value.spec.group_by.length > 0"
-              v-model="value.spec.group_by"
+              v-model:value="value.spec.group_by"
               :label="t('monitoringRoute.groups.label')"
               :mode="mode"
               :initial-empty-row="true"
@@ -144,14 +146,14 @@ export default {
         <div class="row mb-10">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.group_wait"
+              v-model:value="value.spec.group_wait"
               :label="t('monitoringRoute.wait.label')"
               :mode="mode"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.group_interval"
+              v-model:value="value.spec.group_interval"
               :label="t('monitoringRoute.interval.label')"
               :mode="mode"
             />
@@ -160,7 +162,7 @@ export default {
         <div class="row mb-10">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.repeat_interval"
+              v-model:value="value.spec.repeat_interval"
               :label="t('monitoringRoute.repeatInterval.label')"
               :mode="mode"
             />
@@ -188,7 +190,7 @@ export default {
             </span>
             <KeyValue
               v-if="!isView || Object.keys(value.spec.match || {}).length > 0"
-              v-model="value.spec.match"
+              v-model:value="value.spec.match"
               :disabled="value.isRoot"
               :options="receiverOptions"
               :label="t('monitoringRoute.receiver.label')"
@@ -208,7 +210,7 @@ export default {
             </span>
             <KeyValue
               v-if="!isView || Object.keys(value.spec.match_re || {}).length > 0"
-              v-model="value.spec.match_re"
+              v-model:value="value.spec.match_re"
               :disabled="value.isRoot"
               :options="receiverOptions"
               :label="t('monitoringRoute.receiver.label')"

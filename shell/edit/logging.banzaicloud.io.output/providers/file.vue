@@ -36,7 +36,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.path"
+          v-model:value="value.path"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.file.path')"

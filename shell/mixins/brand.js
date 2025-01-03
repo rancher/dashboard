@@ -3,10 +3,9 @@ import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
-import { fetchInitialSettings } from '@shell/utils/settings';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { allHash } from '@shell/utils/promise';
-import { PaginationFilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // For testing these could be changed to something like...
 const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];

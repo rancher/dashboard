@@ -76,7 +76,7 @@ export default {
         this.value.simple = this.simpleOptions[0];
       } else {
         delete this.value.simple;
-        this.$set(this.value, 'consistentHash', { minimumRingSize: 1024 });
+        this.value['consistentHash'] = { minimumRingSize: 1024 };
         // set hashMode here to trigger watcher and initialize relevant object props
         this.hashMode = 'useHeader';
       }
@@ -87,16 +87,16 @@ export default {
       case 'useHeader':
         delete this.value.consistentHash.httpCookie;
         delete this.value.consistentHash.useSourceIp;
-        this.$set(this.value.consistentHash, 'httpHeaderName', '');
+        this.value.consistentHash['httpHeaderName'] = '';
         break;
       case 'useCookie':
         delete this.value.consistentHash.httpHeaderName;
-        this.$set(this.value.consistentHash, 'httpCookie', {});
+        this.value.consistentHash['httpCookie'] = {};
         break;
       default:
         delete this.value.consistentHash.httpCookie;
         delete this.value.consistentHash.httpHeaderName;
-        this.$set(this.value.consistentHash, 'useSourceIp', true);
+        this.value.consistentHash['useSourceIp'] = true;
         break;
       }
     }
@@ -108,7 +108,7 @@ export default {
   <div>
     <div class="row">
       <RadioGroup
-        v-model="useSimple"
+        v-model:value="useSimple"
         name="loadBalancer"
         :mode="mode"
         :options="modeOptions"
@@ -120,7 +120,7 @@ export default {
     >
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.simple"
+          v-model:value="value.simple"
           :options="simpleOptions"
           :label="t('istio.destinationRule.loadBalancer.label')"
           :mode="mode"
@@ -131,7 +131,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <RadioGroup
-            v-model="hashMode"
+            v-model:value="hashMode"
             name="HashOptions"
             :mode="mode"
             :options="hashModeOptions"
@@ -142,7 +142,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.consistentHash.minimumRingSize"
+            v-model:value="value.consistentHash.minimumRingSize"
             :label="t('istio.destinationRule.loadBalancer.consistentHash.minimumRingSize.label')"
             type="number"
           />
@@ -154,7 +154,7 @@ export default {
       >
         <div class="col span-6">
           <LabeledInput
-            v-model="value.consistentHash.httpHeaderName"
+            v-model:value="value.consistentHash.httpHeaderName"
             :label="t('istio.destinationRule.loadBalancer.consistentHash.httpHeaderName.label')"
             :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpHeaderName.placeholder')"
           />
@@ -167,7 +167,7 @@ export default {
       >
         <div class="col span-4">
           <LabeledInput
-            v-model="value.consistentHash.httpCookie.name"
+            v-model:value="value.consistentHash.httpCookie.name"
             :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.name.label')"
             :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.name.placeholder')"
             required
@@ -175,14 +175,14 @@ export default {
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model="value.consistentHash.httpCookie.path"
+            v-model:value="value.consistentHash.httpCookie.path"
             :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.path.label')"
             :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.path.placeholder')"
           />
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model="value.consistentHash.httpCookie.ttl"
+            v-model:value="value.consistentHash.httpCookie.ttl"
             :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.ttl.label')"
             :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.ttl.placeholder')"
             required

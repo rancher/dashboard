@@ -1,28 +1,26 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
 import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import LinkPo from '@/cypress/e2e/po/components/link.po';
+import ClusterPage from '@/cypress/e2e/po/pages/cluster-page.po';
 
-export default class UsersPo extends PagePo {
-  private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/auth/management.cattle.io.user`;
-  }
-
+export default class UsersPo extends ClusterPage {
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
   }
 
   static navTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
     const sideNav = new ProductNavPo();
+
+    BurgerMenuPo.burgerMenuNavToMenubyLabel('Users & Authentication');
 
     return sideNav.navToSideMenuEntryByLabel('Users');
   }
 
   constructor(private clusterId = '_') {
-    super(UsersPo.createPath(clusterId));
+    super(clusterId, 'auth/management.cattle.io.user');
   }
 
   waitForRequests() {
@@ -39,5 +37,9 @@ export default class UsersPo extends PagePo {
 
   detail(userId: string) {
     return new MgmtUserResourceDetailPo(this.clusterId, userId);
+  }
+
+  userRetentionLink() {
+    return new LinkPo('[data-testid="router-link-user-retention"]', this.self());
   }
 }

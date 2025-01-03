@@ -17,9 +17,9 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: '16.x'
+        node-version-file: '.nvmrc'
         registry-url: 'https://registry.npmjs.org'
         scope: '@rancher'
 
@@ -36,6 +36,14 @@ jobs:
       run: yarn test:ci ./pkg/rancher-components
 
     - name: Publish to npm
-      run: yarn publish:lib
+      run: |
+        echo "$GITHUB_REF_NAME"
+        if [[ $GITHUB_REF_NAME == components-v*alpha.* ]]; then
+          yarn publish:lib --tag alpha
+        elif [[ $GITHUB_REF_NAME == components-v*beta.* ]]; then
+          yarn publish:lib --tag beta
+        else
+          yarn publish:lib
+        fi
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

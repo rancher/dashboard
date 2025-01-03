@@ -58,6 +58,10 @@ export const getters = {
     return out;
   },
 
+  hasMultipleLocales(state) {
+    return state.available.length > 1;
+  },
+
   t: (state) => (key, args, language) => {
     if (state.selected === NONE && !language) {
       return `%${ key }%`;
@@ -333,7 +337,7 @@ export const actions = {
 
     commit('setSelected', locale);
 
-    // Ony update the preference if the locale changed
+    // Only update the preference if the locale changed
     if (currentLocale !== locale) {
       dispatch('prefs/set', {
         key:   'locale',

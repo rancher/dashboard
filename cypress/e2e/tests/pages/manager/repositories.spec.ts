@@ -1,9 +1,11 @@
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-const chartBranch = 'release-v2.9';
+const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
@@ -33,7 +35,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can edit a repository', function() {
@@ -90,7 +92,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can delete a repository', function() {
@@ -135,7 +137,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
 
     // check list details
     repositoriesPage.list().details(`${ this.repoName }basic`, 2).should('be.visible');
-    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active').should('be.visible');
+    repositoriesPage.list().details(`${ this.repoName }basic`, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
   it('can create a repository with SSH key', function() {
@@ -204,12 +206,20 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
+    const ociMinWait = '2';
+    const ociMaxWait = '7';
+    const refreshInterval = '12';
 
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(2);
     repositoriesPage.createEditRepositories().ociUrl().set(ociUrl);
+    repositoriesPage.createEditRepositories().refreshIntervalInput().setValue(refreshInterval);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
+    repositoriesPage.createEditRepositories().ociMinWaitInput().setValue(ociMinWait);
+    // setting a value and removing it so in the intercept we test that the key(e.g. maxWait) is not included in the request
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
+    repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
 
     cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
 
@@ -218,8 +228,12 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.url).to.equal(ociUrl);
+      expect(req.request?.body?.spec.exponentialBackOffValues.minWait).to.equal(Number(ociMinWait));
+      expect(req.request?.body?.spec.exponentialBackOffValues.maxWait).to.equal(undefined);
       // insecurePlainHttp should always be included in the payload for oci repo creation
       expect(req.request?.body?.spec.insecurePlainHttp).to.equal(false);
+      // check refreshInterval
+      expect(req.request?.body?.spec.refreshInterval).to.equal(Number(refreshInterval));
     });
 
     repositoriesPage.waitForPage();

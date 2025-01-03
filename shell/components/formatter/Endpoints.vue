@@ -27,7 +27,7 @@ export default {
       const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
       const externalIp = nodeWithExternal.externalIp;
 
-      if ( this.value && this.value.length ) {
+      if ( this.value?.length ) {
         let out ;
 
         try {
@@ -82,7 +82,10 @@ export default {
 
 <template>
   <span>
-    <template v-for="(endpoint, index) in parsed">
+    <template
+      v-for="(endpoint, index) in parsed"
+      :key="index"
+    >
       <span
         v-if="endpoint.display"
         :key="endpoint.display"

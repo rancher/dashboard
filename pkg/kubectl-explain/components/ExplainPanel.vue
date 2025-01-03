@@ -4,6 +4,8 @@ import Markdown from '@shell/components/Markdown';
 export default {
   name: 'ExplainPanel',
 
+  emits: ['navigate'],
+
   components: { Markdown },
 
   props: {
@@ -15,10 +17,6 @@ export default {
       type:     Boolean,
       required: true,
     },
-    $t: {
-      type:     Function,
-      required: true,
-    }
   },
 
   data() {
@@ -32,7 +30,7 @@ export default {
     if (this.expandAll) {
       this.fields.forEach((field) => {
         if (field.$$ref) {
-          this.$set(this.expanded, field.name, this.expandAll);
+          this.expanded[field.name] = this.expandAll;
         }
       });
     }
@@ -43,7 +41,7 @@ export default {
       if (neu !== old) {
         this.fields.forEach((field) => {
           if (field.$$ref) {
-            this.$set(this.expanded, field.name, neu);
+            this.expanded[field.name] = neu;
           }
         });
       }
@@ -71,7 +69,7 @@ export default {
      * Expand a field
      */
     expand(field) {
-      this.$set(this.expanded, field, !this.expanded[field]);
+      this.expanded[field] = !this.expanded[field];
     },
     /**
      * Navigate to a field type - this loads it in place of the current definition,
@@ -97,11 +95,11 @@ export default {
       v-if="fields.length"
       class="title"
     >
-      {{ $t('kubectl-explain.fields') }}
+      {{ t('kubectl-explain.fields') }}
     </div>
     <div
-      v-for="field in fields"
-      :key="field.name"
+      v-for="(field, i) in fields"
+      :key="i"
     >
       <div class="field-section">
         <div class="field">
@@ -152,14 +150,14 @@ export default {
             v-else
             class="field-type"
           >
-            {{ $t('kubectl-explain.object') }}
+            {{ t('kubectl-explain.object') }}
           </div>
         </div>
       </div>
       <div class="ml-20">
         <Markdown
           v-if="field.description"
-          v-model="field.description"
+          v-model:value="field.description"
         />
         <div
           v-if="expanded[field.name]"
@@ -184,7 +182,6 @@ export default {
           v-if="expanded[field.name]"
           :expand-all="expandAll"
           :definition="field.$$ref"
-          :$t="$t"
           class="embedded"
           @navigate="navigate"
         />
@@ -306,7 +303,7 @@ export default {
 </style>
 <style lang="scss" scoped>
   .markdown {
-    ::v-deep {
+    :deep() {
       P {
         line-height: 1.25;
         margin-bottom: 10px;

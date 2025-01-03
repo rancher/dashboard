@@ -1,0 +1,26 @@
+{
+  "name": "gke",
+  "description": "Create Google Kubernetes Engine clusters in Rancher",
+  "version": "1.0.0",
+  "private": false,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/rancher-version": ">= v2.8.3",
+      "catalog.cattle.io/display-name": "GKE Provisioning"
+    }
+  },
+
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

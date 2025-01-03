@@ -3,8 +3,11 @@ import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value', 'blur'],
+
   components: { LabeledInput },
   props:      {
     value: {
@@ -34,7 +37,11 @@ export default {
     ignorePasswordManagers: {
       default: false,
       type:    Boolean,
-    }
+    },
+    mode: {
+      type:    String,
+      default: _CREATE,
+    },
   },
   data() {
     return { reveal: false };
@@ -46,7 +53,7 @@ export default {
         return this.value;
       },
       set(val) {
-        this.$emit('input', val);
+        this.$emit('update:value', val);
       }
     },
     attributes() {
@@ -94,7 +101,7 @@ export default {
   <div class="password">
     <LabeledInput
       ref="input"
-      v-model="password"
+      v-model:value="password"
       v-bind="attributes"
       :type="isRandom || reveal ? 'text' : 'password'"
       :readonly="isRandom"
@@ -102,6 +109,7 @@ export default {
       :required="required"
       :disabled="isRandom"
       :ignore-password-managers="ignorePasswordManagers"
+      :mode="mode"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>

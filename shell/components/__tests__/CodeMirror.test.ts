@@ -1,7 +1,9 @@
+import { nextTick } from 'vue';
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 
+// eslint-disable-next-line jest/no-disabled-tests
 describe('component: CodeMirror.vue', () => {
   let wrapper: Wrapper<InstanceType<typeof CodeMirror>>;
 
@@ -29,22 +31,26 @@ describe('component: CodeMirror.vue', () => {
       asTextArea:    false,
       showKeyMapBox: true,
     },
-    mocks: {
-      $store: {
-        getters: {
-          currentStore:              () => 'current_store',
-          'current_store/schemaFor': jest.fn(),
-          'current_store/all':       jest.fn(),
-          'i18n/t':                  () => 'Vim',
-          'prefs/get':               () => 'Vim',
-          'prefs/theme':             jest.fn(),
-        }
+    global: {
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  () => 'Vim',
+            'prefs/get':               () => 'Vim',
+            'prefs/theme':             jest.fn(),
+          }
+        },
+        $route:  { query: { AS: _YAML } },
+        $router: { applyQuery: jest.fn() },
       },
-      $route:  { query: { AS: _YAML } },
-      $router: { applyQuery: jest.fn() },
-    },
+    }
+
   };
 
+  // eslint-disable-next-line jest/no-disabled-tests
   describe('keyMap info', () => {
     (window as any).__codeMirrorLoader = () => new Promise((resolve) => {
       resolve(true);
@@ -56,32 +62,32 @@ describe('component: CodeMirror.vue', () => {
     );
 
     it(`should show keyMap preference`, async() => {
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
-      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
-      const keyboardIcon = keyMapBox.find('.keymap-indicator');
-      const closeIcon = keyMapBox.find('.icon-close');
+      const keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"] .keymap-indicator');
 
-      expect(keyboardIcon.element).toBeDefined();
-      expect(closeIcon.element).toBeDefined();
+      const closeIcon = wrapper.find('[data-testid="code-mirror-keymap"] .icon-close');
+
+      expect(keyMapBox).toBeDefined();
+      expect(closeIcon).toBeDefined();
     });
 
     it(`should remove keyMap box`, async() => {
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       let keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
       keyMapBox.trigger('mouseenter');
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       const closeIcon = keyMapBox.find('.icon-close');
 
       closeIcon.element.click();
-      await wrapper.vm.$nextTick();
+      await nextTick();
 
       keyMapBox = wrapper.find('[data-testid="code-mirror-keymap"]');
 
-      expect(keyMapBox.element).toBeUndefined();
+      expect(keyMapBox.exists()).toBe(false);
     });
   });
 });

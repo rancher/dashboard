@@ -23,7 +23,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'tls_config', this.value.tls_config || {});
+    this.value.tls_config = this.value.tls_config || {};
 
     return {};
   },
@@ -43,7 +43,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_config.ca_file"
+          v-model:value="value.tls_config.ca_file"
           :mode="mode"
           :label="t('monitoring.receiver.tls.caFilePath.label')"
           :placeholder="t('monitoring.receiver.tls.caFilePath.placeholder')"
@@ -53,7 +53,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_config.cert_file"
+          v-model:value="value.tls_config.cert_file"
           :mode="mode"
           :label="t('monitoring.receiver.tls.certFilePath.label')"
           :placeholder="t('monitoring.receiver.tls.certFilePath.placeholder')"
@@ -61,7 +61,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_config.key_file"
+          v-model:value="value.tls_config.key_file"
           :mode="mode"
           :label="t('monitoring.receiver.tls.keyFilePath.label')"
           :placeholder="t('monitoring.receiver.tls.keyFilePath.placeholder')"

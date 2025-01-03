@@ -1,4 +1,4 @@
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, EXPERIMENTAL, DEPRECATED } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -7,7 +7,6 @@ import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
-import { importChart } from '@shell/utils/dynamic-importer';
 import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
@@ -102,7 +101,7 @@ export const getters = {
 
   chart(state, getters) {
     return ({
-      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden, showDeprecated
     }) => {
       if ( key && !repoType && !repoName && !chartName) {
         const parsed = parseKey(key);
@@ -116,7 +115,7 @@ export const getters = {
         repoType,
         repoName,
         chartName,
-        deprecated: false,
+        deprecated: !!showDeprecated,
       });
 
       if ( includeHidden === false ) {
@@ -262,31 +261,6 @@ export const getters = {
   importComponent(state, getters) {
     return (name) => {
       return getters['type-map/importChart'](name);
-    };
-  },
-
-  chartSteps(state, getters) {
-    return (name) => {
-      const steps = [];
-
-      const stepsPath = `./${ name }/steps/`;
-      // require.context only takes literals, so find all candidate step files and filter out
-      const allPaths = require.context('@shell/chart', true, /\.vue$/).keys();
-
-      allPaths
-        .filter((path) => path.startsWith(stepsPath))
-        .forEach((path) => {
-          try {
-            steps.push({
-              name:      path.replace(stepsPath, ''),
-              component: importChart(path.substr(2, path.length)),
-            });
-          } catch (e) {
-            console.warn(`Failed to load step component ${ path } for chart ${ name }`, e); // eslint-disable-line no-console
-          }
-        });
-
-      return steps;
     };
   },
 
@@ -501,8 +475,10 @@ function addChart(ctx, map, chart, repo) {
     certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
-  if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
-    sideLabel = 'Experimental';
+  if ( chart.deprecated ) {
+    sideLabel = DEPRECATED;
+  } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
+    sideLabel = EXPERIMENTAL;
   } else if (
     !repo.isRancherSource &&
     certifiedAnnotation &&
@@ -536,6 +512,7 @@ function addChart(ctx, map, chart, repo) {
       versions:            [],
       categories:          filterCategories(chart.keywords),
       deprecated:          !!chart.deprecated,
+      experimental:        !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL],
       hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],

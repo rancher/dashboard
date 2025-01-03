@@ -321,3 +321,12 @@ export function sanitizeValue(v) {
 export function sanitizeIP(v) {
   return (v || '').replace(/[^a-z0-9.:_-]/ig, '');
 }
+
+/**
+ * Return the string `<x> / <y>`
+ *
+ * Each param should be a number, otherwise `?` is used
+ */
+export function xOfy(x, y) {
+  return `${ typeof x === 'number' ? x : '?' }/${ typeof y === 'number' ? y : '?' }`;
+}

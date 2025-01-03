@@ -66,11 +66,7 @@ typings/
 # next.js build output
 .next
 
-# nuxt.js build output
-.nuxt
-.nuxt-prod
-
-# Nuxt generate
+# Build output
 dist
 
 # vuepress build output
@@ -116,4 +112,6 @@ scripts/standalone/node
 
 # yarn.lock files
 docusaurus/yarn.lock
-storybook/yarn.lock
+
+# GitHub actions scripts output
+codecov

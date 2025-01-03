@@ -37,7 +37,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.azure_container"
+          v-model:value="value.azure_container"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.azurestorage.container')"
@@ -45,7 +45,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.path"
+          v-model:value="value.path"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.azurestorage.path')"
@@ -55,7 +55,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.store_as"
+          v-model:value="value.store_as"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.azurestorage.storeAs')"
@@ -71,7 +71,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.azure_storage_account"
+          v-model:value="value.azure_storage_account"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -81,7 +81,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.azure_storage_access_key"
+          v-model:value="value.azure_storage_access_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

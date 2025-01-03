@@ -3,13 +3,15 @@ import KeyValue from '@shell/components/form/KeyValue';
 import { _VIEW } from '@shell/config/query-params';
 import Select from '@shell/components/form/Select';
 
-const EFFECT_VALUES = {
-  NO_SCHEDULE:        'NoSchedule',
-  PREFER_NO_SCHEDULE: 'PreferNoSchedule',
-  NO_EXECUTE:         'NoExecute',
+const DEFAULT_EFFECT_VALUES = {
+  NoSchedule:       'NoSchedule',
+  PreferNoSchedule: 'PreferNoSchedule',
+  NoExecute:        'NoExecute',
 };
 
 export default {
+  emits: ['update:value', 'input'],
+
   components: { KeyValue, Select },
 
   props: {
@@ -24,11 +26,15 @@ export default {
     disabled: {
       default: false,
       type:    Boolean
+    },
+    effectValues: {
+      type:    Object,
+      default: () => DEFAULT_EFFECT_VALUES
     }
   },
 
   data() {
-    return { effectOptions: Object.values(EFFECT_VALUES).map((v) => ({ label: v, value: v })) };
+    return { effectOptions: Object.keys(this.effectValues).map((k) => ({ label: this.effectValues[k], value: k })) };
   },
 
   computed: {
@@ -38,12 +44,12 @@ export default {
       },
 
       set(localValue) {
-        this.$emit('input', localValue);
+        this.$emit('update:value', localValue);
       }
     },
 
     defaultAddData() {
-      return { effect: EFFECT_VALUES.NO_SCHEDULE };
+      return { effect: this.effectOptions[0].value };
     }
   }
 };
@@ -52,7 +58,8 @@ export default {
 <template>
   <div class="taints">
     <KeyValue
-      v-model="localValue"
+      :value="value"
+      data-testid="taints-keyvalue"
       :title="t('tableHeaders.taints')"
       :mode="mode"
       :as-map="false"
@@ -64,18 +71,20 @@ export default {
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
       :disabled="disabled"
+      @update:value="$emit('input', $event)"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}
       </template>
 
-      <template #col:effect="{row, queueUpdate}">
+      <template #col:effect="{row, queueUpdate, i}">
         <Select
-          v-model="row.effect"
+          v-model:value="row.effect"
+          :data-testid="`taints-effect-row-${i}`"
           :options="effectOptions"
           :disabled="disabled"
           class="compact-select"
-          @input="queueUpdate"
+          @update:value="queueUpdate"
         />
       </template>
     </KeyValue>

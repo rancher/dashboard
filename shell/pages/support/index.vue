@@ -7,7 +7,7 @@ import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
-import { hasCspAdapter } from 'mixins/brand';
+import { hasCspAdapter } from '@shell/mixins/brand';
 import TabTitle from '@shell/components/TabTitle';
 
 export default {
@@ -172,8 +172,8 @@ export default {
           </div>
           <div class="boxes">
             <div
-              v-for="key in promos"
-              :key="key"
+              v-for="(key, i) in promos"
+              :key="i"
               class="box"
             >
               <h2>{{ t(`${key}.title`) }}</h2>
@@ -213,7 +213,7 @@ export default {
       box-shadow: none;
     }
 
-    &::v-deep .card-actions {
+    &:deep() .card-actions {
       display: flex;
       justify-content: space-between;
     }

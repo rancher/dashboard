@@ -17,6 +17,13 @@ export default {
           ],
           compatibilities: [
             {
+              clusterVersion:   '2.0',
+              defaultVersion:   false,
+              platformVersions: [
+                '*'
+              ]
+            },
+            {
               clusterVersion:   '1.29',
               defaultVersion:   false,
               platformVersions: [

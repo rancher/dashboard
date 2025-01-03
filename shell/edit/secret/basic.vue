@@ -45,7 +45,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="username"
+          v-model:value="username"
           required
           :label="t('secret.basic.username')"
           :mode="mode"
@@ -53,7 +53,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="password"
+          v-model:value="password"
           :label="t('secret.basic.password')"
           :mode="mode"
           type="password"

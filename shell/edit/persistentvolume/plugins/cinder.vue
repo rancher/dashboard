@@ -26,9 +26,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.spec, 'cinder', this.value.spec.cinder || {});
-    this.$set(this.value.spec.cinder, 'readOnly', this.value.spec.cinder.readOnly || false);
-    this.$set(this.value.spec.cinder, 'secretRef', this.value.spec.cinder.secretRef || {});
+    this.value.spec['cinder'] = this.value.spec.cinder || {};
+    this.value.spec.cinder['readOnly'] = this.value.spec.cinder.readOnly || false;
+    this.value.spec.cinder['secretRef'] = this.value.spec.cinder.secretRef || {};
 
     return { readOnlyOptions };
   },
@@ -40,7 +40,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.cinder.volumeID"
+          v-model:value="value.spec.cinder.volumeID"
           :mode="mode"
           :label="t('persistentVolume.cinder.volumeId.label')"
           :placeholder="t('persistentVolume.cinder.volumeId.placeholder')"
@@ -48,7 +48,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.cinder.fsType"
+          v-model:value="value.spec.cinder.fsType"
           :mode="mode"
           :label="t('persistentVolume.shared.filesystemType.label')"
           :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
@@ -58,7 +58,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.cinder.secretRef.name"
+          v-model:value="value.spec.cinder.secretRef.name"
           :mode="mode"
           :label="t('persistentVolume.shared.secretName.label')"
           :placeholder="t('persistentVolume.shared.secretName.placeholder')"
@@ -66,7 +66,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.cinder.secretRef.namespace"
+          v-model:value="value.spec.cinder.secretRef.namespace"
           :mode="mode"
           :label="t('persistentVolume.shared.secretNamespace.label')"
           :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
@@ -76,7 +76,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.cinder.readOnly"
+          v-model:value="value.spec.cinder.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

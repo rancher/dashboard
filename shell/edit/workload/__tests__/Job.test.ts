@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import Job from '@shell/edit/workload/Job.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { WORKLOAD_TYPES } from '@shell/config/types';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 describe('component: Job', () => {
   describe('given CronJob types', () => {
@@ -10,7 +11,7 @@ describe('component: Job', () => {
       'failed',
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Job, {
-        propsData: {
+        props: {
           mode: _EDIT,
           type: WORKLOAD_TYPES.CRON_JOB
         }
@@ -20,26 +21,25 @@ describe('component: Job', () => {
 
       input.setValue(newValue);
 
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
 
     it.each([
       'concurrencyPolicy',
       'suspend',
-    ])('should emit an update on %p radio option change', (field) => {
+    ])('should emit an update on %p radio option change', async(field) => {
       const wrapper = mount(Job, {
-        propsData: {
+        props: {
           mode: _EDIT,
           type: WORKLOAD_TYPES.CRON_JOB
         }
       });
       const radioOption = wrapper
         .find(`[data-testid="input-job-${ field }"]`)
-        .find('label');
+        .findComponent(RadioGroup);
 
-      radioOption.trigger('click');
-
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      radioOption.vm.$emit('update:value', true);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
   });
 
@@ -55,7 +55,7 @@ describe('component: Job', () => {
       'activeDeadlineSeconds',
     ])('should emit an update on %p input and blur', (field) => {
       const wrapper = mount(Job, {
-        propsData: {
+        props: {
           mode: _EDIT,
           type
         }
@@ -66,7 +66,7 @@ describe('component: Job', () => {
       input.setValue(newValue);
       input.trigger('blur');
 
-      expect(wrapper.emitted('input')).toHaveLength(1);
+      expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
   });
 });

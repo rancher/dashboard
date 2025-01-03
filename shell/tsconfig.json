@@ -25,9 +25,14 @@
       "../node_modules/@types"
     ],
   },
+  "include": [
+    "./**/*.ts",
+    "./**/*.d.ts",
+    "./**/*.tsx",
+    "./**/*.vue"
+  ],
   "exclude": [
     "node_modules",
-    ".nuxt",
     "dist",
     "dist-pkg",
     "../dist",

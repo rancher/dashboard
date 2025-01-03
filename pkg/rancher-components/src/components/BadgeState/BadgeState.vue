@@ -77,7 +77,7 @@ export default defineComponent({
     border-radius: 20px;
 
     &.bg-info {
-      border-color: var(--primary);
+      border-color: var(--info);
     }
 
     &.bg-error {

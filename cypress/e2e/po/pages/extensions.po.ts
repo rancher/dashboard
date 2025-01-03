@@ -6,6 +6,8 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
+import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -36,6 +38,10 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('.data-loading');
   }
 
+  waitForTabs() {
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  }
+
   /**
    * Adds a cluster repo for extensions
    * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
@@ -54,8 +60,9 @@ export default class ExtensionsPagePo extends PagePo {
     // create a new clusterrepo
     const appRepoList = new RepositoriesPagePo('local', 'apps');
 
-    // appRepoList.waitForPage();
-    appRepoList.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
+
     appRepoList.create();
 
     const appRepoCreate = new ChartRepositoriesCreateEditPo('local', 'apps');
@@ -77,9 +84,42 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.list().state(name).should('contain', 'Active');
   }
 
+  /**
+   * Adds a cluster repo for extensions
+   * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
+   * @param branch - The git branch to target
+   * @param name - A name for the repository
+   * @returns {Cypress.Chainable}
+   */
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+    const appRepoList = new RepositoriesPagePo('local', 'apps');
+    const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
+
+    appRepoCreate.goTo();
+    appRepoCreate.waitForPage();
+
+    appRepoCreate.nameNsDescription().name().self().scrollIntoView()
+      .should('be.visible');
+    appRepoCreate.nameNsDescription().name().set(name);
+    appRepoCreate.selectRadioOptionGitRepo(1);
+    // fill the git repo form
+    appRepoCreate.enterGitRepoName(repo);
+    appRepoCreate.enterGitBranchName(branch);
+    appRepoCreate.create().click();
+
+    if (waitForActiveState) {
+      appRepoList.waitForPage();
+      appRepoList.list().state(name).should('contain', 'Active');
+    }
+  }
+
   // ------------------ extension card ------------------
   extensionCard(extensionName: string) {
-    return this.self().getId(`extension-card-${ extensionName }`);
+    return this.self().getId(`extension-card-${ extensionName }`).scrollIntoView();
+  }
+
+  extensionCardVersion(extensionName: string): Cypress.Chainable {
+    return this.extensionCard(extensionName).find('.plugin-version > span').invoke('text');
   }
 
   extensionCardClick(extensionName: string): Cypress.Chainable {
@@ -105,6 +145,14 @@ export default class ExtensionsPagePo extends PagePo {
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
     return this.self().get('[data-modal="installPluginDialog"]');
+  }
+
+  installModalSelectVersionLabel(label: string): Cypress.Chainable {
+    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
+
+    selectVersion.toggle();
+
+    return selectVersion.setOptionAndClick(label);
   }
 
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
@@ -149,6 +197,10 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionDetails().getId('extension-details-title').invoke('text');
   }
 
+  extensionDetailsVersion(): Cypress.Chainable<string> {
+    return this.extensionDetails().find('.version-link').invoke('text');
+  }
+
   extensionDetailsCloseClick(): Cypress.Chainable {
     return this.extensionDetails().getId('extension-details-close').click();
   }
@@ -186,7 +238,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension menu ------------------
   private extensionMenu() {
-    return this.self().getId('extensions-page-menu');
+    return this.self().get('[data-testid="extensions-page-menu"]', LONG_TIMEOUT_OPT);
   }
 
   extensionMenuToggle(): Cypress.Chainable {

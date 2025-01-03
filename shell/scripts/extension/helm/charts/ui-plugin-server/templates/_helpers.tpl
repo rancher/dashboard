@@ -50,3 +50,14 @@ Selector labels
 app.kubernetes.io/name: {{ include "extension-server.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Pkg annotations
+*/}}
+{{- define "extension-server.pluginMetadata" -}}
+{{- with .Values.plugin.metadata }}
+{{- range $key, $value := . }}
+{{ $key }}: {{ $value | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

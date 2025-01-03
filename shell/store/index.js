@@ -2,7 +2,7 @@ import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
-  LOGGED_OUT, IS_SSO, TIMED_OUT, UPGRADED, _FLAGGED
+  LOGGED_OUT, IS_SSO, IS_SLO, TIMED_OUT, UPGRADED, _FLAGGED
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
@@ -38,6 +38,7 @@ import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -225,6 +226,13 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   }
 };
 
+/**
+ * Are we in the vai enabled world where mgmt clusters are paginated?
+ */
+const paginateClusters = (rootGetters) => {
+  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+};
+
 export const state = () => {
   return {
     managementReady:         false,
@@ -248,9 +256,9 @@ export const state = () => {
     isRancherInHarvester:    false,
     targetRoute:             null,
     rootProduct:             undefined,
-    $router:                 markRaw(undefined),
-    $route:                  markRaw(undefined),
-    $plugin:                 markRaw(undefined),
+    $router:                 markRaw({}),
+    $route:                  markRaw({}),
+    $plugin:                 markRaw({}),
   };
 };
 
@@ -594,7 +602,7 @@ export const getters = {
   },
 
   releaseNotesUrl(state, getters) {
-    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+    const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
 
     const base = 'https://github.com/rancher/rancher/releases';
 
@@ -696,6 +704,11 @@ export const mutations = {
   },
 
   setError(state, { error: obj, locationError }) {
+    // We don't want to clobber one error with another, doing so can hide the original cause of an error
+    if (obj && state.error) {
+      return;
+    }
+
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
@@ -729,15 +742,15 @@ export const mutations = {
   },
 
   setRouter(state, router) {
-    state.$router = markRaw(router);
+    state.$router = markRaw(router || {});
   },
 
   setRoute(state, route) {
-    state.$route = markRaw(route);
+    state.$route = markRaw(route || {});
   },
 
   setPlugin(state, pluginDefinition) {
-    state.$plugin = markRaw(pluginDefinition);
+    state.$plugin = markRaw(pluginDefinition || {});
   }
 };
 
@@ -769,13 +782,19 @@ export const actions = {
       rancherSchemas: dispatch('rancher/loadSchemas', true),
     });
 
-    const promises = {
-      // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+    // Note - why aren't we watching anything fetched in the `promises` object?
+    // To watch we need feature flags to know that the vai cache is enabled.
+    // So to work around this we won't watch anything initially... and then watch once we have feature flags
+    // The alternative is simpler (fetch features up front) but would add another blocking request in
 
+    const promises = {
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
     };
+
+    const toWatch = [
+      MANAGEMENT.FEATURE,
+    ];
 
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
@@ -785,24 +804,41 @@ export const actions = {
     }
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      promises['counts'] = dispatch('management/findAll', { type: COUNT });
+      promises['counts'] = dispatch('management/findAll', { type: COUNT, opt: { watch: false } });
+      toWatch.push(COUNT);
     }
 
     if ( getters['management/canList'](MANAGEMENT.SETTING) ) {
-      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { watch: false } });
+      toWatch.push(MANAGEMENT.SETTING);
     }
 
     if ( getters['management/schemaFor'](NAMESPACE) ) {
-      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
+      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE, opt: { watch: false } });
+      toWatch.push(NAMESPACE);
     }
 
     const fleetSchema = getters['management/schemaFor'](FLEET.WORKSPACE);
 
     if (fleetSchema?.links?.collection) {
-      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
+      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE, opt: { watch: false } });
+      toWatch.push(FLEET.WORKSPACE);
     }
 
     res = await allHash(promises);
+
+    if (!res.settings || !paginateClusters(rootGetters)) {
+      // This introduces a synchronous request, however we need settings to determine if SSP is enabled
+      // Eventually it will be removed when SSP is always on
+      res.clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
+      toWatch.push(MANAGEMENT.CLUSTER);
+    }
+
+    // See comment above. Now that we have feature flags we can watch resources
+    toWatch.forEach((type) => {
+      dispatch('management/watch', { type });
+    });
+
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
@@ -854,7 +890,7 @@ export const actions = {
   // - state.clusterId is the old cluster id (or undefined)
   // - id is the new cluster id (or undefined)
   async loadCluster({
-    state, commit, dispatch, getters
+    state, commit, dispatch, getters, rootGetters
   }, {
     id, product, oldProduct, oldPkg, newPkg, targetRoute
   }) {
@@ -958,9 +994,10 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
-    // Similar to above, we're still waiting on loadManagement to fetch required resources
-    // If we don't have all mgmt clusters yet a request to fetch this cluster and then all clusters (in cleanNamespaces) is kicked off
-    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
+    // If SSP is on we won't have requested all clusters
+    if (!paginateClusters(rootGetters)) {
+      await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
+    }
 
     // See if it really exists
     try {
@@ -1057,7 +1094,17 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch }) {
+  async cleanNamespaces({ getters, dispatch, rootGetters }) {
+    if (paginateClusters(rootGetters)) {
+      // See https://github.com/rancher/dashboard/issues/12864
+      // old world...
+      // - loadManagement makes a request to fetch all mgmt clusters
+      // - we would block on that that request above before getting here (otherwise x2 requests for all clusters were made)
+      // new world...
+      // - we won't have all mgmt clusters, so this whole function needs updating (see issue)
+      return;
+    }
+
     // Initialise / Remove any filters that the user no-longer has access to
     await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }); // So they can be got byId below
 
@@ -1117,7 +1164,7 @@ export const actions = {
     commit('catalog/reset');
 
     const router = state.$router;
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
 
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
@@ -1135,6 +1182,9 @@ export const actions = {
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
       QUERY += (IS_SSO in route.query) ? `&${ IS_SSO }` : '';
+
+      // adds IS_SLO query param to login route if logout came with an auth provider with Single Logout enabled
+      QUERY += (IS_SLO in route.query) ? `&${ IS_SLO }` : '';
 
       // Go back to login and force a full page reload, this ensures we unload any dangling resources the user is no longer authorized to use (like extensions).
       // We use document instead of router because router does a clunky job of visiting a new page and reloading. In this case it would cause the login page to flash before actually reloading.

@@ -2,17 +2,25 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { base64Encode } from '@shell/utils/crypto';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  components: { LabeledInput },
-  mixins:     [CreateEditView],
+  emits: ['validationChanged', 'valueChanged'],
 
+  components: { LabeledInput },
+  mixins:     [CreateEditView, FormValidation],
+
+  data() {
+    return {
+      fvFormRuleSets: [
+        { path: 'decodedData.clientIdentifier', rules: ['required'] },
+        { path: 'decodedData.clientSecret', rules: ['required'] }
+      ]
+    };
+  },
   watch: {
-    'value.decodedData.clientIdentifier'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
-    'value.decodedData.clientSecret'(neu) {
-      this.$emit('validationChanged', !!neu);
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
     }
   },
 
@@ -56,7 +64,9 @@ export default {
           placeholder-key="cluster.credential.pnap.clientIdentifier.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientIdentifier', $event);"
+          :required="true"
+          :rules="fvGetAndReportPathRules('decodedData.clientIdentifier')"
+          @update:value="$emit('valueChanged', 'clientIdentifier', $event)"
         />
       </div>
       <div class="col span-6">
@@ -66,7 +76,9 @@ export default {
           placeholder-key="cluster.credential.pnap.clientSecret.placeholder"
           type="text"
           :mode="mode"
-          @input="value.setData('clientSecret', $event);"
+          :required="true"
+          :rules="fvGetAndReportPathRules('decodedData.clientSecret')"
+          @update:value="$emit('valueChanged', 'clientSecret', $event)"
         />
       </div>
     </div>

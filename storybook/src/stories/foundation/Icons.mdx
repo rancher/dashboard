@@ -1,0 +1,46 @@
+import { Meta } from '@storybook/addon-docs';
+
+<style>
+  {`
+.sb-icons {
+  // display: flex;
+}
+
+.sb-icon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #777;
+  margin: 5px;
+  border-radius: 5px;
+  width: 220px;
+  height: 100px;
+}
+
+.sb-icon > i {
+  margin-top: 10px;
+  font-size: 32px;
+  line-height: 32px;
+  width: 32px;
+  height: 32px;
+}
+  `}
+</style>
+
+<Meta title="Foundation/Icons" />
+
+# Icons
+Icons are font based and can be shown via the icon class.
+You can create the icon by using the standard HTML &lt;i&gt element with the class `icon` and the class name of the icon, as shown below.
+
+e.g.
+
+<pre>&lt;i class="icon icon-show" /&gt;</pre>
+
+<p>Current icon set can be viewed here: <a href="https://rancher.github.io/icons/" target="_blank">Rancher Icons</a></p>
+
+<p>Additional icon styles can be found in via <code>assets/styles/fonts/_icons.scss</code>.</p>
+
+
+<iframe src="https://rancher.github.io/icons/" style={{width: '100%', height: '500px', border: '0'}}></iframe>

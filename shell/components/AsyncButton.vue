@@ -126,6 +126,8 @@ export default defineComponent({
     return { timer };
   },
 
+  emits: ['click'],
+
   data() {
     return { phase: this.currentPhase };
   },
@@ -206,6 +208,10 @@ export default defineComponent({
       return this.disabled || this.phase === ASYNC_BUTTON_STATES.WAITING;
     },
 
+    isManualRefresh() {
+      return this.mode === 'manual-refresh';
+    },
+
     tooltip(): { content: string, hideOnTargetClick: boolean} | null {
       if ( this.labelAs === TOOLTIP ) {
         return {
@@ -218,19 +224,14 @@ export default defineComponent({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.timer) {
       clearTimeout(this.timer);
     }
   },
 
   methods: {
-    clicked($event: MouseEvent) {
-      if ($event) {
-        $event.stopPropagation();
-        $event.preventDefault();
-      }
-
+    clicked() {
       if ( this.isDisabled ) {
         return;
       }
@@ -286,11 +287,14 @@ export default defineComponent({
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
-    <span v-if="mode === 'manual-refresh'">{{ t('action.refresh') }}</span>
+    <span
+      v-if="isManualRefresh"
+      :class="{'mr-10': displayIcon && size !== 'sm', 'mr-5': displayIcon && size === 'sm'}"
+    >{{ t('action.refresh') }}</span>
     <i
       v-if="displayIcon"
       v-clean-tooltip="tooltip"
-      :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
+      :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"

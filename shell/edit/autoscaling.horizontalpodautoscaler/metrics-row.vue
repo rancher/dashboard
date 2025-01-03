@@ -84,29 +84,28 @@ export default {
 
   watch: {
     'value.type'(neuType, oldType) {
-      const { $set } = this;
       let resourceSpec, podSpec, objectSpec, externalSpec;
 
       switch (neuType) {
       case 'External':
         externalSpec = this.initExternalSpec();
 
-        $set(this.value, 'external', externalSpec);
+        this.value.external = externalSpec;
         break;
       case 'Object':
         objectSpec = this.initObjectSpec();
 
-        $set(this.value, 'object', objectSpec);
+        this.value.object = objectSpec;
         break;
       case 'Pods':
         podSpec = this.initPodsSpec();
 
-        $set(this.value, 'pods', podSpec);
+        this.value.pods = podSpec;
         break;
       case 'Resource':
         resourceSpec = this.initResourceSpec();
 
-        $set(this.value, 'resource', resourceSpec.resource);
+        this.value.resource = resourceSpec.resource;
         break;
       default:
         break;
@@ -163,7 +162,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.type"
+          v-model:value="value.type"
           :reduce="(val) => val.label"
           :mode="mode"
           :label="t('hpa.metrics.source')"
@@ -173,25 +172,25 @@ export default {
     </div>
     <div v-if="isPodMetric">
       <PodMetric
-        v-model="value.pods"
+        v-model:value="value.pods"
         :mode="mode"
       />
     </div>
     <div v-else-if="isExternalMetric">
       <ExternalMetric
-        v-model="value.external"
+        v-model:value="value.external"
         :mode="mode"
       />
     </div>
     <div v-else-if="isObjectMetric">
       <ObjectMetric
-        v-model="value.object"
+        v-model:value="value.object"
         :mode="mode"
       />
     </div>
     <div v-else-if="isResourceMetric">
       <ResourceMetric
-        v-model="value.resource"
+        v-model:value="value.resource"
         :mode="mode"
       />
     </div>

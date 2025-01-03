@@ -6,6 +6,7 @@ import { get, set } from '@shell/utils/object';
 import debounce from 'lodash/debounce';
 
 export default {
+  emits:      ['update:value', 'remove'],
   components: {
     InputWithSelect, LabeledInput, Select
   },
@@ -88,7 +89,7 @@ export default {
       set(out.backend, this.ingress.servicePortPath, servicePort);
       set(out.backend, this.ingress.serviceNamePath, serviceName);
 
-      this.$emit('input', out);
+      this.$emit('update:value', out);
     },
     updatePathTypeAndPath(values) {
       this.path = values.text;
@@ -120,7 +121,7 @@ export default {
         :text-value="value.path"
         :searchable="false"
         :text-rules="rules.path"
-        @input="queueUpdatePathTypeAndPath"
+        @update:value="queueUpdatePathTypeAndPath"
       />
     </div>
     <div
@@ -139,14 +140,14 @@ export default {
       :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}"
     >
       <Select
-        v-model="serviceName"
+        v-model:value="serviceName"
         :options="serviceTargets"
         :status="serviceTargetStatus"
         :taggable="true"
         :searchable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
-        @input="servicePort = ''; queueUpdate();"
+        @update:value="servicePort = ''; queueUpdate();"
       />
     </div>
     <div
@@ -156,19 +157,19 @@ export default {
     >
       <LabeledInput
         v-if="portOptions.length === 0"
-        v-model="servicePort"
+        v-model:value="servicePort"
         class="fullHeightInput"
         :placeholder="t('ingress.rules.port.placeholder')"
         :rules="rules.port"
-        @input="queueUpdate"
+        @update:value="queueUpdate"
       />
       <Select
         v-else
-        v-model="servicePort"
+        v-model:value="servicePort"
         :options="portOptions"
         :placeholder="t('ingress.rules.port.placeholder')"
         :rules="rules.port"
-        @input="queueUpdate"
+        @update:value="queueUpdate"
       />
     </div>
     <button
@@ -180,36 +181,27 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+// TODO #11952: Correct deep statement
 $row-height: 40px;
-
-.labeled-input ::v-deep, ::v-deep .labeled-input {
-  padding: 0 !important;
-  height: 100%;
-  input.no-label {
-    height: calc($row-height - 2px);
-    padding: 10px;
-  }
-}
-.rule-path ::v-deep {
-  .col, INPUT {
-    height: $row-height;
-  }
-
-  .unlabeled-select {
+.rule-path {
+  :deep(.labeled-input) {
+    padding: 0 !important;
     height: 100%;
-  }
 
-  .path-type {
-    .unlabeled-select {
-      min-width: 200px;
+    input.no-label {
+      height: calc($row-height - 2px);
+      padding: 10px;
     }
   }
 
-  &, .input-container {
+  :deep(.col), INPUT {
+    height: $row-height;
+  }
+  &, :deep(.input-container) {
     height: $row-height;
   }
 
-  .input-container .in-input.unlabeled-select {
+  :deep(.input-container) :deep(.in-input.unlabeled-select) {
     width: initial;
   }
 
@@ -217,11 +209,16 @@ $row-height: 40px;
     line-height: $row-height;
   }
 
-  .v-select INPUT {
+  :deep(.v-select) INPUT {
     height: 50px;
   }
-  .labeled-input {
+  :deep(.labeled-input) {
     padding-top: 6px;
+  }
+
+  :deep(.unlabeled-select) {
+    height: 100%;
+    min-width: 200px;
   }
 }
 </style>

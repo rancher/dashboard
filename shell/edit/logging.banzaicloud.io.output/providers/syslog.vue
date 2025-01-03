@@ -32,9 +32,9 @@ export default {
     const formatTypeOptions = ['json', 'out_file', 'ltsv', 'csv', 'msgpack', 'hash', 'single_value'];
     const transportOptions = ['tls', 'udp', 'tcp'];
 
-    this.$set(this.value, 'format', this.value.format || { type: formatTypeOptions[0] });
-    this.$set(this.value, 'buffer', this.value.buffer || {});
-    this.$set(this.value, 'transport', this.value.transport || transportOptions[0]);
+    this.value['format'] = this.value.format || { type: formatTypeOptions[0] };
+    this.value['buffer'] = this.value.buffer || {};
+    this.value['transport'] = this.value.transport || transportOptions[0];
 
     return { formatTypeOptions, transportOptions };
   },
@@ -44,7 +44,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        this.$set(this.value, 'port', Number.parseInt(port));
+        this.value['port'] = Number.parseInt(port);
       }
     },
     chunkLimitRecords: {
@@ -52,7 +52,7 @@ export default {
         return this.value.buffer.chunk_limit_records;
       },
       set(chunkLimitRecords) {
-        this.$set(this.value.buffer, 'chunk_limit_records', Number.parseInt(chunkLimitRecords));
+        this.value.buffer['chunk_limit_records'] = Number.parseInt(chunkLimitRecords);
       }
     }
   }
@@ -69,7 +69,7 @@ export default {
     <div class="row">
       <div class="col span-8">
         <LabeledInput
-          v-model="value.host"
+          v-model:value="value.host"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.host')"
@@ -77,7 +77,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="port"
+          v-model:value="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
@@ -95,7 +95,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.transport"
+          v-model:value="value.transport"
           :options="transportOptions"
           :mode="mode"
           :disabled="disabled"
@@ -104,7 +104,7 @@ export default {
       </div>
       <div class="col span-6 insecure">
         <Checkbox
-          v-model="value.insecure"
+          v-model:value="value.insecure"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.insecure')"
@@ -114,7 +114,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.trusted_ca_path"
+          v-model:value="value.trusted_ca_path"
           mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
@@ -133,7 +133,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
-          v-model="value.format.type"
+          v-model:value="value.format.type"
           :options="formatTypeOptions"
           :mode="mode"
           :disabled="disabled"
@@ -150,7 +150,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.tags"
+          v-model:value="value.buffer.tags"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.tags')"
@@ -160,7 +160,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.chunk_limit_size"
+          v-model:value="value.buffer.chunk_limit_size"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.chunkLimitSize')"
@@ -168,7 +168,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="chunkLimitRecords"
+          v-model:value="chunkLimitRecords"
           :mode="mode"
           :disabled="disabled"
           type="number"
@@ -179,7 +179,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.total_limit_size"
+          v-model:value="value.buffer.total_limit_size"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.totalLimitSize')"
@@ -189,7 +189,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.flush_interval"
+          v-model:value="value.buffer.flush_interval"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.flushInterval')"
@@ -199,7 +199,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.timekey"
+          v-model:value="value.buffer.timekey"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.timekey')"
@@ -207,7 +207,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.buffer.timekey_wait"
+          v-model:value="value.buffer.timekey_wait"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.timekeyWait')"
@@ -217,7 +217,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.buffer.timekey_use_utc"
+          v-model:value="value.buffer.timekey_use_utc"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.syslog.buffer.timekeyUseUTC')"

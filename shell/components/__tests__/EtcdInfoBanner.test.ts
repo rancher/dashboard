@@ -10,17 +10,19 @@ describe('component: EtcdInfoBanner', () => {
     const wrapper = mount(
       EtcdInfoBanner,
       {
-        mocks: {
-          $store: {
-            getters: {
-              'i18n/t':          () => 'Test',
-              currentProduct:    { inStore: 'cluster' },
-              'cluster/canList': mockCanList,
-              currentCluster:    { id: 'local' },
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/t':          () => 'Test',
+                currentProduct:    { inStore: 'cluster' },
+                'cluster/canList': mockCanList,
+                currentCluster:    { id: 'local' },
+              },
+              dispatch: mockDispatch,
             },
-            dispatch: mockDispatch,
+            $fetchState: { pending: false }
           },
-          $fetchState: { pending: false }
         }
       });
 

@@ -6,6 +6,8 @@ import ResourceCancelModal from '@shell/components/ResourceCancelModal';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['cancel-confirmed', 'finish'],
+
   components: { AsyncButton, ResourceCancelModal },
   props:      {
     mode: {
@@ -115,6 +117,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+  z-index: 40;
 
   .btn {
     margin-left: 20px;

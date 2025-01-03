@@ -1,20 +1,12 @@
 import semver from 'semver';
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper } from '@vue/test-utils';
+import { shallowMount, Wrapper, mount } from '@vue/test-utils';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockRegions, mockVersionsSorted } from '@pkg/aks/util/__mocks__/aks';
+import { mockRegions, mockVersionsSorted } from '../../util/__mocks__/aks';
 import { AKSNodePool } from 'types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
-
-const mockedValidationMixin = {
-  computed: {
-    fvFormIsValid:                jest.fn(),
-    type:                         jest.fn(),
-    fvUnreportedValidationErrors: jest.fn(),
-  },
-  methods: { fvGetAndReportPathRules: jest.fn() }
-};
+import { nodePoolNames } from '../../util/validators';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -38,11 +30,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(versionSetting),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mocks: {
+        $store:      mockedStore(versionSetting),
+        $route:      mockedRoute,
+        $fetchState: {},
+      },
+      stubs: { CruResource: false, Accordion: false }
     }
   };
 };
@@ -68,9 +62,13 @@ describe('aks provisioning form', () => {
   });
 
   it('should show the form when a credential is selected', async() => {
-    const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
-      ...requiredSetup()
+    const wrapper = mount(CruAks, {
+      props: {
+        value: { type: 'something' },
+        mode:  _CREATE,
+      },
+      shallow: true,
+      ...requiredSetup(),
     });
 
     const formSelector = '[data-testid="cruaks-form"]';
@@ -88,7 +86,7 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper);
-    const regionDropdown = wrapper.find('[data-testid="cruaks-resourcelocation"]');
+    const regionDropdown = wrapper.getComponent('[data-testid="cruaks-resourcelocation"]');
 
     expect(regionDropdown.exists()).toBe(true);
     expect(regionDropdown.props().value).toBe(mockRegions[0].name);
@@ -106,10 +104,8 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
 
-    expect(versionDropdown.exists()).toBe(true);
-    expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(expectedVersions);
+    expect(wrapper.vm.aksVersionOptions.map((opt: any) => opt.value)).toStrictEqual(expectedVersions);
   });
 
   it('should sort versions from latest to oldest', async() => {
@@ -119,7 +115,7 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     expect(versionDropdown.props().value).toBe('1.27.0');
@@ -133,7 +129,7 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
@@ -150,7 +146,7 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper);
 
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.findComponent('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.exists()).toBe(true);
     expect(versionDropdown.props().value).toBe('0.00.0');
@@ -166,25 +162,25 @@ describe('aks provisioning form', () => {
     wrapper.setData({ originalVersion });
 
     await setCredential(wrapper);
-    const versionDropdown = wrapper.find('[data-testid="cruaks-kubernetesversion"]');
+    const versionDropdown = wrapper.getComponent('[data-testid="cruaks-kubernetesversion"]');
 
     expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
-    await wrapper.destroy();
   });
 
   it.each([[{ privateCluster: false }, false], [{ privateCluster: true }, true]])('should show privateDnsZone, userAssignedIdentity, managedIdentity only when privateCluster is true', async(config, visibility) => {
-    const wrapper = shallowMount(CruAks, {
+    const wrapper = mount(CruAks, {
       propsData: {
         value: {}, mode: 'edit', config
       },
+      shallow: true,
       ...requiredSetup()
     });
 
     await setCredential(wrapper, config);
 
-    const privateDnsZone = wrapper.find('[data-testid="cruaks-privateDnsZone"]');
-    const userAssignedIdentity = wrapper.find('[data-testid="cruaks-userAssignedIdentity"]');
-    const managedIdentity = wrapper.find('[data-testid="cruaks-managedIdentity"]');
+    const privateDnsZone = wrapper.find('[data-testid="cruaks-private-dns-zone"]');
+    const userAssignedIdentity = wrapper.findComponent('[data-testid="cruaks-user-assigned-identity"]');
+    const managedIdentity = wrapper.findComponent('[data-testid="cruaks-managed-identity"]');
 
     expect(privateDnsZone.exists()).toBe(visibility);
     expect(userAssignedIdentity.exists()).toBe(visibility);
@@ -254,7 +250,7 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const virtualNetworkSelect = wrapper.getComponent('[data-testid="aks-virtual-network-select"]');
     const networkOpts = virtualNetworkSelect.props().options;
 
     expect(virtualNetworkSelect.props().value).toStrictEqual(noneOption);
@@ -357,7 +353,7 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const virtualNetworkSelect = wrapper.getComponent('[data-testid="aks-virtual-network-select"]');
     const networkOpts = virtualNetworkSelect.props().options;
 
     virtualNetworkSelect.vm.$emit('selecting', networkOpts[optionIndex]);
@@ -380,20 +376,20 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
-    let logAnalyticsWorkspaceNameInput = wrapper.find('[data-testid="aks-log-analytics-workspace-name-input"]');
-    let logAnalyticsWorkspaceGroupInput = wrapper.find('[data-testid="aks-log-analytics-workspace-group-input"]');
-    const monitoringCheckbox = wrapper.find('[data-testid="aks-monitoring-checkbox"]');
+    let logAnalyticsWorkspaceNameInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-name-input"]');
+    let logAnalyticsWorkspaceGroupInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-group-input"]');
+    const monitoringCheckbox = wrapper.findComponent('[data-testid="aks-monitoring-checkbox"]');
 
     expect(monitoringCheckbox.props().value).toBe(false);
     expect(logAnalyticsWorkspaceNameInput.exists()).toBe(false);
     expect(logAnalyticsWorkspaceGroupInput.exists()).toBe(false);
     expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
 
-    monitoringCheckbox.vm.$emit('input', true);
+    monitoringCheckbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.$data.config.monitoring).toBe(true);
-    logAnalyticsWorkspaceNameInput = wrapper.find('[data-testid="aks-log-analytics-workspace-name-input"]');
-    logAnalyticsWorkspaceGroupInput = wrapper.find('[data-testid="aks-log-analytics-workspace-group-input"]');
+    logAnalyticsWorkspaceNameInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-name-input"]');
+    logAnalyticsWorkspaceGroupInput = wrapper.findComponent('[data-testid="aks-log-analytics-workspace-group-input"]');
     expect(monitoringCheckbox.props().value).toBe(true);
     expect(logAnalyticsWorkspaceNameInput.isVisible()).toBe(true);
     expect(logAnalyticsWorkspaceGroupInput.isVisible()).toBe(true);
@@ -411,7 +407,7 @@ describe('aks provisioning form', () => {
     });
 
     await setCredential(wrapper, config);
-    const virtualNetworkSelect = wrapper.find('[data-testid="aks-virtual-network-select"]');
+    const virtualNetworkSelect = wrapper.findComponent('[data-testid="aks-virtual-network-select"]');
     const networkOpts = virtualNetworkSelect.props().options;
 
     virtualNetworkSelect.vm.$emit('selecting', networkOpts[2]);
@@ -466,14 +462,31 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper, config);
 
-    const monitoringCheckbox = wrapper.find('[data-testid="aks-monitoring-checkbox"]');
+    const monitoringCheckbox = wrapper.getComponent('[data-testid="aks-monitoring-checkbox"]');
 
     expect(monitoringCheckbox.props().value).toBe(true);
 
-    monitoringCheckbox.vm.$emit('input', false);
+    monitoringCheckbox.vm.$emit('update:value', false);
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.$data.config.monitoring).toBeFalsy();
     expect(wrapper.vm.$data.config.logAnalyticsWorkspaceGroup).toBeNull();
     expect(wrapper.vm.$data.config.logAnalyticsWorkspaceName).toBeNull();
+  });
+
+  it('should use a valid value for the default pool name', async() => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: _CREATE },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+
+    wrapper.vm.addPool();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.nodePools).toHaveLength(1);
+    const nodeName = wrapper.vm.nodePools[0].name;
+
+    expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
   });
 });

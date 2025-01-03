@@ -50,20 +50,20 @@ export default {
   <div>
     <div class="row mb-20">
       <MetricTarget
-        v-model="value.target"
+        v-model:value="value.target"
         :mode="mode"
         metric-resource="object"
       />
     </div>
     <div class="row mb-20">
       <MetricObjectReference
-        v-model="value.describedObject"
+        v-model:value="value.describedObject"
         :mode="mode"
       />
     </div>
     <div class="row">
       <MetricIdentifier
-        v-model="value.metric"
+        v-model:value="value.metric"
         :mode="mode"
       />
     </div>

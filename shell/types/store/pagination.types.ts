@@ -227,7 +227,7 @@ export class PaginationParamFilter extends PaginationParam {
   /**
    * Convenience method when you just want an instance of {@link PaginationParamFilter} with a simple `filter=x=y` param
    */
-  static createSingleField(field: { field?: string; value: string; equals?: boolean; }): PaginationParam {
+  static createSingleField(field: { field?: string; value: string; equals?: boolean; exact?: boolean }): PaginationParam {
     return new PaginationParamFilter({ fields: [new PaginationFilterField(field)] });
   }
 
@@ -376,7 +376,7 @@ export class PaginationArgs {
  *
  * Use this for making requests that utilise filtering backed by the new vai cache backed API
  */
-export class PaginationFilterArgs extends PaginationArgs {
+export class FilterArgs extends PaginationArgs {
   /**
      * Creates an instance of PaginationArgs.
      *
@@ -454,4 +454,17 @@ export interface StorePagination {
    * Information in the response outside of the actual resources returned
    */
   result: StorePaginationResult
+}
+
+/**
+ * The resource and context that the pagination request will be used
+ *
+ * Used to determine if the request is supported
+*/
+export interface PaginationResourceContext {
+  store: string,
+  resource?: {
+    id: string,
+    context?: string,
+  }
 }

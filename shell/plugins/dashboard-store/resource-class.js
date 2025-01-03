@@ -9,7 +9,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { VIEW_IN_API } from '@shell/store/prefs';
+import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
@@ -30,7 +30,7 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import Vue from 'vue';
+import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
@@ -84,6 +84,7 @@ export const STATES_ENUM = {
   DISCONNECTED:     'disconnected',
   DRAINED:          'drained',
   DRAINING:         'draining',
+  ENABLED:          'enabled',
   ERR_APPLIED:      'errapplied',
   ERROR:            'error',
   ERRORING:         'erroring',
@@ -231,6 +232,9 @@ export const STATES = {
   },
   [STATES_ENUM.DRAINING]: {
     color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.ENABLED]: {
+    color: 'success', icon: 'dot-open', label: 'Enabled', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.ERR_APPLIED]: {
     color: 'error', icon: 'error', label: 'Error Applied', compoundIcon: 'error'
@@ -552,13 +556,13 @@ function maybeFn(val) {
 }
 
 export default class Resource {
-  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+  constructor(data, ctx = {}, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
       this[k] = data[k];
     }
 
     Object.defineProperty(this, '$ctx', {
-      value:      ctx,
+      value:      markRaw(ctx),
       enumerable: false,
     });
 
@@ -880,7 +884,7 @@ export default class Resource {
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
-    const currentRoute = this.currentRouter().app._route;
+    const currentRoute = this.currentRouter().currentRoute.value;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
     const all = [
@@ -997,7 +1001,11 @@ export default class Resource {
   }
 
   get canViewInApi() {
-    return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    try {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    } catch {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+    }
   }
 
   get canYaml() {
@@ -1055,7 +1063,7 @@ export default class Resource {
 
   async doActionGrowl(actionName, body, opt = {}) {
     try {
-      await this.$dispatch('resourceAction', {
+      return await this.$dispatch('resourceAction', {
         resource: this,
         actionName,
         body,
@@ -1287,6 +1295,12 @@ export default class Resource {
     this.currentRouter().push(this.detailLocation);
   }
 
+  /**
+   * Resource action redirects to the detail page with a query parameter 'clone'
+   * When the query parameter is present, the view will fetch the resource to clone define in the parameter
+   * E.g.: /my-id?mode=clone
+   * @param {*} moreQuery
+   */
   goToClone(moreQuery = {}) {
     const location = this.detailLocation;
 
@@ -1626,7 +1640,7 @@ export default class Resource {
           if ( tolower !== pathValue ) {
             pathValue = tolower;
 
-            Vue.set(data, path, pathValue);
+            data[path] = pathValue;
           }
 
           errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));

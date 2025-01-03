@@ -30,8 +30,8 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    this.value['http_config'] = this.value.http_config || {};
+    this.value['send_resolved'] = this.value.send_resolved || false;
     const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
     return { showNamespaceBanner: isDriverUrl && this.mode !== _VIEW };
@@ -56,7 +56,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.url"
+          v-model:value="value.url"
           :mode="mode"
           label="URL"
           :tooltip="t('monitoringReceiver.webhook.urlTooltip')"
@@ -66,7 +66,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.http_config.proxy_url"
+          v-model:value="value.http_config.proxy_url"
           :mode="mode"
           :label="t('monitoringReceiver.shared.proxyUrl.label')"
           :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')"
@@ -75,18 +75,18 @@ export default {
     </div>
     <div class="row mb-20">
       <Checkbox
-        v-model="value.send_resolved"
+        v-model:value="value.send_resolved"
         :mode="mode"
         :label="t('monitoringReceiver.shared.sendResolved.label')"
       />
     </div>
     <TLS
-      v-model="value.http_config"
+      v-model:value="value.http_config"
       class="mb-20"
       :mode="mode"
     />
     <Auth
-      v-model="value.http_config"
+      v-model:value="value.http_config"
       :mode="mode"
     />
   </div>

@@ -25,7 +25,7 @@ export default {
   mounted() {
     this.setTabVisibilityListener(true);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.setTabVisibilityListener(false);
   },
 };

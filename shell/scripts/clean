@@ -3,4 +3,4 @@ set -e
 
 cd $(dirname $0)/..
 
-rm -rf dist .nuxt* node_modules/.cache
+rm -rf dist node_modules/.cache

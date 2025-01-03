@@ -49,7 +49,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
-          v-model="username"
+          v-model:value="username"
           type="multiline"
           :label="t('secret.ssh.public')"
           :mode="mode"
@@ -64,7 +64,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="password"
+          v-model:value="password"
           type="multiline"
           :label="t('secret.ssh.private')"
           :mode="mode"

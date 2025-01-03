@@ -1,9 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-
-import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
-import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
 import { CATALOG, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
@@ -11,15 +8,15 @@ import { getClusterPrefix } from '@shell/utils/grafana';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { canViewAlertManagerLink, canViewGrafanaLink, canViewPrometheusLink } from '@shell/utils/monitoring';
+import Loading from '@shell/components/Loading';
 
 export default {
   components: {
     LazyImage,
     SimpleBox,
-    AlertTable
+    AlertTable,
+    Loading
   },
-
-  middleware: InstallRedirect(NAME, CHART_NAME),
 
   async fetch() {
     await this.fetchDeps();
@@ -131,7 +128,8 @@ export default {
 </script>
 
 <template>
-  <section>
+  <Loading v-if="$fetchState.pending" />
+  <section v-else>
     <header class="row">
       <div class="col span-12">
         <h1>
@@ -149,13 +147,13 @@ export default {
       <div class="create-resource-container">
         <div class="subtypes-container">
           <a
-            v-for="fel in externalLinks"
-            :key="fel.label"
+            v-for="(fel, i) in externalLinks"
+            :key="i"
             v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"
-            :disabled="!fel.enabled"
+            :disabled="!fel.enabled ? true : null"
             target="_blank"
             rel="noopener noreferrer"
             :class="{ 'subtype-banner': true, disabled: !fel.enabled }"

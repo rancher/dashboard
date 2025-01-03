@@ -1,5 +1,4 @@
 <script>
-import Vue from 'vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -10,9 +9,12 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
+import UnitInput from '@shell/components/form/UnitInput.vue';
 
 export default {
   name: 'CruCatalogRepo',
+
+  emits: ['input'],
 
   components: {
     Footer,
@@ -22,7 +24,8 @@ export default {
     Labels,
     SelectOrCreateAuthSecret,
     InfoBox,
-    Checkbox
+    Checkbox,
+    UnitInput
   },
 
   mixins: [CreateEditView],
@@ -61,45 +64,66 @@ export default {
       // reset input fields when switching options
       switch (clusterRepoType) {
       case CLUSTER_REPO_TYPES.GIT_REPO:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
         this.resetOciValues();
+        this.resetHelmValues();
         break;
       case CLUSTER_REPO_TYPES.OCI_URL:
-        Vue.set(this.value.spec, 'url', '');
         // set insecurePlainHttp to false as a secondary flag, alongside checking for 'oci://' in the URL, to determine OCI type later
-        Vue.set(this.value.spec, 'insecurePlainHttp', false);
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
-        if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
-        }
+        this.value.spec['insecurePlainHttp'] = false;
+        this.resetGitRepoValues();
+        this.resetHelmValues();
         break;
       case CLUSTER_REPO_TYPES.HELM_URL:
-        Vue.set(this.value.spec, 'url', '');
-        Vue.set(this.value.spec, 'gitRepo', '');
-        Vue.set(this.value.spec, 'clientSecret', null);
         this.resetOciValues();
-        if (!!this.value.spec.gitBranch) {
-          Vue.set(this.value.spec, 'gitBranch', '');
-        }
+        this.resetGitRepoValues();
         break;
       }
+      this.resetClientSecret();
     },
     updateExponentialBackOffValues(key, newVal) {
       if (!Object.prototype.hasOwnProperty.call(this.value.spec, 'exponentialBackOffValues')) {
-        Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+        this.value.spec['exponentialBackOffValues'] = {};
       }
-      Vue.set(this.value.spec.exponentialBackOffValues, key, Number(newVal));
+      // when user removes the value we remove the key too, backend will set the default value
+      if (newVal === '' || newVal === null) {
+        delete this.value.spec.exponentialBackOffValues[key];
+
+        return;
+      }
+
+      this.value.spec.exponentialBackOffValues[key] = Number(newVal);
+    },
+    updateRefreshInterval(newVal) {
+      // when user removes the value we don't send refreshInterval along with the payload
+      if (newVal === null) {
+        delete this.value.spec.refreshInterval;
+
+        return;
+      }
+
+      this.value.spec.refreshInterval = newVal;
+    },
+    resetGitRepoValues() {
+      delete this.value.spec['gitRepo'];
+      delete this.value.spec['gitBranch'];
+      delete this.value.spec['refreshInterval'];
     },
     resetOciValues() {
-      Vue.delete(this.value.spec, 'insecurePlainHttp');
-      Vue.delete(this.value.spec, 'insecureSkipTLSVerify');
-      Vue.delete(this.value.spec, 'caBundle');
-      Vue.set(this.value.spec, 'exponentialBackOffValues', {});
+      delete this.value.spec['url'];
+      delete this.value.spec['insecurePlainHttp'];
+      delete this.value.spec['insecureSkipTLSVerify'];
+      delete this.value.spec['caBundle'];
+      delete this.value.spec['refreshInterval'];
+      delete this.value.spec['exponentialBackOffValues'];
       this.ociMinWait = undefined;
       this.ociMaxWait = undefined;
       this.ociMaxRetries = undefined;
+    },
+    resetHelmValues() {
+      delete this.value.spec['url'];
+    },
+    resetClientSecret() {
+      this.value.spec['clientSecret'] = null;
     }
   },
 };
@@ -108,78 +132,103 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      v-model="value"
+      :value="value"
       :mode="mode"
       :namespaced="isNamespaced"
+      @update:value="$emit('input', $event)"
     />
 
     <h2>{{ t('catalog.repo.target.label') }}</h2>
     <div class="row mb-10">
       <div class="col span-8">
         <RadioGroup
-          v-model="clusterRepoType"
+          v-model:value="clusterRepoType"
           :name="clusterRepoType"
           :options="[CLUSTER_REPO_TYPES.HELM_URL, CLUSTER_REPO_TYPES.GIT_REPO, CLUSTER_REPO_TYPES.OCI_URL]"
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git'), t('catalog.repo.target.oci', null, true)]"
           :mode="mode"
           data-testid="clusterrepo-radio-input"
-          @input="onTargetChange"
+          @update:value="onTargetChange"
         />
       </div>
     </div>
 
-    <div
-      v-if="clusterRepoType === CLUSTER_REPO_TYPES.GIT_REPO"
-      class="row mb-10"
+    <InfoBox
+      v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL"
+      class="p-10"
     >
-      <div class="col span-6">
+      {{ t('catalog.repo.oci.info', null, true) }}
+    </InfoBox>
+
+    <div class="row mb-10">
+      <template v-if="clusterRepoType === CLUSTER_REPO_TYPES.GIT_REPO">
+        <div class="col span-6">
+          <LabeledInput
+            v-model:value.trim="value.spec.gitRepo"
+            :required="true"
+            :label="t('catalog.repo.gitRepo.label')"
+            :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
+            :mode="mode"
+            data-testid="clusterrepo-git-repo-input"
+          />
+        </div>
+        <div class="col span-3">
+          <LabeledInput
+            v-model:value.trim="value.spec.gitBranch"
+            :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
+            :label="t('catalog.repo.gitBranch.label')"
+            :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
+            :mode="mode"
+            data-testid="clusterrepo-git-branch-input"
+          />
+        </div>
+      </template>
+
+      <template v-else-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
+        <div class="col span-6">
+          <LabeledInput
+            v-model:value.trim="value.spec.url"
+            :required="true"
+            :label="t('catalog.repo.oci.urlLabel')"
+            :placeholder="t('catalog.repo.oci.placeholder', null, true)"
+            :mode="mode"
+            data-testid="clusterrepo-oci-url-input"
+          />
+        </div>
+      </template>
+
+      <div
+        v-else
+        class="col span-6"
+      >
         <LabeledInput
-          v-model.trim="value.spec.gitRepo"
+          v-model:value.trim="value.spec.url"
           :required="true"
-          :label="t('catalog.repo.gitRepo.label')"
-          :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
+          :label="t('catalog.repo.url.label')"
+          :placeholder="t('catalog.repo.url.placeholder', null, true)"
           :mode="mode"
-          data-testid="clusterrepo-git-repo-input"
+          data-testid="clusterrepo-helm-url-input"
         />
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model.trim="value.spec.gitBranch"
-          :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
-          :label="t('catalog.repo.gitBranch.label')"
-          :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
+
+      <div
+        class="col span-3"
+        data-testid="clusterrepo-refresh-interval"
+      >
+        <UnitInput
+          v-model:value.trim="value.spec.refreshInterval"
+          :label="t('catalog.repo.refreshInterval.label')"
           :mode="mode"
-          data-testid="clusterrepo-git-branch-input"
+          min="0"
+          :suffix="t('unit.hour', { count: value.spec.refreshInterval })"
+          :placeholder="t('catalog.repo.refreshInterval.placeholder', { hours: clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL ? 24 : 6 })"
+          @update:value="updateRefreshInterval($event)"
         />
       </div>
     </div>
 
-    <div v-else-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
-      <InfoBox class="p-10">
-        {{ t('catalog.repo.oci.info') }}
-      </InfoBox>
-      <LabeledInput
-        v-model.trim="value.spec.url"
-        :required="true"
-        :label="t('catalog.repo.oci.urlLabel')"
-        :placeholder="t('catalog.repo.oci.placeholder', null, true)"
-        :mode="mode"
-        data-testid="clusterrepo-oci-url-input"
-      />
-    </div>
-
-    <LabeledInput
-      v-else
-      v-model.trim="value.spec.url"
-      :required="true"
-      :label="t('catalog.repo.url.label')"
-      :placeholder="t('catalog.repo.url.placeholder', null, true)"
-      :mode="mode"
-      data-testid="clusterrepo-helm-url-input"
-    />
     <SelectOrCreateAuthSecret
-      :key="clusterRepoType"
-      v-model="value.spec.clientSecret"
+      v-model:value="value.spec.clientSecret"
       :mode="mode"
       data-testid="clusterrepo-auth-secret"
       :register-before-hook="registerBeforeHook"
@@ -195,7 +244,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.spec.caBundle"
+            v-model:value="value.spec.caBundle"
             class="mt-20"
             type="multiline"
             label="CA Cert Bundle"
@@ -203,14 +252,14 @@ export default {
             data-testid="clusterrepo-oci-cabundle-input"
           />
           <Checkbox
-            v-model="value.spec.insecureSkipTLSVerify"
+            v-model:value="value.spec.insecureSkipTLSVerify"
             class="mt-10"
             :mode="mode"
             :label="t('catalog.repo.oci.skipTlsVerifications')"
             data-testid="clusterrepo-oci-skip-tls-checkbox"
           />
           <Checkbox
-            v-model="value.spec.insecurePlainHttp"
+            v-model:value="value.spec.insecurePlainHttp"
             class="mt-10"
             :mode="mode"
             :label="t('catalog.repo.oci.insecurePlainHttp')"
@@ -221,41 +270,45 @@ export default {
       <h4 class="mb-10 mt-20">
         {{ t('catalog.repo.oci.exponentialBackOff.label') }}
       </h4>
-      <div class="row mb-10 mt-10">
-        <div class="col span-4">
-          <LabeledInput
-            v-model.trim="ociMinWait"
+      <div class="row mb-40 mt-10">
+        <div
+          class="col span-4"
+          data-testid="clusterrepo-oci-min-wait-input"
+        >
+          <UnitInput
+            v-model:value.trim="ociMinWait"
             :label="t('catalog.repo.oci.exponentialBackOff.minWait.label')"
-            :placeholder="!ociMinWait ? t('catalog.repo.oci.exponentialBackOff.minWait.placeholder') : undefined"
+            :placeholder="t('catalog.repo.oci.exponentialBackOff.minWait.placeholder')"
             :mode="mode"
-            type="number"
             min="1"
-            data-testid="clusterrepo-oci-min-wait-input"
-            @input="updateExponentialBackOffValues('minWait', $event)"
+            :suffix="t('suffix.seconds', { count: ociMinWait })"
+            @update:value="updateExponentialBackOffValues('minWait', $event)"
           />
         </div>
-        <div class="col span-4">
-          <LabeledInput
-            v-model.trim="ociMaxWait"
+        <div
+          class="col span-4"
+          data-testid="clusterrepo-oci-max-wait-input"
+        >
+          <UnitInput
+            v-model:value.trim="ociMaxWait"
             :label="t('catalog.repo.oci.exponentialBackOff.maxWait.label')"
-            :placeholder="!ociMaxWait ? t('catalog.repo.oci.exponentialBackOff.maxWait.placeholder') : undefined"
+            :placeholder="t('catalog.repo.oci.exponentialBackOff.maxWait.placeholder')"
             :mode="mode"
-            type="number"
             min="1"
-            data-testid="clusterrepo-oci-max-wait-input"
-            @input="updateExponentialBackOffValues('maxWait', $event)"
+            :suffix="t('suffix.seconds', { count: ociMaxWait })"
+            @update:value="updateExponentialBackOffValues('maxWait', $event)"
           />
         </div>
         <div class="col span-4">
           <LabeledInput
-            v-model.trim="ociMaxRetries"
+            v-model:value.trim="ociMaxRetries"
             :label="t('catalog.repo.oci.exponentialBackOff.maxRetries.label')"
-            :placeholder="!ociMaxRetries ? t('catalog.repo.oci.exponentialBackOff.maxRetries.placeholder') : undefined"
+            :placeholder="t('catalog.repo.oci.exponentialBackOff.maxRetries.placeholder')"
             :mode="mode"
             type="number"
             min="0"
             data-testid="clusterrepo-oci-max-retries-input"
-            @input="updateExponentialBackOffValues('maxRetries', $event)"
+            @update:value="updateExponentialBackOffValues('maxRetries', $event)"
           />
         </div>
       </div>
@@ -277,12 +330,3 @@ export default {
     />
   </form>
 </template>
-
-<style lang="scss">
-  span.oci-experimental-badge {
-    background-color: var(--warning);
-    color: var(--darker-active-bg);
-    font-size: 12px;
-    padding: 2px 6px;
-  }
-</style>

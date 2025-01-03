@@ -1,11 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-
-import InstallRedirect from '@shell/utils/install-redirect';
-
 import { SERVICE } from '@shell/config/types';
-import { NAME, CHART_NAME } from '@shell/config/product/longhorn';
-
 import IconMessage from '@shell/components/IconMessage';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
@@ -14,8 +9,6 @@ export default {
   components: {
     IconMessage, LazyImage, Loading
   },
-
-  middleware: InstallRedirect(NAME, CHART_NAME),
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
@@ -76,8 +69,8 @@ export default {
       class="links"
     >
       <div
-        v-for="fel in externalLinks"
-        :key="fel.label"
+        v-for="(fel, i) in externalLinks"
+        :key="i"
         class="link-container"
       >
         <a

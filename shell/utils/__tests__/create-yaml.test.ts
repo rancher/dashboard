@@ -390,7 +390,7 @@ describe('fx: resourceFields', () => {
   it('schema has empty resource fields', () => {
     const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
-    configMapSteveSchema._cacheSchemaDefinitionResponse({
+    configMapSteveSchema['cacheSchemaDefinitionResponse']({
       ...configMapSchemaDefinition,
       definitions: {
         'io.k8s.api.core.v1.ConfigMap': {
@@ -422,7 +422,7 @@ kind: ConfigMap`;
   it('schema has one resource field', () => {
     const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
-    configMapSteveSchema._cacheSchemaDefinitionResponse({
+    configMapSteveSchema['cacheSchemaDefinitionResponse']({
       ...configMapSchemaDefinition,
       definitions: {
         'io.k8s.api.core.v1.ConfigMap': {
@@ -460,7 +460,7 @@ kind: ConfigMap
   it('schema has nested resource fields', () => {
     const configMapSteveSchema = new SteveSchema(configMapSchema, {});
 
-    configMapSteveSchema._cacheSchemaDefinitionResponse(configMapSchemaDefinition);
+    configMapSteveSchema['cacheSchemaDefinitionResponse'](configMapSchemaDefinition);
 
     const expected =
       `apiVersion: v1

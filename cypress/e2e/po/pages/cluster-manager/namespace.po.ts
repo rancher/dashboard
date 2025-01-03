@@ -10,6 +10,6 @@ export default class ClusterManagerNamespacePagePo extends PagePo {
   }
 
   namespace() {
-    return cy.get('.mastehead-resource-title');
+    return cy.get('.masthead-resource-title');
   }
 }

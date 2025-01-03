@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { defineAsyncComponent } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -20,14 +21,11 @@ import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
+import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
+import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
-
-// Its quicker to render if we directly supply the components for the formatters
-// rather than just the name of a global component - so create a map of the formatter comoponents
-// NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
-export const FORMATTERS = {};
 
 // @TODO:
 // Fixed header/scrolling
@@ -39,12 +37,20 @@ export const FORMATTERS = {};
 // --> filtering.js filteredRows
 // --> paging.js pageRows
 // --> grouping.js groupedRows
-// --> index.vue displayedRows
+// --> index.vue displayRows
 
 export default {
-  name:       'SortableTable',
+  name: 'SortableTable',
+
+  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change', 'selection', 'rowClick'],
+
   components: {
-    THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
+    THead,
+    Checkbox,
+    AsyncButton,
+    ActionDropdown,
+    LabeledSelect,
+    ButtonMultiAction,
   },
   mixins: [
     filtering,
@@ -71,11 +77,13 @@ export default {
       type:     Array,
       required: true
     },
+
     rows: {
       // The array of objects to show
       type:     Array,
       required: true
     },
+
     keyField: {
       // Field that is unique for each row.
       type:    String,
@@ -83,6 +91,16 @@ export default {
     },
 
     loading: {
+      type:     Boolean,
+      required: false
+    },
+
+    /**
+     * Alt Loading - True: Always show table rows and obscure them when `loading`. Intended for use with server-side pagination.
+     *
+     * Alt Loading - False: Hide the table rows when `loading`. Intended when all resources are provided up front.
+     */
+    altLoading: {
       type:     Boolean,
       required: false
     },
@@ -269,9 +287,23 @@ export default {
       default: true
     },
 
+    /**
+     * Provide a unique key that will provide a new value given changes to the environment that
+     * should kick off an update to table rows (for instance resource list generation or change of namespace)
+     *
+     * This does not have to update given internal facets like sort order or direction
+     */
     sortGenerationFn: {
       type:    Function,
       default: null,
+    },
+
+    /**
+     * Can be used in place of sortGenerationFn
+     */
+    sortGeneration: {
+      type:    String,
+      default: null
     },
 
     /**
@@ -329,7 +361,13 @@ export default {
     externalPaginationResult: {
       type:    Object,
       default: null
+    },
+
+    manualRefreshButtonSize: {
+      type:    String,
+      default: ''
     }
+
   },
 
   data() {
@@ -343,7 +381,7 @@ export default {
     }
 
     return {
-      currentPhase:               ASYNC_BUTTON_STATES.WAITING,
+      refreshButtonPhase:         ASYNC_BUTTON_STATES.WAITING,
       expanded:                   {},
       searchQuery,
       eventualSearchQuery,
@@ -351,6 +389,10 @@ export default {
       actionOfInterest:           null,
       loadingDelay:               false,
       debouncedPaginationChanged: null,
+      /**
+       * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
+       */
+      isLoading:                  false,
     };
   },
 
@@ -368,10 +410,10 @@ export default {
     this.debouncedPaginationChanged();
   },
 
-  beforeDestroy() {
-    clearTimeout(this.loadingDelayTimer);
+  beforeUnmount() {
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
+    clearTimeout(this._altLoadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
     clearTimeout(this.manualRefreshTimer);
@@ -444,13 +486,35 @@ export default {
     manualRefreshLoadingFinished: {
       handler(neu, old) {
         // this is merely to update the manual refresh button status
-        this.currentPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+        this.refreshButtonPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
         if (neu && neu !== old) {
           this.$nextTick(() => this.updateLiveAndDelayed());
         }
       },
       immediate: true
-    }
+    },
+
+    loading: {
+      handler(neu, old) {
+        // Always ensure the Refresh button phase aligns with loading state (to ensure external phase changes which can then reset the internal phase changed by click)
+        this.refreshButtonPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+        if (this.altLoading) {
+          // Delay setting the actual loading indicator. This should avoid flashing up the indicator if the API responds quickly
+          if (neu) {
+            this._altLoadingDelayTimer = setTimeout(() => {
+              this.isLoading = true;
+            }, 200); // this should be higher than the targeted quick response
+          } else {
+            clearTimeout(this._altLoadingDelayTimer);
+            this.isLoading = false;
+          }
+        } else {
+          this.isLoading = neu;
+        }
+      },
+      immediate: true
+    },
   },
 
   created() {
@@ -466,11 +530,16 @@ export default {
     },
 
     initalLoad() {
-      return !!(!this.loading && !this._didinit && this.rows?.length);
+      return !!(!this.isLoading && !this._didinit && this.rows?.length);
     },
 
     manualRefreshLoadingFinished() {
-      return !!(!this.loading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+      const res = !!(!this.isLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
+
+      // Always ensure the Refresh button phase aligns with loading state (regardless of if manualRefreshLoadingFinished has changed or not)
+      this.refreshButtonPhase = !res || this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      return res;
     },
 
     fullColspan() {
@@ -506,11 +575,13 @@ export default {
     },
 
     showHeaderRow() {
+      // All of these are used to show content in the header
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+        this.$slots['header-left'] ||
+        this.$slots['header-middle'] ||
+        this.$slots['header-right'] ||
+        this.isTooManyItemsToAutoUpdate;
     },
 
     columns() {
@@ -570,6 +641,7 @@ export default {
         'body-dividers': this.bodyDividers,
         'overflow-y':    this.overflowY,
         'overflow-x':    this.overflowX,
+        'alt-loading':   this.altLoading && this.isLoading
       };
     },
 
@@ -644,7 +716,7 @@ export default {
                 const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
-                  component = pluginFormatter;
+                  component = defineAsyncComponent(pluginFormatter);
                   needRef = true;
                 }
               }
@@ -975,7 +1047,7 @@ export default {
           <slot name="header-left">
             <template v-if="tableActions">
               <button
-                v-for="act in availableActions"
+                v-for="(act) in availableActions"
                 :id="act.action"
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
@@ -1014,9 +1086,9 @@ export default {
                 <template #popover-content>
                   <ul class="list-unstyled menu">
                     <li
-                      v-for="act in hiddenActions"
-                      :key="act.action"
-                      v-close-popover
+                      v-for="(act, i) in hiddenActions"
+                      :key="i"
+                      v-close-popper
                       v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
@@ -1046,14 +1118,14 @@ export default {
           </slot>
         </div>
         <div
-          v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)"
+          v-if="!hasAdvancedFiltering && $slots['header-middle']"
           class="middle"
         >
           <slot name="header-middle" />
         </div>
 
         <div
-          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
+          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || $slots['header-right']"
           class="search row"
           data-testid="search-box-filter-row"
         >
@@ -1076,9 +1148,9 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            class="manual-refresh"
             mode="manual-refresh"
-            :current-phase="currentPhase"
+            :size="manualRefreshButtonSize"
+            :current-phase="refreshButtonPhase"
             @click="debouncedRefreshTableData"
           />
           <div
@@ -1106,7 +1178,7 @@ export default {
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
                 <LabeledSelect
-                  v-model="advFilterSelectedProp"
+                  v-model:value="advFilterSelectedProp"
                   class="filter-select"
                   :clearable="true"
                   :options="advFilterSelectOptions"
@@ -1171,7 +1243,7 @@ export default {
         :default-sort-by="_defaultSortBy"
         :descending="descending"
         :no-rows="noRows"
-        :loading="loading && !loadingDelay"
+        :loading="isLoading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
@@ -1181,9 +1253,9 @@ export default {
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="loading && !loadingDelay" />
+      <div v-if="isLoading && !loadingDelay" />
 
-      <tbody v-else-if="loading">
+      <tbody v-else-if="isLoading && !altLoading">
         <slot name="loading">
           <tr>
             <td :colspan="fullColspan">
@@ -1223,7 +1295,7 @@ export default {
         </slot>
       </tbody>
       <tbody
-        v-for="groupedRows in displayRows"
+        v-for="(groupedRows) in displayRows"
         v-else
         :key="groupedRows.key"
         :class="{ group: groupBy }"
@@ -1250,7 +1322,10 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in groupedRows.rows">
+        <template
+          v-for="(row, i) in groupedRows.rows"
+          :key="i"
+        >
           <slot
             name="main-row"
             :row="row.row"
@@ -1263,7 +1338,6 @@ export default {
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
               <tr
-                :key="row.key"
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
                 :class="{ 'has-sub-row': row.showSubRow}"
@@ -1297,7 +1371,10 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="(col, j) in row.columns">
+                <template
+                  v-for="(col, j) in row.columns"
+                  :key="j"
+                >
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"
@@ -1368,18 +1445,15 @@ export default {
                     name="row-actions"
                     :row="row.row"
                   >
-                    <button
+                    <ButtonMultiAction
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
-                      :data-testid="componentTestid + '-' + i + '-action-button'"
                       aria-haspopup="true"
                       aria-expanded="false"
-                      type="button"
-                      class="btn btn-sm role-multi-action actions"
+                      :data-testid="componentTestid + '-' + i + '-action-button'"
+                      :borderless="true"
                       @click="handleActionButtonClick(i, $event)"
-                    >
-                      <i class="icon icon-actions" />
-                    </button>
+                    />
                   </slot>
                 </td>
               </tr>
@@ -1428,7 +1502,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        data-testid="pagination-first"
+        :disabled="page == 1 || loading"
         @click="goToPage('first')"
       >
         <i class="icon icon-chevron-beginning" />
@@ -1436,7 +1511,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == 1"
+        data-testid="pagination-prev"
+        :disabled="page == 1 || loading"
         @click="goToPage('prev')"
       >
         <i class="icon icon-chevron-left" />
@@ -1447,7 +1523,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        data-testid="pagination-next"
+        :disabled="page == totalPages || loading"
         @click="goToPage('next')"
       >
         <i class="icon icon-chevron-right" />
@@ -1455,7 +1532,8 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-multi-action"
-        :disabled="page == totalPages"
+        data-testid="pagination-last"
+        :disabled="page == totalPages || loading"
         @click="goToPage('last')"
       >
         <i class="icon icon-chevron-end" />
@@ -1494,9 +1572,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
-  .manual-refresh {
-    height: 40px;
+  .sortable-table.alt-loading {
+    opacity: 0.5;
+    pointer-events: none;
   }
   .advanced-filter-group {
     position: relative;
@@ -1598,7 +1676,7 @@ export default {
         margin-right: 10px;
         font-size: 11px;
       }
-     .cross {
+      .cross {
         font-size: 12px;
         font-weight: bold;
         cursor: pointer;
@@ -1606,17 +1684,7 @@ export default {
     }
   }
 
-  // Remove colors from multi-action buttons in the table
   td {
-    .actions.role-multi-action {
-      background-color: transparent;
-      border: none;
-      &:hover, &:focus {
-        background-color: var(--accent-btn);
-        box-shadow: none;
-      }
-    }
-
     // Aligns with COLUMN_BREAKPOINTS
     @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
       // HIDE column on sizes below 480px

@@ -1,0 +1,28 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as StringListStories from './StringList.stories';
+
+<Meta of={StringListStories} />
+
+# StringList
+
+It can be used to handle a list of strings.
+
+### Description
+
+- Click on the plus button or double click on a blank space of the items box to create a new item, then press Enter.
+- An item can be edited by double click on it.
+- In case of the item name is already in the list, an error message is displayed on the bottom of the box.
+- Select an item and then click on minus button to remove it from the list.
+- If a bulk addition delimiter is set, the input value will be split into individual entries.
+
+### Default
+
+<Canvas of={StringListStories.Default} />
+
+### Edit
+
+<Canvas of={StringListStories.Edit} />
+
+### View
+
+<Canvas of={StringListStories.View} />

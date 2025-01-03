@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
-import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
+import { _FLAGGED, DEPRECATED as DEPRECATED_QUERY, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -21,7 +21,7 @@ export default {
 
     const query = this.$route.query;
 
-    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
+    this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
 
     this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });

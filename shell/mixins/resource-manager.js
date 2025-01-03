@@ -55,7 +55,7 @@ export default {
           const type = types[i];
           const status = hash[type].status;
           // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
-          const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
+          const requestData = hash[type]?.value?.items || hash[type]?.value?.data || hash[type]?.value;
 
           if (status === 'fulfilled' && resourceData.data[type] && resourceData.data[type].applyTo?.length) {
             for (let y = 0; y < resourceData.data[type].applyTo.length; y++) {

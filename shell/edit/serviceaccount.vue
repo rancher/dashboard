@@ -9,12 +9,12 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { PaginationFilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
-  name: 'ServiceAccount',
-
-  components: {
+  name:         'ServiceAccount',
+  inheritAttrs: false,
+  components:   {
     CruResource,
     NameNsDescription,
     Checkbox,
@@ -49,7 +49,7 @@ export default {
   mixins: [CreateEditView],
 
   data() {
-    this.$set(this.value, 'automountServiceAccountToken', this.value.automountServiceAccountToken || false);
+    this.value['automountServiceAccountToken'] = this.value.automountServiceAccountToken || false;
 
     return {
       allSecrets:      [],
@@ -70,7 +70,7 @@ export default {
     filterSecretsByApi() {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.value.metadata.namespace,
-        pagination: new PaginationFilterArgs({
+        pagination: new FilterArgs({
           filters: PaginationParamFilter.createMultipleFields(this.secretTypes.map((t) => ({
             field:  'metadata.fields.1',
             value:  t,
@@ -97,7 +97,7 @@ export default {
     imagePullSecrets: {
       get() {
         if (!this.value.imagePullSecrets) {
-          this.$set(this.value, 'imagePullSecrets', []);
+          this.value['imagePullSecrets'] = [];
         }
         const { imagePullSecrets } = this.value;
 
@@ -151,7 +151,7 @@ export default {
         <div class="row">
           <div class="col mt-20">
             <Checkbox
-              v-model="value.automountServiceAccountToken"
+              v-model:value="value.automountServiceAccountToken"
               :label="t('serviceAccount.automount')"
               type="checkbox"
               :mode="mode"
@@ -163,7 +163,7 @@ export default {
             <h3>{{ t('serviceAccount.imagePullSecrets') }}</h3>
 
             <LabeledSelect
-              v-model="imagePullSecrets"
+              v-model:value="imagePullSecrets"
               label-key="workload.container.imagePullSecrets.label"
               :tooltip="t('workload.container.imagePullSecrets.tooltip')"
               :multiple="true"

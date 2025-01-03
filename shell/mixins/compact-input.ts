@@ -1,6 +1,5 @@
-import Vue from 'vue';
 
-export default Vue.extend({
+export default {
   props: {
     compact: {
       type:    Boolean,
@@ -23,4 +22,4 @@ export default Vue.extend({
       return this.compact !== null ? this.compact : !(this.label || this.labelKey);
     }
   }
-});
+};

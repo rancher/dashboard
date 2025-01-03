@@ -6,6 +6,8 @@ import Mount from '@shell/edit/workload/storage/Mount';
 import { mapGetters } from 'vuex';
 
 export default {
+  emits: ['remove'],
+
   components: {
     LabeledSelect, LabeledInput, Checkbox, Mount
   },
@@ -61,7 +63,7 @@ export default {
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.csi.driver"
+            v-model:value="value.csi.driver"
             :mode="mode"
             :label="t('workload.storage.driver')"
             :options="driverOpts"
@@ -82,14 +84,14 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.csi.fsType"
+            v-model:value="value.csi.fsType"
             :mode="mode"
             :label="t('workload.storage.csi.fsType')"
           />
         </div>
         <div class="col span-6">
           <Checkbox
-            v-model="value.csi.readOnly"
+            v-model:value="value.csi.readOnly"
             :mode="mode"
             :label="t('workload.storage.readOnly')"
           />

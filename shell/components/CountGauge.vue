@@ -78,7 +78,7 @@ export default {
     :class="{clickable}"
     :primary-color-var="primaryColorVar"
     :plain="plain"
-    @click.native="visitLocation()"
+    @click="visitLocation()"
   >
     <div
       v-if="graphical"

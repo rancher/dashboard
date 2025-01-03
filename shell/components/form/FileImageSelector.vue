@@ -4,6 +4,8 @@ import FileSelector from '@shell/components/form/FileSelector';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {
+  emits: ['update:value', 'error'],
+
   components: { FileSelector, LazyImage },
   props:      {
     value: {
@@ -47,7 +49,7 @@ export default {
      * @param {string} event
      */
     setIcon(event) {
-      this.$emit('input', event);
+      this.$emit('update:value', event);
     },
     setError(error) {
       this.$emit('error', error);

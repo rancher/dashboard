@@ -42,8 +42,8 @@ export default {
     }
   },
   data(props) {
-    this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
-    this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
+    this.value['httpConfig'] = this.value.httpConfig || {};
+    this.value['sendResolved'] = this.value.sendResolved || false;
 
     const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
@@ -148,13 +148,13 @@ export default {
     />
     <div class="row mb-20">
       <LabeledSelect
-        v-model="selectedWebhookType"
+        v-model:value="selectedWebhookType"
         :disabled="mode === view"
         :label="t('monitoringReceiver.webhook.add.selectWebhookType')"
         :placeholder="t('monitoringReceiver.webhook.add.generic')"
         :localized-label="true"
         :options="webhookOptons"
-        @input="updateWebhookType($event)"
+        @update:value="updateWebhookType($event)"
       />
     </div>
     <div class="row">
@@ -172,7 +172,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.url"
+          v-model:value="value.url"
           :mode="mode"
           :label="t('monitoring.alertmanagerConfig.webhook.url')"
           :tooltip="t('monitoring.alertmanagerConfig.webhook.urlSecretTooltip')"
@@ -201,7 +201,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.httpConfig.proxyURL"
+          v-model:value="value.httpConfig.proxyURL"
           :mode="mode"
           :label="t('monitoringReceiver.shared.proxyUrl.label')"
           :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')"
@@ -210,19 +210,19 @@ export default {
     </div>
     <div class="row mb-20">
       <Checkbox
-        v-model="value.sendResolved"
+        v-model:value="value.sendResolved"
         :mode="mode"
         :label="t('monitoringReceiver.shared.sendResolved.label')"
       />
     </div>
     <TLS
-      v-model="value.httpConfig"
+      v-model:value="value.httpConfig"
       class="mb-20"
       :mode="mode"
       :namespace="namespace"
     />
     <Auth
-      v-model="value.httpConfig"
+      v-model:value="value.httpConfig"
       :mode="mode"
       :namespace="namespace"
     />

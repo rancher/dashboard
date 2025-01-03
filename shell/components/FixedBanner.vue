@@ -2,6 +2,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import isEmpty from 'lodash/isEmpty';
+import { getIndividualBanners, overlayIndividualBanners } from '@shell/utils/banners';
 
 export default {
   props: {
@@ -51,6 +52,10 @@ export default {
   },
 
   computed: {
+    uiBannerIndividual() {
+      return getIndividualBanners(this.$store);
+    },
+
     bannerSetting() {
       return this.$store.getters['management/all'](MANAGEMENT.SETTING).find((s) => s.id === SETTING.BANNERS);
     },
@@ -110,10 +115,14 @@ export default {
 
   watch: {
     bannerSetting: {
+      deep: true,
       handler(neu) {
         if (neu?.value && neu.value !== '') {
           try {
             const parsed = JSON.parse(neu.value);
+
+            overlayIndividualBanners(parsed, this.uiBannerIndividual);
+
             const {
               bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
             } = parsed;

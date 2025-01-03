@@ -2,6 +2,8 @@
 import Loading from '@shell/components/Loading';
 
 export default {
+  emits: ['loaded'],
+
   components: { Loading },
 
   props: {
@@ -76,7 +78,7 @@ export default {
 
 <style lang="scss">
 
-::v-deep {
+:deep() {
   P {
     font-size: initial;
     line-height: initial;

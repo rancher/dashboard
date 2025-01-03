@@ -1,4 +1,6 @@
-import { ref, computed, ComputedRef, Ref } from 'vue';
+import {
+  ref, computed, ComputedRef, Ref, defineEmits
+} from 'vue';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
 
 interface LabeledFormElementProps {
@@ -7,6 +9,7 @@ interface LabeledFormElementProps {
   required: boolean;
   disabled: boolean;
   rules: Array<any>;
+  requireDirty?: boolean;
 }
 
 interface UseLabeledFormElement {
@@ -63,9 +66,15 @@ export const labeledFormElementProps = {
     type:    Boolean,
     default: false,
   },
+  requireDirty: {
+    default: true,
+    type:    Boolean
+  }
 };
 
-export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (event: string, ...args: any[]) => void): UseLabeledFormElement => {
+const labeledFormElementEmits = defineEmits(['update:validation']);
+
+export const useLabeledFormElement = (props: LabeledFormElementProps, emit: typeof labeledFormElementEmits): UseLabeledFormElement => {
   const raised = ref(props.mode === _VIEW || !!`${ props.value }`);
   const focused = ref(false);
   const blurred = ref<number | null>(null);
@@ -91,6 +100,8 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
       const message = requiredRule(value);
 
       if (!!message) {
+        emit('update:validation', false);
+
         return message;
       }
     }
@@ -103,9 +114,13 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: (eve
       }
     }
 
-    if (ruleMessages.length > 0 && (blurred.value || focused.value)) {
+    if (ruleMessages.length > 0 && (blurred.value || focused.value || !props.requireDirty)) {
+      emit('update:validation', false);
+
       return ruleMessages.join(', ');
     } else {
+      emit('update:validation', true);
+
       return undefined;
     }
   });

@@ -3,6 +3,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledInput },
   mixins:     [Question],
 
@@ -35,7 +37,7 @@ export default {
         :tooltip="displayTooltip"
         :rules="rules"
         :data-testid="`string-input-${question.variable}`"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

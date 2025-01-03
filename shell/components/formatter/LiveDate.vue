@@ -34,6 +34,16 @@ export default {
     showTooltip: {
       type:    Boolean,
       default: true
+    },
+
+    /**
+     * Determines if the live date should behave like a countdown by comparing
+     * the provided value and the current date. When the countdown reaches 0, a
+     * "-" is rendered.
+     */
+    isCountdown: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -100,6 +110,12 @@ export default {
         if (this.label !== '-') {
           this.label = '-';
         }
+
+        return 300;
+      }
+
+      if (this.isCountdown && now.valueOf() > this.dayValue?.valueOf()) {
+        this.label = '-';
 
         return 300;
       }

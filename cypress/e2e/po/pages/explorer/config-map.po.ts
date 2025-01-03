@@ -16,8 +16,7 @@ export class ConfigMapPagePo extends PagePo {
     const burgerMenu = new BurgerMenuPo();
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.goToCluster(clusterId);
     sideNav.navToSideMenuGroupByLabel('Storage');
     sideNav.navToSideMenuEntryByLabel('ConfigMaps');
   }
@@ -40,5 +39,9 @@ export class ConfigMapPagePo extends PagePo {
 
   searchForConfigMap(name: string) {
     return this.list().resourceTable().sortableTable().filter(name);
+  }
+
+  title() {
+    return this.self().get('.title h1').invoke('text');
   }
 }

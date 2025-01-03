@@ -1,6 +1,6 @@
 FROM cypress/factory
 
-ARG KUBECTL_VERSION=v1.27.10
+ARG KUBECTL_VERSION=v1.29.8
 ARG CURL_VERSION=v8.6.0
 
 RUN wget https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && \

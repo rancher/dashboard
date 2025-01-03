@@ -1,0 +1,27 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/blocks';
+import * as CollapseStories from './Collapse.stories';
+
+<Meta of={CollapseStories} />
+
+# Collapse
+
+Collapse allows to show or hide an HTML content by simply clicking on it.
+
+### Description
+
+- Click on Collapse to show content.
+- Click on it again to hide content.
+
+### Default
+
+<Canvas>
+  <Story of={CollapseStories.Default} />
+</Canvas>
+
+### Open
+
+<Canvas of={CollapseStories.Open} />
+
+### Close
+
+<Canvas of={CollapseStories.Close} />

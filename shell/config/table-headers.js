@@ -15,6 +15,17 @@ export const STATE = {
   formatter: 'BadgeStateFormatter',
 };
 
+export const USER_STATE = {
+  name:      'user-state',
+  labelKey:  'tableHeaders.userState',
+  sort:      ['stateSort', 'nameSort'],
+  value:     'stateDisplay',
+  getValue:  (row) => row.stateDisplay,
+  width:     72,
+  default:   'unknown',
+  formatter: 'BadgeStateFormatter',
+};
+
 export const DOWNLOAD = {
   name:          'download',
   labelKey:      'tableHeaders.download',
@@ -71,7 +82,7 @@ export const EFFECT = {
 export const STORAGE_CLASS_PROVISIONER = {
   name:     'storage_class_provisioner',
   labelKey: 'tableHeaders.storage_class_provisioner',
-  value:    'provisionerDisplay',
+  value:    'provisionerListDisplay',
   sort:     ['provisioner'],
 };
 
@@ -83,6 +94,9 @@ export const STORAGE_CLASS_DEFAULT = {
   formatter: 'Checked',
 };
 
+/**
+ * spec.csi.driver OR spec[known driver type]
+ */
 export const PERSISTENT_VOLUME_SOURCE = {
   name:     'persistent_volume_source',
   labelKey: 'tableHeaders.persistentVolumeSource',
@@ -90,13 +104,16 @@ export const PERSISTENT_VOLUME_SOURCE = {
   sort:     ['provisioner'],
 };
 
+/**
+ * Link to the PVC associated with PV
+ */
 export const PERSISTENT_VOLUME_CLAIM = {
   name:          'persistent-volume-claim',
   labelKey:      'tableHeaders.persistentVolumeClaim',
-  sort:          ['nameSort'],
+  sort:          ['claimName'],
   value:         'claimName',
   formatter:     'LinkDetail',
-  formatterOpts: { reference: 'claim.detailLocation' },
+  formatterOpts: { reference: 'claim.detailLocation' }
 };
 
 export const OUTPUT = {
@@ -256,6 +273,21 @@ export const DESCRIPTION = {
   width:    300,
 };
 
+export const NS_SNAPSHOT_QUOTA = {
+  name:          'NamespaceSnapshotQuota',
+  labelKey:      'harvester.tableHeaders.totalSnapshotQuota',
+  value:         'snapshotSizeQuota',
+  sort:          'snapshotSizeQuota',
+  align:         'center',
+  formatter:     'Si',
+  formatterOpts: {
+    opts: {
+      increment: 1024, addSuffix: true, suffix: 'i',
+    },
+    needParseSi: false
+  },
+};
+
 export const DURATION = {
   name:      'duration',
   labelKey:  'tableHeaders.duration',
@@ -318,16 +350,6 @@ export const SIMPLE_SCALE = {
   labelKey: 'tableHeaders.simpleScale',
   value:    'scale',
   sort:     ['scale']
-};
-
-export const WEIGHT = {
-  name:      'weight',
-  labelKey:  'tableHeaders.weight',
-  value:     'status.computedWeight',
-  sort:      'status.computedWeight',
-  formatter: 'Weight',
-  width:     60,
-  align:     'center',
 };
 
 export const SUCCESS = {
@@ -403,6 +425,33 @@ export const USER_PROVIDER = {
   value:       'providerDisplay',
   dashIfEmpty: true,
   sort:        'providerDisplay',
+};
+
+export const USER_LAST_LOGIN = {
+  name:          'user-last-login',
+  labelKey:      'tableHeaders.userLastLogin',
+  value:         'userLastLogin',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          'userLastLogin',
+};
+
+export const USER_DISABLED_IN = {
+  name:          'user-disabled-in',
+  labelKey:      'tableHeaders.userDisabledIn',
+  value:         'userDisabledInDisplay',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDisabledIn',
+};
+
+export const USER_DELETED_IN = {
+  name:          'user-deleted-in',
+  labelKey:      'tableHeaders.userDeletedIn',
+  value:         'userDeletedIn',
+  formatter:     'LiveDate',
+  formatterOpts: { isCountdown: true },
+  sort:          'userDeletedIn',
 };
 
 export const USER_ID = {
@@ -614,8 +663,8 @@ export const TARGET_PORT = {
   formatter: 'ServiceTargets',
   labelKey:  'tableHeaders.targetPort',
   name:      'targetPort',
-  sort:      `$['spec']['targetPort']`,
-  value:     `$['spec']['targetPort']`,
+  sort:      false,
+  value:     false,
 };
 
 export const SELECTOR = {

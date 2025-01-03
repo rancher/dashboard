@@ -9,6 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+// import { PAGINATED_RESOURCE_TABLE_NAME } from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name: ResourceListComponentName,
@@ -47,7 +48,8 @@ export default {
     if ( this.hasListComponent ) {
       // If you provide your own list then call its fetch
       const importer = this.listComponent;
-      const component = (await importer())?.default;
+
+      const component = await importer.__asyncLoader();
 
       if ( component?.typeDisplay ) {
         this.customTypeDisplay = component.typeDisplay.apply(this);
@@ -65,6 +67,11 @@ export default {
 
         this.loadResources = loadResources || [resource];
         this.loadIndeterminate = loadIndeterminate || false;
+      }
+
+      // If the custom component contains the paginated resource table it'll control the fetching
+      if (component?.components?.['PaginatedResourceTable']) {
+        this.componentWillFetch = true;
       }
     }
 
@@ -95,7 +102,6 @@ export default {
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
     return {
-      inStore,
       schema,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
@@ -231,7 +237,10 @@ export default {
       {{ t('resourceList.nsFilteringGeneric') }}
     </template>
   </IconMessage>
-  <div v-else>
+  <div
+    v-else
+    class="outlet"
+  >
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -241,7 +250,7 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-      <template slot="extraActions">
+      <template #extraActions>
         <slot name="extraActions" />
       </template>
     </Masthead>
@@ -252,7 +261,9 @@ export default {
       :location="extensionLocation"
     />
 
-    <div v-if="hasListComponent">
+    <div
+      v-if="hasListComponent"
+    >
       <component
         :is="listComponent"
         :incremental-loading-indicator="showIncrementalLoadingIndicator"
@@ -264,6 +275,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
+      :alt-loading="canPaginate"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"

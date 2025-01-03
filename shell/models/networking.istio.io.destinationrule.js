@@ -1,9 +1,8 @@
-import Vue from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class DestinationRule extends SteveModel {
   applyDefaults() {
-    Vue.set(this, 'spec', {
+    this['spec'] = {
       host:          '',
       subsets:       [],
       trafficPolicy: {
@@ -15,6 +14,6 @@ export default class DestinationRule extends SteveModel {
         outlierDetection: {},
         tls:              {},
       }
-    });
+    };
   }
 }

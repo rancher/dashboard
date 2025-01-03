@@ -16,6 +16,8 @@ const KINDS = [
 ];
 
 export default {
+  emits: ['update:value'],
+
   components: {
     LabeledInput, LabeledSelect, UnitInput, ShellInput, KeyValue,
   },
@@ -111,7 +113,7 @@ export default {
       const probe = this.probe;
 
       if ( this.isNone ) {
-        this.$emit('input', null);
+        this.$emit('update:value', null);
 
         return;
       }
@@ -136,7 +138,7 @@ export default {
         break;
       }
 
-      this.$emit('input', probe);
+      this.$emit('update:value', probe);
     }
   },
 };
@@ -160,12 +162,12 @@ export default {
         class="col span-11-of-23"
       >
         <LabeledSelect
-          v-model="kind"
+          v-model:value="kind"
           :mode="mode"
           :label="t('probe.type.label')"
           :options="kindOptions"
           :placeholder="t('probe.type.placeholder')"
-          @input="update"
+          @update:value="update"
         />
 
         <div
@@ -179,25 +181,25 @@ export default {
           data-testid="input-probe-port"
         >
           <LabeledInput
-            v-model.number="httpGet.port"
+            v-model:value.number="httpGet.port"
             type="number"
             min="1"
             max="65535"
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholder')"
-            @input="update"
+            @update:value="update"
           />
 
           <div class="spacer-small" />
 
           <div data-testid="input-probe-path">
             <LabeledInput
-              v-model="httpGet.path"
+              v-model:value="httpGet.path"
               :mode="mode"
               :label="t('probe.httpGet.path.label')"
               :placeholder="t('probe.httpGet.path.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
         </div>
@@ -208,14 +210,14 @@ export default {
           data-testid="input-probe-socket"
         >
           <LabeledInput
-            v-model.number="tcpSocket.port"
+            v-model:value.number="tcpSocket.port"
             type="number"
             min="1"
             max="65535"
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholderDeux')"
-            @input="update"
+            @update:value="update"
           />
           <div class="spacer-small" />
         </div>
@@ -227,10 +229,10 @@ export default {
         >
           <div class="col span-12">
             <ShellInput
-              v-model="exec.command"
+              v-model:value="exec.command"
               :label="t('probe.command.label')"
               :placeholder="t('probe.command.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
           <div class="spacer-small" />
@@ -256,13 +258,13 @@ export default {
             class="col span-4"
           >
             <UnitInput
-              v-model="probe.periodSeconds"
+              v-model:value="probe.periodSeconds"
               :mode="mode"
               :label="t('probe.checkInterval.label')"
               min="1"
               :suffix="t('suffix.sec')"
               :placeholder="t('probe.checkInterval.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
           <div
@@ -270,13 +272,13 @@ export default {
             class="col span-4"
           >
             <UnitInput
-              v-model="probe.initialDelaySeconds"
+              v-model:value="probe.initialDelaySeconds"
               :mode="mode"
               :suffix="t('suffix.sec')"
               :label="t('probe.initialDelay.label')"
               min="0"
               :placeholder="t('probe.initialDelay.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
           <div
@@ -284,13 +286,13 @@ export default {
             class="col span-4"
           >
             <UnitInput
-              v-model="probe.timeoutSeconds"
+              v-model:value="probe.timeoutSeconds"
               min="0"
               :mode="mode"
               :suffix="t('suffix.sec')"
               :label="t('probe.timeout.label')"
               :placeholder="t('probe.timeout.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
         </div>
@@ -303,13 +305,13 @@ export default {
             class="col span-6"
           >
             <LabeledInput
-              v-model.number="probe.successThreshold"
+              v-model:value.number="probe.successThreshold"
               type="number"
               min="1"
               :mode="mode"
               :label="t('probe.successThreshold.label')"
               :placeholder="t('probe.successThreshold.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
           <div
@@ -317,13 +319,13 @@ export default {
             class="col span-6"
           >
             <LabeledInput
-              v-model.number="probe.failureThreshold"
+              v-model:value.number="probe.failureThreshold"
               type="number"
               min="1"
               :mode="mode"
               :label="t('probe.failureThreshold.label')"
               :placeholder="t('probe.failureThreshold.placeholder')"
-              @input="update"
+              @update:value="update"
             />
           </div>
         </div>
@@ -334,7 +336,8 @@ export default {
           <div class="row">
             <div class="col span-12">
               <KeyValue
-                v-model="httpGet.httpHeaders"
+                v-model:value="httpGet.httpHeaders"
+                data-testid="input-probe-http-headers"
                 key-name="name"
                 :mode="mode"
                 :as-map="false"
@@ -343,6 +346,7 @@ export default {
                 :key-label="t('generic.name')"
                 :value-label="t('generic.value')"
                 :add-label="t('generic.add')"
+                @update:value="update"
               >
                 <template #title>
                   <h3>
@@ -363,7 +367,7 @@ export default {
   .title {
     margin-bottom: 10px;
   }
-  ::v-deep .labeled-select {
+  :deep() .labeled-select {
     height: auto;
   }
 

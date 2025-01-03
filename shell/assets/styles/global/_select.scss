@@ -142,7 +142,7 @@
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   color: var(--input-text);
-  padding: 3px 0;
+  padding: $unlabaled-select-padding;
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;

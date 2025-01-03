@@ -1,9 +1,8 @@
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import CardPo from '@/cypress/e2e/po/components/card.po';
 
 const performancePage = new PerformancePagePo();
-const performanceSettingsOrginal = [];
+const performanceSettingsOriginal = [];
 
 describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   before('get default performance settings', () => {
@@ -13,7 +12,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      performanceSettingsOrginal.push(body);
+      performanceSettingsOriginal.push(body);
     });
   });
 
@@ -33,7 +32,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       cy.reload();
 
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(6000); // We wait for the modal to show
+      cy.wait(7000); // We wait for the modal to show // FIXME: should wait for modal to open
 
       expect(performancePage.inactivityModalCard().getModal().should('exist'));
 
@@ -48,7 +47,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       // // Clicking the refresh button should close the modal and restart the page
       // performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
       expect(performancePage.inactivityModalCard().getCardActions().contains('Refresh').click());
-      expect(performancePage.inactivityModalCard().getModal().should('be.not.visible'));
+      expect(performancePage.inactivityModalCard().shouldNotExist());
     });
 
     it('should reset the settings', () => {
@@ -169,10 +168,8 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.namespaceFilteringCheckbox().isUnchecked();
     performancePage.namespaceFilteringCheckbox().set();
 
-    const cardPo = new CardPo();
-
-    cardPo.getBody().contains('Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
-    cardPo.getActionButton().contains('Enable').click();
+    performancePage.incompatibleModal().getBody().contains('Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
+    performancePage.incompatibleModal().submit('Enable');
     performancePage.namespaceFilteringCheckbox().isChecked();
     performancePage.applyAndWait('forceNsFilterV2-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -231,8 +228,8 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
       const response = resp.body.metadata;
 
       // update original data before sending request
-      performanceSettingsOrginal[0].metadata.resourceVersion = response.resourceVersion;
-      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOrginal[0]);
+      performanceSettingsOriginal[0].metadata.resourceVersion = response.resourceVersion;
+      cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-performance', performanceSettingsOriginal[0]);
     });
   });
 });

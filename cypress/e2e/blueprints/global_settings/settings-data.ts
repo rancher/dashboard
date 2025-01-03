@@ -58,6 +58,10 @@ export const settings = {
   'hide-local-cluster': {
     original: 'false',
     new:      'true'
+  },
+  'k3s-based-upgrader-uninstall-concurrency': {
+    original: '5',
+    new:      '10'
   }
 };
 export const serverUrlLocalhostCases = [

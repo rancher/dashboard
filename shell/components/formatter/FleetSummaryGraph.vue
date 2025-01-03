@@ -59,12 +59,12 @@ export default {
 </script>
 
 <template>
-  <v-popover
+  <v-dropdown
     v-if="show"
     class="text-center hand"
     placement="top"
-    :open-group="row.id"
-    :trigger="show ? 'click' : 'manual'"
+    :show-group="row.id"
+    :triggers="show ? ['click'] : []"
     offset="1"
   >
     <ProgressBarMulti
@@ -74,15 +74,15 @@ export default {
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
-    <template #popover>
+    <template #popper>
       <table
         v-if="show"
         class="fixed"
       >
         <tbody>
           <tr
-            v-for="obj in stateParts"
-            :key="obj.label"
+            v-for="(obj, i) in stateParts"
+            :key="i"
           >
             <td
               class="text-left pr-20"
@@ -97,7 +97,7 @@ export default {
         </tbody>
       </table>
     </template>
-  </v-popover>
+  </v-dropdown>
   <div
     v-else
     class="text-center text-muted"

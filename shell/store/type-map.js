@@ -152,6 +152,7 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
+import { defineAsyncComponent } from 'vue';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -2021,8 +2022,10 @@ function hasCustom(state, rootState, kind, key, fallback) {
     return cache[key];
   }
 
-  // Check to see if the custom kind is provided by a plugin
-  if (!!rootState.$plugin.getDynamic(kind, key)) {
+  // Check to see if the custom kind is provided by a plugin (ignore booleans)
+  const pluginComponent = rootState.$plugin.getDynamic(kind, key);
+
+  if (typeof pluginComponent !== 'boolean' && !!pluginComponent) {
     cache[key] = true;
 
     return cache[key];
@@ -2044,10 +2047,10 @@ function loadExtension(rootState, kind, key, fallback) {
 
   if (ext) {
     if (typeof ext === 'function') {
-      return ext;
+      return defineAsyncComponent(ext);
     }
 
-    return () => ext;
+    return () => defineAsyncComponent(ext);
   }
 
   return fallback(key);

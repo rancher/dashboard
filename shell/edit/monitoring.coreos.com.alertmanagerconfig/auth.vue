@@ -21,7 +21,7 @@ export default {
     }
   },
   data() {
-    this.$set(this.value, 'basicAuth', this.value.basicAuth || {});
+    this.value['basicAuth'] = this.value.basicAuth || {};
 
     const authOptions = [
       {
@@ -64,13 +64,9 @@ export default {
     initializeType(authOptions, type) {
       authOptions.forEach((authOption) => {
         if (authOption.value === type && type !== 'none') {
-          this.$set(
-            this.value,
-            authOption.value,
-            this.value[authOption.value] || authOption.default
-          );
+          this.value.authOption.value = this.value[authOption.value] || authOption.default;
         } else if (typeof this.value[authOption.value] !== 'undefined') {
-          this.$delete(this.value, authOption.value);
+          delete this.value[authOption.value];
         }
       });
     },
@@ -244,11 +240,11 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledSelect
-          v-model="authType"
+          v-model:value="authType"
           :disabled="mode === view"
           :options="authOptions"
           label="Auth Type"
-          @input="initializeType(authOptions, authType)"
+          @update:value="initializeType(authOptions, authType)"
         />
       </div>
     </div>

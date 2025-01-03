@@ -42,10 +42,9 @@ export default {
     style() {
       if (!this.plain) {
         const background = `background: transparent linear-gradient(94deg, ${ this.leftColor } 0%, ${ this.rightColor } 100%) 0% 0% no-repeat padding-box;`;
-        const border = this.showBorder ? `border: 1px solid ${ this.primaryColor };` : '';
         const borderLeft = this.showTab ? `border-left: 9px solid ${ this.primaryColor };` : '';
 
-        return `${ background }${ border }${ borderLeft }`;
+        return `${ background }${ borderLeft }`;
       }
 
       return '';

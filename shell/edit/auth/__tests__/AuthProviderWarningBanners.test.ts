@@ -3,8 +3,8 @@ import { mount } from '@vue/test-utils';
 
 describe('component: AuthProviderWarningBanners.vue', () => {
   const wrapper = mount(AuthProviderWarningBanners, {
-    mocks:     { $store: { getters: { 'i18n/t': (text: string) => text } } },
-    propsData: { tArgs: { provider: 'Any Provider', username: 'username' } }
+    props:  { tArgs: { provider: 'Any Provider', username: 'username' } },
+    global: { mocks: { $store: { getters: { 'i18n/t': (text: string) => text } } } }
   });
 
   it('should render properly', () => {

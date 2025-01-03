@@ -37,7 +37,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.region"
+          v-model:value="value.region"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.cloudwatch.region')"
@@ -45,7 +45,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.endpoint"
+          v-model:value="value.endpoint"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.cloudwatch.endpoint')"
@@ -60,7 +60,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_key_id"
+          v-model:value="value.aws_key_id"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -70,7 +70,7 @@ export default {
       </div>
       <div class="col span-6">
         <SecretSelector
-          v-model="value.aws_sec_key"
+          v-model:value="value.aws_sec_key"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -87,7 +87,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.log_group_name"
+          v-model:value="value.log_group_name"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.cloudwatch.logGroupName')"
@@ -95,7 +95,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.log_stream_name"
+          v-model:value="value.log_stream_name"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.cloudwatch.logStreamName')"

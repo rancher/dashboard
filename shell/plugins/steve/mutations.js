@@ -11,9 +11,9 @@ import {
   loadAdd
 } from '@shell/plugins/dashboard-store/mutations';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
-import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import SteveSchema from '@shell/models/steve-schema';
+import { deepToRaw } from '@shell/utils/object';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -24,7 +24,7 @@ function registerNamespace(state, namespace) {
       map:  new Map()
     };
 
-    Vue.set(state.podsByNamespace, namespace, cache);
+    state.podsByNamespace[namespace] = cache;
   }
 
   return cache;
@@ -146,7 +146,9 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data });
+        const rawData = deepToRaw(data);
+
+        worker.postMessage({ loadSchemas: rawData });
       }
     }
   },

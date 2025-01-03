@@ -5,8 +5,8 @@ describe('component: LinkDetail', () => {
   it('should display the value', async() => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
-      propsData: { row: { detailLocation: location }, value: 'test-name' },
-      stubs:     { 'router-link': RouterLinkStub }
+      props:  { row: { detailLocation: location }, value: 'test-name' },
+      global: { stubs: { 'router-link': RouterLinkStub } }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -17,8 +17,8 @@ describe('component: LinkDetail', () => {
   it('should use rows detailLocation to render a link', async() => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
-      propsData: { row: { detailLocation: location } },
-      stubs:     { 'router-link': RouterLinkStub }
+      props:  { row: { detailLocation: location } },
+      global: { stubs: { 'router-link': RouterLinkStub } }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -28,10 +28,10 @@ describe('component: LinkDetail', () => {
 
   it('should render the value in a span if no location is provided', async() => {
     const wrapper = await mount(LinkDetail, {
-      propsData: {
+      props: {
         row: { detailLocation: null }, value: 'test-name', col: { }
       },
-      stubs: { 'router-link': RouterLinkStub }
+      global: { stubs: { 'router-link': RouterLinkStub } }
     });
     const span = wrapper.find('span span');
 
@@ -45,10 +45,10 @@ describe('component: LinkDetail', () => {
   it('should use getCustomDetailLink if defined', async() => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
-      propsData: {
+      props: {
         row: { detailLocation: location }, value: 'test-name', col: { }, getCustomDetailLink: () => 'custom-link'
       },
-      stubs: { 'router-link': RouterLinkStub }
+      global: { stubs: { 'router-link': RouterLinkStub } }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);
@@ -59,10 +59,10 @@ describe('component: LinkDetail', () => {
   it('should use reference to find location if defined', async() => {
     const location = 'route-somewhere';
     const wrapper = await mount(LinkDetail, {
-      propsData: {
+      props: {
         row: { detailLocation: location, otherKey: 'other-location' }, value: 'test-name', col: { }, reference: 'otherKey'
       },
-      stubs: { 'router-link': RouterLinkStub }
+      global: { stubs: { 'router-link': RouterLinkStub } }
     });
 
     const link = wrapper.findComponent(RouterLinkStub);

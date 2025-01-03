@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const VirtualModulesPlugin = require('webpack-virtual-modules');
 const { generateTypeImport } = require('./auto-import');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function(dir) {
   const maindir = path.resolve(dir, '..', '..');
@@ -77,6 +78,7 @@ module.exports = function(dir) {
       config.plugins.unshift(dynamicImporterOverride);
       config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(autoImportPlugin);
+      config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);
 
       // These modules will be externalised and not included with the build of a package library

@@ -1,24 +1,21 @@
 {
   "name": "aks",
   "description": "Create Azure Kubernetes Service clusters in Rancher",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "rancher": {
     "annotations": {
       "catalog.cattle.io/display-name": "AKS Provisioning"
     }
   },
-  "scripts": {
-    "dev": "./node_modules/.bin/nuxt dev",
-    "nuxt": "./node_modules/.bin/nuxt"
-  },
+
   "engines": {
-    "node": ">=12"
+    "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "4.5.18",
-    "@vue/cli-service": "4.5.18",
-    "@vue/cli-plugin-typescript": "4.5.18"
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
   },
   "browserslist": [
     "> 1%",

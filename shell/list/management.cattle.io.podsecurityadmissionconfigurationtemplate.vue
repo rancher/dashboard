@@ -19,13 +19,17 @@ export default {
       required: true,
     },
   },
+  emits: ['error'],
 
   async fetch() {
     const inStore = this.$store.getters['currentStore']();
 
+    try {
     // Fetch storage classes so we can determine if a PVC can be expanded
-    this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS });
-
+      await this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS });
+    } catch (e) {
+      this.$emit('error', e?.data || e);
+    }
     await this.$fetchType(this.resource);
   }
 };

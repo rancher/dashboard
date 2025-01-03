@@ -1,14 +1,13 @@
 import ProjectRow from '@shell/components/form/ResourceQuota/ProjectRow.vue';
 import { RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { shallowMount } from '@vue/test-utils';
-import Vue from 'vue';
 
 const CONFIGMAP_STRING = RANCHER_TYPES[0].value;
 
 describe('component: ProjectRow.vue', () => {
   const wrapper = shallowMount(ProjectRow,
     {
-      propsData: {
+      props: {
         mode:  'edit',
         types: RANCHER_TYPES,
         type:  CONFIGMAP_STRING,
@@ -34,11 +33,8 @@ describe('component: ProjectRow.vue', () => {
   });
 
   it('triggering "updateQuotaLimit" should trigger Vue.set with the correct data', () => {
-    const vueSet = jest.spyOn(Vue, 'set');
-
     wrapper.vm.updateQuotaLimit('resourceQuota', CONFIGMAP_STRING, 10);
 
-    expect(vueSet).toHaveBeenCalledTimes(1);
     expect(wrapper.vm.value).toStrictEqual({
       spec: {
         namespaceDefaultResourceQuota: { limit: {} },

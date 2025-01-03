@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+BASE_DIR="$(cd $SCRIPT_DIR && cd .. && pwd)"
+
+echo "Upgrading Rancher Shell"
+
+# Get the version number from the package.json file
+VERSION=$1
+echo "Updating to version: ${VERSION}"
+
+FORCE="false"
+
+for i in "$@"; do
+  if [ "$i" == "-f" ]; then
+    FORCE="true"
+  fi
+done
+
+# Check for a clean git repository
+if [ ! -d ".git" ] && [ "${FORCE}" == "false" ]; then
+  echo "Not runnning in a git repository. Re-run with -f to ignore this check"
+  echo "Note: This action will update your files - running in a git repository will ensure you have visibility over changes made"
+  exit 1 
+fi
+
+if [[ $(git diff --stat) != '' ]] && [ "${FORCE}" == "false" ]; then
+  echo "Git repository is not clean. Re-run with -f to ignore this check"
+  echo "Note: This action will update your files - running in a clean git repository will ensure you have visibility over changes made"
+  exit 1 
+fi
+
+# Check this is a Rancher Extension
+if [ ! -f "./package.json" ]; then
+  echo "Can't find package.json - check you're running from the correct folder"
+  exit 1 
+fi
+
+HAS_SHELL=$(grep "\"@rancher/shell\"" package.json -c )
+if [ "${HAS_SHELL}" != "1" ]; then
+  echo "package.json does not reference @rancher/shell - check you're running from the correct folder"
+  exit 1 
+fi
+
+# Copy files for the top-level folder (from the app creator)
+rsync --exclude nuxt.config.js --exclude .gitlab-ci.yml ${BASE_DIR}/app/files/* .
+
+# Go through each folder in the pkg folder and update their files
+for pkg in ./pkg/*
+do
+  if [ -d "${pkg}" ]; then
+    pkgName=$(basename $pkg)
+    echo "Updating package ${pkgName}"
+
+    cp ${BASE_DIR}/pkg/files/* ${pkg}
+  fi
+done

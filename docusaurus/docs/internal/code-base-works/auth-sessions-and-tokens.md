@@ -3,11 +3,8 @@
 ## First login
 
 After instantiating Rancher for the first time, it will be required to pick a bootstrap password, which will be the `admin` password. Is it possible to include as environment variable `CATTLE_BOOTSTRAP_PASSWORD`.
-The value of the password must be valid, e.g. not match the username value and be at least 12 characters. This last restriction can bd changed with `CATTLE_PASSWORD_MIN_LENGTH`.
 
-Bear mind that the whole first access process will require both the steps to be completed.
-
-This process cannot be reversed, still admin password can be changed in the profile page.
+Please refer to the [Rancher documentation.](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/resources/bootstrap-password#password-requirements) for detailed password requirements.
 
 ## Cookies
 

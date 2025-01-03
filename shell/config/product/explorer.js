@@ -4,19 +4,19 @@ import {
   EVENT,
   NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA,
-  RBAC,
   MANAGEMENT,
   NAMESPACE,
   NORMAN,
   SNAPSHOT,
   VIRTUAL_TYPES,
+  CAPI,
 } from '@shell/config/types';
 
 import {
-  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
+  STATE, USER_STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
   INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, INGRESS_CLASS,
   SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES,
-  USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
+  USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, USER_LAST_LOGIN, USER_DISABLED_IN, USER_DELETED_IN, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
@@ -25,11 +25,13 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_OBJECT, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
+import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
+import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -57,7 +59,10 @@ export function init(store) {
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
-      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
+      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management',
+      [NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING]:     'rancher',
+      [NORMAN.PROJECT_ROLE_TEMPLATE_BINDING]:     'rancher',
+      [CAPI.RANCHER_CLUSTER]:                     'management',
     }
   });
 
@@ -77,6 +82,7 @@ export function init(store) {
     POD_DISRUPTION_BUDGET,
     RESOURCE_QUOTA,
   ], 'policy');
+
   basicType([
     SERVICE,
     INGRESS,
@@ -165,12 +171,16 @@ export function init(store) {
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|rke-machine|provisioning)\.cattle\.io$/, 'clusterProvisioning');
 
+  const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
+  const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true }) ;
+
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
-  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
-  configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: true });
+  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: dePaginateBindings });
+  configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false, depaginate: dePaginateBindings });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
-  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: true });
+  configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
+  configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
@@ -208,7 +218,25 @@ export function init(store) {
    */
   configureType(MANAGEMENT.PSA, { localOnly: true });
 
-  headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
+  headers(PV,
+    [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      RECLAIM_POLICY,
+      {
+        ...PERSISTENT_VOLUME_CLAIM,
+        sort:   ['metadata.fields.5'],
+        search: ['metadata.fields.5'],
+      }, {
+        ...PERSISTENT_VOLUME_SOURCE,
+        sort:   false,
+        search: false,
+      },
+      PV_REASON,
+      STEVE_AGE_COL,
+    ]
+  );
 
   headers(CONFIG_MAP,
     [NAME_COL, NAMESPACE_COL, KEYS, AGE],
@@ -246,18 +274,141 @@ export function init(store) {
     STEVE_AGE_COL
   ]);
 
-  headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
-  headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
-  headers(EVENT, [STATE, { ...LAST_SEEN_TIME, defaultSort: true }, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL]);
-  headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
+  headers(INGRESS,
+    [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      {
+        ...INGRESS_TARGET,
+        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+        search: false, // This is broken in normal world, so disable here
+      },
+      {
+        ...INGRESS_DEFAULT_BACKEND,
+        sort:   false,
+        search: false,
+      },
+      {
+        ...INGRESS_CLASS,
+        sort:   'spec.ingressClassName',
+        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+      },
+      STEVE_AGE_COL
+    ]
+  );
+
+  headers(SERVICE,
+    [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      TARGET_PORT,
+      {
+        // Selector is an object. This is broken in non-SSP world anyway (won't sort on object, filtering on `$[x][y]` paths are broken )
+        ...SELECTOR,
+        sort:   false,
+        search: false,
+      },
+      {
+        ...SPEC_TYPE,
+        sort:   'spec.type', // TODO: RC REGRESSION - shell/components/formatter/ServiceType.vue & shell/models/service.js show mangle value which we do not sort/filter on
+        search: 'spec.type',
+      },
+      STEVE_AGE_COL
+    ]
+  );
+
+  const eventLastSeenTime = {
+    ...LAST_SEEN_TIME,
+    defaultSort: true,
+  };
+
+  headers(EVENT,
+    [STATE, eventLastSeenTime, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL],
+    [
+      STEVE_STATE_COL, {
+        ...eventLastSeenTime,
+        value: 'metadata.fields.0',
+        sort:  'metadata.fields.0',
+      }, {
+        ...EVENT_TYPE,
+        value: '_type',
+        sort:  '_type',
+      },
+      REASON,
+      STEVE_EVENT_OBJECT,
+      'Subobject',
+      'Source',
+      MESSAGE,
+      'First Seen',
+      'Count',
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+    ]
+  );
+  headers(HPA,
+    [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL,
+      HPA_REFERENCE, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+    ]
+  );
+
+  const STEVE_WORKLOAD_ENDPOINTS = {
+    ...WORKLOAD_ENDPOINTS,
+    sort:   [`metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]`],
+    search: [`metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]`],
+  };
+
+  const createSteveWorkloadImageCol = (resourceFieldPos) => ({
+    ...WORKLOAD_IMAGES,
+    sort:   `metadata.fields.${ resourceFieldPos }`,
+    search: `metadata.fields.${ resourceFieldPos }`,
+  });
+
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.DEPLOYMENT,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.DAEMON_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(9), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL]
+  );
+  headers(WORKLOAD_TYPES.REPLICA_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.STATEFUL_SET,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(4), STEVE_WORKLOAD_ENDPOINTS, 'Ready', STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.JOB,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
+      ...DURATION,
+      value:     'metadata.fields.3',
+      sort:      false,
+      search:    'metadata.fields.3',
+      formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
+    }, STEVE_AGE_COL],
+  );
+  headers(WORKLOAD_TYPES.CRON_JOB,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(8), STEVE_WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', STEVE_AGE_COL]
+  );
+  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+    [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+  );
 
   headers(POD,
     [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
@@ -273,7 +424,8 @@ export function init(store) {
         search: 'spec.nodeName'
       },
       STEVE_AGE_COL
-    ]);
+    ]
+  );
 
   headers(NODE,
     [
@@ -333,26 +485,32 @@ export function init(store) {
         search:     false,
       },
       STEVE_AGE_COL
-    ]);
+    ]
+  );
 
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
     width: undefined
   }, AGE]);
-  headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
 
-  headers(RBAC.ROLE, [
-    STATE,
-    NAME_COL,
-    NAMESPACE_COL,
-    AGE
-  ]);
-
-  headers(RBAC.CLUSTER_ROLE, [
-    STATE,
-    NAME_COL,
-    AGE,
-  ]);
+  headers(STORAGE_CLASS,
+    [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE],
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      {
+        ...STORAGE_CLASS_PROVISIONER,
+        sort:   ['provisioner'],
+        search: ['provisioner']
+      },
+      {
+        ...STORAGE_CLASS_DEFAULT,
+        sort:   [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+      },
+      STEVE_AGE_COL
+    ]
+  );
 
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
     listGroups: [
@@ -367,11 +525,14 @@ export function init(store) {
   });
 
   headers(MANAGEMENT.USER, [
-    STATE,
+    USER_STATE,
     USER_ID,
     USER_DISPLAY_NAME,
     USER_PROVIDER,
     USERNAME,
+    USER_LAST_LOGIN,
+    USER_DISABLED_IN,
+    USER_DELETED_IN,
     AGE
   ]);
 

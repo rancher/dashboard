@@ -18,7 +18,7 @@ describe('component: ClusterLink', () => {
       'should show/hide properly based on on the number of unavailable machines',
       (unavailableMachines, expected) => {
         const wrapper = mount(ClusterLink, {
-          propsData: {
+          props: {
             row: {
               hasError:           false,
               status:             {},
@@ -46,7 +46,7 @@ describe('component: ClusterLink', () => {
       'should show/hide properly based on rkeTemplateUpgrade',
       (rkeTemplateUpgrade, expected) => {
         const wrapper = mount(ClusterLink, {
-          propsData: {
+          props: {
             row: {
               hasError:            false,
               status:              {},
@@ -82,7 +82,7 @@ describe('component: ClusterLink', () => {
       'should show/hide properly based on the status conditions',
       (conditions, expected) => {
         const wrapper = mount(ClusterLink, {
-          propsData: {
+          props: {
             row: {
               hasError:            true,
               status:              { conditions },

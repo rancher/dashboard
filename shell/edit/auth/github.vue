@@ -137,7 +137,7 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template slot="rows">
+          <template #rows>
             <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ value.clientId }}</td></tr>
           </template>
@@ -160,7 +160,7 @@ export default {
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup
-          v-model="targetType"
+          v-model:value="targetType"
           name="targetType"
           data-testid="authConfig-gitHub"
           :options="['public','private']"
@@ -172,7 +172,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-if="!isPublic"
-              v-model="targetUrl"
+              v-model:value="targetUrl"
               :label-key="`authConfig.${NAME}.host.label`"
               :placeholder="t(`authConfig.${NAME}.host.placeholder`)"
               :required="true"
@@ -235,14 +235,14 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="model.clientId"
+              v-model:value="model.clientId"
               :label="t(`authConfig.${NAME}.clientId.label`)"
               :mode="mode"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="model.clientSecret"
+              v-model:value="model.clientSecret"
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
@@ -261,7 +261,7 @@ export default {
   .banner {
     display: block;
 
-    &::v-deep code {
+    &:deep() code {
       padding: 0 3px;
       margin: 0 3px;
     }

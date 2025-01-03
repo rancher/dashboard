@@ -34,7 +34,7 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
   }
 
   kubectlCommandForImported() {
-    return this.self().get('code').contains('--insecure');
+    return this.self().get('code');
   }
 
   machinePoolsList() {

@@ -5,16 +5,20 @@ import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import GenericPrompt from '@/cypress/e2e/po/prompts/genericPrompt.po';
 
 export class PerformancePagePo extends RootClusterPage {
-  static url = '/c/_/settings/performance'
-  static modal = new ModalWithCardPo();
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(PerformancePagePo.url);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/settings/performance`;
   }
 
-  constructor() {
-    super(PerformancePagePo.url);
+  static modal = new ModalWithCardPo();
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(PerformancePagePo.createPath(clusterId));
+  }
+
+  constructor(clusterId = '_') {
+    super(PerformancePagePo.createPath(clusterId));
   }
 
   static navTo() {
@@ -22,6 +26,10 @@ export class PerformancePagePo extends RootClusterPage {
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
     sideNav.navToSideMenuEntryByLabel('Performance');
+  }
+
+  incompatibleModal(): GenericPrompt {
+    return new GenericPrompt('.prompt-restore');
   }
 
   inactivityCheckbox(): CheckboxInputPo {
@@ -60,11 +68,15 @@ export class PerformancePagePo extends RootClusterPage {
     return CheckboxInputPo.byLabel(this.self(), 'Enable Advanced Websocket Web Worker ');
   }
 
+  serverSidePaginationCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable Server-side Pagination ');
+  }
+
   applyButton() {
     return new AsyncButtonPo('[data-testid="performance__save-btn"]', this.self());
   }
 
-  applyAndWait(context, endpoint = 'ui-performance', statusCode?: number): Cypress.Chainable {
+  applyAndWait(context: string, endpoint = 'ui-performance', statusCode?: number): Cypress.Chainable {
     cy.intercept('PUT', endpoint).as(context);
     this.applyButton().click();
 

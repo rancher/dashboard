@@ -16,7 +16,6 @@ import {
   FLEET_REPO_PER_CLUSTER_STATE
 
 } from '@shell/config/table-headers';
-import { FLEET } from '@shell/config/labels-annotations';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 // i18n-ignore repoDisplay
@@ -118,12 +117,6 @@ export default {
     parseTargetMode(row) {
       return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
     },
-
-    clusterViewResourceStatus(row) {
-      return row.clusterResourceStatus.find((c) => {
-        return c.metadata?.labels[FLEET.CLUSTER_NAME] === this.clusterId;
-      });
-    }
   },
 };
 </script>
@@ -140,7 +133,6 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
-      v-on="$listeners"
     >
       <template #cell:repo="{ row }">
         <Link

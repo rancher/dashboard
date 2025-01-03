@@ -4,7 +4,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@shell/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@shell/utils/version';
 import { filterBy } from '@shell/utils/array';
-import { CATALOG, MANAGEMENT, NORMAN } from '@shell/config/types';
+import { CATALOG, MANAGEMENT, NORMAN, SECRET } from '@shell/config/types';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
@@ -55,12 +55,13 @@ export default class CatalogApp extends SteveModel {
     }
 
     const chartName = chart.metadata?.name;
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
-    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+    const repoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || this.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE] || 'cluster';
+
     const match = this.$rootGetters['catalog/chart']({
       chartName,
+      repoName,
       preferRepoType,
-      preferRepoName,
       includeHidden
     });
 
@@ -279,28 +280,115 @@ export default class CatalogApp extends SteveModel {
     };
   }
 
-  get deployedAsLegacy() {
-    return async() => {
-      if (this.spec?.values?.global) {
-        const { clusterName, projectName } = this.spec.values.global;
+  async deployedAsLegacy() {
+    await this.fetchValues();
 
-        if (clusterName && projectName) {
-          try {
-            const legacyApp = await this.$dispatch('rancher/find', {
-              type: NORMAN.APP,
-              id:   `${ projectName }:${ this.metadata?.name }`,
-              opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-            }, { root: true });
+    if (this.values?.global) {
+      const { clusterName, projectName } = this.values.global;
 
-            if (legacyApp) {
-              return legacyApp;
-            }
-          } catch (e) {}
-        }
+      if (clusterName && projectName) {
+        try {
+          const legacyApp = await this.$dispatch('rancher/find', {
+            type: NORMAN.APP,
+            id:   `${ projectName }:${ this.metadata?.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+          }, { root: true });
+
+          if (legacyApp) {
+            return legacyApp;
+          }
+        } catch (e) {}
       }
+    }
 
-      return false;
-    };
+    return false;
+  }
+
+  /**
+   * User and Chart values live in a helm secret, so fetch it (with special param)
+   */
+  async fetchValues(force = false) {
+    if (!this.secretId) {
+      // If there's no secret id this isn't ever going to work, no need to carry on
+      return;
+    }
+
+    const haveValues = !!this._values && !!this._chartValues;
+
+    if (haveValues && !force) {
+      // If we already have the required values and we're not forced to re-fetch, no need to carry on
+      return;
+    }
+
+    try {
+      await this.$dispatch('find', {
+        type: SECRET,
+        id:   this.secretId,
+        opt:  {
+          force:  force || (!!this._secret && !haveValues), // force if explicitly requested or there's ean existing secret without the required values we have a secret without the values in (Secret has been fetched another way)
+          watch:  false, // Cannot watch with custom params (they are dropped on calls made when resyncing over socket)
+          params: { includeHelmData: true }
+        }
+      });
+    } catch (e) {
+      console.error(`Cannot find values for ${ this.id } (unable to fetch)`, e); // eslint-disable-line no-console
+    }
+  }
+
+  get secretId() {
+    const metadata = this.metadata;
+    const secretReference = metadata.ownerReferences?.find((ow) => ow.kind.toLowerCase() === SECRET);
+
+    const secretId = secretReference?.name;
+    const secretNamespace = metadata.namespace;
+
+    if (!secretNamespace || !secretId) {
+      console.warn(`Cannot find values for ${ this.id } (cannot find related secret namespace or id)`); // eslint-disable-line no-console
+
+      return null;
+    }
+
+    return `${ secretNamespace }/${ secretId }`;
+  }
+
+  get _secret() {
+    return this.secretId ? this.$getters['byId'](SECRET, this.secretId) : null;
+  }
+
+  _validateSecret(noun) {
+    if (this._secret === undefined) {
+      throw new Error(`Cannot find ${ noun } for  ${ this.id } (chart secret has not been fetched via app \`fetchValues\`)`);
+    }
+
+    if (this._secret === null) {
+      throw new Error(`Cannot find ${ noun } for ${ this.id } (chart secret cannot or has failed to fetch) `);
+    }
+  }
+
+  /**
+   * The user's helm values
+   */
+  get values() {
+    this._validateSecret('values');
+
+    return this._values;
+  }
+
+  get _values() {
+    return this._secret?.data?.release?.config;
+  }
+
+  /**
+   * The Charts default helm values
+   */
+  get chartValues() {
+    this._validateSecret('chartValues');
+
+    return this._chartValues;
+  }
+
+  get _chartValues() {
+    return this._secret?.data?.release?.chart?.values;
   }
 }
 

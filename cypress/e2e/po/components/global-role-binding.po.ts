@@ -9,4 +9,10 @@ export default class GlobalRoleBindings extends ComponentPo {
   roleCheckbox(roleId: string) {
     return new CheckboxInputPo(`[data-testid="grb-checkbox-${ roleId }"]`);
   }
+
+  globalOptions() {
+    return this.self().find('.checkbox-section--global .checkbox-label-slot .checkbox-label').then((els) => {
+      return Cypress.$.makeArray(els).map((el) => el.innerText);
+    });
+  }
 }

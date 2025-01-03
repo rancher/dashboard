@@ -45,8 +45,8 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });
@@ -65,8 +65,50 @@ describe('view: provisioning.cattle.io.cluster', () => {
       };
 
       const wrapper = shallowMount(ProvisioningCattleIoCluster, {
-        mocks,
-        propsData: { value },
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ clusterToken: {} });
+
+      expect(wrapper.vm.showRegistration).toStrictEqual(false);
+    });
+
+    it('should SHOW if custom/imported cluster and the cluster is active', async() => {
+      const value = {
+        isCustom:   true,
+        isImported: true,
+        mgmt:       {
+          hasLink: () => jest.fn(),
+          linkFor: () => '',
+          isReady: true
+        }
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
+      });
+
+      await wrapper.setData({ clusterToken: {} });
+
+      expect(wrapper.vm.showRegistration).toStrictEqual(true);
+    });
+
+    it('should NOT show if imported cluster and the cluster is active', async() => {
+      const value = {
+        isCustom:   false,
+        isImported: true,
+        mgmt:       {
+          hasLink: () => jest.fn(),
+          linkFor: () => '',
+          isReady: true
+        }
+      };
+
+      const wrapper = shallowMount(ProvisioningCattleIoCluster, {
+        props:  { value },
+        global: { mocks },
       });
 
       await wrapper.setData({ clusterToken: {} });

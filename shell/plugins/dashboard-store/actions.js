@@ -8,6 +8,7 @@ import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
+import { conditionalDepaginate } from '@shell/store/type-map.utils';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -145,7 +146,7 @@ export default {
   /**
    *
    * @param {*} ctx
-   * @param { {type: string, opt: ActionFindPageArgs} } opt
+   * @param { {type: string, opt: ActionFindAllArgs} } opt
    */
   async findAll(ctx, { type, opt }) {
     const {
@@ -194,7 +195,7 @@ export default {
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
-    opt.depaginate = typeOptions?.depaginate;
+    opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
     let skipHaveAll = false;
 
@@ -363,7 +364,7 @@ export default {
   /**
    *
    * @param {*} ctx
-   * @param { {type: string, opt: FindPageOpt} } opt
+   * @param { {type: string, opt: ActionFindPageArgs} } opt
    */
   async findPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
@@ -383,7 +384,7 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if (!opt.force && getters['havePaginatedPage'](type, opt)) {
+    if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       return findAllGetter(getters, type, opt);
     }
 
@@ -407,24 +408,31 @@ export default {
       return Promise.reject(e);
     }
 
-    commit('loadPage', {
-      ctx,
+    await dispatch('unwatch', {
       type,
-      data:       out.data,
-      pagination: opt.pagination ? {
-        request: {
-          namespace:  opt.namespaced,
-          pagination: opt.pagination
-        },
-        result: {
-          count:     out.count,
-          pages:     out.pages,
-          timestamp: new Date().getTime()
-        }
-      } : undefined,
+      all: true,
     });
 
-    const all = findAllGetter(getters, type, opt);
+    const pagination = opt.pagination ? {
+      request: {
+        namespace:  opt.namespaced,
+        pagination: opt.pagination
+      },
+      result: {
+        count:     out.count,
+        pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
+        timestamp: new Date().getTime()
+      }
+    } : undefined;
+
+    if (!opt.transient) {
+      commit('loadPage', {
+        ctx,
+        type,
+        data: out.data,
+        pagination,
+      });
+    }
 
     if (opt.hasManualRefresh) {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
@@ -432,7 +440,10 @@ export default {
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return all;
+    return opt.transient ? {
+      data: out.data,
+      pagination
+    } : findAllGetter(getters, type, opt);
   },
 
   async findMatching(ctx, {
@@ -461,7 +472,7 @@ export default {
     opt = opt || {};
     opt.labelSelector = selector;
     opt.url = getters.urlFor(type, null, opt);
-    opt.depaginate = typeOptions?.depaginate;
+    opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
     const res = await dispatch('request', { opt, type });
 
@@ -644,7 +655,10 @@ export default {
     const schema = ctx.getters['schemaFor'](userData.type);
 
     if (schema) {
-      await schema.fetchResourceFields();
+      if (schema.fetchResourceFields) {
+        // fetch resourceFields for createYaml
+        await schema.fetchResourceFields();
+      }
       data = ctx.getters['defaultFor'](userData.type, schema);
     }
 

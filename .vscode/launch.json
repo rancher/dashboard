@@ -22,17 +22,6 @@
       "envFile": "${workspaceFolder}/.env",
     },
     {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Node.js",
-      "program": "${workspaceFolder}/node_modules/.bin/nuxt",
-      "outFiles": [
-        "${workspaceFolder}/**/*.js"
-      ],
-      "envFile": "${workspaceFolder}/.env",
-      "outputCapture": "std",
-    },
-    {
       "name": "Debug Jest Tests",
       "type": "node",
       "request": "launch",

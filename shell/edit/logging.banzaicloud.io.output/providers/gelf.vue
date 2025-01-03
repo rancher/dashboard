@@ -30,8 +30,8 @@ export default {
   data() {
     const protocolOptions = ['tcp', 'udp'];
 
-    this.$set(this.value, 'tls_options', this.value.tls_options || {});
-    this.$set(this.value, 'protocol', this.value.protocol || protocolOptions[0]);
+    this.value['tls_options'] = this.value.tls_options || {};
+    this.value['protocol'] = this.value.protocol || protocolOptions[0];
 
     return { protocolOptions };
   },
@@ -41,7 +41,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        this.$set(this.value, 'port', Number.parseInt(port));
+        this.value['port'] = Number.parseInt(port);
       }
     },
     no_verify: {
@@ -49,7 +49,7 @@ export default {
         return this.value.tls_options.no_verify === 'true';
       },
       set(noVerify) {
-        this.$set(this.value.tls_options, 'no_verify', noVerify ? 'true' : null);
+        this.value.tls_options['no_verify'] = noVerify ? 'true' : null;
       }
     },
     all_ciphers: {
@@ -57,7 +57,7 @@ export default {
         return this.value.tls_options.all_ciphers === 'true';
       },
       set(allCiphers) {
-        this.$set(this.value.tls_options, 'all_ciphers', allCiphers ? 'true' : null);
+        this.value.tls_options['all_ciphers'] = allCiphers ? 'true' : null;
       }
     },
   }
@@ -74,7 +74,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.host"
+          v-model:value="value.host"
           :mode="mode"
           :disabled="disabled"
           class="host"
@@ -83,7 +83,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="port"
+          v-model:value="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
@@ -93,7 +93,7 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledSelect
-          v-model="value.protocol"
+          v-model:value="value.protocol"
           :options="protocolOptions"
           :mode="mode"
           :disabled="disabled"
@@ -110,7 +110,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox
-          v-model="value.tls"
+          v-model:value="value.tls"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gelf.tls')"
@@ -118,7 +118,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="no_verify"
+          v-model:value="no_verify"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gelf.tlsOptions.noVerify')"
@@ -128,7 +128,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_options.cert"
+          v-model:value="value.tls_options.cert"
           type="multiline"
           :mode="mode"
           :disabled="disabled"
@@ -137,7 +137,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_options.key"
+          v-model:value="value.tls_options.key"
           type="multiline"
           :mode="mode"
           :disabled="disabled"
@@ -148,7 +148,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.tls_options.tls_version"
+          v-model:value="value.tls_options.tls_version"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gelf.tlsOptions.tlsVersion')"
@@ -156,7 +156,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="all_ciphers"
+          v-model:value="all_ciphers"
           :mode="mode"
           :disabled="disabled"
           :label="t('logging.gelf.tlsOptions.allCiphers')"

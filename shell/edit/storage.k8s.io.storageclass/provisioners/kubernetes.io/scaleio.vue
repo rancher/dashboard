@@ -45,7 +45,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.gateway"
+          v-model:value="value.parameters.gateway"
           :placeholder="t('storageClass.scaleio.gateway.placeholder')"
           :label="t('storageClass.scaleio.gateway.label')"
           :mode="mode"
@@ -53,7 +53,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.system"
+          v-model:value="value.parameters.system"
           :placeholder="t('storageClass.scaleio.system.placeholder')"
           :label="t('storageClass.scaleio.system.label')"
           :mode="mode"
@@ -61,7 +61,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.protectionDomain"
+          v-model:value="value.parameters.protectionDomain"
           :placeholder="t('storageClass.scaleio.protectionDomain.placeholder')"
           :label="t('storageClass.scaleio.protectionDomain.label')"
           :mode="mode"
@@ -71,7 +71,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.storagePool"
+          v-model:value="value.parameters.storagePool"
           :placeholder="t('storageClass.scaleio.storagePool.placeholder')"
           :label="t('storageClass.scaleio.storagePool.label')"
           :mode="mode"
@@ -79,7 +79,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="value.parameters.storageMode"
+          v-model:value="value.parameters.storageMode"
           :options="storageModeOptions"
           :label="t('storageClass.scaleio.storageMode.label')"
           :mode="mode"
@@ -87,7 +87,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.secretRef"
+          v-model:value="value.parameters.secretRef"
           :placeholder="t('storageClass.scaleio.secretRef.placeholder')"
           :label="t('storageClass.scaleio.secretRef.label')"
           :mode="mode"
@@ -97,7 +97,7 @@ export default {
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledSelect
-          v-model="value.parameters.readOnly"
+          v-model:value="value.parameters.readOnly"
           :options="readOnlyOptions"
           :label="t('storageClass.scaleio.readOnly.label')"
           :mode="mode"
@@ -105,7 +105,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="value.parameters.fsType"
+          v-model:value="value.parameters.fsType"
           :placeholder="t('storageClass.scaleio.filesystemType.placeholder')"
           :label="t('storageClass.scaleio.filesystemType.label')"
           :mode="mode"

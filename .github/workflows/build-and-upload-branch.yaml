@@ -5,6 +5,8 @@ on:
       - master
       - 'release-*'
       - '*-dev'
+      # v${RANCHER_VERSION}-hotfix-ch-${COUNTER}-${HASH}
+      - 'v*-hotfix-ch-*-*'
 
 jobs:
   build-validation:

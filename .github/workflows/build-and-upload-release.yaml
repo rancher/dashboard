@@ -2,7 +2,9 @@ name: Build Dashboard (Release)
 on:
   push:
     tags:
-      - v[2-9].*
+      - v2.*
+      # v${RANCHER_VERSION}-hotfix-ch-${COUNTER}-${HASH}
+      - 'v*-hotfix-ch-*-*'
 
 jobs:
   build-validation:

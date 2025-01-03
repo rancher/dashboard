@@ -26,6 +26,8 @@ const getExemptionControl = (): PSAExemptionControl => ({
 });
 
 export default defineComponent({
+  emits: ['updateLabels', 'updateExemptions'],
+
   components: {
     Checkbox, LabeledSelect, LabeledInput
   },
@@ -128,7 +130,7 @@ export default defineComponent({
     updateLabels(): void {
       const nonPSALabels = pickBy(this.labels, (_, key) => !key.includes(this.labelsPrefix));
       const labels = PSAModes.reduce((acc, mode) => {
-        return this.psaControls[mode].active || this.labelsAlwaysActive ? {
+        return this.psaControls[mode]?.active || this.labelsAlwaysActive ? {
           ...acc,
           // Set default level if none
           [`${ this.labelsPrefix }${ mode }`]:         this.psaControls[mode].level || PSADefaultLevel,
@@ -213,18 +215,18 @@ export default defineComponent({
 
     <div
       v-for="(psaControl, level, i) in psaControls"
-      :key="'psaControl-' + i"
+      :key="i"
       class="row row--y-center mb-20"
     >
       <span class="col span-2">
         <Checkbox
           v-if="!labelsAlwaysActive"
-          v-model="psaControl.active"
+          v-model:value="psaControl.active"
           :data-testid="componentTestid + '--psaControl-' + i + '-active'"
           :label="level"
           :label-key="`podSecurityAdmission.labels.${ level }`"
           :disabled="isView"
-          @input="updateLabels()"
+          @update:value="updateLabels()"
         />
         <p v-else>
           <t :k="`podSecurityAdmission.labels.${level}`" />
@@ -237,24 +239,24 @@ export default defineComponent({
           span-4"
       >
         <LabeledSelect
-          v-model="psaControl.level"
+          v-model:value="psaControl.level"
           :data-testid="componentTestid + '--psaControl-' + i + '-level'"
           :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"
           :mode="mode"
-          @input="updateLabels()"
+          @update:value="updateLabels()"
         />
       </span>
 
       <span class="col span-4">
         <LabeledInput
-          v-model="psaControl.version"
+          v-model:value="psaControl.version"
           :data-testid="componentTestid + '--psaControl-' + i + '-version'"
           :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"
           :placeholder="t('podSecurityAdmission.version.placeholder', { psaControl: mode })"
           :mode="mode"
-          @input="updateLabels()"
+          @update:value="updateLabels()"
         />
       </span>
     </div>
@@ -272,28 +274,28 @@ export default defineComponent({
 
       <div
         v-for="(psaExemptionsControl, dimension, i) in psaExemptionsControls"
-        :key="'psaExemptionsControl-' + i"
+        :key="i"
         class="row row--y-center mb-20"
       >
         <span class="col span-2">
           <Checkbox
-            v-model="psaExemptionsControl.active"
+            v-model:value="psaExemptionsControl.active"
             :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-active'"
             :label="dimension"
             :label-key="`podSecurityAdmission.labels.${ dimension }`"
             :disabled="isView"
-            @input="updateExemptions()"
+            @update:value="updateExemptions()"
           />
         </span>
         <span class="col span-8">
           <LabeledInput
-            v-model="psaExemptionsControl.value"
+            v-model:value="psaExemptionsControl.value"
             :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-value'"
             :disabled="(isView || !psaExemptionsControl.active)"
             :options="options"
             :placeholder="t('podSecurityAdmission.exemptions.placeholder', { psaExemptionsControl: dimension })"
             :mode="mode"
-            @input="updateExemptions()"
+            @update:value="updateExemptions()"
           />
         </span>
       </div>

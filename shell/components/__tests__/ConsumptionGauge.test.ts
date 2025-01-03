@@ -9,7 +9,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName: 'some-resource-name',
         capacity:     1000,
         used:         200,
@@ -36,8 +36,8 @@ describe('component: ConsumptionGauge', () => {
 
     // checking PercentageBar component render
     expect(percentageBar.exists()).toBe(true);
-    expect(percentageBar.props().value).toBe(20);
-    expect(percentageBar.props().colorStops).toBe(colorStops);
+    expect(percentageBar.props().modelValue).toBe(20);
+    expect(percentageBar.props().colorStops).toStrictEqual(colorStops);
   });
 
   it('usedAsResourceName should render secondary title instead of main h3 title', () => {
@@ -46,7 +46,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName:       'some-resource-name',
         capacity:           1000,
         used:               200,
@@ -70,7 +70,7 @@ describe('component: ConsumptionGauge', () => {
     };
 
     const wrapper = mount(ConsumptionGauge, {
-      propsData: {
+      props: {
         resourceName: 'some-resource-name',
         capacity:     1000,
         used:         200,

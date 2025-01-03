@@ -1,19 +1,32 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
-import debounce from 'lodash/debounce';
+import { defineComponent, inject, PropType } from 'vue';
+import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-declare module 'vue/types/vue' {
-  /* eslint-disable no-unused-vars */
-  interface Vue {
-    queueResize(): void;
-  }
+interface NonReactiveProps {
+  queueResize(): void;
 }
+
+const provideProps: NonReactiveProps = {
+  queueResize() {
+    // noop
+  }
+};
 
 export default defineComponent({
   inheritAttrs: false,
 
   props: {
+    value: {
+      type:     String,
+      required: true
+    },
+
+    class: {
+      type:    [String, Array, Object] as PropType<string | unknown[] | Record<string, boolean>>,
+      default: ''
+    },
+
     /**
      * Sets the edit mode for Text Area.
      * @values _EDIT, _VIEW
@@ -67,6 +80,14 @@ export default defineComponent({
     }
   },
 
+  emits: ['update:value', 'paste', 'focus', 'blur'],
+
+  setup() {
+    const queueResize = inject('queueResize', provideProps.queueResize);
+
+    return { queueResize };
+  },
+
   data() {
     return {
       curHeight: this.minHeight,
@@ -88,6 +109,10 @@ export default defineComponent({
      */
     style(): string {
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
+    },
+
+    className(): string | unknown[] | Record<string, boolean> {
+      return this.class;
     }
   },
 
@@ -118,7 +143,7 @@ export default defineComponent({
     onInput(event: Event): void {
       const val = (event?.target as HTMLInputElement)?.value;
 
-      this.$emit('input', val);
+      this.$emit('update:value', val);
       this.queueResize();
     },
 
@@ -157,10 +182,12 @@ export default defineComponent({
 <template>
   <textarea
     ref="ta"
+    :value="value"
     :data-testid="$attrs['data-testid'] ? $attrs['data-testid'] : 'text-area-auto-grow'"
     :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
+    :class="className"
     class="no-resize no-ease"
     v-bind="$attrs"
     :spellcheck="spellcheck"

@@ -26,11 +26,13 @@ const mockedRoute = { query: {} };
 
 const requiredSetup = () => {
   return {
-    mixins: [mockedValidationMixin],
-    mocks:  {
-      $store:      mockedStore(),
-      $route:      mockedRoute,
-      $fetchState: {},
+    global: {
+      mixins: [mockedValidationMixin],
+      mocks:  {
+        $store:      mockedStore(),
+        $route:      mockedRoute,
+        $fetchState: {},
+      }
     }
   };
 };
@@ -62,8 +64,8 @@ describe('aks taint component', () => {
     const valueInput = wrapper.find('[data-testid="aks-taint-value-input"]');
     const effectSelect = wrapper.find('[data-testid="aks-taint-effect-select"]');
 
-    expect(keyInput.props().value).toBe(expected.key);
-    expect(valueInput.props().value).toBe(expected.value);
-    expect(effectSelect.props().value).toBe(expected.effect);
+    expect(keyInput.attributes().value).toBe(expected.key);
+    expect(valueInput.attributes().value).toBe(expected.value);
+    expect(effectSelect.attributes().value).toBe(expected.effect);
   });
 });

@@ -30,7 +30,9 @@ export default class FleetBundle extends SteveModel {
   }
 
   get repoName() {
-    return this.metadata.labels['fleet.cattle.io/repo-name'];
+    const labels = this.metadata?.labels || {};
+
+    return labels['fleet.cattle.io/repo-name'];
   }
 
   get targetClusters() {

@@ -61,7 +61,7 @@ export default {
       !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
     ) {
       this.$nextTick(() => {
-        this.$set(this.value, TARGET_OPTIONS.IP_BLOCK, {});
+        this.value[TARGET_OPTIONS.IP_BLOCK] = {};
       });
     }
 
@@ -86,7 +86,7 @@ export default {
         );
       },
       set(podSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTIONS.POD_SELECTOR, simplify(podSelectorExpressions));
+        this.value[TARGET_OPTIONS.POD_SELECTOR] = simplify(podSelectorExpressions);
       }
     },
     namespaceSelectorExpressions: {
@@ -97,7 +97,7 @@ export default {
         );
       },
       set(namespaceSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR, simplify(namespaceSelectorExpressions));
+        this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] = simplify(namespaceSelectorExpressions);
       }
     },
     selectTargetOptions() {
@@ -126,23 +126,14 @@ export default {
         return null;
       },
       set(targetType) {
-        this.$delete(this.value, TARGET_OPTIONS.IP_BLOCK);
-        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR);
-        this.$delete(this.value, TARGET_OPTIONS.POD_SELECTOR);
-        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR);
+        delete this.value[TARGET_OPTIONS.IP_BLOCK];
+        delete this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR];
+        delete this.value[TARGET_OPTIONS.POD_SELECTOR];
+        delete this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR];
         this.$nextTick(() => {
-          this.$set(this.value, targetType, {});
+          this.value[targetType] = {};
         });
       }
-    },
-    updateMatches() {
-      return {
-        handler: throttle(function() {
-          this.matchingNamespaces = this.getMatchingNamespaces();
-          this.matchingPods = this.getMatchingPods();
-        }, this.throttle, { leading: true }),
-        immediate: true
-      };
     },
     matchingNamespacesAndPods() {
       return {
@@ -153,16 +144,40 @@ export default {
     }
   },
   watch: {
-    namespace:                    'updateMatches',
-    allNamespaces:                'updateMatches',
-    'value.podSelector':          'updateMatches',
-    'value.namespaceSelector':    'updateMatches',
-    'value.ipBlock.cidr':         'validateCIDR',
-    'value.ipBlock.except':       'validateCIDR',
-    podSelectorExpressions:       'updateMatches',
-    namespaceSelectorExpressions: 'updateMatches',
+    namespace: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    allNamespaces: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.podSelector': {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.namespaceSelector': {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    'value.ipBlock.cidr':   'validateCIDR',
+    'value.ipBlock.except': 'validateCIDR',
+    podSelectorExpressions: {
+      handler:   'updateMatches',
+      immediate: true
+    },
+    namespaceSelectorExpressions: {
+      handler:   'updateMatches',
+      immediate: true
+    }
   },
   methods: {
+    updateMatches() {
+      throttle(() => {
+        this.matchingNamespaces = this.getMatchingNamespaces();
+        this.matchingPods = this.getMatchingPods();
+      }, this.throttle, { leading: true })();
+    },
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 
@@ -214,7 +229,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="targetType"
+          v-model:value="targetType"
           data-testid="policy-rule-target-type-labeled-select"
           :mode="mode"
           :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
@@ -228,7 +243,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value[TARGET_OPTIONS.IP_BLOCK].cidr"
+            v-model:value="value[TARGET_OPTIONS.IP_BLOCK].cidr"
             data-testid="labeled-input-ip-block-selector"
             :mode="mode"
             :placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
@@ -249,7 +264,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-12">
           <ArrayList
-            v-model="value[TARGET_OPTIONS.IP_BLOCK].except"
+            v-model:value="value[TARGET_OPTIONS.IP_BLOCK].except"
             :add-label="t('networkpolicy.rules.ipBlock.addExcept')"
             :mode="mode"
             :show-header="true"
@@ -280,7 +295,7 @@ export default {
       <div class="row mb-0">
         <div class="col span-12">
           <MatchExpressions
-            v-model="podSelectorExpressions"
+            v-model:value="podSelectorExpressions"
             data-testid="match-expression-pod-selector"
             :mode="mode"
             :show-remove="false"
@@ -304,7 +319,7 @@ export default {
       <div class="row mb-0">
         <div class="col span-12">
           <MatchExpressions
-            v-model="namespaceSelectorExpressions"
+            v-model:value="namespaceSelectorExpressions"
             data-testid="match-expression-namespace-selector"
             :mode="mode"
             :show-remove="false"
@@ -337,7 +352,7 @@ export default {
         </div>
         <div class="col span-11">
           <MatchExpressions
-            v-model="namespaceSelectorExpressions"
+            v-model:value="namespaceSelectorExpressions"
             data-testid="match-expression-namespace-and-pod-selector-ns-rule"
             :mode="mode"
             :show-add-button="false"
@@ -356,7 +371,7 @@ export default {
         </div>
         <div class="col span-11">
           <MatchExpressions
-            v-model="podSelectorExpressions"
+            v-model:value="podSelectorExpressions"
             data-testid="match-expression-namespace-and-pod-selector-pod-rule"
             :mode="mode"
             :show-add-button="false"

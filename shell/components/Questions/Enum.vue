@@ -3,6 +3,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Question from './Question';
 
 export default {
+  emits: ['update:value'],
+
   components: { LabeledSelect },
   mixins:     [Question],
   computed:   {
@@ -38,7 +40,7 @@ export default {
         :disabled="disabled"
         :tooltip="displayTooltip"
         :searchable="question.searchable"
-        @input="$emit('input', $event)"
+        @update:value="$emit('update:value', $event)"
       />
     </div>
     <div

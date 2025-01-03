@@ -30,6 +30,9 @@ export default defineComponent({
       default: '',
     },
   },
+
+  emits: ['update:value'],
+
   data() {
     return { state: false as StateType };
   },
@@ -46,7 +49,7 @@ export default defineComponent({
   methods: {
     toggle(neu: StateType | null) {
       this.state = neu === null ? !this.state : neu;
-      this.$emit('input', this.state ? this.onValue : this.offValue);
+      this.$emit('update:value', this.state ? this.onValue : this.offValue);
     }
   }
 });

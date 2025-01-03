@@ -118,7 +118,7 @@ export default defineComponent({
     }
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     // We're fetching secrets with a filter, clear it so as to not clash with other contexts
     this.$store.dispatch('cluster/forgetType', SECRET);
   },
