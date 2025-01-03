@@ -114,6 +114,14 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+
+    /**
+     * Tab index for proper keyboard nav control
+     */
+    tabbingIndex: {
+      type:    Number,
+      default: null
+    },
   },
 
   emits: ['update:value'],
@@ -227,14 +235,15 @@ export default defineComponent({
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        :tabindex="-1"
+        :tab-index="tabbingIndex"
         :name="id"
         @click.stop.prevent
+        @keyup.enter.stop.prevent
       >
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
-        :tabindex="isDisabled ? -1 : 0"
+        :tabindex="-1"
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"
@@ -335,6 +344,12 @@ $fontColor: var(--input-label);
     opacity: 0;
     position: absolute;
     z-index: -1;
+  }
+
+  input:focus-visible ~ .checkbox-custom {
+    @include focus-outline;
+    outline-offset: 2px;
+    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom {
