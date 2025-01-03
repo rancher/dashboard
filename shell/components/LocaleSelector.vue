@@ -104,7 +104,7 @@ export default {
                 v-if="showNone"
                 v-t="'locale.none'"
                 class="hand"
-                :tab-index="0"
+                tabindex="0"
                 role="menuitem"
                 @click.stop="switchLocale('none')"
                 @keyup.enter.stop="switchLocale('none')"

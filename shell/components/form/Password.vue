@@ -41,11 +41,7 @@ export default {
     mode: {
       type:    String,
       default: _CREATE,
-    },
-    tabbingIndex: {
-      type:    Number,
-      default: null,
-    },
+    }
   },
   data() {
     return { reveal: false };
@@ -120,7 +116,6 @@ export default {
       :disabled="isRandom"
       :ignore-password-managers="ignorePasswordManagers"
       :mode="mode"
-      :tab-index="tabbingIndex"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>
@@ -139,7 +134,7 @@ export default {
         >
           <a
             href="#"
-            :tab-index="tabbingIndex"
+            tabindex="0"
             class="hide-show"
             @click.prevent.stop="hideShowFn"
             @keyup.space.prevent.stop="hideShowFn"

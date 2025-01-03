@@ -235,14 +235,14 @@ export default defineComponent({
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        :tab-index="tabbingIndex"
+        tabindex="-1"
         :name="id"
         @click.stop.prevent
       >
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
-        :tabindex="-1"
+        :tabindex="isDisabled ? -1 : 0"
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"
@@ -333,9 +333,14 @@ $fontColor: var(--input-label);
     width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
-    transition: all 0.3s ease-out;
     border: 1px solid var(--border);
     flex-shrink: 0;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+      border-radius: 0;
+    }
   }
 
   input {
@@ -343,12 +348,6 @@ $fontColor: var(--input-label);
     opacity: 0;
     position: absolute;
     z-index: -1;
-  }
-
-  input:focus-visible ~ .checkbox-custom {
-    @include focus-outline;
-    outline-offset: 2px;
-    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom {
