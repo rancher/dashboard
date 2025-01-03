@@ -26,6 +26,7 @@ $disabled  : $medium;
 $primary         : #3D98D3;
 $secondary       : $darker;
 $link            : #3D98D3;
+$keyboard-focus  : #3300ff;
 
 // Status colors
 $success         : #5D995D;
@@ -53,6 +54,7 @@ BODY, .theme-light {
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : #{$keyboard-focus};
 
 
   .text-primary {

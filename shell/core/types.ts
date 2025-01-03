@@ -374,6 +374,16 @@ export interface ConfigureTypeOptions {
 
 export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   /**
+   * Only load the product if the type is present
+   */
+  ifHave?: string;
+
+  /**
+   * Only load the product if the type is present
+   */
+  ifHaveType?: string | RegExp | Object;
+
+  /**
    * The translation key displayed anywhere this type is referenced
    */
   labelKey: string;
