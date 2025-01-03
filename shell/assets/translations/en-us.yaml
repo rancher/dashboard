@@ -120,6 +120,19 @@ locale:
   none: (None)
 
 nav:
+  ariaLabel:
+    homePage: Home page navigation menu
+    cluster: Cluster menu item
+    harvesterCluster: Harvester cluster menu item
+    seeAll: See all clusters menu item
+    multiClusterApps: Main menu multi cluster app menu item
+    configurationApps: Main menu configuration app menu item
+    support: Support page link
+    about: About page link
+    pinCluster: Pin/Unpin cluster
+  alt:
+    mainMenuIcon: Main menu icon
+    mainMenuRancherLogo: Main menu Rancher logo
   expandCollapseAppBar: Expand/Collapse the Application Bar
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
@@ -196,6 +209,7 @@ nav:
     placeholder: Filter clusters by...
     noResults: No matching clusters
     clusters: clusters
+    ariaLabel: Filter clusters on main menu
   resourceSearch:
     label: Resource Search
     toolTip: Resource Search {key}

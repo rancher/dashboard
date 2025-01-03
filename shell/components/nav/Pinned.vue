@@ -5,6 +5,10 @@ export default {
     cluster: {
       type:     Object,
       required: true,
+    },
+    tabbingIndex: {
+      type:    Number,
+      default: null,
     }
   },
 
@@ -28,11 +32,12 @@ export default {
 
 <template>
   <i
-    :tabindex="0"
+    :tabindex="tabbingIndex"
     :aria-checked="!!pinned"
     class="pin icon"
     :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
     aria-role="button"
+    :aria-label="`${t('nav.ariaLabel.pinCluster')} ${ cluster.label }`"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
     @keydown.space.prevent="toggle"

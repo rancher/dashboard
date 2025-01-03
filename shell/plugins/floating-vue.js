@@ -1,1 +1,1 @@
-export const floatingVueOptions = { themes: { tooltip: { html: true } } };
+export const floatingVueOptions = { themes: { tooltip: { html: true, triggers: ['hover', 'touch'] } } };
