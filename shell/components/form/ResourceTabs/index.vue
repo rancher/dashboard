@@ -11,8 +11,6 @@ import { EVENT } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
-import { ExtensionPoint, TabLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
@@ -77,7 +75,6 @@ export default {
       allEvents:      [],
       selectedTab:    this.defaultTab,
       didLoadEvents:  false,
-      extensionTabs:  getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams),
       inStore,
       showConditions: false,
     };
@@ -244,26 +241,6 @@ export default {
         :ignore-types="[value.type]"
         :value="value"
         direction="to"
-      />
-    </Tab>
-
-    <!-- Extension tabs -->
-    <Tab
-      v-for="tab, i in extensionTabs"
-      :key="`${tab.name}${i}`"
-      :name="tab.name"
-      :label="tab.label"
-      :label-key="tab.labelKey"
-      :weight="tab.weight"
-      :tooltip="tab.tooltip"
-      :show-header="tab.showHeader"
-      :display-alert-icon="tab.displayAlertIcon"
-      :error="tab.error"
-      :badge="tab.badge"
-    >
-      <component
-        :is="tab.component"
-        :resource="value"
       />
     </Tab>
   </Tabbed>
