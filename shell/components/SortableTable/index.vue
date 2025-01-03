@@ -361,7 +361,13 @@ export default {
     externalPaginationResult: {
       type:    Object,
       default: null
+    },
+
+    manualRefreshButtonSize: {
+      type:    String,
+      default: ''
     }
+
   },
 
   data() {
@@ -1140,8 +1146,8 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            class="manual-refresh"
             mode="manual-refresh"
+            :size="manualRefreshButtonSize"
             :current-phase="refreshButtonPhase"
             @click="debouncedRefreshTableData"
           />
@@ -1568,10 +1574,6 @@ export default {
     opacity: 0.5;
     pointer-events: none;
   }
-
-  .manual-refresh {
-    height: 40px;
-  }
   .advanced-filter-group {
     position: relative;
     margin-left: 10px;
@@ -1672,7 +1674,7 @@ export default {
         margin-right: 10px;
         font-size: 11px;
       }
-     .cross {
+      .cross {
         font-size: 12px;
         font-weight: bold;
         cursor: pointer;

@@ -288,6 +288,7 @@ export default defineComponent({
       v-if="displayIcon"
       v-clean-tooltip="tooltip"
       :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
+      class="ml-5 mr-0"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"

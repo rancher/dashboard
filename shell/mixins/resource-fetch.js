@@ -31,11 +31,18 @@ export default {
       perfConfig = DEFAULT_PERF_SETTING;
     }
 
+    // Normally owner components supply `resource` and `inStore` as part of their data, however these are needed here before parent data runs
+    // So set up both here
+    const params = { ...this.$route.params };
+    const resource = params.resource || this.schema?.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
+    const inStore = this.$store.getters['currentStore'](resource);
+
     return {
+      inStore,
       perfConfig,
       init:                       false,
       multipleResources:          [],
-      loadResources:              [this.resource],
+      loadResources:              [resource],
       // manual refresh vars
       hasManualRefresh:           false,
       watch:                      true,
@@ -60,17 +67,47 @@ export default {
     }
   },
 
+  props: {
+    /**
+     * Add additional filtering to the rows
+     *
+     * Should only be used when we have all results, otherwise we're filtering a page which already has been filtered...
+     */
+    localFilter: {
+      type:    Function,
+      default: null,
+    },
+
+    /**
+     * Add additional filtering to the pagination api request
+     */
+    apiFilter: {
+      type:    Function,
+      default: null,
+    },
+  },
+
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
+
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
-        return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
-      } else {
-        return [];
+        const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+
+        if (this.canPaginate) {
+          if (this.havePaginated) {
+            return rows;
+          }
+        } else {
+          return this.localFilter ? this.localFilter(rows) : rows;
+        }
       }
+
+      return [];
     },
+
     loading() {
       if (this.canPaginate) {
         return this.paginating;
@@ -86,7 +123,9 @@ export default {
       if (this.init && neu) {
         await this.$fetch();
         if (this.canPaginate && this.fetchPageSecondaryResources) {
-          this.fetchPageSecondaryResources(true);
+          this.fetchPageSecondaryResources({
+            canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
+          });
         }
       }
     }
@@ -139,6 +178,10 @@ export default {
           pagination:       { ...this.pagination },
           force:            this.paginating !== null // Fix for manual refresh (before ripped out).
         };
+
+        if (this.apiFilter) {
+          opt.paginating = this.apiFilter(opt.pagination);
+        }
 
         this['paginating'] = true;
 
