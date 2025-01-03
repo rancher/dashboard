@@ -314,7 +314,7 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   'spec.type', // TODO: RC REGRESSION - shell/components/formatter/ServiceType.vue & shell/models/service.js show mangle value which we do not sort/filter on
+        sort:   'spec.type', // TODO: RC REGRESSION - shell/components/formatter/ServiceType.vue & shell/models/service.js show mangled value which we do not sort/filter on
         search: 'spec.type',
       },
       STEVE_AGE_COL

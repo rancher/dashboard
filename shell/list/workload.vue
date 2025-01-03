@@ -89,7 +89,9 @@ export default {
     const { params:{ resource: type } } = this.$route;
     const allTypes = this.$route.params.resource === workloadSchema.id;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
-    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type }); // TODO: RC test vai off workloads page
+    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
+
+    // TODO: RC vai off cronjobs shows no data for health (pods associated with job)
 
     return {
       allTypes,
@@ -168,8 +170,6 @@ export default {
       :schema="schema"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
-    <!-- :fetchSecondaryResources="fetchSecondaryResources"
-    :fetchPageSecondaryResources="fetchPageSecondaryResources" -->
     <ResourceTable
       v-else
       :loading="$fetchState.pending"
