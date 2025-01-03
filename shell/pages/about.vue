@@ -110,7 +110,6 @@ export default {
         data-testid="about__diagnostics_button"
         role="link"
         :aria-label="t('about.diagnostic.title')"
-        @keyup.space="$router.push({ name: 'diagnostic' })"
       >
         {{ t('about.diagnostic.title') }}
       </router-link>
@@ -224,7 +223,6 @@ export default {
               :aria-label="t('about.versions.downloadImages', { listName: t(d.label) })"
               @click="d.imageList"
               @keyup.enter="d.imageList"
-              @keyup.space="d.imageList"
             >
               {{ t('asyncButton.download.action') }}
             </a>

@@ -15,18 +15,16 @@ export default {
     class="back-link"
     role="link"
     :aria-label="t('generic.back')"
-    @keyup.space="$router.push(link)"
   >
-    <span><i class="icon icon-chevron-left" /> {{ t('generic.back') }}</span>
+    <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
   </router-link>
   <router-link
     v-else
     to="/"
     class="back-link"
     :aria-label="t('nav.home')"
-    @keyup.space="$router.push('/')"
   >
-    <span><i class="icon icon-chevron-left" /> {{ t('nav.home') }}</span>
+    <i class="icon icon-chevron-left" /> {{ t('nav.home') }}
   </router-link>
 </template>
 
@@ -35,14 +33,12 @@ export default {
     align-items: center;
     display: flex;
     font-size: 16px;
-    margin-bottom: 10px;
+    margin: 10px 0 20px 0;
     outline: 0;
-    padding: 10px 0;
     width: fit-content;
 
-    &:focus-visible span {
+    &:focus-visible {
       @include focus-outline;
-      outline-offset: 4px;
     }
   }
 </style>
