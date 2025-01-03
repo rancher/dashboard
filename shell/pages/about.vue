@@ -108,8 +108,9 @@ export default {
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
         data-testid="about__diagnostics_button"
-        role="link"
+        role="button"
         :aria-label="t('about.diagnostic.title')"
+        @keyup.space="$router.push({ name: 'diagnostic' })"
       >
         {{ t('about.diagnostic.title') }}
       </router-link>
