@@ -113,15 +113,7 @@ export default defineComponent({
     primary: {
       type:    Boolean,
       default: false
-    },
-
-    /**
-     * Tab index for proper keyboard nav control
-     */
-    tabbingIndex: {
-      type:    Number,
-      default: null
-    },
+    }
   },
 
   emits: ['update:value'],
