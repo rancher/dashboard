@@ -19,6 +19,10 @@ const handleKeydown = (e: KeyboardEvent) => {
   const items = fields?.value?.querySelectorAll('[dropdown-menu-item]');
   const itemsArr: Element[] = [];
 
+  /**
+   * ⚠️ We build up an items array on each keydown? I'm sure that we can do this
+   * higher up the chain and inject the result into the component.
+   */
   items?.forEach((element) => {
     itemsArr.push(element);
   });
