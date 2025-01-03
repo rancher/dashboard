@@ -95,6 +95,7 @@
     "identicon.js": "2.3.3",
     "intl-messageformat": "7.8.4",
     "ip": "2.0.1",
+    "is-base64": "1.1.0",
     "is-url": "1.2.4",
     "jest": "27.5.1",
     "jest-serializer-vue": "2.0.2",
