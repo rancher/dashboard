@@ -2,6 +2,7 @@
 # Special stuff
 ##############################
 generic:
+  userAvatar: user avatar
   add: Add
   all: All
   ascending: ascending

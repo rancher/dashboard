@@ -129,6 +129,8 @@ button,
 
   &:focus-visible {
     @include focus-outline;
+    outline-offset: 2px;
+    border-radius: 0;
   }
 }
 

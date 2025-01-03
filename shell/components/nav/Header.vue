@@ -393,6 +393,7 @@ export default {
     <div>
       <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
+
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
@@ -400,20 +401,24 @@ export default {
       <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
+        role="link"
       >
         <BrandImage
           v-if="isSingleProduct.supportCustomLogo && isHarvester"
           class="side-menu-logo"
           file-name="harvester.svg"
           :support-custom-logo="true"
+          :alt="t('branding.logos.label')"
         />
         <img
           v-else
           class="side-menu-logo"
           :src="isSingleProduct.logo"
+          :alt="t('branding.logos.label')"
         >
       </router-link>
     </div>
+
     <div
       v-if="!simple"
       ref="product"
@@ -440,6 +445,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="mr-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="currentCluster"
@@ -452,6 +458,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="ml-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="!currentCluster"
@@ -460,6 +467,7 @@ export default {
             <BrandImage
               class="side-menu-logo-img"
               file-name="rancher-logo.svg"
+              :alt="t('branding.logos.label')"
             />
           </div>
         </template>
@@ -474,12 +482,14 @@ export default {
           :src="currentProduct.iconHeader"
           class="cluster-os-logo mr-10"
           style="width: 44px; height: 36px;"
+          :alt="t('branding.logos.label')"
         >
         <div class="product-name">
           {{ prod }}
         </div>
       </div>
     </div>
+
     <div
       v-else
       class="simple-title"
@@ -499,13 +509,14 @@ export default {
           class="side-menu-logo-img"
           data-testid="header-side-menu__brand-img"
           file-name="rancher-logo.svg"
+          :alt="t('branding.logos.label')"
         />
       </div>
     </div>
 
     <div class="spacer" />
 
-    AAA
+    RIGHT
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
       <div
@@ -529,7 +540,7 @@ export default {
             data-testid="header-action-import-yaml"
             role="button"
             tabindex="0"
-            aria-label="import yaml"
+            :aria-label="t('nav.import')"
             @click="openImport()"
             @keyup.enter="openImport()"
             @keyup.space="openImport()"
@@ -561,7 +572,7 @@ export default {
             class="btn header-btn role-tertiary"
             role="button"
             tabindex="0"
-            aria-label="open kubectl shell"
+            :aria-label="t('nav.shellShortcut', {key:''})"
             @shortkey="currentCluster.openShell()"
             @click="currentCluster.openShell()"
             @keyup.enter="currentCluster.openShell()"
@@ -579,7 +590,7 @@ export default {
             data-testid="btn-download-kubeconfig"
             role="button"
             tabindex="0"
-            aria-label="download kube config"
+            :aria-label="t('nav.kubeconfig.download')"
             @click="currentCluster.downloadKubeConfig()"
             @keyup.enter="currentCluster.downloadKubeConfig()"
             @keyup.space="currentCluster.downloadKubeConfig()"
@@ -596,7 +607,7 @@ export default {
             data-testid="btn-copy-kubeconfig"
             role="button"
             tabindex="0"
-            aria-label="copy kube config"
+            :aria-label="t('nav.kubeconfig.copy')"
             @click="copyKubeConfig($event)"
             @keyup.enter="copyKubeConfig($event)"
             @keyup.space="copyKubeConfig($event)"
@@ -621,7 +632,7 @@ export default {
           data-testid="header-resource-search"
           role="button"
           tabindex="0"
-          aria-label="open resource search"
+          :aria-label="t('nav.resourceSearch.toolTip', {key: ''})"
           @shortkey="openSearch()"
           @click="openSearch()"
           @keyup.enter="openSearch()"
@@ -702,7 +713,7 @@ export default {
               :class="{'avatar-round': principal.roundAvatar}"
               width="36"
               height="36"
-              alt="user avatar"
+              :alt="t('generic.userAvatar')"
             >
             <i
               v-else

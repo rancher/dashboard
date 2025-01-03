@@ -19,12 +19,6 @@ const pageAction = (action: string) => {
 const target = ref(null);
 
 useClickOutside(target, () => showPageActionsMenu(false));
-
-const handleBlurEvent = (event: KeyboardEvent) => {
-  if (event.key === 'Tab') {
-    showPageActionsMenu(false);
-  }
-};
 </script>
 
 <template>
@@ -37,20 +31,23 @@ const handleBlurEvent = (event: KeyboardEvent) => {
     :placement="'bottom-end'"
     :distance="-6"
     :container="'.page-actions'"
+    tabindex="0"
+    role="menu"
+    @click="showPageActionsMenu(true)"
+    @keyup.enter="showPageActionsMenu(true)"
+    @keyup.space="showPageActionsMenu(true)"
   >
     <i
       data-testid="page-actions-menu"
       class="icon icon-actions"
-      tabindex="0"
-      @keydown="handleBlurEvent"
-      @click="showPageActionsMenu(true)"
-      @focus.capture="showPageActionsMenu(true)"
     />
 
     <template #popper>
       <div
         ref="target"
         class="user-menu"
+        @focus.capture="showPageActionsMenu(true)"
+        @blur.capture="showPageActionsMenu(false)"
       >
         <ul
           data-testid="page-actions-dropdown"
@@ -63,7 +60,12 @@ const handleBlurEvent = (event: KeyboardEvent) => {
           >
             <a
               v-if="!a.separator"
+              tabindex="0"
+              role="button"
+              :aria-label="a.labelKey ? t(a.labelKey) : a.label"
               @click="pageAction(a)"
+              @keyup.enter="pageAction(a)"
+              @keyup.space="pageAction(a)"
             >{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
             <div
               v-else
@@ -94,8 +96,13 @@ const handleBlurEvent = (event: KeyboardEvent) => {
     }
   }
 
-  .icon-actions:focus {
+  .actions:focus-visible {
     outline: 0;
+    z-index: 2;
+
+    & .icon-actions {
+      @include focus-outline;
+    }
   }
 
   .user-menu-item {
