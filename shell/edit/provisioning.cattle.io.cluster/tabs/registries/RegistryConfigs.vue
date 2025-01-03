@@ -7,7 +7,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import isBase64 from 'is-base64';
+import { isBase64 } from '@shell/utils/string';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
 export default {
