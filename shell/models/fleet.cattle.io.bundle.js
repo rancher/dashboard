@@ -6,17 +6,6 @@ import { FLEET } from '@shell/config/types';
 import { convertSelectorObj, matching } from '@shell/utils/selector';
 
 export default class FleetBundle extends SteveModel {
-  get deploymentInfo() {
-    const ready = this.status?.summary?.ready || 0;
-    const total = this.status?.summary?.desiredReady || 0;
-
-    return {
-      ready,
-      unready: total - ready,
-      total
-    };
-  }
-
   get lastUpdateTime() {
     return this.status?.conditions?.[0].lastUpdateTime;
   }
