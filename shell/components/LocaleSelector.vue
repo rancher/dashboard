@@ -11,11 +11,7 @@ export default {
     mode: {
       type:    String,
       default: ''
-    },
-    tabbingIndex: {
-      type:    Number,
-      default: null,
-    },
+    }
   },
 
   data() {
