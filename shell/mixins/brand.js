@@ -1,50 +1,21 @@
 import { mapGetters } from 'vuex';
-import { CATALOG, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { allHash } from '@shell/utils/promise';
-import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-
-// For testing these could be changed to something like...
-const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];
-// const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
-
-export const hasCspAdapter = (apps) => {
-  // This can be removed once https://github.com/rancher/dashboard/pull/10349 merges
-  // At the moment we fetch a filtered collection... but still receive updates to all of the resources.
-  // So if any other app changes it will appear in this `apps` collection
-  return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
-};
+import { fetchInitialSettings } from '@shell/utils/settings';
+import CspAdapterUtils from '@shell/utils/cspAdaptor';
 
 export default {
   async fetch() {
     try {
-      // Ensure we read the settings even when we are not authenticated
-      const promises = { globalSettings: fetchInitialSettings(this.$store) };
-
-      // For the login page, the schemas won't be loaded - we don't need the apps in this case
-      if (this.$store.getters['management/canList'](CATALOG.APP)) {
-        // Restrict the amount of apps we need to fetch
-        // this.$store.getters[`management/paginationEnabled`]()
-        // if (true) {
-        promises.apps = this.$store.dispatch('management/findPage', {
-          type: CATALOG.APP,
-          opt:  { // Of type ActionFindPageArgs
-            pagination: new PaginationFilterArgs({
-              filters: PaginationParamFilter.createMultipleFields(cspAdaptorApp.map(
-                (t) => new PaginationFilterField({
-                  field: 'metadata.name',
-                  value: t,
-                })
-              )),
-            })
-          }
-        });
-      }
-
-      const res = await allHash(promises);
+      const res = await allHash({
+        // Ensure we read the settings even when we are not authenticated
+        globalSettings: fetchInitialSettings(this.$store),
+        apps:           CspAdapterUtils.fetchCspAdaptorApp(this.$store),
+      });
 
       // The favicon is implicitly dependent on the initial settings having already been fetched
       if (!haveSetFavIcon()) {
@@ -59,7 +30,9 @@ export default {
   },
 
   data() {
-    return { apps: null, haveAppsAndSettings: null };
+    return {
+      apps: null, haveAppsAndSettings: null, canPaginate: false
+    };
   },
 
   computed: {
@@ -113,7 +86,7 @@ export default {
       // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
       // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
       // So use `.find` in method instead
-      return hasCspAdapter(this.apps);
+      return CspAdapterUtils.hasCspAdapter({ $store: this.$store, apps: this.apps });
     },
 
     canCalcCspAdapter() {
