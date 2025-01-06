@@ -128,6 +128,12 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+    // Reduce flicker when component is recreated on a different layout
+    const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
+
+    this.clustersPinned.push(...clustersPinned);
+    this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -144,6 +150,10 @@ export abstract class BaseTopLevelMenuHelper {
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
     };
+  }
+
+  protected cacheClusters() {
+    this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
   }
 }
 
@@ -258,6 +268,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
   }
 
   private constructParams({
@@ -401,6 +413,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
   }
 
   /**
