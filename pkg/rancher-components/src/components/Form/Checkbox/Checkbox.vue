@@ -227,7 +227,7 @@ export default defineComponent({
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        :tabindex="isDisabled ? -1 : 0"
+        tabindex="-1"
         :name="id"
         @click.stop.prevent
         @keyup.enter.stop.prevent
@@ -235,7 +235,7 @@ export default defineComponent({
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
-        :tabindex="-1"
+        :tabindex="isDisabled ? -1 : 0"
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"
