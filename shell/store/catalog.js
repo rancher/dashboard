@@ -57,7 +57,7 @@ export const getters = {
     const clustered = state.clusterRepos || [];
     const namespaced = state.namespacedRepos || [];
 
-    return [...clustered, ...namespaced];
+    return [...clustered, ...namespaced].filter(r => r.spec?.enabled !== false);
   },
 
   // Raw charts
