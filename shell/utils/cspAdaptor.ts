@@ -43,12 +43,8 @@ class CspAdapterUtils {
   }
 
   static hasCspAdapter({ $store, apps }: { $store: VuexStore, apps: any[]}): Object {
-    if (CspAdapterUtils.canPagination($store)) {
-      // For paginated world the apps will have been filtered server side
-      return apps?.[0];
-    }
-
-    return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
+    // In theory this should contain the filtered apps when pagination is on, and all apps when off. Keep filtering though in both cases just in case
+    return !!apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
   }
 }
 
