@@ -6,7 +6,7 @@ export default {
       type:     Object,
       required: true,
     },
-    tabbingIndex: {
+    tabOrder: {
       type:    Number,
       default: null,
     }
@@ -32,7 +32,7 @@ export default {
 
 <template>
   <i
-    :tabindex="tabbingIndex"
+    :tabindex="tabOrder"
     :aria-checked="!!pinned"
     class="pin icon"
     :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"

@@ -121,6 +121,7 @@ locale:
 
 nav:
   ariaLabel:
+    topLevelMenu: Main menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: Harvester cluster menu item

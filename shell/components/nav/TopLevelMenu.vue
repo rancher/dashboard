@@ -510,6 +510,7 @@ export default {
         :style="sideMenuStyle"
         tabindex="-1"
         role="navigation"
+        :aria-label="t('nav.ariaLabel.topLevelMenu')"
       >
         <!-- Logo and name -->
         <div class="title">
@@ -698,7 +699,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
-                      :tabbing-index="shown ? 0 : -1"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </button>
                   <span
@@ -725,7 +726,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
-                      :tabbing-index="shown ? 0 : -1"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </span>
                 </div>
@@ -777,7 +778,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
-                      :tabbing-index="shown ? 0 : -1"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </button>
@@ -805,7 +806,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
-                      :tabbing-index="shown ? 0 : -1"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </span>
