@@ -314,7 +314,7 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   'spec.type', // TODO: RC REGRESSION - shell/components/formatter/ServiceType.vue & shell/models/service.js show mangled value which we do not sort/filter on
+        sort:   false, // ['spec.type', 'spec.clusterIP'] Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
         search: 'spec.type',
       },
       STEVE_AGE_COL
@@ -505,8 +505,8 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort:   [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
-        search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        sort:   false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        search: false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
       },
       STEVE_AGE_COL
     ]

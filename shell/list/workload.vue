@@ -61,6 +61,7 @@ export default {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
       if (schema) {
+        // Used for shell/components/formatter/Endpoints.vue (too see column page needs to be wide and per page setting 25 or under)
         this.$fetchType(NODE);
       }
     } catch {}
@@ -90,8 +91,6 @@ export default {
     const allTypes = this.$route.params.resource === workloadSchema.id;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
     const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
-
-    // TODO: RC vai off cronjobs shows no data for health (pods associated with job)
 
     return {
       allTypes,

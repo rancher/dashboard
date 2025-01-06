@@ -326,15 +326,6 @@ export const POD_RESTARTS = {
   liveUpdates:  true
 };
 
-export const ENDPOINTS = {
-  name:      'endpoint',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'status.endpoints',
-  formatter: 'Endpoints',
-  width:     60,
-  align:     'center',
-};
-
 export const SCALE = {
   name:      'scale',
   labelKey:  'tableHeaders.scale',

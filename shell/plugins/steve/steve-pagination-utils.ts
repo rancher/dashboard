@@ -14,7 +14,7 @@ import {
   WORKLOAD_TYPES,
   HPA
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -176,15 +176,17 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [SERVICE]: [
       { field: 'spec.type' },
+      // { field: 'spec.clusterIP' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
     ],
     [INGRESS]: [
-      // { field: 'spec.ingressClassName' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+      // { field: 'spec.rules.host' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+      // { field: 'spec.ingressClassName' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
     ],
     [HPA]: [
-      // { field: 'spec.scaleTargetRef.name' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      // { field: 'spec.minReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      // { field: 'spec.maxReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      // { field: 'spec.currentReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      // { field: 'spec.scaleTargetRef.name' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.minReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.maxReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.currentReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
     ],
     [PVC]: [
       { field: 'spec.volumeName' },
@@ -201,19 +203,19 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.chart.metadata.name' }
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
-      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
-      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
-      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ],
     [WORKLOAD_TYPES.JOB]: [
-      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
-      // { field: `metadata.annotations[CATTLE_PUBLIC_ENDPOINTS]` } // // Pending API support https://github.com/rancher/rancher/issues/48256 (index fields)
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ]
 
   }
