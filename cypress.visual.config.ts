@@ -15,10 +15,7 @@ export default defineConfig({
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   video: false,
-  retries:               {
-    runMode:  2,
-    openMode: 0
-  },
+  retries: 0,
   env: {
     baseUrl,
     coverage: false
@@ -35,7 +32,8 @@ export default defineConfig({
 
   e2e: {
     experimentalSessionAndOrigin: true,
-    specPattern: './cypress/visual/*.visual.{js,jsx,ts,tsx}',
+    supportFile: './cypress/visual/support.ts',
+    specPattern: './cypress/visual/tests/*.visual.{js,jsx,ts,tsx}',
     baseUrl,
     setupNodeEvents(on, config) {
       addMatchImageSnapshotPlugin(on);
