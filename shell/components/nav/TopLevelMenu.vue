@@ -42,6 +42,17 @@ export default {
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
+    if (!canPagination) {
+      // Reduce the impact of the initial load, but only if we're not making a request
+      const args = {
+        pinnedIds:   this.pinnedIds,
+        searchTerm:  this.search,
+        unPinnedMax: this.maxClustersToShow
+      };
+
+      helper.update(args);
+    }
+
     return {
       shown:             false,
       displayVersion,
@@ -54,8 +65,9 @@ export default {
 
       canPagination,
       helper,
-      debouncedHelperUpdateSlow:  debounce((...args) => this.helper.update(...args), 750),
-      debouncedHelperUpdateQuick: debounce((...args) => this.helper.update(...args), 200),
+      debouncedHelperUpdateSlow:   debounce((...args) => this.helper.update(...args), 1000),
+      debouncedHelperUpdateMedium: debounce((...args) => this.helper.update(...args), 750),
+      debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
       provClusters,
       mgmtClusters,
     };
@@ -264,6 +276,14 @@ export default {
       this.shown = false;
     },
 
+    // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
+    // Changes could come from two scenarios
+    // 1. Changes made by the user (pin / search). Could be tens per second
+    // 2. Changes made by rancher to clusters (state, label, etc change). Could be hundreds a second
+    // They can be restricted to help the churn caused from above
+    // 1. When SSP enabled reduce http spam
+    // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
+
     pinnedIds: {
       immediate: true,
       handler(neu, old) {
@@ -271,27 +291,29 @@ export default {
           return;
         }
 
+        // Low throughput (user click). Changes should be shown quickly
         this.updateClusters(neu, 'quick');
       }
     },
 
     search() {
-      this.updateClusters(this.pinnedIds, 'slow');
+      // Medium throughput. Changes should be shown quickly, unless we want to reduce http spam in SSP world
+      this.updateClusters(this.pinnedIds, this.canPagination ? 'medium' : 'quick');
     },
 
     provClusters: {
-      handler() {
-        // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds, 'slow');
+      handler(neu, old) {
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep:      true,
       immediate: true,
     },
 
     mgmtClusters: {
-      handler() {
-        // Shouldn't get here if SSP
-        this.updateClusters(this.pinnedIds, 'slow');
+      handler(neu, old) {
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
       },
       deep:      true,
       immediate: true,
@@ -424,7 +446,7 @@ export default {
       };
     },
 
-    updateClusters(pinnedIds, speed = 'slow' | 'quick') {
+    updateClusters(pinnedIds, speed = 'slow' | 'medium' | 'quick') {
       const args = {
         pinnedIds,
         searchTerm:  this.search,
@@ -434,6 +456,9 @@ export default {
       switch (speed) {
       case 'slow':
         this.debouncedHelperUpdateSlow(args);
+        break;
+      case 'medium':
+        this.debouncedHelperUpdateMedium(args);
         break;
       case 'quick':
         this.debouncedHelperUpdateQuick(args);
