@@ -71,7 +71,7 @@ export default {
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
       :disabled="disabled"
-      @update:value="$emit('input', $event)"
+      @update:value="(e) => $emit('update:value', e)"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}

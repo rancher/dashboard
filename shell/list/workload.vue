@@ -61,6 +61,7 @@ export default {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
       if (schema) {
+        // Used for shell/components/formatter/Endpoints.vue (too see column page needs to be wide and per page setting 25 or under)
         this.$fetchType(NODE);
       }
     } catch {}
@@ -89,7 +90,7 @@ export default {
     const { params:{ resource: type } } = this.$route;
     const allTypes = this.$route.params.resource === workloadSchema.id;
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
-    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type }); // TODO: RC test vai off workloads page
+    const paginationEnabled = !allTypes && this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
 
     return {
       allTypes,
@@ -168,8 +169,6 @@ export default {
       :schema="schema"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
-    <!-- :fetchSecondaryResources="fetchSecondaryResources"
-    :fetchPageSecondaryResources="fetchPageSecondaryResources" -->
     <ResourceTable
       v-else
       :loading="$fetchState.pending"

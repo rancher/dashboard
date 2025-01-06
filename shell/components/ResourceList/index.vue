@@ -9,7 +9,6 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
-// import { PAGINATED_RESOURCE_TABLE_NAME } from '@shell/components/PaginatedResourceTable.vue';
 
 export default {
   name: ResourceListComponentName,
@@ -55,8 +54,10 @@ export default {
         this.customTypeDisplay = component.typeDisplay.apply(this);
       }
 
-      // If your list page has a fetch then it's responsible for populating rows itself
-      if ( component?.fetch ) {
+      // Is the custom component responsible fetching the resources?
+      // - Component has a fetch method - legacy method. fetch will handle the requests
+      // - Component contains the PaginatedResourceTable component - go forward method. PaginatedResourceTable owns fetching the resources
+      if ( component?.fetch || component?.components?.['PaginatedResourceTable']) {
         this.componentWillFetch = true;
       }
 
@@ -67,11 +68,6 @@ export default {
 
         this.loadResources = loadResources || [resource];
         this.loadIndeterminate = loadIndeterminate || false;
-      }
-
-      // If the custom component contains the paginated resource table it'll control the fetching
-      if (component?.components?.['PaginatedResourceTable']) {
-        this.componentWillFetch = true;
       }
     }
 

@@ -34,21 +34,21 @@ type MgmtCluster = {
 type ProvCluster = {
   [key: string]: any
 }
+
 /**
  * Order
- * 1. Specific Local Cluster
- * 2. Ready
- * 3. Name
+ * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
+ * 2. working clusters
+ * 3. name
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
-  // Put local cluster at top of list - https://github.com/rancher/dashboard/issues/10975
   {
     asc:   false,
     field: 'spec.internal',
   },
   // {
   //   asc:   true,
-  //   field: 'status.conditions[0].status' // Pending API support https://github.com/rancher/rancher/issues/48092
+  //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
   // },
   {
     asc:   true,

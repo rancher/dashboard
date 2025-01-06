@@ -1,6 +1,6 @@
 <script>
 /**
- * file used in shell/scripts/test-plugins-build.sh to validate imports
+ * This file is used in shell/scripts/test-plugins-build.sh (creates an extension with it in, and builds using a shell built from source)
  */
 import { mapGetters } from 'vuex';
 import { NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
