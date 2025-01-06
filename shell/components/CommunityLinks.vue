@@ -112,7 +112,6 @@ export default {
           :to="link.value"
           role="link"
           :aria-label="link.label"
-          @keyup.space="$router.push(link.value)"
         >
           {{ link.label }}
         </router-link>
@@ -134,9 +133,9 @@ export default {
           class="link"
           tabindex="0"
           :aria-label="t('footer.wechat.title')"
+          role="link"
           @click="show"
           @keyup.enter="show"
-          @keyup.space="show"
         >
           {{ t('footer.wechat.title') }}
         </a>
@@ -158,6 +157,7 @@ export default {
             class="btn role-primary"
             tabindex="0"
             :aria-label="t('generic.close')"
+            role="button"
             @click="close"
             @keyup.enter="close"
             @keyup.space="close"

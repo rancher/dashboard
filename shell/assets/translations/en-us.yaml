@@ -4,6 +4,7 @@
 generic:
   add: Add
   all: All
+  ascending: ascending
   and: ' and '
   back: Back
   cancel: Cancel
@@ -19,6 +20,7 @@ generic:
   customize: Customize
   dashboard: Dashboard
   default: Default
+  descending: descending
   disabled: Disabled
   done: Done
   enabled: Enabled

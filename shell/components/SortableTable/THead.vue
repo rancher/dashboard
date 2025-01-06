@@ -162,6 +162,14 @@ export default {
       return col.name === this.sortBy;
     },
 
+    ariaSort(col) {
+      if (this.isCurrent(col)) {
+        return this.descending ? this.t('generic.descending') : this.t('generic.ascending');
+      }
+
+      return this.t('generic.none');
+    },
+
     tableColsOptionsClick(ev) {
       // set menu position
       const menu = document.querySelector('.table-options-container');
@@ -237,6 +245,7 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         :tabindex="col.sort ? 0 : -1"
         class="sortable-table-head-element"
+        :aria-sort="ariaSort(col)"
         @click.prevent="changeSort($event, col)"
         @keyup.enter="changeSort($event, col)"
         @keyup.space="changeSort($event, col)"

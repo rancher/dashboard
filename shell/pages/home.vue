@@ -512,7 +512,6 @@ export default defineComponent({
               :aria-label="t('landing.whatsNewLink')"
               @click.stop="showWhatsNew"
               @keyup.stop.enter="showWhatsNew"
-              @keyup.stop.space="showWhatsNew"
             ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
