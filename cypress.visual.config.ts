@@ -15,6 +15,10 @@ export default defineConfig({
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   video: false,
+  screenshotOnRunFailure: false,
+  // Define viewport to avoid issues with CI
+  viewportWidth: 1080,
+  viewportHeight: 720,
   retries: 0,
   env: {
     baseUrl,
