@@ -19,7 +19,6 @@ import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 import { mapGetters } from 'vuex';
-import { FetchPageSecondaryResourcesOpts } from 'components/PaginatedResourceTable.vue';
 
 export default defineComponent({
   name: 'ListNode',

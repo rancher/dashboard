@@ -31,7 +31,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -282,7 +282,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields)
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -293,7 +293,7 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
       },
       STEVE_AGE_COL
     ]
