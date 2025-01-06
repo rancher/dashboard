@@ -136,6 +136,7 @@ export default {
             href="#"
             tabindex="0"
             class="hide-show"
+            role="button"
             @click.prevent.stop="hideShowFn"
             @keyup.space.prevent.stop="hideShowFn"
           >

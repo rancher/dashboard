@@ -275,7 +275,6 @@ export default defineComponent({
 <template>
   <button
     ref="btn"
-    role="button"
     :class="classes"
     :name="name"
     :type="type"
