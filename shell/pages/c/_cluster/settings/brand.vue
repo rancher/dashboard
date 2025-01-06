@@ -42,10 +42,6 @@ export default {
 
     Object.assign(this, hash);
 
-    console.error('*****');
-    console.error(hash.uiBannerLightSetting);
-    console.error(hash.uiBannerDarkSetting);
-
     if (hash.uiLogoDarkSetting.value) {
       try {
         this.uiLogoDark = hash.uiLogoDarkSetting.value;
