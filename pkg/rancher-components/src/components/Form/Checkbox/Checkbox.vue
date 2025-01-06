@@ -227,7 +227,7 @@ export default defineComponent({
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        tabindex="-1"
+        :tabindex="isDisabled ? -1 : 0"
         :name="id"
         @click.stop.prevent
         @keyup.enter.stop.prevent
