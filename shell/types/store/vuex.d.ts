@@ -5,7 +5,7 @@
  * Generic interface for Vuex getters
  */
 export interface VuexStoreGetters {
-  [name:string]: Function
+  [name:string]: Function | any
 }
 
 export interface VuexStore {
