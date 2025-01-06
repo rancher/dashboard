@@ -1,0 +1,29 @@
+{
+  "extends": "../tsconfig.paths.json",
+  "target": "ES2018",
+  "module": "ES2020",
+  "moduleResolution": "Node",
+  "lib": [
+    "ES2020",
+    "ES2020.AsyncIterable",
+    "DOM"
+  ],
+  "allowJs": true,
+  "sourceMap": true,
+  "strict": true,
+  "noEmit": false,
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "baseUrl": "..",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": [
+      "cypress",
+      "@emerson-eps/cypress-image-snapshot"
+    ]
+  },
+  "include": [
+    "./**/*.ts",
+    "@emerson-eps/cypress-image-snapshot"
+  ]
+}

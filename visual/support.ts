@@ -4,7 +4,7 @@ import { CypressImageSnapshotOptions } from '@emerson-eps/cypress-image-snapshot
 const options = {
   failureThreshold: 0,
   padding: 10,
-  customSnapshotsDir: 'cypress/visual/snapshots',
+  customSnapshotsDir: 'visual/snapshots/',
   delayBetweenTries: 0,
   timeout: 500,
   disableTimersAndAnimations: true,
