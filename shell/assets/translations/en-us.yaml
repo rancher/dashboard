@@ -115,6 +115,7 @@ generic:
   basic: Basic
 
 locale:
+  menu: Locale selector menu
   en-us: English
   zh-hans: 简体中文
   none: (None)
