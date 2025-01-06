@@ -3,6 +3,7 @@ import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
+import { getSettingValue } from '@shell/utils/settings';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
@@ -24,7 +25,7 @@ export default {
     try {
       // The favicon is implicitly dependent on the initial settings having already been fetched
       if (!haveSetFavIcon()) {
-        setFavIcon(this.$store);
+        setFavIcon(this.$store, this.$plugin);
       }
     } catch (e) {}
 
@@ -50,19 +51,19 @@ export default {
     brand() {
       const setting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
 
-      return setting?.value;
+      return getSettingValue(setting, this.$plugin);
     },
 
     color() {
       const setting = this.globalSettings?.find((gs) => gs.id === SETTING.PRIMARY_COLOR);
 
-      return setting?.value;
+      return getSettingValue(setting, this.$plugin);
     },
 
     linkColor() {
       const setting = this.globalSettings?.find((gs) => gs.id === SETTING.LINK_COLOR);
 
-      return setting?.value;
+      return getSettingValue(setting, this.$plugin);
     },
 
     theme() {

@@ -13,6 +13,7 @@ import {
   LocationConfig,
   ExtensionPoint,
   TabLocation,
+  Setting,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -33,8 +34,7 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
-  public brand = '';
-  public brandOverride = false;
+  public settings: Setting[] = [];
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -229,9 +229,12 @@ export class Plugin implements IPlugin {
     });
   }
 
-  setBrand(brand: string, isOverride = false) {
-    this.brand = brand;
-    this.brandOverride = isOverride;
+  setSetting(name: string, value: string, override = false) {
+    this.settings.push({
+      name,
+      value,
+      override
+    });
   }
 
   setImage(path: string, image: Function) {

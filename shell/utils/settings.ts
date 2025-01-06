@@ -3,6 +3,12 @@ import { Store } from 'vuex';
 import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/settings';
 import { pluralize } from '@shell/utils/string';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
+import { IExtensions, RegistrationType, Setting } from 'core/types';
+
+interface ISetting {
+  id: string;
+  value: string;
+}
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
@@ -106,3 +112,46 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
 
   return Object.assign(safeDefaults, perfSetting || {});
 };
+
+// ===========================================================================================================================
+// Settings support with overrides from extensions
+// ===========================================================================================================================
+
+/**
+ * Get a setting value, either from the supplied setting resource, of from an extension, if set that way.
+ * This takes into account the override value when set via an extension.
+ * 
+ * @param setting Setting resource from the backend API 
+ * @param $plugin Extensions APi to use to look up the setting
+ * @returns Setting value or undefined if not set
+ */
+export function getSettingValue(setting: ISetting, $plugin: IExtensions): string | undefined {
+  if (!setting) {
+    return;
+  }
+
+  // Simple mapping of setting name - remove the 'ui-' prefix if present
+  const id = setting.id.startsWith('ui-') ? setting.id.substr(3) : setting.id;
+
+  // Check first if an extension has set the setting and use that
+  const extensionValue = getSettingFromExtension(id, $plugin);
+
+  // If the value is set from an extension, use it if it is set to always be an override
+  if (extensionValue?.value && extensionValue?.override) {
+    return extensionValue.value;
+  }
+
+  // Use the setting, or the value from an extension as a default when not set via a setting
+  return setting?.value || extensionValue?.value;  
+}
+
+/**
+ * Look to see if the given setting is provided by an extension and return it if so
+ *
+ * @param name Setting name to look up
+ * @param $plugin Extensions APi to use to look up the setting
+ * @returns Setting or undefined it not set by an extension
+ */
+export function getSettingFromExtension(name: string, $plugin: IExtensions): Setting {
+  return $plugin.getDynamic(RegistrationType.SETTING, name);
+}

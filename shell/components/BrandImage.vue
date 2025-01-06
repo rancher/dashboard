@@ -2,7 +2,8 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { RegistrationType, Settings } from '@shell/core/types';
+import { getSettingValue } from '@shell/utils/settings';
+import { RegistrationType } from '@shell/core/types';
 
 export default {
   props: {
@@ -40,18 +41,9 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     brand() {
-      // Check first if an extension has set the brand and use that
-      const brand = this.$plugin.getDynamic(RegistrationType.SETTING, Settings.BRAND);
-
-      // If the value is set from an extension, use it if it is set to be an override
-      if (brand?.value && brand?.override) {
-        return brand.value;
-      }
-
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
-      // Use the setting, or the brand value from an extension as a default when not set via a setting
-      return setting.value || brand?.value;
+      return getSettingValue(setting, this.$plugin);
     },
 
     uiLogoLight() {
@@ -86,6 +78,11 @@ export default {
       } catch {
         return require(`~shell/assets/images/pl/${ this.fileName }`);
       }
+    },
+
+    // Used when we look up images from extensions - we do this without the file extension
+    fileNameWithoutExtension() {
+      return this.fileName.split('.').slice(0, -1).join('.');
     },
 
     pathToBrandedImage() {
@@ -123,7 +120,7 @@ export default {
         return this.defaultPathToBrandedImage;
       } else {
         if (this.theme === 'dark' || this.dark) {
-          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/dark/${ this.fileName }`);
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/dark/${ this.fileNameWithoutExtension }`);
 
           if (file) {
             return file;
@@ -134,7 +131,7 @@ export default {
           } catch {}
         }
         try {
-          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/${ this.fileName }`);
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/${ this.fileNameWithoutExtension }`);
 
           if (file) {
             return file;

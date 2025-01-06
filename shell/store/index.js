@@ -857,7 +857,7 @@ export const actions = {
     const systemNamespaces = res.settings?.find((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
-      setVendor(pl);
+      setVendor(pl, this.$plugin);
     }
 
     if (brand) {

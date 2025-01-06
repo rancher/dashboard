@@ -32,6 +32,12 @@ export enum Settings {
   BRAND = 'brand' // eslint-disable-line no-unused-vars
 }
 
+export interface Setting {
+  name: string;
+  value: string;
+  override: boolean;
+}
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
@@ -477,6 +483,18 @@ export interface DSLReturnType {
 }
 
 /**
+ * Interface for Extensions manager
+ */
+export interface IExtensions {
+  /**
+   * Lookup the given extension type
+   * @param type Type to lookup (e.g. image)
+   * @param name Name of the extension point
+   */
+  getDynamic(type: string, name: string): any;
+}
+
+/**
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
@@ -546,11 +564,13 @@ export interface IPlugin {
   setHomePage(component: any): void;
 
   /**
-   * Sets the brand to use in the UI
-   * @param brand Brand name to use
-   * @param isOverride Indicates if the brand name should always override the ui-brand setting
+   * Sets the given setting to use in the UI
+   *
+   * @param name Setting name
+   * @param value Setting value
+   * @param override Indicates if the setting should override a setting from the backend (via the resource)
    */
-  setBrand(brand: string, isOverride?: boolean): void;
+  setSetting(name: string, value: string, override?: boolean): void;
 
   /**
    * Sets an image override to use in the UI

@@ -298,17 +298,19 @@ export default function(context, inject, vueApp) {
         });
 
         // Brand
-        if (plugin.brand) {
-          // Check for multiple settings
-          if (this.getDynamic(RegistrationType.SETTING, Settings.BRAND)) {
-            console.warning('Brand has already been set by another extension - ignoring'); // eslint-disable-line no-console
-          } else {
-            this.register(RegistrationType.SETTING, Settings.BRAND, {
-              value:     plugin.brand,
-              extension: plugin.name,
-              override:  plugin.brandOverride
-            });
-          }
+        if (plugin.settings.length) {
+          plugin.settings.forEach((setting) => {
+            // Check if the setting has already been set by another extension
+            if (this.getDynamic(RegistrationType.SETTING, setting.name)) {
+              console.warning(`Setting ${ setting.name } has already been set by another extension - ignoring`); // eslint-disable-line no-console
+            } else {
+              this.register(RegistrationType.SETTING, setting.name, {
+                value:     setting.value,
+                extension: plugin.name,
+                override:  setting.override
+              });
+            }
+          });
         }
 
         // Routes

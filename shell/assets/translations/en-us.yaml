@@ -7604,6 +7604,7 @@ banner:
 branding:
   label: Branding
   directoryName: Brand Asset Directory Name
+  setByExtensionNoOverride: "Branding settings are set by the extension <b>{name}</b> and can not be overriden"
   logos:
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
