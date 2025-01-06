@@ -21,6 +21,7 @@ export default defineConfig({
   },
   env: {
     baseUrl,
+    coverage: false
   },
   component: {
     devServer: {
