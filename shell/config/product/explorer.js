@@ -350,7 +350,7 @@ export function init(store) {
     ]
   );
   headers(HPA,
-    [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
+    [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
@@ -359,6 +359,7 @@ export function init(store) {
       MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      STEVE_AGE_COL
     ]
   );
 
