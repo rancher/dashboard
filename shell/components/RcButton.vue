@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, defineExpose } from 'vue';
 
 type Props = {
   primary?: boolean;
@@ -26,10 +26,19 @@ const buttonClass = computed(() => {
     [activeRole?.className || 'role-primary']: true,
   };
 });
+
+const RcFocusTarget = ref(null);
+
+const focus = () => {
+  RcFocusTarget.value.focus();
+};
+
+defineExpose({ focus });
 </script>
 
 <template>
   <button
+    ref="RcFocusTarget"
     :class="{ ...buttonClass, ...($attrs.class || { }) }"
   >
     <slot name="before">
@@ -43,3 +52,12 @@ const buttonClass = computed(() => {
     </slot>
   </button>
 </template>
+
+<style lang="scss" scoped>
+.role-link {
+   &:focus, &.focused {
+    outline: var(--outline-width) solid var(--outline);
+    box-shadow: 0 0 0 var(--outline-width) var(--outline);
+   }
+}
+</style>
