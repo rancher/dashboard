@@ -5,9 +5,16 @@ import Namespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
   CAPI,
-  CONFIG_MAP, MANAGEMENT, NAMESPACE, NODE, POD
+  CATALOG,
+  CONFIG_MAP, MANAGEMENT, EVENT, NAMESPACE, NODE, POD, PVC,
+  PV,
+  STORAGE_CLASS,
+  SERVICE,
+  INGRESS,
+  WORKLOAD_TYPES,
+  HPA
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 
 class NamespaceProjectFilters {
@@ -133,8 +140,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [MANAGEMENT.CLUSTER]: [
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
-      // { field: `status.provider` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
-      // { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` }, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+      { field: `status.provider` },
+      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
 
     ],
     [CONFIG_MAP]: [
@@ -146,11 +153,71 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [CAPI.MACHINE]: [
       { field: 'spec.clusterName' }
     ],
+    [EVENT]: [
+      { field: '_type' },
+      { field: 'reason' },
+      { field: 'involvedObject.kind' },
+      { field: 'message' },
+    ],
+    [CATALOG.CLUSTER_REPO]: [
+      { field: 'spec.gitRepo' },
+      { field: 'spec.gitBranch' },
+      { field: `metadata.annotations[clusterrepo.cattle.io/hidden]` }
+    ],
+    [CATALOG.OPERATION]: [
+      { field: 'status.action' },
+      { field: 'status.namespace' },
+      { field: 'status.releaseName' },
+    ],
     [CAPI.RANCHER_CLUSTER]: [
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
+    ],
+    [SERVICE]: [
+      { field: 'spec.type' },
+      // { field: 'spec.clusterIP' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+    ],
+    [INGRESS]: [
+      // { field: 'spec.rules.host' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+      // { field: 'spec.ingressClassName' }, // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+    ],
+    [HPA]: [
+      // { field: 'spec.scaleTargetRef.name' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.minReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.maxReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+      // { field: 'spec.currentReplicas' }, // Pending API support https://github.com/rancher/rancher/issues/48473 (hpa filtering fix)
+    ],
+    [PVC]: [
+      { field: 'spec.volumeName' },
+    ],
+    [PV]: [
+      { field: 'status.reason' },
+      { field: 'spec.persistentVolumeReclaimPolicy' },
+    ],
+    [STORAGE_CLASS]: [
+      { field: 'provisioner' },
+      // { field: `metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS]` }, // Pending API Support - https://github.com/rancher/rancher/issues/48453
+    ],
+    [CATALOG.APP]: [
+      { field: 'spec.chart.metadata.name' }
+    ],
+    [WORKLOAD_TYPES.CRON_JOB]: [
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+    ],
+    [WORKLOAD_TYPES.DAEMON_SET]: [
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+    ],
+    [WORKLOAD_TYPES.DEPLOYMENT]: [
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+    ],
+    [WORKLOAD_TYPES.JOB]: [
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+    ],
+    [WORKLOAD_TYPES.STATEFUL_SET]: [
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
     ]
+
   }
 
   private convertArrayPath(path: string): string {
@@ -318,18 +385,21 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     state.checked.push(field);
 
     // First check in our hardcoded list of supported filters
-    if ([
-      StevePaginationUtils.VALID_FIELDS[''], // Global
-      StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
-    ].find((fields) => fields?.find((f) => {
-      if (f.startsWith) {
-        if (field.startsWith(f.field)) {
-          return true;
+    if (
+      process.env.NODE_ENV === 'dev' &&
+      [
+        StevePaginationUtils.VALID_FIELDS[''], // Global
+        StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
+      ].find((fields) => fields?.find((f) => {
+        if (f.startsWith) {
+          if (field.startsWith(f.field)) {
+            return true;
+          }
+        } else {
+          return field === f.field;
         }
-      } else {
-        return field === f.field;
-      }
-    }))) {
+      }))
+    ) {
       return;
     }
 

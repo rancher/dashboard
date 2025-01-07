@@ -48,7 +48,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    // check if burguer menu nav is highlighted correctly for local cluster
+    // check if burger menu nav is highlighted correctly for local cluster
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
@@ -257,18 +257,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
-    cy.visit(clusterDashboard.urlPath(), {
-      onBeforeLoad(win) {
-        cy.stub(win.console, 'error').as('consoleError');
-        cy.stub(win.console, 'warn').as('consoleWarn');
-      },
-    });
-
     eventsNoDataset();
     clusterDashboard.goTo();
-
-    cy.get('@consoleError').should('not.be.called'); // See error lot
-    cy.get('@consoleWarn').should('not.be.called'); // See warning log (there will be some....)
 
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');

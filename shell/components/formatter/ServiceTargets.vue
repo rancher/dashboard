@@ -95,7 +95,7 @@ export default {
     },
   },
 };
-</script>>
+</script>
 
 <template>
   <div>
