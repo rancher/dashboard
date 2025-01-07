@@ -589,8 +589,9 @@ export default defineComponent({
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
-                      role="link"
+                      role="button"
                       :aria-label="t('cluster.manageAction')"
+                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
                     </router-link>
@@ -599,8 +600,9 @@ export default defineComponent({
                       :to="importLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
-                      role="link"
+                      role="button"
                       :aria-label="t('cluster.importAction')"
+                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
                     </router-link>
@@ -609,8 +611,9 @@ export default defineComponent({
                       :to="createLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
-                      role="link"
+                      role="button"
                       :aria-label="t('generic.create')"
+                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
                     </router-link>
