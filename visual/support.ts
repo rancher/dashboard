@@ -8,5 +8,6 @@ const options = {
   delayBetweenTries: 0,
   timeout: 500,
   disableTimersAndAnimations: true,
+  diffDirection: 'vertical',
 } as CypressImageSnapshotOptions;
 addMatchImageSnapshotCommand(options)
