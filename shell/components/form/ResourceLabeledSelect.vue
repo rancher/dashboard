@@ -120,7 +120,8 @@ export default defineComponent({
     }
 
     if (!this.paginate) {
-      await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType }); // TODO: RC
+      // The resource won't be paginated and component expects everything up front
+      await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType });
     }
   },
 
@@ -154,7 +155,8 @@ export default defineComponent({
 
   methods: {
     /**
-     * Typeof LabelSelectPaginateFn
+     * Make the request to fetch the resource given the state of the label select (filter, page, page size, etc see LabelSelectPaginateFn)
+     * opts: Typeof LabelSelectPaginateFn
      */
     async paginateType(opts: LabelSelectPaginateFnOptions): Promise<LabelSelectPaginateFnResponse> {
       if (this.paginatedResourceSettings?.overrideRequest) {

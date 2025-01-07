@@ -8,10 +8,11 @@ import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Conditions from '@shell/components/form/Conditions';
 import { EVENT } from '@shell/config/types';
-import SortableTable from '@shell/components/SortableTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 export default {
 
@@ -21,7 +22,7 @@ export default {
     Tabbed,
     Tab,
     Conditions,
-    SortableTable,
+    PaginatedResourceTable,
     RelatedResources,
   },
 
@@ -71,10 +72,10 @@ export default {
     const inStore = this.$store.getters['currentStore'](EVENT);
 
     return {
-      hasEvents:      this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
-      allEvents:      [],
+      eventSchema:    this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
+      EVENT,
       selectedTab:    this.defaultTab,
-      didLoadEvents:  false,
+      // didLoadEvents:  false,
       inStore,
       showConditions: false,
     };
@@ -92,7 +93,7 @@ export default {
 
   computed: {
     showEvents() {
-      return this.isView && this.needEvents && this.hasEvents;
+      return this.isView && this.needEvents && this.eventSchema;
     },
     showRelated() {
       return this.isView && this.needRelated;
@@ -128,18 +129,6 @@ export default {
         },
       ];
     },
-    events() {
-      return this.allEvents.filter((event) => {
-        return event.involvedObject?.uid === this.value?.metadata?.uid;
-      }).map((event) => {
-        return {
-          reason:    (`${ event.reason || this.t('generic.unknown') }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
-          message:   event.message || this.t('generic.unknown'),
-          date:      event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
-          eventType: event.eventType
-        };
-      });
-    },
     conditionsHaveIssues() {
       if (this.showConditions) {
         return this.value.status?.conditions?.filter((cond) => !isConditionReadyAndWaiting(cond)).some((cond) => cond.error);
@@ -153,16 +142,6 @@ export default {
     // Ensures we only fetch events and show the table when the events tab has been activated
     tabChange(neu) {
       this.selectedTab = neu?.selectedName;
-
-      if (!this.didLoadEvents && this.selectedTab === 'events') {
-        const inStore = this.$store.getters['currentStore'](EVENT);
-
-        // TODO: RC
-        this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }).then((events) => {
-          this.allEvents = events;
-          this.didLoadEvents = true;
-        });
-      }
     },
 
     /**
@@ -181,6 +160,54 @@ export default {
         this.showConditions = this.$store.getters[`${ this.inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
       }
     },
+
+    /**
+     * Filter out hidden repos from list of all repos
+     */
+    filterRowsLocal(rows) {
+      return rows.filter((event) => event.involvedObject?.uid === this.value?.metadata?.uid);
+    },
+
+    /**
+     * Filter out hidden repos via api
+     *
+     * pagination: PaginationArgs
+     * returns: PaginationArgs
+     */
+    filterRowsApi(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const field = `involvedObject.uid`; // Pending API Support - https://github.com/rancher/rancher/issues/48603
+
+      // of type PaginationParamFilter
+      let existing = null;
+
+      for (let i = 0; i < pagination.filters.length; i++) {
+        const filter = pagination.filters[i];
+
+        if (!!filter.fields.find((f) => f.field === field)) {
+          existing = filter;
+          break;
+        }
+      }
+
+      const required = PaginationParamFilter.createSingleField({
+        field,
+        exact:  true,
+        value:  this.value.metadata.uid,
+        equals: true
+      });
+
+      if (!!existing) {
+        Object.assign(existing, required);
+      } else {
+        pagination.filters.push(required);
+      }
+
+      return pagination;
+    }
   }
 };
 </script>
@@ -209,15 +236,12 @@ export default {
       name="events"
       :weight="-2"
     >
-      <SortableTable
+      <PaginatedResourceTable
         v-if="selectedTab === 'events'"
-        :rows="events"
-        :headers="eventHeaders"
-        key-field="id"
-        :search="false"
-        :table-actions="false"
-        :row-actions="false"
-        default-sort-by="date"
+        :schema="eventSchema"
+        :local-filter="filterRowsLocal"
+        :api-filter="filterRowsApi"
+        :use-query-params-for-simple-filtering="false"
       />
     </Tab>
 

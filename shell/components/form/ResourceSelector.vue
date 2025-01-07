@@ -36,7 +36,9 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) }); // TODO: RC
+    // TODO: RC find all 10417, update comment
+    // https://github.com/rancher/dashboard/issues/10417 require in order to scale application of labelSelects
+    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
 
     this.allResources = hash.allResources;
 
