@@ -53,7 +53,7 @@ export default {
     this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
 
     const promises = {
-      services:              this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      services:              this.$store.dispatch('cluster/findAll', { type: SERVICE }), // TODO: RC findAll SERVICE
       ingressClasses:        this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
       ingressResourceFields: this.schema.fetchResourceFields(),
     };

@@ -173,7 +173,7 @@ export default {
     },
     async loadWorkloads() {
       await Promise.all(
-        Object.values(SCALABLE_WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
+        Object.values(SCALABLE_WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }) // TODO: RC workload
         )
       );
     },

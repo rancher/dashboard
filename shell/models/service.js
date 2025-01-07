@@ -138,6 +138,7 @@ export default class extends SteveModel {
 
   async fetchPods() {
     if (this.podRelationship) {
+      // https://github.com/rancher/dashboard/issues/10417
       await this.$dispatch('cluster/findMatching', {
         type:      POD,
         selector:  this.podRelationship.selector,

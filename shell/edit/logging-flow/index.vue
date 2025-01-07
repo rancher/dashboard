@@ -77,9 +77,9 @@ export default {
     const hash = await allHash({
       allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
-      allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
-      allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
-      allPods:           getAllOrDefault(POD, hasAccessToPods),
+      allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces), // TODO: RC findAll NAMESPACE
+      allNodes:          getAllOrDefault(NODE, hasAccessToNodes), // TODO: RC findAll NODE
+      allPods:           getAllOrDefault(POD, hasAccessToPods), // TODO: RC findAll POD
     });
 
     for ( const k of Object.keys(hash) ) {

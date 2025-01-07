@@ -287,7 +287,7 @@ export default {
 
         const hash = {
           provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }), // TODO: RC findAll POD
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 

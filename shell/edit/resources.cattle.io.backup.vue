@@ -52,7 +52,7 @@ export default {
     const hash = await allHash({
       catalog:     this.$store.dispatch('catalog/load'),
       resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
-      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP }) // TODO: RC APP
     });
 
     this.apps = hash.apps;

@@ -84,7 +84,7 @@ export default {
   },
   fetch() {
     // Fetch revisions of the current workload
-    this.$store.dispatch('cluster/findAll', { type: this.revisionsType })
+    this.$store.dispatch('cluster/findAll', { type: this.revisionsType }) // TODO: RC workload
       .then(( response ) => {
         const allRevisions = response;
 

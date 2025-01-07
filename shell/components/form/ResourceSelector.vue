@@ -36,7 +36,7 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
+    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) }); // TODO: RC
 
     this.allResources = hash.allResources;
 

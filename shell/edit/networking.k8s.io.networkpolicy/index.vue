@@ -43,8 +43,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }),
-      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
+      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }), // TODO: RC findAll POD
+      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }), // TODO: RC findAll NAMESPACE
     });
 
     this.allPods = hash.allPods;

@@ -120,7 +120,7 @@ export default defineComponent({
     }
 
     if (!this.paginate) {
-      await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType });
+      await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType }); // TODO: RC
     }
   },
 

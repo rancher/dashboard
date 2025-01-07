@@ -157,6 +157,7 @@ export default {
       if (!this.didLoadEvents && this.selectedTab === 'events') {
         const inStore = this.$store.getters['currentStore'](EVENT);
 
+        // TODO: RC
         this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }).then((events) => {
           this.allEvents = events;
           this.didLoadEvents = true;

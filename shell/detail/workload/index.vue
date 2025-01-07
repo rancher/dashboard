@@ -49,15 +49,15 @@ export default {
     const hash = {
       // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
       allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
-      allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
+      allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }), // TODO: RC SERVICE
+      allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }), // TODO: RC INGRESS
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.
-      allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
+      allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : [] // TODO: RC NODE
     };
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB }); // TODO: RC JOB
     }
     const res = await allHash(hash);
 

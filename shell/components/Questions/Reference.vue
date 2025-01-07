@@ -31,7 +31,7 @@ export default {
 
   async fetch() {
     if ( this.typeSchema ) {
-      this.all = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.typeName });
+      this.all = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.typeName }); // TODO: RC
     }
   },
 

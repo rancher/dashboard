@@ -19,7 +19,7 @@ export default {
   mixins: [CreateEditView],
   async fetch() {
     const promises = {
-      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }), // TODO: RC SERVICE
       resourceFields: this.schema.fetchResourceFields(),
     };
 
@@ -36,7 +36,7 @@ export default {
 
       promises.filteredSecrets = this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
     } else {
-      promises.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
+      promises.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET }); // TODO: RC SECRET
     }
     const hash = await allHash(promises);
 

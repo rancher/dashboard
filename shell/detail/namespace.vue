@@ -198,7 +198,7 @@ export default {
       return Promise.all(values(WORKLOAD_TYPES)
         // You may not have RBAC to see some of the types
         .filter((type) => Boolean(this.schemaFor(type)))
-        .map((type) => this.$store.dispatch('cluster/findAll', { type }))
+        .map((type) => this.$store.dispatch('cluster/findAll', { type })) // TODO: RC
       );
     },
 
