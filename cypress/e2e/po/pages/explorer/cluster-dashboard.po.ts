@@ -4,7 +4,8 @@ import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog
 import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
-import { HeaderPo } from '~/cypress/e2e/po/components/header.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -15,6 +16,10 @@ export default class ClusterDashboardPagePo extends PagePo {
     return super.goTo(ClusterDashboardPagePo.createPath(clusterId));
   }
 
+  urlPath(clusterId = 'local') {
+    return ClusterDashboardPagePo.createPath(clusterId);
+  }
+
   constructor(clusterId: string) {
     super(ClusterDashboardPagePo.createPath(clusterId));
   }
@@ -22,8 +27,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   static navTo(clusterId = 'local') {
     const burgerMenu = new BurgerMenuPo();
 
-    BurgerMenuPo.toggle();
-    burgerMenu.clusterNotPinnedList().contains(clusterId).click();
+    burgerMenu.goToCluster(clusterId);
   }
 
   customizeAppearanceButton() {
@@ -53,7 +57,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   fullEventsLink() {
-    return cy.get('.events-table-link').contains('Full events list');
+    return cy.get('[data-testid="events-link"]').contains('Full events list');
   }
 
   fullSecretsList() {
@@ -78,5 +82,46 @@ export default class ClusterDashboardPagePo extends PagePo {
 
   controllerManagerStatus() {
     return cy.get('[data-testid="k8s-service-controller-manager"]');
+  }
+
+  /**
+   * Confirm that the ns filter is set correctly before navigating to a page that will use it
+   * 1. nav to cluster dashboard
+   * 2. check ns filter values
+   */
+  static goToAndConfirmNsValues(cluster: string, {
+    nsProject,
+    all
+  }: {
+    nsProject?: {
+      values: string[]
+    },
+    all?: {
+      is: boolean,
+    }
+  }) {
+    const instance = new ClusterDashboardPagePo(cluster);
+    const nsfilter = new NamespaceFilterPo();
+
+    instance.goTo();
+    instance.waitForPage();
+    nsfilter.checkVisible();
+
+    if (nsProject) {
+      for (let i = 0; i < nsProject.values.length; i++) {
+        nsfilter.selectedValues().contains(nsProject.values[i]);
+      }
+    } else if (all) {
+      nsfilter.allSelected();
+    } else {
+      throw new Error('Bad Config');
+    }
+  }
+
+  static goToAndWait(cluster: string) {
+    const instance = new ClusterDashboardPagePo(cluster);
+
+    instance.goTo();
+    instance.clusterActionsHeader().checkVisible();
   }
 }

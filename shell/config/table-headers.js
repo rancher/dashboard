@@ -82,7 +82,7 @@ export const EFFECT = {
 export const STORAGE_CLASS_PROVISIONER = {
   name:     'storage_class_provisioner',
   labelKey: 'tableHeaders.storage_class_provisioner',
-  value:    'provisionerDisplay',
+  value:    'provisionerListDisplay',
   sort:     ['provisioner'],
 };
 
@@ -94,6 +94,9 @@ export const STORAGE_CLASS_DEFAULT = {
   formatter: 'Checked',
 };
 
+/**
+ * spec.csi.driver OR spec[known driver type]
+ */
 export const PERSISTENT_VOLUME_SOURCE = {
   name:     'persistent_volume_source',
   labelKey: 'tableHeaders.persistentVolumeSource',
@@ -101,13 +104,16 @@ export const PERSISTENT_VOLUME_SOURCE = {
   sort:     ['provisioner'],
 };
 
+/**
+ * Link to the PVC associated with PV
+ */
 export const PERSISTENT_VOLUME_CLAIM = {
   name:          'persistent-volume-claim',
   labelKey:      'tableHeaders.persistentVolumeClaim',
-  sort:          ['nameSort'],
+  sort:          ['claimName'],
   value:         'claimName',
   formatter:     'LinkDetail',
-  formatterOpts: { reference: 'claim.detailLocation' },
+  formatterOpts: { reference: 'claim.detailLocation' }
 };
 
 export const OUTPUT = {
@@ -318,15 +324,6 @@ export const POD_RESTARTS = {
   // This column is expensive to compute, so don't make it searchable
   search:       false,
   liveUpdates:  true
-};
-
-export const ENDPOINTS = {
-  name:      'endpoint',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'status.endpoints',
-  formatter: 'Endpoints',
-  width:     60,
-  align:     'center',
 };
 
 export const SCALE = {
@@ -657,8 +654,8 @@ export const TARGET_PORT = {
   formatter: 'ServiceTargets',
   labelKey:  'tableHeaders.targetPort',
   name:      'targetPort',
-  sort:      `$['spec']['targetPort']`,
-  value:     `$['spec']['targetPort']`,
+  sort:      false,
+  value:     false,
 };
 
 export const SELECTOR = {

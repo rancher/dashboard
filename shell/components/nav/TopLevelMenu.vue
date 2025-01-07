@@ -4,18 +4,20 @@ import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
+import { MENU_MAX_CLUSTERS, PINNED_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { SETTING } from '@shell/config/settings';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 import { getGlobalBannerFontSizes } from '@shell/utils/banners';
+import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
+import { debounce } from 'lodash';
+import { sameContents } from '@shell/utils/array';
 
 export default {
   components: {
@@ -29,6 +31,28 @@ export default {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
+    const canPagination = this.$store.getters[`management/paginationEnabled`]({
+      id:      MANAGEMENT.CLUSTER,
+      context: 'side-bar',
+    }) && this.$store.getters[`management/paginationEnabled`]({
+      id:      CAPI.RANCHER_CLUSTER,
+      context: 'side-bar',
+    });
+    const helper = canPagination ? new TopLevelMenuHelperPagination({ $store: this.$store }) : new TopLevelMenuHelperLegacy({ $store: this.$store });
+    const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
+    const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
+
+    if (!canPagination) {
+      // Reduce the impact of the initial load, but only if we're not making a request
+      const args = {
+        pinnedIds:   this.pinnedIds,
+        searchTerm:  this.search,
+        unPinnedMax: this.maxClustersToShow
+      };
+
+      helper.update(args);
+    }
+
     return {
       shown:             false,
       displayVersion,
@@ -37,27 +61,27 @@ export default {
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
-      showPinClusters:   false,
-      searchActive:      false,
       routeCombo:        false,
-    };
-  },
 
-  fetch() {
-    if (this.hasProvCluster) {
-      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    }
+      canPagination,
+      helper,
+      debouncedHelperUpdateSlow:   debounce((...args) => this.helper.update(...args), 1000),
+      debouncedHelperUpdateMedium: debounce((...args) => this.helper.update(...args), 750),
+      debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
+      provClusters,
+      mgmtClusters,
+    };
   },
 
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
-    value: {
-      get() {
-        return this.$store.getters['productId'];
-      },
+
+    pinnedIds() {
+      return this.$store.getters['prefs/get'](PINNED_CLUSTERS);
     },
+
     sideMenuStyle() {
       const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
 
@@ -68,161 +92,47 @@ export default {
     },
 
     showClusterSearch() {
-      return this.clusters.length > this.maxClustersToShow;
+      return this.allClustersCount > this.maxClustersToShow;
+    },
+
+    allClustersCount() {
+      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
+      const count = counts[MANAGEMENT.CLUSTER] || {};
+
+      return count?.summary.count;
+    },
+
+    // New
+    search() {
+      return (this.clusterFilter || '').toLowerCase();
+    },
+
+    // New
+    showPinClusters() {
+      return !this.clusterFilter;
+    },
+
+    // New
+    searchActive() {
+      return !!this.search;
     },
 
     /**
-     * Filter mgmt clusters by
-     * 1. Harvester type 1 (filterOnlyKubernetesClusters)
-     * 2. Harvester type 2 (filterHiddenLocalCluster)
-     * 3. There's a matching prov cluster
+     * Only Clusters that are pinned
      *
-     * Convert remaining clusters to special format
-     */
-    clusters() {
-      if (!this.hasProvCluster) {
-        // We're filtering out mgmt clusters without prov clusters, so if the user can't see any prov clusters at all
-        // exit early
-        return [];
-      }
-
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const mgmtClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
-      const provClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-      const provClustersByMgmtId = provClusters.reduce((res, provCluster) => {
-        if (provCluster.mgmt?.id) {
-          res[provCluster.mgmt.id] = provCluster;
-        }
-
-        return res;
-      }, {});
-
-      return (mgmtClusters || []).reduce((res, mgmtCluster) => {
-        // Filter to only show mgmt clusters that exist for the available provisioning clusters
-        // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
-        // provisioning cluster has been deleted
-        if (!provClustersByMgmtId[mgmtCluster.id]) {
-          return res;
-        }
-
-        const pCluster = provClustersByMgmtId[mgmtCluster.id];
-
-        res.push({
-          id:              mgmtCluster.id,
-          label:           mgmtCluster.nameDisplay,
-          ready:           mgmtCluster.isReady && !pCluster?.hasError,
-          osLogo:          mgmtCluster.providerOsLogo,
-          providerNavLogo: mgmtCluster.providerMenuLogo,
-          badge:           mgmtCluster.badge,
-          isLocal:         mgmtCluster.isLocal,
-          isHarvester:     mgmtCluster.isHarvester,
-          pinned:          mgmtCluster.pinned,
-          description:     pCluster?.description || mgmtCluster.description,
-          pin:             () => mgmtCluster.pin(),
-          unpin:           () => mgmtCluster.unpin(),
-          clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
-        });
-
-        return res;
-      }, []);
-    },
-
-    /**
-     * Filter clusters by
-     * 1. Not pinned
-     * 2. Includes search term
-     *
-     * Sort remaining clusters
-     *
-     * Reduce number of clusters if too many too show
-     *
-     * Important! This is used to show unpinned clusters OR results of search
-     */
-    clustersFiltered() {
-      const search = (this.clusterFilter || '').toLowerCase();
-      let localCluster = null;
-
-      const filtered = this.clusters.filter((c) => {
-        // If we're searching we don't care if pinned or not
-        if (search) {
-          if (!c.label?.toLowerCase().includes(search)) {
-            return false;
-          }
-        } else if (c.pinned) {
-          // Not searching, not pinned, don't care
-          return false;
-        }
-
-        if (!localCluster && c.id === 'local') {
-          // Local cluster is a special case, we're inserting it at top so don't include in the middle
-          localCluster = c;
-
-          return false;
-        }
-
-        return true;
-      });
-
-      const sorted = sortBy(filtered, ['ready:desc', 'label']);
-
-      // put local cluster on top of list always - https://github.com/rancher/dashboard/issues/10975
-      if (localCluster) {
-        sorted.unshift(localCluster);
-      }
-
-      if (search) {
-        this.showPinClusters = false;
-        this.searchActive = !sorted.length > 0;
-
-        return sorted;
-      }
-      this.showPinClusters = true;
-      this.searchActive = false;
-
-      if (sorted.length >= this.maxClustersToShow) {
-        return sorted.slice(0, this.maxClustersToShow);
-      }
-
-      return sorted;
-    },
-
-    /**
-     * Filter clusters by
-     * 1. Not pinned
-     * 2. Includes search term
-     *
-     * Sort remaining clusters
-     *
-     * Reduce number of clusters if too many too show
-     *
-     * Important! This is hidden if there's a filter (user searching)
+     * (see description of helper.clustersPinned for more details)
      */
     pinFiltered() {
-      let localCluster = null;
-      const filtered = this.clusters.filter((c) => {
-        if (!c.pinned) {
-          // We only care about pinned clusters
-          return false;
-        }
+      return this.hasProvCluster ? this.helper.clustersPinned : [];
+    },
 
-        if (c.id === 'local') {
-          // Special case, we're going to add this at the start so filter out
-          localCluster = c;
-
-          return false;
-        }
-
-        return true;
-      });
-
-      const sorted = sortBy(filtered, ['ready:desc', 'label']);
-
-      // put local cluster on top of list always - https://github.com/rancher/dashboard/issues/10975
-      if (localCluster) {
-        sorted.unshift(localCluster);
-      }
-
-      return sorted;
+    /**
+     * Used to shown unpinned clusters OR results of text search
+     *
+     * (see description of helper.clustersOthers for more details)
+     */
+    clustersFiltered() {
+      return this.hasProvCluster ? this.helper.clustersOthers : [];
     },
 
     pinnedClustersHeight() {
@@ -232,7 +142,7 @@ export default {
       return `min-height: ${ height }px`;
     },
     clusterFilterCount() {
-      return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
+      return this.clusterFilter ? this.clustersFiltered.length : this.allClustersCount;
     },
 
     multiClusterApps() {
@@ -360,10 +270,55 @@ export default {
     }
   },
 
+  // See https://github.com/rancher/dashboard/issues/12831 for outstanding performance related work
   watch: {
     $route() {
       this.shown = false;
-    }
+    },
+
+    // Before SSP world all of these changes were kicked off given Vue change detection to properties in a computed method.
+    // Changes could come from two scenarios
+    // 1. Changes made by the user (pin / search). Could be tens per second
+    // 2. Changes made by rancher to clusters (state, label, etc change). Could be hundreds a second
+    // They can be restricted to help the churn caused from above
+    // 1. When SSP enabled reduce http spam
+    // 2. When SSP is disabled (legacy) reduce fn churn (this was a known performance customer issue)
+
+    pinnedIds: {
+      immediate: true,
+      handler(neu, old) {
+        if (sameContents(neu, old)) {
+          return;
+        }
+
+        // Low throughput (user click). Changes should be shown quickly
+        this.updateClusters(neu, 'quick');
+      }
+    },
+
+    search() {
+      // Medium throughput. Changes should be shown quickly, unless we want to reduce http spam in SSP world
+      this.updateClusters(this.pinnedIds, this.canPagination ? 'medium' : 'quick');
+    },
+
+    provClusters: {
+      handler(neu, old) {
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
+      },
+      deep:      true,
+      immediate: true,
+    },
+
+    mgmtClusters: {
+      handler(neu, old) {
+        // Potentially incredibly high throughput. Changes should be at least limited (slow if state change, quick if added/removed). Shouldn't get here if SSP
+        this.updateClusters(this.pinnedIds, neu?.length === old?.length ? 'slow' : 'quick');
+      },
+      deep:      true,
+      immediate: true,
+    },
+
   },
 
   mounted() {
@@ -490,9 +445,30 @@ export default {
         popperClass
       };
     },
+
+    updateClusters(pinnedIds, speed = 'slow' | 'medium' | 'quick') {
+      const args = {
+        pinnedIds,
+        searchTerm:  this.search,
+        unPinnedMax: this.maxClustersToShow
+      };
+
+      switch (speed) {
+      case 'slow':
+        this.debouncedHelperUpdateSlow(args);
+        break;
+      case 'medium':
+        this.debouncedHelperUpdateMedium(args);
+        break;
+      case 'quick':
+        this.debouncedHelperUpdateQuick(args);
+        break;
+      }
+    }
   }
 };
 </script>
+
 <template>
   <div>
     <!-- Overlay -->
@@ -509,6 +485,8 @@ export default {
         :class="{'menu-open': shown, 'menu-close':!shown}"
         :style="sideMenuStyle"
         tabindex="-1"
+        role="navigation"
+        :aria-label="t('nav.ariaLabel.topLevelMenu')"
       >
         <!-- Logo and name -->
         <div class="title">
@@ -528,6 +506,7 @@ export default {
               height="24"
               viewBox="0 0 24 24"
               width="24"
+              :alt="t('nav.alt.mainMenuIcon')"
             ><path
               d="M0 0h24v24H0z"
               fill="none"
@@ -536,6 +515,7 @@ export default {
           <div class="side-menu-logo">
             <BrandImage
               data-testid="side-menu__brand-img"
+              :alt="t('nav.alt.mainMenuRancherLogo')"
               file-name="rancher-logo.svg"
             />
           </div>
@@ -549,9 +529,12 @@ export default {
               <router-link
                 class="option cluster selector home"
                 :to="{ name: 'home' }"
+                role="link"
+                :aria-label="t('nav.ariaLabel.homePage')"
               >
                 <svg
                   v-clean-tooltip="getTooltipConfig(t('nav.home'))"
+                  class="top-menu-icon"
                   xmlns="http://www.w3.org/2000/svg"
                   height="24"
                   viewBox="0 0 24 24"
@@ -586,6 +569,8 @@ export default {
                   ref="clusterFilter"
                   v-model="clusterFilter"
                   :placeholder="t('nav.search.placeholder')"
+                  :tabindex="!shown ? -1 : 0"
+                  :aria-label="t('nav.search.ariaLabel')"
                 >
                 <i
                   class="magnifier icon icon-search"
@@ -607,10 +592,11 @@ export default {
               <a
                 v-if="isRancherInHarvester"
                 class="option"
+                tabindex="0"
                 @click="goToHarvesterCluster()"
               >
                 <i
-                  class="icon icon-dashboard"
+                  class="icon icon-dashboard app-icon"
                 />
                 <div>
                   {{ t('nav.harvesterDashboard') }}
@@ -626,8 +612,11 @@ export default {
                 class="option"
                 :to="a.to"
                 :class="{'active-menu-link': a.isMenuActive }"
+                role="link"
+                :aria-label="`${t('nav.ariaLabel.harvesterCluster')} ${ a.label }`"
               >
                 <IconOrSvg
+                  class="app-icon"
                   :icon="a.icon"
                   :src="a.svg"
                 />
@@ -637,7 +626,7 @@ export default {
           </template>
 
           <!-- Cluster menu -->
-          <template v-if="clusters && !!clusters.length">
+          <template v-if="!!allClustersCount">
             <div
               ref="clusterList"
               class="clusters"
@@ -661,6 +650,8 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
+                    role="button"
+                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click.prevent="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
                   >
@@ -684,6 +675,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </button>
                   <span
@@ -710,6 +702,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </span>
                 </div>
@@ -736,6 +729,8 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
+                    role="button"
+                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
                   >
@@ -749,7 +744,6 @@ export default {
                       v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
-                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -760,6 +754,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </button>
@@ -787,6 +782,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </span>
@@ -795,7 +791,7 @@ export default {
 
               <!-- No clusters message -->
               <div
-                v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                v-if="clustersFiltered.length === 0 && searchActive"
                 data-testid="top-level-menu-no-results"
                 class="none-matching"
               >
@@ -805,13 +801,15 @@ export default {
 
             <!-- See all clusters -->
             <router-link
-              v-if="clusters.length > maxClustersToShow"
+              v-if="allClustersCount > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
                 cluster: emptyCluster,
                 product: 'manager',
                 resource: 'provisioning.cattle.io.cluster'
               } }"
+              role="link"
+              :aria-label="t('nav.ariaLabel.seeAll')"
             >
               <span>
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
@@ -820,6 +818,7 @@ export default {
             </router-link>
           </template>
 
+          <!-- MULTI CLUSTER APPS -->
           <div class="category">
             <template v-if="multiClusterApps.length">
               <div
@@ -839,9 +838,12 @@ export default {
                   class="option"
                   :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
+                  role="link"
+                  :aria-label="`${t('nav.ariaLabel.multiClusterApps')} ${ a.label }`"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
+                    class="app-icon"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -850,7 +852,7 @@ export default {
               </div>
             </template>
 
-            <!-- App menu -->
+            <!-- Configuration apps menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -869,9 +871,12 @@ export default {
                   class="option"
                   :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
+                  role="link"
+                  :aria-label="`${t('nav.ariaLabel.configurationApps')} ${ a.label }`"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
+                    class="app-icon"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -893,6 +898,8 @@ export default {
           >
             <router-link
               :to="{name: 'support'}"
+              role="link"
+              :aria-label="t('nav.ariaLabel.support')"
             >
               {{ t('nav.support', {hasSupport}) }}
             </router-link>
@@ -904,6 +911,8 @@ export default {
           >
             <router-link
               :to="{ name: 'about' }"
+              role="link"
+              :aria-label="t('nav.ariaLabel.about')"
             >
               {{ aboutText }}
             </router-link>
@@ -1007,13 +1016,27 @@ export default {
     overflow: hidden;
     transition: width 250ms;
 
-    &:focus {
+    &:focus, &:focus-visible {
       outline: 0;
     }
 
-     &.menu-open {
+    .option:focus-visible {
+      outline: 0;
+    }
+
+    &.menu-open {
       width: 300px;
       box-shadow: 3px 1px 3px var(--shadow);
+
+      // because of accessibility, we force pin action to be visible on menu open
+      .pin {
+        display: block !important;
+
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+        }
+      }
     }
 
     .title {
@@ -1123,10 +1146,6 @@ export default {
         &:focus {
           outline: 0;
           box-shadow: none;
-
-          > div {
-            text-decoration: underline;
-          }
         }
 
         > i, > img {
@@ -1144,7 +1163,22 @@ export default {
           fill: var(--link);
         }
 
+        .top-menu-icon {
+          outline-offset: 4px;
+        }
+
         &.router-link-active, &.active-menu-link {
+          &:focus-visible {
+            .top-menu-icon, .app-icon {
+              @include focus-outline;
+            }
+          }
+
+          &:focus-visible .rancher-provider-icon {
+            @include focus-outline;
+            outline-offset: -4px;
+          }
+
           background: var(--primary-hover-bg);
           color: var(--primary-hover-text);
 
@@ -1158,6 +1192,12 @@ export default {
 
           div .description {
             color: var(--default);
+          }
+        }
+
+        &:focus-visible {
+          .top-menu-icon, .rancher-provider-icon, .app-icon {
+            @include focus-outline;
           }
         }
 
@@ -1237,9 +1277,18 @@ export default {
         margin-right: 16px;
         margin-top: 10px;
 
+        &:focus-visible {
+          outline: none;
+        }
+
         span {
           display: flex;
           align-items: center;
+        }
+
+        &:focus-visible span {
+          @include focus-outline;
+          outline-offset: 4px;
         }
       }
 
@@ -1363,6 +1412,33 @@ export default {
       }
     }
 
+    &.menu-open {
+      .option {
+        &.router-link-active, &.active-menu-link {
+          &:focus-visible {
+            @include focus-outline;
+            border-radius: 0;
+            outline-offset: -4px;
+
+            .top-menu-icon, .app-icon, .rancher-provider-icon {
+              outline: none;
+              border-radius: 0;
+            }
+          }
+        }
+
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: -4px;
+
+          .top-menu-icon, .app-icon, .rancher-provider-icon {
+            outline: none;
+            border-radius: 0;
+          }
+        }
+      }
+    }
+
     &.menu-close {
       .side-menu-logo  {
         opacity: 0;
@@ -1436,8 +1512,18 @@ export default {
         text-align: center;
       }
 
+      .support a:focus-visible {
+        @include focus-outline;
+        outline-offset: 4px;
+      }
+
       .version {
         cursor: pointer;
+
+        a:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+        }
       }
     }
   }

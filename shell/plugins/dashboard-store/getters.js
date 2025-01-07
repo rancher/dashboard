@@ -445,9 +445,12 @@ export default {
     return undefined;
   },
 
-  paginationEnabled: (state, getters, rootState, rootGetters) => (type = null) => {
+  paginationEnabled: (state, getters, rootState, rootGetters) => (args) => {
+    const id = typeof args === 'object' ? args.id : args;
+    const context = typeof args === 'object' ? args.context : undefined;
+
     const store = state.config.namespace;
-    const resource = type ? { id: type } : null;
+    const resource = id || context ? { id, context } : null;
 
     return paginationUtils.isEnabled({ rootGetters }, { store, resource });
   }

@@ -103,17 +103,17 @@ export default {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
           settings.resources.enableSome.enabled.forEach((resource) => {
-            resources.push(resource);
+            resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {
             resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
           }
         }
 
-        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+        storeResources.push(`Resources in store '${ store }': ${ resources.join(', ') }`);
       });
 
-      return storeResources.join('. ');
+      return storeResources.join('<br><br>');
     }
   },
 
@@ -187,6 +187,13 @@ export default {
           body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
         },
       });
+    },
+
+    setPaginationDefaults() {
+      this.value = {
+        ...this.value,
+        serverPagination: { ...DEFAULT_PERF_SETTING.serverPagination }
+      };
     }
   },
 };
@@ -225,9 +232,17 @@ export default {
           <p :class="{ 'text-muted': !value.serverPagination.enabled }">
             {{ t('performance.serverPagination.applicable') }}
           </p>
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ steveCacheApplicableResources }}
-          </p>
+          <p
+            v-clean-html="steveCacheApplicableResources"
+            :class="{ 'text-muted': !value.serverPagination.enabled }"
+          />
+          <button
+            class="btn btn-sm role-primary"
+            style="width: fit-content;"
+            @click.prevent="setPaginationDefaults()"
+          >
+            {{ t('performance.serverPagination.populateDefaults') }}
+          </button>
         </div>
         <!-- Inactivity -->
         <div class="mt-20">

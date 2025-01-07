@@ -20,7 +20,7 @@ export interface PaginationSettings {
           /**
            * Specific resource type to enable
            */
-          enabled: string[],
+          enabled: (string | { resource: string, context: string[]})[],
           /**
            * There's no hardcoded headers or custom list for the resource type, headers will be generated from schema attributes.columns
            */

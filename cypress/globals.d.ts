@@ -99,7 +99,8 @@ declare global {
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
 
-      tableRowsPerPageAndNamespaceFilter(rows: number, cluster: string, groupBy: string, namespacefilter: string, interation?: number)
+      tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
 
       /**
        * update namespace filter
@@ -162,6 +163,11 @@ declare global {
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;
+
+      /**
+       * Check if the vai FF is enabled
+       */
+      isVaiCacheEnabled(): Chainable<boolean>;
     }
   }
 }

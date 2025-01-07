@@ -167,7 +167,7 @@ export default {
       default: false
     },
     /**
-     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     * Manual force the update of live and delayed cells. Change this number to kick off the update
      */
     forceUpdateLiveAndDelayed: {
       type:    Number,
@@ -429,12 +429,17 @@ export default {
     },
 
     computedGroupBy() {
+      // If we're not showing grouping options we shouldn't have a group by property
+      if (!this.showGrouping) {
+        return null;
+      }
+
       if ( this.groupBy ) {
         // This probably comes from the type-map config for the resource (see ResourceList)
         return this.groupBy;
       }
 
-      if ( this.group === 'namespace' && this.showGrouping ) {
+      if ( this.group === 'namespace' ) {
         // This switches to group rows by a key which is the label for the group (??)
         return 'groupByLabel';
       }

@@ -38,6 +38,7 @@ import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -225,6 +226,13 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   }
 };
 
+/**
+ * Are we in the vai enabled world where mgmt clusters are paginated?
+ */
+const paginateClusters = (rootGetters) => {
+  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+};
+
 export const state = () => {
   return {
     managementReady:         false,
@@ -251,6 +259,10 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    /**
+     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
+     */
+    sideNavCache:            undefined,
   };
 };
 
@@ -605,6 +617,10 @@ export const getters = {
     return `${ base }/latest`;
   },
 
+  sideNavCache(state) {
+    return state.sideNavCache;
+  },
+
   ...gcGetters
 };
 
@@ -743,6 +759,10 @@ export const mutations = {
 
   setPlugin(state, pluginDefinition) {
     state.$plugin = markRaw(pluginDefinition || {});
+  },
+
+  setSideNavCache(state, sideNavCache) {
+    state.sideNavCache = sideNavCache;
   }
 };
 
@@ -780,15 +800,11 @@ export const actions = {
     // The alternative is simpler (fetch features up front) but would add another blocking request in
 
     const promises = {
-      // Clusters guaranteed always available or your money back
-      clusters: dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } }),
-
       // Features checks on its own if they are available
       features: dispatch('features/loadServer'),
     };
 
     const toWatch = [
-      MANAGEMENT.CLUSTER,
       MANAGEMENT.FEATURE,
     ];
 
@@ -822,6 +838,13 @@ export const actions = {
     }
 
     res = await allHash(promises);
+
+    if (!res.settings || !paginateClusters(rootGetters)) {
+      // This introduces a synchronous request, however we need settings to determine if SSP is enabled
+      // Eventually it will be removed when SSP is always on
+      res.clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
+      toWatch.push(MANAGEMENT.CLUSTER);
+    }
 
     // See comment above. Now that we have feature flags we can watch resources
     toWatch.forEach((type) => {
@@ -879,7 +902,7 @@ export const actions = {
   // - state.clusterId is the old cluster id (or undefined)
   // - id is the new cluster id (or undefined)
   async loadCluster({
-    state, commit, dispatch, getters
+    state, commit, dispatch, getters, rootGetters
   }, {
     id, product, oldProduct, oldPkg, newPkg, targetRoute
   }) {
@@ -983,9 +1006,10 @@ export const actions = {
     // Try and wait until the schema exists before proceeding
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
-    // Similar to above, we're still waiting on loadManagement to fetch required resources
-    // If we don't have all mgmt clusters yet a request to fetch this cluster and then all clusters (in cleanNamespaces) is kicked off
-    await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
+    // If SSP is on we won't have requested all clusters
+    if (!paginateClusters(rootGetters)) {
+      await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
+    }
 
     // See if it really exists
     try {
@@ -1082,7 +1106,17 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch }) {
+  async cleanNamespaces({ getters, dispatch, rootGetters }) {
+    if (paginateClusters(rootGetters)) {
+      // See https://github.com/rancher/dashboard/issues/12864
+      // old world...
+      // - loadManagement makes a request to fetch all mgmt clusters
+      // - we would block on that that request above before getting here (otherwise x2 requests for all clusters were made)
+      // new world...
+      // - we won't have all mgmt clusters, so this whole function needs updating (see issue)
+      return;
+    }
+
     // Initialise / Remove any filters that the user no-longer has access to
     await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }); // So they can be got byId below
 
@@ -1246,6 +1280,10 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
+  },
+
+  setSideNavCache({ commit }, sideNavCache) {
+    commit('setSideNavCache', sideNavCache);
   },
 
   ...gcActions

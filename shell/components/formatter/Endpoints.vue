@@ -27,7 +27,7 @@ export default {
       const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
       const externalIp = nodeWithExternal.externalIp;
 
-      if ( this.value && this.value.length ) {
+      if ( this.value?.length ) {
         let out ;
 
         try {

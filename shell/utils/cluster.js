@@ -3,8 +3,99 @@ import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
-// Filter out any clusters that are not Kubernetes Clusters
+/**
+ * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
+ *
+ * @param {*} store
+ * @returns PaginationParam[]
+ */
+export function paginationFilterClusters(store, filterMgmtCluster = true) {
+  const paginationRequestFilters = [];
+
+  // Commenting out for the moment. This is broken for non-paginated world
+  // filterOnlyKubernetesClusters expects a mgmt cluster, however in the home page it's given a prov cluster
+  // note - filterHiddenLocalCluster works because it uses model isLocal which is on both cluster types
+  // const pFilterOnlyKubernetesClusters = paginationFilterOnlyKubernetesClusters(store);
+  // if (pFilterOnlyKubernetesClusters) {
+  //   paginationRequestFilters.push(pFilterOnlyKubernetesClusters);
+  // }
+  const pFilterHiddenLocalCluster = paginationFilterHiddenLocalCluster(store, filterMgmtCluster);
+
+  if (pFilterHiddenLocalCluster) {
+    paginationRequestFilters.push(pFilterHiddenLocalCluster);
+  }
+
+  return paginationRequestFilters;
+}
+
+/**
+ * The vai backed api's `filter` equivalent of `filterHiddenLocalCluster`
+ *
+ * @export
+ * @param {*} store
+ * @returns PaginationParam | null
+ */
+export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = true) {
+  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+  const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+  const hideLocal = value === 'true';
+
+  if (!hideLocal) {
+    return null;
+  }
+
+  const filter = filterMgmtCluster ? [
+    new PaginationFilterField({
+      field: `spec.internal`,
+      value: false,
+    })
+  ] : [
+    new PaginationFilterField({
+      field:  `id`,
+      value:  'fleet-local/local',
+      exact:  true,
+      equals: false,
+    })
+  ];
+
+  return PaginationParamFilter.createMultipleFields(filter);
+}
+
+/**
+ * The vai backed api's `filter` equivalent of `filterOnlyKubernetesClusters`
+ *
+ * @export
+ * @param {*} store
+ * @returns PaginationParam | null
+ */
+export function paginationFilterOnlyKubernetesClusters(store) {
+  const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
+
+  if (!openHarvesterContainerWorkload) {
+    return null;
+  }
+
+  return PaginationParamFilter.createMultipleFields([
+    new PaginationFilterField({
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`,
+      equals: false,
+      value:  VIRTUAL_HARVESTER_PROVIDER,
+      exact:  true
+    }),
+    new PaginationFilterField({
+      field:  `status.provider`,
+      equals: false,
+      value:  VIRTUAL_HARVESTER_PROVIDER,
+      exact:  true
+    }),
+  ]);
+}
+
+/**
+ * Filter out any clusters that are not Kubernetes Clusters
+ **/
 export function filterOnlyKubernetesClusters(mgmtClusters, store) {
   const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
 

@@ -5,5 +5,13 @@
  * Generic interface for Vuex getters
  */
 export interface VuexStoreGetters {
-  [name:string]: Function
+  [name:string]: Function | any
+}
+
+export interface VuexStore {
+  getters: VuexStoreGetters,
+  dispatch: any,
+
+  // When we have exact properties above we can remove below
+  [name:string]: any
 }

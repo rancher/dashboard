@@ -23,10 +23,13 @@ describe('component: RegistryConfigs', () => {
   };
 
   describe('key CA Cert Bundle', () => {
-    it('should display default key', () => {
+    it.each([
+      ['source is plain text', 'Zm9vYmFy', 'foobar'],
+      ['source is base64', 'foobar', 'foobar'],
+    ])('should display key, %p', (_, sourceCaBundle, displayedCaBundle) => {
       const value = clone(PROV_CLUSTER);
 
-      value.spec.rkeConfig.registries.configs = { foo: { caBundle: 'Zm9vYmFy' } };
+      value.spec.rkeConfig.registries.configs = { foo: { caBundle: sourceCaBundle } };
 
       mountOptions.propsData.value = value;
 
@@ -37,7 +40,7 @@ describe('component: RegistryConfigs', () => {
 
       const registry = wrapper.findComponent('[data-testid^="registry-caBundle"]');
 
-      expect(registry.props().value).toBe('foobar');
+      expect(registry.props().value).toBe(displayedCaBundle);
     });
 
     it('should update key in base64 format', async() => {

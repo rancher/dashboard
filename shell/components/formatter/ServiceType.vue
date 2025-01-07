@@ -17,28 +17,30 @@ export default {
     },
   },
   data() {
-    const { row } = this;
-    let cloned = this.value.toLowerCase();
+    const cloned = this.getLabel(this.value.toLowerCase());
+    const headless = this.value === 'ClusterIP' && this.row?.spec?.clusterIP === 'None' ? this.getLabel('headless') : undefined;
 
-    if (this.value === 'ClusterIP' && row?.spec?.clusterIP === 'None') {
-      cloned = 'headless';
-    }
-
-    const match = DEFAULT_SERVICE_TYPES.find((s) => s.id.toLowerCase() === cloned);
-    const translationLabel = match?.label;
-    let translated;
-
-    if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
-      translated = this.$store.getters['i18n/t'](translationLabel);
-    } else {
-      translated = this.value;
-    }
-
-    return { translated };
+    return { translated: cloned, headless };
   },
+
+  methods: {
+    getLabel(type) {
+      const match = DEFAULT_SERVICE_TYPES.find((s) => s.id.toLowerCase() === type);
+      const translationLabel = match?.label;
+      let translated;
+
+      if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
+        translated = this.$store.getters['i18n/t'](translationLabel);
+      } else {
+        translated = this.value;
+      }
+
+      return translated;
+    }
+  }
 };
-</script>>
+</script>
 
 <template>
-  <span>{{ translated }}</span>
+  <span>{{ translated }}{{ headless ? ` (${headless})` : '' }}</span>
 </template>
