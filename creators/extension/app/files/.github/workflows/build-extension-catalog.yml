@@ -2,12 +2,8 @@ name: Build and Release Extension Catalog
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  release:
+    types: [released]
 
 defaults:
   run:
@@ -24,5 +20,6 @@ jobs:
     with:
       registry_target: ghcr.io
       registry_user: ${{ github.actor }}
+      tagged_release: ${{ github.ref_name }}
     secrets: 
       registry_token: ${{ secrets.GITHUB_TOKEN }}
