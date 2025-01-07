@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, defineExpose } from 'vue';
 
+export type RcButton = {
+  focus: () => void;
+}
+
 type Props = {
   primary?: boolean;
   secondary?: boolean;
@@ -27,10 +31,10 @@ const buttonClass = computed(() => {
   };
 });
 
-const RcFocusTarget = ref(null);
+const RcFocusTarget = ref<HTMLElement | null>(null);
 
 const focus = () => {
-  RcFocusTarget.value.focus();
+  RcFocusTarget?.value?.focus();
 };
 
 defineExpose({ focus });

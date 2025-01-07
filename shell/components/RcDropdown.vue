@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, provide, nextTick } from 'vue';
-import RcButton from '@shell/components/RcButton.vue';
+import RcButton, { RcButton as RcButtonType } from '@shell/components/RcButton.vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
 const fields = ref<HTMLElement | null>(null);
@@ -17,7 +17,7 @@ const register = (field: HTMLElement | null) => {
 
 provide('dropdownCollection', { register, fields });
 
-const popperContainer = ref(null);
+const popperContainer = ref<HTMLElement | null>(null);
 
 const setFocus = () => {
   nextTick(() => {
@@ -56,11 +56,11 @@ const target = ref(null);
 
 useClickOutside(target, () => showMenu(false));
 
-const dropdownTrigger = ref(null);
+const dropdownTrigger = ref<RcButtonType | null>(null);
 
 const returnFocus = () => {
   showMenu(false);
-  dropdownTrigger.value.focus();
+  dropdownTrigger?.value?.focus();
 };
 
 </script>
