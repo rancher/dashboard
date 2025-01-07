@@ -7,7 +7,7 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image Repo
-RANCHER_IMG_REGISTRY=stgregistry.suse.com
+RANCHER_IMG_REGISTRY=stgregistry.suse.com/rancher/rancher
 
 # Image version
 RANCHER_IMG_VERSION=v2.9-head

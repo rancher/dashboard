@@ -111,20 +111,6 @@ jobs:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
 
-      - name: "Read Vault Secrets"
-        uses: rancher-eio/read-vault-secrets@main
-        with:
-          secrets: |
-            secret/data/github/repo/${{ github.repository }}/rancher-prime-stg-registry/credentials username | READ_STAGE_REGISTRY_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/rancher-prime-stg-registry/credentials password | READ_STAGE_REGISTRY_PASSWORD ;
-
-      - name: Log into Staging registry
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.READ_STAGE_REGISTRY_USERNAME }}
-          password: ${{ env.READ_STAGE_REGISTRY_PASSWORD }}
-          registry: stgregistry.suse.com
-      
       - name: Run Rancher
         run: yarn e2e:docker
       
