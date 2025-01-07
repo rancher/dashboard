@@ -504,16 +504,18 @@ export default defineComponent({
               {{ t('landing.seeWhatsNew') }}
             </div>
             <a
-              class="hand"
+              class="hand banner-link"
               :href="releaseNotesUrl"
+              role="link"
               target="_blank"
               rel="noopener noreferrer nofollow"
+              :aria-label="t('landing.whatsNewLink')"
               @click.stop="showWhatsNew"
+              @keyup.stop.enter="showWhatsNew"
             ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
-
       <div class="row home-panels">
         <div class="col main-panel">
           <div
@@ -532,7 +534,11 @@ export default defineComponent({
                 </div>
                 <a
                   class="hand mr-20"
+                  tabindex="0"
+                  :aria-label="t('landing.landingPrefs.userPrefs')"
                   @click.prevent.stop="showUserPrefs"
+                  @keyup.prevent.stop.enter="showUserPrefs"
+                  @keyup.prevent.stop.space="showUserPrefs"
                 ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
@@ -583,6 +589,9 @@ export default defineComponent({
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
                       data-testid="cluster-management-manage-button"
+                      role="button"
+                      :aria-label="t('cluster.manageAction')"
+                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
                     </router-link>
@@ -591,6 +600,9 @@ export default defineComponent({
                       :to="importLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-import-button"
+                      role="button"
+                      :aria-label="t('cluster.importAction')"
+                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
                     </router-link>
@@ -599,6 +611,9 @@ export default defineComponent({
                       :to="createLocation"
                       class="btn btn-sm role-primary"
                       data-testid="cluster-create-button"
+                      role="button"
+                      :aria-label="t('generic.create')"
+                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
                     </router-link>
@@ -614,6 +629,8 @@ export default defineComponent({
                         <router-link
                           v-if="row.mgmt.isReady && !row.hasError"
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                          role="link"
+                          :aria-label="row.nameDisplay"
                         >
                           {{ row.nameDisplay }}
                         </router-link>
@@ -687,6 +704,10 @@ export default defineComponent({
 </template>
 
 <style lang='scss' scoped>
+  .banner-link:focus-visible {
+    @include focus-outline;
+  }
+
   .home-panels {
     display: flex;
     align-items: stretch;
