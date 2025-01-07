@@ -485,6 +485,8 @@ export default {
         :class="{'menu-open': shown, 'menu-close':!shown}"
         :style="sideMenuStyle"
         tabindex="-1"
+        role="navigation"
+        :aria-label="t('nav.ariaLabel.topLevelMenu')"
       >
         <!-- Logo and name -->
         <div class="title">
@@ -504,6 +506,7 @@ export default {
               height="24"
               viewBox="0 0 24 24"
               width="24"
+              :alt="t('nav.alt.mainMenuIcon')"
             ><path
               d="M0 0h24v24H0z"
               fill="none"
@@ -512,6 +515,7 @@ export default {
           <div class="side-menu-logo">
             <BrandImage
               data-testid="side-menu__brand-img"
+              :alt="t('nav.alt.mainMenuRancherLogo')"
               file-name="rancher-logo.svg"
             />
           </div>
@@ -525,9 +529,12 @@ export default {
               <router-link
                 class="option cluster selector home"
                 :to="{ name: 'home' }"
+                role="link"
+                :aria-label="t('nav.ariaLabel.homePage')"
               >
                 <svg
                   v-clean-tooltip="getTooltipConfig(t('nav.home'))"
+                  class="top-menu-icon"
                   xmlns="http://www.w3.org/2000/svg"
                   height="24"
                   viewBox="0 0 24 24"
@@ -562,6 +569,8 @@ export default {
                   ref="clusterFilter"
                   v-model="clusterFilter"
                   :placeholder="t('nav.search.placeholder')"
+                  :tabindex="!shown ? -1 : 0"
+                  :aria-label="t('nav.search.ariaLabel')"
                 >
                 <i
                   class="magnifier icon icon-search"
@@ -583,10 +592,11 @@ export default {
               <a
                 v-if="isRancherInHarvester"
                 class="option"
+                tabindex="0"
                 @click="goToHarvesterCluster()"
               >
                 <i
-                  class="icon icon-dashboard"
+                  class="icon icon-dashboard app-icon"
                 />
                 <div>
                   {{ t('nav.harvesterDashboard') }}
@@ -602,8 +612,11 @@ export default {
                 class="option"
                 :to="a.to"
                 :class="{'active-menu-link': a.isMenuActive }"
+                role="link"
+                :aria-label="`${t('nav.ariaLabel.harvesterCluster')} ${ a.label }`"
               >
                 <IconOrSvg
+                  class="app-icon"
                   :icon="a.icon"
                   :src="a.svg"
                 />
@@ -637,6 +650,8 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
+                    role="button"
+                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click.prevent="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
                   >
@@ -660,6 +675,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </button>
                   <span
@@ -686,6 +702,7 @@ export default {
                     </div>
                     <Pinned
                       :cluster="c"
+                      :tab-order="shown ? 0 : -1"
                     />
                   </span>
                 </div>
@@ -712,6 +729,8 @@ export default {
                     class="cluster selector option"
                     :class="{'active-menu-link': c.isMenuActive }"
                     :to="c.clusterRoute"
+                    role="button"
+                    :aria-label="`${t('nav.ariaLabel.cluster')} ${ c.label }`"
                     @click="clusterMenuClick($event, c)"
                     @shortkey="handleKeyComboClick"
                   >
@@ -725,7 +744,6 @@ export default {
                       v-clean-tooltip="getTooltipConfig(c)"
                       class="cluster-name"
                     >
-                      <!-- HERE LOCAL CLUSTER! -->
                       <p>{{ c.label }}</p>
                       <p
                         v-if="c.description"
@@ -736,6 +754,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </button>
@@ -763,6 +782,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
+                      :tab-order="shown ? 0 : -1"
                       :cluster="c"
                     />
                   </span>
@@ -788,6 +808,8 @@ export default {
                 product: 'manager',
                 resource: 'provisioning.cattle.io.cluster'
               } }"
+              role="link"
+              :aria-label="t('nav.ariaLabel.seeAll')"
             >
               <span>
                 {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
@@ -796,6 +818,7 @@ export default {
             </router-link>
           </template>
 
+          <!-- MULTI CLUSTER APPS -->
           <div class="category">
             <template v-if="multiClusterApps.length">
               <div
@@ -815,9 +838,12 @@ export default {
                   class="option"
                   :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
+                  role="link"
+                  :aria-label="`${t('nav.ariaLabel.multiClusterApps')} ${ a.label }`"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
+                    class="app-icon"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -826,7 +852,7 @@ export default {
               </div>
             </template>
 
-            <!-- App menu -->
+            <!-- Configuration apps menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -845,9 +871,12 @@ export default {
                   class="option"
                   :class="{'active-menu-link': a.isMenuActive }"
                   :to="a.to"
+                  role="link"
+                  :aria-label="`${t('nav.ariaLabel.configurationApps')} ${ a.label }`"
                 >
                   <IconOrSvg
                     v-clean-tooltip="getTooltipConfig(a.label)"
+                    class="app-icon"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -869,6 +898,8 @@ export default {
           >
             <router-link
               :to="{name: 'support'}"
+              role="link"
+              :aria-label="t('nav.ariaLabel.support')"
             >
               {{ t('nav.support', {hasSupport}) }}
             </router-link>
@@ -880,6 +911,8 @@ export default {
           >
             <router-link
               :to="{ name: 'about' }"
+              role="link"
+              :aria-label="t('nav.ariaLabel.about')"
             >
               {{ aboutText }}
             </router-link>
@@ -983,13 +1016,27 @@ export default {
     overflow: hidden;
     transition: width 250ms;
 
-    &:focus {
+    &:focus, &:focus-visible {
       outline: 0;
     }
 
-     &.menu-open {
+    .option:focus-visible {
+      outline: 0;
+    }
+
+    &.menu-open {
       width: 300px;
       box-shadow: 3px 1px 3px var(--shadow);
+
+      // because of accessibility, we force pin action to be visible on menu open
+      .pin {
+        display: block !important;
+
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+        }
+      }
     }
 
     .title {
@@ -1099,10 +1146,6 @@ export default {
         &:focus {
           outline: 0;
           box-shadow: none;
-
-          > div {
-            text-decoration: underline;
-          }
         }
 
         > i, > img {
@@ -1120,7 +1163,22 @@ export default {
           fill: var(--link);
         }
 
+        .top-menu-icon {
+          outline-offset: 4px;
+        }
+
         &.router-link-active, &.active-menu-link {
+          &:focus-visible {
+            .top-menu-icon, .app-icon {
+              @include focus-outline;
+            }
+          }
+
+          &:focus-visible .rancher-provider-icon {
+            @include focus-outline;
+            outline-offset: -4px;
+          }
+
           background: var(--primary-hover-bg);
           color: var(--primary-hover-text);
 
@@ -1134,6 +1192,12 @@ export default {
 
           div .description {
             color: var(--default);
+          }
+        }
+
+        &:focus-visible {
+          .top-menu-icon, .rancher-provider-icon, .app-icon {
+            @include focus-outline;
           }
         }
 
@@ -1213,9 +1277,18 @@ export default {
         margin-right: 16px;
         margin-top: 10px;
 
+        &:focus-visible {
+          outline: none;
+        }
+
         span {
           display: flex;
           align-items: center;
+        }
+
+        &:focus-visible span {
+          @include focus-outline;
+          outline-offset: 4px;
         }
       }
 
@@ -1339,6 +1412,33 @@ export default {
       }
     }
 
+    &.menu-open {
+      .option {
+        &.router-link-active, &.active-menu-link {
+          &:focus-visible {
+            @include focus-outline;
+            border-radius: 0;
+            outline-offset: -4px;
+
+            .top-menu-icon, .app-icon, .rancher-provider-icon {
+              outline: none;
+              border-radius: 0;
+            }
+          }
+        }
+
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: -4px;
+
+          .top-menu-icon, .app-icon, .rancher-provider-icon {
+            outline: none;
+            border-radius: 0;
+          }
+        }
+      }
+    }
+
     &.menu-close {
       .side-menu-logo  {
         opacity: 0;
@@ -1412,8 +1512,18 @@ export default {
         text-align: center;
       }
 
+      .support a:focus-visible {
+        @include focus-outline;
+        outline-offset: 4px;
+      }
+
       .version {
         cursor: pointer;
+
+        a:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+        }
       }
     }
   }
