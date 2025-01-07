@@ -4,7 +4,7 @@ import { CATALOG } from '@shell/config/types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 
-const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
+const CSP_ADAPTER_APPS = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 // For testing above line could be replaced with below line...
 // const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];
 
@@ -25,7 +25,7 @@ class CspAdapterUtils {
           type: CATALOG.APP,
           opt:  { // Of type ActionFindPageArgs
             pagination: new FilterArgs({
-              filters: PaginationParamFilter.createMultipleFields(cspAdaptorApp.map(
+              filters: PaginationParamFilter.createMultipleFields(CSP_ADAPTER_APPS.map(
                 (t) => new PaginationFilterField({
                   field: 'metadata.name',
                   value: t,
@@ -44,7 +44,7 @@ class CspAdapterUtils {
 
   static hasCspAdapter({ $store, apps }: { $store: VuexStore, apps: any[]}): Object {
     // In theory this should contain the filtered apps when pagination is on, and all apps when off. Keep filtering though in both cases just in case
-    return !!apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
+    return apps?.find((a) => CSP_ADAPTER_APPS.includes(a.metadata?.name));
   }
 }
 
