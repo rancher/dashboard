@@ -250,7 +250,6 @@ export default {
       }
     }
 
-    this.selectContainer(container);
     if (this.realMode === _CLONE && this.value.type === WORKLOAD_TYPES.JOB) {
       this.cleanUpClonedJobData();
     }
@@ -280,12 +279,10 @@ export default {
       podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
-      fvFormRuleSets:             [{
-        path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
-      }],
-      fvReportedValidationPaths: ['spec'],
-      isNamespaceNew:            false,
-      idKey:                     ID_KEY
+      fvFormRuleSets:             [],
+      fvReportedValidationPaths:  ['spec'],
+      isNamespaceNew:             false,
+      idKey:                      ID_KEY
     };
   },
 
@@ -605,6 +602,15 @@ export default {
       this.value['type'] = neu;
       delete this.value.apiVersion;
     },
+
+    container: {
+      handler(c) {
+        this.fvFormRuleSets = [{
+          path: 'image', rootObject: c, rules: ['required'], translationKey: 'workload.container.image'
+        }];
+      },
+      immediate: true
+    }
   },
 
   created() {
@@ -612,6 +618,8 @@ export default {
     this.registerBeforeHook(this.getPorts, 'getPorts');
 
     this.registerAfterHook(this.saveService, 'saveService');
+
+    this.selectContainer(this.container);
   },
 
   methods: {
