@@ -27,7 +27,7 @@ export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
    */
   overrideRequest?: LabelSelectPaginateFn,
   /**
-   * Override the default settings used in the convience function to fetch a page of results
+   * Override the default settings used in the convenience function to fetch a page of results
    */
   requestSettings?: PaginateTypeOverridesFn,
 }

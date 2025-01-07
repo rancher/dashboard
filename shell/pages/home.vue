@@ -27,7 +27,7 @@ import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions
 import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { sameContents } from 'utils/array';
+import { sameContents } from '@shell/utils/array';
 
 export default defineComponent({
   name:       'Home',

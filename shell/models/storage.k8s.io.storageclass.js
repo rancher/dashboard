@@ -82,6 +82,10 @@ export const PROVISIONER_OPTIONS = [
 ];
 
 export default class extends SteveModel {
+  get provisionerListDisplay() {
+    return `${ this.provisioner } (${ this.provisionerDisplay })`;
+  }
+
   get provisionerDisplay() {
     const option = PROVISIONER_OPTIONS.find((o) => o.value === this.provisioner);
     const fallback = `${ this.provisioner } ${ this.t('persistentVolume.csi.suffix') }`;

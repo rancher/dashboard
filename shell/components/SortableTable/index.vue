@@ -504,7 +504,7 @@ export default {
           if (neu) {
             this._altLoadingDelayTimer = setTimeout(() => {
               this.isLoading = true;
-            }, 200); // this should be higher than the targetted quick response
+            }, 200); // this should be higher than the targeted quick response
           } else {
             clearTimeout(this._altLoadingDelayTimer);
             this.isLoading = false;
@@ -575,11 +575,13 @@ export default {
     },
 
     showHeaderRow() {
+      // All of these are used to show content in the header
       return this.search ||
         this.tableActions ||
-        this.$slots['header-left']?.() ||
-        this.$slots['header-middle']?.() ||
-        this.$slots['header-right']?.();
+        this.$slots['header-left'] ||
+        this.$slots['header-middle'] ||
+        this.$slots['header-right'] ||
+        this.isTooManyItemsToAutoUpdate;
     },
 
     columns() {

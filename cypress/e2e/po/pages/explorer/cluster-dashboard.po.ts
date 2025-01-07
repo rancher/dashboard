@@ -57,7 +57,7 @@ export default class ClusterDashboardPagePo extends PagePo {
   }
 
   fullEventsLink() {
-    return cy.get('.events-table-link').contains('Full events list');
+    return cy.get('[data-testid="events-link"]').contains('Full events list');
   }
 
   fullSecretsList() {
