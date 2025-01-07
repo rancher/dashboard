@@ -63,7 +63,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     dropdown-menu-item
     tabindex="-1"
     role="menuitem"
-    @keydown.up.down="handleKeydown"
+    @keydown.up.down.stop="handleKeydown"
   >
     <slot name="default">
       <!--Empty slot content-->
