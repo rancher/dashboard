@@ -48,7 +48,8 @@ export const STEVE_NAMESPACE_COL = {
 
 export const STEVE_EVENT_OBJECT = {
   ...OBJECT,
-  sort: 'involvedObject.kind',
+  sort:   'involvedObject.kind',
+  search: 'involvedObject.kind',
 };
 
 export const STEVE_LIST_GROUPS = [{

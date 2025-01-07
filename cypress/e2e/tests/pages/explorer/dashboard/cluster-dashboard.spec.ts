@@ -265,7 +265,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
 
-    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
 
     clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
       .within('.table-header-container .content')

@@ -359,6 +359,7 @@ export function init(store) {
       MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      STEVE_AGE_COL
     ]
   );
 
