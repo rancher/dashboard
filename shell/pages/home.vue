@@ -591,7 +591,6 @@ export default defineComponent({
                       data-testid="cluster-management-manage-button"
                       role="link"
                       :aria-label="t('cluster.manageAction')"
-                      @keyup.space="$router.push(manageLocation)"
                     >
                       {{ t('cluster.manageAction') }}
                     </router-link>
@@ -602,7 +601,6 @@ export default defineComponent({
                       data-testid="cluster-create-import-button"
                       role="link"
                       :aria-label="t('cluster.importAction')"
-                      @keyup.space="$router.push(importLocation)"
                     >
                       {{ t('cluster.importAction') }}
                     </router-link>
@@ -613,7 +611,6 @@ export default defineComponent({
                       data-testid="cluster-create-button"
                       role="link"
                       :aria-label="t('generic.create')"
-                      @keyup.space="$router.push(createLocation)"
                     >
                       {{ t('generic.create') }}
                     </router-link>
@@ -631,7 +628,6 @@ export default defineComponent({
                           :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
                           role="link"
                           :aria-label="row.nameDisplay"
-                          @keyup.space="$router.push({ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }})"
                         >
                           {{ row.nameDisplay }}
                         </router-link>
