@@ -66,6 +66,7 @@ export default {
         foldGutter:              true,
         styleSelectedText:       true,
         showCursorWhenSelecting: true,
+        autocorrect:             false,
       };
 
       if (this.asTextArea) {

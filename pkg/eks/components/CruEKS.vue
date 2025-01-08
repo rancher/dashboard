@@ -120,8 +120,6 @@ export default defineComponent({
     if (this.value.id) {
       const liveNormanCluster = await this.value.findNormanCluster();
 
-      debugger;
-
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
       // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
