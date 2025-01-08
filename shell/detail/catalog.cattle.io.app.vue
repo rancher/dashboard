@@ -33,8 +33,8 @@ export default {
   async fetch() {
     const promises = {
       catalog:       this.$store.dispatch('catalog/load'),
-      allOperations: this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION }), // TODO: RC
-      secrets:       this.value.fetchValues(true), // TODO: RC
+      allOperations: this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION }), // TODO: RC Round 2
+      secret:        this.value.fetchValues(true),
     };
 
     const res = await allHash(promises);

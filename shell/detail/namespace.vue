@@ -10,9 +10,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTable from '@shell/components/ResourceTable';
 import SortableTable from '@shell/components/SortableTable';
 import Loading from '@shell/components/Loading';
-import {
-  flatten, compact, filter, findKey, values
-} from 'lodash';
+import { flatten, compact, findKey, values } from 'lodash';
 
 export default {
   emits: ['input'],
@@ -89,6 +87,9 @@ export default {
       },
     ];
 
+    const params = this.$route.params;
+    const { id: namespaceId } = params;
+
     return {
       allWorkloads: {
         default: () => ([]),
@@ -97,7 +98,10 @@ export default {
       resourceTypes:  [],
       summaryStates:  ['success', 'info', 'warning', 'error', 'unknown'],
       headers,
-      workloadSchema: WORKLOAD_SCHEMA
+      workloadSchema: WORKLOAD_SCHEMA,
+      inStore:        this.$store.getters['currentProduct'].inStore,
+      statesByType:   getStatesByType(),
+      namespaceId,
     };
   },
 
@@ -106,10 +110,6 @@ export default {
   },
 
   computed: {
-    inStore() {
-      return this.$store.getters['currentProduct'].inStore;
-    },
-
     namespacedResourceCounts() {
       const allClusterResourceCounts = this.$store.getters[`${ this.inStore }/all`](COUNT)[0].counts;
 
@@ -148,20 +148,11 @@ export default {
       }, totals);
     },
 
-    statesByType() {
-      return getStatesByType();
-    },
-
     /**
      * Workload table data for current namespace
      */
     workloadRows() {
-      const params = this.$route.params;
-      const { id } = params;
-      const rows = flatten(compact(this.allWorkloads)).filter((row) => !row.ownedByWorkload);
-      const namespacedRows = filter(rows, ({ metadata: { namespace } }) => namespace === id);
-
-      return namespacedRows;
+      return flatten(compact(this.allWorkloads)).filter((row) => !row.ownedByWorkload);
     }
   },
 
@@ -198,7 +189,10 @@ export default {
       return Promise.all(values(WORKLOAD_TYPES)
         // You may not have RBAC to see some of the types
         .filter((type) => Boolean(this.schemaFor(type)))
-        .map((type) => this.$store.dispatch('cluster/findAll', { type })) // TODO: RC
+        // findAll on each workload type here, argh! however...
+        // - results are shown in a single table containing all workloads rather than an SSP compatible way (one table per type)
+        // - we're restricting by namespace. not great, but a big improvement
+        .map((type) => this.$store.dispatch('cluster/findAll', { type, opt: { namespaced: this.namespaceId } }))
       );
     },
 
