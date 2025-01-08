@@ -649,31 +649,6 @@ export default {
         </button>
       </div>
 
-      <rc-dropdown>
-        <template #popper>
-          <rc-dropdown-collection>
-            <rc-dropdown-item>
-              Set as login page
-            </rc-dropdown-item>
-            <hr
-              role="separator"
-              aria-orientation="horizontal"
-            >
-            <rc-dropdown-item>
-              Restore hidden cards
-            </rc-dropdown-item>
-            <rc-dropdown-item>
-              Preferences
-            </rc-dropdown-item>
-            <rc-dropdown-item>
-              Account & API Keys
-            </rc-dropdown-item>
-            <rc-dropdown-item>
-              Logout
-            </rc-dropdown-item>
-          </rc-dropdown-collection>
-        </template>
-      </rc-dropdown>
       <header-page-action-menu v-if="showPageActions" />
 
       <div class="header-spacer" />
@@ -922,6 +897,7 @@ export default {
 
     .rd-header-right {
       display: flex;
+      align-items: center;
       flex-direction: row;
       padding: 0;
 
@@ -1041,10 +1017,6 @@ export default {
       .header-spacer {
         background-color: var(--header-bg);
         position: relative;
-      }
-
-      .user.user-menu {
-        padding-top: 9.5px;
       }
 
       > .user {
