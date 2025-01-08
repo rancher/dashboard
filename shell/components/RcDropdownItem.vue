@@ -13,6 +13,14 @@ const defaultCollection: DropdownCollection = {
 
 const { fields } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
 
+type DropdownContext = {
+  close: () => void;
+}
+
+const defaultContext: DropdownContext = { close: () => null };
+
+const { close } = inject<DropdownContext>('dropdownContext') || defaultContext;
+
 const handleKeydown = (e: KeyboardEvent) => {
   const activeItem = document.activeElement;
 
@@ -55,6 +63,13 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
 
   return newIndex;
 };
+
+const handleActivate = (e: KeyboardEvent) => {
+  if (e?.target instanceof HTMLElement) {
+    e?.target?.click();
+  }
+};
+
 </script>
 
 <template>
@@ -63,6 +78,10 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     dropdown-menu-item
     tabindex="-1"
     role="menuitem"
+    aria-disabled="false"
+    @click="close"
+    @keydown.enter="handleActivate"
+    @keydown.space="handleActivate"
     @keydown.up.down.stop="handleKeydown"
   >
     <slot name="default">
@@ -70,3 +89,14 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     </slot>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  [dropdown-menu-item] {
+    padding: 10px;
+    cursor: pointer;
+    &:hover {
+      background-color: var(--dropdown-hover-bg);
+      color: var(--dropdown-hover-text);
+    }
+  }
+</style>

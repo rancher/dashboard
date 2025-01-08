@@ -17,6 +17,12 @@ const register = (field: HTMLElement | null) => {
 
 provide('dropdownCollection', { register, fields });
 
+const close = () => {
+  returnFocus();
+};
+
+provide('dropdownContext', { close });
+
 const popperContainer = ref<HTMLElement | null>(null);
 
 const setFocus = () => {
