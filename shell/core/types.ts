@@ -41,11 +41,11 @@ export interface Setting {
 export type BrandTheme = {
   colors?: {
     primary?: string; // Primary color
-    link?: string;  // Link color
+    link?: string; // Link color
   },
   images?: {
-    logo?: string;  // Logo image
-    banner?: string;  // Banner shown on the home page
+    logo?: string; // Logo image
+    banner?: string; // Banner shown on the home page
     errorBanner?: string; // Banner shown on the error page
     login?: string; // Graphic shown on the login and setup screens
   }
@@ -55,8 +55,8 @@ export type BrandTheme = {
 export type Brand = {
   name: string;
   lightTheme: BrandTheme;
-  darkTheme?:  BrandTheme;
-  favicon?: string // Icon to be used for thw UI in the browser
+  darkTheme?: BrandTheme;
+  favicon?: string; // Icon to be used for thw UI in the browser
 }
 
 export type VuexStoreObject = { [key: string]: any }

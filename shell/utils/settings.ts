@@ -120,8 +120,8 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
 /**
  * Get a setting value, either from the supplied setting resource, of from an extension, if set that way.
  * This takes into account the override value when set via an extension.
- * 
- * @param setting Setting resource from the backend API 
+ *
+ * @param setting Setting resource from the backend API
  * @param $plugin Extensions APi to use to look up the setting
  * @returns Setting value or undefined if not set
  */
@@ -142,7 +142,7 @@ export function getSettingValue(setting: ISetting, $plugin: IExtensions): string
   }
 
   // Use the setting, or the value from an extension as a default when not set via a setting
-  return setting?.value || extensionValue?.value;  
+  return setting?.value || extensionValue?.value;
 }
 
 /**

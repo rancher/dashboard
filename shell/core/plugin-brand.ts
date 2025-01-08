@@ -1,4 +1,4 @@
-import { Brand, BrandTheme } from "@shell/core/types";
+import { Brand, BrandTheme } from '@shell/core/types';
 import { createCssVars } from '@shell/utils/color';
 
 /**
@@ -6,9 +6,9 @@ import { createCssVars } from '@shell/utils/color';
  * Allows us to use nicer field names in the brand theme configuration
  */
 const IMAGE_NAME_MAP: { [key: string]: string } = {
-  'logo'        : 'rancher-logo',
-  'errorBanner' : 'error-desert-landscape',
-  'login'       : 'login-landscape',
+  logo:        'rancher-logo',
+  errorBanner: 'error-desert-landscape',
+  login:       'login-landscape',
 };
 
 /**
@@ -29,7 +29,7 @@ export function createBrand(brand: Brand, imageReg: any): void {
   // Create the css for the theme
   createBrandTheme(brand.name, 'light', brand.lightTheme);
   createBrandTheme(brand.name, 'dark', darkTheme);
-  
+
   // Add the images for the theme
   addBrandImages(imageReg, brand.name, 'light', brand.lightTheme);
   addBrandImages(imageReg, brand.name, 'dark', darkTheme);
@@ -77,5 +77,5 @@ function createBrandTheme(name: string, theme: string, brandTheme?: BrandTheme):
 
   style.textContent = css;
 
-  document.head.append(style);  
+  document.head.append(style);
 }

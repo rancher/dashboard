@@ -3,7 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { ExtensionPoint, RegistrationType, Settings } from './types';
+import { ExtensionPoint, RegistrationType } from './types';
 import { createBrand } from './plugin-brand';
 
 const MODEL_TYPE = 'models';

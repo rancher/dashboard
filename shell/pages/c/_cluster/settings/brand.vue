@@ -140,7 +140,7 @@ export default {
   computed: {
     setByExtensionNoOverride() {
       const setting = getSettingFromExtension(Settings.BRAND, this.$plugin);
-      
+
       return setting?.override ? setting.extension : undefined;
     },
 
@@ -159,7 +159,7 @@ export default {
 
     isEdit() {
       return this.mode === _EDIT;
-    }    
+    }
   },
 
   mounted() {
