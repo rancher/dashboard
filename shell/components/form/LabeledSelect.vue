@@ -383,7 +383,7 @@ export default {
 
       <template #list-footer>
         <div
-          v-if="canPaginate && totalResults"
+          v-if="canPaginate && totalResults && pages > 1"
           class="pagination-slot"
         >
           <div class="load-more">

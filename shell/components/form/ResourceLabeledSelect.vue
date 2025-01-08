@@ -13,9 +13,9 @@ interface SharedSettings {
    */
   labelSelectOptions?: { [key: string]: any },
   /**
-   * Map the resources shown in LabelSelect
+   * Map, filter, tweak, etc the resources to show in the LabelSelect
    */
-  mapResult?: (resources: any[]) => any[]
+  updateResources?: (resources: any[]) => any[]
 }
 
 /**
@@ -23,7 +23,7 @@ interface SharedSettings {
  */
 export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
   /**
-   * Override the convience function which fetches a page of results
+   * Override the convenience function which fetches a page of results
    */
   overrideRequest?: LabelSelectPaginateFn,
   /**
@@ -35,12 +35,7 @@ export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
 /**
  * Settings to use when the LabelSelect is fetching all resources (not paginating)
  */
-export interface ResourceLabeledSelectSettings extends SharedSettings {
-   /**
-   * Filter the resources shown in LabelSelect
-   */
-   filterResult?: (resources: any[]) => any[]
-}
+export type ResourceLabeledSelectSettings = SharedSettings
 
 /**
  * Force a specific mode
@@ -156,9 +151,9 @@ export default defineComponent({
 
       const all = this.$store.getters[`${ this.inStore }/all`](this.resourceType);
 
-      const mapped = this.allResourcesSettings?.mapResult ? this.allResourcesSettings.mapResult(all) : all;
+      debugger;
 
-      return this.allResourcesSettings?.filterResult ? this.allResourcesSettings.filterResult(mapped) : mapped;
+      return this.allResourcesSettings?.updateResources ? this.allResourcesSettings.updateResources(all) : all;
     }
   },
 
@@ -186,9 +181,9 @@ export default defineComponent({
       const options = this.paginatedResourceSettings?.requestSettings ? this.paginatedResourceSettings.requestSettings(defaultOptions) : defaultOptions;
       const res = await labelSelectPaginationFunction(options);
 
-      return this.paginatedResourceSettings?.mapResult ? {
+      return this.paginatedResourceSettings?.updateResources ? {
         ...res,
-        page: this.paginatedResourceSettings.mapResult(res.page)
+        page: this.paginatedResourceSettings.updateResources(res.page)
       } : res;
     },
   },
