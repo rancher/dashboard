@@ -1,6 +1,7 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
 import { filterBy } from '@shell/utils/array';
 import { PVC, STORAGE_CLASS } from '@shell/config/types';
 import Question from './Question';
@@ -14,8 +15,10 @@ const LEGACY_MAP = {
 export default {
   emits: ['update:value'],
 
-  components: { LabeledInput, LabeledSelect },
-  mixins:     [Question],
+  components: {
+    LabeledInput, LabeledSelect, ResourceLabeledSelect
+  },
+  mixins: [Question],
 
   props: {
     inStore: {
@@ -57,7 +60,9 @@ export default {
     return {
       typeName,
       typeSchema,
-      all: [],
+      all:                          [],
+      labelSelectSetting:           { filterResult: (allOf) },
+      labelSelectPaginationSetting: {},
     };
   },
 
@@ -90,7 +95,21 @@ export default {
     class="row"
   >
     <div class="col span-6">
-      <LabeledSelect
+      <ResourceLabeledSelect
+        :resourceType="typeName"
+        :inStore="inStore"
+        :disabled="$fetchState.pending || disabled"
+        :label="displayLabel"
+        :placeholder="question.description"
+        :required="question.required"
+        :value="value"
+        :tooltip="displayTooltip"
+        :allResourcesSettings="labelSelectSetting"
+        :paginatedResourceSettings="labelSelectPaginationSetting"
+        @update:value="!$fetchState.pending && $emit('update:value', $event)"
+      />
+      <!--
+        <LabeledSelect
         :mode="mode"
         :options="options"
         :disabled="$fetchState.pending || disabled"
@@ -100,7 +119,7 @@ export default {
         :value="value"
         :tooltip="displayTooltip"
         @update:value="!$fetchState.pending && $emit('update:value', $event)"
-      />
+      /> -->
     </div>
     <div class="col span-6 mt-10">
       {{ typeSchema.attributes.kind }}<span v-if="isNamespaced"> in namespace {{ targetNamespace }}</span>

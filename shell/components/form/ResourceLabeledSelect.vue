@@ -35,7 +35,12 @@ export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
 /**
  * Settings to use when the LabelSelect is fetching all resources (not paginating)
  */
-export type ResourceLabeledSelectSettings = SharedSettings
+export interface ResourceLabeledSelectSettings extends SharedSettings {
+   /**
+   * Filter the resources shown in LabelSelect
+   */
+   filterResult?: (resources: any[]) => any[]
+}
 
 /**
  * Force a specific mode
@@ -65,6 +70,8 @@ export default defineComponent({
   name: 'ResourceLabeledSelect',
 
   components: { LabeledSelect },
+
+  emits: ['update:value'],
 
   props: {
     /**
@@ -149,7 +156,9 @@ export default defineComponent({
 
       const all = this.$store.getters[`${ this.inStore }/all`](this.resourceType);
 
-      return this.allResourcesSettings?.mapResult ? this.allResourcesSettings.mapResult(all) : all;
+      const mapped = this.allResourcesSettings?.mapResult ? this.allResourcesSettings.mapResult(all) : all;
+
+      return this.allResourcesSettings?.filterResult ? this.allResourcesSettings.filterResult(mapped) : mapped;
     }
   },
 
@@ -192,5 +201,6 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
+    @update:value="$emit('update:value', $event)"
   />
 </template>
