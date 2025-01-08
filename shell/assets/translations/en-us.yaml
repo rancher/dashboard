@@ -2,6 +2,12 @@
 # Special stuff
 ##############################
 generic:
+  userMenu: user menu
+  actionMenu: action menu
+  namespaceFilter: namespace filter menu
+  filterNamespaces: filter namespaces
+  clearSearch: clear search
+  clearFilters: clear filters
   userAvatar: user avatar
   add: Add
   all: All
@@ -7622,6 +7628,7 @@ branding:
   label: Branding
   directoryName: Brand Asset Directory Name
   logos:
+    home: Product main page
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview

@@ -402,6 +402,7 @@ export default {
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
         role="link"
+        :alt="t('branding.logos.home')"
       >
         <BrandImage
           v-if="isSingleProduct.supportCustomLogo && isHarvester"
@@ -516,7 +517,6 @@ export default {
 
     <div class="spacer" />
 
-    RIGHT
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
       <div
@@ -548,7 +548,7 @@ export default {
             <i class="icon icon-upload icon-lg" />
           </button>
           <app-modal
-            v-if="showImportModal"
+            :visibility="showImportModal"
             class="import-modal"
             name="importModal"
             width="75%"
@@ -692,6 +692,7 @@ export default {
         data-testid="nav_header_showUserMenu"
         tabindex="0"
         role="menu"
+        :aria-label="t('generic.userMenu')"
         @click="showMenu(true)"
         @blur.capture="showMenu(false)"
         @keyup.enter="showMenu(true)"

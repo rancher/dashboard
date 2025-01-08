@@ -33,6 +33,7 @@ useClickOutside(target, () => showPageActionsMenu(false));
     :container="'.page-actions'"
     tabindex="0"
     role="menu"
+    :aria-label="t('generic.actionMenu')"
     @click="showPageActionsMenu(true)"
     @keyup.enter="showPageActionsMenu(true)"
     @keyup.space="showPageActionsMenu(true)"

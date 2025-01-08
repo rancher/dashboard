@@ -136,6 +136,7 @@ export default {
               <FileSelector
                 class="btn role-secondary pull-left"
                 :label="t('generic.readFromFile')"
+                tabindex="0"
                 @selected="onFileSelected"
               />
             </div>
