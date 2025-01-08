@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, provide, nextTick } from 'vue';
-import RcButton, { RcButton as RcButtonType } from '@shell/components/RcButton.vue';
+import { RcButton as RcButtonType } from '@shell/components/RcButton.vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
 const fields = ref<HTMLElement | null>(null);
@@ -21,7 +21,29 @@ const close = () => {
   returnFocus();
 };
 
-provide('dropdownContext', { close });
+const didKeydown = ref(false);
+
+const handleKeydown = () => {
+  didKeydown.value = true;
+};
+
+const isMenuOpen = ref(false);
+
+const showMenu = (show: boolean) => {
+  isMenuOpen.value = show;
+};
+
+const setTrigger = (triggerRef: RcButtonType) => {
+  console.log('WILL SET TRIGGER', { triggerRef });
+  dropdownTrigger.value = triggerRef;
+};
+
+provide('dropdownContext', {
+  close,
+  handleKeydown,
+  showMenu,
+  setTrigger,
+});
 
 const popperContainer = ref<HTMLElement | null>(null);
 
@@ -41,21 +63,9 @@ const setFocus = () => {
   });
 };
 
-const didKeydown = ref(false);
-
-const handleKeydown = () => {
-  didKeydown.value = true;
-};
-
 const focusFirstElement = () => {
   handleKeydown();
   setFocus();
-};
-
-const isMenuOpen = ref(false);
-
-const showMenu = (show: boolean) => {
-  isMenuOpen.value = show;
 };
 
 const target = ref(null);
@@ -66,6 +76,7 @@ const dropdownTrigger = ref<RcButtonType | null>(null);
 
 const returnFocus = () => {
   showMenu(false);
+  console.log({ dropdownTrigger });
   dropdownTrigger?.value?.focus();
 };
 
@@ -81,15 +92,7 @@ const returnFocus = () => {
     @apply-show="setFocus"
   >
     <slot name="default">
-      <rc-button
-        ref="dropdownTrigger"
-        link
-        aria-haspopup="menu"
-        @keydown="handleKeydown"
-        @click="showMenu(true)"
-      >
-        Test Menu
-      </rc-button>
+      <!--Empty slot content-->
     </slot>
 
     <template #popper>
