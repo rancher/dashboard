@@ -252,6 +252,7 @@ export default {
       <div class="col span-12">
         <KeyValue
           key="hostAliases"
+          data-test="hostAliases"
           :value="hostAliases"
           :mode="mode"
           :title="t('workload.networking.hostAliases.label')"
