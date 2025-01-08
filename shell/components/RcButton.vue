@@ -60,7 +60,7 @@ defineExpose({ focus });
 <style lang="scss" scoped>
 .role-link {
    &:focus, &.focused {
-    outline: var(--outline-width) solid var(--outline);
+    outline: var(--outline-width) solid var(--border);
     box-shadow: 0 0 0 var(--outline-width) var(--outline);
    }
 }
