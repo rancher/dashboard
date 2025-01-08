@@ -94,6 +94,7 @@ const returnFocus = () => {
 
     <template #popper>
       <div ref="target">
+        <!--⚠️ Rename this slot. popper is very specific to floating-vue impl-->
         <slot name="popper">
           <!--Empty slot content-->
         </slot>
@@ -111,3 +112,17 @@ const returnFocus = () => {
     <!--Empty container for mounting popper content-->
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .popperContainer :deep(.v-popper__popper) {
+    .v-popper__wrapper {
+      .v-popper__arrow-container {
+        display: none;
+      }
+
+      .v-popper__inner {
+        padding: 10px 0 10px 0;
+      }
+    }
+  }
+</style>

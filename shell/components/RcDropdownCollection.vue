@@ -36,6 +36,7 @@ defineExpose({ collectionItems });
   <div
     ref="collectionItems"
     role="menu"
+    aria-label="Dropdown Collection"
   >
     <slot
       name="default"
