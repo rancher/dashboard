@@ -3,7 +3,7 @@ import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
-import { getSettingValue } from '@shell/utils/settings';
+import { getSettingValue, getSettingFromExtension } from '@shell/utils/settings';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
 const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
@@ -195,9 +195,12 @@ export default {
 
       if ( this.brand ) {
         try {
-          const brandMeta = require(`~shell/assets/brand/${ this.brand }/metadata.json`);
+          // Check from extension first, in case this is a custom brand set by an extension
+          const extBrand = getSettingFromExtension('brand', this.$plugin);
+          const isBrandFromExtension = extBrand?.value === this.brand;
+          const brandMeta = isBrandFromExtension ? {} : require(`~shell/assets/brand/${ this.brand }/metadata.json`);
 
-          if (brandMeta?.hasStylesheet === 'true') {
+          if (isBrandFromExtension || brandMeta.hasStylesheet === 'true') {
             bodyClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;
           } else {
             bodyClass = `theme-${ this.theme } overflow-hidden dashboard-body`;

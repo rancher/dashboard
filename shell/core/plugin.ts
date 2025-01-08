@@ -14,6 +14,7 @@ import {
   ExtensionPoint,
   TabLocation,
   Setting,
+  Brand,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -35,6 +36,7 @@ export class Plugin implements IPlugin {
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
   public settings: Setting[] = [];
+  public brands: Brand[] = [];
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -239,6 +241,10 @@ export class Plugin implements IPlugin {
 
   setImage(path: string, image: Function) {
     this.register('image', path, image);
+  }
+
+  addBrand(brand: Brand) {
+    this.brands.push(brand);
   }
 
   addUninstallHook(hook: Function) {

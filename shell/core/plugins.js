@@ -4,6 +4,7 @@ import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint, RegistrationType, Settings } from './types';
+import { createBrand } from './plugin-brand';
 
 const MODEL_TYPE = 'models';
 
@@ -296,6 +297,13 @@ export default function(context, inject, vueApp) {
         plugin.locales.forEach((localeObj) => {
           store.dispatch('i18n/addLocale', localeObj);
         });
+
+        // Brand
+        if (plugin.brands.length) {
+          plugin.brands.forEach((brand) => {
+            createBrand(brand, (name, fn) => this.register('image', name, fn));
+          });
+        }
 
         // Brand
         if (plugin.settings.length) {
