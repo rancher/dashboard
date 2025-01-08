@@ -17,6 +17,7 @@ import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import IngressHelper from '@shell/utils/ingress';
 
 export default {
   name:         'CRUIngress',
@@ -50,36 +51,32 @@ export default {
   },
 
   async fetch() {
+    this.ingressHelper = new IngressHelper({
+      $store:    this.$store,
+      namespace: this.value.metadata.namespace
+    });
+
     this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
 
     const promises = {
-      services:              this.$store.dispatch('cluster/findAll', { type: SERVICE }), // TODO: RC findAll SERVICE
+      secrets:               this.ingressHelper.fetchSecrets(),
+      services:              this.ingressHelper.fetchServices(),
       ingressClasses:        this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
       ingressResourceFields: this.schema.fetchResourceFields(),
     };
 
-    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](SECRET);
-
-    if (this.filterByApi) {
-      promises.filteredSecrets = this.filterSecretsByApi();
-    } else {
-      promises.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
-
     const hash = await allHash(promises);
 
-    this.allServices = hash.services;
-    this.allSecrets = hash.secrets;
-    this.filteredSecrets = hash.filteredSecrets;
+    this.secrets = hash.secrets;
+    this.services = hash.services;
     this.allIngressClasses = hash.ingressClasses;
   },
   data() {
     return {
       filterByApi:        null,
       ingressClassSchema: null,
-      allSecrets:         null,
-      filteredSecrets:    null,
-      allServices:        [],
+      secrets:            [],
+      services:           [],
       allIngressClasses:  [],
       fvFormRuleSets:     [
         {
@@ -111,10 +108,9 @@ export default {
   },
 
   watch: {
-    async 'value.metadata.namespace'() {
-      if (this.filterByApi) {
-        this.filteredSecrets = await this.filterSecretsByApi();
-      }
+    async 'value.metadata.namespace'(neu) {
+      this.services = await this.ingressHelper.fetchServices({ namespace: neu });
+      this.secrets = await this.ingressHelper.fetchSecrets({ namespace: neu });
     }
   },
 
@@ -162,32 +158,13 @@ export default {
       return { name: [], port: [] };
     },
     serviceTargets() {
-      return this.filterByCurrentResourceNamespace(this.allServices)
-        .map((service) => ({
-          label: service.metadata.name,
-          value: service.metadata.name,
-          ports: service.spec.ports?.map((p) => p.port)
-        }));
+      return this.ingressHelper.findAndMapServiceTargets(this.services);
     },
     firstTabLabel() {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      let filteredSecrets;
-
-      if (this.filteredSecrets) {
-        filteredSecrets = this.filteredSecrets;
-      } else if (this.allSecrets ) {
-        filteredSecrets = this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS));
-      } else {
-        return [];
-      }
-
-      return filteredSecrets.map((secret) => {
-        const { id } = secret;
-
-        return id.slice(id.indexOf('/') + 1);
-      });
+      return this.ingressHelper.findAndMapCerts(this.secrets);
     },
     ingressClasses() {
       return this.allIngressClasses.map((ingressClass) => ({
@@ -210,28 +187,6 @@ export default {
   },
 
   methods: {
-    filterSecretsByApi() {
-      const findPageArgs = { // Of type ActionFindPageArgs
-        namespaced: this.value.metadata.namespace,
-        pagination: new FilterArgs({
-          filters: PaginationParamFilter.createSingleField({
-            field: 'metadata.fields.1',
-            value: TYPES.TLS
-          })
-        }),
-      };
-
-      return this.$store.dispatch(`cluster/findPage`, { type: SECRET, opt: findPageArgs });
-    },
-
-    filterByCurrentResourceNamespace(resources) {
-      // When configuring an Ingress, the options for Secrets and
-      // default backend Services are limited to the namespace of the Ingress.
-      return resources.filter((resource) => {
-        return resource.metadata.namespace === this.value.metadata.namespace;
-      });
-    },
-
     willSave() {
       const backend = get(this.value.spec, this.value.defaultBackendPath);
       const serviceName = get(backend, this.value.serviceNamePath);
