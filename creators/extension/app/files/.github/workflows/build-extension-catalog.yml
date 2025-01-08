@@ -20,5 +20,6 @@ jobs:
     with:
       registry_target: ghcr.io
       registry_user: ${{ github.actor }}
+      tagged_release: ${{ github.ref_name }}
     secrets: 
       registry_token: ${{ secrets.GITHUB_TOKEN }}

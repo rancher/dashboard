@@ -21,7 +21,7 @@ const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b'];
 const ENDPOINTS_URL = 'https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/endpoints.json';
 const JS_FILE = path.resolve(DIR, 'shell/assets/data/aws-regions.json');
 
-const request = require('request');
+const axios = require('axios');
 
 function readExisting() {
   const data = fs.readFileSync(JS_FILE).toString();
@@ -103,21 +103,15 @@ function checkService(endpoints, svc) {
   return changes;
 }
 
-request(ENDPOINTS_URL, function (error, res, body) {
-  if (error) {
-    console.error('Could not fetch endpoints data');
-
-    process.exit(1);
-  }
-
-  if (res.statusCode !== 200) {
-    console.error(`Could not fetch endpoints data - status ${ res.statusCode } ${ res.statusMessage }`);
+axios.get(ENDPOINTS_URL).then((res) => {
+  if (res.status !== 200 || !res.data) {
+    console.error(`Could not fetch endpoints data - status ${ res.status } ${ res.statusMessage }`);
 
     process.exit(2);
   }
 
   try {
-    const endpoints = JSON.parse(body);
+    const endpoints = res.data;
 
     checkService(endpoints, 'ec2');
   } catch (e) {
@@ -126,4 +120,9 @@ request(ENDPOINTS_URL, function (error, res, body) {
 
     process.exit(3);
   }
+
+}).catch((e) => {
+  console.error('Could not fetch endpoints data');
+
+  process.exit(1);
 });

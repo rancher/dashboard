@@ -265,30 +265,39 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
 
-    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
+    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
-    clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
-      .within('.table-header-container .content')
-      .each((el, i) => {
-        expect(el.text().trim()).to.eq(expectedHeaders[i]);
-      });
+    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
+      if (isVaiCacheEnabled) {
+        expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
+      }
 
-    clusterDashboard.fullEventsLink().click();
-    cy.wait('@eventsNoData');
-    const events = new EventsPagePo('local');
+      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
 
-    events.waitForPage();
+      clusterDashboard.fullEventsLink().click();
+      cy.wait('@eventsNoData');
+      const events = new EventsPagePo('local');
 
-    events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+      events.waitForPage();
 
-    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
-      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+      events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
 
-    events.eventslist().resourceTable().sortableTable().tableHeaderRow()
-      .within('.table-header-container .content')
-      .each((el, i) => {
-        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
-      });
+      const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+        'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+
+      events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+        });
+    });
   });
 
   describe('Cluster dashboard with limited permissions', () => {

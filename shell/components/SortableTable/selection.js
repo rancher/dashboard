@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/platform';
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
@@ -29,6 +30,13 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      // Use either these Vuex getters
+      // OR the props to set the action menu state,
+      // but don't use both.
+      targetElem: 'action-menu/elem',
+      shouldShow: 'action-menu/showing',
+    }),
     // Used for the table-level selection check-box to show checked (all selected)/intermediate (some selected)/unchecked (none selected)
     howMuchSelected() {
       const total = this.pagedRows.length;
@@ -270,11 +278,17 @@ export default {
           }
         }
 
-        this.$store.commit(`action-menu/show`, {
-          resources,
-          event: e,
-          elem:  actionElement
-        });
+        if (!this.targetElem && !this.shouldShow) {
+          this.$store.commit(`action-menu/show`, {
+            resources,
+            event: e,
+            elem:  actionElement
+          });
+        } else if (this.targetElem === actionElement && this.shouldShow) {
+          // this condition is needed so that we can "toggle" the action menu with
+          // the keyboard for accessibility (row action menu)
+          this.$store.commit('action-menu/hide');
+        }
 
         return;
       }
