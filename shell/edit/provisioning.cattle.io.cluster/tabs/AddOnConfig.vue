@@ -97,6 +97,7 @@ export default {
       <YamlEditor
         v-else
         ref="yaml-values"
+        data-testid="addon-yaml-editor"
         :value="initYamlEditor(addonVersion.name)"
         :scrolling="true"
         :as-object="true"
