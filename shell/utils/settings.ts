@@ -3,7 +3,7 @@ import { Store } from 'vuex';
 import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/settings';
 import { pluralize } from '@shell/utils/string';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { IExtensions, RegistrationType, Setting } from 'core/types';
+import { IExtensions, RegistrationType, Setting } from '@shell/core/types';
 
 interface ISetting {
   id: string;
