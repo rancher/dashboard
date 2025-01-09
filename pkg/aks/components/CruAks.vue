@@ -645,7 +645,7 @@ export default defineComponent({
 
     virtualNetwork: {
       get() {
-        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || this.t('generic.none');
+        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || { label: this.t('generic.none') };
       },
       set(neu: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any}) {
         if (neu.label === this.t('generic.none')) {

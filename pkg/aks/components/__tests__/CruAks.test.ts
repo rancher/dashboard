@@ -240,7 +240,7 @@ describe('aks provisioning form', () => {
   it('should display subnets grouped by network in the virtual network dropdown', async() => {
     const noneOption = { label: 'generic.none' };
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -254,7 +254,6 @@ describe('aks provisioning form', () => {
     const networkOpts = virtualNetworkSelect.props().options;
 
     expect(virtualNetworkSelect.props().value).toStrictEqual(noneOption);
-
     expect(networkOpts).toStrictEqual([{ label: 'generic.none' }, {
       disabled: true, kind: 'group', label: 'network2'
     }, {
@@ -299,7 +298,7 @@ describe('aks provisioning form', () => {
 
   it('should prevent saving if a node pool has taints missing keys or values', async() => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -343,7 +342,7 @@ describe('aks provisioning form', () => {
     }],
   ])('should set virtualNetwork, virtualNetworkResourceGroup, and subnet when a virtual network is selected', async(optionIndex, { virtualNetwork, virtualNetworkResourceGroup, subnet }) => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -366,7 +365,7 @@ describe('aks provisioning form', () => {
 
   it('should set config.monitoring to \'true\' and show log anaytics workspace name and log analytics workspace group inputs when the monitoring checkbox is checked', async() => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -397,7 +396,7 @@ describe('aks provisioning form', () => {
 
   it('should clear virtualNetwork, virtualNetworkResourceGroup, and subnet when the \'none\' virtual network option is selected', async() => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -430,7 +429,7 @@ describe('aks provisioning form', () => {
       name: 'abc', _validation: {}, _isNewOrUnprovisioned: false, orchestratorVersion: originalVersion
     }];
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', kubernetesVersion: originalVersion, nodePools
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', kubernetesVersion: originalVersion, nodePools, resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
@@ -451,7 +450,7 @@ describe('aks provisioning form', () => {
 
   it('should clear config.logAnalyticsWorkspaceName and config.logAnalyticsWorkspaceGroup when the monitoring checkbox is unchecked', async() => {
     const config = {
-      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', monitoring: true, logAnalyticsWorkspaceGroup: 'abc', logAnalyticsWorkspaceName: 'def'
+      dnsPrefix: 'abc-123', resourceGroup: 'abc', clusterName: 'abc', monitoring: true, logAnalyticsWorkspaceGroup: 'abc', logAnalyticsWorkspaceName: 'def', resourceLocation: 'eastus'
     };
     const wrapper = shallowMount(CruAks, {
       propsData: {
