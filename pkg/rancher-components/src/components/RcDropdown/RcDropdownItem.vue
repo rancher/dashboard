@@ -98,5 +98,9 @@ const handleActivate = (e: KeyboardEvent) => {
       background-color: var(--dropdown-hover-bg);
       color: var(--dropdown-hover-text);
     }
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
   }
 </style>
