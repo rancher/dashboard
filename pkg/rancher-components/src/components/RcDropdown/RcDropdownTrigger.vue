@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, ref } from 'vue';
-import RcButton, { RcButton as RcButtonType } from '@shell/components/RcButton.vue';
+import { RcButton, RcButtonType } from '@components/RcButton';
 
 type DropdownContext = {
   handleKeydown: () => void;

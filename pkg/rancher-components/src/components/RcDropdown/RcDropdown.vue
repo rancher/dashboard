@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, provide, nextTick } from 'vue';
-import { RcButton as RcButtonType } from '@shell/components/RcButton.vue';
+import { RcButtonType } from '@components/RcButton';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
 const fields = ref<HTMLElement | null>(null);
@@ -85,7 +85,7 @@ const returnFocus = () => {
     no-auto-focus
     :triggers="[]"
     :shown="isMenuOpen"
-    :autoHide="false"
+    :auto-hide="false"
     :container="'.popperContainer'"
     @apply-show="setFocus"
   >

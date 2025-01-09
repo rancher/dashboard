@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, defineExpose } from 'vue';
 
-export type RcButton = {
+export type RcButtonType = {
   focus: () => void;
 }
 
