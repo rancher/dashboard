@@ -1,21 +1,21 @@
-import { VueConstructor } from 'vue';
+import { DefineComponent } from 'vue';
 
-export const BadgeState: VueConstructor;
-export const Banner: VueConstructor;
-export const Card: VueConstructor;
-export const Checkbox: VueConstructor;
-export const LabeledInput: VueConstructor;
-export const LabeledTooltip: VueConstructor;
-export const RadioButton: VueConstructor;
-export const RadioGroup: VueConstructor;
-export const StringList: VueConstructor;
-export const TextAreaAutoGrow: VueConstructor;
-export const ToggleSwitch: VueConstructor;
-export const RcDropdown: VueConstructor;
-export const RcDropdownCollection: VueConstructor;
-export const RcDropdownItem: VueConstructor;
-export const RcDropdownSeparator: VueConstructor;
-export const RcDropdownTrigger: VueConstructor;
+export const BadgeState: DefineComponent;
+export const Banner: DefineComponent;
+export const Card: DefineComponent;
+export const Checkbox: DefineComponent;
+export const LabeledInput: DefineComponent;
+export const LabeledTooltip: DefineComponent;
+export const RadioButton: DefineComponent;
+export const RadioGroup: DefineComponent;
+export const StringList: DefineComponent;
+export const TextAreaAutoGrow: DefineComponent;
+export const ToggleSwitch: DefineComponent;
+export const RcDropdown: DefineComponent;
+export const RcDropdownCollection: DefineComponent;
+export const RcDropdownItem: DefineComponent;
+export const RcDropdownSeparator: DefineComponent;
+export const RcDropdownTrigger: DefineComponent;
 
 type ArrayListRow = {
     value: string;
