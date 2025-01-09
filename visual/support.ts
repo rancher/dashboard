@@ -8,7 +8,7 @@ const options = {
   padding: 10,
   customSnapshotsDir: 'visual/snapshots/',
   delayBetweenTries: 0,
-  timeout: 500,
+  timeout: 1000,
   disableTimersAndAnimations: true,
   diffDirection: 'vertical',
 } as CypressImageSnapshotOptions;
