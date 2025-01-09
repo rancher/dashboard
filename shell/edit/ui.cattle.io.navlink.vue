@@ -162,7 +162,7 @@ export default {
   },
   async fetch() {
     this.services = await this.$store
-      .dispatch('cluster/findAll', { type: SERVICE }); // TODO: RC SERVICE
+      .dispatch('cluster/findAll', { type: SERVICE });
   },
   methods: {
     /**

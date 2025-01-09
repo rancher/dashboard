@@ -1,6 +1,6 @@
 <script>
 import { allHash } from '@shell/utils/promise';
-import { SECRET, SERVICE, INGRESS_CLASS } from '@shell/config/types';
+import { INGRESS_CLASS } from '@shell/config/types';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
@@ -10,14 +10,12 @@ import Labels from '@shell/components/form/Labels';
 import Error from '@shell/components/form/Error';
 import Tabbed from '@shell/components/Tabbed';
 import { get, set } from '@shell/utils/object';
-import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
 import IngressClass from './IngressClass';
 import Loading from '@shell/components/Loading';
-import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import IngressHelper from '@shell/utils/ingress';
+import IngressDetailEditHelper from '@shell/utils/ingress';
 
 export default {
   name:         'CRUIngress',
@@ -51,7 +49,7 @@ export default {
   },
 
   async fetch() {
-    this.ingressHelper = new IngressHelper({
+    this.ingressHelper = new IngressDetailEditHelper({
       $store:    this.$store,
       namespace: this.value.metadata.namespace
     });

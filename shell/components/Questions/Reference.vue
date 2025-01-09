@@ -130,18 +130,6 @@ export default {
         :all-resources-settings="allResourceSettings"
         @update:value="!$fetchState.pending && $emit('update:value', $event)"
       />
-      <!--
-        <LabeledSelect
-        :mode="mode"
-        :options="options"
-        :disabled="$fetchState.pending || disabled"
-        :label="displayLabel"
-        :placeholder="question.description"
-        :required="question.required"
-        :value="value"
-        :tooltip="displayTooltip"
-        @update:value="!$fetchState.pending && $emit('update:value', $event)"
-      /> -->
     </div>
     <div class="col span-6 mt-10">
       {{ typeSchema.attributes.kind }}<span v-if="isNamespaced"> in namespace {{ targetNamespace }}</span>
