@@ -962,11 +962,11 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  labelKey:  'tableHeaders.restartSystem',
+  labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
-  width:     75,
+  width:     125,
   align:     'center'
 };
 

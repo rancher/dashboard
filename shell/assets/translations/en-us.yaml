@@ -5836,7 +5836,7 @@ tableHeaders:
   resourcesReady: Resources Ready
   restarts: Restarts
   restart: Restart Required
-  restartSystem: Restart System
+  restartSystem: Restart { vendor }
   restore: Restore
   role: Role
   roles: Roles
@@ -7507,7 +7507,7 @@ featureFlags:
     This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
-  restartRequired: "Note: Updating this feature flag will restart the {vendor} server"
+  restartRequired: "Note: Updating this feature flag will restart {vendor}"
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
