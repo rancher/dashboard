@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
-import { addMatchImageSnapshotPlugin } from '@emerson-eps/cypress-image-snapshot/plugin'
+import { addMatchImageSnapshotPlugin } from './visual/plugin'
 
 // Required for env vars to be available in cypress
 require('dotenv').config();

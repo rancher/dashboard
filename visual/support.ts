@@ -1,8 +1,10 @@
-import { addMatchImageSnapshotCommand } from '@emerson-eps/cypress-image-snapshot/command'
-import { CypressImageSnapshotOptions } from '@emerson-eps/cypress-image-snapshot/types';
+import { addMatchImageSnapshotCommand } from './command'
+import { CypressImageSnapshotOptions } from './types';
 
 const options = {
+  capture: 'viewport',
   failureThreshold: 0,
+  failOnSnapshotDiff: true,
   padding: 10,
   customSnapshotsDir: 'visual/snapshots/',
   delayBetweenTries: 0,
