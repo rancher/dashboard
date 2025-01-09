@@ -5,7 +5,8 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import { StorePaginationResult } from '@shell/types/store/pagination.types';
 
 export type FetchSecondaryResourcesOpts = { canPaginate: boolean }
-export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
+export type FetchSecondaryResourcesReturns = Promise<any> | { [key: string]: Promise<any>}
+export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => FetchSecondaryResourcesReturns
 
 export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[], pagResult: StorePaginationResult }
 export type FetchPageSecondaryResources = (opts: FetchPageSecondaryResourcesOpts) => Promise<any>
@@ -86,7 +87,9 @@ export default defineComponent({
     ];
 
     if (this.fetchSecondaryResources) {
-      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
+      const res = this.fetchSecondaryResources({ canPaginate: this.canPaginate });
+
+      promises.push(Array.isArray(res) ? res : [res]);
     }
 
     await Promise.all(promises);

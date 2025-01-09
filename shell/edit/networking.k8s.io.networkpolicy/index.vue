@@ -43,12 +43,12 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }),
-      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
+      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     });
 
-    this.allPods = hash.allPods;
-    this.allNamespaces = hash.allNamespaces;
+    this.allPods = hash.allPods; // Used in matchingPods, and PolicyRules --> PolicyRule --> PolicyRuleTarget
+    this.allNamespaces = hash.allNamespaces; // Used in PolicyRules --> PolicyRule --> PolicyRuleTarget
 
     this.updateMatchingPods();
   },
@@ -147,7 +147,6 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(function() {
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;

@@ -58,7 +58,7 @@ export default {
     };
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+      hash.jobs = this.value.matchingJobs();
     }
     const res = await allHash(hash);
 
@@ -92,7 +92,6 @@ export default {
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
-      allJobs:                         [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,

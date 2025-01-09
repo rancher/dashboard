@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts, FetchSecondaryResourcesReturns } from '@shell/components/PaginatedResourceTable.vue';
 import { PVC } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
@@ -38,7 +38,11 @@ export default defineComponent({
   },
 
   methods: {
-    fetchSecondaryResources(): { [key: string]: Promise<any>} {
+    fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
+      if (canPaginate) {
+        return {};
+      }
+
       return { pvc: this.$store.dispatch(`cluster/findAll`, { type: PVC }) };
     },
 

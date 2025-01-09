@@ -1,5 +1,5 @@
 <script lang="ts">
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts, FetchSecondaryResourcesReturns } from '@shell/components/PaginatedResourceTable.vue';
 import Tag from '@shell/components/Tag.vue';
 import { Banner } from '@components/Banner';
 import { PODS } from '@shell/config/table-headers';
@@ -185,7 +185,10 @@ export default defineComponent({
       row['displayLabels'] = !row.displayLabels;
     },
 
-    fetchSecondaryResources(): { [key: string]: Promise<any>} {
+    fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
+      if (canPaginate) {
+        return {};
+      }
       const hash: { [key: string]: Promise<any>} = {};
 
       if (this.canViewMgmtNodes) {

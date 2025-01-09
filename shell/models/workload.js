@@ -595,6 +595,23 @@ export default class Workload extends WorkloadService {
     return (get(this, 'metadata.relationships') || []).filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB);
   }
 
+  /**
+   * Ensure the store has all matching jobs
+   */
+  async matchingJobs() {
+    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
+      return undefined;
+    }
+
+    // This will be 1 request per relationship, though there's not likely to be many per cron job
+    return Promise.all(this.jobRelationships.map((obj) => {
+      return this.$dispatch('find', { type: WORKLOAD_TYPES.JOB, id: obj.toId });
+    }));
+  }
+
+  /**
+   * Expects all required pods are fetched upfront
+   */
   get jobs() {
     if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
       return undefined;

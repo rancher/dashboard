@@ -4,7 +4,7 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts, FetchSecondaryResourcesReturns } from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
@@ -240,7 +240,7 @@ export default defineComponent({
     /**
      * Of type FetchSecondaryResources
      */
-    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): Promise<any> {
+    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
       if (opts.canPaginate) {
         return Promise.resolve({});
       }
