@@ -203,9 +203,15 @@ export default defineComponent({
 
     networkOptions(neu) {
       if (neu && neu.length && !this.network) {
-        const firstnetwork = neu.find((network: GKENetwork) => network.kind !== 'group');
+        const defaultNetwork = neu.find((network: GKENetwork) => network?.name === 'default');
 
-        this.$emit('update:network', firstnetwork?.name);
+        if (defaultNetwork) {
+          this.$emit('update:network', defaultNetwork.name);
+        } else {
+          const firstnetwork = neu.find((network: GKENetwork) => network.kind !== 'group');
+
+          this.$emit('update:network', firstnetwork?.name);
+        }
       }
     },
 
