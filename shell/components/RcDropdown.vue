@@ -34,7 +34,6 @@ const showMenu = (show: boolean) => {
 };
 
 const setTrigger = (triggerRef: RcButtonType) => {
-  console.log('WILL SET TRIGGER', { triggerRef });
   dropdownTrigger.value = triggerRef;
 };
 
@@ -76,7 +75,6 @@ const dropdownTrigger = ref<RcButtonType | null>(null);
 
 const returnFocus = () => {
   showMenu(false);
-  console.log({ dropdownTrigger });
   dropdownTrigger?.value?.focus();
 };
 
@@ -92,7 +90,7 @@ const returnFocus = () => {
     @apply-show="setFocus"
   >
     <slot name="default">
-      <!--Empty slot content-->
+      <!--Empty slot content Trigger-->
     </slot>
 
     <template #popper>
@@ -104,6 +102,7 @@ const returnFocus = () => {
       </div>
     </template>
   </v-dropdown>
+  <!--We might need to change this pattern so that this div doesn't receive focus or move the container up into this file-->
   <div
     ref="popperContainer"
     class="popperContainer"
