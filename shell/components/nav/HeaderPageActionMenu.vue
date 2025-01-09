@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
-import RcDropdown from '@shell/components/RcDropdown.vue';
-import RcDropdownCollection from '@shell/components/RcDropdownCollection.vue';
-import RcDropdownItem from '@shell/components/RcDropdownItem.vue';
-import RcDropdownSeparator from '@shell/components/RcDropdownSeparator.vue';
-import RcDropdownTrigger from '@shell/components/RcDropdownTrigger.vue';
+import {
+  RcDropdown,
+  RcDropdownCollection,
+  RcDropdownItem,
+  RcDropdownSeparator,
+  RcDropdownTrigger
+} from '@components/RcDropdown';
 
 const isPageActionMenuOpen = ref(false);
 

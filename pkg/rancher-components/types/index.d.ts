@@ -11,6 +11,11 @@ export const RadioGroup: VueConstructor;
 export const StringList: VueConstructor;
 export const TextAreaAutoGrow: VueConstructor;
 export const ToggleSwitch: VueConstructor;
+export const RcDropdown: VueConstructor;
+export const RcDropdownCollection: VueConstructor;
+export const RcDropdownItem: VueConstructor;
+export const RcDropdownSeparator: VueConstructor;
+export const RcDropdownTrigger: VueConstructor;
 
 type ArrayListRow = {
     value: string;
