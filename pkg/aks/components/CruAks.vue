@@ -804,8 +804,6 @@ export default defineComponent({
         return;
       }
       this.loadingLocations = true;
-      // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
-      this.config['resourceLocation'] = '';
 
       const { azureCredentialSecret } = this.config;
 
@@ -839,6 +837,11 @@ export default defineComponent({
 
         errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
       }
+
+      // once regions are loaded and a default selected, fetch resources that are region-scoped
+      this.getAksVersions();
+      this.getVmSizes();
+      this.getVirtualNetworks();
     },
 
     async getAksVersions(): Promise<void> {
