@@ -643,7 +643,10 @@ export default {
         <span v-if="isHarvesterCluster">
           <a
             role="button"
+            :aria-label="displayProvider"
             @click="goToHarvesterCluster"
+            @keyup.space="goToHarvesterCluster"
+            @keyup.enter="goToHarvesterCluster"
           >
             {{ displayProvider }}
           </a>
@@ -682,6 +685,8 @@ export default {
         <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
           class="cluster-tools-link"
+          role="link"
+          :aria-label="t('nav.clusterTools')"
         >
           <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
@@ -934,10 +939,6 @@ export default {
   > I {
     line-height: inherit;
     margin-right: 4px;
-  }
-
-  &:focus {
-    outline: 0;
   }
 }
 

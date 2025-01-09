@@ -211,6 +211,7 @@ export default {
 
 <template>
   <Card
+    v-trap="true"
     class="prompt-badge"
     :show-highlight-border="false"
   >
