@@ -25,7 +25,7 @@
     "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent",
     "visual": "cypress run --config-file cypress.visual.config.ts",
     "visual:open": "cypress open --env requireSnapshots=true --config-file cypress.visual.config.ts",
-    "visual:ci": "npx concurrently \"yarn storybook --quiet --ci \" \"yarn visual\"",
+    "visual:ci": "npx concurrently -k -s first \"yarn storybook --quiet --ci \" \"yarn visual \"",
     "install:ci": "yarn install --frozen-lockfile",
     "dev": "bash -c 'source ./scripts/version && NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve'",
     "mem-dev": "bash -c 'source ./scripts/version && NODE_ENV=dev node --max-old-space-size=8192 ./node_modules/.bin/vue-cli-service serve'",
