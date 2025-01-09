@@ -15,10 +15,6 @@ import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
-import RcDropdown from '@shell/components/RcDropdown.vue';
-import RcDropdownCollection from '@shell/components/RcDropdownCollection.vue';
-import RcDropdownItem from '@shell/components/RcDropdownItem.vue';
-import RcButton from '@shell/components/RcButton.vue';
 
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
@@ -43,10 +39,6 @@ export default {
     IconOrSvg,
     AppModal,
     HeaderPageActionMenu,
-    RcDropdown,
-    RcDropdownCollection,
-    RcDropdownItem,
-    RcButton,
   },
 
   props: {
