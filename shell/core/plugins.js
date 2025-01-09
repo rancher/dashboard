@@ -4,6 +4,7 @@ import { EXT_IDS, Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
+import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
 
 export default function(context, inject, vueApp) {
   const {
@@ -19,6 +20,9 @@ export default function(context, inject, vueApp) {
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {};
+
+  // Builtin extensions - these are registered when the UI loads and then initialized/loaded at the same time as the external extensions
+  let builtin = [];
 
   for (const ep in ExtensionPoint) {
     uiConfig[ExtensionPoint[ep]] = {};
@@ -137,31 +141,63 @@ export default function(context, inject, vueApp) {
         });
       },
 
-      // Used by the dynamic loader when a plugin is included in the build
-      initPlugin(id, module) {
+      /**
+       * Load the builtin extensions by initializing them in turn
+       */
+      loadBuiltinExtensions() {
+        builtin.forEach((ext) => {
+          this.initBuiltinExtension(ext.id, ext.module);
+        });
+
+        // We've loaded the builtin extensions, so clear out the list so we don't load again
+        builtin = [];
+      },
+
+      /**
+       * Register a builtin extension that should be loaded
+       *
+       * Used by the dynamic loader when a plugin is included in the build (see shell/vue.config.js)
+       */
+      registerBuiltinExtension(id, module) {
+        builtin.push({ id, module });
+      },
+
+      /**
+       * Initialize a builtin extension
+       *
+       * This is only used by the 'loadBuiltinExtensions' function above
+       */
+      initBuiltinExtension(id, module) {
         const plugin = new Plugin(id);
 
         // Mark the plugin as being built-in
         plugin.builtin = true;
 
-        plugins[id] = plugin;
-
         // Initialize the plugin
         const p = module;
 
         try {
-          p.default(plugin, this.internal());
+          const load = p.default(plugin, this.internal());
 
-          // Uninstall existing product if there is one
-          this.removePlugin(plugin.name);
+          // The function must explicitly return false to skip loading of the extension (this is only allows on builtin extensions)
+          // Only built-in extensions can return that they should not be loaded, because the extension can still do 'things'
+          // in its init code (inject code, styles etc), so we do not want to hide an extension that has 'partially' loaded,
+          // just because it tells us it should not load.
+          // Built-in extensions are compiled into the app, so there is a level of trust assumed with them
+          if (load !== false) {
+            plugins[id] = plugin;
 
-          // Load all of the types etc from the plugin
-          this.applyPlugin(plugin);
+            // Uninstall existing product if there is one
+            this.removePlugin(plugin.name);
 
-          // Add the plugin to the store
-          store.dispatch('uiplugins/addPlugin', plugin);
+            // Load all of the types etc from the extension
+            this.applyPlugin(plugin);
+
+            // Add the extension to the store
+            store.dispatch('uiplugins/addPlugin', plugin);
+          }
         } catch (e) {
-          console.error(`Error loading plugin ${ plugin.name }`); // eslint-disable-line no-console
+          console.error(`Error loading extension ${ plugin.name }`); // eslint-disable-line no-console
           console.error(e); // eslint-disable-line no-console
         }
       },
@@ -179,7 +215,7 @@ export default function(context, inject, vueApp) {
           try {
             await this.removePlugin(plugin.name);
           } catch (e) {
-            console.error('Error removing plugin', e); // eslint-disable-line no-console
+            console.error('Error removing extension', e); // eslint-disable-line no-console
           }
 
           delete plugins[plugin.id];
@@ -235,6 +271,13 @@ export default function(context, inject, vueApp) {
         Object.keys(plugin.validators).forEach((key) => {
           delete validators[key];
         });
+
+        // Remove link interceptors
+        if (plugin.types.linkInterceptor) {
+          Object.keys(plugin.types.linkInterceptor).forEach((name) => {
+            removeLinkInterceptor(plugin.types.linkInterceptor[name]);
+          });
+        }
 
         await Promise.all(promises);
 
@@ -301,6 +344,13 @@ export default function(context, inject, vueApp) {
         Object.keys(plugin.validators).forEach((key) => {
           validators[key] = plugin.validators[key];
         });
+
+        // Link Interceptors
+        if (dynamic.linkInterceptor) {
+          Object.keys(dynamic.linkInterceptor).forEach((name) => {
+            addLinkInterceptor(dynamic.linkInterceptor[name], name);
+          });
+        }
       },
 
       /**
