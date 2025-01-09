@@ -79,7 +79,7 @@ export default {
       Object.assign(out, this.options);
 
       // parent components control lint with a boolean; if linting is enabled, we need to override that boolean with a custom error handler to wire lint errors into dashboard validation
-      if (this.options.lint) {
+      if (this.options?.lint) {
         out.lint = { onUpdateLinting: this.handleLintErrors };
       }
 
