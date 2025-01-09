@@ -311,6 +311,31 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
       });
 
+      it('will disbable saving if an addon config has invalid data', () => {
+        clusterList.goTo();
+
+        clusterList.checkIsCurrentPage();
+        clusterList.createCluster();
+
+        createRKE2ClusterPage.waitForPage();
+
+        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
+
+        createRKE2ClusterPage.selectCustom(0);
+
+        createRKE2ClusterPage.nameNsDescription().name().set('abc');
+
+        createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+
+        createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
+
+        createRKE2ClusterPage.calicoAddonConfig().yamlEditor().input().set('badvalue: -');
+        createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeDisabled();
+
+        createRKE2ClusterPage.calicoAddonConfig().yamlEditor().input().set('goodvalue: yay');
+        createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
+      });
+
       it('can view cluster YAML editor', () => {
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();

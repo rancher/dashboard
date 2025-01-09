@@ -4,6 +4,7 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import RegistriesTabPo from '@/cypress/e2e/po/components/registries-tab.po';
 import NetworkTabPo from '@/cypress/e2e/po/components/network-tab.po';
+import AddonConfigPo from '@/cypress/e2e/po/components/addon-config.po';
 
 /**
  * Create page for an RKE2 custom cluster
@@ -43,5 +44,9 @@ export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManager
 
   network(): NetworkTabPo {
     return new NetworkTabPo();
+  }
+
+  calicoAddonConfig(): AddonConfigPo {
+    return new AddonConfigPo();
   }
 }
