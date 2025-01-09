@@ -34,7 +34,6 @@ function registerNamespace(state, namespace) {
  * update the podsByNamespace cache with new or changed pods
  */
 function updatePodsByNamespaceCache(state, ctx, pods, loadAll) {
-  // TODO: RC check where this is called
   if (loadAll) {
     // Clear the entire cache - this is a fresh load
     Object.keys(state.podsByNamespace).forEach((ns) => {
@@ -184,7 +183,7 @@ export default {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });
 
-      if (resource.type === POD && resource.metadata) { // TODO: RC check if pag calls this
+      if (resource.type === POD && resource.metadata) {
         const cache = registerNamespace(state, resource.namespace);
 
         addObject(cache.list, resource);
@@ -198,7 +197,7 @@ export default {
       type, data: allLatest, ctx
     });
 
-    if (allLatest.length && allLatest[0].type === POD) { // TODO: RC check if pag calls this
+    if (allLatest.length && allLatest[0].type === POD) {
       updatePodsByNamespaceCache(state, ctx, allLatest, false);
     }
   },

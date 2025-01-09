@@ -259,7 +259,7 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
@@ -287,7 +287,7 @@ export default {
 
         const hash = {
           provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }), // TODO: RC findAll POD
+          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
