@@ -15,17 +15,14 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "baseUrl": "..",
-    "resolveJsonModule": true,
     "noEmit": true,
     "types": [
       "cypress",
-      "@cypress/grep",
-      "@emerson-eps/cypress-image-snapshot"
+      "@cypress/grep"
     ]
   },
   "include": [
     "./**/*.ts",
-    "../types/*.ts",
-    "@emerson-eps/cypress-image-snapshot"
+    "../types/*.ts"
   ]
 }
