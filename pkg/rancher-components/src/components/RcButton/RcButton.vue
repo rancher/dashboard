@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, defineExpose } from 'vue';
 
-export type RcButtonType = {
-  focus: () => void;
-}
-
 type Props = {
   primary?: boolean;
   secondary?: boolean;
