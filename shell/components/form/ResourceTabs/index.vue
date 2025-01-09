@@ -75,7 +75,6 @@ export default {
       eventSchema:    this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
       EVENT,
       selectedTab:    this.defaultTab,
-      // didLoadEvents:  false,
       inStore,
       showConditions: false,
     };

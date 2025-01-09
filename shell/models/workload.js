@@ -554,7 +554,7 @@ export default class Workload extends WorkloadService {
     if (podRelationship) {
       const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
 
-      // https://github.com/rancher/dashboard/issues/10417
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       return pods.filter((obj) => {
         return matches(obj, podRelationship.selector);
       });
@@ -644,12 +644,12 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    const all = await this.$dispatch('findAll', { type: POD }); // https://github.com/rancher/dashboard/issues/10417
+    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+    const all = await this.$dispatch('findAll', { type: POD });
     const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
 
     const selector = convertSelectorObj(this.spec.selector);
 
-    // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
     return matching(allInNamespace, selector);
   }
 

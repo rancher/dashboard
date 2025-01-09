@@ -151,8 +151,6 @@ export default defineComponent({
 
       const all = this.$store.getters[`${ this.inStore }/all`](this.resourceType);
 
-      debugger;
-
       return this.allResourcesSettings?.updateResources ? this.allResourcesSettings.updateResources(all) : all;
     }
   },

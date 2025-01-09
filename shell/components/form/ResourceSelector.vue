@@ -36,8 +36,7 @@ export default {
   },
 
   async fetch() {
-    // TODO: RC find all 10417, update comment
-    // https://github.com/rancher/dashboard/issues/10417 require in order to scale application of labelSelects
+    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
 
     this.allResources = hash.allResources;

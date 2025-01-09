@@ -202,7 +202,7 @@ export default defineComponent({
 
       if (this.canViewPods) {
         // No need to block on this
-        this.$store.dispatch(`cluster/findAll`, { type: POD }); // TODO: RC findAll POD. if this doesn't run in pag world make clear
+        this.$store.dispatch(`cluster/findAll`, { type: POD });
       }
 
       return hash;

@@ -47,7 +47,7 @@ export default {
   async fetch() {
     if (!this.$store.getters[`cluster/paginationEnabled`]()) {
       // This is only used by shell/models/networking.k8s.io.ingress.js `targetTo`, where we do some dodgy matching of workloads with name 'ingress-'
-      await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type }))); // TODO: RC findAll workloads
+      await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
     }
   },
 

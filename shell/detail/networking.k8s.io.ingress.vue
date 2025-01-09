@@ -4,7 +4,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
-import IngressHelper from '@shell/utils/ingress';
+import IngressDetailEditHelper from '@shell/utils/ingress';
 
 export default {
   name:       'CRUIngress',
@@ -16,7 +16,7 @@ export default {
   },
   mixins: [CreateEditView],
   async fetch() {
-    this.ingressHelper = new IngressHelper({
+    this.ingressHelper = new IngressDetailEditHelper({
       $store:    this.$store,
       namespace: this.value.metadata.namespace
     });
