@@ -1,26 +1,26 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
-import { addMatchImageSnapshotPlugin } from './visual/plugin'
+import { addMatchImageSnapshotPlugin } from './visual/plugin';
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
 // const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
-const baseUrl = 'http://localhost:6006/' // Storybook URL
+const baseUrl = 'http://localhost:6006/'; // Storybook URL
 
 /**
  * CONFIGURATION
  */
 export default defineConfig({
-  trashAssetsBeforeRuns: true,
-  chromeWebSecurity:     false,
-  video: false,
+  trashAssetsBeforeRuns:  true,
+  chromeWebSecurity:      false,
+  video:                  false,
   screenshotOnRunFailure: false,
   // Define viewport to avoid issues with CI
-  viewportWidth: 1000,
-  viewportHeight: 660,
-  retries: 0,
-  env: {
+  viewportWidth:          1000,
+  viewportHeight:         660,
+  retries:                0,
+  env:                    {
     baseUrl,
     coverage: false
   },
@@ -28,8 +28,8 @@ export default defineConfig({
   // https://docs.cypress.io/app/references/configuration#component
   component: {
     devServer: {
-      bundler: 'webpack',
-      framework: 'vue-cli',
+      bundler:       'webpack',
+      framework:     'vue-cli',
       webpackConfig: require('@vue/cli-service/webpack.config.js')
     },
     specPattern: './visual/*.visual.{js,jsx,ts,tsx}',
@@ -39,10 +39,10 @@ export default defineConfig({
   // https://docs.cypress.io/app/references/configuration#Testing-Type-Specific-Options
   e2e: {
     experimentalSessionAndOrigin: true,
-    supportFile: './visual/support.ts',
-    specPattern: './visual/tests/*.visual.{js,jsx,ts,tsx}',
+    supportFile:                  './visual/support.ts',
+    specPattern:                  './visual/tests/*.visual.{js,jsx,ts,tsx}',
     baseUrl,
-    screenshotOnRunFailure: false,
+    screenshotOnRunFailure:       false,
     setupNodeEvents(on, config) {
       addMatchImageSnapshotPlugin(on);
     },

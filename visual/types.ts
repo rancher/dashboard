@@ -1,4 +1,5 @@
-import type {MatchImageSnapshotOptions} from 'jest-image-snapshot'
+/* eslint-disable */
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 declare global {
   namespace Cypress {
@@ -87,8 +88,8 @@ type ExtraSnapshotOptions = {
    * Waits an arbitrary amount of time (in milliseconds) if the baseline image doesn't exist
    * @default 2500
    */
-  //TODO: Implement waiting if reference image doesn't exist :)
-  //delay: number
+  // TODO: Implement waiting if reference image doesn't exist :)
+  // delay: number
   /**
    * Time it takes for the snapshot command to time out if the snapshot is not correct
    * @default 5000
