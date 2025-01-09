@@ -4,6 +4,10 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
 import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
 
+/******
+ *  Running this test will delete all GKE cloud credentials from the target cluster
+ ******/
+
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -12,8 +16,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   let cloudcredentialId = '';
   const gkeDefaultZone = 'us-central1-c';
   let gkeVersion = '';
-  // clusterId commented out as it will be used for the next tests of this suite, but not being used by the current test
-  // let clusterId = '';
+  let clusterId = '';
   let clusterDescription = '';
   const gkeProjectId = JSON.parse(Cypress.env('gkeServiceAccount')).project_id;
 
@@ -103,10 +106,34 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       expect(response?.body.gkeConfig).to.have.property('clusterName', this.gkeClusterName);
       expect(response?.body).to.have.property('description', clusterDescription);
       expect(response?.body.gkeConfig).to.have.property('kubernetesVersion').contains(gkeVersion);
+      clusterId = response?.body.id;
     });
 
     // Verify that the GKE created cluster is listed in the clusters list and has the Provisioning status
     clusterList.waitForPage();
     clusterList.list().state(this.gkeClusterName).should('contain.text', 'Provisioning');
   });
+
+  after('clean up', () => {
+    // delete cluster
+    cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ clusterId }`, false);
+
+    // clean up GKE cloud credentials
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.googlecredentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id);
+          } else {
+            cy.log('There are no existing GKE cloud credentials to delete');
+          }
+        });
+      }
+    });
+  }
+  );
 });
