@@ -456,7 +456,7 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
  * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
  * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
  */
-const getWatcherIgnored = (excludes) => {
+const getWatcherIgnored = (excludes = []) => {
   const paths = [
     /node_modules/,
     /dist-pkg/,
@@ -557,7 +557,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = {
         ...(config.watchOptions || {}),
-        ignored: getWatcherIgnored(excludes)
+        ignored: getWatcherIgnored()
       };
 
       if (dev) {
