@@ -42,6 +42,7 @@ defineExpose({ focus });
     aria-haspopup="menu"
     @keydown="handleKeydown"
     @keydown.down="focusFirstElement"
+    @keydown.escape="showMenu(false)"
     @click="showMenu(true)"
   >
     <slot name="default">
