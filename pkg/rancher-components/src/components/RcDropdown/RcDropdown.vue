@@ -114,8 +114,7 @@ const applyShow = () => {
         role="menu"
         aria-label="Dropdown Collection"
       >
-        <!--⚠️ Rename this slot. popper is very specific to floating-vue impl-->
-        <slot name="popper">
+        <slot name="dropdownCollection">
           <!--Empty slot content-->
         </slot>
       </div>
