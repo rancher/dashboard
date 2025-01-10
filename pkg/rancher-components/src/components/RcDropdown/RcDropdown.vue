@@ -4,6 +4,8 @@ import { RcButtonType } from '@components/RcButton';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
 const fields = ref<HTMLElement | null>(null);
+const dropdownItems = ref<Element[]>([]);
+const firstDropdownItem = ref<HTMLElement | null>(null);
 
 /**
  * This is a method to register dropdown fields so that they can be accessed via
@@ -13,9 +15,24 @@ const fields = ref<HTMLElement | null>(null);
  */
 const register = (field: HTMLElement | null) => {
   fields.value = field;
+  if (fields.value?.firstElementChild instanceof HTMLElement) {
+    firstDropdownItem.value = fields.value.firstElementChild;
+    registerDropdownItems();
+  }
 };
 
-provide('dropdownCollection', { register, fields });
+const registerDropdownItems = () => {
+  dropdownItems.value = [];
+  const dropdownNodeList = fields.value?.querySelectorAll('[dropdown-menu-item]');
+
+  dropdownNodeList?.forEach((element) => {
+    dropdownItems.value.push(element);
+  });
+};
+
+provide('dropdownCollection', {
+  register, fields, dropdownItems
+});
 
 const close = () => {
   returnFocus();
@@ -56,9 +73,7 @@ const setFocus = () => {
       return;
     }
 
-    if (fields?.value?.firstElementChild instanceof HTMLElement) {
-      fields.value.firstElementChild.focus();
-    }
+    firstDropdownItem.value?.focus();
 
     didKeydown.value = false;
   });

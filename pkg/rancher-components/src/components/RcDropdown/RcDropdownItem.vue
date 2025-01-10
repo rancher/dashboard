@@ -2,16 +2,12 @@
 import { inject, Ref, ref } from 'vue';
 
 type DropdownCollection = {
-  register: (field: HTMLElement | null) => void;
-  fields: Ref<HTMLElement | null>;
+  dropdownItems: Ref<Element[]>;
 };
 
-const defaultCollection: DropdownCollection = {
-  register: (_field: HTMLElement | null) => null,
-  fields:   ref(null),
-};
+const defaultCollection: DropdownCollection = { dropdownItems: ref([]) };
 
-const { fields } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
+const { dropdownItems } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
 
 type DropdownContext = {
   close: () => void;
@@ -24,18 +20,7 @@ const { close } = inject<DropdownContext>('dropdownContext') || defaultContext;
 const handleKeydown = (e: KeyboardEvent) => {
   const activeItem = document.activeElement;
 
-  const items = fields?.value?.querySelectorAll('[dropdown-menu-item]');
-  const itemsArr: Element[] = [];
-
-  /**
-   * ⚠️ We build up an items array on each keydown? I'm sure that we can do this
-   * higher up the chain and inject the result into the component.
-   */
-  items?.forEach((element) => {
-    itemsArr.push(element);
-  });
-
-  const activeIndex = itemsArr.indexOf(activeItem || new HTMLElement());
+  const activeIndex = dropdownItems.value.indexOf(activeItem || new HTMLElement());
 
   if (activeIndex < 0) {
     return;
@@ -43,10 +28,10 @@ const handleKeydown = (e: KeyboardEvent) => {
 
   const shouldAdvance = e.key === 'ArrowDown';
 
-  const newIndex = findNewIndex(shouldAdvance, activeIndex, itemsArr);
+  const newIndex = findNewIndex(shouldAdvance, activeIndex, dropdownItems.value);
 
-  if (itemsArr[newIndex] instanceof HTMLElement) {
-    itemsArr[newIndex].focus();
+  if (dropdownItems.value[newIndex] instanceof HTMLElement) {
+    dropdownItems.value[newIndex].focus();
   }
 };
 
