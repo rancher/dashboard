@@ -37,20 +37,22 @@ const setTrigger = (triggerRef: RcButtonType) => {
   dropdownTrigger.value = triggerRef;
 };
 
+const focusFirstElement = () => {
+  handleKeydown();
+  setFocus();
+};
+
 provide('dropdownContext', {
   close,
   handleKeydown,
   showMenu,
   setTrigger,
+  focusFirstElement,
 });
-
-const popperContainer = ref<HTMLElement | null>(null);
 
 const setFocus = () => {
   nextTick(() => {
     if (!didKeydown.value) {
-      popperContainer.value?.focus();
-
       return;
     }
 
@@ -60,11 +62,6 @@ const setFocus = () => {
 
     didKeydown.value = false;
   });
-};
-
-const focusFirstElement = () => {
-  handleKeydown();
-  setFocus();
 };
 
 const target = ref(null);
@@ -104,10 +101,7 @@ const returnFocus = () => {
   </v-dropdown>
   <!--We might need to change this pattern so that this div doesn't receive focus or move the container up into this file-->
   <div
-    ref="popperContainer"
     class="popperContainer"
-    tabindex="-1"
-    @keydown.down="focusFirstElement"
     @keydown.tab="showMenu(false)"
     @keydown.escape="returnFocus"
   >

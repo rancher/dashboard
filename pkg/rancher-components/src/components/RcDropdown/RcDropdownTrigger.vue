@@ -6,15 +6,22 @@ type DropdownContext = {
   handleKeydown: () => void;
   showMenu: (show: boolean) => void;
   setTrigger: (triggerRef: RcButtonType | null) => void;
+  focusFirstElement: () => void;
 }
 
 const defaultContext: DropdownContext = {
-  handleKeydown: () => null,
-  showMenu:      (_show: boolean | null) => null,
-  setTrigger:    (_triggerRef: RcButtonType | null) => null
+  handleKeydown:     () => null,
+  showMenu:          (_show: boolean | null) => null,
+  setTrigger:        (_triggerRef: RcButtonType | null) => null,
+  focusFirstElement: () => null,
 };
 
-const { handleKeydown, showMenu, setTrigger } = inject<DropdownContext>('dropdownContext') || defaultContext;
+const {
+  handleKeydown,
+  showMenu,
+  setTrigger,
+  focusFirstElement,
+} = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const dropdownTrigger = ref<RcButtonType | null>(null);
 
@@ -34,6 +41,7 @@ defineExpose({ focus });
     ref="dropdownTrigger"
     aria-haspopup="menu"
     @keydown="handleKeydown"
+    @keydown.down="focusFirstElement"
     @click="showMenu(true)"
   >
     <slot name="default">
