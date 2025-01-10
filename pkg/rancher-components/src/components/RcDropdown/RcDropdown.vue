@@ -3,34 +3,28 @@ import { ref, provide, nextTick } from 'vue';
 import { RcButtonType } from '@components/RcButton';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
-const fields = ref<HTMLElement | null>(null);
+const dropdownContainer = ref<HTMLElement | null>(null);
 const dropdownItems = ref<Element[]>([]);
 const firstDropdownItem = ref<HTMLElement | null>(null);
 
-/**
- * This is a method to register dropdown fields so that they can be accessed via
- * inject in child elements
- * @param field ⚠️ TODO: Rename this. This method originally registered each
- * individual field located in the list. Right now, we register the entire list.
- */
-const register = (field: HTMLElement | null) => {
-  fields.value = field;
-  if (fields.value?.firstElementChild instanceof HTMLElement) {
-    firstDropdownItem.value = fields.value.firstElementChild;
+const register = (target: HTMLElement | null) => {
+  dropdownContainer.value = target;
+  if (dropdownContainer.value?.firstElementChild instanceof HTMLElement) {
+    firstDropdownItem.value = dropdownContainer.value.firstElementChild;
     registerDropdownItems();
   }
 };
 
 const registerDropdownItems = () => {
   dropdownItems.value = [];
-  const dropdownNodeList = fields.value?.querySelectorAll('[dropdown-menu-item]');
+  const dropdownNodeList = dropdownContainer.value?.querySelectorAll('[dropdown-menu-item]');
 
   dropdownNodeList?.forEach((element) => {
     dropdownItems.value.push(element);
   });
 };
 
-provide('dropdownCollection', { fields, dropdownItems });
+provide('dropdownCollection', { dropdownItems });
 
 const close = () => {
   returnFocus();
