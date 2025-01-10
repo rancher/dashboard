@@ -65,8 +65,7 @@ const handleActivate = (e: KeyboardEvent) => {
     role="menuitem"
     aria-disabled="false"
     @click="close"
-    @keydown.enter="handleActivate"
-    @keydown.space="handleActivate"
+    @keydown.enter.space="handleActivate"
     @keydown.up.down.stop="handleKeydown"
   >
     <slot name="default">
