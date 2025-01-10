@@ -33,7 +33,7 @@ const showMenu = (show: boolean) => {
   isMenuOpen.value = show;
 };
 
-const setTrigger = (triggerRef: RcButtonType) => {
+const registerTrigger = (triggerRef: RcButtonType) => {
   dropdownTrigger.value = triggerRef;
 };
 
@@ -46,7 +46,7 @@ provide('dropdownContext', {
   close,
   handleKeydown,
   showMenu,
-  setTrigger,
+  registerTrigger,
   focusFirstElement,
 });
 

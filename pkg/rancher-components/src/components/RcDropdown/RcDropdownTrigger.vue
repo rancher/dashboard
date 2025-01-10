@@ -5,28 +5,28 @@ import { RcButton, RcButtonType } from '@components/RcButton';
 type DropdownContext = {
   handleKeydown: () => void;
   showMenu: (show: boolean) => void;
-  setTrigger: (triggerRef: RcButtonType | null) => void;
+  registerTrigger: (triggerRef: RcButtonType | null) => void;
   focusFirstElement: () => void;
 }
 
 const defaultContext: DropdownContext = {
   handleKeydown:     () => null,
   showMenu:          (_show: boolean | null) => null,
-  setTrigger:        (_triggerRef: RcButtonType | null) => null,
+  registerTrigger:   (_triggerRef: RcButtonType | null) => null,
   focusFirstElement: () => null,
 };
 
 const {
   handleKeydown,
   showMenu,
-  setTrigger,
+  registerTrigger,
   focusFirstElement,
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const dropdownTrigger = ref<RcButtonType | null>(null);
 
 onMounted(() => {
-  setTrigger(dropdownTrigger.value);
+  registerTrigger(dropdownTrigger.value);
 });
 
 const focus = () => {
