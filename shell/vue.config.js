@@ -474,12 +474,11 @@ const getWatcherIgnored = (excludes = []) => {
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
-module.exports = function(dir, _appConfig) {
+module.exports = function(dir, appConfig = {}) {
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
 
   const { SHELL_ABS, COMPONENTS_DIR } = getShellPaths(dir);
-  const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
 
   const includePkg = (name) => {
