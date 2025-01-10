@@ -30,7 +30,7 @@ const pageAction = (action: string) => {
         class="icon icon-actions"
       />
     </rc-dropdown-trigger>
-    <template #popper>
+    <template #dropdownCollection>
       <template
         v-for="(a) in pageActions"
         :key="a.label"
