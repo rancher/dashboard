@@ -13,7 +13,6 @@ export const TextAreaAutoGrow: DefineComponent;
 export const ToggleSwitch: DefineComponent;
 export const RcButton: DefineComponent;
 export const RcDropdown: DefineComponent;
-export const RcDropdownCollection: DefineComponent;
 export const RcDropdownItem: DefineComponent;
 export const RcDropdownSeparator: DefineComponent;
 export const RcDropdownTrigger: DefineComponent;

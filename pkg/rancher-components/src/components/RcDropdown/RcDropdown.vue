@@ -30,9 +30,7 @@ const registerDropdownItems = () => {
   });
 };
 
-provide('dropdownCollection', {
-  register, fields, dropdownItems
-});
+provide('dropdownCollection', { fields, dropdownItems });
 
 const close = () => {
   returnFocus();
@@ -79,15 +77,20 @@ const setFocus = () => {
   });
 };
 
-const target = ref(null);
+const dropdownTarget = ref(null);
 
-useClickOutside(target, () => showMenu(false));
+useClickOutside(dropdownTarget, () => showMenu(false));
 
 const dropdownTrigger = ref<RcButtonType | null>(null);
 
 const returnFocus = () => {
   showMenu(false);
   dropdownTrigger?.value?.focus();
+};
+
+const applyShow = () => {
+  register(dropdownTarget.value);
+  setFocus();
 };
 
 </script>
@@ -99,14 +102,18 @@ const returnFocus = () => {
     :shown="isMenuOpen"
     :auto-hide="false"
     :container="'.popperContainer'"
-    @apply-show="setFocus"
+    @apply-show="applyShow"
   >
     <slot name="default">
       <!--Empty slot content Trigger-->
     </slot>
 
     <template #popper>
-      <div ref="target">
+      <div
+        ref="dropdownTarget"
+        role="menu"
+        aria-label="Dropdown Collection"
+      >
         <!--⚠️ Rename this slot. popper is very specific to floating-vue impl-->
         <slot name="popper">
           <!--Empty slot content-->
@@ -114,7 +121,6 @@ const returnFocus = () => {
       </div>
     </template>
   </v-dropdown>
-  <!--We might need to change this pattern so that this div doesn't receive focus or move the container up into this file-->
   <div
     class="popperContainer"
     @keydown.tab="showMenu(false)"
