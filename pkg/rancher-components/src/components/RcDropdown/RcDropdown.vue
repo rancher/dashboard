@@ -57,6 +57,7 @@ provide('dropdownContext', {
   showMenu,
   registerTrigger,
   focusFirstElement,
+  isMenuOpen,
 });
 
 const setFocus = () => {
