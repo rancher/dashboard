@@ -140,19 +140,24 @@ describe('fx: nodePoolNames', () => {
 
 describe('fx: nodePoolCount', () => {
   // AksNodePool unit tests check that the second arg is passed in as expected
-  it('validates that count is at least 1 when second arg is false', () => {
+  it('validates that count is at least 1 and at most 1000 when second arg is false', () => {
     const validator = validators.nodePoolCount(mockCtx);
 
     expect(validator(1, false)).toBeUndefined();
     expect(validator(0, false)).toStrictEqual(MOCK_TRANSLATION);
+    expect(validator(1000, false)).toBeUndefined();
+    expect(validator(1001, false)).toStrictEqual(MOCK_TRANSLATION);
   });
 
-  it('validates that count is at least 0 when second arg is true', () => {
+  it('validates that count is at least 0 and at most 1000 when second arg is true', () => {
     const validator = validators.nodePoolCount(mockCtx);
 
     expect(validator(1, true)).toBeUndefined();
     expect(validator(0, true)).toBeUndefined();
+    expect(validator(1000, true)).toBeUndefined();
+
     expect(validator(-1, true)).toStrictEqual(MOCK_TRANSLATION);
+    expect(validator(1001, true)).toStrictEqual(MOCK_TRANSLATION);
   });
 
   it('validates each node pool in the provided context when not passed a count value', () => {
@@ -170,6 +175,12 @@ describe('fx: nodePoolCount', () => {
         },
         {
           name: 'klm', _validation: {}, mode: 'User', count: -1
+        },
+        {
+          name: 'nop', _validation: {}, mode: 'User', count: 1001
+        },
+        {
+          name: 'qrs', _validation: {}, mode: 'System', count: 1001
         }
       ] as unknown as AKSNodePool[]
     };
@@ -180,5 +191,7 @@ describe('fx: nodePoolCount', () => {
     expect(ctx.nodePools[1]?._validation?._validCount).toStrictEqual(true);
     expect(ctx.nodePools[2]?._validation?._validCount).toStrictEqual(true);
     expect(ctx.nodePools[3]?._validation?._validCount).toStrictEqual(false);
+    expect(ctx.nodePools[4]?._validation?._validCount).toStrictEqual(false);
+    expect(ctx.nodePools[5]?._validation?._validCount).toStrictEqual(false);
   });
 });
