@@ -254,13 +254,15 @@ export default defineComponent({
           <template v-else-if="label">{{ label }}</template>
           <i
             v-if="tooltipKey"
-            v-clean-tooltip="t(tooltipKey)"
+            v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
             class="checkbox-info icon icon-info icon-lg"
+            :tabindex="isDisabled ? -1 : 0"
           />
           <i
             v-else-if="tooltip"
-            v-clean-tooltip="tooltip"
+            v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
             class="checkbox-info icon icon-info icon-lg"
+            :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
       </span>
@@ -319,6 +321,11 @@ $fontColor: var(--input-label);
   .checkbox-info {
     line-height: normal;
     margin-left: 2px;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
   }
 
  .checkbox-custom {

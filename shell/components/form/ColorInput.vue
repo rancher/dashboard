@@ -73,7 +73,21 @@ export default {
   mounted() {
     // Ensures that if the default value is used, the model is updated with it
     this.$emit('update:value', this.inputValue);
-  }
+  },
+
+  methods: {
+    handleKeyups(ev) {
+      if (this.isDisabled) {
+        return '';
+      }
+
+      return this.$refs.input.click(ev);
+    }
+  },
+
+  // according to https://www.w3.org/TR/html-aria/
+  // input type="color" has no applicable role
+  // and only aria-label and aria-disabled
 };
 </script>
 
@@ -82,6 +96,9 @@ export default {
     class="color-input"
     :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
+    :tabindex="isDisabled ? -1 : 0"
+    @keyup.enter.stop="handleKeyups($event)"
+    @keyup.space.stop="handleKeyups($event)"
   >
     <label class="text-label"><t
       v-if="labelKey"
@@ -99,8 +116,11 @@ export default {
       >
         <input
           ref="input"
+          :aria-disabled="isDisabled ? 'true' : 'false'"
+          :aria-label="t('generic.colorPicker')"
           type="color"
           :disabled="isDisabled"
+          tabindex="-1"
           :value="inputValue"
           @input="$emit('update:value', $event.target.value)"
         >
@@ -115,6 +135,10 @@ export default {
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   padding: 10px;
+
+  &:focus-visible {
+    @include focus-outline;
+  }
 
   &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover {
     color: var(--input-disabled-text);

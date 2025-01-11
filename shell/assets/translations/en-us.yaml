@@ -9,6 +9,7 @@ generic:
   back: Back
   cancel: Cancel
   confirm: Confirm
+  colorPicker: Color picker
   clear: Clear
   clearAll: Clear All
   close: Close
