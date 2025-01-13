@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { createFocusTrap } from 'focus-trap';
+import { createFocusTrap, FocusTrap } from 'focus-trap';
 
 export default defineComponent({
   name:  'Card',
@@ -57,7 +57,7 @@ export default defineComponent({
     },
   },
   data() {
-    return { focusTrapInstance: undefined };
+    return { focusTrapInstance: {} as FocusTrap };
   },
   mounted() {
     if (this.triggerFocusTrap) {
