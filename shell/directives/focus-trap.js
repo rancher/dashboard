@@ -1,6 +1,5 @@
 import { createFocusTrap } from 'focus-trap';
 
-console.error('RUNNING!!!!');
 let trap;
 
 const createTrap = (element) => {

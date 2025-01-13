@@ -16,7 +16,7 @@ export default {
     }
   },
   methods: {
-    customBadgeDialog() {
+    customBadgeDialog(ev) {
       this.$store.dispatch('cluster/promptModal', { component: 'AddCustomBadgeDialog', componentProps: { mode: _EDIT } });
     },
   },
@@ -28,20 +28,19 @@ export default {
     class="config-badge"
   >
     <div>
-      <a
+      <button
         class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
         role="button"
         tabindex="0"
         @click="customBadgeDialog"
-        @keyup.enter="customBadgeDialog"
         @keyup.space="customBadgeDialog"
       >
         <i
           v-clean-tooltip="tooltip"
           class="icon icon-brush-icon"
         />
-      </a>
+      </button>
     </div>
   </div>
 </template>
