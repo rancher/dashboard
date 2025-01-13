@@ -9,6 +9,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { getVendor } from '@shell/config/private-label';
 
 export default {
   components: {
@@ -63,6 +64,7 @@ export default {
       serverUrl:        '',
       noUrlSet:         false,
       showModal:        false,
+      vendor:           getVendor(),
     };
   },
 
@@ -214,7 +216,7 @@ export default {
       v-if="showModal"
       class="update-modal"
       name="toggleFlag"
-      :width="350"
+      :width="450"
       height="auto"
       styles="max-height: 100vh;"
       :click-to-close="!restart || !waiting"
@@ -227,7 +229,7 @@ export default {
       >
         <template #title>
           <h4 class="text-default-text">
-            Are you sure?
+            {{ t('featureFlags.title') }}
           </h4>
         </template>
         <template #body>
@@ -263,8 +265,8 @@ export default {
             </span>
             <Banner
               v-if="restart"
-              color="warning"
-              :label="t('featureFlags.restartRequired')"
+              color="error"
+              :label="t('featureFlags.restartRequired', vendor)"
             />
           </div>
           <div class="text-error mb-10">

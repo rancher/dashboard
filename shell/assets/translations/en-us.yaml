@@ -5836,6 +5836,7 @@ tableHeaders:
   resourcesReady: Resources Ready
   restarts: Restarts
   restart: Restart Required
+  restartSystem: Restart { vendor }
   restore: Restore
   role: Role
   roles: Roles
@@ -7498,6 +7499,7 @@ advancedSettings:
 
 featureFlags:
   label: Feature Flags
+  title: "Are you sure?"
   warning: |-
     Feature flags allow {vendor} to gate certain features behind flags.
     Features that are off by default should be considered experimental functionality.
@@ -7505,7 +7507,7 @@ featureFlags:
     This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
-  restartRequired: "Note: Updating this feature flag requires a restart"
+  restartRequired: "Note: Updating this feature flag will restart {vendor}"
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
