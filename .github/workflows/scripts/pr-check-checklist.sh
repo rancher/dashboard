@@ -8,17 +8,17 @@ PR_BODY=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
 
 echo "Validating checklist..."
 
-echo PR_BODY
+echo "PR_BODY ------------------------------------------------------------------------------------------"
 echo $PR_BODY
 
 CHECKBOXES=$(echo "$PR_BODY" | grep -o '\[.\]')
 
-echo CHECKBOXES
+echo "CHECKBOXES ------------------------------------------------------------------------------------------"
 echo $CHECKBOXES
 
 UNCHECKED=$(echo "$CHECKBOXES" | grep '\[ \]' || true)
 
-echo UNCHECKED
+echo "UNCHECKED ------------------------------------------------------------------------------------------"
 echo $UNCHECKED
 
 if [ -n "$UNCHECKED" ]; then
