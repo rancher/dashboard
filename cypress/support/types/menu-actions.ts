@@ -8,4 +8,7 @@ export enum MenuActions {
     ViewInApi = 'View in API', // eslint-disable-line no-unused-vars
     ChangeWorkspace = 'Change workspace', // eslint-disable-line no-unused-vars
     Delete = 'Delete', // eslint-disable-line no-unused-vars
+    Clone = 'Clone', // eslint-disable-line no-unused-vars
+    DownloadYaml = 'Download YAML', // eslint-disable-line no-unused-vars
+
   }
