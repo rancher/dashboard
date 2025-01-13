@@ -13,6 +13,7 @@ interface TopLevelMenuCluster {
   ready: boolean
   providerNavLogo: string,
   badge: string,
+  iconColor: string,
   isLocal: boolean,
   pinned: boolean,
   description: string,
@@ -143,6 +144,7 @@ export abstract class BaseTopLevelMenuHelper {
       ready:           mgmtCluster.isReady, // && !provCluster?.hasError,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
+      iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
       description:     provCluster?.description || mgmtCluster.description,
