@@ -72,13 +72,13 @@ export default defineComponent({
 
         this.$emit('update:isAuthenticated', true);
 
-        // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
+        // eslint-disable-next-line node/no-callback-literal
         return cb(true);
       } catch (e) {
         this.$emit('error', e?.data || e);
         this.$emit('update:isAuthenticated', false);
 
-        // eslint-disable-next-line standard/no-callback-literal, node/no-callback-literal
+        // eslint-disable-next-line node/no-callback-literal
         return cb(false);
       }
     },
