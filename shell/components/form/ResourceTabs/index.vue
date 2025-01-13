@@ -14,7 +14,7 @@ import RelatedResources from '@shell/components/RelatedResources';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MESSAGE, REASON } from '@shell/config/table-headers';
-import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL, STEVE_NAMESPACE_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 
 export default {

@@ -1,6 +1,5 @@
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
-  LAST_SEEN_TIME,
   EVENT_LAST_SEEN_TIME,
   EVENT_TYPE
 } from '@shell/config/table-headers';
