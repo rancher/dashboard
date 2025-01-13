@@ -57,7 +57,7 @@ export default defineComponent({
     },
   },
   data() {
-    return { focusTrapInstance: undefined as any };
+    return { focusTrapInstance: undefined };
   },
   mounted() {
     if (this.triggerFocusTrap) {
