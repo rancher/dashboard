@@ -141,7 +141,6 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   pushd test-app > /dev/null
 
   yarn install
-  FORCE_COLOR=true yarn build | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
