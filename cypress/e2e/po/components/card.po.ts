@@ -14,6 +14,10 @@ export default class CardPo extends ComponentPo {
     return this.self().get('[data-testid="card-body-slot"]');
   }
 
+  getError(): CypressChainable {
+    return this.self().get('[data-testid="card-body-slot"] > .text-error');
+  }
+
   getActionButton(): CypressChainable {
     return this.self().get('[data-testid="card-actions-slot"]');
   }
