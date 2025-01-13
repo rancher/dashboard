@@ -515,6 +515,12 @@ export const LAST_SEEN_TIME = {
   sort:     'lastTimestamp:desc',
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
+
+export const EVENT_LAST_SEEN_TIME = {
+  ...LAST_SEEN_TIME,
+  defaultSort: true,
+};
+
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
   labelKey:  'tableHeaders.lastSeen',

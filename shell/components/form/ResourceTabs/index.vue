@@ -13,6 +13,9 @@ import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { MESSAGE, REASON } from '@shell/config/table-headers';
+import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL, STEVE_NAMESPACE_COL } from '@shell/config/pagination-table-headers';
+import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 
 export default {
 
@@ -70,13 +73,25 @@ export default {
 
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
+    const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
 
     return {
-      eventSchema:    this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
+      eventSchema,
       EVENT,
-      selectedTab:    this.defaultTab,
+      selectedTab:       this.defaultTab,
       inStore,
-      showConditions: false,
+      showConditions:    false,
+      paginationHeaders: [
+        STEVE_EVENT_LAST_SEEN,
+        STEVE_EVENT_TYPE,
+        REASON,
+        headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
+        headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
+        MESSAGE,
+        headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+        headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
+        STEVE_NAME_COL,
+      ]
     };
   },
 
@@ -241,6 +256,8 @@ export default {
         :local-filter="filterRowsLocal"
         :api-filter="filterRowsApi"
         :use-query-params-for-simple-filtering="false"
+        :headers="eventHeaders"
+        :paginationHeaders="paginationHeaders"
       />
     </Tab>
 
