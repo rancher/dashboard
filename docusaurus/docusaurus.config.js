@@ -77,10 +77,13 @@ const config = {
       '@docusaurus/plugin-client-redirects',
       {
         createRedirects(existingPath) {
-          if (existingPath.includes('/extensions') && !existingPath.includes('/next') && !existingPath.includes('/v2')) {
-            return [
-              existingPath.replace('/extensions', '/extensions/next')
-            ];
+          // This function is invoked once per existing doc page, and we
+          // must return the “old” routes that we want to map to that doc’s path
+          if (existingPath.startsWith('/extensions/next')) {
+            // Generate the "old" route we want to redirect from
+            const oldPath = existingPath.replace('/extensions/next', '/extensions');
+
+            return [oldPath];
           }
 
           return undefined; // Return a falsy value: no redirect created
