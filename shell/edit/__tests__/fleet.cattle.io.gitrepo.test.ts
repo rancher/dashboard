@@ -33,12 +33,21 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
     global: { mocks }
   });
 
-  it('should have self-healing checkbox and banner', () => {
+  it('should have self-healing checkbox and tooltip', () => {
     const correctDriftCheckbox = wrapper.find('[data-testid="GitRepo-correctDrift-checkbox"]');
-    const correctDriftBanner = wrapper.find('[data-testid="GitRepo-correctDrift-banner"]');
+    const tooltip = wrapper.findAll('[data-testid="GitRepo-correctDrift-checkbox"] .v-popper--has-tooltip');
 
+    expect(tooltip).toHaveLength(1);
     expect(correctDriftCheckbox.exists()).toBeTruthy();
-    expect(correctDriftBanner.exists()).toBeTruthy();
+    expect(correctDriftCheckbox.attributes().value).toBeFalsy();
+  });
+
+  it('should have keep-resources checkbox and tooltip', () => {
+    const correctDriftCheckbox = wrapper.find('[data-testid="GitRepo-keepResources-checkbox"]');
+    const tooltip = wrapper.findAll('[data-testid="GitRepo-keepResources-checkbox"] .v-popper--has-tooltip');
+
+    expect(tooltip).toHaveLength(1);
+    expect(correctDriftCheckbox.exists()).toBeTruthy();
     expect(correctDriftCheckbox.attributes().value).toBeFalsy();
   });
 
