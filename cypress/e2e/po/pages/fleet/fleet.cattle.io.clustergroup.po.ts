@@ -5,14 +5,16 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import FleetClusterGroupsList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clustergroup';
 import FleetClusterGroupsCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clustergroup.po';
 export class FleetClusterGroupsListPagePo extends PagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.clustergroup`
-
-  constructor() {
-    super(FleetClusterGroupsListPagePo.url);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/fleet/fleet.cattle.io.clustergroup`;
   }
 
-  goTo() {
-    return cy.visit(FleetClusterGroupsListPagePo.url);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(FleetClusterGroupsListPagePo.createPath(clusterId));
+  }
+
+  constructor(private clusterId = '_') {
+    super(FleetClusterGroupsListPagePo.createPath(clusterId));
   }
 
   static navTo() {
@@ -44,7 +46,7 @@ export class FleetClusterGroupsListPagePo extends PagePo {
     return this.self().find('[data-testid="masthead-create"]').click();
   }
 
-  createFleetClusterGroupsForm(id? : string): FleetClusterGroupsCreateEditPo {
-    return new FleetClusterGroupsCreateEditPo(id);
+  createFleetClusterGroupsForm(workspace?: string, id? : string): FleetClusterGroupsCreateEditPo {
+    return new FleetClusterGroupsCreateEditPo(this.clusterId, workspace, id);
   }
 }

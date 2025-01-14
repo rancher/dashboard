@@ -3,7 +3,7 @@ import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { GitRepoEditPo } from '@/cypress/e2e/po/edit/fleet/gitrepo-edit.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
@@ -118,11 +118,14 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   it('can clone a git repo', () => {
     const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
 
+    cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
+
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
     fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Clone').click();
 
     gitRepoEditPage.waitForPage('mode=clone');
+    cy.wait('@getSecrets', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     gitRepoEditPage.title().contains(`Git Repo: Clone from ${ repoName }`).should('be.visible');
     headerPo.selectWorkspace('fleet-default');
     gitRepoEditPage.nameNsDescription().name().set(`clone-${ repoName }`);
