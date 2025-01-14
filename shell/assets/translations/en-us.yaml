@@ -903,6 +903,8 @@ catalog:
         label: Resources
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
+    upgrade:
+      uncertainUpgradeWarningTooltip: Unable to identify source chart and repository for this application in order to determine if an upgrade is available
   chart:
     registry:
       label: Container Registry

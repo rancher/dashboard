@@ -9,7 +9,7 @@ import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { set } from '@shell/utils/object';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -22,6 +22,8 @@ export default class CatalogApp extends SteveModel {
     set(this, 'skipCRDs', false);
     set(this, 'timeout', 300);
     set(this, 'wait', true);
+    set(this, 'foundMultipleUpgradeMatches', false);
+    set(this, 'upgradeAvailableVersion', '');
   }
 
   get _availableActions() {
@@ -40,7 +42,7 @@ export default class CatalogApp extends SteveModel {
   }
 
   get warnDeletionMessage() {
-    if (this.upgradeAvailable === false) {
+    if (this.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE) {
       return this.t('catalog.delete.warning.managed', { name: this.name });
     }
 
@@ -56,16 +58,33 @@ export default class CatalogApp extends SteveModel {
 
     const chartName = chart.metadata?.name;
     const repoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] || this.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE] || 'cluster';
 
-    const match = this.$rootGetters['catalog/chart']({
+    const matchingCharts = this.$rootGetters['catalog/chart']({
       chartName,
       repoName,
-      preferRepoType,
-      includeHidden
-    });
+      includeHidden,
+      multiple: true
+    }) || [];
 
-    return match;
+    if (matchingCharts.length === 0) {
+      return;
+    }
+
+    // narrowing down the matches by checking more properties, like home url
+    // we let a match pass if home url is not set since we support custom charts and they might not follow the best practices to include the home url
+    const thisHome = chart?.metadata?.home;
+    const bestMatches = matchingCharts.filter((m) => !thisHome || m.versions[0]?.home === thisHome);
+
+    if (bestMatches.length === 0) {
+      return;
+    }
+
+    if (bestMatches.length === 1) {
+      return bestMatches[0];
+    }
+
+    // found multiple matches but couldn't choose one unique match
+    this.foundMultipleUpgradeMatches = true;
   }
 
   get currentVersion() {
@@ -73,28 +92,33 @@ export default class CatalogApp extends SteveModel {
   }
 
   get upgradeAvailable() {
-    // false = does not apply (managed by fleet)
-    // null = no upgrade found
-    // object = version available to upgrade to
+    // one the following statuses gets returned:
+    // NOT_APPLICABLE - managed by fleet
+    // NO_UPGRADE - no upgrade found
+    // SINGLE_UPGRADE - a version available to upgrade to
+    // MULTIPLE_UPGRADES - more than one match found
 
     if (
       this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] ||
       this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID]
     ) {
       // Things managed by fleet shouldn't show upgrade available even if there might be.
-      return false;
+      return APP_UPGRADE_STATUS.NOT_APPLICABLE;
     }
     const chart = this.matchingChart(false);
 
+    if (this.foundMultipleUpgradeMatches) {
+      return APP_UPGRADE_STATUS.MULTIPLE_UPGRADES;
+    }
+
     if ( !chart ) {
-      return null;
+      return APP_UPGRADE_STATUS.NO_UPGRADE;
     }
 
     const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
 
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
-    const thisVersion = this.spec?.chart?.metadata?.version;
     let versions = chart.versions;
 
     if (!showPreRelease) {
@@ -106,45 +130,45 @@ export default class CatalogApp extends SteveModel {
     const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
-    if ( !thisVersion || !newestVersion ) {
-      return null;
+    if ( !this.currentVersion || !newestVersion ) {
+      return APP_UPGRADE_STATUS.NO_UPGRADE;
     }
 
-    if ( compare(thisVersion, newestVersion) < 0 ) {
-      return cleanupVersion(newestVersion);
+    if ( compare(this.currentVersion, newestVersion) < 0 ) {
+      // set the available upgrade version to be used in other places
+      this.upgradeAvailableVersion = cleanupVersion(newestVersion);
+
+      return APP_UPGRADE_STATUS.SINGLE_UPGRADE;
     }
 
-    return null;
+    return APP_UPGRADE_STATUS.NO_UPGRADE;
   }
 
   get upgradeAvailableSort() {
-    const version = this.upgradeAvailable;
-
-    if ( !version ) {
-      return '~'; // Tilde sorts after all numbers and letters
+    if (this.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE) {
+      return sortable(this.upgradeAvailableVersion);
     }
 
-    return sortable(version);
+    return '~'; // Tilde sorts after all numbers and letters
   }
 
   get currentVersionCompatible() {
     const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
 
     const chart = this.matchingChart(false);
-    const thisVersion = this.spec?.chart?.metadata?.version;
 
     if (!chart) {
       return true;
     }
 
-    const versionInChart = chart.versions.find((version) => version.version === thisVersion);
+    const versionInChart = chart.versions.find((version) => version.version === this.currentVersion);
 
     if (!versionInChart) {
       return true;
     }
     const compatibleVersions = compatibleVersionsFor(chart, workerOSs, true) || [];
 
-    const thisVersionCompatible = !!compatibleVersions.find((version) => version.version === thisVersion);
+    const thisVersionCompatible = !!compatibleVersions.find((version) => version.version === this.currentVersion);
 
     return thisVersionCompatible;
   }
@@ -153,7 +177,7 @@ export default class CatalogApp extends SteveModel {
     if (this.currentVersionCompatible) {
       return null;
     }
-    if (this.upgradeAvailable) {
+    if (this.upgradeAvailableVersion) {
       return this.t('catalog.os.versionIncompatible');
     }
 
@@ -162,11 +186,10 @@ export default class CatalogApp extends SteveModel {
 
   goToUpgrade(forceVersion, fromTools) {
     const match = this.matchingChart(true);
-    const versionName = this.spec?.chart?.metadata?.version;
     const query = {
       [NAMESPACE]: this.metadata.namespace,
       [NAME]:      this.metadata.name,
-      [VERSION]:   forceVersion || versionName,
+      [VERSION]:   forceVersion || this.currentVersion,
     };
 
     if ( match ) {
@@ -221,7 +244,7 @@ export default class CatalogApp extends SteveModel {
   }
 
   get versionDisplay() {
-    return cleanupVersion(this.spec?.chart?.metadata?.version);
+    return cleanupVersion(this.currentVersion);
   }
 
   get versionSort() {
