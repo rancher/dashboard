@@ -645,7 +645,7 @@ export default defineComponent({
 
     virtualNetwork: {
       get() {
-        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || this.t('generic.none');
+        return this.virtualNetworkOptions.find((opt) => opt.value === this.config.subnet) || { label: this.t('generic.none') };
       },
       set(neu: {label: string, kind?: string, disabled?: boolean, value?: string, virtualNetwork?: any}) {
         if (neu.label === this.t('generic.none')) {
@@ -804,8 +804,6 @@ export default defineComponent({
         return;
       }
       this.loadingLocations = true;
-      // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
-      this.config['resourceLocation'] = '';
 
       const { azureCredentialSecret } = this.config;
 
@@ -839,6 +837,11 @@ export default defineComponent({
 
         errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
       }
+
+      // once regions are loaded and a default selected, fetch resources that are region-scoped
+      this.getAksVersions();
+      this.getVmSizes();
+      this.getVirtualNetworks();
     },
 
     async getAksVersions(): Promise<void> {
