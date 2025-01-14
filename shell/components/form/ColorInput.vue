@@ -97,8 +97,7 @@ export default {
     :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
     :tabindex="isDisabled ? -1 : 0"
-    @keyup.enter.stop="handleKeyups($event)"
-    @keyup.space.stop="handleKeyups($event)"
+    @keyup.enter.space.stop="handleKeyups($event)"
   >
     <label class="text-label"><t
       v-if="labelKey"
