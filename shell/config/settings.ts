@@ -249,7 +249,7 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
       /**
        * Show warnings in a notification if they're not in this block list
        */
-      notificationBlockList: ['299 - unknown field']
+      notificationBlockList: ['299 - unknown field', '299 - "unknown field']
     }
   },
   serverPagination: {

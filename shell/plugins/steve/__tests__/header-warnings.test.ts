@@ -6,7 +6,7 @@ describe('steve: header-warnings', () => {
 
   function setupMocks(settings = {
     separator:             '299 - ',
-    notificationBlockList: ['299 - unknown field']
+    notificationBlockList: DEFAULT_PERF_SETTING.kubeAPI.warningHeader.notificationBlockList,
   }) {
     return {
       dispatch:     jest.fn(),
@@ -53,7 +53,7 @@ describe('steve: header-warnings', () => {
   const createKey = 'growl.kubeApiHeaderWarning.titleCreate';
   const podSecurity = '299 - would violate PodSecurity "restricted:latest": unrestricted capabilities (container "container-0" must set securityContext.capabilities.drop=["ALL"]), runAsNonRoot != true (container "container-0" must not set securityContext.runAsNonRoot=false), seccompProfile (pod or container "container-0" must set securityContext.seccompProfile.type to "RuntimeDefault" or "Localhost")';
   const deprecated = "299 - i'm deprecated";
-  const validation = '299 - unknown field "spec.containers[0].__active"';
+  const validation = '299 - "unknown field "spec.containers[0].__active"';
 
   describe('no warnings', () => {
     it('put, no header warning', () => {
