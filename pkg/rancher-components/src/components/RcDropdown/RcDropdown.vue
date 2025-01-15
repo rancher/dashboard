@@ -10,8 +10,10 @@ const firstDropdownItem = ref<HTMLElement | null>(null);
 const register = (target: HTMLElement | null) => {
   dropdownContainer.value = target;
   if (dropdownContainer.value?.firstElementChild instanceof HTMLElement) {
-    firstDropdownItem.value = dropdownContainer.value.firstElementChild;
     registerDropdownItems();
+    if (dropdownItems.value[0] instanceof HTMLElement) {
+      firstDropdownItem.value = dropdownItems.value[0];
+    }
   }
 };
 
