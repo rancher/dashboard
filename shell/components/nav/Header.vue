@@ -542,13 +542,12 @@ export default {
             tabindex="0"
             :aria-label="t('nav.import')"
             @click="openImport()"
-            @keyup.enter="openImport()"
             @keyup.space="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
           </button>
           <app-modal
-            :visibility="showImportModal"
+            v-if="showImportModal"
             class="import-modal"
             name="importModal"
             width="75%"

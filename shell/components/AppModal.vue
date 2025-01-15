@@ -103,7 +103,20 @@ export default defineComponent({
     },
     handleEscapeKey(event: KeyboardEvent) {
       if (this.clickToClose && event.key === 'Escape') {
-        this.$emit('close');
+        console.warn('ESCAPE KEY PRESSED ON MODAL...');
+        // this.$emit('close');
+        const yamlEditorEl = document.querySelector('#yaml-editor-code-mirror');
+        const currActiveEl = document.activeElement;
+
+        console.log('******* document.activeElement ********', document.activeElement);
+        // console.log('******* this.$refs.cm ********', this.$refs.cm);
+        // console.log('******* "document.querySelector ********', document.querySelector('#yaml-editor-code-mirror'));
+        console.log('******* contains ********', document.querySelector('#yaml-editor-code-mirror')?.contains(document.activeElement));
+
+        if (!yamlEditorEl || (yamlEditorEl && !yamlEditorEl.contains(currActiveEl))) {
+          console.error('CLOSING!!!');
+          this.$emit('close');
+        }
       }
     },
     isValidWidth(value: number | string) {

@@ -451,6 +451,10 @@ export default {
   // LabeledSelect.
   padding-bottom: 1px;
 
+  &:focus-visible {
+    @include focus-outline;
+  }
+
   &.no-label.compact-input {
     :deep() .vs__actions:after {
       top: -2px;

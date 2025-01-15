@@ -147,7 +147,6 @@ export default {
       return [EDITOR_MODES.EDIT_CODE, EDITOR_MODES.VIEW_CODE].includes(this.editorMode);
     },
   },
-
   watch: {
     showUploadPrompt(neu) {
       if (neu) {
@@ -156,10 +155,31 @@ export default {
     },
   },
 
+  mounted() {
+    document.addEventListener('keydown', this.handleEscapeKey);
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.handleEscapeKey);
+  },
+
   methods: {
-    focus() {
-      if ( this.$refs.cm ) {
-        this.$refs.cm.focus();
+    // focus() {
+    //   if ( this.$refs.cm ) {
+    //     this.$refs.cm.focus();
+    //   }
+    // },
+
+    handleEscapeKey(e) {
+      if (e.key === 'Escape') {
+        console.log('******* document.activeElement ON YAML EDITOR ********', document.activeElement);
+
+        const yamlEditorEl = this.$refs.cm.$el;
+        const currActiveEl = document.activeElement;
+
+        if (yamlEditorEl.contains(currActiveEl)) {
+          console.warn('MOVING FOCUS TO OUTER ELEMENT!');
+          this.$refs.outerYamlEditorElement.focus();
+        }
       }
     },
 
@@ -204,7 +224,10 @@ export default {
 </script>
 
 <template>
-  <div class="yaml-editor">
+  <div
+    ref="outerYamlEditorElement"
+    class="yaml-editor"
+  >
     <div class="text-right">
       <span
         v-if="isPreview && !hidePreviewButtons"
@@ -227,6 +250,7 @@ export default {
     </div>
     <CodeMirror
       v-if="showCodeEditor"
+      id="yaml-editor-code-mirror"
       ref="cm"
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
@@ -254,6 +278,10 @@ export default {
 .yaml-editor {
   display: flex;
   flex-direction: column;
+
+  &:focus {
+    @include focus-outline;
+  }
 
   .fill {
     flex: 1;

@@ -52,6 +52,8 @@ export default {
       const theme = this.$store.getters['prefs/theme'];
       const keymap = this.$store.getters['prefs/get'](KEYMAP);
 
+      console.log('keymap', keymap);
+
       const out = {
         // codemirror default options
         tabSize:                 2,

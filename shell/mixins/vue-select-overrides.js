@@ -5,39 +5,22 @@ export default {
       // Defaults found at - https://github.com/sagalbot/vue-select/blob/master/src/components/Select.vue#L947
       const out = { ...map };
 
-      // tab
-      (out[9] = (e) => {
-        // user esc'd
-        if (!vm.open) {
-          return;
-        }
-
-        e.preventDefault();
-
-        const optsLen = vm.filteredOptions.length;
-        const typeAheadPointer = vm.typeAheadPointer;
-
-        if (e.shiftKey) {
-          if (typeAheadPointer === 0) {
-            return vm.onEscape();
-          }
-
-          return vm.typeAheadUp();
-        }
-        if (typeAheadPointer + 1 === optsLen) {
-          return vm.onEscape();
-        }
-
-        return vm.typeAheadDown();
-      });
-
+      // escape key
       (out[27] = (e) => {
+        // this will prevent propagation to global escape key handler
+        // that is responsible for closing a modal
+        // probably we can gate it to a prop...
+        if (vm.open) {
+          e.stopPropagation();
+        }
+
         vm.open = false;
         vm.search = '';
 
         return false;
       });
 
+      // enter key
       (out[13] = (e, opt) => {
         if (!vm.open) {
           vm.open = true;
