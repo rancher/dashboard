@@ -1,23 +1,24 @@
 <script>
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
-import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster, paginationFilterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
 import CloudCredExpired from '@shell/components/formatter/CloudCredExpired';
+import { PaginationParamFilter, FilterArgs, PaginationFilterField } from '@shell/types/store/pagination.types';
+import { AGE, STATE } from '@shell/config/table-headers';
+import { MACHINE_SUMMARY } from '@shell/config/product/manager';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead, BadgeState, CloudCredExpired
+    Banner, PaginatedResourceTable, Masthead, BadgeState, CloudCredExpired
   },
-  mixins: [ResourceFetch],
-  props:  {
+  props: {
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -34,68 +35,30 @@ export default {
     }
   },
 
-  async fetch() {
-    this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
-    const hash = {
-      rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
-      normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
-      mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
-    };
-
-    this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
-
-    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
-    }
-
-    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      hash.capiMachines = this.$fetchType(CAPI.MACHINE);
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE);
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.mgmtPools = this.$fetchType(MANAGEMENT.NODE_POOL);
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.mgmtTemplates = this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
-    }
-
-    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      hash.machineDeployments = this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
-    }
-
-    // Fetch RKE template revisions so we can show when an updated template is available
-    // This request does not need to be blocking
-    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION);
-    }
-
-    const res = await allHash(hash);
-
-    this.mgmtClusters = res.mgmtClusters;
-  },
-
   data() {
     return {
-      resource:     CAPI.RANCHER_CLUSTER,
-      schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters: [],
+      paginationContext:          'provisioning.cattle.io.clusters',
+      resource:                   CAPI.RANCHER_CLUSTER,
+      schema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      canViewSnapshots:           this.$store.getters['management/canList'](SNAPSHOT),
+      canViewCapiMachines:        this.$store.getters['management/canList'](CAPI.MACHINE),
+      canViewManagementNodes:     this.$store.getters['management/canList'](MANAGEMENT.NODE),
+      canViewManagementPools:     this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL),
+      canViewManagementTemplates: this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE),
+      canViewMachineDeployments:  this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT),
+      canViewRkeTemplateRevision: this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION),
     };
   },
 
   computed: {
-    filteredRows() {
-      // If Harvester feature is enabled, hide Harvester Clusters
-      if (this.harvesterEnabled) {
-        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows, this.$store), this.$store);
-      }
+    // We no longer make the request for rows the paginated table does. We still need to access these rows for things like harvester.
+    rows() {
+      return this.$refs.paginatedTable?.rows || [];
+    },
 
-      // Otherwise, show Harvester clusters - these will be shown with a warning
-      return filterHiddenLocalCluster(this.rows, this.$store);
+    // We no longer make the request for rows the paginated table does. We still need to access these rows for things like harvester.
+    filteredRows() {
+      return this.$refs.paginatedTable?.filteredRows || [];
     },
 
     hiddenHarvesterCount() {
@@ -167,7 +130,227 @@ export default {
         expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
         expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
       };
-    }
+    },
+
+    headers() {
+      return [
+        STATE,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
+          sort:          false, // ['nameSort'],
+          formatter:     'ClusterLink',
+          canBeVariable: true,
+        },
+        {
+          name:     'kubernetesVersion',
+          labelKey: 'tableHeaders.version',
+          subLabel: 'Architecture',
+          value:    'kubernetesVersion',
+          sort:     'kubernetesVersion',
+          search:   'kubernetesVersion',
+        },
+        {
+          name:      'provider',
+          labelKey:  'tableHeaders.provider',
+          subLabel:  'Distro',
+          value:     'machineProvider',
+          sort:      ['machineProvider', 'provisioner'],
+          formatter: 'ClusterProvider',
+        },
+        MACHINE_SUMMARY,
+        AGE,
+        {
+          name:  'explorer',
+          label: ' ',
+          align: 'right',
+          width: 65,
+        }];
+    },
+  },
+
+  methods: {
+    clusterFilter(clusters) {
+      // If Harvester feature is enabled, hide Harvester Clusters
+      if (this.harvesterEnabled) {
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(clusters, this.$store), this.$store);
+      }
+
+      // Otherwise, show Harvester clusters - these will be shown with a warning
+      return filterHiddenLocalCluster(clusters, this.$store);
+    },
+    apiFilter(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      // The first filter is has an empty fields prop which is causing the table to be empty
+      pagination.filters = pagination.filters.filter((f) => f.fields.length > 0);
+      pagination.filters.push(paginationFilterHiddenLocalCluster(this.$store, false));
+
+      return pagination;
+    },
+    async fetchSecondaryResources() {
+      const hash = {
+        rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+        normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
+        mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      };
+
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+
+      if ( this.canViewSnapshots ) {
+        hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      }
+
+      if ( this.canViewCapiMachines ) {
+        hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      }
+
+      if ( this.canViewManagementNodes ) {
+        hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      if ( this.canViewManagementPools ) {
+        hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.canViewManagementTemplates ) {
+        hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+
+      if ( this.canViewMachineDeployments ) {
+        hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      }
+
+      // Fetch RKE template revisions so we can show when an updated template is available
+      // This request does not need to be blocking
+      if ( this.canViewRkeTemplateRevision ) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+      }
+
+      await allHash(hash);
+    },
+
+    async fetchPageSecondaryResources({
+      canPaginate, force, page, pagResult
+    }) {
+      if (!canPaginate || !page?.length) {
+        return;
+      }
+
+      const hash = {};
+
+      if ( this.canViewSnapshots ) {
+        const paginatedOpt = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.metadata.name
+            }))),
+          })
+        };
+
+        hash.etcdSnapshots = this.$store.dispatch(`management/findPageOrAll`, {
+          type: SNAPSHOT, context: this.paginationContext, paginatedOpt
+        });
+      }
+
+      if ( this.canViewCapiMachines ) {
+        const paginatedOpt = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.metadata.name
+            }))),
+          })
+        };
+
+        hash.capiMachines = this.$store.dispatch(`management/findPageOrAll`, {
+          type: CAPI.MACHINE, context: this.paginationContext, paginatedOpt
+        });
+      }
+
+      if ( this.canViewManagementNodes ) {
+        const paginatedOpt = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r) => new PaginationFilterField({
+              field: 'id',
+              value: r.id,
+              exact: false,
+            }))),
+          })
+        };
+
+        hash.mgmtNodes = this.$store.dispatch(`management/findPageOrAll`, {
+          type: MANAGEMENT.NODE, context: this.paginationContext, paginatedOpt
+        });
+      }
+
+      if ( this.canViewManagementTemplates && this.canViewManagementPools ) {
+        const nodePoolFilters = PaginationParamFilter.createMultipleFields(page
+          .filter((p) => p.status?.clusterName)
+          .map((r) => new PaginationFilterField({
+            field: 'spec.clusterName',
+            value: r.status?.clusterName
+          })));
+        const nodePools = await this.$store.dispatch(`management/findPageOrAll`, {
+          type:         MANAGEMENT.NODE_POOL,
+          context:      this.paginationContext,
+          paginatedOpt: {
+            force,
+            pagination: new FilterArgs({ filters: nodePoolFilters })
+          }
+        });
+
+        const templateOpt = PaginationParamFilter.createMultipleFields(nodePools
+          .filter((np) => !!np.nodeTemplateId)
+          .map((np) => new PaginationFilterField({
+            field: 'id',
+            value: np.nodeTemplateId,
+            exact: true,
+          })));
+
+        hash.mgmtTemplates = this.$store.dispatch(`management/findPageOrAll`, {
+          type:         MANAGEMENT.NODE_TEMPLATE,
+          context:      this.paginationContext,
+          paginatedOpt: {
+            force,
+            pagination: new FilterArgs({ filters: templateOpt })
+          }
+        });
+      }
+
+      if ( this.canViewMachineDeployments ) {
+        const paginatedOpt = {
+          force,
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(page.map((r) => new PaginationFilterField({
+              field: 'spec.clusterName',
+              value: r.metadata.name
+            }))),
+          })
+        };
+
+        hash.machineDeployments = this.$store.dispatch(`management/findPageOrAll`, {
+          type: CAPI.MACHINE_DEPLOYMENT, context: this.paginationContext, paginatedOpt
+        });
+      }
+
+      await allHash(hash);
+    },
+  },
+
+  beforeUnmount() {
+    this.$store.dispatch('management/forgetType', SNAPSHOT);
+    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
+    this.$store.dispatch('management/forgetType', CAPI.MACHINE_DEPLOYMENT);
   },
 
   $loadingResources() {
@@ -179,12 +362,6 @@ export default {
 
 <template>
   <div>
-    <Banner
-      v-if="hiddenHarvesterCount"
-      color="info"
-      :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
-    />
-
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -219,15 +396,20 @@ export default {
       :label="tokenExpiredData.expired"
     />
 
-    <ResourceTable
+    <PaginatedResourceTable
+      ref="paginatedTable"
       :schema="schema"
-      :rows="filteredRows"
+      :headers="headers"
+      :pagination-headers="headers"
       :namespaced="nonStandardNamespaces"
-      :loading="loading"
+      :api-filter="apiFilter"
+      :local-filter="clusterFilter"
+      :fetch-secondary-resources="fetchSecondaryResources"
+      :fetch-page-secondary-resources="fetchPageSecondaryResources"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
-      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :sub-rows="true"
+      :context="paginationContext"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
@@ -304,6 +486,6 @@ export default {
           {{ t('cluster.explore') }}
         </button>
       </template>
-    </ResourceTable>
+    </PaginatedResourceTable>
   </div>
 </template>

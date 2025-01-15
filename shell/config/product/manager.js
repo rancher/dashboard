@@ -14,6 +14,16 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export const NAME = 'manager';
 
+export const MACHINE_SUMMARY = {
+  name:      'summary',
+  labelKey:  'tableHeaders.machines',
+  sort:      false,
+  search:    false,
+  formatter: 'MachineSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
 export function init(store) {
   const {
     product,
@@ -161,16 +171,6 @@ export function init(store) {
   ], 'advanced');
 
   weightGroup('advanced', -1, true);
-
-  const MACHINE_SUMMARY = {
-    name:      'summary',
-    labelKey:  'tableHeaders.machines',
-    sort:      false,
-    search:    false,
-    formatter: 'MachineSummaryGraph',
-    align:     'center',
-    width:     100,
-  };
 
   headers(CAPI.RANCHER_CLUSTER, [
     STATE,

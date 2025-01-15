@@ -278,7 +278,7 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
           enableAll:  false,
           enableSome: {
             enabled: [
-              { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+              { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar', 'provisioning.cattle.io.clusters'] },
               { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
             ],
             generic: false,

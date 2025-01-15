@@ -3,7 +3,7 @@ import { camelToTitle } from '@shell/utils/string';
 import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationFilterField, PaginationParamFilter, FilterArgs } from '@shell/types/store/pagination.types';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
@@ -61,6 +61,26 @@ export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = tr
   ];
 
   return PaginationParamFilter.createMultipleFields(filter);
+}
+
+export async function hasAccessToLocalCluster(store) {
+  const opt = {
+    force:      true,
+    pagination: new FilterArgs({
+      filters: PaginationParamFilter.createMultipleFields([new PaginationFilterField({
+        field:  `id`,
+        value:  'fleet-local/local',
+        exact:  true,
+        equals: false,
+      })]),
+    })
+  };
+
+  const clusters = await store.dispatch('management/findPage', { type: MANAGEMENT.CLUSTER, opt });
+
+  const localCluster = clusters.filter((c) => c.id === 'local');
+
+  return localCluster.length > 0;
 }
 
 /**
