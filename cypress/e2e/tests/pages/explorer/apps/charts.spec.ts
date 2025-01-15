@@ -6,6 +6,8 @@ const chartsPage = new ChartsPage();
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
+
     cy.login();
     chartsPage.goTo();
     chartsPage.waitForPage();
@@ -94,6 +96,9 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should call fetch when route query changes with valid parameters', () => {
     const chartName = 'Logging';
 
+    cy.wait('@fetchChartData');
+    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+
     chartsPage.getChartByName(chartName)
       .should('exist')
       .scrollIntoView()
@@ -105,15 +110,18 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartPage.waitForPage();
 
     // Set up intercept for the network request triggered by $fetch
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
+    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterSelect');
 
     chartPage.selectVersion('103.1.1+up4.4.0');
 
-    cy.wait('@fetchChartData').its('response.statusCode').should('eq', 200);
+    cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
   });
 
   it('should not call fetch when navigating back to charts page', () => {
     const chartName = 'Logging';
+
+    cy.wait('@fetchChartData');
+    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getChartByName(chartName)
       .should('exist')

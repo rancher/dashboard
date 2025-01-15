@@ -7,7 +7,7 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -34,7 +34,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.title().should('contain', 'Extensions');
   }
 
-  loading() {
+  loading(options: any) {
     return this.self().get('.data-loading');
   }
 
@@ -50,12 +50,16 @@ export default class ExtensionsPagePo extends PagePo {
    * @returns {Cypress.Chainable}
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields').as('getRepos');
+
     // we should be on the extensions page
-    this.waitForPage();
+    this.waitForPage(null, 'available');
+    this.loading(MEDIUM_TIMEOUT_OPT).should('not.exist');
 
     // go to app repos
     this.extensionMenuToggle();
     this.manageReposClick();
+    cy.wait('@getRepos').its('response.statusCode').should('eq', 200);
 
     // create a new clusterrepo
     const appRepoList = new RepositoriesPagePo('local', 'apps');
@@ -82,6 +86,8 @@ export default class ExtensionsPagePo extends PagePo {
 
     appRepoList.waitForPage();
     appRepoList.list().state(name).should('contain', 'Active');
+
+    return cy.wrap(appRepoList.list());
   }
 
   /**
