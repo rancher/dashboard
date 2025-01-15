@@ -181,6 +181,7 @@ export const nodePoolNamesUnique = (ctx: any) => {
 export const nodePoolCount = (ctx:any) => {
   return (count?: number, canBeZero = false) => {
     let min = 1;
+    const max = 1000;
     let errMsg = ctx.t('aks.errors.poolCount');
 
     if (canBeZero) {
@@ -188,7 +189,7 @@ export const nodePoolCount = (ctx:any) => {
       errMsg = ctx.t('aks.errors.poolUserCount');
     }
     if (count || count === 0) {
-      return count >= min ? undefined : errMsg;
+      return count >= min && count <= max ? undefined : errMsg;
     } else {
       let allValid = true;
 
@@ -201,7 +202,7 @@ export const nodePoolCount = (ctx:any) => {
           min = 1;
         }
 
-        if (count < min) {
+        if (count < min || count > max) {
           pool._validation['_validCount'] = false;
           allValid = false;
         } else {
