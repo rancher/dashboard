@@ -699,7 +699,6 @@ export default defineComponent({
         >
           <div
             class="col span-6"
-            data-testid="name-ns-description-name"
           >
             <LabeledInput
               :value="normanCluster.name"
@@ -713,7 +712,6 @@ export default defineComponent({
           </div>
           <div
             class="col span-6"
-            data-testid="name-ns-description-description"
           >
             <LabeledInput
               :value="normanCluster.description"

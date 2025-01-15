@@ -40,4 +40,12 @@ export default class ClusterManagerCreateGKEPagePo extends ClusterManagerCreateP
   static getGkeZoneSelect() {
     return new LabeledSelectPo('[data-testid="gke-zone-select"]');
   }
+
+  getClusterName() {
+    return new LabeledInputPo('[data-testid="gke-cluster-name"]');
+  }
+
+  getClusterDescription() {
+    return new LabeledInputPo('[data-testid="gke-cluster-description"]');
+  }
 }

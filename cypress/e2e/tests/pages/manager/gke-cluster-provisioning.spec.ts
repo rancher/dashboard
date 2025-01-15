@@ -91,9 +91,9 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       });
 
       // Set the cluster name and description in the Create GKE Page
-      createGKEClusterPage.nameNsDescription().name().set(this.gkeClusterName);
+      createGKEClusterPage.getClusterName().set(this.gkeClusterName);
       clusterDescription = `${ this.gkeClusterName }-description`;
-      createGKEClusterPage.nameNsDescription().description().set(clusterDescription);
+      createGKEClusterPage.getClusterDescription().set(clusterDescription);
     });
 
     // Create GKE Cluster and verify that the properties posted to the server match the expected settings
