@@ -62,7 +62,7 @@
     "@aws-sdk/client-iam": "3.658.1",
     "@aws-sdk/client-kms": "3.8.1",
     "@novnc/novnc": "1.2.0",
-    "@popperjs/core": "2.4.4",
+    "@popperjs/core": "2.11.8",
     "@rancher/icons": "2.0.29",
     "ansi_up": "5.0.0",
     "axios": "0.21.4",
