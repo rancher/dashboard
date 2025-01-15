@@ -73,7 +73,7 @@ export default class CatalogApp extends SteveModel {
     // narrowing down the matches by checking if the current version includes in the list of available versions from a matched chart
     // Filtering matches by verifying if the current version is in the matched chart's available versions, and that the home value matches as well
     const thisHome = chart?.metadata?.home;
-    const bestMatches = matchingCharts.filter((m) => m.versions.some(v => v.version === this.currentVersion && v.home === thisHome));
+    const bestMatches = matchingCharts.filter((m) => m.versions.some((v) => v.version === this.currentVersion && v.home === thisHome));
 
     if (bestMatches.length === 0) {
       return;
