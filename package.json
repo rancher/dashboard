@@ -77,7 +77,7 @@
     "cookie-universal": "2.2.2",
     "cron-validator": "1.2.0",
     "cronstrue": "1.95.0",
-    "cross-env": "6.0.3",
+    "cross-env": "7.0.3",
     "custom-event-polyfill": "1.0.7",
     "d3": "7.3.0",
     "d3-selection": "1.4.1",
