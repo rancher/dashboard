@@ -443,6 +443,9 @@ export default {
             <router-link
               v-if="location"
               :to="location"
+              role="link"
+              class="masthead-resource-list-link"
+              :aria-label="parent.displayName"
             >
               {{ parent.displayName }}:
             </router-link>
@@ -584,10 +587,10 @@ export default {
   }
 
   HEADER {
-    margin: 0;
+    margin: 0 0 0 -5px;
 
     .title {
-      overflow: hidden;
+      overflow-x: hidden;
     }
   }
 
@@ -598,7 +601,7 @@ export default {
 
     h1 {
       margin: 0;
-      overflow: hidden;
+      overflow-x: hidden;
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -606,8 +609,12 @@ export default {
       .masthead-resource-title {
         padding: 0 8px;
         text-overflow: ellipsis;
-        overflow: hidden;
+        overflow-x: hidden;
         white-space: nowrap;
+      }
+
+      .masthead-resource-list-link {
+        margin: 5px;
       }
     }
   }
