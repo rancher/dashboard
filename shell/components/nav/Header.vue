@@ -24,6 +24,12 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
+import {
+  RcDropdown,
+  RcDropdownItem,
+  RcDropdownSeparator,
+  RcDropdownTrigger
+} from '@components/RcDropdown';
 
 export default {
 
@@ -39,6 +45,10 @@ export default {
     IconOrSvg,
     AppModal,
     HeaderPageActionMenu,
+    RcDropdown,
+    RcDropdownItem,
+    RcDropdownSeparator,
+    RcDropdownTrigger,
   },
 
   props: {
@@ -644,118 +654,62 @@ export default {
       <header-page-action-menu v-if="showPageActions" />
 
       <div class="header-spacer" />
-      <div
-        v-if="showUserMenu"
-        class="user user-menu"
-        data-testid="nav_header_showUserMenu"
-        tabindex="0"
-        @blur="showMenu(false)"
-        @click="showMenu(true)"
-        @focus.capture="showMenu(true)"
-      >
-        <v-dropdown
-          :triggers="[]"
-          :shown="isUserMenuOpen"
-          :autoHide="false"
-          :flip="false"
-          :container="false"
-          :placement="'bottom-end'"
+      <rc-dropdown>
+        <rc-dropdown-trigger
+          v-if="showUserMenu"
+          link
+          data-testid="nav_header_showUserMenu"
         >
-          <div class="user-image text-right hand">
-            <img
-              v-if="principal && principal.avatarSrc"
-              :src="principal.avatarSrc"
-              :class="{'avatar-round': principal.roundAvatar}"
-              width="36"
-              height="36"
-            >
-            <i
-              v-else
-              class="icon icon-user icon-3x avatar"
-            />
-          </div>
-          <template #popper>
-            <div
-              class="user-menu"
-            >
-              <ul
-                class="list-unstyled dropdown"
-                data-testid="user-menu-dropdown"
-                @click.stop="showMenu(false)"
-              >
-                <li
-                  v-if="authEnabled"
-                  class="user-info"
-                >
-                  <div class="user-name">
-                    <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
-                  </div>
-                  <div class="text-small pt-5 pb-5">
-                    <template v-if="principal.loginName !== principal.name">
-                      {{ principal.name }}
-                    </template>
-                  </div>
-                </li>
-                <router-link
-                  v-if="showPreferencesLink"
-                  v-slot="{ href, navigate }"
-                  custom
-                  :to="{name: 'prefs'}"
-                >
-                  <li
-                    class="user-menu-item"
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                  >
-                    <a :href="href">{{ t('nav.userMenu.preferences') }}</a>
-                  </li>
-                </router-link>
-                <router-link
-                  v-if="showAccountAndApiKeyLink"
-                  v-slot="{ href, navigate }"
-                  custom
-                  :to="{name: 'account'}"
-                >
-                  <li
-                    class="user-menu-item"
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                  >
-                    <a :href="href">{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
-                  </li>
-                </router-link>
-                <!-- SLO modal -->
-                <li
-                  v-if="authEnabled && shouldShowSloLogoutModal"
-                  class="user-menu-item no-link"
-                  @click="showSloModal"
-                  @keypress.enter="showSloModal"
-                >
-                  <span>{{ t('nav.userMenu.logOut') }}</span>
-                </li>
-                <!-- logout -->
-                <router-link
-                  v-else-if="authEnabled"
-                  v-slot="{ href, navigate }"
-                  custom
-                  :to="generateLogoutRoute"
-                >
-                  <li
-                    class="user-menu-item"
-                    @click="navigate"
-                    @keypress.enter="navigate"
-                  >
-                    <a
-                      :href="href"
-                      @blur="showMenu(false)"
-                    >{{ t('nav.userMenu.logOut') }}</a>
-                  </li>
-                </router-link>
-              </ul>
+          <img
+            v-if="principal && principal.avatarSrc"
+            :src="principal.avatarSrc"
+            :class="{'avatar-round': principal.roundAvatar}"
+            width="36"
+            height="36"
+          >
+          <i
+            v-else
+            class="icon icon-user icon-3x avatar"
+          />
+        </rc-dropdown-trigger>
+        <template #dropdownCollection>
+          <div class="user-info">
+            <div class="user-name">
+              <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
             </div>
-          </template>
-        </v-dropdown>
-      </div>
+            <div class="text-small pt-5 pb-5">
+              <template v-if="principal.loginName !== principal.name">
+                {{ principal.name }}
+              </template>
+            </div>
+          </div>
+          <rc-dropdown-separator />
+          <rc-dropdown-item
+            v-if="showPreferencesLink"
+            @click="$router.push({ name: 'prefs'})"
+          >
+            {{ t('nav.userMenu.preferences') }}
+          </rc-dropdown-item>
+          <rc-dropdown-item
+            v-if="showAccountAndApiKeyLink"
+            @click="$router.push({ name: 'account'})"
+          >
+            {{ t('nav.userMenu.accountAndKeys', {}, true) }}
+          </rc-dropdown-item>
+          <rc-dropdown-item
+            v-if="authEnabled && shouldShowSloLogoutModal"
+            @click="showSloModal"
+          >
+            {{ t('nav.userMenu.logOut') }}
+          </rc-dropdown-item>
+          <rc-dropdown-item
+            v-else-if="authEnabled"
+            @click="$router.push(generateLogoutRoute)"
+          >
+            {{ t('nav.userMenu.logOut') }}
+          </rc-dropdown-item>
+        </template>
+      </rc-dropdown>
     </div>
   </header>
 </template>
@@ -1060,14 +1014,16 @@ export default {
         justify-content: space-between;
         padding: 10px;
       }
+    }
+  }
 
-      &.user-info {
-        display: block;
-        margin-bottom: 10px;
-        padding: 10px 20px;
-        border-bottom: solid 1px var(--border);
-        min-width: 200px;
-      }
+  div {
+    &.user-info {
+      margin-bottom: 10px;
+      padding: 10px 20px;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
     }
   }
 
