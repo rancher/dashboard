@@ -85,13 +85,13 @@ export default {
         STEVE_EVENT_LAST_SEEN,
         STEVE_EVENT_TYPE,
         REASON,
-        headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
-        headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
+        eventSchema ? headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true) : null,
+        eventSchema ? headerFromSchemaColString('Source', eventSchema, this.$store.getters, true) : null,
         MESSAGE,
-        headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
-        headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
+        eventSchema ? headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true) : null,
+        eventSchema ? headerFromSchemaColString('Count', eventSchema, this.$store.getters, true) : null,
         STEVE_NAME_COL,
-      ]
+      ].filter((header) => header)
     };
   },
 

@@ -12,7 +12,8 @@ import {
   SERVICE,
   INGRESS,
   WORKLOAD_TYPES,
-  HPA
+  HPA,
+  SNAPSHOT
 } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -153,6 +154,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [CAPI.MACHINE]: [
       { field: 'spec.clusterName' }
     ],
+    // [CAPI.MACHINE_DEPLOYMENT]: [
+    // { field: 'spec.clusterName' } // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+    // ],
     [EVENT]: [
       { field: '_type' },
       { field: 'reason' },
@@ -195,6 +199,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [PV]: [
       { field: 'status.reason' },
       { field: 'spec.persistentVolumeReclaimPolicy' },
+    ],
+    [SNAPSHOT]: [
+      // { field: 'spec.clusterName' } // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
     ],
     [STORAGE_CLASS]: [
       { field: 'provisioner' },

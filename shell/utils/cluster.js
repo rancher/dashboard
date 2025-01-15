@@ -64,6 +64,24 @@ export function paginationFilterHiddenLocalCluster(store, filterMgmtCluster = tr
 }
 
 /**
+ * Checks to see if the current user has access to the local store
+ *
+ * @export
+ * @param {*} store
+ * @returns {boolean} true if the user does false otherwise
+ */
+export async function hasAccessToLocalCluster(store) {
+  // If the user has access to local the request will be successful otherwise it will return a 403 which we have to catch.
+  try {
+    await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The vai backed api's `filter` equivalent of `filterOnlyKubernetesClusters`
  *
  * @export
