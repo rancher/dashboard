@@ -6,7 +6,7 @@ const options = {
   failureThreshold:           0,
   failOnSnapshotDiff:         true,
   padding:                    10,
-  customSnapshotsDir:         'visual/snapshots/',
+  customSnapshotsDir:         'snapshots/',
   delayBetweenTries:          0,
   timeout:                    1000,
   disableTimersAndAnimations: true,
