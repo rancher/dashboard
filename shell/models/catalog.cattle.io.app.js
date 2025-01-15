@@ -70,10 +70,10 @@ export default class CatalogApp extends SteveModel {
       return;
     }
 
-    // narrowing down the matches by checking more properties, like home url
-    // we let a match pass if home url is not set since we support custom charts and they might not follow the best practices to include the home url
+    // narrowing down the matches by checking if the current version includes in the list of available versions from a matched chart
+    // Filtering matches by verifying if the current version is in the matched chart's available versions, and that the home value matches as well
     const thisHome = chart?.metadata?.home;
-    const bestMatches = matchingCharts.filter((m) => !thisHome || m.versions[0]?.home === thisHome);
+    const bestMatches = matchingCharts.filter((m) => m.versions.some(v => v.version === this.currentVersion && v.home === thisHome));
 
     if (bestMatches.length === 0) {
       return;
