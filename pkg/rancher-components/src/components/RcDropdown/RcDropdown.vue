@@ -72,6 +72,7 @@ const setFocus = () => {
   });
 };
 
+const popperContainer = ref(null);
 const dropdownTarget = ref(null);
 
 useClickOutside(dropdownTarget, () => showMenu(false));
@@ -96,7 +97,7 @@ const applyShow = () => {
     :triggers="[]"
     :shown="isMenuOpen"
     :auto-hide="false"
-    :container="'.popperContainer'"
+    :container="popperContainer"
     @apply-show="applyShow"
   >
     <slot name="default">
@@ -116,6 +117,7 @@ const applyShow = () => {
     </template>
   </v-dropdown>
   <div
+    ref="popperContainer"
     class="popperContainer"
     @keydown.tab="showMenu(false)"
     @keydown.escape="returnFocus"
