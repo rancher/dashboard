@@ -236,7 +236,8 @@ function clone_repo_test_extension_build() {
 # Don't forget to add the unit tests exception to clone_repo_test_extension_build function if a new extension has those
 clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
-clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
+# TODO #13141: Enable neuvector tests after issues have been resolved
+# clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
 clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
 clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
 clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
