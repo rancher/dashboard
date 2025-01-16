@@ -932,6 +932,7 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    refresh: refresh charts
     all: All
     categories:
       all: All Categories
@@ -951,7 +952,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter
+    search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
   install:
@@ -6133,6 +6134,11 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+
+carousel:
+  previous: Previous
+  next: Next
+  controlItem: Go to slide nº {number}
 
 wizard:
   previous: Previous
