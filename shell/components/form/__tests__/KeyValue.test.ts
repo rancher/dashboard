@@ -127,7 +127,7 @@ describe('component: KeyValue', () => {
     expect(secondKeyInput.exists()).toBe(false);
     expect(secondValueInput.exists()).toBe(false);
 
-    const addButton = wrapper.find('[data-testid="add_link_button"]');
+    const addButton = wrapper.find('[data-testid="add_row_item_button"]');
 
     addButton.trigger('click');
     await nextTick();
