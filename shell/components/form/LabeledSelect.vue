@@ -22,7 +22,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {
@@ -238,7 +238,7 @@ export default {
       return noDrop ? false : open && shouldOpen && !mutableLoading;
     },
 
-    onSearch(newSearchString) {
+    onSearch(newSearchString, loading) {
       if (this.canPaginate) {
         this.setPaginationFilter(newSearchString);
       } else {
@@ -246,6 +246,7 @@ export default {
           this.dropdownShouldOpen(this.$refs['select-input'], true);
         }
       }
+      this.$emit('search', newSearchString, loading);
     },
 
     getOptionKey(opt) {
