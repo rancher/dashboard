@@ -147,7 +147,7 @@ export default {
 
     // update placeholder text to inform user they can add their own opts when none are found
     showTagPrompts() {
-      return !this.options.length && this.$attrs.taggable;
+      return !this.options.length && this.$attrs.taggable && this.isSearchable;
     }
   },
 
