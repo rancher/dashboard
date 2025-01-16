@@ -146,41 +146,40 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       ;
     });
 
-    // skipped due to  https://github.com/rancher/rancher/issues/48714
-    // it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
-    //   const workspace = 'fleet-default';
+    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+      const workspace = 'fleet-default';
 
-    //   // go to fleet gitrepo
-    //   listPage.goTo();
-    //   listPage.waitForPage();
-    //   headerPo.selectWorkspace(workspace);
+      // go to fleet gitrepo
+      listPage.goTo();
+      listPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
-    //   // check table headers
-    //   const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+      // check table headers
+      const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-    //   listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
-    //     .within('.table-header-container .content')
-    //     .each((el, i) => {
-    //       expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
-    //     });
+      listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
+        });
 
-    //   // go to fleet gitrepo details
-    //   listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      // go to fleet gitrepo details
+      listPage.repoList().details(this.gitRepo, 2).find('a').click();
 
-    //   const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-    //   gitRepoDetails.waitForPage(null, 'bundles');
+      gitRepoDetails.waitForPage(null, 'bundles');
 
-    //   // check table headers
-    //   const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
+      // check table headers
+      const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
 
-    //   gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
-    //     .tableHeaderRow()
-    //     .within('.table-header-container .content')
-    //     .each((el, i) => {
-    //       expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
-    //     });
-    // });
+      gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
+        .tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
+        });
+    });
 
     it('check all tabs are available in the details view', function() {
       // testing https://github.com/rancher/dashboard/issues/11155
