@@ -2453,10 +2453,10 @@
   resolved "https://registry.npmjs.org/@babel/regjsgen/-/regjsgen-0.8.0.tgz#f0ba69b075e1f05fb2825b7fad991e7adbb18310"
   integrity sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==
 
-"@babel/runtime@^7.12.13", "@babel/runtime@^7.8.4":
-  version "7.25.6"
-  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.25.6.tgz#9afc3289f7184d8d7f98b099884c26317b9264d2"
-  integrity sha512-VBj9MYyDb9tuLq7yzqjgzt6Q+IBQLrGZfdjOekyEirZPHxXWoTSGUTMrpsfi58Up73d13NfYLv8HT9vmznjzhQ==
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.12.13", "@babel/runtime@^7.8.4":
+  version "7.26.0"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.26.0.tgz#8600c2f595f277c60815256418b85356a65173c1"
+  integrity sha512-FDSOghenHTiToteC/QRlv2q3DhPZ/oOXTBoirfWNx1Cx3TMVcGWQtMMmQcSvb/JjpNeGzx8Pq/b4fKEJuWm1sw==
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -10278,10 +10278,12 @@ jest@27.5.1:
     import-local "^3.0.2"
     jest-cli "^27.5.1"
 
-jexl@2.2.2:
-  version "2.2.2"
-  resolved "https://registry.npmjs.org/jexl/-/jexl-2.2.2.tgz#eb06cd84684a52b6408be94604c5529f416ccd2f"
-  integrity sha512-HYDGbiZtGLbaxp1b0S7Nqbtegu5zhxaUBzsrMIpoEJDNr1M8lSuowpO7ziXldc/+wGGvwkZYQSS8mW2cPpiGgA==
+jexl@2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/jexl/-/jexl-2.3.0.tgz#73e0694d86ca917ac24fed753f201c1db59a46c5"
+  integrity sha512-ecqln4kTWNkMwbFvTukOMDq1jy1GcPzvshhMp/s4pxU86xdLDq7HbDRa87DfMfbSAOS8V6EwvCdfs0S+w/iycA==
+  dependencies:
+    "@babel/runtime" "^7.10.2"
 
 joi@^17.4.0:
   version "17.13.3"
