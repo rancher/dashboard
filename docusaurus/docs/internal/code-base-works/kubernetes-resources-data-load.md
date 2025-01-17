@@ -1,4 +1,6 @@
 # Kubernetes Resources Data Load Optimizations
+
+> From Rancher v2.11.0 the following changes have been deprecated and will be removed in a future release. 
 In order to improve performance of Rancher Dashboard especially for systems with a large number of resources, several changes have been introduced to the codebase such as incremental loading of list views, manual refresh of list views and optimisation for "secondary" data load.
  
 ## The `resource-manager` mixin for secondary data load

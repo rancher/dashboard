@@ -1,40 +1,5 @@
-# API
 
-For information about the supported Rancher APIs see [here](https://ranchermanager.docs.rancher.com/v2.8/api/quickstart)
-
-The Rancher UI contains functionality to manage Kubernetes resources.
-
-Developers can create, edit, fetch and remove individual resources or fetch collections of them. Resources that are fetched, by default, will be automatically updated via WebSocket
-
-In addition the Rancher UI exposes permissions functionality around resources which can determine if the signed in user can perform the various actions around them.
-
-# Resource Definitions
-
-## Schemas
-Schemas are provided in bulk via Rancher and cached locally in the relevant store (`management`, `rancher`, etc).
-
-A schema can be fetched synchronously via store getter
-
-```ts
-import { POD } from '@shell/config/types';
-
-this.$store.getters['cluster/schemaFor'](POD)`
-```
-
-> Troubleshooting: Cannot find new schema
-> 
-> Ensure that your schema text in `/config/types.js` is singular, not plural
-
-As mentioned before a schema dictates the functionality available to that type and what is shown for the type in the UI.
-
-A resource is an instance of a schema e.g. the `admin` user is an instance of type `management.cattle.io.user`.
-
-## Types
-
-Each type has a Kubernetes API group and a name, but not necessarily a human-readable name. Types are used mainly for building side navigation and defining how the UI should build forms and list views for each resource. For more information about types and how to use them, there are helpful comments in `store/type-map.js`.
-
-
-# Vuex Stores
+# Vuex Stores and Resources
 
 There are 3 main stores for communicating with different parts of the Rancher API:
 
@@ -105,76 +70,12 @@ const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
 return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
 ```
 
-## Models
-
-The ES6 class models in the `models` directory are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
-
-Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/dashboard-store/resource-class.js`.
-
-The `Resource` class in `plugins/dashboard-store/resource-class.js` should not have any fields defined that conflict with any key ever returned by the APIs (e.g. name, description, state, etc used to be a problem). The `SteveModel` (`plugins/steve/steve-class.js`) and `NormanModel` (`plugins/steve/norman-class.js`) know how to handle those keys separately now, so the computed name/description/etc is only in the Steve implementation. It is no longer needed to use names like `_name` to avoid naming conflicts.
-
-### Extending Models
-
-The `Resource` class in `plugins/dashboard-store/resource-class.js` is the base class for everything and should not be directly extended. (There is a proxy-based counterpart of `Resource` which is the default export from `plugins/dashboard-store/resource-instance.js` as well.) If a model needs to extend the basic functionality of a resource, it should extend one of these three models:
-
-- `NormanModel`: For a Rancher management type being loaded via the Norman API (/v3, the Rancher store). These have names, descriptions and labels at the root of the object. 
-- `HybridModel`: This model is used for old Rancher types, such as a Project (mostly in management.cattle.io), that are loaded with the Steve API (/v1, the cluster/management stores). These have the name and description at the root, but labels under metadata.
-- `SteveModel`: Use this model for normal Kubernetes types such as workloads and secrets. The name, description and labels are under metadata.
-
-The Norman and Hybrid models extend the basic Resource class. The Hybrid model is extended by the Steve model.
-
-#### Model Creation
-
-The Rancher API returns plain objects containing resource data, but we need to convert that data into classes so that we can use methods on them.
-
-Whenever we get an object from the API, we run the `classify` function (at `plugins/dashboard-store/classify.js`) which looks at the type field and figures out what type it is supposed to be. That file gives you an instance of a model which you can use to access the properties.
+## Resource Models
+Please continue reading at [Creating and Fetching Resources](./api-models.md)
 
 ## Creating and Fetching Resources
 
-Most of the options to create and fetch resources can be achieved via dispatching actions defined in `/plugins/dashboard-store/actions.js`
-
-The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/dashboard-store/` for all the available actions and getters.
-
-| Function       | Action                                                                                                               | Example Command                                                                                             | Description                                                                                                                                                                             |
-| -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create`       | Create                                                                                                               | `$store.$dispatch('<store type>/create', <new object>)`                                                     | Creates a new Proxy object of the required type (`type` property must be included in the new object)                                                                                    |
-| `clone`        | Clone                                                                                                                | `$store.$dispatch('<store type>/clone', { resource: <existing object> })`                                   | Performs a deep clone and creates a proxy from it                                                                                                                                       |
-| `findAll`      | Fetch all of a resource type and watch for changes to the returned resources so that the list updates as it changes. | `$store.dispatch('<store type>/findAll', { type: <resource type> })`                                        | Fetches all resources of the given type. Also, when applicable, will register the type for automatic updates. If the type has already been fetched return the local cached list instead |
-| `find`         | Fetch a resource by ID and watch for changes to that individual resource.                                            | `$store.dispatch('<store type>/find', { type: <resource type>, id: <resource id> })`                        | Finds the resource matching the ID. If the type has already been fetched return the local cached instance.                                                                              |
-| `findMatching` | Fetch resources by label and watch for changes to the returned resources, a live array that updates as it changes.   | `$store.dispatch('<store type>/findMatching', { type: <resource type>, selector: <label name:value map> })` | Fetches resources that have `metadata.labels` matching that of the name-value properties in the selector. Does not support match expressions.                                           |
-
-Once objects of most types are fetched they will be automatically updated. See [Watching Resources](#watching-resources) for more info. For some types this does not happen. For those cases, or when an immediate update is required, adding `force: true` to the `find` style actions will result in a fresh http request.
-
-## Synchronous Fetching
-
-It's possible to retrieve values from the store synchronously via `getters`. For resources this is not normally advised (they may not yet have been fetched), however for items such as schemas, it is valid. Some of the core getters are defined in `/plugins/dashboard-store/getters.js`:
-
-```ts
-$store.getters['<store type>/byId'](<resource type>, <id>])
-
-$store.getters['<store type>/schemaFor'](<resource type>)`
-```
-
-The `all`, `byId` and `matching` getters are equivalents of the asynchronous `findAll`, `find` and `findMatching`, respectively.
-
-## Watching Resources
-
-For each API call, a websocket is created for the cluster you're talking to. For example:
-
-- If you `findAll` Pods, Rancher will watch all Pods after that.
-- if you get an individual resource using `findMatching`, it will watch a particular resource with that ID in a namespace.
-
-If you already called `findAll` for a resource, then do `findMatching`, no additional Pods would be watched because all of the Pod resources are already being watched. The subscribe call uses `equivalentWatch` to detect duplicate watches so that it won't send another request to watch the subset of resources that were already loaded previously.
-
-The `unsubscribe` function is used to unwatch resources. However, as a general rule, resources are never unwatched because Rancher assumes that any data you have already loaded needs to be kept up-to-date.
-
-The code related to watching resources is in `plugins/steve/subscribe.js`.
-
-### Pinging
-
-The UI normally has three websocket connections with `rancher` (Steve's global cluster management), `management` (Norman) and `cluster` (Steve for an individual cluster). The UI is pinged by Steve every five seconds and by Norman every thirty seconds. Steve's messages send the server version they are sent from, which sends another action and reloads the page if the server has been upgraded.
-
-To avoid excessive rerendering, the messages that change state, such as `resource.{create, change, remove}`, are saved in a buffer. Once per second they are all flushed together to update the store.
+Please continue reading at [Creating and Fetching Resources](./api-creating-and-fetching-resources.md)
 
 ## Resource Selectors
 
@@ -189,18 +90,6 @@ When catching exceptions thrown by anything that contacts the API use `utils/err
 ## Unauthenticated Endpoints
 
 If you need to add an endpoint to an unauthenticated route for loading from the store before login, you will need to add it [here](https://github.com/rancher/rancher/blob/cb7de4e6c3d7e783828dc662b1142c1f9ae5edbe/pkg/multiclustermanager/routes.go#L69).
-
-
-## Examining the Contents of a Resource
-
-Due to the way Dashboard resources are constructed examining the contents of one can sometimes provide unexpected results. It's recommended to read the sections covering resource proxy and resource instance before continuing.
-
-- When viewing the object via template `{{ resource }}` the `resource-instance.js` `toString` method will print out a basic interpretation
-- When printing the object via console the resource's [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/Proxy) will be displayed. To make this simpler to view use `JSON.parse(JSON.stringify(<resource>))`.
-
-> Q Why are my resource's `nameDisplay`, `description`, etc missing?
->
-> A These are part of the common underlying `resource-instance.js` or, if the resource type has it, the type's own `model`.
 
 ## API Calls to Third-party Domains
 
@@ -257,4 +146,3 @@ In addition the Create process (assessable with the same url + `/create`) is als
 ### Customising Resource Detail Pages
 
 A more detailed overview page can be added by creating a resource type component in `/detail/`. This should provide a more eye pleasing presentation than a collection of inputs or yaml blob.
-
