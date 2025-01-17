@@ -11,7 +11,7 @@ if [ $# -eq 1 ]; then
 fi
 
 # Define the command to use (cy2 or cypress)
-if [ "${TEST_DISABLE_DASHBOARD}" = "true" ]; then
+if [ "${TEST_DISABLE_DASHBOARD}" = "true" ] || [ "${TEST_DISABLE_DASHBOARD_LABEL}" = "true" ]; then
   echo "Running Cypress without dashboard"
   CYPRESS_COMMAND="cypress"
 else
