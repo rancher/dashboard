@@ -13,14 +13,14 @@ fi
 # Define the command to use (cy2 or cypress)
 if [ "${TEST_DISABLE_DASHBOARD}" = "true" ] || [ "${TEST_DISABLE_DASHBOARD_LABEL}" = "true" ]; then
   echo "Running Cypress without dashboard"
-  CYPRESS_COMMAND="cypress"
+  CYPRESS_COMMAND="cypress run ${SPEC_ARG}"
 else
   echo "Running Cypress with Sorry Cypress on dashboard"
-  CYPRESS_COMMAND="cy2"
+  CYPRESS_COMMAND="cy2 run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --parallel --group \"$GREP_TAGS\""
 fi
 
 # Construct the full command
-E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --group \"$GREP_TAGS\" --browser chrome --record --key rancher-dashboard --parallel"
+E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} --browser chrome"
 
 # Execute the command
 eval $E2E_COMMAND
