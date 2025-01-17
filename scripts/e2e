@@ -11,6 +11,10 @@ if [ $# -eq 1 ]; then
 fi
 
 # Define the command to use (cy2 or cypress)
+# TEST_DISABLE_DASHBOARD: Disable Cypress dashboard using GH repository settings
+# TEST_DISABLE_DASHBOARD_LABEL: Disable Cypress dashboard using PR label `ci/skip-e2e-cypress-dashboard`
+echo "TEST_DISABLE_DASHBOARD: ${TEST_DISABLE_DASHBOARD}"
+echo "TEST_DISABLE_DASHBOARD_LABEL: ${TEST_DISABLE_DASHBOARD_LABEL}"
 if [ "${TEST_DISABLE_DASHBOARD}" = "true" ] || [ "${TEST_DISABLE_DASHBOARD_LABEL}" = "true" ]; then
   echo "Running Cypress without dashboard"
   CYPRESS_COMMAND="cypress run ${SPEC_ARG}"
