@@ -20,7 +20,7 @@ else
 fi
 
 # Construct the full command
-E2E_COMMAND="CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --group \"$GREP_TAGS\" --browser chrome --record --key rancher-dashboard --parallel"
+E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --group \"$GREP_TAGS\" --browser chrome --record --key rancher-dashboard --parallel"
 
 # Execute the command
 eval $E2E_COMMAND
