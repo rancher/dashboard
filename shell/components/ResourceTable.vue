@@ -8,6 +8,7 @@ import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -43,7 +44,7 @@ export default {
 
   emits: ['clickedActionButton'],
 
-  components: { ButtonGroup, SortableTable },
+  components: { ButtonGroup, SortableTable, ToggleSwitch },
 
   props: {
     schema: {
@@ -207,6 +208,7 @@ export default {
   data() {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
+    const watchOpts = this.schema?.id ? { type: this.schema.id } : undefined;
 
     return {
       inStore,
@@ -216,7 +218,8 @@ export default {
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration: undefined
+      sortGeneration: undefined,
+      watchOpts
     };
   },
 
@@ -232,7 +235,11 @@ export default {
         }
       },
       immediate: true
-    }
+    },
+
+    watching() {
+      return this.$store.getters[`${ this.inStore }/watchStarted`](this.watchOpts);
+    },
   },
 
   computed: {
@@ -620,6 +627,17 @@ export default {
       #header-right
     >
       <slot name="header-right" />
+      <!-- TODO:RC UX REVIEW! -->
+      <!-- TODO:RC inline style -->
+      <!-- TODO:RC move html to sortabletable BUT plumb functionality from here -->
+      <ToggleSwitch
+        v-if="externalPaginationEnabled"
+        :value="watching"
+        name="label-system-toggle"
+        :on-label="'Auto Update'"
+        style="min-width: 150px;"
+        @input="toggleWatch"
+      />
     </template>
 
     <template #group-by="{group: thisGroup}">
