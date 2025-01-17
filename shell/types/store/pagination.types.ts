@@ -434,7 +434,9 @@ export interface StorePaginationRequest {
   /**
    * The set of pagination args used to create the request
    */
-  pagination: PaginationArgs
+  pagination: PaginationArgs,
+
+  hasManualRefresh?: boolean, // TODO: RC
 }
 
 /**

@@ -434,6 +434,17 @@ export default {
       });
     }
 
+    // TODO: RC
+    if ( opt.watch !== false ) {
+      const args = {
+        type,
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+        force:     opt.forceWatch === true,
+      };
+
+      dispatch('watch', args);
+    }
+
     if (opt.hasManualRefresh) {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
     }

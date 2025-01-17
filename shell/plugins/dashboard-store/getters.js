@@ -327,6 +327,9 @@ export default {
     return state.types[type]?.haveNamespace || null;
   },
 
+  /**
+   * Returns (type: string ) => StorePagination
+   */
   havePage: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
