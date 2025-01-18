@@ -39,6 +39,7 @@ const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
+let reenableAKS = false;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -91,16 +92,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
+    cy.intercept('GET', '/v3/kontainerdrivers').as('getKontainerDrivers');
+    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateDriver');
+    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateDriver');
+
     const driversPage = new KontainerDriversPagePo();
     const clusterCreatePage = new ClusterManagerCreatePagePo();
 
-    // deactivate the AKS driver
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // assert AKS kontainer driver is in Active state
+    cy.wait('@getKontainerDrivers').then(({ response }) => {
+      response.body.data.forEach((item: any) => {
+        if (item.id === 'azurekubernetesservice') {
+          const state = item['active'];
+
+          expect(state).to.eq(true);
+        }
+      });
+    });
+
+    // deactivate the AKS driver
     driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
     const deactivateDialog = new DeactivateDriverDialogPo();
 
     deactivateDialog.deactivate();
+    cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200).then(() => {
+      reenableAKS = true;
+    });
 
     // verify that the AKS card is not shown
     clusterList.goTo();
@@ -112,6 +132,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
+    cy.wait('@activateDriver').its('response.statusCode').should('eq', 200).then(() => {
+      reenableAKS = false;
+    });
 
     // verify that the AKS card is back
     clusterList.goTo();
@@ -827,5 +850,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterCreate.credentialsBanner().checkNotExists();
       });
     });
+  });
+
+  after(() => {
+    if (reenableAKS) {
+      cy.createRancherResource('v3', 'kontainerDrivers/azurekubernetesservice?action=activate', {});
+    }
   });
 });

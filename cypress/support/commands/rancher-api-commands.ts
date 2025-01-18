@@ -497,8 +497,8 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     body
   })
     .then((resp) => {
-      // Expect 201, Created HTTP status code
-      expect(resp.status).to.eq(201);
+      // Expect 200 or 201, Created HTTP status code
+      expect(resp.status).to.be.oneOf([200, 201]);
     });
 });
 
