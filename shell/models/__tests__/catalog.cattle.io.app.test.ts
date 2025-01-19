@@ -10,15 +10,14 @@ const appCo = {
   home:     'https://apps.rancher.io/applications/cert-manager'
 };
 
-const certManagerFromCli = { home: 'https://github.com/jetstack/cert-manager' };
-
 const certManagerOfficial = {
   repoName: 'certManagerOfficial',
-  home:     'https://cert-manager.io'
+  home:     'https://cert-manager.io',
+  oldHome:  'https://github.com/jetstack/cert-manager' // older versions of cert-manager used to have this home url(e.g. 1.7.1)
 };
 
 // cert-manager chart from application collection OCI repo
-const matchingChart1 = {
+const appCoMatchingChart1 = {
   name:     chartName,
   repoName: appCo.repoName,
   versions: [{
@@ -26,11 +25,34 @@ const matchingChart1 = {
     home:        appCo.home,
     repoName:    appCo.repoName,
     annotations: {}
+  },
+  {
+    version:     secondLatestVersion,
+    home:        appCo.home,
+    repoName:    appCo.repoName,
+    annotations: {}
+  }]
+};
+
+const appCoMatchingChart2 = {
+  name:     chartName,
+  repoName: appCo.repoName,
+  versions: [{
+    version:     latestVersion,
+    home:        appCo.home,
+    repoName:    appCo.repoName,
+    annotations: {}
+  },
+  {
+    version:     secondLatestVersion,
+    home:        appCo.home,
+    repoName:    appCo.repoName,
+    annotations: {}
   }]
 };
 
 // cert-manager chart from its official helm repo 'https://cert-manager.io' added to Rancher UI repositories
-const matchingChart2 = {
+const certManagerOfficialMatchingChart1 = {
   name:     chartName,
   repoName: certManagerOfficial.repoName,
   versions: [{
@@ -38,39 +60,74 @@ const matchingChart2 = {
     home:        certManagerOfficial.home,
     repoName:    certManagerOfficial.repoName,
     annotations: {},
+  },
+  {
+    version:     secondLatestVersion,
+    home:        certManagerOfficial.oldHome,
+    repoName:    certManagerOfficial.repoName,
+    annotations: {},
   }]
 };
 
-const installedChartFromCli = {
+const certManagerOfficialMatchingChart2 = {
+  name:     chartName,
+  repoName: certManagerOfficial.repoName,
+  versions: [{
+    version:     latestVersion,
+    home:        certManagerOfficial.home,
+    repoName:    certManagerOfficial.repoName,
+    annotations: {},
+  },
+  {
+    version:     secondLatestVersion,
+    home:        certManagerOfficial.oldHome,
+    repoName:    certManagerOfficial.repoName,
+    annotations: {},
+  }]
+};
+
+const installedCertManagerAppCoFromRancherUI = {
   metadata: {
     name:    chartName,
-    home:    certManagerFromCli.home,
+    home:    appCo.home,
     version: secondLatestVersion
   }
 };
 
-const installedChartFromRancherUI = {
+const installedCertManagerOfficialFromCli = {
   metadata: {
     name:    chartName,
-    home:    certManagerOfficial.home,
+    home:    certManagerOfficial.oldHome,
     version: secondLatestVersion
   }
 };
 
-// // home is not set
-// const installedCustomChartFromRancherUI = {
-//   metadata: {
-//     name:    chartName,
-//     version: secondLatestVersion
-//   }
-// };
+const installedCertManagerOfficialFromRancherUI = {
+  metadata: {
+    name:    chartName,
+    home:    certManagerOfficial.oldHome,
+    version: secondLatestVersion
+  }
+};
 
 describe('class CatalogApp', () => {
   describe('upgradeAvailable', () => {
-    // TODO: more test cases
     const testCases = [
-      [installedChartFromCli, [matchingChart1, matchingChart2], APP_UPGRADE_STATUS.NO_UPGRADE],
-      [installedChartFromRancherUI, [matchingChart1, matchingChart2], APP_UPGRADE_STATUS.SINGLE_UPGRADE]
+      // when you follow Rancher Installation docs to install cert-manager through CLI
+      [installedCertManagerOfficialFromCli, [], APP_UPGRADE_STATUS.NO_UPGRADE],
+      [installedCertManagerOfficialFromCli, [appCoMatchingChart1], APP_UPGRADE_STATUS.NO_UPGRADE],
+      [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2], APP_UPGRADE_STATUS.NO_UPGRADE],
+      [installedCertManagerOfficialFromCli, [appCoMatchingChart1, appCoMatchingChart2, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      // when you add application collection OCI repo through UI
+      [installedCertManagerAppCoFromRancherUI, [], APP_UPGRADE_STATUS.NO_UPGRADE],
+      [installedCertManagerAppCoFromRancherUI, [appCoMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      [installedCertManagerAppCoFromRancherUI, [appCoMatchingChart1, certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      [installedCertManagerAppCoFromRancherUI, [appCoMatchingChart1, appCoMatchingChart2], APP_UPGRADE_STATUS.MULTIPLE_UPGRADES],
+      // when you add cert-manager official helm repo through UI
+      [installedCertManagerOfficialFromRancherUI, [], APP_UPGRADE_STATUS.NO_UPGRADE],
+      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1, appCoMatchingChart1], APP_UPGRADE_STATUS.SINGLE_UPGRADE],
+      [installedCertManagerOfficialFromRancherUI, [certManagerOfficialMatchingChart1, certManagerOfficialMatchingChart2], APP_UPGRADE_STATUS.MULTIPLE_UPGRADES]
     ];
 
     it.each(testCases)('should return the correct upgrade status', (installedChart: Object, matchingCharts: any, expected: any) => {
