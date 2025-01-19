@@ -7,7 +7,7 @@ import { labelForAddon } from '@shell/utils/cluster';
 import { _EDIT } from '@shell/config/query-params';
 
 export default {
-  emits: ['additional-manifest-changed', 'update-questions', 'update-values'],
+  emits: ['additional-manifest-changed', 'update-questions', 'update-values', 'validationChanged'],
 
   components: {
     Banner,
@@ -60,7 +60,13 @@ export default {
     isEdit() {
       return this.mode === _EDIT;
     }
-  }
+  },
+
+  methods: {
+    handleValidationChanged(e) {
+      this.$emit('validationChanged', e);
+    }
+  },
 };
 </script>
 
@@ -91,12 +97,14 @@ export default {
       <YamlEditor
         v-else
         ref="yaml-values"
+        data-testid="addon-yaml-editor"
         :value="initYamlEditor(addonVersion.name)"
         :scrolling="true"
         :as-object="true"
         :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
         :hide-preview-buttons="true"
         @update:value="$emit('update-values', addonVersion.name, $event)"
+        @validationChanged="handleValidationChanged"
       />
       <div class="spacer" />
     </div>

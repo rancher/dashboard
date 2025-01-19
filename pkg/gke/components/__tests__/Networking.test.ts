@@ -67,7 +67,7 @@ describe('gke Networking', () => {
     expect(spy).toHaveBeenCalledTimes(4);
   });
 
-  it('should populate network dropdown and select the first option after loading gcp data', async() => {
+  it('should populate network dropdown and select the default network after loading gcp data', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(Networking, {
@@ -85,8 +85,8 @@ describe('gke Networking', () => {
 
     const networksDropdown = wrapper.getComponent('[data-testid="gke-networks-dropdown"]');
 
-    expect(networksDropdown.props().options).toHaveLength(4);
-    expect(wrapper.emitted('update:network')?.[0]?.[0]).toBe('host-shared-vpc');
+    expect(networksDropdown.props().options).toHaveLength(5);
+    expect(wrapper.emitted('update:network')?.[0]?.[0]).toBe('default');
   });
 
   it('should populate subnetworks dropdown dependent on network selection', async() => {

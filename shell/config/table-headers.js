@@ -966,7 +966,7 @@ export const RESTART = {
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
-  width:     75,
+  width:     125,
   align:     'center'
 };
 

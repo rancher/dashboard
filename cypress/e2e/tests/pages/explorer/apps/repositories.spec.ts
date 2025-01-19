@@ -172,7 +172,7 @@ describe('Apps', () => {
         cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?*').as('rancherCharts1');
 
         // Nav to a summary page for a specific chart
-        ChartsPage.navTo(clusterId);
+        chartsPage.goTo();
         chartsPage.chartsFilterCategoriesSelect().toggle();
         chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
         chartsPage.chartsFilterReposSelect().toggle();

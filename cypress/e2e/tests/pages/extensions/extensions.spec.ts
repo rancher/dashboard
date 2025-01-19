@@ -8,6 +8,7 @@ import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
+let removeExtensions = false;
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -16,6 +17,7 @@ const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
+const GIT_REPO_NAME = 'rancher-plugin-examples';
 
 describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -69,7 +71,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick(); // Avoid nav guard failures that probably auto move user to this tab
 
     // install the rancher plugin examples
-    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', GIT_REPO_NAME).then(() => {
+      removeExtensions = true;
+    });
   });
 
   it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
@@ -253,9 +257,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should install an extension', () => {
+    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
@@ -267,6 +273,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // select version and click install
     extensionsPo.installModalSelectVersionClick(2);
     extensionsPo.installModalInstallClick();
+    cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -297,6 +304,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should update an extension version', () => {
+    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -308,6 +316,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on update button on card
     extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
     extensionsPo.installModalInstallClick();
+    cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -514,5 +523,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+  });
+
+  after(() => {
+    if ( removeExtensions ) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', GIT_REPO_NAME);
+    }
   });
 });
