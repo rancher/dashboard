@@ -175,7 +175,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.namespaceFilteringCheckbox().set();
 
     performancePage.incompatibleModal().getBody().contains('Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
-    performancePage.incompatibleModal().submit('Enable');
+    performancePage.incompatibleModal().submit('Continue');
     performancePage.namespaceFilteringCheckbox().isChecked();
     performancePage.applyAndWait('forceNsFilterV2-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
