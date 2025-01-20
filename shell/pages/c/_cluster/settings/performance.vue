@@ -10,6 +10,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { isDevBuild } from '@shell/utils/version';
 
 const incompatible = {
   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
@@ -74,7 +76,8 @@ export default {
           product:  SETTING_PRODUCT,
           resource: MANAGEMENT.FEATURE
         }
-      }).href
+      }).href,
+      isDev: process.env.NODE_ENV === 'dev',
     };
   },
 
@@ -93,10 +96,15 @@ export default {
       return this.$store.getters['features/get'](STEVE_CACHE);
     },
 
-    steveCacheApplicableResources() {
-      const storeResources = [];
+    steveCacheAndSSPEnabled() {
+      return this.steveCacheEnabled && this.value.serverPagination.enabled
+    },
 
-      Object.entries(this.value.serverPagination.stores).forEach(([store, settings]) => {
+    sspApplicableResources() {
+      const storeResources = [];
+      const stores = paginationUtils.getStoreSettings(this.value.serverPagination);
+
+      Object.entries(stores).forEach(([store, settings]) => {
         const resources = [];
 
         if (settings.resources.enableAll) {
@@ -173,7 +181,7 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode: 'enable',
+          applyMode: 'continue',
           confirm:   (confirmed) => {
             this.value[property].enabled = confirmed;
           },
@@ -189,11 +197,15 @@ export default {
       });
     },
 
-    setPaginationDefaults() {
+    sspApplyDefaults(defaultStore) {
       this.value = {
         ...this.value,
         serverPagination: { ...DEFAULT_PERF_SETTING.serverPagination }
       };
+
+      if (defaultStore) {
+        this.value.serverPagination.stores = paginationUtils.getStoreDefault()
+      }
     }
   },
 };
@@ -214,10 +226,6 @@ export default {
           </h2>
           <p>{{ t('performance.serverPagination.description') }}</p>
           <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
-          <Banner
             v-if="!steveCacheEnabled"
             v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
@@ -226,22 +234,37 @@ export default {
             v-model:value="value.serverPagination.enabled"
             :mode="mode"
             :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-20"
+            class="mt-10 mb-10"
             :primary="true"
-            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
+            :disabled="!steveCacheEnabled"
             @update:value="compatibleWarning('serverPagination', $event)"
           />
+
+          <div>
+            <Checkbox
+              v-model:value="value.serverPagination.useDefaultStores"
+              :mode="mode"
+              :label-key="'performance.serverPagination.checkboxUseDefault.label'"
+              :tooltip-key="'performance.serverPagination.checkboxUseDefault.placeholder'"
+              class="mt-10 mb-10"
+              :primary="true"
+              :disabled="!steveCacheAndSSPEnabled"
+            />
+          </div>
+
           <p :class="{ 'text-muted': !value.serverPagination.enabled }">
             {{ t('performance.serverPagination.applicable') }}
           </p>
           <p
-            v-clean-html="steveCacheApplicableResources"
+            v-clean-html="sspApplicableResources"
             :class="{ 'text-muted': !value.serverPagination.enabled }"
           />
           <button
+            v-if="isDev"
             class="btn btn-sm role-primary"
             style="width: fit-content;"
-            @click.prevent="setPaginationDefaults()"
+            @click.prevent="sspApplyDefaults(true)"
+            :disabled="!steveCacheAndSSPEnabled"
           >
             {{ t('performance.serverPagination.populateDefaults') }}
           </button>
