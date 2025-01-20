@@ -704,6 +704,7 @@ export default defineComponent({
               label-key="generic.name"
               required
               :rules="fvGetAndReportPathRules('clusterName')"
+              data-testid="gke-cluster-name"
               @update:value="setClusterName"
             />
           </div>
@@ -713,6 +714,7 @@ export default defineComponent({
               :mode="mode"
               label-key="nameNsDescription.description.label"
               :placeholder="t('nameNsDescription.description.placeholder')"
+              data-testid="gke-cluster-description"
               @update:value="setClusterDescription"
             />
           </div>

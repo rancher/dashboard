@@ -109,6 +109,14 @@ These values are provided when you create a new project within Cypress dashboard
 
 It's also possible to run a workflow in GitHub Actions E2E test using these values to record on personal dashboards.
 
+### Skip dashboard or tests
+
+CI gates can be disabled in the following way:
+
+- Use label `ci/skip-e2e` to skip the E2E tests in the PR
+- Use label `ci/skip-e2e-cypress-dashboard` to run the E2E tests without Sorry Cypress dashboard in the PR (it will enable `TEST_DISABLE_DASHBOARD_LABEL` env var)
+- Use GitHub settings and define env var `TEST_DISABLE_DASHBOARD` as `true` (which is string and not boolean) to disable the Cypress dashboard entirely in every CI run
+
 ## Local and CI/prod run
 
 It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `dist`, while the production will enable all the SSL configurations to run encrypted.

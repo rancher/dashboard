@@ -79,13 +79,13 @@ export function paginationFilterOnlyKubernetesClusters(store) {
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+      field:  `metadata.labels."${ CAPI.PROVIDER }"`,
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
     }),
     new PaginationFilterField({
-      field:  `status.provider`, // Pending API Support - https://github.com/rancher/rancher/issues/48256
+      field:  `status.provider`,
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true

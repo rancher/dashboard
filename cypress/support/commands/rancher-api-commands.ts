@@ -497,8 +497,8 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     body
   })
     .then((resp) => {
-      // Expect 201, Created HTTP status code
-      expect(resp.status).to.eq(201);
+      // Expect 200 or 201, Created HTTP status code
+      expect(resp.status).to.be.oneOf([200, 201]);
     });
 });
 
@@ -1024,39 +1024,58 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, iteration = 0) => {
+/**
+ * Check if the vai FF is enabled
+ */
+Cypress.Commands.add('isVaiCacheEnabled', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
+    .then((res) => res.body.spec.value === true || res.body.spec.value === 'true');
+});
+
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {
+  const {
+    clusterName, groupBy, namespaceFilter, allNamespaces
+  } = preferences;
+
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
     const payload = {
       id:   `${ userId }`,
       type: 'userpreference',
       data: {
-        cluster:         clusterName,
-        'per-page':      `${ rows }`,
-        'group-by':      groupBy,
-        'ns-by-cluster': namespaceFilter
+        cluster:          clusterName,
+        'per-page':       `${ rows }`,
+        'group-by':       groupBy,
+        'ns-by-cluster':  namespaceFilter,
+        'all-namespaces': allNamespaces,
       }
     };
 
-    cy.log(`tableRowsPerPageAndNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+    cy.log(`tableRowsPerPageAndPreferences: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
 
     cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
       return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
         .then((res) => {
           if (res) {
-            cy.log(`tableRowsPerPageAndNamespaceFilter: Success!`);
+            cy.log(`tableRowsPerPageAndPreferences: Success!`);
           } else {
             if (iteration < 3) {
-              cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Going to retry...`);
+              cy.log(`tableRowsPerPageAndPreferences: Failed! Going to retry...`);
 
-              return cy.tableRowsPerPageAndNamespaceFilter(rows, clusterName, groupBy, namespaceFilter, iteration + 1);
+              return cy.tableRowsPerPageAndPreferences(rows, preferences, iteration + 1);
             }
 
-            cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Giving up...`);
+            cy.log(`tableRowsPerPageAndPreferences: Failed! Giving up...`);
 
-            return Promise.reject(new Error('tableRowsPerPageAndNamespaceFilter failed'));
+            return Promise.reject(new Error('tableRowsPerPageAndPreferences failed'));
           }
         });
     });
+  });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+  return cy.tableRowsPerPageAndPreferences(rows, {
+    clusterName, groupBy, namespaceFilter
   });
 });

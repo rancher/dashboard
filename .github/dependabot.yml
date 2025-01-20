@@ -1,0 +1,25 @@
+version: 2
+updates:
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["component/dependencies"]
+
+  # Maintain dependencies for dashboard, shell, and packages
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/shell"
+      - "/creators/extension"
+      - "/creators/extension/*"
+      - "/docusaurus"
+      - "/storybook"
+      - "/pkg/*"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["component/dependencies"]

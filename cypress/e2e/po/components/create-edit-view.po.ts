@@ -17,4 +17,12 @@ export default class CreateEditViewPo extends ComponentPo {
   nextPage() {
     return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary')).click();
   }
+
+  saveButtonPo() :AsyncButtonPo {
+    return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary'));
+  }
+
+  editAsYaml() {
+    return new AsyncButtonPo(this.self().find('[data-testid="form-yaml"]')).click();
+  }
 }

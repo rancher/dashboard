@@ -7310,7 +7310,7 @@ support:
       text: 我们的开发人员会快速解决问题，因此你可以放心使用 SUSE Rancher 的产品。
     three:
       title: 故障排除
-      text: 无论你使用的 Rancher Labs 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
+      text: 无论你使用的 SUSE 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
     four:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。

@@ -19,8 +19,11 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.waitForPage();
       cy.wait('@horizontalpodautoscalerNoData');
 
-      const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 
+      horizontalPodAutoscalersPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
         .each((el, i) => {
@@ -39,7 +42,7 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
 
       // check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -65,7 +68,7 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupByButtons(1)
         .click();
 
-      //  check table headers are visible
+      //  check table headers are visible (minus namespace given we're now grouped by it)
       const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().tableHeaderRow()

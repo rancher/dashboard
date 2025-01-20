@@ -127,7 +127,8 @@ export default {
             class="text-warning"
           >
             {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-          <span v-else-if="row.status">{{ row.status.summary.desiredReady }}</span>
+          <span v-else-if="row.status && row.status.summary">{{ row.status.summary.desiredReady }}</span>
+          <span v-else>-</span>
         </template>
       </ResourceTable>
     </div>

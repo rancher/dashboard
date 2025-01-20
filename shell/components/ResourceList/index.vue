@@ -54,8 +54,10 @@ export default {
         this.customTypeDisplay = component.typeDisplay.apply(this);
       }
 
-      // If your list page has a fetch then it's responsible for populating rows itself
-      if ( component?.fetch ) {
+      // Is the custom component responsible fetching the resources?
+      // - Component has a fetch method - legacy method. fetch will handle the requests
+      // - Component contains the PaginatedResourceTable component - go forward method. PaginatedResourceTable owns fetching the resources
+      if ( component?.fetch || component?.components?.['PaginatedResourceTable']) {
         this.componentWillFetch = true;
       }
 
@@ -269,7 +271,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
-      :alt-loading="canPaginate"
+      :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"

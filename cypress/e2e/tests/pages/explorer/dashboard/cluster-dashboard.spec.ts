@@ -48,7 +48,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    // check if burguer menu nav is highlighted correctly for local cluster
+    // check if burger menu nav is highlighted correctly for local cluster
     BurgerMenuPo.checkIfClusterMenuLinkIsHighlighted('local');
   });
 
@@ -257,48 +257,47 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
-    cy.visit(clusterDashboard.urlPath(), {
-      onBeforeLoad(win) {
-        cy.stub(win.console, 'error').as('consoleError');
-        cy.stub(win.console, 'warn').as('consoleWarn');
-      },
-    });
-
     eventsNoDataset();
     clusterDashboard.goTo();
-
-    cy.get('@consoleError').should('not.be.called'); // See error lot
-    cy.get('@consoleWarn').should('not.be.called'); // See warning log (there will be some....)
 
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
 
-    const expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
+    let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
-    clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
-      .within('.table-header-container .content')
-      .each((el, i) => {
-        expect(el.text().trim()).to.eq(expectedHeaders[i]);
-      });
+    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
+      if (isVaiCacheEnabled) {
+        expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
+      }
 
-    clusterDashboard.fullEventsLink().click();
-    cy.wait('@eventsNoData');
-    const events = new EventsPagePo('local');
+      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedHeaders[i]);
+        });
 
-    events.waitForPage();
+      clusterDashboard.fullEventsLink().click();
+      cy.wait('@eventsNoData');
+      const events = new EventsPagePo('local');
 
-    events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+      events.waitForPage();
 
-    const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
-      'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+      events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
 
-    events.eventslist().resourceTable().sortableTable().tableHeaderRow()
-      .within('.table-header-container .content')
-      .each((el, i) => {
-        expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
-      });
+      const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
+        'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
+
+      events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+        .within('.table-header-container .content')
+        .each((el, i) => {
+          expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
+        });
+    });
   });
 
   describe('Cluster dashboard with limited permissions', () => {

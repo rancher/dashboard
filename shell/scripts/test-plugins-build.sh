@@ -93,6 +93,19 @@ update_version_in_package_json "${SHELL_DIR}/package.json" "${SHELL_VERSION}"
 update_version_in_package_json "${BASE_DIR}/pkg/rancher-components/package.json" "${SHELL_VERSION}"
 update_version_in_package_json "${BASE_DIR}/creators/extension/package.json" "${SHELL_VERSION}"
 
+
+createTestComponent() {
+  # Add test list component to the test package
+  # Validates rancher-components imports
+
+  # NOTE - This fails if importing some components with TS imports...
+  # cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
+  # See https://github.com/rancher/dashboard/issues/12918
+
+  # Use a basic list instead
+  cp ${SHELL_DIR}/list/namespace.vue pkg/test-pkg/list
+}
+
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
 yarn install
@@ -133,7 +146,7 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   # Add test list component to the test package
   # Validates rancher-components imports
   mkdir -p pkg/test-pkg/list
-  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
+  createTestComponent
 
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
@@ -159,7 +172,7 @@ if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
 fi
 
 yarn create @rancher/extension test-pkg -i
-cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
+createTestComponent
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
 if [ "${TEST_PERSIST_BUILD}" != "true" ]; then
