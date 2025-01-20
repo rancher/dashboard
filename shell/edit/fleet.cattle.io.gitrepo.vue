@@ -118,7 +118,7 @@ export default {
       label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
       subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
-      ready:          true,
+      ready:          false,
       weight:         1
     };
 
@@ -128,7 +128,7 @@ export default {
       label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
       subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
-      ready:          false,
+      ready:          true,
       weight:         1
     };
 
