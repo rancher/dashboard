@@ -95,6 +95,9 @@ export default {
   watch: {
     showPromptUpdate(show) {
       if (show) {
+        // Clear last error
+        this.error = null;
+
         this.showModal = true;
       } else {
         this.showModal = false;
@@ -140,7 +143,9 @@ export default {
         btnCB(true);
         this.close();
       } catch (err) {
-        this.error = err;
+        // An error occurred, so toggle back the value - the call failed, so the change was not made
+        this.update.spec.value = !this.update.enabled;
+        this.error = err.message || err;
         btnCB(false);
       }
     },

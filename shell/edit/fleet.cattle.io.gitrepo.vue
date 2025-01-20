@@ -646,35 +646,26 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
-      <div>
+      <div class="resource-handling">
         <Checkbox
           v-model:value="value.spec.correctDrift.enabled"
+          :tooltip="t('fleet.gitRepo.resources.correctDriftBanner')"
           data-testid="GitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.correctDrift"
           :mode="mode"
         />
-        <Banner
-          data-testid="GitRepo-correctDrift-banner"
-          color="info"
-        >
-          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
-        </Banner>
+        <Checkbox
+          v-model:value="value.spec.keepResources"
+          :tooltip="t('fleet.gitRepo.resources.keepResourcesBanner')"
+          data-testid="GitRepo-keepResources-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.keepResources"
+          :mode="mode"
+        />
       </div>
-
-      <Checkbox
-        v-model:value="value.spec.keepResources"
-        class="check"
-        type="checkbox"
-        label-key="fleet.gitRepo.resources.keepResources"
-        :mode="mode"
-      />
-      <Banner
-        color="info"
-      >
-        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
-      </Banner>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
@@ -764,3 +755,11 @@ export default {
     </template>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+  .resource-handling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+  }
+</style>
