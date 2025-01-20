@@ -12,10 +12,12 @@ import {
   SERVICE,
   INGRESS,
   WORKLOAD_TYPES,
-  HPA
+  HPA,
+  SECRET
 } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
+import { PaginationSettingsStore } from '@shell/types/resources/settings';
 
 class NamespaceProjectFilters {
   /**
@@ -465,5 +467,38 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     return res;
   }
 }
+
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+  cluster: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        // if a resource list is shown by a custom resource list component or has specific list headers then it's not generically shown
+        // and must be included here.
+        enabled: [
+          NODE, EVENT,
+          WORKLOAD_TYPES.CRON_JOB, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET, POD,
+          CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
+          HPA, INGRESS, SERVICE,
+          PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+        ],
+        generic: true,
+      }
+    }
+  },
+  management: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        enabled: [
+          { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+        ],
+        generic: false,
+      }
+    }
+  }
+};
 
 export default new StevePaginationUtils();
