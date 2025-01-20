@@ -141,6 +141,11 @@ button,
     color: var(--link);
     box-shadow: none;
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-multi-action {

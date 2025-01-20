@@ -16,7 +16,7 @@ export default {
     }
   },
   methods: {
-    customBadgeDialog(ev) {
+    customBadgeDialog() {
       this.$store.dispatch('cluster/promptModal', { component: 'AddCustomBadgeDialog', componentProps: { mode: _EDIT } });
     },
   },

@@ -641,15 +641,14 @@ export default {
       <div data-testid="clusterProvider__label">
         <label>{{ t('glance.provider') }}: </label>
         <span v-if="isHarvesterCluster">
-          <a
+          <button
+            class="btn role-link harvester-cluster-link"
             role="button"
             :aria-label="displayProvider"
             @click="goToHarvesterCluster"
-            @keyup.space="goToHarvesterCluster"
-            @keyup.enter="goToHarvesterCluster"
           >
             {{ displayProvider }}
-          </a>
+          </button>
         </span>
         <span v-else>
           {{ displayProvider }}
@@ -874,6 +873,13 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(calc((100%/3) - 40px), 1fr));
   grid-column-gap: 15px;
   grid-row-gap: 20px;
+}
+
+.harvester-cluster-link {
+  line-height: inherit;
+  min-height: inherit;
+  padding: 0;
+  vertical-align: bottom;
 }
 
 @media only screen and (max-width: map-get($breakpoints, "--viewport-9")) {
