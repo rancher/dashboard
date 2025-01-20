@@ -83,6 +83,12 @@ TEXTAREA,
   }
 }
 
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
+  }
+}
+
 BUTTON,
 .btn {
    &:focus, &.focused {

@@ -322,10 +322,6 @@ export default {
   .unlabeled-select {
     position: relative;
 
-    &:focus-visible {
-      @include focus-outline;
-    }
-
     :deep() .v-select.select-input-view {
       .vs__actions {
         visibility: hidden;
