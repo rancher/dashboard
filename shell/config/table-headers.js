@@ -961,13 +961,14 @@ export const EXPIRES = {
 };
 
 export const LAST_USED = {
-  name:      'lastUsed',
-  value:     'lastUsedAt',
-  labelKey:  'tableHeaders.lastUsed',
-  align:     'left',
-  sort:      ['lastUsedAt'],
-  width:     200,
-  formatter: 'LiveExpiryDate'
+  name:          'lastUsed',
+  value:         'lastUsedAt',
+  labelKey:      'tableHeaders.lastUsed',
+  align:         'left',
+  sort:          ['lastUsedAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate',
+  formatterOpts: { missingKey: 'generic.unknown' },
 };
 
 export const RESTART = {
