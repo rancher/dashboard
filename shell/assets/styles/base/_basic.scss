@@ -62,12 +62,17 @@ INPUT,
 SELECT,
 TEXTAREA,
 .labeled-input,
-.labeled-select,
-.unlabeled-select,
-.checkbox-custom,
-.radio-custom {
+.checkbox-custom {
   &:focus, &.focused {
-    @include form-focus
+    @include form-focus;
+  }
+}
+
+.radio-custom,
+.labeled-select,
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
   }
 }
 
