@@ -11,7 +11,6 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
-import { isDevBuild } from '@shell/utils/version';
 
 const incompatible = {
   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
@@ -97,7 +96,7 @@ export default {
     },
 
     steveCacheAndSSPEnabled() {
-      return this.steveCacheEnabled && this.value.serverPagination.enabled
+      return this.steveCacheEnabled && this.value.serverPagination.enabled;
     },
 
     sspApplicableResources() {
@@ -204,7 +203,7 @@ export default {
       };
 
       if (defaultStore) {
-        this.value.serverPagination.stores = paginationUtils.getStoreDefault()
+        this.value.serverPagination.stores = paginationUtils.getStoreDefault();
       }
     }
   },
@@ -263,8 +262,8 @@ export default {
             v-if="isDev"
             class="btn btn-sm role-primary"
             style="width: fit-content;"
-            @click.prevent="sspApplyDefaults(true)"
             :disabled="!steveCacheAndSSPEnabled"
+            @click.prevent="sspApplyDefaults(true)"
           >
             {{ t('performance.serverPagination.populateDefaults') }}
           </button>

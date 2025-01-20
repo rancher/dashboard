@@ -1,16 +1,6 @@
 // Settings
 import { GC_DEFAULTS, GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 import { PaginationSettings } from '@shell/types/resources/settings';
-import {
-  CAPI, MANAGEMENT, EVENT, CATALOG, HPA, INGRESS, SERVICE,
-  CONFIG_MAP,
-  SECRET,
-  POD, NODE,
-  STORAGE_CLASS,
-  PVC,
-  PV,
-  WORKLOAD_TYPES
-} from '@shell/config/types';
 
 interface GlobalSettingRuleset {
   name: string,
