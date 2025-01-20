@@ -532,17 +532,7 @@ export default {
         @update:value="$emit('input', $event)"
       />
 
-      <div class="row">
-        <div class="col span-6">
-          <Banner
-            color="info col span-6"
-          >
-            <div>
-              {{ t('fleet.gitRepo.repo.protocolBanner') }}
-            </div>
-          </Banner>
-        </div>
-      </div>
+      <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -646,49 +636,37 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
-      <div>
+      <div class="resource-handling">
         <Checkbox
           v-model:value="value.spec.correctDrift.enabled"
+          :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
           data-testid="GitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.correctDrift"
           :mode="mode"
         />
-        <Banner
-          data-testid="GitRepo-correctDrift-banner"
-          color="info"
-        >
-          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
-        </Banner>
+        <Checkbox
+          v-model:value="value.spec.keepResources"
+          :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
+          data-testid="GitRepo-keepResources-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.keepResources"
+          :mode="mode"
+        />
       </div>
-
-      <Checkbox
-        v-model:value="value.spec.keepResources"
-        class="check"
-        type="checkbox"
-        label-key="fleet.gitRepo.resources.keepResources"
-        :mode="mode"
-      />
-      <Banner
-        color="info"
-      >
-        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
-      </Banner>
       <div class="spacer" />
-      <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model:value="value.spec.paths"
         data-testid="gitRepo-paths"
+        :title="t('fleet.gitRepo.paths.label')"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
         :add-label="t('fleet.gitRepo.paths.addLabel')"
-      >
-        <template #empty>
-          <Banner label-key="fleet.gitRepo.paths.empty" />
-        </template>
-      </ArrayList>
+        :protip="t('fleet.gitRepo.paths.empty')"
+      />
     </template>
     <template #stepTargetInfo>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
@@ -764,3 +742,11 @@ export default {
     </template>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+  .resource-handling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+  }
+</style>
