@@ -23,7 +23,7 @@ export default class ClusterRepo extends SteveModel {
     insertAt(out, 0, { divider: true });
 
     if (this._isClusterRepoDisabled) {
-      insertAt(out, 0, {
+      insertAt(out, 1, {
         action:   'enableClusterRepo',
         label:    this.t('action.enable'),
         icon:     'icon icon-play',
@@ -31,7 +31,7 @@ export default class ClusterRepo extends SteveModel {
         bulkable: true,
       });
     } else {
-      insertAt(out, 0, {
+      insertAt(out, 1, {
         action:   'disableClusterRepo',
         label:    this.t('action.disable'),
         icon:     'icon icon-pause',
