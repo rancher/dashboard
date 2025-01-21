@@ -203,7 +203,7 @@ export default {
           badgeClass: `${ STATES[state].color } badge-class-area-${ area }`,
           icon:       STATES[state].compoundIcon
         };
-      } else if (area === 'clusters' || area === 'bundles') {
+      } else if (area === 'bundles') {
         group = row.allBundlesStatuses;
       } else if (area === 'resources') {
         group = row.allResourceStatuses;

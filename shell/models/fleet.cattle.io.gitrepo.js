@@ -1,5 +1,6 @@
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
+import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -21,7 +22,7 @@ function quacksLikeAHash(str) {
 }
 
 function normalizeStateCounts(data) {
-  if (!data || data === {}) {
+  if (isEmpty(data)) {
     return {
       total:  0,
       states: {},
