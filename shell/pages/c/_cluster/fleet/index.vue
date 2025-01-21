@@ -179,16 +179,16 @@ export default {
         },
       });
     },
-    getStatusInfo(area, row) {
+    getStatusInfo(area, row, rowCounts) {
       const defaultStatusInfo = {
         badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
         icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
       };
 
       // classes are defined in the themes SASS files...
-      return this.getBadgeClassAndIcon(area, row) || defaultStatusInfo;
+      return this.getBadgeClassAndIcon(area, row, rowCounts) || defaultStatusInfo;
     },
-    getBadgeClassAndIcon(area, row) {
+    getBadgeClassAndIcon(area, row, rowCounts) {
       if (!this.admissableAreas.includes(area)) {
         return false;
       }
@@ -204,9 +204,9 @@ export default {
           icon:       STATES[state].compoundIcon
         };
       } else if (area === 'bundles') {
-        group = row.allBundlesStatuses;
+        group = rowCounts[row.id].bundles;
       } else if (area === 'resources') {
-        group = row.allResourceStatuses;
+        group = rowCounts[row.id].resources;
       } else {
         // unreachable
         return false;
@@ -243,7 +243,7 @@ export default {
         .filter((key) => infoObj[key] > 0) // filter zero values
         .map((key) => `${ getStateLabel(key) }: ${ infoObj[key] }<br>`).join('');
     },
-    getBadgeValue(area, row) {
+    getBadgeValue(area, row, rowCounts) {
       let value;
 
       if (!this.admissableAreas.includes(area)) {
@@ -253,11 +253,11 @@ export default {
       if (area === 'clusters') {
         value = `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
       } else if (area === 'bundles') {
-        const bundles = row.allBundlesStatuses;
+        const bundles = rowCounts[row.id].bundles;
 
         value = xOfy(bundles.states.ready || 0, bundles.total);
       } else if (area === 'resources') {
-        const resources = row.allResourceStatuses;
+        const resources = rowCounts[row.id].resources;
 
         value = xOfy(resources.states.ready || 0, resources.total);
       }
@@ -400,9 +400,9 @@ export default {
                 v-else
                 data-testid="clusters-ready"
                 :tooltip-text="getTooltipInfo('clusters', row, gitReposCounts)"
-                :badge-class="getStatusInfo('clusters', row).badgeClass"
-                :icon="getStatusInfo('clusters', row).icon"
-                :value="getBadgeValue('clusters', row)"
+                :badge-class="getStatusInfo('clusters', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('clusters', row, gitReposCounts).icon"
+                :value="getBadgeValue('clusters', row, gitReposCounts)"
               />
             </template>
             <template #cell:bundlesReady="{row}">
@@ -411,18 +411,18 @@ export default {
                 v-else
                 data-testid="bundles-ready"
                 :tooltip-text="getTooltipInfo('bundles', row, gitReposCounts)"
-                :badge-class="getStatusInfo('bundles', row).badgeClass"
-                :icon="getStatusInfo('bundles', row).icon"
-                :value="getBadgeValue('bundles', row)"
+                :badge-class="getStatusInfo('bundles', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('bundles', row, gitReposCounts).icon"
+                :value="getBadgeValue('bundles', row, gitReposCounts)"
               />
             </template>
             <template #cell:resourcesReady="{row}">
               <CompoundStatusBadge
                 data-testid="resources-ready"
                 :tooltip-text="getTooltipInfo('resources', row, gitReposCounts)"
-                :badge-class="getStatusInfo('resources', row).badgeClass"
-                :icon="getStatusInfo('resources', row).icon"
-                :value="getBadgeValue('resources', row)"
+                :badge-class="getStatusInfo('resources', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('resources', row, gitReposCounts).icon"
+                :value="getBadgeValue('resources', row, gitReposCounts)"
               />
             </template>
 
