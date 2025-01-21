@@ -67,7 +67,7 @@ jobs:
           password: ${{ secrets.registry_token }}
 
       - name: Setup Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.8.0
 
