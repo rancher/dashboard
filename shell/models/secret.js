@@ -49,6 +49,11 @@ export default class Secret extends SteveModel {
     return this._type === TYPES.CLOUD_CREDENTIAL || (this.metadata.namespace === 'cattle-global-data' && this.metadata.generateName === 'cc-');
   }
 
+  // For Fleet SSH secrets - does the secret have the 'known_hosts' data key?
+  get supportsSshKnownHosts() {
+    return this._type === TYPES.SSH && 'known_hosts' in this.data;
+  }
+
   get issuer() {
     const { metadata:{ annotations = {} } } = this;
 

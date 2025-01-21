@@ -3,6 +3,7 @@ import { _EDIT } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
@@ -23,6 +24,7 @@ export default {
     Banner,
     LabeledInput,
     LabeledSelect,
+    SSHKnownHosts,
   },
 
   props: {
@@ -142,6 +144,11 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    showSshKnownHosts: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   async fetch() {
@@ -172,6 +179,7 @@ export default {
     if ( !this.value ) {
       this.publicKey = this.preSelect?.publicKey || '';
       this.privateKey = this.preSelect?.privateKey || '';
+      this.sshKnownHosts = this.preSelect?.sshKnownHosts || '';
     }
 
     this.updateSelectedFromValue();
@@ -189,9 +197,10 @@ export default {
 
       filterByNamespace: this.namespace && this.limitToNamespace,
 
-      publicKey:  '',
-      privateKey: '',
-      uniqueId:   new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
+      publicKey:     '',
+      privateKey:    '',
+      sshKnownHosts: '',
+      uniqueId:      new Date().getTime(), // Allows form state to be individually tracked if the form is in a list
 
       SSH:   AUTH_TYPE._SSH,
       BASIC: AUTH_TYPE._BASIC,
@@ -372,15 +381,16 @@ export default {
         return 'mt-20';
       }
 
-      return 'col span-4';
+      return (this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts ? 'col span-3' : 'col span-4';
     }
   },
 
   watch: {
-    selected:   'update',
-    publicKey:  'updateKeyVal',
-    privateKey: 'updateKeyVal',
-    value:      'updateSelectedFromValue',
+    selected:      'update',
+    publicKey:     'updateKeyVal',
+    privateKey:    'updateKeyVal',
+    sshKnownHosts: 'updateKeyVal',
+    value:         'updateSelectedFromValue',
 
     async namespace(ns) {
       if (ns && !this.selected.startsWith(`${ ns }/`)) {
@@ -463,13 +473,20 @@ export default {
       if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
+        this.sshKnownHosts = '';
       }
 
-      this.$emit('inputauthval', {
+      const value = {
         selected:   this.selected,
         privateKey: this.privateKey,
-        publicKey:  this.publicKey
-      });
+        publicKey:  this.publicKey,
+      };
+
+      if (this.sshKnownHosts) {
+        value.sshKnownHosts = this.sshKnownHosts;
+      }
+
+      this.$emit('inputauthval', value);
     },
 
     update() {
@@ -550,6 +567,12 @@ export default {
             [publicField]:  base64Encode(this.publicKey),
             [privateField]: base64Encode(this.privateKey),
           };
+
+        // Add ssh known hosts data key - we will add a key with an empty value if the inout field was left blank
+        // This ensures on edit of the secret, we allow the user to edit the known_hosts field
+        if ((this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts) {
+          secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
+        }
         }
       }
 
@@ -601,6 +624,15 @@ export default {
             :mode="mode"
             type="multiline"
             label-key="selectOrCreateAuthSecret.ssh.privateKey"
+          />
+        </div>
+        <div
+          v-if="showSshKnownHosts"
+          class="col span-2"
+        >
+          <SSHKnownHosts
+            v-model:value="sshKnownHosts"
+            :mode="mode"
           />
         </div>
       </template>
