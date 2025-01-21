@@ -1,11 +1,13 @@
 import {
   BundleDeploymentResource,
   BundleResourceKey,
+  BundleDeployment,
   BundleDeploymentStatus,
   BundleStatus,
+  Condition,
 } from '@shell/types/resources/fleet';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -26,6 +28,14 @@ function incr(counter: StatesCounter, state: string) {
 
 function resourceKey(r: BundleResourceKey): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
+}
+
+function conditionIsTrue(conditions: Condition[], type: string): boolean {
+  if (!conditions) {
+    return false;
+  }
+
+  return !!conditions.find((c) => c.type === type && c.status.toLowerCase() === 'true');
 }
 
 class Fleet {
@@ -147,10 +157,32 @@ class Fleet {
   }
 
   clusterIdFromBundleDeploymentLabels(labels?: Labels): string {
-    const clusterNamespace = labels?.[FLEET_ANNOTATIONS.CLUSTER_NAMESPACE];
-    const clusterName = labels?.[FLEET_ANNOTATIONS.CLUSTER];
+    const clusterNamespace = labels?.[FLEET_LABELS.CLUSTER_NAMESPACE];
+    const clusterName = labels?.[FLEET_LABELS.CLUSTER];
 
     return `${ clusterNamespace }/${ clusterName }`;
+  }
+
+  bundleIdFromBundleDeploymentLabels(labels?: Labels): string {
+    const bundleNamespace = labels?.[FLEET_LABELS.BUNDLE_NAMESPACE];
+    const bundleName = labels?.[FLEET_LABELS.BUNDLE_NAME];
+
+    return `${ bundleNamespace }/${ bundleName }`;
+  }
+
+  bundleDeploymentState(bd: BundleDeployment): string {
+    // Ported from https://github.com/rancher/fleet/blob/534dbfdd6f74caf97bccd4cf977e42c5009b2432/internal/cmd/controller/summary/summary.go#L89
+    if (bd.status?.appliedDeploymentId !== bd.spec.deploymentId) {
+      return conditionIsTrue(bd.status?.conditions, 'Deployed') ? STATES_ENUM.WAIT_APPLIED : STATES_ENUM.ERR_APPLIED;
+    } else if (!bd.status?.ready) {
+      return STATES_ENUM.NOT_READY;
+    } else if (bd.spec.deploymentId !== bd.spec.stagedDeploymentId) {
+      return STATES_ENUM.OUT_OF_SYNC;
+    } else if (!bd.status?.nonModified) {
+      return STATES_ENUM.MODIFIED;
+    } else {
+      return STATES_ENUM.READY;
+    }
   }
 }
 

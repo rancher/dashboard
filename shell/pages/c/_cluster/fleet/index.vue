@@ -42,6 +42,10 @@ export default {
         inStoreType: 'management',
         type:        FLEET.CLUSTER_GROUP
       },
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT,
+      },
       allBundles: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
