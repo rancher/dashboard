@@ -28,10 +28,15 @@ function normalizeStateCounts(data) {
     };
   }
   const { desiredReady, ...rest } = data ;
+  const states = Object.entries(rest).reduce((res, [key, value]) => {
+    res[mapStateToEnum(key)] = value;
+
+    return res;
+  }, {});
 
   return {
-    total:  desiredReady,
-    states: rest,
+    total: desiredReady,
+    states,
   };
 }
 
