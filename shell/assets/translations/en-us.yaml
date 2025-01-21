@@ -135,6 +135,8 @@ nav:
     support: Support page link
     about: About page link
     pinCluster: Pin/Unpin cluster
+    collapseExpand: Collapse/Expand menu group
+    productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
