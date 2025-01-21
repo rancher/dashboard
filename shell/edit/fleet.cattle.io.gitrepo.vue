@@ -119,7 +119,7 @@ export default {
       subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
       ready:          false,
-      weight:         30
+      weight:         1
     };
 
     const stepTargetInfo = {
@@ -129,10 +129,8 @@ export default {
       subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
       ready:          true,
-      weight:         30
+      weight:         1
     };
-
-    const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
       allClusters:             [],
@@ -155,7 +153,6 @@ export default {
       targetAdvanced,
       stepRepoInfo,
       stepTargetInfo,
-      addRepositorySteps,
       displayHelmRepoURLRegex: false,
       fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
     };
@@ -166,6 +163,13 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
+    },
+
+    steps() {
+      return [
+        this.stepRepoInfo,
+        this.stepTargetInfo
+      ];
     },
 
     isLocal() {
@@ -463,7 +467,7 @@ export default {
     },
 
     stepOneReady() {
-      this.addRepositorySteps[0]['ready'] = this.stepOneRequires;
+      this.stepRepoInfo['ready'] = this.stepOneRequires;
     },
 
     updateTls() {
@@ -507,8 +511,7 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="addRepositorySteps"
-    :edit-first-step="true"
+    :steps="steps"
     :finish-mode="'finish'"
     class="wizard"
     @cancel="done"
