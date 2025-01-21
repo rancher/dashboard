@@ -200,7 +200,7 @@ export default class ClusterRepo extends SteveModel {
 
   get stateBackground() {
     if (this._isClusterRepoDisabled) {
-      return 'text-disabled bg-disabled';
+      return 'badge-disabled';
     } else {
       return colorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
     }
