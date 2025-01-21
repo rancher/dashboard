@@ -5187,11 +5187,14 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
+  rke:
+    info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
-  createSsh: Create a SSH Key Secret
-  createBasic: Create a HTTP Basic Auth Secret
-  createS3: Create a S3-Compatible Auth Secret
+  createSsh: Create an SSH Key Secret
+  createBasic: Create an HTTP Basic Auth Secret
+  createS3: Create an S3-Compatible Auth Secret
+  createRKE: Create an RKE Auth Config Secret
 
 serviceAccount:
   automount: Automount Service Account Token
