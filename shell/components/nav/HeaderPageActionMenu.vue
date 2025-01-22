@@ -23,7 +23,7 @@ const pageAction = (action: string) => {
 </script>
 
 <template>
-  <rc-dropdown>
+  <rc-dropdown :aria-label="t('nav.actionMenu.label')">
     <rc-dropdown-trigger tertiary>
       <i
         data-testid="page-actions-menu"

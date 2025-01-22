@@ -3,6 +3,10 @@ import { ref, provide, nextTick } from 'vue';
 import { RcButtonType } from '@components/RcButton';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 
+defineProps<{
+  ariaLabel?: string
+}>();
+
 const dropdownContainer = ref<HTMLElement | null>(null);
 const dropdownItems = ref<Element[]>([]);
 const firstDropdownItem = ref<HTMLElement | null>(null);
@@ -110,7 +114,8 @@ const applyShow = () => {
       <div
         ref="dropdownTarget"
         role="menu"
-        aria-label="Dropdown Collection"
+        aria-orientation="vertical"
+        :aria-label="ariaLabel || 'Dropdown Menu'"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
