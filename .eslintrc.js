@@ -1,5 +1,8 @@
 module.exports = {
-  env:     { jest: true },
+  env: {
+    jest:                        true,
+    'vue/setup-compiler-macros': true,
+  },
   extends: [
     '.eslintrc.default.js'
   ],
