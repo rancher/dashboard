@@ -159,5 +159,5 @@
 @mixin focus-outline {
   // Focus for form like elements (not to be confused with basic :focus style)
   // we need to use !important because it needs to superseed other classes that might impact outlines
-  outline: 2px solid var(--primary-keyboard-focus) !important;
+  outline: 2px solid var(--primary-keyboard-focus);
 }

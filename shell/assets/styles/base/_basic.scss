@@ -76,6 +76,13 @@ TEXTAREA,
   }
 }
 
+.labeled-select,
+.unlabeled-select {
+  &.focused {
+    border-color: var(--outline);
+  }
+}
+
 BUTTON,
 .btn {
    &:focus, &.focused {
