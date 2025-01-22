@@ -1144,6 +1144,7 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"

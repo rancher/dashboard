@@ -41,6 +41,10 @@ class PaginationUtils {
    * Is pagination enabled at a global level or for a specific resource
    */
   isEnabled({ rootGetters }: any, enabledFor: PaginationResourceContext) {
+    console.warn(enabledFor);
+    if (enabledFor?.resource?.id === 'pod') {
+      return false;
+    }
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
       return false;

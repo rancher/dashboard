@@ -110,6 +110,11 @@ export function load(state, {
   let entry = cache.map.get(id);
   const inMap = !!entry;
 
+  if (id === 'harvester') {
+    console.warn('load', 'data', data?.id, data?.metadata?.state?.name);
+    console.warn('load', 'entry', entry?.id, entry?.metadata?.state?.name);
+  }
+
   //
   // Determine the `entry` that should be in the local map and list cache
   //
@@ -164,7 +169,7 @@ export function load(state, {
     }
   }
 
-  cache.havePage = false;
+  cache.havePage = false; // TODO: RC BUG this is called when resource.save --> load action is called
 
   return entry;
 }
@@ -342,6 +347,16 @@ export function loadAll(state, {
   cache.map.clear();
   cache.revision = revision || 0;
   cache.generation++;
+
+  if (type.indexOf('clusterrepo') >= 0) {
+    const a = data.find((a) => a.id === 'harvester');
+
+    console.warn('loadAll', 'raw from response', a.id, a.metadata.state.name);
+
+    const b = data.find((a) => a.id === 'harvester');
+
+    console.warn('loadAll', 'proxied from response', b.id, b.metadata.state.name);
+  }
 
   addObjects(cache.list, proxies);
 

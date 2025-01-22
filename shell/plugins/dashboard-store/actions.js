@@ -284,6 +284,14 @@ export default {
       return Promise.reject(e);
     }
 
+    if (type.indexOf('clusterrepo') >= 0) {
+      const a = out.data.find((a) => a.id === 'harvester');
+
+      console.warn('findAll', 'raw from response', a.id, a.metadata.state.name);
+
+      debugger;
+    }
+
     if ( load === _NONE ) {
       if (!opt.incremental && opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
@@ -408,10 +416,10 @@ export default {
       return Promise.reject(e);
     }
 
-    await dispatch('unwatch', {
-      type,
-      all: true,
-    });
+    // ¬!!!!!!!!!!!!!!!!!operation now doesn't wathc individual one???
+
+    // TODO: RC this should be done to catch watch all --> watch some
+    // await dispatch('unwatch', { type });
 
     const pagination = opt.pagination ? {
       request: {
@@ -426,6 +434,7 @@ export default {
     } : undefined;
 
     if (!opt.transient) {
+      // TODO: RC watching resource for changes --> resource.changes kicks this off --> loadPage clears store --> watch resource is stale / never changes
       commit('loadPage', {
         ctx,
         type,
@@ -440,6 +449,7 @@ export default {
         type,
         namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
         force:     opt.forceWatch === true,
+        mode:      'summary'
       };
 
       dispatch('watch', args);

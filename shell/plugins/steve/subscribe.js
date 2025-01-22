@@ -34,7 +34,7 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
-import paginationUtils from '@shell/utils/pagination-utils';
+import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -191,6 +191,10 @@ export function equivalentWatch(a, b) {
   if ( aresourceType !== bresourceType ) {
     return false;
   }
+
+  // if (a.mode !== b.mode && (a.mode || b.mode)) {
+  //   return false;
+  // } / TODO: RC keep
 
   if ( a.id !== b.id && (a.id || b.id) ) {
     return false;
@@ -361,8 +365,10 @@ const sharedActions = {
 
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force
-    } = params;
+      type, selector, id, revision, namespace, stop, force, mode
+    } = params; // TODO: RC define type somewhere
+
+    mode = 'summary'; // TODO: RC
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
@@ -394,11 +400,11 @@ const sharedActions = {
     }
 
     if ( !stop && getters.watchStarted({
-      type, id, selector, namespace
+      type, id, selector, namespace, mode
     }) ) {
       // eslint-disable-next-line no-console
       state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, {
-        type, id, selector, namespace
+        type, id, selector, namespace, mode
       });
 
       return;
@@ -416,6 +422,11 @@ const sharedActions = {
     }
 
     const msg = { resourceType: type };
+
+    // paginationUtils.isSteveCacheEnabled({ rootGetters })
+    if (mode) { // TODO: RC specific to type (no). specific to request (yes) (even though end might not matter?)
+      msg.mode = mode;
+    }
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
@@ -453,7 +464,7 @@ const sharedActions = {
   },
 
   unwatch(ctx, {
-    type, id, namespace, selector, all
+    type, id, namespace, selector, all, mode
   }) {
     const { commit, getters, dispatch } = ctx;
 
@@ -465,6 +476,7 @@ const sharedActions = {
         id,
         namespace,
         selector,
+        mode,
         stop: true, // Stops the watch on a type
       };
 
@@ -588,16 +600,43 @@ const defaultActions = {
     return Promise.all(promises);
   },
 
-  async resyncWatch({
-    state, getters, dispatch, commit
-  }, params) {
-    const {
-      resourceType, namespace, id, selector
-    } = params;
+  /**
+   * Fetch the latest resources associated with a watch
+   */
+  async refetch({ getters, dispatch }, params) {
+    // TODO: RC will this be spammy?
+    console.info(`Refetch [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
+    await dispatch('fetchResources', {
+      ...params,
+      opt: { force: true, load: _MERGE }
+    } );
+  },
+
+  /**
+   * Socket has been closed, restart afresh (make http request, ensure we re-watch)
+   */
+  async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
-    const opt = { force: true, forceWatch: true }; // TODO: RC forceWatch?
+    await dispatch('fetchResources', {
+      ...params,
+      opt: { force: true, forceWatch: true }
+    });
+  },
+
+  async fetchResources({
+    state, getters, dispatch, commit
+  }, { opt, ...params }) {
+    const {
+      resourceType, namespace, id, selector, mode
+    } = params;
+
+    // TODO: RC need to handle the case where this is called often... surpacing speed we fetch ... so we get stale promise from first request (force?)
+
+    if (resourceType.indexOf('clusterrepo') >= 0) {
+      debugger;
+    }
 
     if ( id ) {
       await dispatch('find', {
@@ -624,7 +663,9 @@ const defaultActions = {
         opt,
       });
     } else {
-      const storePagination = getters['havePage'](resourceType);
+      // Other findX use options (id/ns/selector) from the messages received over socket.
+      // For paginated requests though we need to get them from the store.
+      const storePagination = getters['havePage'](resourceType); // TODO: RC other messages just id/namespace/labelSelect from socket message
 
       if (!!storePagination) {
         have = []; // TODO: RC ensure we don't supplement store / leave stale entries
@@ -809,7 +850,9 @@ const defaultActions = {
       type:      msg.resourceType,
       namespace: msg.namespace,
       id:        msg.id,
-      selector:  msg.selector
+      selector:  msg.selector,
+      // mode: msg.mode,
+      mode:      getters['havePage'](msg.resourceType) ? 'summary' : undefined // TODO: RC !!!!!!!!!!!!
     };
 
     state.started.filter((entry) => {
@@ -822,6 +865,10 @@ const defaultActions = {
     }).forEach((entry) => {
       dispatch('unwatch', entry);
     });
+
+    if (newWatch.type === 'pod') {
+      debugger;
+    }
 
     commit('setWatchStarted', newWatch);
   },
@@ -863,7 +910,8 @@ const defaultActions = {
       type,
       id:        msg.id,
       namespace: msg.namespace,
-      selector:  msg.selector
+      selector:  msg.selector,
+      mode:      msg.mode
     };
 
     state.debugSocket && console.info(`Resource Stop [${ getters.storeName }]`, type, msg); // eslint-disable-line no-console
@@ -940,7 +988,7 @@ const defaultActions = {
   },
 
   'ws.resource.changes'({ dispatch }, msg) {
-    dispatch('resyncWatch', { ...msg });
+    dispatch('refetch', { ...msg });
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1000,6 +1048,8 @@ const defaultMutations = {
   setWatchStarted(state, obj) {
     const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
+    // console.warn('setWatchStarted', 'existing', existing, 'find', obj, state.started);
+
     if ( !existing ) {
       addObject(state.started, obj);
     }
@@ -1010,6 +1060,7 @@ const defaultMutations = {
   setWatchStopped(state, obj) {
     const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
+    // console.warn('setWatchStopped', 'existing', existing, 'find', obj, state.started);
     if ( existing ) {
       removeObject(state.started, existing);
     } else {
@@ -1061,7 +1112,11 @@ const defaultGetters = {
   },
 
   watchStarted: (state) => (obj) => {
-    return !!state.started.find((entry) => equivalentWatch(obj, entry));
+    const existing = state.started.find((entry) => equivalentWatch(obj, entry));
+
+    // console.warn('watchStarted', 'existing', existing, 'find', obj, state.started);
+
+    return !!existing;
   },
 
   nextResourceVersion: (state, getters) => (type, id) => {

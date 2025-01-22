@@ -9,6 +9,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import Type from '@shell/components/nav/Type.vue';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -44,7 +45,9 @@ export default {
 
   emits: ['clickedActionButton'],
 
-  components: { ButtonGroup, SortableTable, ToggleSwitch },
+  components: {
+    ButtonGroup, SortableTable, ToggleSwitch
+  },
 
   props: {
     schema: {
@@ -206,9 +209,13 @@ export default {
   },
 
   data() {
+    // TODO: RC bug? settings page. change something in browser A. not after update on browser B
+
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
-    const watchOpts = this.schema?.id ? { type: this.schema.id } : undefined;
+    // TODO: RC does not contain any filters (all, ns, id, labelSelector)
+    // TODO: RC does not cover anything fetched secondary / page resources
+    const watchOpts = this.schema?.id ? { type: this.schema.id, mode: 'summary' } : undefined; // TODO: RC is of type socket message, not findAll opt
 
     return {
       inStore,
@@ -237,9 +244,6 @@ export default {
       immediate: true
     },
 
-    watching() {
-      return this.$store.getters[`${ this.inStore }/watchStarted`](this.watchOpts);
-    },
   },
 
   computed: {
@@ -510,6 +514,9 @@ export default {
       };
     },
 
+    watching() {
+      return this.$store.getters[`${ this.inStore }/watchStarted`](this.watchOpts);
+    },
   },
 
   methods: {
@@ -570,6 +577,20 @@ export default {
       if (event.key === 'Enter') {
         this.keyAction('detail');
       }
+    },
+
+    toggleWatch(toggle) {
+      if (toggle) {
+        // TODO: RC BUG - hit refresh whilst toggle off... findAll will watch again
+
+        // Assume there's a gap between cache and reality, to restart watch with something that will make a new http request to refresh it
+        this.$store.dispatch(`${ this.inStore }/resyncWatch`, {
+          ...this.watchOpts,
+          resourceType: this.watchOpts.type
+        });
+      } else {
+        this.$store.dispatch(`${ this.inStore }/unwatch`, this.watchOpts);
+      }
     }
   },
 };
@@ -626,17 +647,23 @@ export default {
       v-if="showGrouping"
       #header-right
     >
-      <slot name="header-right" />
+      <slot
+        name="header-right"
+      />
+    </template>
+
+    <template
+      v-if="externalPaginationEnabled"
+      #watch-controls
+    >
       <!-- TODO:RC UX REVIEW! -->
       <!-- TODO:RC inline style -->
-      <!-- TODO:RC move html to sortabletable BUT plumb functionality from here -->
       <ToggleSwitch
-        v-if="externalPaginationEnabled"
         :value="watching"
         name="label-system-toggle"
         :on-label="'Auto Update'"
         style="min-width: 150px;"
-        @input="toggleWatch"
+        @update:value="toggleWatch"
       />
     </template>
 

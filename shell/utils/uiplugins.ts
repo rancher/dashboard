@@ -169,6 +169,10 @@ export async function getHelmRepository(store: any, url: string, branch?: string
   if (store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
     const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch: false } });
 
+    const a = repos.find((r) => r.id === 'harvester');
+
+    console.warn('getHelmRepository', a.id, a.metadata.state.name);
+
     return repos.find((r: any) => {
       const target = branch ? r.spec?.gitRepo : r.spec?.url ;
 

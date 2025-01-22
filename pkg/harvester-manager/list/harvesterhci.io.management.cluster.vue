@@ -104,6 +104,7 @@ export default {
   watch: {
     async harvesterRepository(value) {
       if (value) {
+        console.warn('list', 'watch', 'harvesterRepository');
         await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
 
         if (this.harvester.extension) {

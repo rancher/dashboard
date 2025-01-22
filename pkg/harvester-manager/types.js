@@ -26,3 +26,5 @@ export const HARVESTER_RANCHER_REPO = {
     gitBranch:    UI_PLUGINS_REPOS.OFFICIAL.BRANCH,
   }
 };
+
+// TODO: RC HOW DO EXTENSIONS EASILY ENABLE PAGINATION if resourceType limited 'otherTypes?'
