@@ -747,9 +747,9 @@ export default {
     :deep() &.unlabeled-select {
       display: inline-block;
       min-width: 200px;
+      max-width: 300px; /* Adjust max width to fit the design */
       height: 30px;
       min-height: 30px;
-      width: initial;
     }
   }
 
