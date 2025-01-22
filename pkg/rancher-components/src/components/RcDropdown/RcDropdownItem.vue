@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { inject, Ref, ref } from 'vue';
 
+const props = defineProps({ disabled: Boolean });
+const emits = defineEmits(['click']);
+
 type DropdownCollection = {
   dropdownItems: Ref<Element[]>;
 };
@@ -49,6 +52,15 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
   return newIndex;
 };
 
+const handleClick = () => {
+  if (props.disabled) {
+    return;
+  }
+
+  emits('click');
+  close();
+};
+
 const handleActivate = (e: KeyboardEvent) => {
   if (e?.target instanceof HTMLElement) {
     e?.target?.click();
@@ -63,8 +75,9 @@ const handleActivate = (e: KeyboardEvent) => {
     dropdown-menu-item
     tabindex="-1"
     role="menuitem"
-    aria-disabled="false"
-    @click="close"
+    :disabled="disabled || null"
+    :aria-disabled="disabled || false"
+    @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.stop="handleKeydown"
   >
@@ -77,14 +90,20 @@ const handleActivate = (e: KeyboardEvent) => {
 <style lang="scss" scoped>
   [dropdown-menu-item] {
     padding: 10px;
-    cursor: pointer;
     &:hover {
+      cursor: pointer;
       background-color: var(--dropdown-hover-bg);
       color: var(--dropdown-hover-text);
     }
     &:focus-visible {
       @include focus-outline;
       outline-offset: -2px;
+    }
+    &[disabled] {
+      color: var(--disabled-text);
+      &:hover {
+        cursor: not-allowed;
+      }
     }
   }
 </style>
