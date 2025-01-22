@@ -92,7 +92,7 @@ export default {
         active: false
       };
     });
-    
+
     return {
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
