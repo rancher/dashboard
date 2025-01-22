@@ -653,7 +653,6 @@ export default {
 
       <header-page-action-menu v-if="showPageActions" />
 
-      <div class="header-spacer" />
       <rc-dropdown>
         <rc-dropdown-trigger
           v-if="showUserMenu"
