@@ -1,4 +1,5 @@
 <script>
+import { defineComponent } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import AppModal from '@shell/components/AppModal.vue';
@@ -7,10 +8,17 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
+import { createFocusTrap, FocusTrap } from 'focus-trap';
+import { watcherBasedSetupFocusTrap } from '@shell/composables/focusTrap';
 
 // Note: This dialog handles installation and update of a plugin
 
-export default {
+export default defineComponent({
+  // setup(props, context) {
+  //   console.error('CONTEXT', context);
+  //   watcherBasedSetupFocusTrap('showModal', '.plugin-install-modal');
+  // },
+
   emits: ['closed', 'update'],
 
   components: {
@@ -37,8 +45,18 @@ export default {
       update:                 false,
       mode:                   '',
       showModal:              false,
-      chartVersionInfo:       null
+      chartVersionInfo:       null,
+      // focusTrapInstance:      {}
     };
+  },
+  // beforeUnmount() {
+  // //   if (this.focusTrapInstance) {
+  // //     this.focusTrapInstance.deactivate();
+  // //   }
+  // // },
+
+  created() {
+    watcherBasedSetupFocusTrap(() => this.showModal, '.plugin-install-dialog');
   },
 
   computed: {
@@ -240,9 +258,29 @@ export default {
     version() {
       this.chartVersionInfo = null;
       this.loadVersionInfo();
-    }
+    },
+    // showModal(neu) {
+    //   if (neu) {
+    //     console.error('SHOWMODAL YES!', neu);
+    //     console.error('SHOWMODAL card container!', this.$refs.cardContainer);
+
+    //     this.$nextTick(() => {
+    //       console.log('HERE!!!', this.$refs.cardContainer);
+
+    //       if (this.$refs.cardContainer) {
+    //         this.focusTrapInstance = createFocusTrap(this.$refs.cardContainer, {
+    //           escapeDeactivates: true,
+    //           allowOutsideClick: true,
+    //         });
+    //         this.$nextTick(() => {
+    //           this.focusTrapInstance.activate();
+    //         });
+    //       }
+    //     });
+    //   }
+    // }
   }
-};
+});
 </script>
 
 <template>

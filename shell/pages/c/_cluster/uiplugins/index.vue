@@ -805,7 +805,11 @@ export default {
               :key="i"
               class="plugin"
               :data-testid="`extension-card-${plugin.name}`"
+              role="button"
+              tabindex="0"
+              :aria-label="plugin.name || ''"
               @click="showPluginDetail(plugin)"
+              @keyup.enter.space="showPluginDetail(plugin)"
             >
               <!-- plugin icon -->
               <div

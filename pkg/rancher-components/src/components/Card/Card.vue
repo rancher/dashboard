@@ -1,8 +1,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { createFocusTrap, FocusTrap } from 'focus-trap';
+import { basicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
+
   name:  'Card',
   props: {
     /**
@@ -56,32 +57,17 @@ export default defineComponent({
       default: false,
     },
   },
-  data() {
-    return { focusTrapInstance: {} as FocusTrap };
-  },
-  mounted() {
-    if (this.triggerFocusTrap) {
-      this.focusTrapInstance = createFocusTrap(this.$refs.cardContainer as HTMLElement, {
-        escapeDeactivates: true,
-        allowOutsideClick: true,
-      });
-
-      this.$nextTick(() => {
-        this.focusTrapInstance.activate();
-      });
+  setup(props) {
+    if (props.triggerFocusTrap) {
+      basicSetupFocusTrap('#focus-trap-card-container');
     }
-  },
-  beforeUnmount() {
-    if (this.focusTrapInstance && this.triggerFocusTrap) {
-      this.focusTrapInstance.deactivate();
-    }
-  },
+  }
 });
 </script>
 
 <template>
   <div
-    ref="cardContainer"
+    id="focus-trap-card-container"
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
     data-testid="card"
