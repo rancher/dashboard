@@ -960,6 +960,17 @@ export const EXPIRES = {
   formatter: 'LiveExpiryDate'
 };
 
+export const LAST_USED = {
+  name:          'lastUsed',
+  value:         'lastUsedAt',
+  labelKey:      'tableHeaders.lastUsed',
+  align:         'left',
+  sort:          ['lastUsedAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate',
+  formatterOpts: { missingKey: 'generic.unknown' },
+};
+
 export const RESTART = {
   name:      'restart',
   labelKey:  'tableHeaders.restart',
