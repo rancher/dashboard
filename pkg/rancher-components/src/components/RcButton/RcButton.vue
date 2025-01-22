@@ -6,6 +6,7 @@ type Props = {
   secondary?: boolean;
   tertiary?: boolean;
   link?: boolean;
+  small?: boolean;
 }
 
 const buttonRoles = [
@@ -15,15 +16,22 @@ const buttonRoles = [
   { role: 'link', className: 'role-link' },
 ];
 
+const buttonSizes = [
+  { size: 'small', className: 'btn-sm' },
+];
+
 const props = defineProps<Props>();
 
 const buttonClass = computed(() => {
   const activeRole = buttonRoles.find(({ role }) => props[role as keyof Props]);
+  const isButtonSmall = buttonSizes.some(({ size }) => props[size as keyof Props]);
 
   return {
     btn: true,
 
     [activeRole?.className || 'role-primary']: true,
+
+    'btn-sm': isButtonSmall,
   };
 });
 

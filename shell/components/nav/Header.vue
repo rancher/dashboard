@@ -658,6 +658,7 @@ export default {
         <rc-dropdown-trigger
           v-if="showUserMenu"
           link
+          small
           data-testid="nav_header_showUserMenu"
         >
           <img
