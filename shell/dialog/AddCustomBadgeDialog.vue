@@ -316,8 +316,6 @@ export default {
             class="btn role-secondary mr-10"
             :aria-label="t('generic.cancel')"
             @click="close"
-            @keyup.enter="close"
-            @keyup.space="close"
           >
             {{ t('generic.cancel') }}
           </button>
@@ -327,8 +325,6 @@ export default {
             role="button"
             :aria-label="t('generic.cancel')"
             @click="apply"
-            @keyup.enter="apply"
-            @keyup.space="apply"
           />
         </div>
       </div>
