@@ -129,14 +129,17 @@ const applyShow = () => {
 </template>
 
 <style lang="scss" scoped>
-  .popperContainer :deep(.v-popper__popper) {
-    .v-popper__wrapper {
-      .v-popper__arrow-container {
-        display: none;
-      }
+  .popperContainer {
+    display: contents;
+    &:deep(.v-popper__popper) {
+      .v-popper__wrapper {
+        .v-popper__arrow-container {
+          display: none;
+        }
 
-      .v-popper__inner {
-        padding: 10px 0 10px 0;
+        .v-popper__inner {
+          padding: 10px 0 10px 0;
+        }
       }
     }
   }
