@@ -1,5 +1,5 @@
 <script lang="ts">
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts, FetchSecondaryResourcesReturns } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import Tag from '@shell/components/Tag.vue';
 import { Banner } from '@components/Banner';
 import { PODS } from '@shell/config/table-headers';
@@ -19,6 +19,7 @@ import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 import { mapGetters } from 'vuex';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 
 export default defineComponent({
   name: 'ListNode',
@@ -186,9 +187,9 @@ export default defineComponent({
     },
 
     /**
-     * of type FetchSecondaryResources
+     * of type PagTableFetchSecondaryResources
      */
-    async fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
+    async fetchSecondaryResources({ canPaginate }: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       if (canPaginate) {
         return;
       }
@@ -221,7 +222,7 @@ export default defineComponent({
      *
      * So when we have a page.... use those entries as filters when fetching the other resources
      */
-    async fetchPageSecondaryResources({ canPaginate, force, page }: FetchPageSecondaryResourcesOpts) {
+    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!page?.length) {
         return;
       }

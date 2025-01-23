@@ -20,7 +20,7 @@ export default {
 
   methods: {
     /**
-     * of type FetchSecondaryResources
+     * of type PagTableFetchSecondaryResources
      */
     async fetchSecondaryResources(opts) {
       // pathExistsInSchema requires schema networking.k8s.io.ingress to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?
