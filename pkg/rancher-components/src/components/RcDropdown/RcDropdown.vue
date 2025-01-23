@@ -115,6 +115,7 @@ const applyShow = () => {
         ref="dropdownTarget"
         role="menu"
         aria-orientation="vertical"
+        dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
       >
         <slot name="dropdownCollection">

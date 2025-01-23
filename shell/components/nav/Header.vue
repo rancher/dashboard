@@ -651,65 +651,66 @@ export default {
         </button>
       </div>
 
-      <header-page-action-menu v-if="showPageActions" />
-
-      <rc-dropdown :aria-label="t('nav.userMenu.label')">
-        <rc-dropdown-trigger
-          v-if="showUserMenu"
-          link
-          small
-          data-testid="nav_header_showUserMenu"
-        >
-          <img
-            v-if="principal && principal.avatarSrc"
-            :src="principal.avatarSrc"
-            :class="{'avatar-round': principal.roundAvatar}"
-            width="36"
-            height="36"
+      <div class="center-self">
+        <header-page-action-menu v-if="showPageActions" />
+        <rc-dropdown :aria-label="t('nav.userMenu.label')">
+          <rc-dropdown-trigger
+            v-if="showUserMenu"
+            link
+            small
+            data-testid="nav_header_showUserMenu"
           >
-          <i
-            v-else
-            class="icon icon-user icon-3x avatar"
-          />
-        </rc-dropdown-trigger>
-        <template #dropdownCollection>
-          <div class="user-info">
-            <div class="user-name">
-              <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+            <img
+              v-if="principal && principal.avatarSrc"
+              :src="principal.avatarSrc"
+              :class="{'avatar-round': principal.roundAvatar}"
+              width="36"
+              height="36"
+            >
+            <i
+              v-else
+              class="icon icon-user icon-3x avatar"
+            />
+          </rc-dropdown-trigger>
+          <template #dropdownCollection>
+            <div class="user-info">
+              <div class="user-name">
+                <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+              </div>
+              <div class="text-small pt-5 pb-5">
+                <template v-if="principal.loginName !== principal.name">
+                  {{ principal.name }}
+                </template>
+              </div>
             </div>
-            <div class="text-small pt-5 pb-5">
-              <template v-if="principal.loginName !== principal.name">
-                {{ principal.name }}
-              </template>
-            </div>
-          </div>
-          <rc-dropdown-separator />
-          <rc-dropdown-item
-            v-if="showPreferencesLink"
-            @click="$router.push({ name: 'prefs'})"
-          >
-            {{ t('nav.userMenu.preferences') }}
-          </rc-dropdown-item>
-          <rc-dropdown-item
-            v-if="showAccountAndApiKeyLink"
-            @click="$router.push({ name: 'account'})"
-          >
-            {{ t('nav.userMenu.accountAndKeys', {}, true) }}
-          </rc-dropdown-item>
-          <rc-dropdown-item
-            v-if="authEnabled && shouldShowSloLogoutModal"
-            @click="showSloModal"
-          >
-            {{ t('nav.userMenu.logOut') }}
-          </rc-dropdown-item>
-          <rc-dropdown-item
-            v-else-if="authEnabled"
-            @click="$router.push(generateLogoutRoute)"
-          >
-            {{ t('nav.userMenu.logOut') }}
-          </rc-dropdown-item>
-        </template>
-      </rc-dropdown>
+            <rc-dropdown-separator />
+            <rc-dropdown-item
+              v-if="showPreferencesLink"
+              @click="$router.push({ name: 'prefs'})"
+            >
+              {{ t('nav.userMenu.preferences') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              v-if="showAccountAndApiKeyLink"
+              @click="$router.push({ name: 'account'})"
+            >
+              {{ t('nav.userMenu.accountAndKeys', {}, true) }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              v-if="authEnabled && shouldShowSloLogoutModal"
+              @click="showSloModal"
+            >
+              {{ t('nav.userMenu.logOut') }}
+            </rc-dropdown-item>
+            <rc-dropdown-item
+              v-else-if="authEnabled"
+              @click="$router.push(generateLogoutRoute)"
+            >
+              {{ t('nav.userMenu.logOut') }}
+            </rc-dropdown-item>
+          </template>
+        </rc-dropdown>
+      </div>
     </div>
   </header>
 </template>
@@ -843,7 +844,6 @@ export default {
 
     .rd-header-right {
       display: flex;
-      align-items: center;
       flex-direction: row;
       padding: 0;
 
@@ -912,7 +912,7 @@ export default {
         width: 40px;
       }
 
-      :deep() > div > .btn.role-tertiary {
+      :deep() div .btn.role-tertiary {
         border: 1px solid var(--header-btn-bg);
         border: none;
         background: var(--header-btn-bg);
@@ -1104,5 +1104,9 @@ export default {
         height: 1px;
       }
     }
+  }
+
+  .center-self {
+    align-self: center;
   }
 </style>

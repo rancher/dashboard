@@ -32,7 +32,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   private static pageActionsMenu(): Cypress.Chainable {
-    return cy.get('body').getId('page-actions-dropdown');
+    return cy.get('body').find('[dropdown-menu-collection]');
   }
 
   /**
@@ -41,7 +41,7 @@ export default class PageActionsPo extends ComponentPo {
    */
   links(): Cypress.Chainable {
     return PageActionsPo.open().then(() => {
-      PageActionsPo.pageActionsMenu().find('.user-menu-item');
+      PageActionsPo.pageActionsMenu().find('[dropdown-menu-item]');
     });
   }
 
