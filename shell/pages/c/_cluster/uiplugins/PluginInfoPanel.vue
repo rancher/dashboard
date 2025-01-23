@@ -5,6 +5,7 @@ import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { watcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 
 export default {
   async fetch() {
@@ -22,7 +23,6 @@ export default {
     ChartReadme,
     LazyImage
   },
-
   data() {
     return {
       showSlideIn:      false,
@@ -32,9 +32,12 @@ export default {
       versionError:     undefined,
       defaultIcon:      require('~shell/assets/images/generic-plugin.svg'),
       headerBannerSize: 0,
+      isActive:         false
     };
   },
-
+  created() {
+    watcherBasedSetupFocusTrapWithDestroyIncluded(() => this.showSlideIn, '.slideIn');
+  },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
 
@@ -46,7 +49,6 @@ export default {
       return {};
     },
   },
-
   methods: {
     show(info) {
       this.info = info;
@@ -115,7 +117,15 @@ export default {
 
     handleVersionBtnClass(version) {
       return { 'version-active': version.version === this.infoVersion, disabled: !version.isVersionCompatible };
-    }
+    },
+
+    onEnter() {
+      console.log('ENTER ENDED!')
+      this.isActive = true; // Set active state after the transition
+    },
+    onLeave() {
+      this.isActive = false; // Remove active state when fully closed
+    },
   }
 };
 </script>
@@ -130,123 +140,141 @@ export default {
       data-testid="extension-details-bg"
       @click="hide()"
     />
-    <div
-      class="slideIn"
-      data-testid="extension-details"
-      :class="{'hide': false, 'slideIn__show': showSlideIn}"
-    >
+    <transition-group name="slide">
       <div
-        v-if="info"
-        class="plugin-info-content"
+        v-if="showSlideIn"
+        class="slideIn"
+        data-testid="extension-details"
+        :class="{'active': isActive}"
+        @after-enter="onEnter" 
+        @after-leave="onLeave"
       >
-        <div class="plugin-header">
-          <div
-            class="plugin-icon"
-            :class="applyDarkModeBg"
-          >
-            <LazyImage
-              v-if="info.icon"
-              :initial-src="defaultIcon"
-              :error-src="defaultIcon"
-              :src="info.icon"
-              class="icon plugin-icon-img"
-            />
-            <img
-              v-else
-              :src="defaultIcon"
-              class="icon plugin-icon-img"
+      <!-- <div
+        class="slideIn"
+        data-testid="extension-details"
+        :class="{'hide': false, 'slideIn__show': showSlideIn}"
+      > -->
+        <div
+          v-if="info"
+          class="plugin-info-content"
+        >
+          <div class="plugin-header">
+            <div
+              class="plugin-icon"
+              :class="applyDarkModeBg"
             >
-          </div>
-          <div class="plugin-title">
-            <h2
-              class="slideIn__header"
-              data-testid="extension-details-title"
-            >
-              {{ info.label }}
-            </h2>
-            <p class="plugin-description">
-              {{ info.description }}
-            </p>
-          </div>
-          <div class="plugin-close">
-            <div class="slideIn__header__buttons">
-              <div
-                class="slideIn__header__button"
-                data-testid="extension-details-close"
-                @click="showSlideIn = false"
+              <LazyImage
+                v-if="info.icon"
+                :initial-src="defaultIcon"
+                :error-src="defaultIcon"
+                :src="info.icon"
+                class="icon plugin-icon-img"
+              />
+              <img
+                v-else
+                :src="defaultIcon"
+                class="icon plugin-icon-img"
               >
-                <i class="icon icon-close" />
+            </div>
+            <div class="plugin-title">
+              <h2
+                class="slideIn__header"
+                data-testid="extension-details-title"
+              >
+                {{ info.label }}
+              </h2>
+              <p class="plugin-description">
+                {{ info.description }}
+              </p>
+            </div>
+            <div class="plugin-close">
+              <div class="slideIn__header__buttons">
+                <div
+                  class="slideIn__header__button"
+                  data-testid="extension-details-close"
+                  @click="showSlideIn = false"
+                  role="button"
+                  @keyup.enter.space="showSlideIn = false"
+                  :aria-label="t('plugins.closePluginPanel')"
+                  tabindex="0"
+                >
+                  <i class="icon icon-close" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div>
-          <Banner
-            v-if="info.builtin"
-            color="warning"
-            :label="t('plugins.descriptions.built-in')"
-            class="mt-10"
-          />
-          <template v-else>
+          <div>
             <Banner
-              v-if="!info.certified"
+              v-if="info.builtin"
               color="warning"
-              :label="t('plugins.descriptions.third-party')"
+              :label="t('plugins.descriptions.built-in')"
               class="mt-10"
             />
-            <Banner
-              v-if="info.experimental"
-              color="warning"
-              :label="t('plugins.descriptions.experimental')"
-              class="mt-10"
-            />
-          </template>
-        </div>
-
-        <h3 v-if="info.versions.length">
-          {{ t('plugins.info.versions') }}
-        </h3>
-        <div class="plugin-versions mb-10">
-          <div
-            v-for="v in info.versions"
-            :key="`${v.name}-${v.version}`"
-          >
-            <a
-              v-clean-tooltip="handleVersionBtnTooltip(v)"
-              class="version-link"
-              :class="handleVersionBtnClass(v)"
-              @click="loadPluginVersionInfo(v.version)"
-            >
-              {{ v.version }}
-            </a>
+            <template v-else>
+              <Banner
+                v-if="!info.certified"
+                color="warning"
+                :label="t('plugins.descriptions.third-party')"
+                class="mt-10"
+              />
+              <Banner
+                v-if="info.experimental"
+                color="warning"
+                :label="t('plugins.descriptions.experimental')"
+                class="mt-10"
+              />
+            </template>
           </div>
-        </div>
 
-        <div v-if="versionError">
-          {{ t('plugins.info.versionError') }}
-        </div>
-        <h3 v-if="versionInfo">
-          {{ t('plugins.info.detail') }}
-        </h3>
-        <div
-          v-if="versionInfo"
-          class="plugin-info-detail"
-        >
-          <ChartReadme
-            v-if="versionInfo"
-            :version-info="versionInfo"
-          />
-        </div>
-        <div v-if="!info.versions.length">
-          <h3>
+          <h3 v-if="info.versions.length">
             {{ t('plugins.info.versions') }}
           </h3>
-          <div class="version-link version-active version-builtin">
-            {{ info.displayVersion }}
+          <div class="plugin-versions mb-10">
+            <div
+              v-for="v in info.versions"
+              :key="`${v.name}-${v.version}`"
+            >
+              <a
+                v-clean-tooltip="handleVersionBtnTooltip(v)"
+                class="version-link"
+                :class="handleVersionBtnClass(v)"
+                @click="loadPluginVersionInfo(v.version)"
+                :tabindex="!v.isVersionCompatible ? -1 : 0"
+                role="button"
+                @keyup.enter.space="loadPluginVersionInfo(v.version)"
+                :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+              >
+                {{ v.version }}
+              </a>
+            </div>
+          </div>
+
+          <div v-if="versionError">
+            {{ t('plugins.info.versionError') }}
+          </div>
+          <h3 v-if="versionInfo">
+            {{ t('plugins.info.detail') }}
+          </h3>
+          <div
+            v-if="versionInfo"
+            class="plugin-info-detail"
+          >
+            <ChartReadme
+              v-if="versionInfo"
+              :version-info="versionInfo"
+            />
+          </div>
+          <div v-if="!info.versions.length">
+            <h3>
+              {{ t('plugins.info.versions') }}
+            </h3>
+            <div class="version-link version-active version-builtin">
+              {{ info.displayVersion }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </transition-group>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -287,7 +315,20 @@ export default {
 
       padding: 10px;
 
-      transition: right .5s ease;
+      // transition: right .5s ease;
+      &.active {
+        right: 0;
+      }
+
+      &.slide-enter-active,
+      &.slide-leave-active {
+        transition: right .5s ease;
+      }
+
+      &.slide-enter-to,
+      &.slide-leave-from {
+        right: 0;
+      }
 
       &__header {
         text-transform: capitalize;
@@ -378,6 +419,10 @@ export default {
         &.version-builtin {
           display: inline-block;
         }
+
+        &:focus-visible {
+          @include focus-outline;
+        }
       }
 
       &__header {
@@ -395,12 +440,18 @@ export default {
           align-items: center;
           justify-content: center;
           padding: 2px;
+
           > i {
             font-size: 20px;
             opacity: 0.5;
           }
+
           &:hover {
             background-color: var(--wm-closer-hover-bg);
+          }
+
+          &:focus-visible {
+            @include focus-outline;
           }
         }
       }
@@ -420,9 +471,9 @@ export default {
         }
       }
 
-      &__show {
-        right: 0;
-      }
+      // &__show {
+      //   right: 0;
+      // }
     }
   }
 </style>

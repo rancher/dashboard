@@ -122,6 +122,8 @@ export default {
     height="auto"
     :scrollable="true"
     @close="closeDialog(false)"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
   >
     <div
       v-if="catalog"

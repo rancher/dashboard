@@ -17,6 +17,7 @@ import LazyImage from '@shell/components/LazyImage';
 import { BadgeState } from '@components/BadgeState';
 import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
+import test from './test.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
@@ -66,7 +67,8 @@ export default {
     UninstallDialog,
     SetupUIPlugins,
     AddExtensionRepos,
-    TabTitle
+    TabTitle,
+    test
   },
 
   data() {
@@ -628,7 +630,9 @@ export default {
 
 <template>
   <div class="plugins">
+    <test></test>
     <div class="plugin-header">
+      <!-- catalog view header -->
       <template v-if="showCatalogList">
         <div class="catalog-title">
           <h2
@@ -638,6 +642,8 @@ export default {
             <a
               class="link"
               @click="manageExtensionView()"
+              role="link"
+              :aria-label="t('plugins.manageCatalog.title')"
             >
               {{ t('plugins.manageCatalog.title') }}:
             </a>
@@ -650,6 +656,7 @@ export default {
           />
         </div>
       </template>
+      <!-- normal extensions view header -->
       <template v-else>
         <h2 data-testid="extensions-page-title">
           <TabTitle breadcrumb="vendor-only">
@@ -658,6 +665,7 @@ export default {
         </h2>
       </template>
       <div class="actions-container">
+        <!-- extensions reload toast/notification -->
         <div
           v-if="reloadRequired"
           class="plugin-reload-banner mr-20"
@@ -671,10 +679,13 @@ export default {
             class="ml-10 btn btn-sm role-primary"
             data-testid="extension-reload-banner-reload-btn"
             @click="reload()"
+            role="button"
+            :aria-label="t('plugins.labels.reloadRancher')"
           >
             {{ t('generic.reload') }}
           </button>
         </div>
+        <!-- extensions menu -->
         <div v-if="hasFeatureFlag && hasMenuActions">
           <button
             ref="actions"
@@ -683,6 +694,8 @@ export default {
             class="btn role-multi-action actions"
             data-testid="extensions-page-menu"
             @click="setMenu"
+            role="button"
+            :aria-label="t('plugins.labels.menu')"
           >
             <i class="icon icon-actions" />
           </button>
@@ -702,8 +715,10 @@ export default {
       </div>
     </div>
 
+    <!-- extensions slide-in panel - TODO!!!!!!!!! -->
     <PluginInfoPanel ref="infoPanel" />
 
+    <!-- extensions not enabled by feature flag -->
     <div v-if="!hasFeatureFlag">
       <div
         v-if="loading"
@@ -724,6 +739,7 @@ export default {
       />
     </div>
     <div v-else>
+      <!-- TODO!!!!!!!!! -->
       <template v-if="showCatalogList">
         <CatalogList
           @showCatalogLoadDialog="showCatalogLoadDialog"
@@ -742,6 +758,8 @@ export default {
             class="ml-10 btn btn-sm role-primary"
             data-testid="extensions-new-repos-banner-action-btn"
             @click="showAddExtensionReposDialog()"
+            role="button"
+            :aria-label="t('plugins.addRepos.bannerBtn')"
           >
             {{ t('plugins.addRepos.bannerBtn') }}
           </button>
@@ -800,6 +818,7 @@ export default {
             :message="emptyMessage"
           />
           <template v-else>
+            <!-- extension card! -->
             <div
               v-for="(plugin, i) in list"
               :key="i"
@@ -811,7 +830,7 @@ export default {
               @click="showPluginDetail(plugin)"
               @keyup.enter.space="showPluginDetail(plugin)"
             >
-              <!-- plugin icon -->
+              <!-- extension icon -->
               <div
                 class="plugin-icon"
                 :class="applyDarkModeBg"
@@ -829,13 +848,14 @@ export default {
                   class="icon plugin-icon-img"
                 >
               </div>
-              <!-- plugin card -->
+              <!-- extension card -->
               <div class="plugin-metadata">
-                <!-- plugin basic info -->
+                <!-- extension basic info -->
                 <div class="plugin-name">
                   {{ plugin.label }}
                 </div>
                 <div>{{ plugin.description }}</div>
+                <!-- extension version info and error display -->
                 <div class="plugin-version">
                   <span
                     v-if="plugin.installing"
@@ -862,7 +882,7 @@ export default {
                     >{{ plugin.incompatibilityMessage }}</p>
                   </span>
                 </div>
-                <!-- plugin badges -->
+                <!-- extension badges -->
                 <div
                   v-if="plugin.builtin"
                   class="plugin-badges"
@@ -889,9 +909,9 @@ export default {
                   </div>
                 </div>
                 <div class="plugin-spacer" />
-                <!-- plugin badges -->
+                <!-- extension actions -->
                 <div class="plugin-actions">
-                  <!-- plugin status -->
+                  <!-- extension status -->
                   <div
                     v-if="plugin.helmError"
                     v-clean-tooltip="t('plugins.helmError')"
@@ -914,7 +934,7 @@ export default {
                       {{ t('plugins.labels.uninstalling') }}
                     </div>
                   </div>
-                  <!-- plugin buttons -->
+                  <!-- extension buttons -->
                   <div
                     v-else-if="plugin.installed"
                     class="plugin-buttons"
@@ -924,6 +944,8 @@ export default {
                       class="btn role-secondary"
                       :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
                       @click="showUninstallDialog(plugin, $event)"
+                      role="button"
+                      :aria-label="t('plugins.uninstall.label')"
                     >
                       {{ t('plugins.uninstall.label') }}
                     </button>
@@ -932,6 +954,8 @@ export default {
                       class="btn role-secondary"
                       :data-testid="`extension-card-update-btn-${plugin.name}`"
                       @click="showInstallDialog(plugin, 'update', $event)"
+                      role="button"
+                      :aria-label="t('plugins.update.label')"
                     >
                       {{ t('plugins.update.label') }}
                     </button>
@@ -940,6 +964,8 @@ export default {
                       class="btn role-secondary"
                       :data-testid="`extension-card-rollback-btn-${plugin.name}`"
                       @click="showInstallDialog(plugin, 'rollback', $event)"
+                      role="button"
+                      :aria-label="t('plugins.rollback.label')"
                     >
                       {{ t('plugins.rollback.label') }}
                     </button>
@@ -952,6 +978,8 @@ export default {
                       class="btn role-secondary"
                       :data-testid="`extension-card-install-btn-${plugin.name}`"
                       @click="showInstallDialog(plugin, 'install', $event)"
+                      role="button"
+                      :aria-label="t('plugins.install.label')"
                     >
                       {{ t('plugins.install.label') }}
                     </button>
@@ -964,30 +992,36 @@ export default {
       </template>
     </div>
 
+    <!-- done -->
     <InstallDialog
       ref="installDialog"
       @closed="didInstall"
       @update="updatePluginInstallStatus"
     />
+    <!-- done -->
     <UninstallDialog
       ref="uninstallDialog"
       @closed="didUninstall"
       @update="updatePluginInstallStatus"
     />
+    <!-- TODO!!!! review it all -->
     <CatalogLoadDialog
       ref="catalogLoadDialog"
       @closed="didInstall"
       @refresh="() => reloadRequired = true"
     />
+    <!-- TODO!!!! review it all -->
     <CatalogUninstallDialog
       ref="catalogUninstallDialog"
       @closed="didUninstall"
       @refresh="() => reloadRequired = true"
     />
+    <!-- TODO!!!! review it all -->
     <DeveloperInstallDialog
       ref="developerInstallDialog"
       @closed="didInstall"
     />
+    <!-- TODO!!!! EVERYTHING!!! -->
     <AddExtensionRepos
       ref="addExtensionReposDialog"
       @done="updateInstallStatus(true)"

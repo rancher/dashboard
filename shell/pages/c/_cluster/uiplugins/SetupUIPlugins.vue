@@ -63,6 +63,8 @@ export default {
               class="btn role-primary enable-plugin-support"
               data-testid="extension-feature-button"
               @click="redirectToFeatureFlags"
+              role="button"
+              :aria-label="t('plugins.setup.install.featuresButton')"
             >
               {{ t('plugins.setup.install.featuresButton') }}
             </button>
