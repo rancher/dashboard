@@ -60,7 +60,7 @@ export default {
       const out = {};
 
       for (const app of (this.installedApps || [])) {
-        const matching = app.matchingChart();
+        const matching = app.matchingCharts()[0];
 
         if ( !matching ) {
           continue;
