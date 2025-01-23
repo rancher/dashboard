@@ -145,6 +145,9 @@ export default defineComponent({
      */
     isDisabled(): boolean {
       return (this.disabled || this.isView);
+    },
+    radioGroupLabel(): string {
+      return this.labelKey ? this.t(this.labelKey) : this.label ? this.label : '';
     }
   },
 
@@ -202,9 +205,10 @@ export default defineComponent({
 
     <!-- Group -->
     <div
+      role="radiogroup"
+      :aria-label="radioGroupLabel"
       class="radio-group"
       :class="{'row':row}"
-      tabindex="0"
       @keyup.down.stop="clickNext(1)"
       @keyup.up.stop="clickNext(-1)"
     >
