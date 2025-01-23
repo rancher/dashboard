@@ -10,7 +10,6 @@ import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
-import { ModelExtensions } from '@shell/utils/model-extensions';
 
 /**
  * Class representing Cluster resource.

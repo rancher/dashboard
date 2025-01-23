@@ -86,6 +86,7 @@ export default {
 
     // Support for the 'provisioner' extension
     const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+
     if (extClass) {
       this.extProvider = new extClass({
         dispatch: this.$store.dispatch,
