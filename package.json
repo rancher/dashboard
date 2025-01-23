@@ -174,12 +174,8 @@
     "cy2": "4.0.9",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "^3.8.2",
-<<<<<<< HEAD
     "cypress": "11.1.0",
     "cypress-plugin-snapshots": "^1.4.4",
-=======
-    "eslint": "7.32.0",
->>>>>>> 10f0670a0a (Update everything to new forked library)
     "eslint-config-standard": "16.0.3",
     "eslint-import-resolver-node": "0.3.4",
     "eslint-module-utils": "2.6.1",
