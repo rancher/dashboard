@@ -2,27 +2,27 @@ import { mount } from '@vue/test-utils';
 import Settings from '@shell/edit/management.cattle.io.setting.vue';
 import { SETTING } from '@shell/config/settings';
 
-describe('view: management.cattle.io.setting should', () => {
-  const requiredSetup = () => ({
-    // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    global: {
-      mocks: {
-        $store: {
-          getters: {
-            currentStore:              () => 'current_store',
-            'current_store/schemaFor': jest.fn(),
-            'current_store/all':       jest.fn(),
-            'i18n/t':                  jest.fn(),
-            'i18n/exists':             jest.fn(),
-          },
-          dispatch: jest.fn(),
+const requiredSetup = () => ({
+  // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
+  global: {
+    mocks: {
+      $store: {
+        getters: {
+          currentStore:              () => 'current_store',
+          'current_store/schemaFor': jest.fn(),
+          'current_store/all':       jest.fn(),
+          'i18n/t':                  jest.fn(),
+          'i18n/exists':             jest.fn(),
         },
-        $route:  { query: { AS: '' } },
-        $router: { applyQuery: jest.fn() },
-      }
+        dispatch: jest.fn(),
+      },
+      $route:  { query: { AS: '' } },
+      $router: { applyQuery: jest.fn() },
     }
-  });
+  }
+});
 
+describe('view: management.cattle.io.setting should', () => {
   it('allowing to save if no rules in settings', () => {
     const wrapper = mount(Settings, {
       props: { value: { value: 'anything' } },
@@ -86,5 +86,24 @@ describe('view: management.cattle.io.setting should', () => {
 
       expect(rules).toStrictEqual(expectation);
     });
+  });
+});
+
+describe('edit: management.cattle.io.setting should', () => {
+  it('display form errors', () => {
+    const wrapper = mount(Settings, {
+      props: {
+        value: { value: 'anything' },
+        mode:  'edit',
+      },
+      data: () => ({
+        setting: { },
+        errors:  ['generic'] as any,
+      }),
+      ...requiredSetup()
+    });
+    const errorBanner = wrapper.find('[data-testid="banner-content"]');
+
+    expect(errorBanner.element.textContent).toBe('generic');
   });
 });
