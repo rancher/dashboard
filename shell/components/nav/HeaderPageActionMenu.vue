@@ -24,11 +24,11 @@ const pageAction = (action: string) => {
 
 <template>
   <rc-dropdown :aria-label="t('nav.actionMenu.label')">
-    <rc-dropdown-trigger tertiary>
-      <i
-        data-testid="page-actions-menu"
-        class="icon icon-actions"
-      />
+    <rc-dropdown-trigger
+      tertiary
+      data-testid="page-actions-menu"
+    >
+      <i class="icon icon-actions" />
     </rc-dropdown-trigger>
     <template #dropdownCollection>
       <template
