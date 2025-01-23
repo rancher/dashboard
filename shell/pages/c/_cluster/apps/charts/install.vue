@@ -502,7 +502,7 @@ export default {
     },
 
     charts() {
-      const current = this.existing?.matchingChart(true)[0];
+      const current = this.existing?.matchingCharts(true)[0];
 
       const out = this.$store.getters['catalog/charts'].filter((x) => {
         if ( x.key === current?.key || x.chartName === current?.chartName ) {

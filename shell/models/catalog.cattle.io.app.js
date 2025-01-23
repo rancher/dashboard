@@ -193,7 +193,7 @@ export default class CatalogApp extends SteveModel {
   get currentVersionCompatible() {
     const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
 
-    const chart = this.matchingChart(false)[0];
+    const chart = this.matchingCharts(false)[0];
 
     if (!chart) {
       return true;
@@ -223,7 +223,7 @@ export default class CatalogApp extends SteveModel {
   }
 
   goToUpgrade(forceVersion, fromTools) {
-    const match = this.matchingChart(true)[0];
+    const match = this.matchingCharts(true)[0];
     const query = {
       [NAMESPACE]: this.metadata.namespace,
       [NAME]:      this.metadata.name,
