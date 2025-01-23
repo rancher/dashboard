@@ -17,7 +17,6 @@ import LazyImage from '@shell/components/LazyImage';
 import { BadgeState } from '@components/BadgeState';
 import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
-import test from './test.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
@@ -67,8 +66,7 @@ export default {
     UninstallDialog,
     SetupUIPlugins,
     AddExtensionRepos,
-    TabTitle,
-    test
+    TabTitle
   },
 
   data() {
@@ -630,7 +628,6 @@ export default {
 
 <template>
   <div class="plugins">
-    <test></test>
     <div class="plugin-header">
       <!-- catalog view header -->
       <template v-if="showCatalogList">
@@ -715,7 +712,7 @@ export default {
       </div>
     </div>
 
-    <!-- extensions slide-in panel - TODO!!!!!!!!! -->
+    <!-- extensions slide-in panel -->
     <PluginInfoPanel ref="infoPanel" />
 
     <!-- extensions not enabled by feature flag -->

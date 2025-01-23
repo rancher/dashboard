@@ -49,6 +49,20 @@ export default {
       return {};
     },
   },
+  watch: {
+    showSlideIn: {
+      handler(neu) {
+        // we register the global event on slidein visibility
+        // so that it doesn't collide with other global events
+        if (neu) {
+          document.addEventListener('keyup', this.handleEscapeKey);
+        } else {
+          document.removeEventListener('keyup', this.handleEscapeKey);
+        }
+      },
+      immediate: true
+    }
+  },
   methods: {
     show(info) {
       this.info = info;
@@ -120,12 +134,20 @@ export default {
     },
 
     onEnter() {
-      console.log('ENTER ENDED!')
       this.isActive = true; // Set active state after the transition
     },
+
     onLeave() {
       this.isActive = false; // Remove active state when fully closed
     },
+
+    handleEscapeKey(event) {
+      event.stopPropagation();
+
+      if (event.key === 'Escape') {
+        this.hide();
+      }
+    }
   }
 };
 </script>
@@ -140,20 +162,18 @@ export default {
       data-testid="extension-details-bg"
       @click="hide()"
     />
-    <transition-group name="slide">
+    <transition 
+      name="slide"
+      @after-enter="onEnter" 
+      @after-leave="onLeave"
+    >
       <div
         v-if="showSlideIn"
         class="slideIn"
         data-testid="extension-details"
         :class="{'active': isActive}"
-        @after-enter="onEnter" 
-        @after-leave="onLeave"
+        
       >
-      <!-- <div
-        class="slideIn"
-        data-testid="extension-details"
-        :class="{'hide': false, 'slideIn__show': showSlideIn}"
-      > -->
         <div
           v-if="info"
           class="plugin-info-content"
@@ -192,9 +212,9 @@ export default {
                 <div
                   class="slideIn__header__button"
                   data-testid="extension-details-close"
-                  @click="showSlideIn = false"
+                  @click="hide()"
                   role="button"
-                  @keyup.enter.space="showSlideIn = false"
+                  @keyup.enter.space="hide()"
                   :aria-label="t('plugins.closePluginPanel')"
                   tabindex="0"
                 >
@@ -274,7 +294,7 @@ export default {
           </div>
         </div>
       </div>
-    </transition-group>
+    </transition>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -312,22 +332,29 @@ export default {
       z-index: 10;
       display: flex;
       flex-direction: column;
-
       padding: 10px;
 
-      // transition: right .5s ease;
       &.active {
         right: 0;
       }
 
-      &.slide-enter-active,
+      /* Enter animation */
+      &.slide-enter-active {
+        transition: right 0.5s ease; /* Animates both enter and leave */
+      }
+
       &.slide-leave-active {
-        transition: right .5s ease;
+        transition: right 0.5s ease; /* Animates both enter and leave */
+      }
+
+      &.slide-enter-from,
+      &.slide-leave-to {
+        right: -$slideout-width; /* Off-screen position */
       }
 
       &.slide-enter-to,
       &.slide-leave-from {
-        right: 0;
+        right: 0; /* Fully visible position */
       }
 
       &__header {
@@ -470,10 +497,6 @@ export default {
           overflow: auto;
         }
       }
-
-      // &__show {
-      //   right: 0;
-      // }
     }
   }
 </style>
