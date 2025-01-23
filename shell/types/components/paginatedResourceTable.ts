@@ -23,4 +23,3 @@ export type PagTableFetchPageSecondaryResourcesOpts = { canPaginate: boolean, fo
  * Function to fetch resources that are required to supplement information needed by a single page in a PaginatedResourceTable
  */
 export type PagTableFetchPageSecondaryResources = (opts: PagTableFetchPageSecondaryResourcesOpts) => Promise<any>
-
