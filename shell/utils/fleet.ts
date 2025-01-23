@@ -30,7 +30,7 @@ function resourceKey(r: BundleResourceKey): string {
   return `${ r.kind }/${ r.namespace }/${ r.name }`;
 }
 
-function conditionIsTrue(conditions: Condition[], type: string): boolean {
+function conditionIsTrue(conditions: Condition[] | undefined, type: string): boolean {
   if (!conditions) {
     return false;
   }
