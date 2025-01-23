@@ -978,7 +978,7 @@ export default class ProvCluster extends SteveModel {
    */
   get customProvisionerHelper() {
     // Find the first model extension that says it can be used for this model
-    return this.modelExtensions.find((model) => model.useFor ? model.useFor(model) : false);
+    return this.modelExtensions.find((modelExt) => modelExt.useFor ? modelExt.useFor(this) : false);
   }
 
   get groupByParent() {
