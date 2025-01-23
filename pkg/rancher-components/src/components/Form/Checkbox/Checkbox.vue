@@ -135,7 +135,14 @@ export default defineComponent({
      */
     isChecked(): boolean {
       return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
-    }
+    },
+
+    /**
+     * Determines if the Labeled Input should display a tooltip.
+     */
+    hasTooltip(): boolean {
+      return !!this.tooltip || !!this.tooltipKey;
+    },
   },
 
   methods: {
@@ -214,6 +221,9 @@ export default defineComponent({
   <div
     class="checkbox-outer-container"
     data-checkbox-ctrl
+    :class="{
+      'v-popper--has-tooltip': hasTooltip,
+    }"
   >
     <label
       class="checkbox-container"
@@ -241,7 +251,7 @@ export default defineComponent({
         role="checkbox"
       />
       <span
-        v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
+        v-if="$slots.label || label || labelKey || hasTooltip"
         class="checkbox-label"
         :class="{ 'checkbox-primary': primary }"
       >
