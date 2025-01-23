@@ -48,6 +48,13 @@ export default class CatalogApp extends SteveModel {
     return null;
   }
 
+  /**
+   * Finds matching charts based on the current chart's name, repository, and other attributes.
+   * The function filters out charts that do not meet specific criteria, including version and home value matches.
+   *
+   * @param includeHidden - Whether to include hidden charts in the search.
+   * @returns An array of matching chart objects that meet the specified criteria.
+  */
   matchingCharts(includeHidden) {
     const chart = this.spec?.chart;
 
@@ -72,9 +79,16 @@ export default class CatalogApp extends SteveModel {
     // Filtering matches by verifying if the current version is in the matched chart's available versions, and that the home value matches as well
     const thisHome = chart?.metadata?.home;
     const bestMatches = matchingCharts.filter(({ versions }) => {
-      for (let i = 0; i < versions.length; i++) {
+      // First checking if the latest version has the same home value
+      if (thisHome === versions[0]?.home) {
+        return true;
+      }
+
+      for (let i = 1; i < versions.length; i++) {
         const { version, home } = versions[i];
 
+        // Finding the exact version, if the version is not there, then most likely it's not a match
+        // if the exact version is found, then we can compare the home values when they exist
         if (version === this.currentVersion && (!home || !thisHome || home === thisHome)) {
           return true;
         }
