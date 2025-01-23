@@ -1061,7 +1061,7 @@ catalog:
       windows: '{ver} (Windows-only)'
   delete:
     warning:
-      managed: {manager}, Rancher manages deployment and upgrade of the {name} app. Deleting this app is not supported.
+      managed: Warning, {manager} manages deployment and upgrade of the {name} app. Deleting this app is not supported.
   operation:
     tableHeaders:
       action: Action
