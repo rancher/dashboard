@@ -62,16 +62,31 @@ export default {
     return { settings: null };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters({
+      // Use either these Vuex getters
+      // OR the props to set the action menu state,
+      // but don't use both.
+      targetElem: 'action-menu/elem',
+      shouldShow: 'action-menu/showing',
+    }),
+  },
 
   methods: {
-    showActionMenu(e, setting) {
+    toggleActionMenu(e, setting) {
       const actionElement = e.srcElement;
 
-      this.$store.commit(`action-menu/show`, {
-        resources: setting.data,
-        elem:      actionElement
-      });
+      if (!this.targetElem && !this.shouldShow) {
+        this.$store.commit(`action-menu/show`, {
+          resources: setting.data,
+          elem:      actionElement
+        });
+      } else if (this.targetElem === actionElement && this.shouldShow) {
+        // this condition is needed so that we can "toggle" the action menu with
+        // the keyboard for accessibility (row action menu)
+        this.$store.commit('action-menu/hide');
+      }
     },
   }
 };
@@ -101,7 +116,7 @@ export default {
             <span
               v-if="setting.fromEnv"
               class="modified"
-            >Set by Environment Variable</span>
+            >{{ t('advancedSettings.setEnv') }}</span>
             <span
               v-else-if="setting.customized"
               class="modified"
@@ -118,23 +133,27 @@ export default {
             aria-expanded="false"
             type="button"
             class="btn btn-sm role-multi-action actions"
-            @click="showActionMenu($event, setting)"
+            role="button"
+            :aria-label="t('advancedSettings.edit.label')"
+            @click="toggleActionMenu($event, setting)"
           >
             <i class="icon icon-actions" />
           </button>
         </div>
       </div>
       <div value>
-        <div v-if="setting.hide">
+        <div v-if="setting.canHide">
           <button
             class="btn btn-sm role-primary"
+            role="button"
+            :aria-label="t('advancedSettings.hideShow')"
             @click="setting.hide = !setting.hide"
           >
-            {{ t('advancedSettings.show') }} {{ setting.id }}
+            {{ setting.hide ? t('advancedSettings.show') : t('advancedSettings.hide') }} {{ setting.id }}
           </button>
         </div>
         <div
-          v-else
+          v-show="!setting.canHide || (setting.canHide && !setting.hide)"
           class="settings-value"
         >
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
@@ -145,14 +164,6 @@ export default {
             v-else
             class="text-muted"
           >&lt;{{ t('advancedSettings.none') }}&gt;</pre>
-        </div>
-        <div v-if="setting.canHide && !setting.hide">
-          <button
-            class="btn btn-sm role-primary"
-            @click="setting.hide = !setting.hide"
-          >
-            {{ t('advancedSettings.hide') }} {{ setting.id }}
-          </button>
         </div>
       </div>
     </div>

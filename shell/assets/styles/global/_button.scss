@@ -185,6 +185,11 @@ fieldset[disabled] .btn {
       z-index: 1;
     }
 
+    &:focus-visible {
+      z-index: 1;
+      @include focus-outline;
+    }
+    
     &.active {
       @extend .bg-primary;
     }

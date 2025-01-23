@@ -5,7 +5,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 5
     labels: ["component/dependencies"]
 
@@ -20,6 +20,6 @@ updates:
       - "/storybook"
       - "/pkg/*"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     open-pull-requests-limit: 5
     labels: ["component/dependencies"]

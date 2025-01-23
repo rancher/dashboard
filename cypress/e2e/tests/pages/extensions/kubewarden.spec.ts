@@ -6,8 +6,10 @@ import KubewardenExtensionPo from '@/cypress/e2e/po/pages/extensions/kubewarden.
 import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const extensionName = 'kubewarden';
+const gitRepoName = 'rancher-extensions';
+let removeExtensions = false;
 
-describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUser'] }, () => {
+describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => {
   before(() => {
     catchTargetPageException('Navigation cancelled');
     cy.login();
@@ -18,7 +20,9 @@ describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUs
     extensionsPo.waitForPage();
 
     // install the ui-plugin-charts repo
-    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', 'rancher-extensions');
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', gitRepoName).then(() => {
+      removeExtensions = true;
+    });
   });
 
   beforeEach(() => {
@@ -32,6 +36,7 @@ describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUs
     extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(null, 'available');
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(extensionName);
@@ -109,5 +114,11 @@ describe('Kubewarden Extension', { tags: ['@extensions-temp-excluded', '@adminUs
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(extensionName);
     extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+  });
+
+  after(() => {
+    if ( removeExtensions ) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', gitRepoName);
+    }
   });
 });

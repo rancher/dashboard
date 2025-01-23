@@ -127,7 +127,7 @@ export default {
       }
     },
 
-    onSearch(str, loading, vm) {
+    onSearch(str, loading) {
       str = (str || '').trim();
 
       this.searchStr = str;

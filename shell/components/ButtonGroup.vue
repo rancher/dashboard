@@ -82,6 +82,8 @@ export default {
       type="button"
       :class="opt.class"
       :disabled="disabled || opt.disabled"
+      role="button"
+      :aria-label="opt.labelKey ? t(opt.labelKey) : opt.label"
       @click="change(opt.value)"
     >
       <slot

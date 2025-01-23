@@ -1,13 +1,7 @@
 /* eslint-disable */
-import type { DefineComponent } from 'vue'
-import { ComponentCustomProperties } from 'vue';
+export {};
 
-declare module '*.vue' {
-  const component: DefineComponent<{}, {}, any>
-  export default component
-}
-
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   interface ComponentCustomProperties {
     t: {
       (key: string, args?: Record<string, any>, raw?: boolean): string;
