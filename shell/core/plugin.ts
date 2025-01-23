@@ -25,6 +25,7 @@ export class Plugin implements IPlugin {
   public name: string;
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
+  public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
@@ -187,6 +188,16 @@ export class Plugin implements IPlugin {
   }
 
   /**
+   * Adds a model extension
+   * 
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: Function): void {
+    this.register('model-extension', type, clz);
+  }
+
+  /**
    * Wraps a component from an extensionConfig with defineAsyncComponent and
    * markRaw. This prepares the component to be loaded dynamically and prevents
    * Vue from making the component reactive.
@@ -317,10 +328,18 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
+
+    // Accumulate model extensions
+    } else if (type === 'model-extension') {
+      if (!this.modelExtensions[name]) {
+        this.modelExtensions[name] = [];
+      }
+      this.modelExtensions[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};
       }
+
       this.types[type][name] = fn;
     }
   }

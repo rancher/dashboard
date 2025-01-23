@@ -26,6 +26,21 @@ export default function(context, inject, vueApp) {
     uiConfig[ExtensionPoint[ep]] = {};
   }
 
+  /**
+   * When an extension adds a model extension, it provides the class - we will instantiate that class and store and use that
+   */
+  function instantiateModelExtension($plugin, clz) {
+    const context = {
+      dispatch: store.dispatch,
+      getters:  store.getters,
+      t:        store.getters['i18n/t'],
+      $axios,
+      $plugin,
+    };
+
+    return new clz(context);
+  }
+
   inject(
     'plugin',
     {
@@ -284,6 +299,13 @@ export default function(context, inject, vueApp) {
           });
         });
 
+        // Model extensions
+        Object.keys(plugin.modelExtensions).forEach((name) => {
+          plugin.modelExtensions[name].forEach((fn) => {
+            this.register('model-extension', name, instantiateModelExtension(this, fn));
+          });
+        });
+
         // Initialize the product if the store is ready
         if (productsLoaded()) {
           this.loadProducts([plugin]);
@@ -317,8 +339,8 @@ export default function(context, inject, vueApp) {
           dynamic[type] = {};
         }
 
-        // Accumulate l10n resources rather than replace
-        if (type === 'l10n') {
+        // Accumulate l10n resources and model extensions rather than replace
+        if (type === 'l10n' || type === 'model-extension') {
           if (!dynamic[type][name]) {
             dynamic[type][name] = [];
           }

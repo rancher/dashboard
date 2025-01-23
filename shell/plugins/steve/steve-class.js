@@ -41,6 +41,13 @@ export default class SteveModel extends HybridModel {
     this._description = value;
   }
 
+  /**
+   * Get all model extensions for this model
+   */
+  get modelExtensions() {
+    return this.$plugin.getDynamic('model-extension', this.type);
+  }
+
   cleanForSave(data, forNew) {
     const val = super.cleanForSave(data);
 

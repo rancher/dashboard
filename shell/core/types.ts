@@ -585,6 +585,14 @@ export interface IPlugin {
   ): void;
 
   /**
+   * Adds a model extension
+   * 
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: Function): void;
+
+  /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'

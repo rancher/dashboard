@@ -84,6 +84,25 @@ export default {
   async fetch() {
     await this.value.waitForProvisioner();
 
+    // Support for the 'provisioner' extension
+    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+    if (extClass) {
+      this.extProvider = new extClass({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        $t:       this.t
+      });
+
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
+    // Support for a model extension
     if (this.value.customProvisionerHelper) {
       this.extDetailTabs = {
         ...this.extDetailTabs,

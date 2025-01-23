@@ -17,24 +17,6 @@ import { ModelExtensions } from '@shell/utils/model-extensions';
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
-  /**
-   * Instance of model extensions utility that we can use for accessing model helpers provided by extensions
-   */
-  get modelExtensions() {
-    if (!this.__modelExtensions) {
-      this.__modelExtensions = new ModelExtensions(this, 'provisioner', (model) => model.machineProvider);
-    }
-
-    return this.__modelExtensions;
-  }
-
-  /**
-   * customProvisionerHelper returns a custom helper if applicable that can be used for this cluster
-   */
-  get customProvisionerHelper() {
-    return this.modelExtensions.modelHelper;
-  }
-
   // Ensure we remove the properties for the model extension from the model on save
   // Otherwise we get a problem when editing a cluster
   cleanForSave(data, forNew) {
@@ -1002,9 +984,17 @@ export default class ProvCluster extends SteveModel {
     }
   }
 
+  /**
+   * Get the custom provisioner helper for this model
+   */
+  get customProvisionerHelper() {
+    // Find the first model extension that says it can be used for this model
+    return this.modelExtensions.find((model) => model.useFor ? model.useFor(model) : false);
+  }
+
   get groupByParent() {
     // Customer helper can report if the cluster has a parent cluster
-    return this.customProvisionerHelper?.parentCluster(this);
+    return this.customProvisionerHelper?.parentCluster?.(this);
   }
 
   get groupByLabel() {
