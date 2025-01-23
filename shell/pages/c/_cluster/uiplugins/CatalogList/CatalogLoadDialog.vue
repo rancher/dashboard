@@ -435,6 +435,8 @@ export default {
     height="auto"
     :scrollable="true"
     @close="closeDialog()"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
   >
     <Loading
       v-if="$fetchState.loading"
