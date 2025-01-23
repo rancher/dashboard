@@ -16,16 +16,6 @@ import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/label
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
-  // Ensure we remove the properties for the model extension from the model on save
-  // Otherwise we get a problem when editing a cluster
-  cleanForSave(data, forNew) {
-    super.cleanForSave(data, forNew);
-    delete data.__modelExtensions;
-    delete data.__modelHelper;
-
-    return data;
-  }
-
   get details() {
     const out = [
       {
