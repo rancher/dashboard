@@ -38,12 +38,15 @@ export default defineComponent({
   },
 
   methods: {
-    fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
+    /**
+     * of type FetchSecondaryResources
+     */
+    async fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
       if (canPaginate) {
-        return {};
+        return;
       }
 
-      return { pvc: this.$store.dispatch(`cluster/findAll`, { type: PVC }) };
+      return this.$store.dispatch(`cluster/findAll`, { type: PVC });
     },
 
     /**

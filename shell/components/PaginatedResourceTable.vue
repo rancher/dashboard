@@ -5,7 +5,7 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import { StorePaginationResult } from '@shell/types/store/pagination.types';
 
 export type FetchSecondaryResourcesOpts = { canPaginate: boolean }
-export type FetchSecondaryResourcesReturns = Promise<any> | { [key: string]: Promise<any>}
+export type FetchSecondaryResourcesReturns = Promise<any>
 export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => FetchSecondaryResourcesReturns
 
 export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[], pagResult: StorePaginationResult }
@@ -58,6 +58,8 @@ export default defineComponent({
      * Information may be required from resources other than the primary one shown per row
      *
      * This will fetch them ALL and will be run in a non-server-side pagination world
+     *
+     * of type FetchSecondaryResources
      */
     fetchSecondaryResources: {
       type:    Function,
@@ -70,6 +72,8 @@ export default defineComponent({
      * This will fetch only those relevant to the current page using server-side pagination based filters
      *
      * called from shell/mixins/resource-fetch-api-pagination.js
+     *
+     * of type FetchPageSecondaryResources
      */
     fetchPageSecondaryResources: {
       type:    Function,
@@ -87,9 +91,7 @@ export default defineComponent({
     ];
 
     if (this.fetchSecondaryResources) {
-      const res = this.fetchSecondaryResources({ canPaginate: this.canPaginate });
-
-      promises.push(Array.isArray(res) ? res : [res]);
+      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
     }
 
     await Promise.all(promises);

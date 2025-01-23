@@ -119,7 +119,7 @@ export default {
     <div class="col span-6">
       <ResourceLabeledSelect
         :resourceType="typeName"
-        :inStore="inStore"
+        :in-store="inStore"
         :disabled="$fetchState.pending || disabled"
         :label="displayLabel"
         :placeholder="question.description"

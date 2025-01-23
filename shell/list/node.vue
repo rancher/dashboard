@@ -185,22 +185,25 @@ export default defineComponent({
       row['displayLabels'] = !row.displayLabels;
     },
 
-    fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
+    /**
+     * of type FetchSecondaryResources
+     */
+    async fetchSecondaryResources({ canPaginate }: FetchSecondaryResourcesOpts): FetchSecondaryResourcesReturns {
       if (canPaginate) {
-        return {};
+        return;
       }
-      const hash: { [key: string]: Promise<any>} = {};
+      const promises = [];
 
       if (this.canViewMgmtNodes) {
-        hash.mgmtNodes = this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.NODE });
+        promises.push(this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.NODE }));
       }
 
       if (this.canViewNormanNodes) {
-        hash.normanNodes = this.$store.dispatch(`rancher/findAll`, { type: NORMAN.NODE });
+        promises.push(this.$store.dispatch(`rancher/findAll`, { type: NORMAN.NODE }));
       }
 
       if (this.canViewMachines) {
-        hash.machines = this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE });
+        promises.push(this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE }));
       }
 
       if (this.canViewPods) {
@@ -208,7 +211,7 @@ export default defineComponent({
         this.$store.dispatch(`cluster/findAll`, { type: POD });
       }
 
-      return hash;
+      await Promise.all(promises);
     },
 
     /**

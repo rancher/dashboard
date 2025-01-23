@@ -178,7 +178,7 @@ export default {
     /**
      * Filter out hidden repos from list of all repos
      */
-    filterRowsLocal(rows) {
+    filterEventsLocal(rows) {
       return rows.filter((event) => event.involvedObject?.uid === this.value?.metadata?.uid);
     },
 
@@ -188,7 +188,7 @@ export default {
      * pagination: PaginationArgs
      * returns: PaginationArgs
      */
-    filterRowsApi(pagination) {
+    filterEventsApi(pagination) {
       if (!pagination.filters) {
         pagination.filters = [];
       }
@@ -250,14 +250,16 @@ export default {
       name="events"
       :weight="-2"
     >
+      <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
         v-if="selectedTab === 'events'"
         :schema="eventSchema"
-        :local-filter="filterRowsLocal"
-        :api-filter="filterRowsApi"
+        :local-filter="filterEventsLocal"
+        :api-filter="filterEventsApi"
         :use-query-params-for-simple-filtering="false"
         :headers="eventHeaders"
         :paginationHeaders="paginationHeaders"
+        :namespaced="false"
       />
     </Tab>
 
