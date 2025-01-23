@@ -277,7 +277,10 @@ export default class CloudCredential extends NormanModel {
       };
     }
 
-    return null;
+    return {
+      expired:  false,
+      expiring: false,
+    };
   }
 
   get expiresString() {
