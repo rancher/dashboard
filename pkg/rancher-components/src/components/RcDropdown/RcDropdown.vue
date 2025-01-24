@@ -32,10 +32,6 @@ const registerDropdownItems = () => {
 
 provide('dropdownCollection', { dropdownItems });
 
-const close = () => {
-  returnFocus();
-};
-
 const didKeydown = ref(false);
 
 const handleKeydown = () => {
@@ -52,17 +48,15 @@ const registerTrigger = (triggerRef: RcButtonType) => {
   dropdownTrigger.value = triggerRef;
 };
 
-const focusFirstElement = () => {
-  handleKeydown();
-  setFocus();
-};
-
 provide('dropdownContext', {
-  close,
+  close: () => returnFocus,
   handleKeydown,
   showMenu,
   registerTrigger,
-  focusFirstElement,
+  focusFirstElement: () => {
+    handleKeydown();
+    setFocus();
+  },
   isMenuOpen,
 });
 
