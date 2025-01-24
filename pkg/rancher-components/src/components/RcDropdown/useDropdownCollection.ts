@@ -1,4 +1,4 @@
-import { provide, ref } from 'vue'
+import { provide, ref } from 'vue';
 
 export const useDropdownCollection = () => {
   const dropdownItems = ref<Element[]>([]);
@@ -26,11 +26,11 @@ export const useDropdownCollection = () => {
 
   const provideDropdownCollection = () => {
     provide('dropdownCollection', { dropdownItems });
-  }
+  };
 
   return {
     firstDropdownItem,
     provideDropdownCollection,
     registerDropdownCollection,
-  }
-}
+  };
+};
