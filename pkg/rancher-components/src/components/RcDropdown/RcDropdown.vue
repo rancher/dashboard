@@ -1,91 +1,38 @@
 <script setup lang="ts">
-import { ref, provide, nextTick } from 'vue';
-import { RcButtonType } from '@components/RcButton';
+import { ref } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
+import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
+import { useDropdownCollection } from '@components/RcDropdown/useDropdownCollection';
 
 defineProps<{
   ariaLabel?: string
 }>();
 
-const dropdownContainer = ref<HTMLElement | null>(null);
-const dropdownItems = ref<Element[]>([]);
-const firstDropdownItem = ref<HTMLElement | null>(null);
+const {
+  firstDropdownItem,
+  provideDropdownCollection,
+  registerDropdownCollection
+} = useDropdownCollection();
 
-const register = (target: HTMLElement | null) => {
-  dropdownContainer.value = target;
-  if (dropdownContainer.value?.firstElementChild instanceof HTMLElement) {
-    registerDropdownItems();
-    if (dropdownItems.value[0] instanceof HTMLElement) {
-      firstDropdownItem.value = dropdownItems.value[0];
-    }
-  }
-};
+provideDropdownCollection();
 
-const registerDropdownItems = () => {
-  dropdownItems.value = [];
-  const dropdownNodeList = dropdownContainer.value?.querySelectorAll('[dropdown-menu-item]');
-
-  dropdownNodeList?.forEach((element) => {
-    dropdownItems.value.push(element);
-  });
-};
-
-provide('dropdownCollection', { dropdownItems });
-
-const didKeydown = ref(false);
-
-const handleKeydown = () => {
-  didKeydown.value = true;
-};
-
-const isMenuOpen = ref(false);
-
-const showMenu = (show: boolean) => {
-  isMenuOpen.value = show;
-};
-
-const registerTrigger = (triggerRef: RcButtonType) => {
-  dropdownTrigger.value = triggerRef;
-};
-
-provide('dropdownContext', {
-  close: () => returnFocus,
-  handleKeydown,
-  showMenu,
-  registerTrigger,
-  focusFirstElement: () => {
-    handleKeydown();
-    setFocus();
-  },
+const {
   isMenuOpen,
-});
+  showMenu,
+  returnFocus,
+  setFocus,
+  provideDropdownContext,
+} = useDropdownContext(firstDropdownItem);
 
-const setFocus = () => {
-  nextTick(() => {
-    if (!didKeydown.value) {
-      return;
-    }
-
-    firstDropdownItem.value?.focus();
-
-    didKeydown.value = false;
-  });
-};
+provideDropdownContext();
 
 const popperContainer = ref(null);
 const dropdownTarget = ref(null);
 
 useClickOutside(dropdownTarget, () => showMenu(false));
 
-const dropdownTrigger = ref<RcButtonType | null>(null);
-
-const returnFocus = () => {
-  showMenu(false);
-  dropdownTrigger?.value?.focus();
-};
-
 const applyShow = () => {
-  register(dropdownTarget.value);
+  registerDropdownCollection(dropdownTarget.value);
   setFocus();
 };
 
