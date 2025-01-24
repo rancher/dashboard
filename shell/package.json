@@ -121,7 +121,7 @@
     "set-cookie-parser": "2.4.6",
     "shell-quote": "1.7.3",
     "sinon": "8.1.1",
-    "start-server-and-test": "1.13.1",
+    "start-server-and-test": "2.0.10",
     "style-loader": "1.2.1",
     "ts-node": "8.10.2",
     "typescript": "5.6.3",
