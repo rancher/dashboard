@@ -60,6 +60,10 @@ export class PerformancePagePo extends RootClusterPage {
     return CheckboxInputPo.byLabel(this.self(), 'Enable Garbage Collection');
   }
 
+  garbageCollectionResourceCount() {
+    return LabeledInputPo.byLabel(this.self(), 'Resource Count');
+  }
+
   namespaceFilteringCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Enable Required Namespace / Project Filtering');
   }
