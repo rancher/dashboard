@@ -1,5 +1,6 @@
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
+import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -7,7 +8,7 @@ import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import {
-  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, stateSort
+  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, STATES_ENUM, stateSort,
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 import FleetUtils from '@shell/utils/fleet';
@@ -18,6 +19,26 @@ function quacksLikeAHash(str) {
   }
 
   return false;
+}
+
+function normalizeStateCounts(data) {
+  if (isEmpty(data)) {
+    return {
+      total:  0,
+      states: {},
+    };
+  }
+  const { desiredReady, ...rest } = data ;
+  const states = Object.entries(rest).reduce((res, [key, value]) => {
+    res[mapStateToEnum(key)] = value;
+
+    return res;
+  }, {});
+
+  return {
+    total: desiredReady,
+    states,
+  };
 }
 
 export default class GitRepo extends SteveModel {
@@ -305,24 +326,72 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    const all = this.$getters['all'](FLEET.BUNDLE);
-
-    return all.filter((bundle) => bundle.repoName === this.name &&
-      bundle.namespace === this.namespace &&
-      bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
-  }
-
-  /**
-   * Bundles with state of active
-   */
-  get bundlesReady() {
-    return this.bundles?.filter((bundle) => bundle.state === 'active');
+    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
   }
 
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
     return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+  }
+
+  get allBundlesStatuses() {
+    const bundleDeploymentCountsPerBundle = this.bundleDeployments.reduce((acc, bd) => {
+      const bundleId = FleetUtils.bundleIdFromBundleDeploymentLabels(bd.metadata?.labels);
+      const state = mapStateToEnum(FleetUtils.bundleDeploymentState(bd));
+
+      if (!acc[bundleId]) {
+        acc[bundleId] = {
+          total:  0,
+          states: { [STATES_ENUM.READY]: 0 },
+        };
+      }
+      acc[bundleId].total++;
+
+      if (!acc[bundleId].states[state]) {
+        acc[bundleId].states[state] = 0;
+      }
+      acc[bundleId].states[state]++;
+
+      return acc;
+    }, {});
+    const bundleIds = Object.keys(bundleDeploymentCountsPerBundle);
+
+    return bundleIds.reduce((acc, bundleId) => {
+      const state = primaryDisplayStatusFromCount(bundleDeploymentCountsPerBundle[bundleId].states);
+
+      if (!acc.states[state]) {
+        acc.states[state] = 0;
+      }
+      acc.states[state]++;
+
+      return acc;
+    }, { total: bundleIds.length, states: { [STATES_ENUM.READY]: 0 } } );
+  }
+
+  get allResourceStatuses() {
+    return normalizeStateCounts(this.status?.resourceCounts || {});
+  }
+
+  statusResourceCountsForCluster(clusterId) {
+    if (!this.targetClusters.some((c) => c.id === clusterId)) {
+      return {};
+    }
+
+    return this.bundleDeployments
+      .filter((bd) => FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels) === clusterId)
+      .map((bd) => FleetUtils.resourcesFromBundleDeploymentStatus(bd.status))
+      .flat()
+      .map((r) => r.state)
+      .reduce((prev, state) => {
+        if (!prev[state]) {
+          prev[state] = 0;
+        }
+        prev[state]++;
+        prev.desiredReady++;
+
+        return prev;
+      }, { desiredReady: 0 });
   }
 
   get resourcesStatuses() {
@@ -357,7 +426,7 @@ export default class GitRepo extends SteveModel {
           name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
           params: {
             product:   NAME,
-            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
             resource:  type,
             namespace: r.namespace,
             id:        r.name,
@@ -385,7 +454,6 @@ export default class GitRepo extends SteveModel {
           creationTimestamp: r.createdAt,
 
           // other properties
-          clusterLabel:    c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),
@@ -408,42 +476,10 @@ export default class GitRepo extends SteveModel {
     };
   }
 
-  get clusterResourceStatus() {
-    const clusterStatuses = this.resourcesStatuses.reduce((prev, curr) => {
-      const { clusterId, clusterLabel, state } = curr;
+  clusterState(clusterId) {
+    const resourceCounts = this.statusResourceCountsForCluster(clusterId);
 
-      if (!prev[clusterId]) {
-        prev[clusterId] = {
-          clusterLabel,
-          resourceCounts: { [state]: 0, desiredReady: 0 }
-
-        };
-      }
-
-      if (!prev[clusterId].resourceCounts[state]) {
-        prev[clusterId].resourceCounts[state] = 0;
-      }
-
-      prev[clusterId].resourceCounts[state] += 1;
-      prev[clusterId].resourceCounts.desiredReady += 1;
-
-      return prev;
-    }, {});
-
-    const values = Object.keys(clusterStatuses).map((key) => {
-      const { clusterLabel, resourceCounts } = clusterStatuses[key];
-
-      return {
-        clusterId: key,
-        clusterLabel, // FLEET LABEL
-        status:    {
-          displayStatus:  primaryDisplayStatusFromCount(resourceCounts),
-          resourceCounts: { ...resourceCounts }
-        }
-      };
-    });
-
-    return values;
+    return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
   }
 
   get clustersList() {

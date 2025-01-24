@@ -2,7 +2,12 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
-import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
+import {
+  getStateLabel,
+  primaryDisplayStatusFromCount,
+  STATES,
+  STATES_ENUM,
+} from '@shell/plugins/dashboard-store/resource-class';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
@@ -37,10 +42,15 @@ export default {
         inStoreType: 'management',
         type:        FLEET.CLUSTER_GROUP
       },
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT,
+      },
       allBundles: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
         opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
+        skipWait:    true,
       },
       gitRepos: {
         inStoreType: 'management',
@@ -98,7 +108,6 @@ export default {
         }
       ],
       schema:              {},
-      allBundles:          [],
       gitRepos:            [],
       fleetWorkspacesData: [],
       isCollapsed:         {},
@@ -138,14 +147,24 @@ export default {
       });
     },
     workspacesData() {
-      return this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => ws.counts.gitRepos > 0);
     },
     emptyWorkspaces() {
-      return this.fleetWorkspaces.filter((ws) => !ws.repos || !ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => ws.counts.gitRepos === 0);
     },
     areAllCardsExpanded() {
       return Object.keys(this.isCollapsed).every((key) => !this.isCollapsed[key]);
-    }
+    },
+    gitReposCounts() {
+      return this.gitRepos.reduce((prev, gitRepo) => {
+        prev[gitRepo.id] = {
+          bundles:   gitRepo.allBundlesStatuses,
+          resources: gitRepo.allResourceStatuses,
+        };
+
+        return prev;
+      }, {});
+    },
   },
   methods: {
     setWorkspaceFilterAndLinkToGitRepo(value) {
@@ -160,108 +179,71 @@ export default {
         },
       });
     },
-    getStatusInfo(area, row) {
+    getStatusInfo(area, row, rowCounts) {
       const defaultStatusInfo = {
         badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
         icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
       };
 
       // classes are defined in the themes SASS files...
-      return this.getBadgeClassAndIcon(area, row) || defaultStatusInfo;
+      return this.getBadgeClassAndIcon(area, row, rowCounts) || defaultStatusInfo;
     },
-    getBadgeClassAndIcon(area, row) {
-      let group;
-
+    getBadgeClassAndIcon(area, row, rowCounts) {
       if (!this.admissableAreas.includes(area)) {
         return false;
       }
 
-      if (area === 'clusters') {
-        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
-      } else if (area === 'bundles') {
-        group = row.bundles;
-      } else if (area === 'resources') {
-        group = row.status?.resources;
-      }
-
-      if (group?.length && group?.every((item) => item.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-        return {
-          badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-          icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-        };
-      }
-      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-        return {
-          badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-          icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-        };
-      }
-      if (group?.length && group?.some((item) => item.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-        return {
-          badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-        };
-      }
-
-      if (area === 'resources') {
-        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
-          return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
-          };
-        }
-      }
-
-      return {
-        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-${ area }`,
-        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-      };
-    },
-    getTooltipInfo(area, row) {
       let group;
 
+      if (area === 'clusters') {
+        const clusterInfo = row.clusterInfo;
+        const state = clusterInfo.ready === clusterInfo.total ? STATES_ENUM.ACTIVE : STATES_ENUM.NOT_READY;
+
+        return {
+          badgeClass: `${ STATES[state].color } badge-class-area-${ area }`,
+          icon:       STATES[state].compoundIcon
+        };
+      } else if (area === 'bundles') {
+        group = rowCounts[row.id].bundles;
+      } else if (area === 'resources') {
+        group = rowCounts[row.id].resources;
+      } else {
+        // unreachable
+        return false;
+      }
+
+      if (group.total === group.states.ready) {
+        return {
+          badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+          icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon,
+        };
+      }
+      const state = primaryDisplayStatusFromCount(group.states);
+
+      return {
+        badgeClass: STATES[state].color ? STATES[state].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+        icon:       STATES[state].compoundIcon ? STATES[state].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
+      };
+    },
+    getTooltipInfo(area, row, rowCounts) {
       if (!this.admissableAreas.includes(area)) {
         return {};
       }
 
-      if (area === 'clusters') {
-        group = '';
-      } else if (area === 'bundles') {
-        group = row.bundles;
+      if (area === 'bundles') {
+        return this.generateTooltipData(rowCounts[row.id].bundles.states);
       } else if (area === 'resources') {
-        group = row.status?.resources;
-      }
-
-      if (group?.length) {
-        return this.generateTooltipData(group);
+        return this.generateTooltipData(rowCounts[row.id].resources.states);
       }
 
       return '';
     },
-    generateTooltipData(data) {
-      const infoObj = {};
-      let tooltipData = '';
-
-      data.forEach((item) => {
-        if (!infoObj[item.state]) {
-          infoObj[item.state] = 0;
-        }
-
-        infoObj[item.state]++;
-      });
-
-      Object.keys(infoObj).forEach((key) => {
-        tooltipData += `${ getStateLabel(key) }: ${ infoObj[key] }<br>`;
-      });
-
-      return tooltipData;
+    generateTooltipData(infoObj) {
+      return Object.keys(infoObj)
+        .filter((key) => infoObj[key] > 0) // filter zero values
+        .map((key) => `${ getStateLabel(key) }: ${ infoObj[key] }<br>`).join('');
     },
-    getBadgeValue(area, row) {
+    getBadgeValue(area, row, rowCounts) {
       let value;
 
       if (!this.admissableAreas.includes(area)) {
@@ -269,11 +251,15 @@ export default {
       }
 
       if (area === 'clusters') {
-        return `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
+        value = `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
       } else if (area === 'bundles') {
-        value = xOfy(row.bundlesReady?.length, row.bundles?.length);
+        const bundles = rowCounts[row.id].bundles;
+
+        value = xOfy(bundles.states.ready || 0, bundles.total);
       } else if (area === 'resources') {
-        value = xOfy(row.status?.resourceCounts?.ready, row.status?.resourceCounts?.desiredReady);
+        const resources = rowCounts[row.id].resources;
+
+        value = xOfy(resources.states.ready || 0, resources.total);
       }
 
       return value;
@@ -413,10 +399,10 @@ export default {
               <CompoundStatusBadge
                 v-else
                 data-testid="clusters-ready"
-                :tooltip-text="getTooltipInfo('clusters', row)"
-                :badge-class="getStatusInfo('clusters', row).badgeClass"
-                :icon="getStatusInfo('clusters', row).icon"
-                :value="getBadgeValue('clusters', row)"
+                :tooltip-text="getTooltipInfo('clusters', row, gitReposCounts)"
+                :badge-class="getStatusInfo('clusters', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('clusters', row, gitReposCounts).icon"
+                :value="getBadgeValue('clusters', row, gitReposCounts)"
               />
             </template>
             <template #cell:bundlesReady="{row}">
@@ -424,19 +410,19 @@ export default {
               <CompoundStatusBadge
                 v-else
                 data-testid="bundles-ready"
-                :tooltip-text="getTooltipInfo('bundles', row)"
-                :badge-class="getStatusInfo('bundles', row).badgeClass"
-                :icon="getStatusInfo('bundles', row).icon"
-                :value="getBadgeValue('bundles', row)"
+                :tooltip-text="getTooltipInfo('bundles', row, gitReposCounts)"
+                :badge-class="getStatusInfo('bundles', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('bundles', row, gitReposCounts).icon"
+                :value="getBadgeValue('bundles', row, gitReposCounts)"
               />
             </template>
             <template #cell:resourcesReady="{row}">
               <CompoundStatusBadge
                 data-testid="resources-ready"
-                :tooltip-text="getTooltipInfo('resources', row)"
-                :badge-class="getStatusInfo('resources', row).badgeClass"
-                :icon="getStatusInfo('resources', row).icon"
-                :value="getBadgeValue('resources', row)"
+                :tooltip-text="getTooltipInfo('resources', row, gitReposCounts)"
+                :badge-class="getStatusInfo('resources', row, gitReposCounts).badgeClass"
+                :icon="getStatusInfo('resources', row, gitReposCounts).icon"
+                :value="getBadgeValue('resources', row, gitReposCounts)"
               />
             </template>
 
