@@ -45,6 +45,8 @@ const applyShow = () => {
     :shown="isMenuOpen"
     :auto-hide="false"
     :container="popperContainer"
+    :placement="'bottom-end'"
+    :distance="16"
     @apply-show="applyShow"
   >
     <slot name="default">
