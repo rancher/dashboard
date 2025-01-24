@@ -115,7 +115,7 @@ export default {
     }
 
     if (plSetting.value?.length && plSetting.value !== getVendor()) {
-      setVendor(plSetting.value);
+      setVendor(plSetting.value, this.$plugin);
     }
 
     const productName = plSetting.default;

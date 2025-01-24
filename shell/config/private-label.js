@@ -1,5 +1,6 @@
 import { SETTING } from './settings';
 import { CURRENT_RANCHER_VERSION } from './version';
+import { getSettingFromExtension } from '@shell/utils/settings';
 
 export const ANY = 0;
 export const STANDARD = 1;
@@ -22,8 +23,18 @@ export function setMode(m) {
   mode = m;
 }
 
-export function setVendor(v) {
+export function setVendor(v, $plugin) {
   vendor = v;
+
+  // Check to see if the private label is set from an extension
+  if ($plugin) {
+    const pl = getSettingFromExtension('pl', $plugin);
+
+    if (pl?.value) {
+      vendor = pl.value;
+    }
+  }
+
   setTitle();
 }
 

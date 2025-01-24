@@ -19,6 +19,46 @@ export interface PackageMetadata {
 //   children: Route[];
 // }
 
+export enum RegistrationType {
+  // Used to register a setting
+  SETTING = 'setting', // eslint-disable-line no-unused-vars
+
+  // USed to register an image
+  IMAGE = 'image', // eslint-disable-line no-unused-vars
+}
+
+export enum Settings {
+  // Used to set the brand setting
+  BRAND = 'brand' // eslint-disable-line no-unused-vars
+}
+
+export interface Setting {
+  name: string;
+  value: string;
+  override: boolean;
+}
+
+export type BrandTheme = {
+  colors?: {
+    primary?: string; // Primary color
+    link?: string; // Link color
+  },
+  images?: {
+    logo?: string; // Logo image
+    banner?: string; // Banner shown on the home page
+    errorBanner?: string; // Banner shown on the error page
+    login?: string; // Graphic shown on the login and setup screens
+  }
+}
+
+// Brand consists of a name, a light theme and an optional dark theme
+export type Brand = {
+  name: string;
+  lightTheme: BrandTheme;
+  darkTheme?: BrandTheme;
+  favicon?: string; // Icon to be used for thw UI in the browser
+}
+
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
@@ -479,6 +519,18 @@ export interface DSLReturnType {
 }
 
 /**
+ * Interface for Extensions manager
+ */
+export interface IExtensions {
+  /**
+   * Lookup the given extension type
+   * @param type Type to lookup (e.g. image)
+   * @param name Name of the extension point
+   */
+  getDynamic(type: string, name: string): any;
+}
+
+/**
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
@@ -546,6 +598,22 @@ export interface IPlugin {
    * @param component Home page component
    */
   setHomePage(component: any): void;
+
+  /**
+   * Sets the given setting to use in the UI
+   *
+   * @param name Setting name
+   * @param value Setting value
+   * @param override Indicates if the setting should override a setting from the backend (via the resource)
+   */
+  setSetting(name: string, value: string, override?: boolean): void;
+
+  /**
+   * Sets an image override to use in the UI
+   * @param path Path of the image to set
+   * @param image Function that resolves the image (e.g. via a require)
+   */
+  setImage(path: string, image: Function): void;
 
   /**
    * Add routes to the Vue Router

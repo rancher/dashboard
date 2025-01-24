@@ -201,7 +201,7 @@ export default {
       }
 
       if (plSetting.value?.length && plSetting.value !== getVendor()) {
-        setVendor(plSetting.value);
+        setVendor(plSetting.value, this.$plugin);
       }
 
       if (brand?.value?.length && brand.value !== getBrand()) {
