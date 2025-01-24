@@ -11,6 +11,10 @@ export default {
     mode: {
       type:    String,
       default: ''
+    },
+    showIcon: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -89,7 +93,10 @@ export default {
             class="locale-chooser"
           >
             {{ selectedLocaleLabel }}
-            <i class="icon icon-fw icon-sort-down" />
+            <i
+              v-if="showIcon"
+              class="icon icon-fw icon-sort-down"
+            />
           </a>
           <template #popper>
             <ul

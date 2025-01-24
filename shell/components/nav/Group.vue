@@ -211,26 +211,40 @@ export default {
       v-if="showHeader"
       class="header"
       :class="{'active': isOverview, 'noHover': !canCollapse}"
+      role="button"
+      tabindex="0"
+      :aria-label="group.labelDisplay || group.label || ''"
       @click="groupSelected()"
+      @keyup.enter="groupSelected()"
+      @keyup.space="groupSelected()"
     >
       <slot name="header">
         <router-link
           v-if="hasOverview"
           :to="group.children[0].route"
           :exact="group.children[0].exact"
+          :tabindex="-1"
         >
-          <h6 v-clean-html="group.labelDisplay || group.label" />
+          <h6>
+            <span v-clean-html="group.labelDisplay || group.label" />
+          </h6>
         </router-link>
         <h6
           v-else
-          v-clean-html="group.labelDisplay || group.label"
-        />
+        >
+          <span v-clean-html="group.labelDisplay || group.label" />
+        </h6>
       </slot>
       <i
         v-if="!onlyHasOverview && canCollapse"
-        class="icon toggle"
+        class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
+        role="button"
+        tabindex="0"
+        :aria-label="t('nav.ariaLabel.collapseExpand')"
         @click="peek($event, true)"
+        @keyup.enter="peek($event, true)"
+        @keyup.space="peek($event, true)"
       />
     </div>
     <ul
@@ -288,6 +302,7 @@ export default {
     cursor: pointer;
     color: var(--body-text);
     height: 33px;
+    outline: none;
 
     H6 {
       color: var(--body-text);
@@ -315,6 +330,17 @@ export default {
 
   .accordion {
     .header {
+      &:focus-visible {
+        h6 span {
+          @include focus-outline;
+          outline-offset: 2px;
+        }
+      }
+      .toggle-accordion:focus-visible {
+        @include focus-outline;
+        outline-offset: -6px;
+      }
+
       &.active {
         color: var(--primary-hover-text);
         background-color: var(--primary-hover-bg);
