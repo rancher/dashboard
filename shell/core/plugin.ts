@@ -190,6 +190,7 @@ export class Plugin implements IPlugin {
 
   /**
    * Adds a model extension
+   * @experimental May change or be removed in the future
    *
    * @param type Model type
    * @param clz  Class for the model extension (constructor)
