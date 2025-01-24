@@ -10,9 +10,21 @@ import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/vali
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
-export type Validator<T = undefined | string> = (val: any, arg?: any) => T;
 
-export type ValidatorFactory = (arg1: any, arg2?: any) => Validator
+/**
+ * Fixed validation rule which require only the value to be evaluated
+ * @param value
+ * @returns { string | undefined }
+ */
+export type Validator<T = undefined | string> = (value: any, arg?: any) => T;
+
+/**
+ * Factory function which returns a validation rule
+ * @param arg Argument used as part of the validation rule process, not necessarily as parameter of the validation rule
+ * @param value Value to be evaluated
+ * @returns { Validator }
+ */
+export type ValidatorFactory = (arg: any, value?: any) => Validator
 
 type ServicePort = {
   name?: string,
