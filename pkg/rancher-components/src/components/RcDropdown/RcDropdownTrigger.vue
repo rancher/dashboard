@@ -1,22 +1,7 @@
 <script setup lang="ts">
 import { inject, onMounted, ref, Ref } from 'vue';
 import { RcButton, RcButtonType } from '@components/RcButton';
-
-type DropdownContext = {
-  handleKeydown: () => void;
-  showMenu: (show: boolean) => void;
-  registerTrigger: (triggerRef: RcButtonType | null) => void;
-  focusFirstElement: () => void;
-  isMenuOpen: Ref<boolean>;
-}
-
-const defaultContext: DropdownContext = {
-  handleKeydown:     () => null,
-  showMenu:          (_show: boolean | null) => null,
-  registerTrigger:   (_triggerRef: RcButtonType | null) => null,
-  focusFirstElement: () => null,
-  isMenuOpen:        ref(false),
-};
+import { DropdownContext, defaultContext } from './RcDropdown'
 
 const {
   handleKeydown,

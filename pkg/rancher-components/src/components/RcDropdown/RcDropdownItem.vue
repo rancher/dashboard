@@ -1,23 +1,11 @@
 <script setup lang="ts">
 import { inject, Ref, ref } from 'vue';
+import { DropdownCollection, defaultCollection, DropdownContext, defaultContext } from './RcDropdown'
 
 const props = defineProps({ disabled: Boolean });
 const emits = defineEmits(['click']);
 
-type DropdownCollection = {
-  dropdownItems: Ref<Element[]>;
-};
-
-const defaultCollection: DropdownCollection = { dropdownItems: ref([]) };
-
 const { dropdownItems } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
-
-type DropdownContext = {
-  close: () => void;
-}
-
-const defaultContext: DropdownContext = { close: () => null };
-
 const { close } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const handleKeydown = (e: KeyboardEvent) => {
