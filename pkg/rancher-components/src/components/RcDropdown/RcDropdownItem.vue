@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject } from 'vue';
-import { DropdownCollection, defaultCollection, DropdownContext, defaultContext } from './RcDropdown'
+import { DropdownCollection, defaultCollection, DropdownContext, defaultContext } from './types';
 
 const props = defineProps({ disabled: Boolean });
 const emits = defineEmits(['click']);

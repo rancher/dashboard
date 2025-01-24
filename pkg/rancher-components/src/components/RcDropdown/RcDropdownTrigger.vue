@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, onMounted, useTemplateRef } from 'vue';
 import { RcButton } from '@components/RcButton';
-import { DropdownContext, defaultContext } from './RcDropdown'
+import { DropdownContext, defaultContext } from './types';
 
 const {
   handleKeydown,
