@@ -55,10 +55,6 @@ const DOC_REPLACEMENTS = [
     to:   'https://documentation.suse.com/cloudnative/rancher-manager/$V$/en/observability/monitoring-and-dashboards/monitoring-and-dashboards.html',
   },
   {
-    from: 'https://ranchermanager.docs.rancher.com/$V$/faq/telemetry',
-    to:   'https://documentation.suse.com/cloudnative/rancher-manager/$V$/en/faq/telemetry.html'
-  },
-  {
     from: 'https://ranchermanager.docs.rancher.com/$V$/reference-guides/cluster-configuration/rancher-server-configuration/aks-cluster-configuration#support-private-kubernetes-service',
     to:   'https://documentation.suse.com/cloudnative/rancher-manager/$V$/en/cluster-deployment/hosted-kubernetes/aks/configuration.html#_support_private_kubernetes_service'
   },
@@ -77,6 +73,10 @@ const DOC_REPLACEMENTS = [
   {
     from: 'https://docs.k3s.io/installation/private-registry',
     to:   'https://documentation.suse.com/cloudnative/k3s/latest/en/installation/private-registry.html'
+  },
+  {
+    from: 'https://docs.rke2.io/install/private_registry',
+    to:   'https://documentation.suse.com/cloudnative/rke2/latest/en/install/containerd_registry_configuration.html'
   },
   {
     from: 'https://docs.harvesterhci.io/',
