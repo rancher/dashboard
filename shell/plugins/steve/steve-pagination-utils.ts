@@ -432,7 +432,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const exactPartial = field.exact ? `'${ field.value }'` : field.value;
+              const value = encodeURIComponent(field.value);
+              const exactPartial = field.exact ? `'${ value }'` : value;
 
               return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
             }
