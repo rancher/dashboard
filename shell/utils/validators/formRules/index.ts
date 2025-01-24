@@ -7,6 +7,7 @@ import isUrl from 'is-url';
 import cronstrue from 'cronstrue';
 import { Translation } from '@shell/types/t';
 import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/validators/setting';
+import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
 export type Validator<T = undefined | string> = (val: any, arg?: any) => T;
@@ -131,9 +132,9 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const cronSchedule: Validator = (val: string) => {
     try {
-      cronstrue.toString(val, { verbose: true });
+      cronScheduleRule.validation(val);
     } catch (e) {
-      return t('validation.invalidCron');
+      return t(cronScheduleRule.message);
     }
   };
 
