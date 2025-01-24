@@ -242,21 +242,31 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.chart.metadata.name' }
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
-      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
-      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
-      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
     ],
     [WORKLOAD_TYPES.JOB]: [
-      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
-      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` }
-    ]
-
+      { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
+    ],
+    [WORKLOAD_TYPES.REPLICA_SET]: [
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
+    ],
+    [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
+      // { field: 'spec.template.spec.containers.image' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
+    ],
   }
 
   private convertArrayPath(path: string): string {
