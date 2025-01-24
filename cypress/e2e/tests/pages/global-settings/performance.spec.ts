@@ -144,11 +144,17 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.garbageCollectionCheckbox().isUnchecked();
     performancePage.garbageCollectionCheckbox().set();
     performancePage.garbageCollectionCheckbox().isChecked();
+    // testing https://github.com/rancher/dashboard/issues/11856
+    performancePage.garbageCollectionResourceCount().set('600');
     performancePage.applyAndWait('garbageCollection-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":true');
       expect(response?.body).to.have.property('value').contains('\"garbageCollection\":{\"enabled\":true');
+      expect(response?.body).to.have.property('value').contains('\"countThreshold\":600');
     });
+
+    // check elements value property
+    performancePage.garbageCollectionResourceCount().shouldHaveValue('600');
 
     // Disable garbage collection
     performancePage.garbageCollectionCheckbox().isChecked();
