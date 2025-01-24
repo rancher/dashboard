@@ -99,7 +99,7 @@ export default function(context, inject, vueApp) {
 
           removed.then(() => {
             element.onload = () => {
-              if (!window[id]) {
+              if (!window[id] || (typeof window[id].default !== 'function')) {
                 return reject(new Error('Could not load plugin code'));
               }
 
@@ -113,7 +113,13 @@ export default function(context, inject, vueApp) {
               plugins[id] = plugin;
 
               // Initialize the plugin
-              window[id].default(plugin, this.internal());
+              try {
+                window[id].default(plugin, this.internal());
+              } catch (e) {
+                delete plugins[id];
+
+                return reject(new Error('Could not initialize plugin'));
+              }
 
               // Uninstall existing plugin if there is one
               this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
