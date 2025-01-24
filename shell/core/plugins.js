@@ -4,12 +4,7 @@ import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
-
-// Registration IDs used for different extension points in the extensions catalog
-export const EXT_IDS = {
-  MODELS:          'models',
-  MODEL_EXTENSION: 'model-extension',
-};
+import { EXT_IDS } from '@shell/core/plugin';
 
 export default function(context, inject, vueApp) {
   const {

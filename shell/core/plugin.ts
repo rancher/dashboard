@@ -17,7 +17,12 @@ import {
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
-import { EXT_IDS } from '@shell/core/plugins';
+
+// Registration IDs used for different extension points in the extensions catalog
+export const EXT_IDS = {
+  MODELS:          'models',
+  MODEL_EXTENSION: 'model-extension',
+};
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 

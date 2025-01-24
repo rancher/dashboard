@@ -2,7 +2,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
-import { EXT_IDS } from '@shell/core/plugins';
+import { EXT_IDS } from '@shell/core/plugin';
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
