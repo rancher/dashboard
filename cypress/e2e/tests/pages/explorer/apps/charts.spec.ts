@@ -151,7 +151,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
         statusCode: 200,
         body:       {
           data: [
-            { id: 'disabled-repo', spec: { enabled: false } }, // disabled
+            { id: disabledRepoId, spec: { enabled: false } }, // disabled
             { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
             { id: 'enabled-repo-2', spec: {} } // enabled
           ]
