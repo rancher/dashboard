@@ -1,29 +1,32 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import DropdownMenuPo from '@/cypress/e2e/po/components/dropdown-menu.po';
 
 export default class PageActionsPo extends ComponentPo {
+  private dropdownMenu: DropdownMenuPo;
   constructor() {
     super('#page-actions');
+    this.dropdownMenu = new DropdownMenuPo('[data-testid="page-actions-menu"]');
   }
 
   /**
    * Open page actions
    * @returns {Cypress.Chainable}
    */
-  static open(): Cypress.Chainable {
-    return cy.getId('page-actions-menu').should('be.visible').click();
+  open(): Cypress.Chainable {
+    return this.dropdownMenu.open();
   }
 
   /**
    * Check if page actions menu is open
    */
-  static checkOpen() {
+  public checkOpen() {
     this.pageActionsMenu().should('exist');
   }
 
   /**
    * Check if page actions menu is closed
    */
-  static checkClosed() {
+  public checkClosed() {
     this.pageActionsMenu().should('not.exist');
   }
 
@@ -31,8 +34,8 @@ export default class PageActionsPo extends ComponentPo {
    * Get page actions menu
    * @returns {Cypress.Chainable}
    */
-  private static pageActionsMenu(): Cypress.Chainable {
-    return cy.get('body').find('[dropdown-menu-collection]');
+  private pageActionsMenu(): Cypress.Chainable {
+    return this.dropdownMenu.getContainer();
   }
 
   /**
@@ -40,9 +43,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   links(): Cypress.Chainable {
-    return PageActionsPo.open().then(() => {
-      PageActionsPo.pageActionsMenu().find('[dropdown-menu-item]');
-    });
+    return this.dropdownMenu.getItems();
   }
 
   /**

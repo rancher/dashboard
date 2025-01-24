@@ -1,11 +1,14 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import DropdownMenuPo from '@/cypress/e2e/po/components/dropdown-menu.po';
 
 /**
  * Container PO for the user avatar v-popover
  */
 export default class UserMenuPo extends ComponentPo {
+  private dropdownMenu: DropdownMenuPo;
   constructor() {
     super('[data-testid="nav_header_showUserMenu"]');
+    this.dropdownMenu = new DropdownMenuPo('[data-testid="nav_header_showUserMenu"]');
   }
 
   /**
@@ -17,14 +20,14 @@ export default class UserMenuPo extends ComponentPo {
    *
    */
   private userMenuContainer() {
-    return cy.get('body').find('[dropdown-menu-collection]');
+    return this.dropdownMenu.getContainer();
   }
 
   /**
    * Open the user menu
    */
   open(): Cypress.Chainable {
-    return cy.getId('nav_header_showUserMenu').should('be.visible').click();
+    return this.dropdownMenu.open();
   }
 
   /**
@@ -74,7 +77,7 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   getMenuItems(): Cypress.Chainable {
-    return this.userMenuContainer().find('[dropdown-menu-item]').should('be.visible').and('have.length', 3);
+    return this.dropdownMenu.getItems().should('be.visible').and('have.length', 3);
   }
 
   /**
