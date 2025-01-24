@@ -29,11 +29,11 @@ export default {
   },
 
   async fetch() {
-    const clusterId = this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
+    const managementClusterId = this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
     const hash = await allHash({
       rancherCluster: this.$store.dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
-        id:   clusterId
+        id:   managementClusterId
       }),
       repos:             this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
@@ -53,7 +53,7 @@ export default {
       return this.value.bundleDeployments;
     },
     clusterId() {
-      return this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
+      return this.value.id;
     },
 
     repos() {

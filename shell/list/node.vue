@@ -1,5 +1,5 @@
 <script lang="ts">
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import Tag from '@shell/components/Tag.vue';
 import { Banner } from '@components/Banner';
 import { PODS } from '@shell/config/table-headers';
@@ -19,6 +19,7 @@ import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 import { mapGetters } from 'vuex';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 
 export default defineComponent({
   name: 'ListNode',
@@ -185,19 +186,25 @@ export default defineComponent({
       row['displayLabels'] = !row.displayLabels;
     },
 
-    fetchSecondaryResources(): { [key: string]: Promise<any>} {
-      const hash: { [key: string]: Promise<any>} = {};
+    /**
+     * of type PagTableFetchSecondaryResources
+     */
+    async fetchSecondaryResources({ canPaginate }: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
+      if (canPaginate) {
+        return;
+      }
+      const promises = [];
 
       if (this.canViewMgmtNodes) {
-        hash.mgmtNodes = this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.NODE });
+        promises.push(this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.NODE }));
       }
 
       if (this.canViewNormanNodes) {
-        hash.normanNodes = this.$store.dispatch(`rancher/findAll`, { type: NORMAN.NODE });
+        promises.push(this.$store.dispatch(`rancher/findAll`, { type: NORMAN.NODE }));
       }
 
       if (this.canViewMachines) {
-        hash.machines = this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE });
+        promises.push(this.$store.dispatch(`management/findAll`, { type: CAPI.MACHINE }));
       }
 
       if (this.canViewPods) {
@@ -205,7 +212,7 @@ export default defineComponent({
         this.$store.dispatch(`cluster/findAll`, { type: POD });
       }
 
-      return hash;
+      await Promise.all(promises);
     },
 
     /**
@@ -215,7 +222,7 @@ export default defineComponent({
      *
      * So when we have a page.... use those entries as filters when fetching the other resources
      */
-    async fetchPageSecondaryResources({ canPaginate, force, page }: FetchPageSecondaryResourcesOpts) {
+    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!page?.length) {
         return;
       }

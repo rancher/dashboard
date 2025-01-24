@@ -24,18 +24,23 @@ export default {
 </script>
 
 <template>
-  <div class="config-badge">
+  <div
+    class="config-badge"
+  >
     <div>
-      <a
+      <button
         class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
+        role="button"
+        tabindex="0"
         @click="customBadgeDialog"
+        @keyup.space="customBadgeDialog"
       >
         <i
           v-clean-tooltip="tooltip"
           class="icon icon-brush-icon"
         />
-      </a>
+      </button>
     </div>
   </div>
 </template>
@@ -54,10 +59,6 @@ export default {
 
     > I {
       line-height: inherit;
-    }
-
-    &:focus {
-      outline: 0;
     }
   }
 

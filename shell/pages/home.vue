@@ -4,7 +4,7 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
@@ -28,6 +28,7 @@ import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 
 export default defineComponent({
   name:       'Home',
@@ -238,9 +239,9 @@ export default defineComponent({
 
   methods: {
     /**
-     * Of type FetchSecondaryResources
+     * Of type PagTableFetchSecondaryResources
      */
-    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): Promise<any> {
+    fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       if (opts.canPaginate) {
         return Promise.resolve({});
       }
@@ -271,7 +272,7 @@ export default defineComponent({
 
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
-    }: FetchPageSecondaryResourcesOpts) {
+    }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!canPaginate || !page?.length) {
         this.clusterCount = 0;
 

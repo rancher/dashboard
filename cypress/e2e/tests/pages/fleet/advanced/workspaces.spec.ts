@@ -18,7 +18,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     let initialCount: number;
 
     it('check table headers are available in list and details view', () => {
-      FleetWorkspaceListPagePo.navTo();
+      fleetWorkspacesPage.goTo();
       fleetWorkspacesPage.waitForPage();
       fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
       fleetWorkspacesPage.sortableTable().filter(defaultWorkspace);

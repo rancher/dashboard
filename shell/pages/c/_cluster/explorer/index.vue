@@ -641,12 +641,14 @@ export default {
       <div data-testid="clusterProvider__label">
         <label>{{ t('glance.provider') }}: </label>
         <span v-if="isHarvesterCluster">
-          <a
+          <button
+            class="btn role-link harvester-cluster-link"
             role="button"
+            :aria-label="displayProvider"
             @click="goToHarvesterCluster"
           >
             {{ displayProvider }}
-          </a>
+          </button>
         </span>
         <span v-else>
           {{ displayProvider }}
@@ -682,6 +684,8 @@ export default {
         <router-link
           :to="{name: 'c-cluster-explorer-tools'}"
           class="cluster-tools-link"
+          role="link"
+          :aria-label="t('nav.clusterTools')"
         >
           <span>{{ t('nav.clusterTools') }}</span>
         </router-link>
@@ -871,6 +875,13 @@ export default {
   grid-row-gap: 20px;
 }
 
+.harvester-cluster-link {
+  line-height: inherit;
+  min-height: inherit;
+  padding: 0;
+  vertical-align: bottom;
+}
+
 @media only screen and (max-width: map-get($breakpoints, "--viewport-9")) {
   .extension-card-container {
     grid-template-columns: 1fr !important;
@@ -934,10 +945,6 @@ export default {
   > I {
     line-height: inherit;
     margin-right: 4px;
-  }
-
-  &:focus {
-    outline: 0;
   }
 }
 

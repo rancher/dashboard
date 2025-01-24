@@ -1,11 +1,6 @@
-import { DefineComponent } from 'vue'
+export {}
 
-declare module '*.vue' {
-  const component: DefineComponent<{}, {}, any>
-  export default component
-}
-
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   interface ComponentCustomProperties {
     /**
      * Lookup a given string with the given arguments

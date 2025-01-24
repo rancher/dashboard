@@ -1,7 +1,8 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { filterBy } from '@shell/utils/array';
+import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+
 import { PVC, STORAGE_CLASS } from '@shell/config/types';
 import Question from './Question';
 
@@ -14,7 +15,7 @@ const LEGACY_MAP = {
 export default {
   emits: ['update:value'],
 
-  components: { LabeledInput, LabeledSelect },
+  components: { LabeledInput, ResourceLabeledSelect },
   mixins:     [Question],
 
   props: {
@@ -27,12 +28,6 @@ export default {
       type:    String,
       default: null,
     },
-  },
-
-  async fetch() {
-    if ( this.typeSchema ) {
-      this.all = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.typeName });
-    }
   },
 
   data() {
@@ -57,29 +52,61 @@ export default {
     return {
       typeName,
       typeSchema,
-      all: [],
+      all:                 [],
+      allResourceSettings: {
+        updateResources: (all) => {
+          // Filter to only include required namespaced resources
+          const resources = this.isNamespaced ? all.filter((r) => r.metadata.namespace === this.targetNamespace) : all;
+
+          return this.mapResourcesToOptions(resources);
+        }
+      },
+      paginateResourceSetting: {
+        updateResources: (resources) => {
+          return this.mapResourcesToOptions(resources);
+        },
+        /**
+          * of type PaginateTypeOverridesFn
+          * @param [LabelSelectPaginationFunctionOptions] opts
+          * @returns LabelSelectPaginationFunctionOptions
+         */
+        requestSettings: (opts) => {
+          // Filter to only include required namespaced resources
+          const filters = this.isNamespaced ? [
+            PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: this.targetNamespace }),
+          ] : [];
+
+          return {
+            ...opts,
+            filters,
+            groupByNamespace: false,
+            classify:         true,
+          };
+        }
+      },
     };
+  },
+
+  methods: {
+    mapResourcesToOptions(resources) {
+      return resources.map((r) => {
+        if (r.id) {
+          return {
+            label: r.nameDisplay || r.metadata.name,
+            value: r.metadata.name
+          };
+        } else {
+          return r;
+        }
+      });
+    },
+
   },
 
   computed: {
     isNamespaced() {
       return !!this.typeSchema?.attributes?.namespaced;
     },
-
-    options() {
-      let out = this.all;
-
-      if ( this.isNamespaced ) {
-        out = filterBy(this.all, 'metadata.namespace', this.targetNamespace);
-      }
-
-      return out.map((x) => {
-        return {
-          label: x.nameDisplay || x.metadata.name,
-          value: x.metadata.name
-        };
-      });
-    }
   },
 };
 </script>
@@ -90,15 +117,17 @@ export default {
     class="row"
   >
     <div class="col span-6">
-      <LabeledSelect
-        :mode="mode"
-        :options="options"
+      <ResourceLabeledSelect
+        :resource-type="typeName"
+        :in-store="inStore"
         :disabled="$fetchState.pending || disabled"
         :label="displayLabel"
         :placeholder="question.description"
         :required="question.required"
         :value="value"
         :tooltip="displayTooltip"
+        :paginated-resource-settings="paginateResourceSetting"
+        :all-resources-settings="allResourceSettings"
         @update:value="!$fetchState.pending && $emit('update:value', $event)"
       />
     </div>

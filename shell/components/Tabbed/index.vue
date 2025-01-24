@@ -258,7 +258,6 @@ export default {
       role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
-      tabindex="0"
       data-testid="tabbed-block"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -277,8 +276,12 @@ export default {
           :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
+          :aria-label="tab.labelDisplay"
           role="tab"
+          tabindex="0"
           @click.prevent="select(tab.name, $event)"
+          @keyup.enter="select(tab.name, $event)"
+          @keyup.space="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
           <span
@@ -399,6 +402,14 @@ export default {
 
       &:hover {
         text-decoration: none;
+        span {
+          text-decoration: underline;
+        }
+      }
+
+      &:focus-visible {
+        @include focus-outline;
+
         span {
           text-decoration: underline;
         }

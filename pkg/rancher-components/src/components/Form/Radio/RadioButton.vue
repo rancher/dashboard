@@ -243,14 +243,8 @@ $fontColor: var(--input-label);
     min-width: 14px;
     background-color: var(--input-bg);
     border-radius: 50%;
-    transition: all 0.3s ease-out;
     border: 1.5px solid var(--border);
     margin-top: 5px;
-
-    &:focus {
-      outline: none;
-      border-radius: 50%;
-    }
   }
 
   input {
