@@ -27,22 +27,6 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-  it('"cronSchedule" : returns undefined when valid cron string value supplied', () => {
-    const testValue = '0 * * * *';
-    const formRuleResult = formRules.cronSchedule(testValue);
-
-    expect(formRuleResult).toBeUndefined();
-  });
-
-  it('"cronSchedule" : returns the correct message when invalid cron string value supplied', () => {
-    // specific logic of what constitutes a cron string is in the "cronstrue" function in an external library and not tested here
-    const testValue = '0 * * **';
-    const formRuleResult = formRules.cronSchedule(testValue);
-    const expectedResult = JSON.stringify({ message: 'validation.invalidCron' });
-
-    expect(formRuleResult).toStrictEqual(expectedResult);
-  });
-
   it('"https" : returns undefined when valid https url value is supplied', () => {
     const testValue = 'https://url.com';
     const formRuleResult = formRules.https(testValue);
@@ -1112,6 +1096,14 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+
+  /**
+   * Test all factory validators
+   * @param rule - the name of the factory validator
+   * @param argument - the value to validate
+   * @param correctValues - an array of values that should pass the validation
+   * @param wrongValues - an array of values that should fail the validation
+   */
   describe.each([
     ['minValue', 2, [3], [1]],
     ['maxValue', 256, [1], [300]],
@@ -1133,12 +1125,18 @@ describe('formRules', () => {
     });
   });
 
+  /**
+   * Test all standard validators
+   * @param rule - the name of the standard validator
+   * @param correctValues - an array of values that should pass the validation
+   * @param wrongValues - an array of values that should fail the validation
+   */
   describe.each([
     ['requiredInt', [2, 2.2], ['e']],
     ['isInteger', ['2', 2, 0], [2.2, 'e', '1.0']],
     ['isPositive', ['0', 1], [-1]],
     ['isOctal', ['0', 0, 10], ['01']],
-
+    ['cronSchedule', ['0 * * * *', '@daily'], ['0 * * **']],
   ])('given validator %p', (rule, correctValues, wrongValues) => {
     it.each(wrongValues as [])('should return error for value %p', (wrong) => {
       const formRuleResult = (formRules as any)[rule](wrong);
