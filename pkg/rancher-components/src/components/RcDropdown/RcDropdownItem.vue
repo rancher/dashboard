@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, Ref, ref } from 'vue';
+import { inject } from 'vue';
 import { DropdownCollection, defaultCollection, DropdownContext, defaultContext } from './RcDropdown'
 
 const props = defineProps({ disabled: Boolean });
