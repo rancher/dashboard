@@ -673,17 +673,19 @@ export default {
             />
           </rc-dropdown-trigger>
           <template #dropdownCollection>
-            <div class="user-info">
-              <div class="user-name">
-                <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+            <template v-if="authEnabled">
+              <div class="user-info">
+                <div class="user-name">
+                  <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+                </div>
+                <div class="text-small pt-5 pb-5">
+                  <template v-if="principal.loginName !== principal.name">
+                    {{ principal.name }}
+                  </template>
+                </div>
               </div>
-              <div class="text-small pt-5 pb-5">
-                <template v-if="principal.loginName !== principal.name">
-                  {{ principal.name }}
-                </template>
-              </div>
-            </div>
-            <rc-dropdown-separator />
+              <rc-dropdown-separator />
+            </template>
             <rc-dropdown-item
               v-if="showPreferencesLink"
               @click="$router.push({ name: 'prefs'})"
