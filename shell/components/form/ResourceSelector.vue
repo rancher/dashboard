@@ -36,6 +36,7 @@ export default {
   },
 
   async fetch() {
+    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
 
     this.allResources = hash.allResources;

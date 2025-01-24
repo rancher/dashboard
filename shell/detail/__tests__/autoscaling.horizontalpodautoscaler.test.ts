@@ -7,9 +7,18 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
       'i18n/t':                  (text: string) => text,
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
-      'current_store/schemaFor': jest.fn(),
-      'current_store/all':       jest.fn(),
-      workspace:                 jest.fn(),
+      'current_store/schemaFor': () => ({
+        attributes: {
+          columns: [
+            { name: 'Subobject', field: '' },
+            { name: 'Source', field: '' },
+            { name: 'First Seen', field: '' },
+            { name: 'Count', field: '' }]
+        }
+      }),
+      'current_store/all': jest.fn(),
+      workspace:           jest.fn(),
+      'i18n/exists':       jest.fn(),
     },
   };
 

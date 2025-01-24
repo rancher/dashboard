@@ -554,6 +554,7 @@ export default class Workload extends WorkloadService {
     if (podRelationship) {
       const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
 
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       return pods.filter((obj) => {
         return matches(obj, podRelationship.selector);
       });
@@ -594,6 +595,23 @@ export default class Workload extends WorkloadService {
     return (get(this, 'metadata.relationships') || []).filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB);
   }
 
+  /**
+   * Ensure the store has all matching jobs
+   */
+  async matchingJobs() {
+    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
+      return undefined;
+    }
+
+    // This will be 1 request per relationship, though there's not likely to be many per cron job
+    return Promise.all(this.jobRelationships.map((obj) => {
+      return this.$dispatch('find', { type: WORKLOAD_TYPES.JOB, id: obj.toId });
+    }));
+  }
+
+  /**
+   * Expects all required pods are fetched upfront
+   */
   get jobs() {
     if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
       return undefined;
@@ -643,12 +661,12 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
+    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     const all = await this.$dispatch('findAll', { type: POD });
     const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
 
     const selector = convertSelectorObj(this.spec.selector);
 
-    // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
     return matching(allInNamespace, selector);
   }
 
