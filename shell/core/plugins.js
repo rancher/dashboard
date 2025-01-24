@@ -5,7 +5,11 @@ import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 
-const MODEL_TYPE = 'models';
+// Registration IDs used for different extension points in the extensions catalog
+export const EXT_IDS = {
+  MODELS:          'models',
+  MODEL_EXTENSION: 'model-extension',
+};
 
 export default function(context, inject, vueApp) {
   const {
@@ -230,7 +234,7 @@ export default function(context, inject, vueApp) {
           Object.keys(plugin.types[typ]).forEach((name) => {
             this.unregister(typ, name);
 
-            if (typ === MODEL_TYPE) {
+            if (typ === EXT_IDS.MODELS) {
               clearModelCache(name);
             }
           });
@@ -302,7 +306,7 @@ export default function(context, inject, vueApp) {
         // Model extensions
         Object.keys(plugin.modelExtensions).forEach((name) => {
           plugin.modelExtensions[name].forEach((fn) => {
-            this.register('model-extension', name, instantiateModelExtension(this, fn));
+            this.register(EXT_IDS.MODEL_EXTENSION, name, instantiateModelExtension(this, fn));
           });
         });
 
@@ -340,7 +344,7 @@ export default function(context, inject, vueApp) {
         }
 
         // Accumulate l10n resources and model extensions rather than replace
-        if (type === 'l10n' || type === 'model-extension') {
+        if (type === 'l10n' || type === EXT_IDS.MODEL_EXTENSION) {
           if (!dynamic[type][name]) {
             dynamic[type][name] = [];
           }

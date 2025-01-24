@@ -409,6 +409,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get provisionerDisplay() {
+    // Allow a model extension to override the display of the provisioner
+    if (this.customProvisionerHelper?.provisionerDisplay) {
+      return this.customProvisionerHelper?.provisionerDisplay(this);
+    }
+
     let provisioner = (this.provisioner || '').toLowerCase();
 
     // RKE provisioner can actually do K3s too...

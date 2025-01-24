@@ -325,6 +325,14 @@ export interface IClusterModelExtension {
   machineProviderDisplay?(cluster: any): string;
 
   /**
+   * Get the display name for the provisioner for this model
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns Provisioner display name
+   */
+  provisionerDisplay?(cluster: any): string;
+
+  /**
    * Get the parent cluster for this cluster, or undefined if no parent cluster
    *
    * @param cluster The cluster model (`provisioning.cattle.io.cluster`)

@@ -17,6 +17,7 @@ import {
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
+import { EXT_IDS } from '@shell/core/plugins';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -194,7 +195,7 @@ export class Plugin implements IPlugin {
    * @param clz  Class for the model extension (constructor)
    */
   addModelExtension(type: string, clz: Function): void {
-    this.register('model-extension', type, clz);
+    this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
   }
 
   /**
@@ -330,7 +331,7 @@ export class Plugin implements IPlugin {
       this.l10n[name].push(fn);
 
     // Accumulate model extensions
-    } else if (type === 'model-extension') {
+    } else if (type === EXT_IDS.MODEL_EXTENSION) {
       if (!this.modelExtensions[name]) {
         this.modelExtensions[name] = [];
       }
