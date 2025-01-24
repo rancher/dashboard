@@ -568,11 +568,11 @@ export default {
             [privateField]: base64Encode(this.privateKey),
           };
 
-        // Add ssh known hosts data key - we will add a key with an empty value if the inout field was left blank
-        // This ensures on edit of the secret, we allow the user to edit the known_hosts field
-        if ((this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts) {
-          secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
-        }
+          // Add ssh known hosts data key - we will add a key with an empty value if the inout field was left blank
+          // This ensures on edit of the secret, we allow the user to edit the known_hosts field
+          if ((this.selected === AUTH_TYPE._SSH) && this.showSshKnownHosts) {
+            secret.data.known_hosts = base64Encode(this.sshKnownHosts || '');
+          }
         }
       }
 
