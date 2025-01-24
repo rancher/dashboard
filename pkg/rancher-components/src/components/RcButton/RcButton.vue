@@ -1,30 +1,23 @@
 <script setup lang="ts">
 import { computed, ref, defineExpose } from 'vue';
+import { ButtonRoleProps, ButtonSizeProps } from './types';
 
-type Props = {
-  primary?: boolean;
-  secondary?: boolean;
-  tertiary?: boolean;
-  link?: boolean;
-  small?: boolean;
-}
-
-const buttonRoles = [
+const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'primary', className: 'role-primary' },
   { role: 'secondary', className: 'role-secondary' },
   { role: 'tertiary', className: 'role-tertiary' },
   { role: 'link', className: 'role-link' },
 ];
 
-const buttonSizes = [
+const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
 ];
 
-const props = defineProps<Props>();
+const props = defineProps<ButtonRoleProps & ButtonSizeProps>();
 
 const buttonClass = computed(() => {
-  const activeRole = buttonRoles.find(({ role }) => props[role as keyof Props]);
-  const isButtonSmall = buttonSizes.some(({ size }) => props[size as keyof Props]);
+  const activeRole = buttonRoles.find(({ role }) => props[role]);
+  const isButtonSmall = buttonSizes.some(({ size }) => props[size]);
 
   return {
     btn: true,
