@@ -90,6 +90,7 @@
     "express": "4.17.1",
     "file-saver": "2.0.2",
     "floating-vue": "5.2.2",
+    "focus-trap": "7.6.2",
     "https": "1.0.0",
     "identicon.js": "2.3.3",
     "intl-messageformat": "7.8.4",
@@ -178,6 +179,7 @@
     "eslint-plugin-cypress": "2.12.1",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-vue": "9.10.0",
     "eslint": "7.32.0",
@@ -197,8 +199,7 @@
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18",
-    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules"
+    "yarn": "1.22.18"
   },
   "resolutions": {
     "html-webpack-plugin": "^5.0.0"
