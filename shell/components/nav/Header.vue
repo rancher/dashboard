@@ -653,9 +653,11 @@ export default {
 
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
-        <rc-dropdown :aria-label="t('nav.userMenu.label')">
+        <rc-dropdown 
+          v-if="showUserMenu"
+          :aria-label="t('nav.userMenu.label')"
+        >
           <rc-dropdown-trigger
-            v-if="showUserMenu"
             link
             small
             data-testid="nav_header_showUserMenu"
