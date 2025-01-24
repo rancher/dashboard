@@ -1,5 +1,10 @@
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 
+export const communityRepoRegexes = [
+  /^https:\/\/github\.com\/.*\/harvester-ui-extension+/g,
+  /^https:\/\/.*\.github\.io\/harvester-ui-extension+/g,
+];
+
 export const HARVESTER_CHART = {
   name:     'harvester',
   version:  '',
@@ -8,21 +13,13 @@ export const HARVESTER_CHART = {
 };
 
 export const HARVESTER_COMMUNITY_REPO = {
-  type:     'catalog.cattle.io.clusterrepo',
-  metadata: { name: 'harvester' },
-  spec:     {
-    clientSecret: null,
-    gitRepo:      'https://github.com/harvester/harvester-ui-extension',
-    gitBranch:    'gh-pages'
-  }
+  metadata:  { name: 'harvester' },
+  gitRepo:   'https://github.com/harvester/harvester-ui-extension',
+  gitBranch: 'gh-pages',
 };
 
 export const HARVESTER_RANCHER_REPO = {
-  type:     'catalog.cattle.io.clusterrepo',
-  metadata: { name: 'rancher' },
-  spec:     {
-    clientSecret: null,
-    gitRepo:      UI_PLUGINS_REPOS.OFFICIAL.URL,
-    gitBranch:    UI_PLUGINS_REPOS.OFFICIAL.BRANCH,
-  }
+  metadata:  { name: 'rancher' },
+  gitRepo:   UI_PLUGINS_REPOS.OFFICIAL.URL,
+  gitBranch: UI_PLUGINS_REPOS.OFFICIAL.BRANCH,
 };
