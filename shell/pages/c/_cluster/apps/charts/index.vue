@@ -455,6 +455,8 @@ export default {
           class="input-sm"
           :placeholder="t('catalog.charts.search')"
           data-testid="charts-filter-input"
+          :aria-label="t('catalog.charts.search')"
+          role="textbox"
         >
 
         <button
@@ -463,6 +465,8 @@ export default {
           @shortkey="focusSearch()"
         />
         <AsyncButton
+          role="button"
+          :aria-label="t('catalog.charts.refresh')"
           class="refresh-btn"
           mode="refresh"
           size="sm"
