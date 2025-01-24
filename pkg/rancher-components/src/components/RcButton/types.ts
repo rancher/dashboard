@@ -1,6 +1,6 @@
-export type RcButtonType = {
-  focus: () => void;
-}
+import { RcButton } from "@components/RcButton";
+
+export type RcButtonType = InstanceType<typeof RcButton>
 
 export type ButtonRoleProps = {
   primary?: boolean;
