@@ -1,6 +1,8 @@
-import { RcButton } from "@components/RcButton";
-
-export type RcButtonType = InstanceType<typeof RcButton>
+// TODO: 13211 Investigate why `InstanceType<typeof RcButton>` fails prod builds
+// export type RcButtonType = InstanceType<typeof RcButton>
+export type RcButtonType = {
+  focus: () => void;
+}
 
 export type ButtonRoleProps = {
   primary?: boolean;
