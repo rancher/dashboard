@@ -6386,15 +6386,10 @@ cron-validator@1.3.1:
   resolved "https://registry.yarnpkg.com/cron-validator/-/cron-validator-1.3.1.tgz#8f2fe430f92140df77f91178ae31fc1e3a48a20e"
   integrity sha512-C1HsxuPCY/5opR55G5/WNzyEGDWFVG+6GLrA+fW/sCTcP6A6NTjUP2AK7B8n2PyFs90kDG2qzwm8LMheADku6A==
 
-cronstrue@1.95.0:
-  version "1.95.0"
-  resolved "https://registry.npmjs.org/cronstrue/-/cronstrue-1.95.0.tgz#171df1fad8b0f0cb636354dd1d7842161c15478f"
-  integrity sha512-CdbQ17Z8Na2IdrK1SiD3zmXfE66KerQZ8/iApkGsxjmUVGJPS9M9oK4FZC3LM6ohUjjq3UeaSk+90Cf3QbXDfw==
-
-cronstrue@2.50.0:
-  version "2.50.0"
-  resolved "https://registry.yarnpkg.com/cronstrue/-/cronstrue-2.50.0.tgz#eabba0f915f186765258b707b7a3950c663b5573"
-  integrity sha512-ULYhWIonJzlScCCQrPUG5uMXzXxSixty4djud9SS37DoNxDdkeRocxzHuAo4ImRBUK+mAuU5X9TSwEDccnnuPg==
+cronstrue@2.53.0:
+  version "2.53.0"
+  resolved "https://registry.npmjs.org/cronstrue/-/cronstrue-2.53.0.tgz#5bbcd7483636b99379480f624faef5056f3efbd8"
+  integrity sha512-CkAcaI94xL8h6N7cGxgXfR5D7oV2yVtDzB9vMZP8tIgPyEv/oc/7nq9rlk7LMxvc3N+q6LKZmNLCVxJRpyEg8A==
 
 cross-env@7.0.3:
   version "7.0.3"
@@ -7862,6 +7857,7 @@ eslint-plugin-jest@24.4.0:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
+  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
