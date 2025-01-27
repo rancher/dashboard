@@ -239,15 +239,17 @@ export default {
       let installed = false;
 
       try {
-        if (!this.harvesterRepository) {
-          this.harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
+        let harvesterRepository = this.harvesterRepository;
+
+        if (!harvesterRepository) {
+          harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
         }
 
         /**
          * Server issue
          * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
          */
-        await refreshHelmRepository(this.$store, this.harvesterRepository.spec.gitRepo || this.harvesterRepository.spec.url);
+        await refreshHelmRepository(this.$store, harvesterRepository.spec.gitRepo || harvesterRepository.spec.url);
 
         this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
@@ -258,7 +260,7 @@ export default {
         }
 
         await installHelmChart(
-          this.harvesterRepository,
+          harvesterRepository,
           {
             ...HARVESTER_CHART,
             version: this.harvesterInstallVersion

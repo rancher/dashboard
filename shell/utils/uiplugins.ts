@@ -165,7 +165,7 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
  * @returns HelmRepository
  */
 export async function getHelmRepositoryExact(store: any, url: string): Promise<HelmRepository> {
-  return getHelmRepository(store, (repository: any) => {
+  return await getHelmRepository(store, (repository: any) => {
     const target = repository.spec?.gitRepo || repository.spec?.url;
 
     return target === url;
@@ -179,7 +179,7 @@ export async function getHelmRepositoryExact(store: any, url: string): Promise<H
  * @returns HelmRepository
  */
 export async function getHelmRepositoryMatch(store: any, urlRegexes: string[]): Promise<HelmRepository> {
-  return getHelmRepository(store, (repository: any) => {
+  return await getHelmRepository(store, (repository: any) => {
     const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
 
     return matchesSomeRegex(target, urlRegexes);
