@@ -479,6 +479,37 @@ export interface DSLReturnType {
 }
 
 /**
+ * Context for the constructor of a model extension
+ */
+export type ModelExtensionContext = {
+  /**
+   * Dispatch vuex actions
+   */
+  dispatch: any,
+  /**
+   * Get from vuex store
+   */
+  getters: any,
+  /**
+   * Used to make http requests
+   */
+  axios: any,
+  /**
+   * Definition of the extension
+   */
+  $plugin: any,
+  /**
+   * Function to retrieve a localised string
+   */
+  t: (key: string) => string,
+};
+
+/**
+ * Constructor signature for a model extension
+ */
+export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
+
+/**
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
@@ -613,31 +644,3 @@ export interface IPlugin {
 // Built-in extensions may use this, but external extensions should not, as this is subject to change
 // Defined as any for now
 export type IInternal = any;
-
-export type ModelExtensionContext = {
-  /**
-   * Dispatch vuex actions
-   */
-  dispatch: any,
-  /**
-   * Get from vuex store
-   */
-  getters: any,
-  /**
-   * Used to make http requests
-   */
-  axios: any,
-  /**
-   * Definition of the extension
-   */
-  $plugin: any,
-  /**
-   * Function to retrieve a localised string
-   */
-  t: (key: string) => string,
-};
-
-/**
- * Constructor signature for a model extension
- */
-export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
