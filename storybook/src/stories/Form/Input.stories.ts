@@ -92,3 +92,16 @@ export const ChronTypeDaily: Story = {
     value:      '@daily',
   },
 };
+
+export const MultilineType: Story = {
+  ...Default,
+  args: {
+    label: 'Period',
+    type:  'multiline',
+    value: `this
+is
+a
+multiline
+text`,
+  },
+};
