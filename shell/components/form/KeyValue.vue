@@ -521,9 +521,15 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        const splitter = this.parserSeparators.find((sep) => line.includes(sep));
+        const separatorIndex = line.search(new RegExp(this.parserSeparators.join('|')));
 
-        return splitter ? line.split(splitter) : '';
+        if (separatorIndex === -1) {
+          return null;
+        }
+        const key = line.substring(0, separatorIndex).trim();
+        const value = line.substring(separatorIndex + 1).trim();
+
+        return [key, value];
       }).filter((split) => split && split.length > 0);
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
