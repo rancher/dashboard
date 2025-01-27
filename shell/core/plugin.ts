@@ -13,10 +13,17 @@ import {
   LocationConfig,
   ExtensionPoint,
   TabLocation,
+  ModelExtensionConstructor,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
+
+// Registration IDs used for different extension points in the extensions catalog
+export const EXT_IDS = {
+  MODELS:          'models',
+  MODEL_EXTENSION: 'model-extension',
+};
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -25,6 +32,7 @@ export class Plugin implements IPlugin {
   public name: string;
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
+  public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
@@ -187,6 +195,17 @@ export class Plugin implements IPlugin {
   }
 
   /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void {
+    this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
+  }
+
+  /**
    * Wraps a component from an extensionConfig with defineAsyncComponent and
    * markRaw. This prepares the component to be loaded dynamically and prevents
    * Vue from making the component reactive.
@@ -317,10 +336,18 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
+
+    // Accumulate model extensions
+    } else if (type === EXT_IDS.MODEL_EXTENSION) {
+      if (!this.modelExtensions[name]) {
+        this.modelExtensions[name] = [];
+      }
+      this.modelExtensions[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};
       }
+
       this.types[type][name] = fn;
     }
   }
