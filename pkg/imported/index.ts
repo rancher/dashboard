@@ -13,7 +13,4 @@ export default function(plugin: IPlugin): void {
   // Register custom provisioner object
   plugin.register('provisioner', ImportedProvisioner.ID, ImportedProvisioner);
   plugin.register('provisioner', LocalProvisioner.ID, LocalProvisioner);
-
-  // Built-in icon
-  // plugin.metadata.icon = require('./icon.svg');
 }

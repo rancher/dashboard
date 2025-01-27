@@ -134,7 +134,7 @@ export default defineComponent({
     // If the cluster hasn't been fully imported yet, we won't have this information yet
     // and Basics should be hidden
     showBasics() {
-      return !this.config;
+      return !!this.config;
     }
   },
 
