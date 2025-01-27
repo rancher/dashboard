@@ -1,7 +1,11 @@
 /**
  * Store version data retrieved from the backend /rancherversion API
  */
-let _versionData = { RancherPrime: 'false' };
+let _versionData = {
+  Version:      '',
+  RancherPrime: 'false',
+  GitCommit:    '',
+};
 let _kubeVersionData = {};
 
 export function isRancherPrime() {

@@ -323,7 +323,7 @@ const getVirtualModules = (dir, includePkg) => {
 
         // Package file must have rancher field to be a plugin
         if (includePkg(name) && library.rancher) {
-          reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+          reqs += `$plugin.registerBuiltinExtension('${ name }', require(\'~/pkg/${ name }\')); `;
         }
       });
   }

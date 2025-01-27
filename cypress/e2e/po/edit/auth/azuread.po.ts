@@ -107,4 +107,8 @@ export default class AzureadPo extends PagePo {
   save() {
     return new AsyncButtonPo('[data-testid="form-save"]').click();
   }
+
+  permissionsWarningBanner() {
+    return this.self().get('[data-testid="auth-provider-admin-permissions-warning-banner"]');
+  }
 }
