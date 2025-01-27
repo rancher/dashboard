@@ -96,11 +96,6 @@ export default defineComponent({
       }
 
       return this.value?.k3sConfig?.k3supgradeStrategy;
-    },
-    // If the cluster hasn't been fully imported yet, we won't have this information yet
-    // and everything in this tab should be disabled
-    configMissing() {
-      return !!this.config;
     }
 
   },
@@ -119,7 +114,6 @@ export default defineComponent({
           label-key="cluster.kubernetesVersion.label"
           option-key="value"
           option-label="label"
-          :disabled="configMissing"
           :loading="loadingVersions"
           @update:value="$emit('kubernetes-version-changed', $event)"
         />
@@ -130,7 +124,6 @@ export default defineComponent({
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
-          :disabled="configMissing"
         />
       </div>
     </div>
@@ -138,7 +131,6 @@ export default defineComponent({
       <div class="col span-4 spacer">
         <Nodes
           :value="upgradeStrategy"
-          :disabled="configMissing"
           :mode="mode"
           :is-worker="false"
           :rules="{'concurrency': rules.controlPlaneConcurrency}"
@@ -149,7 +141,6 @@ export default defineComponent({
       <div class="col span-4 spacer">
         <Nodes
           :value="upgradeStrategy"
-          :disabled="configMissing"
           :mode="mode"
           :is-worker="true"
           :rules="{'concurrency': rules.workerConcurrency}"

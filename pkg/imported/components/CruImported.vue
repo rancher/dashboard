@@ -130,6 +130,11 @@ export default defineComponent({
 
     providerTabKey() {
       return this.isK3s ? this.t('imported.accordions.k3sOptions') : this.t('imported.accordions.rke2Options');
+    },
+    // If the cluster hasn't been fully imported yet, we won't have this information yet
+    // and Basics should be hidden
+    showBasics() {
+      return !this.config;
     }
   },
 
@@ -286,9 +291,10 @@ export default defineComponent({
         </div>
       </div>
       <Accordion
-        class="mb-20"
+        v-if="showBasics"
         :title="providerTabKey"
         :open-initially="true"
+        class="mb-20"
       >
         <Basics
           :value="normanCluster"
