@@ -68,37 +68,37 @@ export const Error: Story = {
 export const SubLabel: Story = {
   ...Default,
   args: {
-    label:      'Name',
-    subLabel:   'Additional information',
-    type:       'text',
-    value:      'Simon',
+    label:    'Name',
+    subLabel: 'Additional information',
+    type:     'text',
+    value:    'Simon',
   },
 };
 
 export const CronType: Story = {
   ...Default,
   args: {
-    label:      'Period',
-    type:       'cron',
-    value:      '0 * * * *',
+    label: 'Period',
+    type:  'cron',
+    value: '0 * * * *',
   },
 };
 
 export const CronTypeDaily: Story = {
   ...Default,
   args: {
-    label:      'Period',
-    type:       'cron',
-    value:      '@daily',
+    label: 'Period',
+    type:  'cron',
+    value: '@daily',
   },
 };
 
 export const CronTypeError: Story = {
   ...Default,
   args: {
-    label:      'Period',
-    type:       'cron',
-    value:      'not a cron expression',
+    label: 'Period',
+    type:  'cron',
+    value: 'not a cron expression',
   },
 };
 
