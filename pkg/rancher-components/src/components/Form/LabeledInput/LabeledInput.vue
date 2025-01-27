@@ -179,14 +179,28 @@ export default defineComponent({
       if (this.type !== 'cron' || !this.value) {
         return;
       }
+
+      // TODO - #13202: This is required due use of 2 libraries and 3 different libraries through the code.
+      const predefined = [
+        '@yearly',
+        '@annually',
+        '@monthly',
+        '@weekly',
+        '@daily',
+        '@midnight',
+        '@hourly'
+      ];
+      const isPredefined = predefined.includes(this.value as string);
+
       // refer https://github.com/GuillaumeRochat/cron-validator#readme
-      if (!isValidCron(this.value as string, {
+      if (!isPredefined && !isValidCron(this.value as string, {
         alias:              true,
         allowBlankDay:      true,
         allowSevenAsSunday: true,
       })) {
         return this.t('generic.invalidCron');
       }
+
       try {
         const hint = cronstrue.toString(this.value as string || '', { verbose: true });
 
