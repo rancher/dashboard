@@ -64,3 +64,22 @@ export const Error: Story = {
     tooltipKey: 'Error message'
   },
 };
+
+export const SubLabel: Story = {
+  ...Default,
+  args: {
+    label:      'Name',
+    subLabel:   'Additional information',
+    type:       'text',
+    value:      'Simon',
+  },
+};
+
+export const ChronType: Story = {
+  ...Default,
+  args: {
+    label:      'Name',
+    type:       'cron',
+    value:      '0 * * * *',
+  },
+};
