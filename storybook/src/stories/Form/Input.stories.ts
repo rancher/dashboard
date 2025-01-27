@@ -78,8 +78,17 @@ export const SubLabel: Story = {
 export const ChronType: Story = {
   ...Default,
   args: {
-    label:      'Name',
+    label:      'Period',
     type:       'cron',
     value:      '0 * * * *',
+  },
+};
+
+export const ChronTypeDaily: Story = {
+  ...Default,
+  args: {
+    label:      'Period',
+    type:       'cron',
+    value:      '@daily',
   },
 };
