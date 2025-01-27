@@ -20,7 +20,10 @@ export default {
     },
 
     /**
-     * Where in the ui this mixin is used. For instance the home page cluster list would be `home`
+     * Where in the ui this mixin is used. For instance the home page cluster list would be `home`.
+     *
+     * This is used as method to enable server side pagination in certain areas of the code.
+     * See @shell/config.settings.ts DEFAULT_PERF_SETTING.serverPagination for some examples of enabling SSP on resources in specific areas.
      */
     context: {
       type:    String,

@@ -1,12 +1,9 @@
 <script>
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
-import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
 import Tab from '@shell/components/Tabbed/Tab';
-import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
@@ -29,32 +26,14 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
-import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { isAlternate } from '@shell/utils/platform';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import SortableTable from '@shell/components/ResourceTable';
+import { PaginationParamFilter, FilterArgs } from '@shell/types/store/pagination.types';
+import { hasAccessToLocalCluster } from '@shell/utils/cluster';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
-
-/**
- * Machine Deployment has a reference to the 'template' used to create that deployment
- * For an empty machine pool, we (obviously) don't get any machine deployments for that pool.
- *
- * This class allows us to fake a machine deployment - when created, we set additional properties (_cluster etc)
- * and use these in the getters.
- **/
-class EmptyCapiMachineDeployment extends CapiMachineDeployment {
-  get inClusterSpec() {
-    return this._clusterSpec;
-  }
-
-  get cluster() {
-    return this._cluster;
-  }
-
-  get template() {
-    return this._template;
-  }
-}
 
 export default {
   emits: ['input'],
@@ -62,9 +41,9 @@ export default {
   components: {
     Loading,
     Banner,
-    ResourceTable,
-    ResourceTabs,
+    PaginatedResourceTable,
     SortableTable,
+    ResourceTabs,
     Tab,
     CopyCode,
     CustomCommand,
@@ -101,93 +80,26 @@ export default {
       this.extCustomParams = { provider: this.value.machineProvider };
     }
 
-    const schema = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
-    const fetchOne = { schemaDefinitions: schema.fetchResourceFields() };
-
-    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
-    }
-
-    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-    }
-
-    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
-    }
+    const promises = {};
 
     if ( this.value.isImported || this.value.isCustom || this.value.isHostedKubernetesProvider ) {
-      fetchOne.clusterToken = this.value.getOrCreateToken();
+      promises.clusterToken = this.value.getOrCreateToken();
     }
 
-    // Need to get Norman clusters so that we can check if user has permissions to access the local cluster
-    if ( this.$store.getters['rancher/canList'](NORMAN.CLUSTER) ) {
-      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
-    }
+    // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
+    promises.hasLocalAccess = hasAccessToLocalCluster(this.$store);
 
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
-
-      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
+      promises.rke1Snapshots = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+      promises.rke1Nodes = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
-    const fetchOneRes = await allHash(fetchOne);
+    this.loadNodeTemplateForMasthead();
 
-    this.allMachines = fetchOneRes.machines || [];
-    this.allMachineDeployments = fetchOneRes.machineDeployments || [];
-    this.haveMachines = !!fetchOneRes.machines;
-    this.haveDeployments = !!fetchOneRes.machineDeployments;
-    this.clusterToken = fetchOneRes.clusterToken;
-    this.etcdBackups = fetchOneRes.etcdBackups;
-
-    if (fetchOneRes.normanClusters) {
-      // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
-      this.hasLocalAccess = !!fetchOneRes.normanClusters.find((c) => c.internal);
-    }
-
-    const fetchTwo = {};
-
-    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
-      return deployment?.spec?.clusterName === this.value.metadata.name;
-    });
-
-    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
-
-    if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
-      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
-    }
-
-    if (!this.showMachines) {
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-        fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-        fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-        fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-    }
-
-    const fetchTwoRes = await allHash(fetchTwo);
-
-    this.allNodes = fetchTwoRes.allNodes || [];
-    this.haveNodes = !!fetchTwoRes.allNodes;
-    this.allNodePools = fetchTwoRes.allNodePools || [];
-    this.haveNodePools = !!fetchTwoRes.allNodePools;
-    this.machineTemplates = fetchTwoRes.mdtt || [];
-
-    // Fetch RKE template revisions so we can show when an updated template is available
-    // This request does not need to be blocking
-    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
-    }
-
-    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
-    }
+    this.clusterToken = await promises.clusterToken;
+    this.hasLocalAccess = await promises.hasLocalAccess;
+    this.rke1Snapshots = await promises.rke1Snapshots;
+    this.rke1Nodes = await promises.rke1Nodes;
   },
 
   created() {
@@ -201,27 +113,23 @@ export default {
       this.logSocket.disconnect();
       this.logSocket = null;
     }
+
+    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
   },
 
   data() {
     return {
+      hasLocalAccess: false,
 
-      allMachines:           [],
-      allMachineDeployments: [],
-      allNodes:              [],
-      allNodePools:          [],
-
-      haveMachines:    false,
-      haveDeployments: false,
-      haveNodes:       false,
-      haveNodePools:   false,
-      hasLocalAccess:  false,
-
-      mgmtNodeSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
-      machineSchema:  this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
+      mgmtNodeSchema:     this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
+      machineSchema:      this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
+      rke1Snapshots:      [],
+      rke1Nodes:          [],
+      rke2SnapshotSchema: this.$store.getters[`management/schemaFor`](SNAPSHOT),
 
       clusterToken: null,
-      etcdBackups:  null,
 
       logOpen:   false,
       logSocket: null,
@@ -243,18 +151,18 @@ export default {
     };
   },
 
-  watch: {
-    showNodes(neu) {
-      if (neu) {
-        this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
-      }
-    },
-  },
-
   computed: {
+    machinePools() {
+      return this.$store.getters['management/all'](CAPI.MACHINE);
+    },
+
+    machineNodes() {
+      return this.$store.getters['management/all'](MANAGEMENT.NODE);
+    },
+
     defaultTab() {
       if (this.showRegistration) {
-        if (this.value.isRke2 ? !this.machines?.length : !this.nodes?.length) {
+        if (!this.machinePools?.length && !this.machineNodes?.length) {
           return 'registration';
         }
       }
@@ -283,103 +191,14 @@ export default {
       return info;
     },
 
-    fakeMachines() {
-      const machineNameFn = (clusterName, machinePoolName) => `${ clusterName }-${ machinePoolName }`;
-
-      // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
-      // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
-      // then the pool would be hidden - so we find empty pool by checking the machines
-      const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
-        const machineFullName = machineNameFn(this.value.name, mp.name);
-
-        const machines = this.value.machines.filter((machine) => {
-          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
-          const machinePoolInfName = machine.spec?.infrastructureRef?.name;
-
-          if (isElementalCluster) {
-            return machinePoolInfName.includes(machineFullName);
-          }
-
-          // if labels exist, then the machineFullName must unequivocally be equal to manchineLabelFullName (based on labels)
-          const machineLabelClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
-          const machineLabelPoolName = machine.metadata?.labels?.['rke.cattle.io/rke-machine-pool-name'];
-
-          if (machineLabelClusterName && machineLabelPoolName) {
-            const manchineLabelFullName = machineNameFn(machineLabelClusterName, machineLabelPoolName);
-
-            return machineFullName === manchineLabelFullName;
-          }
-
-          return machinePoolInfName.startsWith(machineFullName);
-        });
-
-        return machines.length === 0;
-      });
-
-      // When a deployment has no machines it's not shown.... so add a fake machine to it
-      // This is a catch all scenario seen in older node pool world but not deployments
-      return emptyPools.map((mp, i) => {
-        const pool = new EmptyCapiMachineDeployment(
-          {
-            id:       i,
-            metadata: {
-              name:      `${ this.value.nameDisplay }-${ mp.name }`,
-              namespace: this.value.namespace,
-            },
-            spec: {}
-          },
-          {
-            getters:     this.$store.getters,
-            rootGetters: this.$root.$store.getters,
-          }
-        );
-
-        const templateNamePrefix = `${ pool.metadata.name }-`;
-
-        // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
-        pool._cluster = this.value;
-        pool._clusterSpec = mp;
-
-        return {
-          poolId:           pool.id,
-          mainRowKey:       'isFake',
-          pool,
-          availableActions: []
-        };
-      });
-    },
-
-    machines() {
-      return [...this.value.machines, ...this.fakeMachines];
-    },
-
-    nodes() {
-      const nodes = this.allNodes.filter((x) => x.mgmtClusterId === this.value.mgmtClusterId);
-
-      return [...nodes, ...this.fakeNodes];
-    },
-
-    fakeNodes() {
-      // When a pool has no nodes it's not shown.... so add a fake node to it
-      const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
-
-      return emptyNodePools.map((np) => ({
-        spec:             { nodePoolName: np.id.replace('/', ':') },
-        mainRowKey:       'isFake',
-        pool:             np,
-        availableActions: []
-      }));
-    },
-
     showMachines() {
-      const showMachines = this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+      const showMachines = this.machinePools.length && (this.value.isRke2 || !!this.machines.length);
 
       return showMachines && this.extDetailTabs.machines;
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length;
+      return !this.showMachines && !!this.machineNodes;
     },
 
     showSnapshots() {
@@ -441,20 +260,6 @@ export default {
         ROLES,
         AGE
       ];
-    },
-
-    rke1Snapshots() {
-      const mgmtId = this.value.mgmt?.id;
-
-      if ( !mgmtId ) {
-        return [];
-      }
-
-      return (this.etcdBackups || []).filter((x) => x.clusterId === mgmtId);
-    },
-
-    rke2Snapshots() {
-      return this.value.etcdSnapshots;
     },
 
     rke1SnapshotHeaders() {
@@ -574,6 +379,91 @@ export default {
   },
 
   methods: {
+    // To display the provider and kubernetes in the masthead of this page we need to retrieve the appropriate node templates so they models can find the data
+    loadNodeTemplateForMasthead() {
+      if (this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE)) {
+        const args = { id: MANAGEMENT.NODE_TEMPLATE, context: 'provisioning.cattle.io.cluster' };
+
+        if (this.$store.getters[`management/paginationEnabled`]?.(args)) {
+          const templateOpt = PaginationParamFilter.createMultipleFields([{
+            field: 'spec.clusterName',
+            value: this.value.metadata.name,
+            exact: true,
+          }]);
+
+          this.$store.dispatch(`management/findPage`, {
+            type: MANAGEMENT.NODE_TEMPLATE,
+            opt:  {
+              force:      true,
+              pagination: new FilterArgs({ filters: templateOpt })
+            }
+          });
+        } else {
+          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+        }
+      }
+    },
+
+    snapshotApiFilter(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const required = PaginationParamFilter.createSingleField({
+        field: 'spec.clusterName',
+        exact: true,
+        value: this.value.metadata.name,
+      });
+
+      pagination.filters.push(required);
+
+      return pagination;
+    },
+
+    snapshotLocalFilter(rows) {
+      return rows.filter((r) => r.spec.clusterName === this.value.metadata.name);
+    },
+
+    machinePoolApiFilter(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const required = PaginationParamFilter.createSingleField({
+        field: 'spec.clusterName',
+        exact: true,
+        value: this.value.metadata.name,
+      });
+
+      pagination.filters.push(required);
+
+      return pagination;
+    },
+
+    machinePoolLocalFilter(rows) {
+      return rows.filter((r) => r.spec.clusterName === this.value.metadata.name);
+    },
+
+    nodePoolApiFilter(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const required = PaginationParamFilter.createSingleField({
+        field: 'spec.clusterName',
+        exact: true,
+        value: this.value.metadata.name,
+      });
+
+      pagination.filters.push(required);
+
+      return pagination;
+    },
+
+    nodePoolLocalFilter(rows) {
+      return rows.filter((r) => r.spec.clusterName === this.value.metadata.name || r.id.includes(this.value.metadata.name));
+    },
+
     toggleScaleDownModal( event, resources ) {
       // Check if the user held alt key when an action is clicked.
       const alt = isAlternate(event);
@@ -691,26 +581,6 @@ export default {
         return day(time).format(this.dateTimeFormatStr);
       }
     },
-
-    machineSortGenerationFn() {
-      // The sort generation function creates a unique value and is used to create a key including sort details.
-      // The unique key determines if the list is redrawn or a cached version is shown.
-      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
-      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
-      const base = defaultTableSortGenerationFn(this.machineSchema, this.$store);
-
-      return base + (!!this.fakeMachines.length ? '-fake' : '');
-    },
-
-    nodeSortGenerationFn() {
-      // The sort generation function creates a unique value and is used to create a key including sort details.
-      // The unique key determines if the list is redrawn or a cached version is shown.
-      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
-      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
-      const base = defaultTableSortGenerationFn(this.mgmtNodeSchema, this.$store);
-
-      return base + (!!this.fakeNodes.length ? '-fake' : '');
-    },
   }
 };
 </script>
@@ -750,8 +620,7 @@ export default {
         :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
         :weight="4"
       >
-        <ResourceTable
-          :rows="machines"
+        <PaginatedResourceTable
           :schema="machineSchema"
           :headers="machineHeaders"
           default-sort-by="name"
@@ -759,19 +628,10 @@ export default {
           :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
-          :sort-generation-fn="machineSortGenerationFn"
+          :api-filter="machinePoolApiFilter"
+          :local-filter="machinePoolLocalFilter"
+          context="provisioning.cattle.io.cluster"
         >
-          <template #main-row:isFake="{fullColspan}">
-            <tr class="main-row">
-              <td
-                :colspan="fullColspan"
-                class="no-entries"
-              >
-                {{ t('node.list.noNodes') }}
-              </td>
-            </tr>
-          </template>
-
           <template #group-by="{group}">
             <div
               class="pool-row"
@@ -829,7 +689,7 @@ export default {
               </div>
             </div>
           </template>
-        </ResourceTable>
+        </PaginatedResourceTable>
       </Tab>
 
       <Tab
@@ -838,27 +698,17 @@ export default {
         :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
         :weight="4"
       >
-        <ResourceTable
+        <PaginatedResourceTable
           :schema="mgmtNodeSchema"
           :headers="mgmtNodeSchemaHeaders"
-          :rows="nodes"
           :groupable="false"
           :group-by="value.isCustom ? null : 'spec.nodePoolName'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
-          :sort-generation-fn="nodeSortGenerationFn"
+          :api-filter="nodePoolApiFilter"
+          :local-filter="nodePoolLocalFilter"
+          context="provisioning.cattle.io.cluster"
         >
-          <template #main-row:isFake="{fullColspan}">
-            <tr class="main-row">
-              <td
-                :colspan="fullColspan"
-                class="no-entries"
-              >
-                {{ t('node.list.noNodes') }}
-              </td>
-            </tr>
-          </template>
-
           <template #group-by="{group}">
             <div
               class="pool-row"
@@ -923,7 +773,7 @@ export default {
               </div>
             </div>
           </template>
-        </ResourceTable>
+        </PaginatedResourceTable>
       </Tab>
 
       <Tab
@@ -1018,16 +868,19 @@ export default {
         :weight="1"
       >
         <SortableTable
+          v-if="value.isRke1"
           class="snapshots"
           :data-testid="'cluster-snapshots-list'"
-          :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
+          :headers="rke1SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"
-          :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
+          :rows="rke1Snapshots"
           :search="false"
           :groupable="true"
           :group-by="snapshotsGroupBy"
         >
+          <!-- Removing the group by namespace/list buttons in the middle header -->
+          <template #header-middle />
           <template #header-right>
             <AsyncButton
               mode="snapshot"
@@ -1044,6 +897,39 @@ export default {
             </div>
           </template>
         </SortableTable>
+        <PaginatedResourceTable
+          v-else
+          class="snapshots"
+          :data-testid="'cluster-snapshots-list'"
+          :schema="rke2SnapshotSchema"
+          :headers="rke2SnapshotHeaders"
+          default-sort-by="age"
+          :table-actions="value.isRke1"
+          :search="false"
+          :namespaces="false"
+          :group-by="snapshotsGroupBy"
+          :api-filter="snapshotApiFilter"
+          :local-filter="snapshotLocalFilter"
+          context="provisioning.cattle.io.cluster"
+        >
+          <!-- Removing the group by namespace/list buttons in the middle header -->
+          <template #header-middle />
+          <template #header-right>
+            <AsyncButton
+              mode="snapshot"
+              class="btn role-primary"
+              :disabled="!isClusterReady"
+              @click="takeSnapshot"
+            />
+          </template>
+          <template #group-by="{group}">
+            <div class="group-bar">
+              <div class="group-tab">
+                {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
+              </div>
+            </div>
+          </template>
+        </PaginatedResourceTable>
       </Tab>
     </ResourceTabs>
   </div>

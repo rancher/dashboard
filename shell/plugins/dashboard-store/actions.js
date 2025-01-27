@@ -143,6 +143,21 @@ export default {
     }
   },
 
+  async findPageOrAll(ctx, {
+    type, context, paginatedOpt, findAllOpt
+  }) {
+    const { getters, dispatch } = ctx;
+
+    const args = {
+      id: type,
+      context,
+    };
+
+    const paginationEnabled = getters[`paginationEnabled`]?.(args);
+
+    return paginationEnabled ? dispatch('findPage', { type, opt: paginatedOpt }) : dispatch('findAll', { type, opt: findAllOpt });
+  },
+
   /**
    *
    * @param {*} ctx
