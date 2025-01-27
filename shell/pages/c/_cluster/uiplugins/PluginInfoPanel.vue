@@ -479,6 +479,7 @@ export default {
 
           &:focus-visible {
             @include focus-outline;
+            outline-offset: -2px;
           }
         }
       }

@@ -154,9 +154,9 @@ export default {
     name="developerInstallPluginDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog()"
     :modal-visibility="showModal"
     :trigger-focus-trap="true"
+    @close="closeDialog()"
   >
     <div class="plugin-install-dialog">
       <h4>

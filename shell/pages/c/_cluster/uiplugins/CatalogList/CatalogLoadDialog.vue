@@ -434,9 +434,9 @@ export default {
     name="catalogLoadDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog()"
     :modal-visibility="showModal"
     :trigger-focus-trap="true"
+    @close="closeDialog()"
   >
     <Loading
       v-if="$fetchState.loading"

@@ -640,6 +640,7 @@ export default {
               class="link"
               @click="manageExtensionView()"
               role="link"
+              tabindex="0"
               :aria-label="t('plugins.manageCatalog.title')"
             >
               {{ t('plugins.manageCatalog.title') }}:
@@ -736,7 +737,7 @@ export default {
       />
     </div>
     <div v-else>
-      <!-- TODO!!!!!!!!! -->
+      <!-- Extension Catalog list view -->
       <template v-if="showCatalogList">
         <CatalogList
           @showCatalogLoadDialog="showCatalogLoadDialog"
@@ -989,36 +990,30 @@ export default {
       </template>
     </div>
 
-    <!-- done -->
     <InstallDialog
       ref="installDialog"
       @closed="didInstall"
       @update="updatePluginInstallStatus"
     />
-    <!-- done -->
     <UninstallDialog
       ref="uninstallDialog"
       @closed="didUninstall"
       @update="updatePluginInstallStatus"
     />
-    <!-- TODO!!!! review it all -->
     <CatalogLoadDialog
       ref="catalogLoadDialog"
       @closed="didInstall"
       @refresh="() => reloadRequired = true"
     />
-    <!-- TODO!!!! review it all -->
     <CatalogUninstallDialog
       ref="catalogUninstallDialog"
       @closed="didUninstall"
       @refresh="() => reloadRequired = true"
     />
-    <!-- TODO!!!! review it all -->
     <DeveloperInstallDialog
       ref="developerInstallDialog"
       @closed="didInstall"
     />
-    <!-- TODO!!!! EVERYTHING!!! -->
     <AddExtensionRepos
       ref="addExtensionReposDialog"
       @done="updateInstallStatus(true)"

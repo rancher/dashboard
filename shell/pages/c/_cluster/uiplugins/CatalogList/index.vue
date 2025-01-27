@@ -95,11 +95,13 @@ export default {
         <template #header-left>
           <div>
             <button
-              class="btn bg-primary mr-10"
+              class="btn role-primary mr-10"
               type="button"
               aria-haspopup="dialog"
               data-testid="extensions-catalog-load-dialog"
               @click="$emit('showCatalogLoadDialog')"
+              role="button"
+              :aria-label="t('plugins.manageCatalog.imageLoad.load')"
             >
               {{ t('plugins.manageCatalog.imageLoad.load') }}
             </button>
