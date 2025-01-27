@@ -20,7 +20,7 @@ describe('component: LabeledInput', () => {
     expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
 
-  it('using mode "multiline" should emit input value correctly', () => {
+  it('using type "multiline" should emit input value correctly', () => {
     const value = 'any-string';
     const delay = 1;
     const wrapper = mount(LabeledInput, {
@@ -36,5 +36,20 @@ describe('component: LabeledInput', () => {
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
     expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+  });
+
+  describe('using type "chron"', () => {
+    it.each([
+      ['0 * * * *', 'Every hour, every day'],
+      ['@daily', 'Every day at midnight'],
+      ['You must fail! Go!', 'Invalid cron schedule'],
+    ])('passing value %p should display hint %p', (value, hint) => {
+      const wrapper = mount(LabeledInput, {
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabel = wrapper.find('[data-testid="sub-label"]').element as HTMLElement;
+      expect(subLabel.innerText).toBe(hint);
+    });
   });
 });

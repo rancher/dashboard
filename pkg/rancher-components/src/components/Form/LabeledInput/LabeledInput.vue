@@ -382,6 +382,7 @@ export default defineComponent({
     <div
       v-if="cronHint || subLabel"
       class="sub-label"
+      data-testid="sub-label"
     >
       <div
         v-if="cronHint"
