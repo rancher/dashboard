@@ -591,7 +591,7 @@ export interface IPlugin {
    * @param type Model type
    * @param clz  Class for the model extension (constructor)
    */
-  addModelExtension(type: string, clz: Function): void;
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void;
 
   /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
@@ -613,3 +613,31 @@ export interface IPlugin {
 // Built-in extensions may use this, but external extensions should not, as this is subject to change
 // Defined as any for now
 export type IInternal = any;
+
+export type ModelExtensionContext = {
+  /**
+   * Dispatch vuex actions
+   */
+  dispatch: any,
+  /**
+   * Get from vuex store
+   */
+  getters: any,
+  /**
+   * Used to make http requests
+   */
+  axios: any,
+  /**
+   * Definition of the extension
+   */
+  $plugin: any,
+  /**
+   * Function to retrieve a localised string
+   */
+  t: (key: string) => string,
+};
+
+/**
+ * Constructor signature for a model extension
+ */
+export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;

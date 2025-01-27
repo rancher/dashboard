@@ -306,7 +306,7 @@ export interface IClusterModelExtension {
    * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
    * @returns Whether to use this provisioner for the given cluster.
    */
-  useForModel(cluster: any): boolean;
+  useFor(cluster: any): boolean;
 
   /**
    * Optionally Process the available actions for a cluster and return a (possibly modified) set of actions

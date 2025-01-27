@@ -13,6 +13,7 @@ import {
   LocationConfig,
   ExtensionPoint,
   TabLocation,
+  ModelExtensionConstructor,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -200,7 +201,7 @@ export class Plugin implements IPlugin {
    * @param type Model type
    * @param clz  Class for the model extension (constructor)
    */
-  addModelExtension(type: string, clz: Function): void {
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void {
     this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
   }
 

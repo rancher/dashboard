@@ -5046,7 +5046,6 @@ resourceTable:
     role: Group by Role
     cluster: Group by Cluster
     device: Group by Device
-    hostCluster: Group by Host Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
