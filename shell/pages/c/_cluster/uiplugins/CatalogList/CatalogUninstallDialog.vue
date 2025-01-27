@@ -121,9 +121,9 @@ export default {
     name="uninstallCatalogDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog(false)"
     :modal-visibility="showModal"
     :trigger-focus-trap="true"
+    @close="closeDialog(false)"
   >
     <div
       v-if="catalog"
