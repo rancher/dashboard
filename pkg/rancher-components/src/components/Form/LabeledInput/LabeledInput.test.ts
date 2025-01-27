@@ -41,15 +41,17 @@ describe('component: LabeledInput', () => {
   describe('using type "chron"', () => {
     it.each([
       ['0 * * * *', 'Every hour, every day'],
-      ['@daily', 'Every day at midnight'],
-      ['You must fail! Go!', 'Invalid cron schedule'],
+      ['@daily', 'At 12:00 AM, every day'],
+      ['You must fail! Go!', '%generic.invalidCron%'],
     ])('passing value %p should display hint %p', (value, hint) => {
       const wrapper = mount(LabeledInput, {
-        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+        propsData: { value, type: 'cron' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
       });
 
-      const subLabel = wrapper.find('[data-testid="sub-label"]').element as HTMLElement;
-      expect(subLabel.innerText).toBe(hint);
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabel.text()).toBe(hint);
     });
   });
 });
