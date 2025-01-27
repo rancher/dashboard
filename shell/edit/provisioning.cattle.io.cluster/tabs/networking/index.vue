@@ -9,7 +9,12 @@ import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE'
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
 export default {
-  emits: ['update:value', 'truncate-hostname', 'input'],
+  emits: [
+    'update:value', 'input', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
+    'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
+    'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
+    'fqdn-changed', 'tls-san-changed'
+  ],
 
   components: {
     LabeledInput,
@@ -74,7 +79,7 @@ export default {
         this.$emit('update:value', newValue);
       }
     },
-  },
+  }
 };
 </script>
 
@@ -99,10 +104,11 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model:value="serverConfig['cluster-cidr']"
+          :value="serverConfig['cluster-cidr']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
+          @update:value="$emit('cluster-cidr-changed', $event)"
         />
       </div>
       <div
@@ -110,10 +116,11 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model:value="serverConfig['service-cidr']"
+          :value="serverConfig['service-cidr']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
+          @update:value="$emit('service-cidr-changed', $event)"
         />
       </div>
     </div>
@@ -124,10 +131,11 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model:value="serverConfig['cluster-dns']"
+          :value="serverConfig['cluster-dns']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.dns.label')"
+          @update:value="$emit('cluster-dns-changed', $event)"
         />
       </div>
       <div
@@ -135,10 +143,11 @@ export default {
         class="col span-6"
       >
         <LabeledInput
-          v-model:value="serverConfig['cluster-domain']"
+          :value="serverConfig['cluster-domain']"
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.domain.label')"
+          @update:value="$emit('cluster-domain-changed', $event)"
         />
       </div>
     </div>
@@ -149,9 +158,10 @@ export default {
     >
       <div class="col span-6">
         <LabeledInput
-          v-model:value="serverConfig['service-node-port-range']"
+          :value="serverConfig['service-node-port-range']"
           :mode="mode"
           :label="t('cluster.rke2.address.nodePortRange.label')"
+          @update:value="$emit('service-node-port-range-changed', $event)"
         />
       </div>
       <div
@@ -165,7 +175,7 @@ export default {
           :mode="mode"
           :label="t('cluster.rke2.truncateHostnames')"
           data-testid="network-tab-truncate-hostname"
-          @update:value="$emit('truncate-hostname', $event)"
+          @update:value="$emit('truncate-hostname-changed', $event)"
         />
         <Banner
           v-if="hostnameTruncationManuallySet"
@@ -184,17 +194,21 @@ export default {
     >
       <div class="col span-6">
         <ArrayList
-          v-model:value="serverConfig['tls-san']"
+          :value="serverConfig['tls-san']"
           :protip="false"
           :mode="mode"
           :title="t('cluster.rke2.address.tlsSan.label')"
+          @update:value="$emit('tls-san-changed', $event)"
         />
       </div>
     </div>
 
     <ACE
-      v-model:value="localValue"
+      v-model:value="localValue.spec.localClusterAuthEndpoint"
       :mode="mode"
+      @fqdn-changed="$emit('fqdn-changed', $event)"
+      @caCerts-changed="$emit('ca-certs-changed', $event)"
+      @local-cluster-auth-endpoint-changed="$emit('local-cluster-auth-endpoint-changed', $event)"
       @update:value="$emit('input', $event)"
     />
   </div>

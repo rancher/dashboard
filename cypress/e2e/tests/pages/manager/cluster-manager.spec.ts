@@ -10,7 +10,7 @@ import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/p
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
-import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
+import ClusterManagerEditImportedPagePo from '@/cypress/e2e/po/extensions/imported/cluster-edit.po';
 import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manager/namespace.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
@@ -563,9 +563,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const fqdn = 'fqdn';
+    const cacert = 'cacert';
 
     describe('Generic', () => {
-      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(undefined, importGenericName);
+      const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, importGenericName);
 
       it('can create new cluster', () => {
         const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importGenericName);
@@ -614,11 +616,30 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
       });
 
-      it('can navigate to cluster edit page', () => {
+      it('can edit imported cluster and see changes afterwards', () => {
+        cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
         clusterList.goTo();
+        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
+        editImportedClusterPage.waitForPage('mode=edit');
+
+        editImportedClusterPage.name().value().should('eq', importGenericName );
+        // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
+        editImportedClusterPage.name().expectToBeDisabled();
+
+        editImportedClusterPage.ace().enable();
+        editImportedClusterPage.ace().enterFdqn(fqdn);
+        editImportedClusterPage.ace().enterCaCerts(cacert);
+
+        editImportedClusterPage.save();
+
+        // We should be taken back to the list page if the save was successful
+        clusterList.waitForPage();
+
         clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
         editImportedClusterPage.waitForPage('mode=edit');
+        editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
+        editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
       });
 
       it('can delete cluster by bulk actions', () => {

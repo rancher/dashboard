@@ -50,6 +50,14 @@ export default class LabeledInputPo extends ComponentPo {
     });
   }
 
+  expectToBeDisabled(): Cypress.Chainable {
+    return this.self().should('have.attr', 'disabled', 'disabled');
+  }
+
+  expectToBeEnabled(): Cypress.Chainable {
+    return this.self().should('not.have.attr', 'disabled');
+  }
+
   /**
    * Return the input HTML element from given container
    * @returns HTML Element

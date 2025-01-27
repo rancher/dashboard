@@ -4,6 +4,8 @@ import { CAPI } from '@shell/config/labels-annotations';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { compare, sortable } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
@@ -189,4 +191,108 @@ export function labelForAddon(store, name, configuration = true) {
   const key = `cluster.addonChart."${ name }"${ configuration ? '.configuration' : '.label' }`;
 
   return store.getters['i18n/withFallback'](key, null, fallback);
+}
+
+function getMostRecentPatchVersions(sortedVersions) {
+  // Get the most recent patch version for each Kubernetes minor version.
+  const versionMap = {};
+
+  sortedVersions.forEach((version) => {
+    const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+    if (!versionMap[majorMinor]) {
+      // Because we start with a sorted list of versions, we know the
+      // highest patch version is first in the list, so we only keep the
+      // first of each minor version in the list.
+      versionMap[majorMinor] = version.value;
+    }
+  });
+
+  return versionMap;
+}
+
+export function filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
+  // Get the most recent patch version for each Kubernetes minor version.
+  const mostRecentPatchVersions = getMostRecentPatchVersions(allVersions);
+
+  const filteredVersions = allVersions.filter((version) => {
+    // Always show pre-releases
+    if (semver.prerelease(version.value)) {
+      return true;
+    }
+
+    const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+    // Always show current version, else show if we haven't shown anything for this major.minor version yet
+    if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
+      return true;
+    }
+
+    return false;
+  });
+
+  return filteredVersions;
+}
+
+export function getAllOptionsAfterCurrentVersion(store, versions, currentVersion, defaultVersion) {
+  const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
+    let disabled = false;
+    let experimental = false;
+    let isCurrentVersion = false;
+    let label = obj.id;
+
+    if (currentVersion) {
+      disabled = compare(obj.id, currentVersion) < 0;
+      isCurrentVersion = compare(obj.id, currentVersion) === 0;
+    }
+
+    if (defaultVersion) {
+      experimental = compare(defaultVersion, obj.id) < 0;
+    }
+
+    if (isCurrentVersion) {
+      label = `${ label } ${ store.getters['i18n/t']('cluster.kubernetesVersion.current') }`;
+    }
+
+    if (experimental) {
+      label = `${ label } ${ store.getters['i18n/t']('cluster.kubernetesVersion.experimental') }`;
+    }
+
+    return {
+      label,
+      value:      obj.id,
+      sort:       sortable(obj.id),
+      serverArgs: obj.serverArgs,
+      agentArgs:  obj.agentArgs,
+      charts:     obj.charts,
+      disabled,
+    };
+  });
+
+  if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
+    out.push({
+      label: `${ currentVersion } ${ store.getters['i18n/t']('cluster.kubernetesVersion.current') }`,
+      value: currentVersion,
+      sort:  sortable(currentVersion),
+    });
+  }
+
+  const sorted = sortBy(out, 'sort:desc');
+
+  const mostRecentPatchVersions = getMostRecentPatchVersions(sorted);
+
+  const sortedWithDeprecatedLabel = sorted.map((optionData) => {
+    const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
+
+    if (mostRecentPatchVersions[majorMinor] === optionData.value) {
+      return optionData;
+    }
+
+    return {
+      ...optionData,
+      label: `${ optionData.label } ${ store.getters['i18n/t']('cluster.kubernetesVersion.deprecated') }`
+    };
+  });
+
+  return sortedWithDeprecatedLabel;
 }

@@ -2078,6 +2078,7 @@ cluster:
       label: Control Plane Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     workerConcurrency:
+      header: Worker Nodes
       label: Worker Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
@@ -2113,6 +2114,7 @@ cluster:
       tlsSan:
         label: TLS Alternate Names
       fqdn:
+        label: FQDN
         toolTip: A FQDN which will resolve to the healthy control plane nodes of the cluster.
       caCerts:
         label: CA Certificates

@@ -25,10 +25,7 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplaceArrays
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { sortBy } from '@shell/utils/sort';
-
-import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
+import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -321,15 +318,15 @@ export default {
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
 
-      let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
+      let allValidRke2Versions = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
+      let allValidK3sVersions = getAllOptionsAfterCurrentVersion(this.$store, this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
 
       if (!this.showDeprecatedPatchVersions) {
         // Normally, we only want to show the most recent patch version
         // for each Kubernetes minor version. However, if the user
         // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+        allValidRke2Versions = filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
+        allValidK3sVersions = filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
       }
 
       if (isAzure) {
@@ -711,7 +708,7 @@ export default {
       const first = all[0]?.value;
       const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
 
-      const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
+      const rke2 = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, null);
       const showRke2 = rke2.length;
       let out;
 
@@ -984,6 +981,10 @@ export default {
       if (this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined) {
         this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName = '';
       }
+
+      if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
+        set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
+      }
     },
 
     /**
@@ -1108,6 +1109,17 @@ export default {
       } else {
         this.truncateLimit = 0;
         this.value.removeDefaultHostnameLengthLimit();
+      }
+    },
+
+    enableLocalClusterAuthEndpoint(neu) {
+      this.localValue.spec.localClusterAuthEndpoint.enabled = neu;
+      if (!neu) {
+        delete this.localValue.spec.localClusterAuthEndpoint.caCerts;
+        delete this.localValue.spec.localClusterAuthEndpoint.fqdn;
+      } else {
+        this.localValue.spec.localClusterAuthEndpoint.caCerts = '';
+        this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
 
@@ -1792,110 +1804,6 @@ export default {
       this.value.spec.rkeConfig.registries.configs = configs;
     },
 
-    getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
-      const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
-        let disabled = false;
-        let experimental = false;
-        let isCurrentVersion = false;
-        let label = obj.id;
-
-        if (currentVersion) {
-          disabled = compare(obj.id, currentVersion) < 0;
-          isCurrentVersion = compare(obj.id, currentVersion) === 0;
-        }
-
-        if (defaultVersion) {
-          experimental = compare(defaultVersion, obj.id) < 0;
-        }
-
-        if (isCurrentVersion) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.current') }`;
-        }
-
-        if (experimental) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.experimental') }`;
-        }
-
-        return {
-          label,
-          value:      obj.id,
-          sort:       sortable(obj.id),
-          serverArgs: obj.serverArgs,
-          agentArgs:  obj.agentArgs,
-          charts:     obj.charts,
-          disabled,
-        };
-      });
-
-      if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
-        out.push({
-          label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
-          value: currentVersion,
-          sort:  sortable(currentVersion),
-        });
-      }
-
-      const sorted = sortBy(out, 'sort:desc');
-
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
-
-      const sortedWithDeprecatedLabel = sorted.map((optionData) => {
-        const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
-
-        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
-          return optionData;
-        }
-
-        return {
-          ...optionData,
-          label: `${ optionData.label } ${ this.t('cluster.kubernetesVersion.deprecated') }`
-        };
-      });
-
-      return sortedWithDeprecatedLabel;
-    },
-
-    getMostRecentPatchVersions(sortedVersions) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const versionMap = {};
-
-      sortedVersions.forEach((version) => {
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        if (!versionMap[majorMinor]) {
-          // Because we start with a sorted list of versions, we know the
-          // highest patch version is first in the list, so we only keep the
-          // first of each minor version in the list.
-          versionMap[majorMinor] = version.value;
-        }
-      });
-
-      return versionMap;
-    },
-
-    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
-
-      const filteredVersions = allVersions.filter((version) => {
-        // Always show pre-releases
-        if (semver.prerelease(version.value)) {
-          return true;
-        }
-
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
-          return true;
-        }
-
-        return false;
-      });
-
-      return filteredVersions;
-    },
-
     generateYaml() {
       const resource = this.value;
       const inStore = this.$store.getters['currentStore'](resource);
@@ -2394,7 +2302,16 @@ export default {
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
             @update:value="$emit('input', $event)"
-            @truncate-hostname="truncateHostname"
+            @truncate-hostname-changed="truncateHostname"
+            @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
+            @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
+            @cluster-domain-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-domain'] = val"
+            @cluster-dns-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-dns'] = val"
+            @service-node-port-range-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-node-port-range'] = val"
+            @tls-san-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['tls-san'] = val"
+            @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
+            @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
+            @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
           />
         </Tab>
 
