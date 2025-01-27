@@ -10,5 +10,5 @@ export function cronSchedule(schedule = '', getters, errors) {
 
 export const cronScheduleRule = {
   validation: (text) => cronstrue.toString(text, { verbose: true }),
-  message: 'validation.invalidCron'
+  message:    'validation.invalidCron'
 };

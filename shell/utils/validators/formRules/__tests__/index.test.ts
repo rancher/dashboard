@@ -1096,7 +1096,6 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-
   /**
    * Test all factory validators
    * @param rule - the name of the factory validator
