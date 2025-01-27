@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 import isUrl from 'is-url';
 // import uniq from 'lodash/uniq';
-import cronstrue from 'cronstrue';
 import { Translation } from '@shell/types/t';
 import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/validators/setting';
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
