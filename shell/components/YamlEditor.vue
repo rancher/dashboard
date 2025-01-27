@@ -13,7 +13,7 @@ export const EDITOR_MODES = {
 };
 
 export default {
-  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges'],
+  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged'],
 
   components: {
     CodeMirror,
@@ -236,6 +236,7 @@ export default {
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
+      @validationChanged="$emit('validationChanged', $event)"
     />
     <FileDiff
       v-else

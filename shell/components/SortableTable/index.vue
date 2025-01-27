@@ -380,8 +380,10 @@ export default {
       eventualSearchQuery = this.$route.query?.q;
     }
 
+    const isLoading = this.loading || false;
+
     return {
-      refreshButtonPhase:         ASYNC_BUTTON_STATES.WAITING,
+      refreshButtonPhase:         isLoading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION,
       expanded:                   {},
       searchQuery,
       eventualSearchQuery,
@@ -392,7 +394,7 @@ export default {
       /**
        * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
        */
-      isLoading:                  false,
+      isLoading
     };
   },
 
@@ -535,9 +537,6 @@ export default {
 
     manualRefreshLoadingFinished() {
       const res = !!(!this.isLoading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
-
-      // Always ensure the Refresh button phase aligns with loading state (regardless of if manualRefreshLoadingFinished has changed or not)
-      this.refreshButtonPhase = !res || this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
 
       return res;
     },

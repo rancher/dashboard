@@ -74,6 +74,7 @@
   color: var(--dropdown-text);
   white-space: nowrap;
   z-index: 1000;
+  overflow: auto;
 
   &:hover {
     cursor: pointer;

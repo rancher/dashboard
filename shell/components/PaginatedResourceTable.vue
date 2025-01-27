@@ -2,13 +2,6 @@
 import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
-import { StorePaginationResult } from '@shell/types/store/pagination.types';
-
-export type FetchSecondaryResourcesOpts = { canPaginate: boolean }
-export type FetchSecondaryResources = (opts: FetchSecondaryResourcesOpts) => Promise<any>
-
-export type FetchPageSecondaryResourcesOpts = { canPaginate: boolean, force: boolean, page: any[], pagResult: StorePaginationResult }
-export type FetchPageSecondaryResources = (opts: FetchPageSecondaryResourcesOpts) => Promise<any>
 
 /**
  * This is meant to enable ResourceList like capabilities outside of List pages / components
@@ -57,6 +50,8 @@ export default defineComponent({
      * Information may be required from resources other than the primary one shown per row
      *
      * This will fetch them ALL and will be run in a non-server-side pagination world
+     *
+     * of type PagTableFetchSecondaryResources
      */
     fetchSecondaryResources: {
       type:    Function,
@@ -69,6 +64,8 @@ export default defineComponent({
      * This will fetch only those relevant to the current page using server-side pagination based filters
      *
      * called from shell/mixins/resource-fetch-api-pagination.js
+     *
+     * of type PagTableFetchPageSecondaryResources
      */
     fetchPageSecondaryResources: {
       type:    Function,
@@ -109,7 +106,7 @@ export default defineComponent({
       v-bind="$attrs"
       :schema="schema"
       :rows="rows"
-      :alt-loading="canPaginate"
+      :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :groupable="groupable"
 

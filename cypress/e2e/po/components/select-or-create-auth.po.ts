@@ -29,13 +29,20 @@ export default class SelectOrCreateAuthPo extends ComponentPo {
 
   createBasicAuth(username = 'auth-test-user', password = 'auth-test-password') {
     this.authSelect().toggle();
-    this.authSelect().clickOptionWithLabel('Create a HTTP Basic Auth Secret');
+    this.authSelect().clickOptionWithLabel('Create an HTTP Basic Auth Secret');
     this.setBasicAuthSecret(username, password);
   }
 
   createSSHAuth(privateKey: string, publicKey: string) {
     this.authSelect().toggle();
-    this.authSelect().clickOptionWithLabel('Create a SSH Key Secret');
+    this.authSelect().clickOptionWithLabel('Create an SSH Key Secret');
     this.setSSHSecret(privateKey, publicKey);
+  }
+
+  createRKEAuth(username = 'auth-test-user', password = 'auth-test-password') {
+    this.authSelect().toggle();
+    this.authSelect().clickOptionWithLabel('Create an RKE Auth Config Secret');
+    this.authSelect().self().scrollIntoView();
+    this.setBasicAuthSecret(username, password);
   }
 }

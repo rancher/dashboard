@@ -515,6 +515,12 @@ export const LAST_SEEN_TIME = {
   sort:     'lastTimestamp:desc',
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
+
+export const EVENT_LAST_SEEN_TIME = {
+  ...LAST_SEEN_TIME,
+  defaultSort: true,
+};
+
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
   labelKey:  'tableHeaders.lastSeen',
@@ -960,13 +966,24 @@ export const EXPIRES = {
   formatter: 'LiveExpiryDate'
 };
 
+export const LAST_USED = {
+  name:          'lastUsed',
+  value:         'lastUsedAt',
+  labelKey:      'tableHeaders.lastUsed',
+  align:         'left',
+  sort:          ['lastUsedAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate',
+  formatterOpts: { missingKey: 'generic.unknown' },
+};
+
 export const RESTART = {
   name:      'restart',
   labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
-  width:     75,
+  width:     125,
   align:     'center'
 };
 

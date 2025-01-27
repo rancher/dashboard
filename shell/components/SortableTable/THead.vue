@@ -428,10 +428,7 @@ export default {
         background-color: var(--sortable-table-header-bg);
         color: var(--body-text);
         text-align: left;
-
-        &:not(.loading) {
-          border-bottom: 1px solid var(--sortable-table-top-divider);
-        }
+        border-bottom: 1px solid var(--sortable-table-top-divider);
       }
     }
 

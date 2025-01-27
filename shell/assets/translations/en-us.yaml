@@ -9,6 +9,7 @@ generic:
   back: Back
   cancel: Cancel
   confirm: Confirm
+  colorPicker: Color picker
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -134,6 +135,8 @@ nav:
     support: Support page link
     about: About page link
     pinCluster: Pin/Unpin cluster
+    collapseExpand: Collapse/Expand menu group
+    productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
@@ -931,6 +934,7 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    refresh: refresh charts
     all: All
     categories:
       all: All Categories
@@ -950,7 +954,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter
+    search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
   install:
@@ -961,7 +965,7 @@ catalog:
     chart: Chart
     warning:
       managed:
-        Warning, Rancher manages deployment and upgrade of the {name} app. Upgrading this app is not supported.<br>
+        Warning, {manager} manages deployment and upgrade of the {name} app. Upgrading this app is not supported.<br>
         {version, select,
           null { }
           other { Under most circumstances, no user intervention should be needed to ensure that the {version} version is compatible with the version of Rancher that you are running.}
@@ -1061,7 +1065,7 @@ catalog:
       windows: '{ver} (Windows-only)'
   delete:
     warning:
-      managed: Warning, Rancher manages deployment and upgrade of the {name} app. Deleting this app is not supported.
+      managed: Warning, {manager} manages deployment and upgrade of the {name} app. Deleting this app is not supported.
   operation:
     tableHeaders:
       action: Action
@@ -5187,11 +5191,14 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
+  rke:
+    info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
-  createSsh: Create a SSH Key Secret
-  createBasic: Create a HTTP Basic Auth Secret
-  createS3: Create a S3-Compatible Auth Secret
+  createSsh: Create an SSH Key Secret
+  createBasic: Create an HTTP Basic Auth Secret
+  createS3: Create an S3-Compatible Auth Secret
+  createRKE: Create an RKE Auth Config Secret
 
 serviceAccount:
   automount: Automount Service Account Token
@@ -5761,6 +5768,7 @@ tableHeaders:
   lastSchedule: Last Schedule
   lastSeen: Last Seen
   lastSeenTooltip: The time at which the most recent occurrence of this event was recorded
+  lastUsed: Last Used
   loggingOutputProviders: Provider
   machines: Machines
   machineNodeName: Node
@@ -5836,6 +5844,7 @@ tableHeaders:
   resourcesReady: Resources Ready
   restarts: Restarts
   restart: Restart Required
+  restartSystem: Restart { vendor }
   restore: Restore
   role: Role
   roles: Roles
@@ -6127,6 +6136,11 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+
+carousel:
+  previous: Previous
+  next: Next
+  controlItem: Go to slide nº {number}
 
 wizard:
   previous: Previous
@@ -7427,6 +7441,8 @@ registryConfig:
 ##############################
 
 advancedSettings:
+  setEnv: Set by Environment Variable
+  hideShow: Hide/show setting
   label: Settings
   subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show
@@ -7498,6 +7514,7 @@ advancedSettings:
 
 featureFlags:
   label: Feature Flags
+  title: "Are you sure?"
   warning: |-
     Feature flags allow {vendor} to gate certain features behind flags.
     Features that are off by default should be considered experimental functionality.
@@ -7505,7 +7522,7 @@ featureFlags:
     This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
-  restartRequired: "Note: Updating this feature flag requires a restart"
+  restartRequired: "Note: Updating this feature flag will restart {vendor}"
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
@@ -7514,6 +7531,7 @@ performance:
   label: UI Performance Settings
   settingName: Performance
   experimental: This setting is experimental and may be removed or updated in future versions.
+  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release. Please use the <a href="#ssp-setting" class="ml-5 mr-5">Server-side Pagination</a> setting instead.
   incrementalLoad:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
@@ -7778,7 +7796,7 @@ support:
       text: Run SUSE Rancher products with confidence, knowing that the developers who built them are available to quickly resolve issues.
     three:
       title: Troubleshooting
-      text: We focus on uncovering the root cause of any issue, whether it is related to Rancher Labs products, Kubernetes, Docker or your underlying infrastructure.
+      text: We focus on uncovering the root cause of any issue, whether it is related to SUSE products, Kubernetes, Docker or your underlying infrastructure.
     four:
       title: Innovate with Freedom
       text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.

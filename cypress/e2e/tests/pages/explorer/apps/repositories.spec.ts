@@ -147,9 +147,9 @@ describe('Apps', () => {
         appRepoCreate.ociMaxRetries().should('be.empty');
         // check auth dropdown not to have SSH key option when oci is selected
         appRepoCreate.authSelectOrCreate().authSelect().toggle();
-        appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create a HTTP Basic Auth Secret')
+        appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create an HTTP Basic Auth Secret')
           .should('exist');
-        appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create a SSH Key Secret')
+        appRepoCreate.authSelectOrCreate().authSelect().getOptions().contains('Create an SSH Key Secret')
           .should('not.exist');
       });
     });
@@ -172,7 +172,7 @@ describe('Apps', () => {
         cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?*').as('rancherCharts1');
 
         // Nav to a summary page for a specific chart
-        ChartsPage.navTo(clusterId);
+        chartsPage.goTo();
         chartsPage.chartsFilterCategoriesSelect().toggle();
         chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
         chartsPage.chartsFilterReposSelect().toggle();

@@ -120,6 +120,11 @@ export default {
       default: () => []
     },
 
+    stepsOptions: {
+      type:    Object,
+      default: () => ({ editFirstStep: true })
+    },
+
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -562,6 +567,7 @@ export default {
             ref="Wizard"
             :header-mode="mode"
             :steps="steps"
+            :edit-first-step="stepsOptions.editFirstStep"
             :errors="errors"
             :finish-mode="finishMode"
             class="wizard"

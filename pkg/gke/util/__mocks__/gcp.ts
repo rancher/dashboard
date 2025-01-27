@@ -247,6 +247,64 @@ const mockedGKENetworksResponse = {
       'https://www.googleapis.com/compute/v1/projects/test-project/regions/me-central1/subnetworks/test-network',
       'https://www.googleapis.com/compute/v1/projects/test-project/regions/asia-east2/subnetworks/test-network',
       'https://www.googleapis.com/compute/v1/projects/test-project/regions/me-central2/subnetworks/test-network']
+  },
+  {
+    autoCreateSubnetworks:                 true,
+    creationTimestamp:                     '2022-10-26T14:50:30.702-07:00',
+    id:                                    '11111111',
+    kind:                                  'compute#network',
+    mtu:                                   1460,
+    name:                                  'default',
+    networkFirewallPolicyEnforcementOrder: 'AFTER_CLASSIC_FIREWALL',
+    routingConfig:                         { routingMode: 'REGIONAL' },
+    selfLink:                              'https://www.googleapis.com/compute/v1/projects/test-data-project/global/networks/default',
+    selfLinkWithId:                        'https://www.googleapis.com/compute/v1/projects/test-data-project/global/networks/11111111',
+    subnetworks:                           [
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/africa-south1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-west8/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-northeast3/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-northeast2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-south2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west3/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-west3/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-west2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-northeast1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west12/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-southeast1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-south1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/southamerica-west1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-southeast2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/me-west1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-east7/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-central1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/southamerica-east1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west9/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-north1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-east4/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-east1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west10/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-central2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-north2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-south1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/northamerica-south1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-east5/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-east1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west4/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west8/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/northamerica-northeast1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/australia-southeast2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-west4/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west6/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/northamerica-northeast2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-southwest1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-west1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/australia-southeast1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/europe-west1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/me-central1/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/asia-east2/subnetworks/default',
+      'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/me-central2/subnetworks/default'
+    ]
   }]
 };
 
@@ -267,7 +325,30 @@ const mockedGKESubnetworksResponse = {
     secondaryIpRanges:       [{ ipCidrRange: '10.0.1.0/24', rangeName: 'range-1' }],
     selfLink:                'https://www.googleapis.com/compute/v1/projects/test-project/regions/us-central1/subnetworks/test-network',
     stackType:               'IPV4_ONLY',
-  }]
+  },
+  {
+    creationTimestamp:       '2022-10-26T14:50:38.688-07:00',
+    fingerprint:             '3456',
+    gatewayAddress:          '10.128.0.1',
+    id:                      '1234',
+    ipCidrRange:             '10.128.0.0/20',
+    kind:                    'compute#subnetwork',
+    name:                    'default',
+    network:                 'https://www.googleapis.com/compute/v1/projects/test-data-project/global/networks/default',
+    privateIpGoogleAccess:   true,
+    privateIpv6GoogleAccess: 'DISABLE_GOOGLE_ACCESS',
+    purpose:                 'PRIVATE',
+    region:                  'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-central1',
+    secondaryIpRanges:       [
+      {
+        ipCidrRange: '10.0.1.0/24',
+        rangeName:   'range-1'
+      }
+    ],
+    selfLink:  'https://www.googleapis.com/compute/v1/projects/test-data-project/regions/us-central1/subnetworks/default',
+    stackType: 'IPV4_ONLY'
+  },
+  ]
 };
 
 const mockedGKESharedSubnetworksResponse = {

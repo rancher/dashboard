@@ -456,7 +456,7 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
  * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
  * - as chained regex rule: /.shell|dist-pkg|scripts\/standalone|\/pkg.test-pkg|\/pkg.harvester/
  */
-const getWatcherIgnored = (excludes) => {
+const getWatcherIgnored = (excludes = []) => {
   const paths = [
     /node_modules/,
     /dist-pkg/,
@@ -474,12 +474,11 @@ const getWatcherIgnored = (excludes) => {
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
-module.exports = function(dir, _appConfig) {
+module.exports = function(dir, appConfig = {}) {
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
 
   const { SHELL_ABS, COMPONENTS_DIR } = getShellPaths(dir);
-  const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
 
   const includePkg = (name) => {
@@ -557,7 +556,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = {
         ...(config.watchOptions || {}),
-        ignored: getWatcherIgnored(excludes)
+        ignored: getWatcherIgnored()
       };
 
       if (dev) {

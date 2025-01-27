@@ -104,6 +104,10 @@ export default {
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
+      :role="asLink ? 'link' : null"
+      :aria-disabled="asLink && get(r, disabledField) === true ? true : null"
+      :aria-label="get(r, nameField)"
+      :tabindex="get(r, disabledField) === true ? -1 : 0"
       :href="asLink ? get(r, linkField) : null"
       :target="get(r, targetField)"
       :rel="rel"
@@ -111,9 +115,12 @@ export default {
       :data-testid="componentTestid + '-' + get(r, nameField)"
       :class="{
         'has-description': !!get(r, descriptionField),
-        'has-side-label': !!get(r, sideLabelField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true
+        'has-side-label': !!get(r, sideLabelField),
+        [colorFor(r, idx)]: true,
+        disabled: get(r, disabledField) === true
       }"
       @click="select(r, idx)"
+      @keyup.enter.space="select(r, idx)"
     >
       <div
         class="side-label"
@@ -211,6 +218,10 @@ export default {
       border: 1px solid var(--border);
       text-decoration: none !important;
       color: $color;
+
+      &:focus-visible {
+        @include focus-outline;
+      }
 
       &:hover:not(.disabled) {
         box-shadow: 0 0 30px var(--shadow);

@@ -157,6 +157,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: '_type' },
       { field: 'reason' },
       { field: 'involvedObject.kind' },
+      // { field: 'involvedObject.uid' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
       { field: 'message' },
     ],
     [CATALOG.CLUSTER_REPO]: [

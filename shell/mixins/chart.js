@@ -182,9 +182,12 @@ export default {
       }
 
       if (this.existing && this.existing.upgradeAvailable === false) {
+        const manager = this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] || 'Rancher';
+
         warnings.unshift(this.t('catalog.install.warning.managed', {
           name:    this.existing.name,
-          version: this.chart ? this.query.versionName : null
+          version: this.chart ? this.query.versionName : null,
+          manager: manager === 'true' ? 'Rancher' : manager
         }, true));
       }
 

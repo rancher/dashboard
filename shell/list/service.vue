@@ -24,7 +24,7 @@ export default {
 
   methods: {
     /**
-     * opts: FetchSecondaryResourcesOpts
+     * of type PagTableFetchSecondaryResources
      */
     async fetchSecondaryResources(opts) {
       const inStore = this.$store.getters['currentStore']();
