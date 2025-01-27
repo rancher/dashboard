@@ -22,10 +22,6 @@ export default {
     rules: {
       default: () => ({ concurrency: [] }),
       type:    Object,
-    },
-    disabled: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -54,13 +50,11 @@ export default {
       :rules="rules.concurrency"
       required
       class="mb-10"
-      :disabled="disabled"
       @update:value="isWorker ? $emit('worker-concurrency-changed', $event) : $emit('server-concurrency-changed', $event);"
     />
     <Checkbox
       :value="drainNodes"
       :mode="mode"
-      :disabled="disabled"
       :label="isWorker ? t('imported.drainWorkerNodes.label') : t('imported.drainControlPlaneNodes.label')"
       @update:value="isWorker ? $emit('drain-worker-nodes-changed', $event) : $emit('drain-server-nodes-changed', $event)"
     />
