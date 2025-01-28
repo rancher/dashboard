@@ -232,6 +232,7 @@ export default {
         <Checkbox
           v-model:value="model.searchUsingServiceAccount"
           :mode="mode"
+          data-testid="searchUsingServiceAccount"
           class="full-height"
           :label="t('authConfig.ldap.searchUsingServiceAccount.label')"
         />
