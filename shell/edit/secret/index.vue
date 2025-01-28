@@ -206,7 +206,7 @@ export default {
       case TYPES.TLS:
         return this.t('secret.certificate.certificate');
       case TYPES.SSH:
-        return this.t('secret.ssh.keys');
+        return this.value.supportsSshKnownHosts ? this.t('secret.ssh.keysAndHosts') : this.t('secret.ssh.keys');
       case TYPES.BASIC:
         return this.t('secret.authentication');
       default:

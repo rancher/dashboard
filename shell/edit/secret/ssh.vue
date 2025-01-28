@@ -20,16 +20,21 @@ export default {
   data() {
     const username = this.value.decodedData['ssh-publickey'] || '';
     const password = this.value.decodedData['ssh-privatekey'] || '';
+    const knownHosts = this.value.decodedData['known_hosts'] || '';
+    const showKnownHosts = this.value.supportsSshKnownHosts;
 
     return {
       username,
       password,
+      knownHosts,
+      showKnownHosts,
     };
   },
 
   watch: {
-    username: 'update',
-    password: 'update',
+    username:   'update',
+    password:   'update',
+    knownHosts: 'update'
   },
 
   methods: {
@@ -39,8 +44,9 @@ export default {
     update() {
       this.value.setData('ssh-publickey', this.username);
       this.value.setData('ssh-privatekey', this.password);
+      this.value.setData('known_hosts', this.knownHosts);
     }
-  },
+  }
 };
 </script>
 
@@ -75,6 +81,18 @@ export default {
           class="btn btn-sm bg-primary mt-10"
           :label="t('generic.readFromFile')"
           @selected="onPasswordSelected"
+        />
+      </div>
+    </div>
+    <div class="row mt-40">
+      <div class="col span-12">
+        <LabeledInput
+          v-if="showKnownHosts"
+          v-model:value="knownHosts"
+          type="multiline"
+          :label="t('secret.ssh.knownHosts')"
+          :mode="mode"
+          :placeholder="t('secret.ssh.knownHostsPlaceholder')"
         />
       </div>
     </div>

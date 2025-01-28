@@ -122,6 +122,10 @@ export default {
       return this.value._type === TYPES.SSH;
     },
 
+    showKnownHosts() {
+      return this.isSsh && this.value.supportsSshKnownHosts;
+    },
+
     isBasicAuth() {
       return this.value._type === TYPES.BASIC;
     },
@@ -140,6 +144,12 @@ export default {
       });
 
       return rows;
+    },
+
+    knownHosts() {
+      const { data = {} } = this.value;
+
+      return data.known_hosts ? base64Decode(data.known_hosts) : '';
     },
 
     dataLabel() {
@@ -270,6 +280,21 @@ export default {
           <div
             v-t="'sortableTable.noRows'"
             class="m-20 text-center"
+          />
+        </div>
+      </div>
+    </Tab>
+    <Tab
+      v-if="showKnownHosts"
+      name="known_hosts"
+      label-key="secret.ssh.knownHosts"
+    >
+      <div class="row">
+        <div class="col span-12">
+          <DetailText
+            :value="knownHosts"
+            label-key="secret.ssh.knownHosts"
+            :conceal="false"
           />
         </div>
       </div>
