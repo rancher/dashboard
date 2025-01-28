@@ -99,9 +99,9 @@ export default {
               type="button"
               aria-haspopup="dialog"
               data-testid="extensions-catalog-load-dialog"
-              @click="$emit('showCatalogLoadDialog')"
               role="button"
               :aria-label="t('plugins.manageCatalog.imageLoad.load')"
+              @click="$emit('showCatalogLoadDialog')"
             >
               {{ t('plugins.manageCatalog.imageLoad.load') }}
             </button>

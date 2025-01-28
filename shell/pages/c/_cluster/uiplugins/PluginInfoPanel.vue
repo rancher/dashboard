@@ -162,9 +162,9 @@ export default {
       data-testid="extension-details-bg"
       @click="hide()"
     />
-    <transition 
+    <transition
       name="slide"
-      @after-enter="onEnter" 
+      @after-enter="onEnter"
       @after-leave="onLeave"
     >
       <div
@@ -172,7 +172,6 @@ export default {
         class="slideIn"
         data-testid="extension-details"
         :class="{'active': isActive}"
-        
       >
         <div
           v-if="info"
@@ -212,11 +211,11 @@ export default {
                 <div
                   class="slideIn__header__button"
                   data-testid="extension-details-close"
-                  @click="hide()"
                   role="button"
-                  @keyup.enter.space="hide()"
                   :aria-label="t('plugins.closePluginPanel')"
                   tabindex="0"
+                  @click="hide()"
+                  @keyup.enter.space="hide()"
                 >
                   <i class="icon icon-close" />
                 </div>
@@ -258,11 +257,11 @@ export default {
                 v-clean-tooltip="handleVersionBtnTooltip(v)"
                 class="version-link"
                 :class="handleVersionBtnClass(v)"
-                @click="loadPluginVersionInfo(v.version)"
                 :tabindex="!v.isVersionCompatible ? -1 : 0"
                 role="button"
-                @keyup.enter.space="loadPluginVersionInfo(v.version)"
                 :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+                @click="loadPluginVersionInfo(v.version)"
+                @keyup.enter.space="loadPluginVersionInfo(v.version)"
               >
                 {{ v.version }}
               </a>

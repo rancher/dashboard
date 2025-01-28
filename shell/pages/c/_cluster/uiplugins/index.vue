@@ -638,10 +638,10 @@ export default {
           >
             <a
               class="link"
-              @click="manageExtensionView()"
               role="link"
               tabindex="0"
               :aria-label="t('plugins.manageCatalog.title')"
+              @click="manageExtensionView()"
             >
               {{ t('plugins.manageCatalog.title') }}:
             </a>
@@ -676,9 +676,9 @@ export default {
           <button
             class="ml-10 btn btn-sm role-primary"
             data-testid="extension-reload-banner-reload-btn"
-            @click="reload()"
             role="button"
             :aria-label="t('plugins.labels.reloadRancher')"
+            @click="reload()"
           >
             {{ t('generic.reload') }}
           </button>
@@ -691,9 +691,9 @@ export default {
             type="button"
             class="btn role-multi-action actions"
             data-testid="extensions-page-menu"
-            @click="setMenu"
             role="button"
             :aria-label="t('plugins.labels.menu')"
+            @click="setMenu"
           >
             <i class="icon icon-actions" />
           </button>
@@ -755,9 +755,9 @@ export default {
           <button
             class="ml-10 btn btn-sm role-primary"
             data-testid="extensions-new-repos-banner-action-btn"
-            @click="showAddExtensionReposDialog()"
             role="button"
             :aria-label="t('plugins.addRepos.bannerBtn')"
+            @click="showAddExtensionReposDialog()"
           >
             {{ t('plugins.addRepos.bannerBtn') }}
           </button>
@@ -941,9 +941,9 @@ export default {
                       v-if="!plugin.builtin"
                       class="btn role-secondary"
                       :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
-                      @click="showUninstallDialog(plugin, $event)"
                       role="button"
                       :aria-label="t('plugins.uninstall.label')"
+                      @click="showUninstallDialog(plugin, $event)"
                     >
                       {{ t('plugins.uninstall.label') }}
                     </button>
@@ -951,9 +951,9 @@ export default {
                       v-if="plugin.upgrade"
                       class="btn role-secondary"
                       :data-testid="`extension-card-update-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'update', $event)"
                       role="button"
                       :aria-label="t('plugins.update.label')"
+                      @click="showInstallDialog(plugin, 'update', $event)"
                     >
                       {{ t('plugins.update.label') }}
                     </button>
@@ -961,9 +961,9 @@ export default {
                       v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
                       class="btn role-secondary"
                       :data-testid="`extension-card-rollback-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'rollback', $event)"
                       role="button"
                       :aria-label="t('plugins.rollback.label')"
+                      @click="showInstallDialog(plugin, 'rollback', $event)"
                     >
                       {{ t('plugins.rollback.label') }}
                     </button>
@@ -975,9 +975,9 @@ export default {
                     <button
                       class="btn role-secondary"
                       :data-testid="`extension-card-install-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'install', $event)"
                       role="button"
                       :aria-label="t('plugins.install.label')"
+                      @click="showInstallDialog(plugin, 'install', $event)"
                     >
                       {{ t('plugins.install.label') }}
                     </button>
