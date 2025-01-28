@@ -142,4 +142,29 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
   });
+
+  it('A disabled repo should NOT be listed on the repos dropdown', () => {
+    const disabledRepoId = 'disabled-repo';
+
+    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields', (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          data: [
+            { id: disabledRepoId, spec: { enabled: false } }, // disabled
+            { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
+            { id: 'enabled-repo-2', spec: {} } // enabled
+          ]
+        }
+      });
+    }).as('getRepos');
+
+    cy.wait('@getRepos');
+
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().isOpened();
+    chartsPage.chartsFilterReposSelect().getOptions().should('have.length', 3); // should include three options: All, enabled-repo-1 and enabled-repo-2
+    chartsPage.chartsFilterReposSelect().getOptions().contains(disabledRepoId)
+      .should('not.exist');
+  });
 });

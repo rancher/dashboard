@@ -544,4 +544,8 @@ BODY, .theme-light {
 
   --product-icon               : #{$darker};
   --product-icon-active        : #{$darkest};
+
+  --badge-state-disabled-text  : #{$darker};
+  --badge-state-disabled-bg    : #{$lighter};
+  --badge-state-disabled-border: #{$medium};
 }

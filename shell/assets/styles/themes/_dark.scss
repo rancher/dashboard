@@ -219,4 +219,8 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
+
+  --badge-state-disabled-text  : #{$desc-light};
+  --badge-state-disabled-bg    : #{$medium};
+  --badge-state-disabled-border: #{$lighter};
 }
