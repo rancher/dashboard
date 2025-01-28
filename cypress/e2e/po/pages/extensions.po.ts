@@ -34,7 +34,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.title().should('contain', 'Extensions');
   }
 
-  loading(options: any) {
+  loading() {
     return this.self().get('.data-loading');
   }
 
