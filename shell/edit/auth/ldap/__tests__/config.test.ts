@@ -41,4 +41,11 @@ describe('lDAP config', () => {
     expect(userLoginFilter.element.value).toBe(expectedValue);
     expect(wrapper.vm.model.userLoginFilter).toBeUndefined();
   });
+
+  it('should display searchUsingServiceAccount checkbox', () => {
+    const wrapper = mount(LDAPConfig);
+    const checkbox = wrapper.find('[data-testid="searchUsingServiceAccount"]');
+
+    expect(checkbox).toBeDefined();
+  });
 });
