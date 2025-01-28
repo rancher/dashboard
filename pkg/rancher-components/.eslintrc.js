@@ -21,6 +21,14 @@ module.exports = {
       'error',
       { 'ts-nocheck': false }
     ],
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern:         '^_',
+        varsIgnorePattern:         '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }
+    ],
     'vue/one-component-per-file':       'off',
     'vue/no-deprecated-slot-attribute': 'off',
     'vue/require-explicit-emits':       'off',
