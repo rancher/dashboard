@@ -8,6 +8,10 @@ export default class ChartRepositoriesListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowActionMenuOpen(repoName);
   }
 
+  closeActionMenu() {
+    cy.get('body').click(0, 0); // Click outside of the action menu
+  }
+
   openBulkActionDropdown() {
     return this.resourceTable().sortableTable().bulkActionDropDownOpen();
   }

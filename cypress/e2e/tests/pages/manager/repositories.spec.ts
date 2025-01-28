@@ -274,11 +274,19 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
 
+    // refresh should be displayed for an enabled repo
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
+    // close action menu
+    repositoriesPage.list().closeActionMenu();
     // disable repo
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
     repositoriesPage.list().details(this.repoName, 1).contains('Disabled', { timeout: 10000 }).scrollIntoView()
       .should('be.visible');
 
+    // refresh should NOT be displayed for a disabled repo
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
+    // close action menu
+    repositoriesPage.list().closeActionMenu();
     // enable repo
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).scrollIntoView()
