@@ -78,6 +78,8 @@ export default {
     name="uninstallPluginDialog"
     height="auto"
     :scrollable="true"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
     @close="closeDialog(false)"
   >
     <div

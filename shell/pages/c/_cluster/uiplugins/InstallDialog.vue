@@ -251,6 +251,8 @@ export default {
     name="installPluginDialog"
     height="auto"
     :scrollable="true"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
     @close="closeDialog(false)"
   >
     <div

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { watcherBasedSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
   name: 'AppModal',
@@ -56,6 +57,20 @@ export default defineComponent({
     name: {
       type:    String,
       default: '',
+    },
+    /**
+     * Modal visibility (used for focus-trap)
+     */
+    modalVisibility: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * trigger focus trap
+     */
+    triggerFocusTrap: {
+      type:    Boolean,
+      default: false,
     }
   },
   computed: {
@@ -83,6 +98,11 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
+    }
+  },
+  created() {
+    if (this.triggerFocusTrap) {
+      watcherBasedSetupFocusTrap(() => this.modalVisibility, '.modal-container');
     }
   },
   mounted() {

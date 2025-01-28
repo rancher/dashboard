@@ -121,6 +121,8 @@ export default {
     name="uninstallCatalogDialog"
     height="auto"
     :scrollable="true"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
     @close="closeDialog(false)"
   >
     <div

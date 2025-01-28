@@ -28,7 +28,7 @@ export default {
   },
 
   watch: {
-    name(neu, old) {
+    name(neu) {
       if (this.canModifyLocation) {
         this.location = `/pkg/${ neu }/${ neu }.umd.min.js`;
       }
@@ -154,6 +154,8 @@ export default {
     name="developerInstallPluginDialog"
     height="auto"
     :scrollable="true"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
     @close="closeDialog()"
   >
     <div class="plugin-install-dialog">

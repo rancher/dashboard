@@ -434,6 +434,8 @@ export default {
     name="catalogLoadDialog"
     height="auto"
     :scrollable="true"
+    :modal-visibility="showModal"
+    :trigger-focus-trap="true"
     @close="closeDialog()"
   >
     <Loading
