@@ -159,6 +159,9 @@ export default {
     }
   },
 
+  typeDisplay() {
+    return this.$store.getters['type-map/labelFor'](this.schema || workloadSchema, 99);
+  },
 };
 </script>
 
