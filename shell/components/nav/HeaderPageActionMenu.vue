@@ -27,6 +27,7 @@ const pageAction = (action: string) => {
     <rc-dropdown-trigger
       tertiary
       data-testid="page-actions-menu"
+      :aria-label="t('nav.actionMenu.button.label')"
     >
       <i class="icon icon-actions" />
     </rc-dropdown-trigger>
