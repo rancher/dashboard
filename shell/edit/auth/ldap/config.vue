@@ -226,6 +226,18 @@ export default {
         />
       </div>
     </div>
+
+    <div class="row mb-20">
+      <div class="col">
+        <Checkbox
+          v-model:value="model.searchUsingServiceAccount"
+          :mode="mode"
+          class="full-height"
+          :label="t('authConfig.ldap.searchUsingServiceAccount.label')"
+        />
+      </div>
+    </div>
+
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
