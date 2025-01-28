@@ -602,7 +602,9 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
  * Create RKE2 cluster with Amazon EC2 cloud provider
  */
 Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
-  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+  const {
+    machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon, metadata
+  } = params;
 
   return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
     .then((resp: Cypress.Response<any>) => {
@@ -625,8 +627,12 @@ Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2Cluster
               type:     'provisioning.cattle.io.cluster',
               metadata: {
                 namespace:   rke2ClusterAmazon.namespace,
-                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
-                name:        rke2ClusterAmazon.clusterName
+                annotations: {
+                  'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description`,
+                  ...(metadata?.annotations || {}),
+                },
+                labels: metadata?.labels || {},
+                name:   rke2ClusterAmazon.clusterName
               },
               spec: {
                 rkeConfig: {
