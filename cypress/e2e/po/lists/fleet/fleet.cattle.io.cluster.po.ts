@@ -7,4 +7,8 @@ export default class FleetClusterList extends BaseResourceList {
   details(name: string, index: number) {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
+
+  subRows() {
+    return this.resourceTable().sortableTable().subRows();
+  }
 }
