@@ -661,6 +661,7 @@ export default {
             link
             small
             data-testid="nav_header_showUserMenu"
+            :aria-label="t('nav.userMenu.button.label')"
           >
             <img
               v-if="principal && principal.avatarSrc"
