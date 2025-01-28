@@ -223,4 +223,8 @@
   --badge-state-disabled-text  : #{$desc-light};
   --badge-state-disabled-bg    : #{$medium};
   --badge-state-disabled-border: #{$lighter};
+
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
 }

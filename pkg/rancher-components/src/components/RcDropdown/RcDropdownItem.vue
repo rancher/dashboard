@@ -77,10 +77,13 @@ const handleActivate = (e: KeyboardEvent) => {
 
 <style lang="scss" scoped>
   [dropdown-menu-item] {
-    padding: 10px;
+    padding: 9px 8px;
+    margin: 0 9px;
+    border-radius: 4px;
+
     &:hover {
       cursor: pointer;
-      background-color: var(--dropdown-hover-bg);
+      background-color: var(--slate);
       color: var(--dropdown-hover-text);
     }
     &:focus-visible {
