@@ -74,7 +74,10 @@
   color: var(--dropdown-text);
   white-space: nowrap;
   z-index: 1000;
-  overflow: auto;
+  overflow-y: auto;
+  // needs overflow-x hidden so that select for type of charts in cluster chart page
+  // doesn't show a horizontal scroll https://github.com/rancher/dashboard/pull/13139/files/9e6a8e64181de4525ad378d4d1b93c8efc2ed6d5#r1929296126
+  overflow-x: hidden;
 
   &:hover {
     cursor: pointer;
