@@ -125,7 +125,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // check resources: testing https://github.com/rancher/dashboard/issues/11154
       fleetClusterListPage.clusterList().details(clusterName, 5).contains( ' 1 ', MEDIUM_TIMEOUT_OPT);
       // check cluster labels
-      fleetClusterListPage.clusterList().subRows().should('contain.text', 'foo=bar');
+      fleetClusterListPage.clusterList().subRows().should('contain.text', 'foo222=bar');
 
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
 
