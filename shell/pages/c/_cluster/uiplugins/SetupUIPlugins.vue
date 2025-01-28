@@ -62,9 +62,9 @@ export default {
               v-if="showFeaturesButton"
               class="btn role-primary enable-plugin-support"
               data-testid="extension-feature-button"
-              @click="redirectToFeatureFlags"
               role="button"
               :aria-label="t('plugins.setup.install.featuresButton')"
+              @click="redirectToFeatureFlags"
             >
               {{ t('plugins.setup.install.featuresButton') }}
             </button>

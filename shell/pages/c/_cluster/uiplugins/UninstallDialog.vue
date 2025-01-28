@@ -78,9 +78,9 @@ export default {
     name="uninstallPluginDialog"
     height="auto"
     :scrollable="true"
-    @close="closeDialog(false)"
     :modal-visibility="showModal"
     :trigger-focus-trap="true"
+    @close="closeDialog(false)"
   >
     <div
       v-if="plugin"
