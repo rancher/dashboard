@@ -1,19 +1,20 @@
 import { provide, ref } from 'vue';
 
+/**
+ * Manages a collection of dropdown items. Includes methods for registering
+ * dropdown items and providing the collection to descendant components.
+ *
+ * @returns Dropdown collection methods and state.
+ */
 export const useDropdownCollection = () => {
   const dropdownItems = ref<Element[]>([]);
   const dropdownContainer = ref<HTMLElement | null>(null);
   const firstDropdownItem = ref<HTMLElement | null>(null);
 
-  const registerDropdownItems = () => {
-    dropdownItems.value = [];
-    const dropdownNodeList = dropdownContainer.value?.querySelectorAll('[dropdown-menu-item]');
-
-    dropdownNodeList?.forEach((element) => {
-      dropdownItems.value.push(element);
-    });
-  };
-
+  /**
+   * Registers the dropdown container and initializes dropdown items.
+   * @param target - The dropdown container element.
+   */
   const registerDropdownCollection = (target: HTMLElement | null) => {
     dropdownContainer.value = target;
     if (dropdownContainer.value?.firstElementChild instanceof HTMLElement) {
@@ -24,6 +25,22 @@ export const useDropdownCollection = () => {
     }
   };
 
+  /**
+   * Registers dropdown items by querying the dropdown container for elements.
+   */
+  const registerDropdownItems = () => {
+    dropdownItems.value = [];
+    const dropdownNodeList = dropdownContainer.value?.querySelectorAll('[dropdown-menu-item]');
+
+    dropdownNodeList?.forEach((element) => {
+      dropdownItems.value.push(element);
+    });
+  };
+
+  /**
+   * Provides the dropdown collection data to descendants. Can be accessed
+   * in descendants with the `inject()` function.
+   */
   const provideDropdownCollection = () => {
     provide('dropdownCollection', { dropdownItems });
   };

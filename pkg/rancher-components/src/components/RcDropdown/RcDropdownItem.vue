@@ -8,6 +8,10 @@ const emits = defineEmits(['click']);
 const { dropdownItems } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
 const { close } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
+/**
+ * Handles keydown events to navigate between dropdown items.
+ * @param {KeyboardEvent} e - The keydown event.
+ */
 const handleKeydown = (e: KeyboardEvent) => {
   const activeItem = document.activeElement;
 
@@ -26,6 +30,13 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
+/**
+ * Finds the new index for the dropdown item based on the key pressed.
+ * @param shouldAdvance - Whether to advance to the next or previous item.
+ * @param activeIndex - Current active index.
+ * @param itemsArr - Array of dropdown items.
+ * @returns The new index.
+ */
 const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Element[]) => {
   const newIndex = shouldAdvance ? activeIndex + 1 : activeIndex - 1;
 
@@ -49,6 +60,10 @@ const handleClick = () => {
   close();
 };
 
+/**
+ * Handles keydown events to activate the dropdown item.
+ * @param e - The keydown event.
+ */
 const handleActivate = (e: KeyboardEvent) => {
   if (e?.target instanceof HTMLElement) {
     e?.target?.click();
