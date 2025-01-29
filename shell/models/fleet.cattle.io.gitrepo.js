@@ -395,74 +395,76 @@ export default class GitRepo extends SteveModel {
   }
 
   get resourcesStatuses() {
-    const bundleDeployments = this.bundleDeployments || [];
+    if (isEmpty(this.status?.resources)) {
+      return [];
+    }
+
     const clusters = (this.targetClusters || []).reduce((res, c) => {
       res[c.id] = c;
 
       return res;
     }, {});
+    const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
+      const { perClusterState, ...resource } = resourceInfo;
 
-    const out = [];
-
-    for (const bd of bundleDeployments) {
-      const clusterId = FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels);
-      const c = clusters[clusterId];
-
-      if (!c) {
-        continue;
-      }
-
-      const resources = FleetUtils.resourcesFromBundleDeploymentStatus(bd.status);
-
-      resources.forEach((r) => {
-        const id = FleetUtils.resourceId(r);
-        const type = FleetUtils.resourceType(r);
-        const state = r.state;
-
-        const color = colorForState(state).replace('text-', 'bg-');
-        const display = stateDisplay(state);
-
-        const detailLocation = {
-          name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
-          params: {
-            product:   NAME,
-            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
-            resource:  type,
-            namespace: r.namespace,
-            id:        r.name,
-          }
-        };
-
-        const key = `${ c.id }-${ type }-${ r.namespace }-${ r.name }`;
-
-        out.push({
-          key,
-          tableKey: key,
-
-          // Needed?
-          id,
-          type,
-          clusterId: c.id,
-
-          // columns, see FleetResources.vue
-          state:             mapStateToEnum(state),
-          clusterName:       c.nameDisplay,
-          apiVersion:        r.apiVersion,
-          kind:              r.kind,
-          name:              r.name,
-          namespace:         r.namespace,
-          creationTimestamp: r.createdAt,
-
-          // other properties
-          stateBackground: color,
-          stateDisplay:    display,
-          stateSort:       stateSort(color, display),
-          detailLocation,
+      Object.entries(perClusterState).forEach(([state, clusterIds]) => {
+        clusterIds.filter((id) => !!clusters[id]).forEach((clusterId) => {
+          acc.push(Object.assign({ clusterId, state }, resource));
         });
       });
-    }
 
-    return out;
+      return acc;
+    }, []);
+
+    return resources.map((r) => {
+      const {
+        namespace, name, clusterId, state
+      } = r;
+      const id = FleetUtils.resourceId(r);
+      const type = FleetUtils.resourceType(r);
+      const c = clusters[clusterId];
+
+      const color = colorForState(state).replace('text-', 'bg-');
+      const display = stateDisplay(state);
+
+      const detailLocation = {
+        name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
+        params: {
+          product:  NAME,
+          cluster:  c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
+          resource: type,
+          namespace,
+          id:       name,
+        }
+      };
+
+      const key = `${ clusterId }-${ type }-${ namespace }-${ name }`;
+
+      return {
+        key,
+        tableKey: key,
+
+        // Needed?
+        id,
+        type,
+        clusterId,
+
+        // columns, see FleetResources.vue
+        state:             mapStateToEnum(state),
+        clusterName:       c.nameDisplay,
+        apiVersion:        r.apiVersion,
+        kind:              r.kind,
+        name:              r.name,
+        namespace:         r.namespace,
+        creationTimestamp: r.createdAt,
+
+        // other properties
+        stateBackground: color,
+        stateDisplay:    display,
+        stateSort:       stateSort(color, display),
+        detailLocation,
+      };
+    });
   }
 
   get clusterInfo() {
