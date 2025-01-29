@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { inject } from 'vue';
-import { DropdownCollection, defaultCollection, DropdownContext, defaultContext } from './types';
+import { DropdownContext, defaultContext } from './types';
 
 const props = defineProps({ disabled: Boolean });
 const emits = defineEmits(['click']);
 
-const { dropdownItems } = inject<DropdownCollection>('dropdownCollection') || defaultCollection;
-const { close } = inject<DropdownContext>('dropdownContext') || defaultContext;
+const { close, dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 /**
  * Handles keydown events to navigate between dropdown items.
