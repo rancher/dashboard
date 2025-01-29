@@ -81,7 +81,6 @@ const applyShow = () => {
     display: contents;
     &:deep(.v-popper__popper) {
       border-radius: 8px;
-      background-color: #1B1C21;
 
       .v-popper__wrapper {
         .v-popper__arrow-container {
