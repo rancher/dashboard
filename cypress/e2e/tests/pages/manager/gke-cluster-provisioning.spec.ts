@@ -9,7 +9,7 @@ import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
+describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
