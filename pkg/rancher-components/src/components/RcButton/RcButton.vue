@@ -70,12 +70,12 @@ button {
 
     &:focus, &.focused {
       outline: 2px solid var(--primary-keyboard-focus);
-      outline-offset: 2px;
+      outline-offset: 0;
     }
 
     &:focus-visible {
       outline: 2px solid var(--primary-keyboard-focus);
-      outline-offset: 2px;
+      outline-offset: 0;
     }
   }
 }</style>

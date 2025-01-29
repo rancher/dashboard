@@ -146,7 +146,7 @@
   --tag-primary                : #{$lightest};
   --tag-bg                     : #{$medium};
 
-  --popover-bg                 : var(--body-bg);
+  --popover-bg                 : #{$darker};
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
 
