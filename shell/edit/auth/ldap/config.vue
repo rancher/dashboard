@@ -11,6 +11,8 @@ const DEFAULT_TLS_PORT = 636;
 
 export const SHIBBOLETH = 'shibboleth';
 export const OKTA = 'okta';
+export const OPEN_LDAP = 'openldap';
+export const FREE_IPA = 'freeipa';
 
 export default {
   emits: ['update:value'],
@@ -227,7 +229,10 @@ export default {
       </div>
     </div>
 
-    <div class="row mb-20">
+    <div
+      v-if="type === OPEN_LDAP || type === FREE_IPA"
+      class="row mb-20"
+    >
       <div class="col">
         <Checkbox
           v-model:value="model.searchUsingServiceAccount"
