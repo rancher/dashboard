@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, useTemplateRef } from 'vue';
-import { RcButton } from '@components/RcButton';
+import { RcButton, RcButtonType } from '@components/RcButton';
 import { DropdownContext, defaultContext } from './types';
 
 const {
@@ -11,7 +11,7 @@ const {
   isMenuOpen,
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
-const dropdownTrigger = useTemplateRef('dropdownTrigger');
+const dropdownTrigger = useTemplateRef<RcButtonType>('dropdownTrigger');
 
 onMounted(() => {
   registerTrigger(dropdownTrigger.value);
