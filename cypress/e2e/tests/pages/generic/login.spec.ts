@@ -51,7 +51,7 @@ describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUs
     // take screenshot if locator is visible.
     loginPage.canSubmit().then((canSubmit) => {
       if (canSubmit) {
-        // Take a snapshot for visual diffing
+        // Take a snapshot for visual difference
         cy.percySnapshot('Login test');
       }
     });
