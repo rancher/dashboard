@@ -84,7 +84,7 @@ export default {
       }
     }
 
-    &:hover .close-button {
+    .close-button {
       visibility: visible;
       position: absolute;
       right: 4px;
@@ -96,7 +96,7 @@ export default {
       cursor: pointer;
       opacity: 0.4;
 
-      &:hover {
+      &:hover, &:focus, &:focus-visible {
         background-color: var(--accent-btn-hover);
         color: var(--accent-btn-hover-text);
         opacity: 1;
