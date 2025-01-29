@@ -450,13 +450,12 @@ export default class GitRepo extends SteveModel {
         clusterId,
 
         // columns, see FleetResources.vue
-        state:             mapStateToEnum(state),
-        clusterName:       c.nameDisplay,
-        apiVersion:        r.apiVersion,
-        kind:              r.kind,
-        name:              r.name,
-        namespace:         r.namespace,
-        creationTimestamp: r.createdAt,
+        state:       mapStateToEnum(state),
+        clusterName: c.nameDisplay,
+        apiVersion:  r.apiVersion,
+        kind:        r.kind,
+        name:        r.name,
+        namespace:   r.namespace,
 
         // other properties
         stateBackground: color,
