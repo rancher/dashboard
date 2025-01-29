@@ -78,72 +78,43 @@ export default function(context, inject, vueApp) {
           element.id = id;
           element.dataset.purpose = 'extension';
 
-          // id is `<product>-<version>`.
-          const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
+          element.onload = () => {
+            if (!window[id]) {
+              return reject(new Error('Could not load plugin code'));
+            }
 
-          let removed = Promise.resolve();
+            // Update the timestamp that new plugins were loaded - may be needed
+            // to update caches when new plugins are loaded
+            _lastLoaded = new Date().getTime();
 
-          if (oldPlugin) {
-          // Uninstall existing plugin if there is one. This ensures that last loaded plugin is not always used
-          // (nav harv1-->harv2-->harv1 and harv2 would be shown)
-            removed = this.removePlugin(oldPlugin.name).then(() => {
-              delete window[oldPlugin.id];
+            // name is the name of the plugin, including the version number
+            const plugin = new Plugin(id);
 
-              delete plugins[oldPlugin.id];
+            plugins[id] = plugin;
 
-              const oldElement = document.getElementById(oldPlugin.id);
+            // Initialize the plugin
+            window[id].default(plugin, this.internal());
 
-              oldElement.parentElement.removeChild(oldElement);
-            });
-          }
+            // Load all of the types etc from the plugin
+            this.applyPlugin(plugin);
 
-          removed.then(() => {
-            element.onload = () => {
-              if (!window[id]) {
-                return reject(new Error('Could not load plugin code'));
-              }
+            // Add the plugin to the store
+            store.dispatch('uiplugins/addPlugin', plugin);
 
-              // Update the timestamp that new plugins were loaded - may be needed
-              // to update caches when new plugins are loaded
-              _lastLoaded = new Date().getTime();
+            resolve();
+          };
 
-              // name is the name of the plugin, including the version number
-              const plugin = new Plugin(id);
+          element.onerror = (e) => {
+            element.parentElement.removeChild(element);
 
-              plugins[id] = plugin;
-
-              // Initialize the plugin
-              window[id].default(plugin, this.internal());
-
-              // Uninstall existing plugin if there is one
-              this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
-
-              // Load all of the types etc from the plugin
-              this.applyPlugin(plugin);
-
-              // Add the plugin to the store
-              store.dispatch('uiplugins/addPlugin', plugin);
-
-              resolve();
-            };
-
-            element.onerror = (e) => {
-              element.parentElement.removeChild(element);
-
-              // Massage the error into something useful
-              const errorMessage = `Failed to load script from '${ e.target.src }'`;
-
-              console.error(errorMessage, e); // eslint-disable-line no-console
-              reject(new Error(errorMessage)); // This is more useful where it's used
-            };
-
-            document.head.appendChild(element);
-          }).catch((e) => {
-            const errorMessage = `Failed to unload old plugin${ oldPlugin?.id }`;
+            // Massage the error into something useful
+            const errorMessage = `Failed to load script from '${ e.target.src }'`;
 
             console.error(errorMessage, e); // eslint-disable-line no-console
             reject(new Error(errorMessage)); // This is more useful where it's used
-          });
+          };
+
+          document.head.appendChild(element);
         });
       },
 
