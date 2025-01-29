@@ -7,6 +7,7 @@ const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'secondary', className: 'role-secondary' },
   { role: 'tertiary', className: 'role-tertiary' },
   { role: 'link', className: 'role-link' },
+  { role: 'ghost', className: 'role-ghost' },
 ];
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
@@ -61,4 +62,19 @@ defineExpose({ focus });
     box-shadow: 0 0 0 var(--outline-width) var(--outline);
    }
 }
-</style>
+
+button {
+  &.role-ghost {
+    padding: 0;
+
+    &:focus, &.focused {
+      outline: 2px solid var(--primary-keyboard-focus);
+      outline-offset: 2px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--primary-keyboard-focus);
+      outline-offset: 2px;
+    }
+  }
+}</style>

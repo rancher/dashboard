@@ -9,6 +9,7 @@ export type ButtonRoleProps = {
   secondary?: boolean;
   tertiary?: boolean;
   link?: boolean;
+  ghost?: boolean;
 }
 
 export type ButtonSizeProps = {
