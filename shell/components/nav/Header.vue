@@ -658,7 +658,7 @@ export default {
           :aria-label="t('nav.userMenu.label')"
         >
           <rc-dropdown-trigger
-            link
+            ghost
             small
             data-testid="nav_header_showUserMenu"
             :aria-label="t('nav.userMenu.button.label')"
@@ -1009,6 +1009,14 @@ export default {
           border-radius: 50%;
         }
       }
+
+      > .center-self {
+        align-self: center;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding-right: 1rem;
+      }
     }
   }
 
@@ -1111,7 +1119,4 @@ export default {
     }
   }
 
-  .center-self {
-    align-self: center;
-  }
 </style>
