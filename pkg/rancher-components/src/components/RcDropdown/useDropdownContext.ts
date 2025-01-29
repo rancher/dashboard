@@ -39,7 +39,7 @@ export const useDropdownContext = (firstDropdownItem: Ref<HTMLElement | null>) =
 
   const provideDropdownContext = () => {
     provide('dropdownContext', {
-      close:             () => returnFocus,
+      close:             () => returnFocus(),
       handleKeydown,
       showMenu,
       registerTrigger,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { useTemplateRef } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 import { useDropdownCollection } from '@components/RcDropdown/useDropdownCollection';
@@ -26,8 +26,8 @@ const {
 
 provideDropdownContext();
 
-const popperContainer = ref(null);
-const dropdownTarget = ref(null);
+const popperContainer = useTemplateRef<HTMLElement>('popperContainer');
+const dropdownTarget = useTemplateRef<HTMLElement>('dropdownTarget');
 
 useClickOutside(dropdownTarget, () => showMenu(false));
 
