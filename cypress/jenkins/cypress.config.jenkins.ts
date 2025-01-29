@@ -15,7 +15,6 @@ const testDirs = [
   'cypress/e2e/tests/pages/**/*.spec.ts',
   'cypress/e2e/tests/navigation/**/*.spec.ts',
   'cypress/e2e/tests/global-ui/**/*.spec.ts',
-  'cypress/e2e/tests/features/**/*.spec.ts',
   'cypress/e2e/tests/extensions/**/*.spec.ts'
 ];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');

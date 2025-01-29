@@ -134,6 +134,9 @@ jobs:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
+          CYPRESS_grepExcludeTags: "@jenkins"
+          CYPRESS_grepFilterSpecs: "true"
+          CYPRESS_grepOmitFiltered: "true"
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
