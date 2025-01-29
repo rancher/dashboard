@@ -2,19 +2,10 @@
 import { useTemplateRef } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
-import { useDropdownCollection } from '@components/RcDropdown/useDropdownCollection';
 
 defineProps<{
   ariaLabel?: string
 }>();
-
-const {
-  firstDropdownItem,
-  provideDropdownCollection,
-  registerDropdownCollection
-} = useDropdownCollection();
-
-provideDropdownCollection();
 
 const {
   isMenuOpen,
@@ -22,7 +13,8 @@ const {
   returnFocus,
   setFocus,
   provideDropdownContext,
-} = useDropdownContext(firstDropdownItem);
+  registerDropdownCollection,
+} = useDropdownContext();
 
 provideDropdownContext();
 

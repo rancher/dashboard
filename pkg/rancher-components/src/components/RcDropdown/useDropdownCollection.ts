@@ -1,4 +1,4 @@
-import { provide, ref } from 'vue';
+import { ref } from 'vue';
 
 /**
  * Manages a collection of dropdown items. Includes methods for registering
@@ -37,17 +37,9 @@ export const useDropdownCollection = () => {
     });
   };
 
-  /**
-   * Provides the dropdown collection data to descendants. Can be accessed
-   * in descendants with the `inject()` function.
-   */
-  const provideDropdownCollection = () => {
-    provide('dropdownCollection', { dropdownItems });
-  };
-
   return {
+    dropdownItems,
     firstDropdownItem,
-    provideDropdownCollection,
     registerDropdownCollection,
   };
 };

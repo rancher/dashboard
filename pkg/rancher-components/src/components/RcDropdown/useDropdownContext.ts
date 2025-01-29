@@ -1,4 +1,5 @@
-import { ref, provide, Ref, nextTick } from 'vue';
+import { ref, provide, nextTick } from 'vue';
+import { useDropdownCollection } from './useDropdownCollection';
 import { RcButtonType } from '@components/RcButton';
 
 /**
@@ -10,7 +11,8 @@ import { RcButtonType } from '@components/RcButton';
  * @returns Dropdown context methods and state. Used for programmatic
  * interactions and setting focus.
  */
-export const useDropdownContext = (firstDropdownItem: Ref<HTMLElement | null>) => {
+export const useDropdownContext = () => {
+  const { dropdownItems, firstDropdownItem, registerDropdownCollection } = useDropdownCollection();
   /**
    * Tracks if a keydown event has occurred. Important for distinguishing keyboard
    * events from mouse events.
@@ -78,6 +80,7 @@ export const useDropdownContext = (firstDropdownItem: Ref<HTMLElement | null>) =
       showMenu,
       registerTrigger,
       isMenuOpen,
+      dropdownItems,
       close:             () => returnFocus(),
       focusFirstElement: () => {
         handleKeydown();
@@ -93,5 +96,6 @@ export const useDropdownContext = (firstDropdownItem: Ref<HTMLElement | null>) =
     returnFocus,
     setFocus,
     provideDropdownContext,
+    registerDropdownCollection,
   };
 };
