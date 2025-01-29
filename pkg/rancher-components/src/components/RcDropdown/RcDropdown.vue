@@ -46,7 +46,6 @@ const applyShow = () => {
     :auto-hide="false"
     :container="popperContainer"
     :placement="'bottom-end'"
-    :distance="16"
     @apply-show="applyShow"
   >
     <slot name="default">
@@ -81,6 +80,9 @@ const applyShow = () => {
   .popperContainer {
     display: contents;
     &:deep(.v-popper__popper) {
+      border-radius: 8px;
+      background-color: #1B1C21;
+
       .v-popper__wrapper {
         .v-popper__arrow-container {
           display: none;

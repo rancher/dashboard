@@ -88,7 +88,7 @@ const handleActivate = (e: KeyboardEvent) => {
     }
     &:focus-visible {
       @include focus-outline;
-      outline-offset: -2px;
+      outline-offset: 0;
     }
     &[disabled] {
       color: var(--disabled-text);
