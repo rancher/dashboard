@@ -66,6 +66,11 @@ export default {
     // Does the auth provider support LDAP for search in addition to SAML?
     isSamlProvider() {
       return this.type === SHIBBOLETH || this.type === OKTA;
+    },
+
+    // Allow to enable user search just for these providers
+    isSearchAllowed() {
+      return this.type === OPEN_LDAP || this.type === FREE_IPA;
     }
   },
 
@@ -230,7 +235,7 @@ export default {
     </div>
 
     <div
-      v-if="type === OPEN_LDAP || type === FREE_IPA"
+      v-if="isSearchAllowed"
       class="row mb-20"
     >
       <div class="col">
