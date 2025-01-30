@@ -426,7 +426,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
 
-    describe('RKE1 Custom', () => {
+    describe('RKE1 Custom', { tags: ['@jenkins'] }, () => {
       it('can create new cluster', () => {
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -436,7 +436,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createClusterRKE1Page.rkeToggle().set('RKE1');
         createClusterRKE1Page.selectCustom(0);
-        loadingPo.checkNotExists();
+        loadingPo.checkNotExists(MEDIUM_TIMEOUT_OPT);
 
         createClusterRKE1Page.clusterName().set(rke1CustomName);
 
@@ -481,10 +481,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         }
 
         createClusterRKE1Page.nodeCommand().checkExists();
+        createClusterRKE1Page.etcdRole().click();
+        createClusterRKE1Page.cpRole().click();
+        createClusterRKE1Page.registrationCommand().then(($value) => {
+          const registrationCommand = $value.text().replace('sudo', '');
+
+          cy.log(registrationCommand);
+
+          cy.exec(`echo ${ Cypress.env('customNodeKeyRke1') } | base64 -d > custom_node_rke1.key && chmod 600 custom_node_rke1.key`).then((result) => {
+            cy.log('Creating the custom_node_rke1.key');
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(`head custom_node_rke1.key`).then((result) => {
+            cy.log(result.stdout);
+            cy.log(result.stderr);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(createClusterRKE1Page.customClusterRegistrationCmd(registrationCommand, 1), { failOnNonZeroExit: false, timeout: 120000 }).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+          });
+        });
         createClusterRKE1Page.done();
 
         clusterList.waitForPage();
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+        clusterList.list().state(rke1CustomName).should('contain.text', 'Provisioning');
+        clusterList.list().state(rke1CustomName).contains('Active', { timeout: 500000 }); // super long timeout needed for cluster provisioning to complete
       });
 
       // it.skip('can create new snapshots', () => {
