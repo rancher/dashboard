@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import EditDialog from './KnownHostsEditDialog.vue';
+import KnownHostsEditDialog from './KnownHostsEditDialog.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default defineComponent({
@@ -20,7 +20,7 @@ export default defineComponent({
     },
   },
 
-  components: { EditDialog },
+  components: { KnownHostsEditDialog },
 
   computed: {
     isViewMode() {
@@ -38,7 +38,7 @@ export default defineComponent({
   methods: {
     openDialog() {
       (this.$refs.button as HTMLInputElement)?.blur();
-      (this.$refs.editDialog as any).showDialog(this.value);
+      (this.$refs.editDialog as any).showDialog();
     },
 
     dialogClosed(result: any) {
@@ -52,29 +52,31 @@ export default defineComponent({
 <template>
   <div class="input-known-ssh-hosts labeled-input">
     <label>{{ t('secret.ssh.knownHosts') }}</label>
-    <div
-      class="hosts-input"
-    >
+    <div class="hosts-input">
       {{ summary }}
     </div>
-    <button
-      v-if="!isViewMode"
-      ref="button"
-      class="show-dialog btn"
-      @click="openDialog"
-    >
-      ...
-    </button>
-    <EditDialog
-      v-if="!isViewMode"
-      ref="editDialog"
-      @closed="dialogClosed"
-    />
+    <template v-if="!isViewMode">
+      <button
+        ref="button"
+        class="show-dialog-btn btn"
+        @click="openDialog"
+      >
+        <i class="icon icon-edit" />
+      </button>
+
+      <KnownHostsEditDialog
+        ref="editDialog"
+        :value="value"
+        :mode="mode"
+        @closed="dialogClosed"
+      />
+    </template>
   </div>
 </template>
 <style lang="scss" scoped>
   .input-known-ssh-hosts {
-    $ssKnownHostsButtonHeight: 20px;
+    display: flex;
+    justify-content: space-between;
 
     .hosts-input {
       cursor: default;
@@ -82,20 +84,9 @@ export default defineComponent({
       padding: 18px 0 0 0;
     }
 
-    .show-dialog {
-      position: absolute;
-      top: 28px;
-      padding: 0 6px;
-      min-height: $ssKnownHostsButtonHeight;
-      line-height: $ssKnownHostsButtonHeight;
-      right: 4px;
-
-      &:hover, &:focus {
-        border-color: var(--primary);
-        //color: var(--primary);
-        // TODO: Don't use hard-coded color
-        color: #fff
-      }
+    .show-dialog-btn {
+      display: contents;
+      background-color: transparent;
     }
   }
 </style>

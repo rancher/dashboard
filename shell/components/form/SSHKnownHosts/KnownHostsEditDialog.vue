@@ -1,40 +1,75 @@
 <script>
+import { _EDIT, _VIEW } from '@shell/config/query-params';
+import CodeMirror from '@shell/components/CodeMirror';
+import FileSelector from '@shell/components/form/FileSelector.vue';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {
   emits: ['closed'],
 
-  components: { AppModal },
+  components: {
+    FileSelector,
+    AppModal,
+    CodeMirror,
+  },
+
+  props: {
+    value: {
+      type:     String,
+      required: true
+    },
+
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
+  },
 
   data() {
+    const codeMirrorOptions = {
+      readOnly:        this.isView,
+      gutters:         ['CodeMirror-foldgutter'],
+      mode:            'text/x-properties',
+      lint:            false,
+      lineNumbers:     !this.isView,
+      styleActiveLine: false,
+      tabSize:         2,
+      indentWithTabs:  false,
+      cursorBlinkRate: 530,
+    };
+
     return {
-      data:                   '',
-      currentVersion:         '',
-      defaultRegistrySetting: null,
-      plugin:                 undefined,
-      busy:                   false,
-      version:                '',
-      update:                 false,
-      mode:                   '',
-      showModal:              false,
-      chartVersionInfo:       null
+      codeMirrorOptions,
+      text:      this.value,
+      showModal: false,
     };
   },
 
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
+  },
+
   methods: {
-    showDialog(data) {
+    onTextChange(value) {
+      this.text = value?.trim();
+    },
+
+    showDialog() {
       this.showModal = true;
-      this.data = data;
     },
 
     closeDialog(result) {
-      this.showModal = false;
+      if (!result) {
+        this.text = this.value;
+      }
 
-      const value = (this.$refs.textbox)?.value;
+      this.showModal = false;
 
       this.$emit('closed', {
         success: result,
-        value,
+        value:   this.text,
       });
     },
   }
@@ -57,28 +92,38 @@ export default {
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
-          <textarea
-            ref="textbox"
-            :value="data"
-            class="edit-box"
+          <CodeMirror
+            :value="text"
+            class="editor"
+            :options="codeMirrorOptions"
+            :showKeyMapBox="true"
+            @onInput="onTextChange"
           />
         </div>
-        <div class="dialog-buttons">
-          <button
-            :disabled="busy"
-            class="btn role-secondary"
-            data-testid="ssh-known-hosts-dialog-cancel-btn"
-            @click="closeDialog(false)"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <button
-            class="btn role-primary"
-            data-testid="ssh-known-hosts-dialog-save-btn"
-            @click="closeDialog(true)"
-          >
-            {{ t('generic.save') }}
-          </button>
+        <div class="dialog-actions">
+          <div class="action-pannel file-selector">
+            <FileSelector
+              class="btn role-secondary"
+              :label="t('generic.readFromFile')"
+              @selected="onTextChange"
+            />
+          </div>
+          <div class="action-pannel form-actions">
+            <button
+              class="btn role-secondary"
+              data-testid="ssh-known-hosts-dialog-cancel-btn"
+              @click="closeDialog(false)"
+            >
+              {{ t('generic.cancel') }}
+            </button>
+            <button
+              class="btn role-primary"
+              data-testid="ssh-known-hosts-dialog-save-btn"
+              @click="closeDialog(true)"
+            >
+              {{ t('generic.save') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -87,59 +132,58 @@ export default {
 
 <style lang="scss" scoped>
   .ssh-known-hosts-dialog {
-    padding: 10px;
+    padding: 15px;
 
     h4 {
       font-weight: bold;
+      margin-bottom: 20px;
     }
 
     .dialog-panel {
       display: flex;
       flex-direction: column;
       min-height: 100px;
+      border: 1px solid var(--border);
 
-      .edit-box {
-        font-family: monospace;
-        font-size: 12px;
+      :deep() .editor {
+        display: flex;
+        flex-direction: column;
         resize: none;
         max-height: 400px;
         height: 50vh;
-        padding: 10px;
-      }
 
-      p {
-        margin-bottom: 5px;
-      }
-
-      .dialog-info {
-        flex: 1;
-      }
-
-      .toggle-advanced {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        margin: 10px 0;
-
-        &:hover {
-          text-decoration: none;
-          color: var(--link);
+        .CodeMirror,
+        .CodeMirror-gutters {
+          min-height: 400px;
+          max-height: 400px;
+          background-color: var(--yaml-editor-bg);
         }
-      }
 
-      .version-selector {
-        margin: 0 10px 10px 10px;
-        width: auto;
+        .CodeMirror-gutters {
+          width: 25px;
+        }
+
+        .CodeMirror-linenumber {
+          padding-left: 0;
+        }
       }
     }
 
-    .dialog-buttons {
+    .dialog-actions {
       display: flex;
-      justify-content: flex-end;
-      margin-top: 10px;
+      justify-content: space-between;
 
-      > *:not(:last-child) {
-        margin-right: 10px;
+      .action-pannel {
+        margin-top: 10px;
+      }
+
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+
+        > *:not(:last-child) {
+          margin-right: 10px;
+        }
       }
     }
   }
