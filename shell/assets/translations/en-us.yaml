@@ -2441,6 +2441,7 @@ fleet:
       resources: Resources
       unready: Non-Ready
     auth:
+      title: Authentication
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
@@ -5155,7 +5156,7 @@ secret:
       title: SSH Known Hosts Configuration
       entries:  |-
         {entries, plural,
-          =0 {No Entries}
+          =0 {Empty}
           =1 {1 Entry}
           other {{entries} Entries}
         }

@@ -586,6 +586,10 @@ export default {
           />
         </div>
       </div>
+
+      <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.auth.title'" />
+
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
@@ -767,6 +771,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  :deep() .select-or-create-auth-secret {
+    .row {
+      margin-top: 10px !important;
+    }
+  }
   .resource-handling {
     display: flex;
     flex-direction: column;
