@@ -2385,6 +2385,9 @@ fleet:
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
+    labels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   clusters:
     harvester: |-
       There {count, plural,
