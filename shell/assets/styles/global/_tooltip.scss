@@ -10,7 +10,7 @@
   .v-popper__inner {
     background: var(--tooltip-bg);
     color: var(--tooltip-text);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     padding: 8px;
   }
 
@@ -105,13 +105,13 @@
 .v-popper__popper {
   $color: var(--popover-bg);
   border: 1px solid var(--border);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-lg);
 
   .v-popper__inner {
     background: $color;
     color: var(--popover-text);
     padding: 10px;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     border: none;
 
     a {
