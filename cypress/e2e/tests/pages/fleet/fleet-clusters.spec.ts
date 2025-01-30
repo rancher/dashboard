@@ -70,7 +70,8 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
           rke2ClusterAmazon: {
             clusterName: name,
             namespace,
-          }
+          },
+          metadata: { labels: { foo: 'bar' } }
         }).then(() => {
           removeCluster = true;
         });
@@ -123,6 +124,8 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.clusterList().details(clusterName, 4).should('have.text', '1');
       // check resources: testing https://github.com/rancher/dashboard/issues/11154
       fleetClusterListPage.clusterList().details(clusterName, 5).contains( ' 1 ', MEDIUM_TIMEOUT_OPT);
+      // check cluster labels
+      fleetClusterListPage.clusterList().subRows().should('contain.text', 'foo=bar');
 
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
 
