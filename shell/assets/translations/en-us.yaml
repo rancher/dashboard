@@ -6188,7 +6188,7 @@ wm:
   containerShell:
     clear: Clear
     containerName: "Container: {label}"
-    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
+    failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
     logLevel:
       info: INFO
       error: ERROR
