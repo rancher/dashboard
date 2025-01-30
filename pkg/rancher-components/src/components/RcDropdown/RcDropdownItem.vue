@@ -97,10 +97,9 @@ const handleActivate = (e: KeyboardEvent) => {
 
     &:hover {
       cursor: pointer;
-      background-color: var(--slate);
-      color: var(--dropdown-hover-text);
+      background-color: var(--dropdown-hover-bg);
     }
-    &:focus-visible {
+    &:focus-visible, &:focus {
       @include focus-outline;
       outline-offset: 0;
     }
