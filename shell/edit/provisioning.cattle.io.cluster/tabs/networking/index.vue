@@ -202,7 +202,7 @@ export default {
         />
       </div>
     </div>
-
+    <h3 v-t="'cluster.tabs.ace'" />
     <ACE
       v-model:value="localValue.spec.localClusterAuthEndpoint"
       :mode="mode"

@@ -5,14 +5,14 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Nodes from '@pkg/imported/components/Nodes.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions } from '@shell/utils/cluster';
 
 export default defineComponent({
   name:       'Basics',
   components: {
-    LabeledSelect, Nodes, Checkbox
+    LabeledSelect, Checkbox, LabeledInput
   },
   props: {
     mode: {
@@ -104,8 +104,8 @@ export default defineComponent({
 </script>
 <template>
   <div>
-    <div class="row span-12">
-      <div class="col span-4">
+    <div class="row row-basics mb-20">
+      <div class="col-basics mr-10 span-6">
         <LabeledSelect
           v-model:value="config.kubernetesVersion"
           data-testid="cruimported-kubernetesversion"
@@ -118,7 +118,7 @@ export default defineComponent({
           @update:value="$emit('kubernetes-version-changed', $event)"
         />
       </div>
-      <div class="col span-4">
+      <div class="col-basics span-6 mt-15">
         <Checkbox
           v-model:value="showDeprecatedPatchVersions"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
@@ -127,27 +127,58 @@ export default defineComponent({
         />
       </div>
     </div>
-    <div class="row span-12">
-      <div class="col span-4 spacer">
-        <Nodes
-          :value="upgradeStrategy"
+    <h3 v-t="'imported.upgradeStrategy.header'" />
+    <div class="col span-4 mt-10 mb-10">
+      <div class="col mt-5">
+        <Checkbox
+          :value="upgradeStrategy.drainServerNodes"
           :mode="mode"
-          :is-worker="false"
-          :rules="{'concurrency': rules.controlPlaneConcurrency}"
-          @drain-server-nodes-changed="$emit('drain-server-nodes-changed', $event)"
-          @server-concurrency-changed="$emit('server-concurrency-changed', $event)"
+          :label="t('imported.drainControlPlaneNodes.label')"
+          @update:value="$emit('drain-server-nodes-changed', $event)"
         />
       </div>
-      <div class="col span-4 spacer">
-        <Nodes
-          :value="upgradeStrategy"
+      <div class="col mt-5">
+        <Checkbox
+          :value="upgradeStrategy.drainWorkerNodes"
           :mode="mode"
-          :is-worker="true"
-          :rules="{'concurrency': rules.workerConcurrency}"
-          @drain-worker-nodes-changed="$emit('drain-worker-nodes-changed', $event)"
-          @worker-concurrency-changed="$emit('worker-concurrency-changed', $event)"
+          :label="t('imported.drainWorkerNodes.label')"
+          @update:value="$emit('drain-worker-nodes-changed', $event)"
+        />
+      </div>
+    </div>
+    <div class="row row-basics">
+      <div class="col-basics mr-10 span-6">
+        <LabeledInput
+          :value="upgradeStrategy.serverConcurrency"
+          :mode="mode"
+          :label="t('cluster.rke2.controlPlaneConcurrency.label')"
+          :rules="rules.concurrency"
+          required
+          class="mb-10"
+          @update:value="$emit('server-concurrency-changed', $event)"
+        />
+      </div>
+      <div class="col-basics span-6">
+        <LabeledInput
+          :value="upgradeStrategy.workerConcurrency"
+          :mode="mode"
+          :label="t('cluster.rke2.workerConcurrency.label')"
+          :rules="rules.concurrency"
+          required
+          class="mb-10"
+          @update:value="$emit('worker-concurrency-changed', $event)"
         />
       </div>
     </div>
   </div>
 </template>
+<style>
+@media screen and (max-width: 996px) {
+    .row-basics {
+        flex-direction: column;
+    }
+    .col-basics {
+        width: 100%
+    }
+  }
+</style>

@@ -28,8 +28,6 @@ export default {
 
 <template>
   <div>
-    <h3 v-t="'cluster.tabs.ace'" />
-
     <RadioGroup
       v-model:value="value.enabled"
       name="enabled"

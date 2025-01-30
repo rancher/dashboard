@@ -344,6 +344,7 @@ export default defineComponent({
         title-key="imported.accordions.networking"
         :open-initially="true"
       >
+        <h3 v-t="'cluster.tabs.ace'" />
         <ACE
           v-model:value="normanCluster.localClusterAuthEndpoint"
           :mode="mode"
@@ -358,7 +359,9 @@ export default defineComponent({
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
-        <h3>{{ t('imported.agentEnv.header') }}</h3>
+        <h3>
+          {{ t('imported.agentEnv.header') }}
+        </h3>
         <KeyValue
           v-model:value="normanCluster.agentEnvVars"
           :mode="mode"
