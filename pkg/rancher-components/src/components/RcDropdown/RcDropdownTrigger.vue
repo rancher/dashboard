@@ -4,7 +4,6 @@ import { RcButton, RcButtonType } from '@components/RcButton';
 import { DropdownContext, defaultContext } from './types';
 
 const {
-  handleKeydown,
   showMenu,
   registerTrigger,
   focusFirstElement,
@@ -30,7 +29,6 @@ defineExpose({ focus });
     role="button"
     aria-haspopup="menu"
     :aria-expanded="isMenuOpen"
-    @keydown="handleKeydown"
     @keydown.down="focusFirstElement"
     @keydown.escape="showMenu(false)"
     @click="showMenu(true)"
