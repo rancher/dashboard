@@ -23,19 +23,41 @@ jobs:
         run: .github/workflows/scripts/test-extensions-creators-build.sh
         id: test-extensions-and-creators
         shell: bash
+
+  branch-checks:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [master, release-2.9, release-2.8]
+    outputs:
+      status-${{ matrix.branch }}: ${{ job.status }}
+    steps:
+      - name: Checkout ${{ matrix.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Validate workflows
+        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+
   matching-creators-workflows:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
+    needs: [branch-checks]
     outputs:
-      matching-creators-workflows-job-status: ${{ job.status }}
+      matching-creators-workflows-job-status: ${{ steps.aggregate.outputs.result }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Aggregate results
+        id: aggregate
+        run: |
+          # Check all branch check outcomes
+          if [[ '${{ needs.branch-checks.result }}' == 'failure' ]]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          else
+            echo "result=success" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Check if creators workflows match working versions
-        run: .github/workflows/scripts/check-creators-workflows-code.sh master
-        id: test-matching-creators-workflows
-        shell: bash
   retrieve-tags-master:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
@@ -56,6 +78,7 @@ jobs:
         run: source ./.github/workflows/scripts/retrieve-versions.sh
         id: retrieve-data
         shell: bash
+
   test-build-extension-charts-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
@@ -70,6 +93,7 @@ jobs:
       is_test:  'true'
       test_ext_repo: 'ui-plugin-examples'
       test_ext_branch:  'main'
+
   test-build-extension-catalog-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
@@ -86,6 +110,7 @@ jobs:
       test_ext_branch:  'main'
     secrets: 
       registry_token: ${{ secrets.GITHUB_TOKEN }}
+
   test-release-shell-pkg-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@master
@@ -93,6 +118,7 @@ jobs:
       is_test:  'true'
       test_branch:  'master'
       tag: ${{ needs.retrieve-tags-master.outputs.SHELL_TAG }}
+
   test-release-creators-pkg-master:
     needs: retrieve-tags-master
     uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@master

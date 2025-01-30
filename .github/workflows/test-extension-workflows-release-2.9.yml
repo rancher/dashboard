@@ -10,19 +10,6 @@ defaults:
     working-directory: ./
 
 jobs:
-  matching-creators-workflows-release-2-dot-9:
-    if: ${{ github.repository_owner == 'rancher' }}
-    runs-on: ubuntu-latest
-    outputs:
-      matching-creators-workflows-job-status: ${{ job.status }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check if creators workflows match working versions
-        run: .github/workflows/scripts/check-creators-workflows-code.sh release-2.9
-        id: test-matching-creators-workflows
-        shell: bash
   retrieve-tags-release-2-dot-9:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
@@ -91,7 +78,7 @@ jobs:
   slack-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [matching-creators-workflows-release-2-dot-9, retrieve-tags-release-2-dot-9, test-build-extension-charts-release-2-dot-9, test-build-extension-catalog-release-2-dot-9, test-release-shell-pkg-release-2-dot-9, test-release-creators-pkg-release-2-dot-9]
+    needs: [retrieve-tags-release-2-dot-9, test-build-extension-charts-release-2-dot-9, test-build-extension-catalog-release-2-dot-9, test-release-shell-pkg-release-2-dot-9, test-release-creators-pkg-release-2-dot-9]
     steps: 
       - name: Slack message for workflow
         if: always()
@@ -99,8 +86,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
         run: |
-          OUTPUT_ARRAY=("${{ needs.matching-creators-workflows-release-2-dot-9.outputs.matching-creators-workflows-job-status }}" "${{ needs.retrieve-tags-release-2-dot-9.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-release-2-dot-9.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-release-2-dot-9.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-release-2-dot-9.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-release-2-dot-9.outputs.build-release-shell-creators-status }}")
-          JOB_NAME_ARRAY=("matching-creators-workflows-release-2-dot-9" "retrieve-tags-release-2-dot-9" "test-build-extension-charts-release-2-dot-9" "test-build-extension-catalog-release-2-dot-9" "test-release-shell-pkg-release-2-dot-9" "test-release-creators-pkg-release-2-dot-9")
+          OUTPUT_ARRAY=("${{ needs.retrieve-tags-release-2-dot-9.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-release-2-dot-9.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-release-2-dot-9.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-release-2-dot-9.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-release-2-dot-9.outputs.build-release-shell-creators-status }}")
+          JOB_NAME_ARRAY=("retrieve-tags-release-2-dot-9" "test-build-extension-charts-release-2-dot-9" "test-build-extension-catalog-release-2-dot-9" "test-release-shell-pkg-release-2-dot-9" "test-release-creators-pkg-release-2-dot-9")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
