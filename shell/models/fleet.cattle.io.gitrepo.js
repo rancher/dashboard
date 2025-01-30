@@ -336,37 +336,19 @@ export default class GitRepo extends SteveModel {
   }
 
   get allBundlesStatuses() {
-    const bundleDeploymentCountsPerBundle = this.bundleDeployments.reduce((acc, bd) => {
-      const bundleId = FleetUtils.bundleIdFromBundleDeploymentLabels(bd.metadata?.labels);
-      const state = mapStateToEnum(FleetUtils.bundleDeploymentState(bd));
-
-      if (!acc[bundleId]) {
-        acc[bundleId] = {
-          total:  0,
-          states: { [STATES_ENUM.READY]: 0 },
-        };
-      }
-      acc[bundleId].total++;
-
-      if (!acc[bundleId].states[state]) {
-        acc[bundleId].states[state] = 0;
-      }
-      acc[bundleId].states[state]++;
-
-      return acc;
-    }, {});
-    const bundleIds = Object.keys(bundleDeploymentCountsPerBundle);
-
-    return bundleIds.reduce((acc, bundleId) => {
-      const state = primaryDisplayStatusFromCount(bundleDeploymentCountsPerBundle[bundleId].states);
+    return this.bundles.reduce((acc, bundle) => {
+      const { nonReadyResources, ...summary } = bundle.status?.summary;
+      const bdCounts = normalizeStateCounts(summary);
+      const state = primaryDisplayStatusFromCount(bdCounts.states);
 
       if (!acc.states[state]) {
         acc.states[state] = 0;
       }
       acc.states[state]++;
+      acc.total++;
 
       return acc;
-    }, { total: bundleIds.length, states: { [STATES_ENUM.READY]: 0 } } );
+    }, { total: 0, states: { [STATES_ENUM.READY]: 0 } } );
   }
 
   get allResourceStatuses() {

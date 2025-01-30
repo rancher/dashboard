@@ -50,7 +50,6 @@ export default {
         inStoreType: 'management',
         type:        FLEET.BUNDLE,
         opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
-        skipWait:    true,
       },
       gitRepos: {
         inStoreType: 'management',
