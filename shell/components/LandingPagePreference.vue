@@ -16,6 +16,13 @@ export default {
 
   async fetch() {
     this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+
+    // 'last-visited' is no longer a supported option as of 2.11. I'm setting the value to home if it's set to last-visited. This block can be removed after 2.11.
+    const afterLoginRoute = this.$store.getters['prefs/get'](AFTER_LOGIN_ROUTE);
+
+    if (afterLoginRoute === 'last-visited') {
+      await this.$store.dispatch('prefs/set', { key: AFTER_LOGIN_ROUTE, value: 'home' });
+    }
   },
 
   data() {
@@ -47,10 +54,6 @@ export default {
         {
           label: this.t('landing.landingPrefs.options.homePage'),
           value: 'home'
-        },
-        {
-          label: this.t('landing.landingPrefs.options.lastVisited'),
-          value: 'last-visited'
         },
         {
           label: this.t('landing.landingPrefs.options.custom'),
@@ -118,14 +121,14 @@ export default {
           <RadioButton
             :label="option.label"
             :val="false"
-            :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
+            :value="afterLoginRoute=== 'home'"
             :v-bind="$attrs"
             @update:value="afterLoginRoute = false"
           />
           <Select
             v-model:value="routeFromDropdown"
             :searchable="true"
-            :disabled="afterLoginRoute === 'home' || afterLoginRoute === 'last-visited'"
+            :disabled="afterLoginRoute === 'home'"
             :clearable="false"
             :options="routeDropdownOptions"
             class="custom-page-options"

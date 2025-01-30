@@ -4,7 +4,6 @@ export interface UserPreferences {
   'group-by': string,
   'home-page-cards': string,
   'last-namespace': string,
-  'last-visited': string,
   'ns-by-cluster': string,
   provisioner: string,
   'read-whatsnew': string,

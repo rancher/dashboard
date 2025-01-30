@@ -100,7 +100,6 @@ export const DEV = create('dev', false, { parseJSON });
 export const VIEW_IN_API = create('view-in-api', false, { parseJSON, inheritFrom: DEV });
 export const ALL_NAMESPACES = create('all-namespaces', false, { parseJSON, inheritFrom: DEV });
 export const THEME_SHORTCUT = create('theme-shortcut', false, { parseJSON, inheritFrom: DEV });
-export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-whatsnew', '', { parseJSON });
 export const READ_WHATS_NEW = create('read-whatsnew', '', { parseJSON });
 export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home', { parseJSON } );
@@ -212,18 +211,9 @@ export const getters = {
     }
 
     switch (true) {
-    case (afterLoginRoutePref === 'home'):
+    // 'last-visited' was a former value that has been removed in 2.11. After 2.11 it's safe to remove if you come across this.
+    case (afterLoginRoutePref === 'home' || afterLoginRoutePref === 'last-visited'):
       return { name: 'home' };
-    case (afterLoginRoutePref === 'last-visited'): {
-      const lastVisitedPref = getters['get'](LAST_VISITED);
-
-      if (lastVisitedPref) {
-        return lastVisitedPref;
-      }
-      const clusterPref = getters['get'](CLUSTER);
-
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
-    }
     case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
     {
       const clusterId = afterLoginRoutePref.split('-dashboard')[0];
@@ -478,24 +468,6 @@ export const actions = {
     return server;
   },
 
-  setLastVisited({ state, dispatch, getters }, route) {
-    if (!route) {
-      return;
-    }
-
-    // Only save the last visited page if the user has that set as the login route preference
-    const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
-    const doNotTrackLastVisited = typeof afterLoginRoutePref !== 'string' || afterLoginRoutePref !== 'last-visited';
-
-    if (doNotTrackLastVisited) {
-      return;
-    }
-
-    const toSave = getLoginRoute(route);
-
-    return dispatch('set', { key: LAST_VISITED, value: toSave });
-  },
-
   toggleTheme({ getters, dispatch }) {
     const value = getters[THEME] === 'light' ? 'dark' : 'light';
 
@@ -523,28 +495,3 @@ export const actions = {
     }
   }
 };
-
-function getLoginRoute(route) {
-  let parts = route.name?.split('-') || [];
-  const params = {};
-  const routeParams = route.params || {};
-
-  // Find the 'resource' part of the route, if it is there
-  const index = parts.findIndex((p) => p === 'resource');
-
-  if (index >= 0) {
-    parts = parts.slice(0, index);
-  }
-
-  // Just keep the params that are needed
-  parts.forEach((param) => {
-    if (routeParams[param]) {
-      params[param] = routeParams[param];
-    }
-  });
-
-  return {
-    name: parts.join('-'),
-    params
-  };
-}

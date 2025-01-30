@@ -224,8 +224,6 @@ export default defineComponent({
   },
 
   async created() {
-    // Update last visited on load
-    await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
     markSeenReleaseNotes(this.$store);
   },
 

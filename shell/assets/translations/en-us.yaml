@@ -3061,7 +3061,6 @@ landing:
     body: "You can change where you land when you login"
     options:
       homePage: Take me to the home page
-      lastVisited: Take me to the area I last visited
       custom: "Take me to cluster:"
   welcomeToRancher: 'Welcome to {vendor}'
 

@@ -385,7 +385,7 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
             'group-by':          'none',
             'home-page-cards':   '',
             'last-namespace':    'default',
-            'last-visited':      '',
+            home:                '',
             'ns-by-cluster':     '',
             provisioner:         '',
             'read-whatsnew':     '',
