@@ -74,6 +74,9 @@ const applyShow = () => {
     &:deep(.v-popper__popper) {
 
       .v-popper__wrapper {
+        box-shadow: 0px 6px 18px 0px rgba(0, 0, 0, 0.25), 0px 4px 10px 0px rgba(0, 0, 0, 0.15);
+        border-radius: var(--border-radius-lg);
+
         .v-popper__arrow-container {
           display: none;
         }
