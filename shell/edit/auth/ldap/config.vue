@@ -245,6 +245,7 @@ export default {
           data-testid="searchUsingServiceAccount"
           class="full-height"
           :label="t('authConfig.ldap.searchUsingServiceAccount.label')"
+          :tooltip="t('authConfig.ldap.searchUsingServiceAccount.tip')"
         />
       </div>
     </div>
