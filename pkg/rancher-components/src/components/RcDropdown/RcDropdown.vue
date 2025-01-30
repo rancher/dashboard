@@ -72,7 +72,6 @@ const applyShow = () => {
   .popperContainer {
     display: contents;
     &:deep(.v-popper__popper) {
-      border-radius: 8px;
 
       .v-popper__wrapper {
         .v-popper__arrow-container {
