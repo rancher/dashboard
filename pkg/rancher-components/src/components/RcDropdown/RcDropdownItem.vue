@@ -69,6 +69,16 @@ const handleActivate = (e: KeyboardEvent) => {
   }
 };
 
+/**
+ * Handles keydown events to focus the dropdown item.
+ * @param e - The Mouse event.
+ */
+const handleMouseEnter = (e: MouseEvent) => {
+  if (e?.target instanceof HTMLElement) {
+    e?.target?.focus();
+  }
+};
+
 </script>
 
 <template>
@@ -82,6 +92,7 @@ const handleActivate = (e: KeyboardEvent) => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.stop="handleKeydown"
+    @mouseenter="handleMouseEnter"
   >
     <slot name="default">
       <!--Empty slot content-->
