@@ -2,8 +2,13 @@ import cronstrue from 'cronstrue';
 
 export function cronSchedule(schedule = '', getters, errors) {
   try {
-    cronstrue.toString(schedule, { verbose: true });
+    cronScheduleRule.validation(schedule);
   } catch (e) {
-    errors.push(getters['i18n/t']('validation.invalidCron'));
+    errors.push(getters['i18n/t'](cronScheduleRule.message));
   }
 }
+
+export const cronScheduleRule = {
+  validation: (text) => cronstrue.toString(text, { verbose: true }),
+  message:    'validation.invalidCron'
+};
