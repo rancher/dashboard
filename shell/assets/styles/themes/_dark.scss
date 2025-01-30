@@ -35,6 +35,10 @@
 
   $drag-over: #DCDEE7;
 
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
+
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
@@ -111,7 +115,7 @@
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$light};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
   --dropdown-group-text        : #{$disabled};
@@ -219,8 +223,4 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
-
-  $slate: #4B4F6B;
-
-  --slate: #{$slate};
 }

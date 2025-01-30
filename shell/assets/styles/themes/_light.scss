@@ -376,7 +376,7 @@ BODY, .theme-light {
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-bg          : #{$light};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-group-text        : #{$darker};
