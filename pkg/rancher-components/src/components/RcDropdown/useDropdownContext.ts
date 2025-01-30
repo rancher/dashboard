@@ -13,15 +13,6 @@ import { RcButtonType } from '@components/RcButton';
  */
 export const useDropdownContext = () => {
   const { dropdownItems, firstDropdownItem, registerDropdownCollection } = useDropdownCollection();
-  /**
-   * Tracks if a keydown event has occurred. Important for distinguishing keyboard
-   * events from mouse events.
-   */
-  const didKeydown = ref(false);
-
-  const handleKeydown = () => {
-    didKeydown.value = true;
-  };
 
   const isMenuOpen = ref(false);
 
@@ -60,13 +51,7 @@ export const useDropdownContext = () => {
    */
   const setFocus = () => {
     nextTick(() => {
-      if (!didKeydown.value) {
-        return;
-      }
-
       firstDropdownItem.value?.focus();
-
-      didKeydown.value = false;
     });
   };
 
@@ -76,21 +61,18 @@ export const useDropdownContext = () => {
   */
   const provideDropdownContext = () => {
     provide('dropdownContext', {
-      handleKeydown,
       showMenu,
       registerTrigger,
       isMenuOpen,
       dropdownItems,
       close:             () => returnFocus(),
       focusFirstElement: () => {
-        handleKeydown();
         setFocus();
       },
     });
   };
 
   return {
-    didKeydown,
     isMenuOpen,
     showMenu,
     returnFocus,
