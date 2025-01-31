@@ -109,9 +109,11 @@ class NamespaceProjectFilters {
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
   /**
-   * Filtering with the vai cache supports specific fields
+   * Filtering/Sorting with the vai cache can only be executed on specific fields
    * 1) Those listed here
    * 2) Those references in the schema's attributes.fields list (which is used by generic lists)
+   *
+   * This list will track rancher/steve pkg/stores/sqlproxy/proxy_store.go and also any pending entries yet to be indexed. It's used to provide dev time validation of sort/filter fields
    */
   static VALID_FIELDS: { [type: string]: { field: string, startsWith?: boolean }[]} = {
     '': [// all types

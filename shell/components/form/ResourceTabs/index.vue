@@ -74,24 +74,25 @@ export default {
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
     const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
+    const eventPaginationHeaders = eventSchema ? [
+      STEVE_EVENT_LAST_SEEN,
+      STEVE_EVENT_TYPE,
+      REASON,
+      headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
+      MESSAGE,
+      headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
+      STEVE_NAME_COL,
+    ] : [];
 
     return {
       eventSchema,
       EVENT,
-      selectedTab:       this.defaultTab,
+      selectedTab:    this.defaultTab,
       inStore,
-      showConditions:    false,
-      paginationHeaders: [
-        STEVE_EVENT_LAST_SEEN,
-        STEVE_EVENT_TYPE,
-        REASON,
-        eventSchema ? headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true) : null,
-        eventSchema ? headerFromSchemaColString('Source', eventSchema, this.$store.getters, true) : null,
-        MESSAGE,
-        eventSchema ? headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true) : null,
-        eventSchema ? headerFromSchemaColString('Count', eventSchema, this.$store.getters, true) : null,
-        STEVE_NAME_COL,
-      ].filter((header) => header)
+      showConditions: false,
+      eventPaginationHeaders
     };
   },
 
@@ -258,7 +259,7 @@ export default {
         :api-filter="filterEventsApi"
         :use-query-params-for-simple-filtering="false"
         :headers="eventHeaders"
-        :paginationHeaders="paginationHeaders"
+        :paginationHeaders="eventPaginationHeaders"
         :namespaced="false"
       />
     </Tab>
