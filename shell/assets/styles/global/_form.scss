@@ -27,11 +27,6 @@ TEXTAREA,
 
   @include input-status-color;
 
-  &:focus:not(.labeled-input):not(.unlabeled-select):not(.labeled-select), 
-  &.focused:not(.labeled-input):not(.unlabeled-select):not(.labeled-select) {
-    @include form-focus;
-  }
-
   LABEL {
     color: var(--input-label);
   }

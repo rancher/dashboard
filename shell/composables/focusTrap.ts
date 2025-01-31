@@ -5,6 +5,7 @@
 import { watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { createFocusTrap, FocusTrap } from 'focus-trap';
 
+<<<<<<< HEAD
 export const DEFAULT_FOCUS_TRAP_OPTS = { escapeDeactivates: true, allowOutsideClick: true };
 
 export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
@@ -15,6 +16,13 @@ export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:
     focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
 
     focusTrapInstance = createFocusTrap(focusEl, opts);
+=======
+export function basicSetupFocusTrap(containerSelector: string, opts:any = { escapeDeactivates: true, allowOutsideClick: true }) {
+  let focusTrapInstance = {} as FocusTrap;
+
+  onMounted(() => {
+    focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, opts);
+>>>>>>> 9c1267ee62 (header keyboard nav work save)
 
     nextTick(() => {
       focusTrapInstance.activate();
@@ -28,16 +36,33 @@ export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:
   });
 }
 
+<<<<<<< HEAD
 export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
   let focusTrapInstance: FocusTrap;
   let focusEl;
+=======
+export function watcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, containerSelector: string, opts:any = { escapeDeactivates: true, allowOutsideClick: true }) {
+  let focusTrapInstance = {} as FocusTrap;
+>>>>>>> 9c1267ee62 (header keyboard nav work save)
 
   watch(watchVar, (neu) => {
     if (neu) {
+      // focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, {
+      //   escapeDeactivates: true,
+      //   allowOutsideClick: true,
+      // });
+
+      // nextTick(() => {
+      //   focusTrapInstance.activate();
+      // });
       nextTick(() => {
+<<<<<<< HEAD
         focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
 
         focusTrapInstance = createFocusTrap(focusEl, opts);
+=======
+        focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, opts);
+>>>>>>> 9c1267ee62 (header keyboard nav work save)
 
         nextTick(() => {
           focusTrapInstance.activate();
@@ -49,16 +74,25 @@ export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, f
   });
 }
 
+<<<<<<< HEAD
 export function useWatcherBasedSetupFocusTrap(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
   let focusTrapInstance: FocusTrap;
   let focusEl;
+=======
+export function watcherBasedSetupFocusTrap(watchVar:any, containerSelector: string, opts:any = { escapeDeactivates: true, allowOutsideClick: true }) {
+  let focusTrapInstance = {} as FocusTrap;
+>>>>>>> 9c1267ee62 (header keyboard nav work save)
 
   watch(watchVar, (neu) => {
     if (neu) {
       nextTick(() => {
+<<<<<<< HEAD
         focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
 
         focusTrapInstance = createFocusTrap(focusEl, opts);
+=======
+        focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, opts);
+>>>>>>> 9c1267ee62 (header keyboard nav work save)
         nextTick(() => {
           focusTrapInstance.activate();
         });

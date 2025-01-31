@@ -279,10 +279,12 @@ export default defineComponent({
 <template>
   <button
     ref="btn"
+    role="button"
     :class="classes"
     :name="name"
     :type="type"
     :disabled="isDisabled"
+    :aria-disabled="isDisabled"
     :tab-index="tabIndex"
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"

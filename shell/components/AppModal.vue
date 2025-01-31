@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
+import { CODEMIRROR_FOCUS_TRIGGER } from '@shell/components/CodeMirror.vue';
 
 export default defineComponent({
   name: 'AppModal',
@@ -73,6 +74,9 @@ export default defineComponent({
       default: '',
     }
   },
+  data() {
+    return { currFocusedElem: {} as Event | null };
+  },
   computed: {
     modalWidth(): string {
       if (this.isValidWidth(this.width)) {
@@ -98,7 +102,10 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
-    }
+    },
+    isCodeMirrorFocused() {
+      return this.currFocusedElem === document.querySelector(CODEMIRROR_FOCUS_TRIGGER);
+    },
   },
   setup(props) {
     if (props.triggerFocusTrap) {
@@ -115,11 +122,16 @@ export default defineComponent({
   },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
+    document.addEventListener('focusin', this.focusChanged);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
+    document.removeEventListener('focusin', this.focusChanged);
   },
   methods: {
+    focusChanged(ev) {
+      this.currFocusedElem = ev.target;
+    },
     handleClickOutside(event: MouseEvent) {
       if (
         this.clickToClose &&
@@ -130,7 +142,7 @@ export default defineComponent({
       }
     },
     handleEscapeKey(event: KeyboardEvent) {
-      if (this.clickToClose && event.key === 'Escape') {
+      if (this.clickToClose && !this.isCodeMirrorFocused && event.key === 'Escape') {
         this.$emit('close');
       }
     },

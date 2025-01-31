@@ -2,6 +2,15 @@
 # Special stuff
 ##############################
 generic:
+  unified: Unified
+  split: Split
+  userMenu: user menu
+  actionMenu: action menu
+  namespaceFilter: namespace filter menu
+  filterNamespaces: filter namespaces
+  clearSearch: clear search
+  clearFilters: clear filters
+  userAvatar: user avatar
   add: Add
   all: All
   ascending: ascending
@@ -56,6 +65,7 @@ generic:
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
+  readFromFileArea: Read from File - {area}
   readFromFolder: Read from Folder
   reload: Reload
   register: Register
@@ -300,6 +310,8 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+windowmanager:
+  closeTab: Close tab {tabId}
 about:
   title: About
   versions:
@@ -2284,6 +2296,7 @@ resource:
     update: "Error updating {name}"
 
 codeMirror:
+  escapeText: Press Escape key to blur from editor
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
@@ -6182,6 +6195,8 @@ wm:
     disconnected: Disconnected
     error: Error
   containerLogs:
+    searchLogs: Search/filter logs
+    logActionMenu: Logs action menu
     clear: Clear
     containerName: "Container: {label}"
     download: Download
@@ -6208,6 +6223,7 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
+    escapeText: Press Escape key to blur from terminal
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
@@ -7669,6 +7685,7 @@ branding:
   label: Branding
   directoryName: Brand Asset Directory Name
   logos:
+    home: Product main page
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
