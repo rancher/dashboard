@@ -479,6 +479,37 @@ export interface DSLReturnType {
 }
 
 /**
+ * Context for the constructor of a model extension
+ */
+export type ModelExtensionContext = {
+  /**
+   * Dispatch vuex actions
+   */
+  dispatch: any,
+  /**
+   * Get from vuex store
+   */
+  getters: any,
+  /**
+   * Used to make http requests
+   */
+  axios: any,
+  /**
+   * Definition of the extension
+   */
+  $plugin: any,
+  /**
+   * Function to retrieve a localised string
+   */
+  t: (key: string) => string,
+};
+
+/**
+ * Constructor signature for a model extension
+ */
+export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
+
+/**
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
@@ -583,6 +614,15 @@ export interface IPlugin {
     onLeave?: OnNavAwayFromPackage,
     onLogOut?: OnLogOut
   ): void;
+
+  /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void;
 
   /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
