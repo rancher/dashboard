@@ -84,6 +84,7 @@ export default {
   async fetch() {
     await this.value.waitForProvisioner();
 
+    // Support for the 'provisioner' extension
     const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
 
     if (extClass) {
@@ -94,9 +95,19 @@ export default {
         $plugin:  this.$store.app.$plugin,
         $t:       this.t
       });
+
       this.extDetailTabs = {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
+    // Support for a model extension
+    if (this.value.customProvisionerHelper) {
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.value.customProvisionerHelper.detailTabs
       };
       this.extCustomParams = { provider: this.value.machineProvider };
     }
@@ -379,7 +390,7 @@ export default {
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.machines;
     },
 
     showSnapshots() {

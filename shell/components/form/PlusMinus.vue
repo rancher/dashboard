@@ -54,11 +54,17 @@ export default {
     <button
       v-clean-tooltip="minusTooltip"
       :disabled="disabled || !canMinus"
+      :aria-disabled="disabled || !canMinus"
       type="button"
+      role="button"
+      :aria-label="t('workload.plus')"
       class="btn btn-sm role-secondary"
       @click="$emit('minus')"
     >
-      <i class="icon icon-sm icon-minus" />
+      <i
+        class="icon icon-sm icon-minus"
+        :alt="t('workload.plus')"
+      />
     </button>
     <div class="value">
       {{ value }}
@@ -66,11 +72,17 @@ export default {
     <button
       v-clean-tooltip="plusTooltip"
       :disabled="disabled || !canPlus"
+      :aria-disabled="disabled || !canPlus"
       type="button"
+      role="button"
+      :aria-label="t('workload.minus')"
       class="btn btn-sm role-secondary"
       @click="$emit('plus')"
     >
-      <i class="icon icon-sm icon-plus" />
+      <i
+        class="icon icon-sm icon-plus"
+        :alt="t('workload.minus')"
+      />
     </button>
   </div>
 </template>

@@ -1,11 +1,9 @@
 import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
-import { Plugin } from './plugin';
+import { EXT_IDS, Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
-
-const MODEL_TYPE = 'models';
 
 export default function(context, inject, vueApp) {
   const {
@@ -24,6 +22,21 @@ export default function(context, inject, vueApp) {
 
   for (const ep in ExtensionPoint) {
     uiConfig[ExtensionPoint[ep]] = {};
+  }
+
+  /**
+   * When an extension adds a model extension, it provides the class - we will instantiate that class and store and use that
+   */
+  function instantiateModelExtension($plugin, clz) {
+    const context = {
+      dispatch: store.dispatch,
+      getters:  store.getters,
+      t:        store.getters['i18n/t'],
+      $axios,
+      $plugin,
+    };
+
+    return new clz(context);
   }
 
   inject(
@@ -79,7 +92,7 @@ export default function(context, inject, vueApp) {
           element.dataset.purpose = 'extension';
 
           element.onload = () => {
-            if (!window[id]) {
+            if (!window[id] || (typeof window[id].default !== 'function')) {
               return reject(new Error('Could not load plugin code'));
             }
 
@@ -93,7 +106,13 @@ export default function(context, inject, vueApp) {
             plugins[id] = plugin;
 
             // Initialize the plugin
-            window[id].default(plugin, this.internal());
+            try {
+              window[id].default(plugin, this.internal());
+            } catch (e) {
+              delete plugins[id];
+
+              return reject(new Error('Could not initialize plugin'));
+            }
 
             // Load all of the types etc from the plugin
             this.applyPlugin(plugin);
@@ -186,7 +205,7 @@ export default function(context, inject, vueApp) {
           Object.keys(plugin.types[typ]).forEach((name) => {
             this.unregister(typ, name);
 
-            if (typ === MODEL_TYPE) {
+            if (typ === EXT_IDS.MODELS) {
               clearModelCache(name);
             }
           });
@@ -255,6 +274,13 @@ export default function(context, inject, vueApp) {
           });
         });
 
+        // Model extensions
+        Object.keys(plugin.modelExtensions).forEach((name) => {
+          plugin.modelExtensions[name].forEach((fn) => {
+            this.register(EXT_IDS.MODEL_EXTENSION, name, instantiateModelExtension(this, fn));
+          });
+        });
+
         // Initialize the product if the store is ready
         if (productsLoaded()) {
           this.loadProducts([plugin]);
@@ -288,8 +314,8 @@ export default function(context, inject, vueApp) {
           dynamic[type] = {};
         }
 
-        // Accumulate l10n resources rather than replace
-        if (type === 'l10n') {
+        // Accumulate l10n resources and model extensions rather than replace
+        if (type === 'l10n' || type === EXT_IDS.MODEL_EXTENSION) {
           if (!dynamic[type][name]) {
             dynamic[type][name] = [];
           }
