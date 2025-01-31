@@ -376,7 +376,7 @@ export default defineComponent({
         this.toggleBanner();
         break;
 
-        case SET_LOGIN_ACTION:
+      case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
         break;
 
