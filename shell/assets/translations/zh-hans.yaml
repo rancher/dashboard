@@ -1751,7 +1751,7 @@ cluster:
   privateRegistry:
     label: 为 Rancher 系统容器镜像启用集群级别的容器镜像仓库
     description: "如果启用，Rancher 将在集群配置期间从该镜像仓库中拉取容器镜像。默认情况下，Rancher 在安装 Rancher 的官方 Helm Chart 应用程序时也会使用此镜像仓库。如果集群级别的镜像仓库被禁用，将从全局设置中的系统默认镜像仓库中拉取系统镜像。"
-    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration\" target=\"_blank\">文档</a>。"
+    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/private_registry\" target=\"_blank\">文档</a>。"
     docsLinkK3s: "如需配置私有镜像仓库 mirror 的帮助，请参阅 K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">文档</a>。"
   provider:
     aliyunecs: Aliyun ECS
@@ -7310,7 +7310,7 @@ support:
       text: 我们的开发人员会快速解决问题，因此你可以放心使用 SUSE Rancher 的产品。
     three:
       title: 故障排除
-      text: 无论你使用的 Rancher Labs 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
+      text: 无论你使用的 SUSE 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
     four:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。

@@ -31,7 +31,7 @@ function registerNamespace(state, namespace) {
 }
 
 /**
- * update the podsByNamespace cache with new or changed pods
+ * update the podsByNamespace cache with new or changed pods.
  */
 function updatePodsByNamespaceCache(state, ctx, pods, loadAll) {
   if (loadAll) {

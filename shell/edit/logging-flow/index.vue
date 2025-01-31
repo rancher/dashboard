@@ -6,14 +6,12 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import {
-  LOGGING, NAMESPACE, NODE, POD, SCHEMA
-} from '@shell/config/types';
+import { LOGGING, NAMESPACE, NODE, SCHEMA } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { allHash } from '@shell/utils/promise';
-import { isArray, uniq } from '@shell/utils/array';
+import { isArray } from '@shell/utils/array';
 import { matchRuleIsPopulated } from '@shell/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { clone } from '@shell/utils/object';
@@ -67,7 +65,6 @@ export default {
     const hasAccessToOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`${ inStore }/schemaFor`](NODE);
-    const hasAccessToPods = this.$store.getters[`${ inStore }/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
@@ -77,9 +74,10 @@ export default {
     const hash = await allHash({
       allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
+      // Can't remove allNamespaces yet given https://github.com/harvester/harvester/issues/7342 and
+      // https://github.com/harvester/harvester-ui-extension/blob/main/pkg/harvester/edit/harvesterhci.io.logging.clusteroutput.vue
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
-      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
@@ -134,7 +132,6 @@ export default {
       allClusterOutputs:  null,
       allNamespaces:      null,
       allNodes:           null,
-      allPods:            null,
       filtersYaml,
       initialFiltersYaml: filtersYaml,
       globalOutputRefs,
@@ -237,18 +234,6 @@ export default {
       });
 
       return out;
-    },
-
-    containerChoices() {
-      const out = [];
-
-      for ( const pod of this.allPods ) {
-        for ( const c of (pod.spec?.containers || []) ) {
-          out.push(c.name);
-        }
-      }
-
-      return uniq(out).sort();
     },
 
     isHarvester() {

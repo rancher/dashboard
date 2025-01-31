@@ -77,6 +77,11 @@ button,
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-secondary {
@@ -100,6 +105,11 @@ button,
     &:focus, &.focused {
       border: 0;
     }
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
@@ -130,6 +140,11 @@ button,
     background: transparent;
     color: var(--link);
     box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
@@ -175,6 +190,11 @@ fieldset[disabled] .btn {
       z-index: 1;
     }
 
+    &:focus-visible {
+      z-index: 1;
+      @include focus-outline;
+    }
+    
     &.active {
       @extend .bg-primary;
     }

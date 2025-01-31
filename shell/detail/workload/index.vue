@@ -48,8 +48,9 @@ export default {
     } catch {}
 
     const hash = {
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       // allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
       // allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
@@ -77,7 +78,7 @@ export default {
     // }
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+      hash.jobs = this.value.matchingJobs();
     }
     const res = await allHash(hash);
 
@@ -113,7 +114,7 @@ export default {
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
-      matchingPods: [],
+      matchingPods:                    [],
       allJobs:                         [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,

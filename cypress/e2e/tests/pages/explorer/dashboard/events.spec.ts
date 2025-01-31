@@ -7,6 +7,27 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 const cluster = 'local';
 const clusterDashboard = new ClusterDashboardPagePo(cluster);
 const events = new EventsPagePo(cluster);
+const pageSize = 10;
+// Should be enough to create at least 3 pages of events
+const podCount = 15;
+
+const countHelper = {
+  setupCount: (vaiCacheEnabled: boolean, initialCount: number) => {
+    if (vaiCacheEnabled) {
+      cy.intercept('GET', '/v1/events?*').as('getCount');
+    } else {
+      cy.wrap(initialCount).as('count');
+    }
+  },
+  handleCount: (vaiCacheEnabled) => {
+    if (vaiCacheEnabled) {
+      cy.wait('@getCount').then((interception) => {
+        cy.wrap(interception.response.body.count).as('count');
+      });
+    }
+  },
+  getCount: () => cy.get('@count').then((count) => count as any as number),
+};
 
 describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -20,7 +41,12 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     let nsName2: string;
 
     before('set up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
+      cy.tableRowsPerPageAndPreferences(pageSize, {
+        clusterName:     cluster,
+        groupBy:         'none',
+        namespaceFilter: '{\"local\":[]}',
+        allNamespaces:   'true',
+      });
 
       cy.createE2EResourceName('ns1').then((ns1) => {
         nsName1 = ns1;
@@ -30,7 +56,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         // create pods
         let i = 0;
 
-        while (i < 125) {
+        while (i < podCount) {
           const podName = Cypress._.uniqueId(Date.now().toString());
 
           cy.createPod(nsName1, podName, 'nginx:latest', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
@@ -52,6 +78,9 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
           uniquePod = resp.body.metadata.name;
         });
       });
+
+      // I'm loathed to do this, but the events created from the pods need to settle before we start
+      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
@@ -61,73 +90,113 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       EventsPagePo.navTo();
       events.waitForPage();
 
-      cy.getRancherResource('v1', 'events').then((resp: Cypress.Response<any>) => {
-        // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
-        const count = resp.body.count < 500 ? resp.body.count : 500;
+      let vaiCacheEnabled = false;
 
-        // Test break down if less than 400...
-        expect(count).to.be.greaterThan(400);
+      cy.isVaiCacheEnabled()
+        .then((isVaiCacheEnabled) => {
+          vaiCacheEnabled = isVaiCacheEnabled;
 
-        // pagination is visible
-        events.sortableTable().pagination().checkVisible();
+          return cy.getRancherResource('v1', 'events');
+        })
+        .then((resp: Cypress.Response<any>) => {
+          let initialCount = resp.body.count;
 
-        const loadingPo = new LoadingPo('.title .resource-loading-indicator');
+          if (!vaiCacheEnabled && resp.body.count > 500) {
+            // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
+            initialCount = 500;
+          }
 
-        loadingPo.checkNotExists();
+          // Test break down if less than 3 pages...
+          expect(initialCount).to.be.greaterThan(3 * pageSize);
 
-        // basic checks on navigation buttons
-        events.sortableTable().pagination().beginningButton().isDisabled();
-        events.sortableTable().pagination().leftButton().isDisabled();
-        events.sortableTable().pagination().rightButton().isEnabled();
-        events.sortableTable().pagination().endButton().isEnabled();
+          // pagination is visible
+          events.sortableTable().pagination().checkVisible();
 
-        // check text before navigation
-        events.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
+          const loadingPo = new LoadingPo('.title .resource-loading-indicator');
+
+          loadingPo.checkNotExists();
+
+          // basic checks on navigation buttons
+          events.sortableTable().pagination().beginningButton().isDisabled();
+          events.sortableTable().pagination().leftButton().isDisabled();
+          events.sortableTable().pagination().rightButton().isEnabled();
+          events.sortableTable().pagination().endButton().isEnabled();
+
+          // check text before navigation
+          events.sortableTable().pagination().self().scrollIntoView();
+          events.sortableTable().pagination().paginationText().then((el) => {
+            expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
+          });
+
+          // navigate to next page - right button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.sortableTable().pagination().rightButton().click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text and buttons after navigation
+          events.sortableTable().pagination().self().scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.sortableTable().pagination().paginationText().then((el) => {
+              expect(el.trim()).to.eq(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
+            });
+          });
+          events.sortableTable().pagination().beginningButton().isEnabled();
+          events.sortableTable().pagination().leftButton().isEnabled();
+
+          // navigate to first page - left button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.sortableTable().pagination().leftButton().click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text and buttons after navigation
+          events.sortableTable().pagination().self().scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.sortableTable().pagination().paginationText().then((el) => {
+              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+            });
+          });
+
+          events.sortableTable().pagination().beginningButton().isDisabled();
+          events.sortableTable().pagination().leftButton().isDisabled();
+
+          // navigate to last page - end button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.sortableTable().pagination().endButton().scrollIntoView()
+            .click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text after navigation
+          events.sortableTable().pagination().self().scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.sortableTable().pagination().paginationText().then((el) => {
+              let pages = Math.floor(count / pageSize);
+
+              if (count % pageSize === 0) {
+                pages--;
+              }
+              const from = (pages * pageSize) + 1;
+              const to = count;
+
+              expect(el.trim()).to.eq(`${ from } - ${ to } of ${ to } Events`);
+            });
+          });
+
+          // navigate to first page - beginning button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.sortableTable().pagination().beginningButton().click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text and buttons after navigation
+          events.sortableTable().pagination().self().scrollIntoView();
+          countHelper.getCount().then((count) => {
+            events.sortableTable().pagination().paginationText().then((el) => {
+              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+            });
+          });
+
+          events.sortableTable().pagination().beginningButton().isDisabled();
+          events.sortableTable().pagination().leftButton().isDisabled();
         });
-
-        // navigate to next page - right button
-        events.sortableTable().pagination().rightButton().click();
-
-        // check text and buttons after navigation
-        events.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
-        });
-        events.sortableTable().pagination().beginningButton().isEnabled();
-        events.sortableTable().pagination().leftButton().isEnabled();
-
-        // navigate to first page - left button
-        events.sortableTable().pagination().leftButton().click();
-
-        // check text and buttons after navigation
-        events.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-        });
-        events.sortableTable().pagination().beginningButton().isDisabled();
-        events.sortableTable().pagination().leftButton().isDisabled();
-
-        // navigate to last page - end button
-        events.sortableTable().pagination().endButton().scrollIntoView()
-          .click();
-
-        // check row count on last page
-        events.sortableTable().checkRowCount(false, 100);
-
-        // check text after navigation
-        events.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
-        });
-
-        // navigate to first page - beginning button
-        events.sortableTable().pagination().beginningButton().click();
-
-        // check text and buttons after navigation
-        events.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-        });
-        events.sortableTable().pagination().beginningButton().isDisabled();
-        events.sortableTable().pagination().leftButton().isDisabled();
-      });
     });
 
     it('filter events', () => {
@@ -138,7 +207,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
 
       events.sortableTable().checkVisible();
       events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 100);
+      events.sortableTable().checkRowCount(false, pageSize);
 
       // filter by namespace
       events.sortableTable().filter(nsName2);
@@ -201,7 +270,12 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
     });
 
     after('clean up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
+      cy.tableRowsPerPageAndPreferences(100, {
+        clusterName:     cluster,
+        groupBy:         'none',
+        namespaceFilter: '{"local":["all://user"]}',
+        allNamespaces:   'false',
+      });
 
       // delete namespace (this will also delete all pods in it)
       cy.deleteRancherResource('v1', 'namespaces', nsName1);

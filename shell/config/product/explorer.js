@@ -19,19 +19,20 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, USER_LAST_LOGIN, USER_DISABLED_IN, USER_DELETED_IN, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
+  DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
+  EVENT_LAST_SEEN_TIME
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_EVENT_OBJECT, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -282,7 +283,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields)
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -293,7 +294,7 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields) --> https://github.com/rancher/rancher/issues/48384 (service crash)
+        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
       },
       STEVE_AGE_COL
     ]
@@ -314,30 +315,19 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   'spec.type', // TODO: RC REGRESSION - shell/components/formatter/ServiceType.vue & shell/models/service.js show mangle value which we do not sort/filter on
+        sort:   false, // ['spec.type', 'spec.clusterIP'] Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
         search: 'spec.type',
       },
       STEVE_AGE_COL
     ]
   );
 
-  const eventLastSeenTime = {
-    ...LAST_SEEN_TIME,
-    defaultSort: true,
-  };
-
   headers(EVENT,
-    [STATE, eventLastSeenTime, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL],
+    [STATE, EVENT_LAST_SEEN_TIME, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL],
     [
-      STEVE_STATE_COL, {
-        ...eventLastSeenTime,
-        value: 'metadata.fields.0',
-        sort:  'metadata.fields.0',
-      }, {
-        ...EVENT_TYPE,
-        value: '_type',
-        sort:  '_type',
-      },
+      STEVE_STATE_COL,
+      STEVE_EVENT_LAST_SEEN,
+      STEVE_EVENT_TYPE,
       REASON,
       STEVE_EVENT_OBJECT,
       'Subobject',
@@ -350,7 +340,7 @@ export function init(store) {
     ]
   );
   headers(HPA,
-    [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
+    [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
@@ -359,6 +349,7 @@ export function init(store) {
       MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
       CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      STEVE_AGE_COL
     ]
   );
 
@@ -505,8 +496,8 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort:   [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
-        search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        sort:   false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        search: false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
       },
       STEVE_AGE_COL
     ]
@@ -541,6 +532,7 @@ export function init(store) {
     ACCESS_KEY,
     DESCRIPTION,
     SCOPE_NORMAN,
+    LAST_USED,
     EXPIRES,
     AGE_NORMAN
   ]);

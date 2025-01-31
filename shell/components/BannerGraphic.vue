@@ -55,7 +55,12 @@ export default {
       v-if="pref"
       class="close-button"
       data-testid="graphic-banner-close"
+      tabindex="0"
+      :aria-label="t('generic.close')"
+      role="button"
       @click="hide()"
+      @keyup.enter="hide()"
+      @keyup.space="hide()"
     >
       <i class="icon icon-close" />
     </div>
@@ -72,6 +77,11 @@ export default {
     .close-button {
       position: absolute;
       visibility: hidden;
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: 2px;
+      }
     }
 
     &:hover .close-button {

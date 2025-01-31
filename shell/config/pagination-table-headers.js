@@ -1,5 +1,7 @@
 import {
-  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT
+  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
+  EVENT_LAST_SEEN_TIME,
+  EVENT_TYPE
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -48,7 +50,20 @@ export const STEVE_NAMESPACE_COL = {
 
 export const STEVE_EVENT_OBJECT = {
   ...OBJECT,
-  sort: 'involvedObject.kind',
+  sort:   'involvedObject.kind',
+  search: 'involvedObject.kind',
+};
+
+export const STEVE_EVENT_LAST_SEEN = {
+  ...EVENT_LAST_SEEN_TIME,
+  value: 'metadata.fields.0',
+  sort:  'metadata.fields.0',
+};
+
+export const STEVE_EVENT_TYPE = {
+  ...EVENT_TYPE,
+  value: '_type',
+  sort:  '_type',
 };
 
 export const STEVE_LIST_GROUPS = [{

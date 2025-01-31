@@ -27,7 +27,9 @@ node {
                         string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                         string(credentialsId: 'AZURE_AKS_SUBSCRIPTION_ID', variable: 'AZURE_AKS_SUBSCRIPTION_ID'),
                         string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
-                        string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET')]) {
+                        string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
+                        string(credentialsId: 'GKE_SERVICE_ACCOUNT', variable: 'GKE_SERVICE_ACCOUNT')
+                        ]) {
         withEnv(paramsMap) {
             stage('Checkout') {
             deleteDir()

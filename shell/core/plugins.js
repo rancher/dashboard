@@ -1,11 +1,9 @@
 import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
-import { Plugin } from './plugin';
+import { EXT_IDS, Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
-
-const MODEL_TYPE = 'models';
 
 export default function(context, inject, vueApp) {
   const {
@@ -24,6 +22,21 @@ export default function(context, inject, vueApp) {
 
   for (const ep in ExtensionPoint) {
     uiConfig[ExtensionPoint[ep]] = {};
+  }
+
+  /**
+   * When an extension adds a model extension, it provides the class - we will instantiate that class and store and use that
+   */
+  function instantiateModelExtension($plugin, clz) {
+    const context = {
+      dispatch: store.dispatch,
+      getters:  store.getters,
+      t:        store.getters['i18n/t'],
+      $axios,
+      $plugin,
+    };
+
+    return new clz(context);
   }
 
   inject(
@@ -78,72 +91,43 @@ export default function(context, inject, vueApp) {
           element.id = id;
           element.dataset.purpose = 'extension';
 
-          // id is `<product>-<version>`.
-          const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
+          element.onload = () => {
+            if (!window[id]) {
+              return reject(new Error('Could not load plugin code'));
+            }
 
-          let removed = Promise.resolve();
+            // Update the timestamp that new plugins were loaded - may be needed
+            // to update caches when new plugins are loaded
+            _lastLoaded = new Date().getTime();
 
-          if (oldPlugin) {
-          // Uninstall existing plugin if there is one. This ensures that last loaded plugin is not always used
-          // (nav harv1-->harv2-->harv1 and harv2 would be shown)
-            removed = this.removePlugin(oldPlugin.name).then(() => {
-              delete window[oldPlugin.id];
+            // name is the name of the plugin, including the version number
+            const plugin = new Plugin(id);
 
-              delete plugins[oldPlugin.id];
+            plugins[id] = plugin;
 
-              const oldElement = document.getElementById(oldPlugin.id);
+            // Initialize the plugin
+            window[id].default(plugin, this.internal());
 
-              oldElement.parentElement.removeChild(oldElement);
-            });
-          }
+            // Load all of the types etc from the plugin
+            this.applyPlugin(plugin);
 
-          removed.then(() => {
-            element.onload = () => {
-              if (!window[id]) {
-                return reject(new Error('Could not load plugin code'));
-              }
+            // Add the plugin to the store
+            store.dispatch('uiplugins/addPlugin', plugin);
 
-              // Update the timestamp that new plugins were loaded - may be needed
-              // to update caches when new plugins are loaded
-              _lastLoaded = new Date().getTime();
+            resolve();
+          };
 
-              // name is the name of the plugin, including the version number
-              const plugin = new Plugin(id);
+          element.onerror = (e) => {
+            element.parentElement.removeChild(element);
 
-              plugins[id] = plugin;
-
-              // Initialize the plugin
-              window[id].default(plugin, this.internal());
-
-              // Uninstall existing plugin if there is one
-              this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
-
-              // Load all of the types etc from the plugin
-              this.applyPlugin(plugin);
-
-              // Add the plugin to the store
-              store.dispatch('uiplugins/addPlugin', plugin);
-
-              resolve();
-            };
-
-            element.onerror = (e) => {
-              element.parentElement.removeChild(element);
-
-              // Massage the error into something useful
-              const errorMessage = `Failed to load script from '${ e.target.src }'`;
-
-              console.error(errorMessage, e); // eslint-disable-line no-console
-              reject(new Error(errorMessage)); // This is more useful where it's used
-            };
-
-            document.head.appendChild(element);
-          }).catch((e) => {
-            const errorMessage = `Failed to unload old plugin${ oldPlugin?.id }`;
+            // Massage the error into something useful
+            const errorMessage = `Failed to load script from '${ e.target.src }'`;
 
             console.error(errorMessage, e); // eslint-disable-line no-console
             reject(new Error(errorMessage)); // This is more useful where it's used
-          });
+          };
+
+          document.head.appendChild(element);
         });
       },
 
@@ -215,7 +199,7 @@ export default function(context, inject, vueApp) {
           Object.keys(plugin.types[typ]).forEach((name) => {
             this.unregister(typ, name);
 
-            if (typ === MODEL_TYPE) {
+            if (typ === EXT_IDS.MODELS) {
               clearModelCache(name);
             }
           });
@@ -284,6 +268,13 @@ export default function(context, inject, vueApp) {
           });
         });
 
+        // Model extensions
+        Object.keys(plugin.modelExtensions).forEach((name) => {
+          plugin.modelExtensions[name].forEach((fn) => {
+            this.register(EXT_IDS.MODEL_EXTENSION, name, instantiateModelExtension(this, fn));
+          });
+        });
+
         // Initialize the product if the store is ready
         if (productsLoaded()) {
           this.loadProducts([plugin]);
@@ -317,8 +308,8 @@ export default function(context, inject, vueApp) {
           dynamic[type] = {};
         }
 
-        // Accumulate l10n resources rather than replace
-        if (type === 'l10n') {
+        // Accumulate l10n resources and model extensions rather than replace
+        if (type === 'l10n' || type === EXT_IDS.MODEL_EXTENSION) {
           if (!dynamic[type][name]) {
             dynamic[type][name] = [];
           }

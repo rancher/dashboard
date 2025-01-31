@@ -41,7 +41,9 @@ export default class CatalogApp extends SteveModel {
 
   get warnDeletionMessage() {
     if (this.upgradeAvailable === false) {
-      return this.t('catalog.delete.warning.managed', { name: this.name });
+      const manager = this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] || 'Rancher';
+
+      return this.t('catalog.delete.warning.managed', { manager: manager === 'true' ? 'Rancher' : manager, name: this.name });
     }
 
     return null;

@@ -113,7 +113,7 @@ export default defineComponent({
     primary: {
       type:    Boolean,
       default: false
-    },
+    }
   },
 
   emits: ['update:value'],
@@ -135,7 +135,14 @@ export default defineComponent({
      */
     isChecked(): boolean {
       return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
-    }
+    },
+
+    /**
+     * Determines if the Labeled Input should display a tooltip.
+     */
+    hasTooltip(): boolean {
+      return !!this.tooltip || !!this.tooltipKey;
+    },
   },
 
   methods: {
@@ -214,6 +221,9 @@ export default defineComponent({
   <div
     class="checkbox-outer-container"
     data-checkbox-ctrl
+    :class="{
+      'v-popper--has-tooltip': hasTooltip,
+    }"
   >
     <label
       class="checkbox-container"
@@ -227,9 +237,10 @@ export default defineComponent({
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        :tabindex="-1"
+        tabindex="-1"
         :name="id"
         @click.stop.prevent
+        @keyup.enter.stop.prevent
       >
       <span
         class="checkbox-custom"
@@ -240,7 +251,7 @@ export default defineComponent({
         role="checkbox"
       />
       <span
-        v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
+        v-if="$slots.label || label || labelKey || hasTooltip"
         class="checkbox-label"
         :class="{ 'checkbox-primary': primary }"
       >
@@ -253,13 +264,15 @@ export default defineComponent({
           <template v-else-if="label">{{ label }}</template>
           <i
             v-if="tooltipKey"
-            v-clean-tooltip="t(tooltipKey)"
+            v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
             class="checkbox-info icon icon-info icon-lg"
+            :tabindex="isDisabled ? -1 : 0"
           />
           <i
             v-else-if="tooltip"
-            v-clean-tooltip="tooltip"
+            v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
             class="checkbox-info icon icon-info icon-lg"
+            :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
       </span>
@@ -318,6 +331,11 @@ $fontColor: var(--input-label);
   .checkbox-info {
     line-height: normal;
     margin-left: 2px;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
   }
 
  .checkbox-custom {
@@ -325,9 +343,14 @@ $fontColor: var(--input-label);
     width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
-    transition: all 0.3s ease-out;
     border: 1px solid var(--border);
     flex-shrink: 0;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+      border-radius: 0;
+    }
   }
 
   input {
@@ -335,6 +358,12 @@ $fontColor: var(--input-label);
     opacity: 0;
     position: absolute;
     z-index: -1;
+  }
+
+  input:focus-visible ~ .checkbox-custom {
+    @include focus-outline;
+    outline-offset: 2px;
+    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom {

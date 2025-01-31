@@ -5,7 +5,6 @@ import { parse } from '@shell/utils/selector';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isEmpty } from 'lodash';
 
-
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
 export const DEFAULT_SERVICE_TYPES = [
@@ -157,8 +156,7 @@ export default class Service extends SteveModel {
       return;
     }
 
-    return {
-      matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
+    return { matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
     };
   }
 
@@ -166,17 +164,14 @@ export default class Service extends SteveModel {
     if (podSelector) {
       const findPageArgs = { // Of type ActionFindPageArgs
         namespaced: this.metadata.namespace,
-        pagination: new FilterArgs({
-          labelSelector: podSelector
-        }),
+        pagination: new FilterArgs({ labelSelector: podSelector }),
       };
 
       return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
     }
 
-    return Promise.resolve(undefined)
+    return Promise.resolve(undefined);
   }
-
 
   // async fetchPods() {
   //   if (this.podSelector) {
@@ -189,8 +184,9 @@ export default class Service extends SteveModel {
   // }
 
   get pods() {
-    console.warn('Anything using this must be updated to ????!!!')
-    return []
+    console.warn('Anything using this must be updated to ????!!!');
+
+    return [];
   }
   // get pods() {
   //   return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];

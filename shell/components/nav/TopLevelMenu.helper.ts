@@ -13,6 +13,7 @@ interface TopLevelMenuCluster {
   ready: boolean
   providerNavLogo: string,
   badge: string,
+  iconColor: string,
   isLocal: boolean,
   pinned: boolean,
   description: string,
@@ -34,21 +35,21 @@ type MgmtCluster = {
 type ProvCluster = {
   [key: string]: any
 }
+
 /**
  * Order
- * 1. Specific Local Cluster
- * 2. Ready
- * 3. Name
+ * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
+ * 2. working clusters
+ * 3. name
  */
 const DEFAULT_SORT: Array<PaginationSort> = [
-  // Put local cluster at top of list - https://github.com/rancher/dashboard/issues/10975
   {
     asc:   false,
     field: 'spec.internal',
   },
   // {
   //   asc:   true,
-  //   field: 'status.conditions[0].status' // Pending API support https://github.com/rancher/rancher/issues/48092
+  //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
   // },
   {
     asc:   true,
@@ -128,6 +129,12 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+    // Reduce flicker when component is recreated on a different layout
+    const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
+
+    this.clustersPinned.push(...clustersPinned);
+    this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -137,6 +144,7 @@ export abstract class BaseTopLevelMenuHelper {
       ready:           mgmtCluster.isReady, // && !provCluster?.hasError,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
+      iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
       description:     provCluster?.description || mgmtCluster.description,
@@ -144,6 +152,10 @@ export abstract class BaseTopLevelMenuHelper {
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
     };
+  }
+
+  protected cacheClusters() {
+    this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
   }
 }
 
@@ -258,6 +270,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
   }
 
   private constructParams({
@@ -401,6 +415,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
   }
 
   /**

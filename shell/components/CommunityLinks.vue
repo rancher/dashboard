@@ -110,6 +110,8 @@ export default {
         <router-link
           v-if="link.value.startsWith('/') "
           :to="link.value"
+          role="link"
+          :aria-label="link.label"
         >
           {{ link.label }}
         </router-link>
@@ -118,6 +120,8 @@ export default {
           :href="link.value"
           rel="noopener noreferrer nofollow"
           target="_blank"
+          role="link"
+          :aria-label="link.label"
         > {{ link.label }} </a>
       </div>
       <slot />
@@ -127,7 +131,11 @@ export default {
       >
         <a
           class="link"
+          tabindex="0"
+          :aria-label="t('footer.wechat.title')"
+          role="link"
           @click="show"
+          @keyup.enter="show"
         >
           {{ t('footer.wechat.title') }}
         </a>
@@ -147,7 +155,12 @@ export default {
         <div>
           <button
             class="btn role-primary"
+            tabindex="0"
+            :aria-label="t('generic.close')"
+            role="button"
             @click="close"
+            @keyup.enter="close"
+            @keyup.space="close"
           >
             {{ t('generic.close') }}
           </button>

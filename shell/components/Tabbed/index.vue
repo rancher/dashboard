@@ -4,9 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import { addObject, removeObject, findBy } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
 import findIndex from 'lodash/findIndex';
+import { ExtensionPoint, TabLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import Tab from '@shell/components/Tabbed/Tab';
 
 export default {
   name: 'Tabbed',
+
+  components: { Tab },
 
   emits: ['changed', 'addTab', 'removeTab'],
 
@@ -82,9 +87,19 @@ export default {
   },
 
   data() {
+    const extensionTabs = getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [];
+
+    const parsedExtTabs = extensionTabs.map((item) => {
+      return {
+        ...item,
+        active: false
+      };
+    });
+
     return {
-      tabs:          [],
-      activeTabName: null,
+      tabs:          [...parsedExtTabs],
+      extensionTabs: parsedExtTabs,
+      activeTabName: null
     };
   },
 
@@ -243,7 +258,6 @@ export default {
       role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
-      tabindex="0"
       data-testid="tabbed-block"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -262,8 +276,12 @@ export default {
           :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
+          :aria-label="tab.labelDisplay"
           role="tab"
+          tabindex="0"
           @click.prevent="select(tab.name, $event)"
+          @keyup.enter="select(tab.name, $event)"
+          @keyup.space="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
           <span
@@ -320,6 +338,24 @@ export default {
       }"
     >
       <slot />
+      <!-- Extension tabs -->
+      <Tab
+        v-for="tab, i in extensionTabs"
+        :key="`${tab.name}${i}`"
+        :name="tab.name"
+        :label="tab.label"
+        :label-key="tab.labelKey"
+        :weight="tab.weight"
+        :tooltip="tab.tooltip"
+        :show-header="tab.showHeader"
+        :display-alert-icon="tab.displayAlertIcon"
+        :error="tab.error"
+        :badge="tab.badge"
+      >
+        <component
+          :is="tab.component"
+        />
+      </Tab>
     </div>
   </div>
 </template>
@@ -366,6 +402,14 @@ export default {
 
       &:hover {
         text-decoration: none;
+        span {
+          text-decoration: underline;
+        }
+      }
+
+      &:focus-visible {
+        @include focus-outline;
+
         span {
           text-decoration: underline;
         }

@@ -1,0 +1,20 @@
+name: Validate Pull Request Description
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-description:
+    name: Validate Description
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate checklist has been completed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.url }}
+        run: ./.github/workflows/scripts/pr-check-checklist.sh

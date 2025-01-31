@@ -259,6 +259,10 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    /**
+     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
+     */
+    sideNavCache:            undefined,
   };
 };
 
@@ -613,6 +617,10 @@ export const getters = {
     return `${ base }/latest`;
   },
 
+  sideNavCache(state) {
+    return state.sideNavCache;
+  },
+
   ...gcGetters
 };
 
@@ -751,6 +759,10 @@ export const mutations = {
 
   setPlugin(state, pluginDefinition) {
     state.$plugin = markRaw(pluginDefinition || {});
+  },
+
+  setSideNavCache(state, sideNavCache) {
+    state.sideNavCache = sideNavCache;
   }
 };
 
@@ -1268,6 +1280,10 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
+  },
+
+  setSideNavCache({ commit }, sideNavCache) {
+    commit('setSideNavCache', sideNavCache);
   },
 
   ...gcActions

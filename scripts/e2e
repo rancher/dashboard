@@ -10,4 +10,21 @@ if [ $# -eq 1 ]; then
   SPEC_ARG="--spec ${1}"
 fi
 
-CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run ${SPEC_ARG} --group "$GREP_TAGS" --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
+# Define the command to use (cy2 or cypress)
+# TEST_DISABLE_DASHBOARD: Disable Cypress dashboard using GH repository settings
+# TEST_DISABLE_DASHBOARD_LABEL: Disable Cypress dashboard using PR label `ci/skip-e2e-cypress-dashboard`
+echo "TEST_DISABLE_DASHBOARD: ${TEST_DISABLE_DASHBOARD}"
+echo "TEST_DISABLE_DASHBOARD_LABEL: ${TEST_DISABLE_DASHBOARD_LABEL}"
+if [ "${TEST_DISABLE_DASHBOARD}" = "true" ] || [ "${TEST_DISABLE_DASHBOARD_LABEL}" = "true" ]; then
+  echo "Running Cypress without dashboard"
+  CYPRESS_COMMAND="cypress run ${SPEC_ARG}"
+else
+  echo "Running Cypress with Sorry Cypress on dashboard"
+  CYPRESS_COMMAND="cy2 run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --parallel --group \"$GREP_TAGS\""
+fi
+
+# Construct the full command
+E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} --browser chrome"
+
+# Execute the command
+eval $E2E_COMMAND

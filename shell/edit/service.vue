@@ -20,14 +20,15 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
-import { POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE } from '@shell/config/types';
+import {
+  POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE
+} from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
 import { _CLONE } from '@shell/config/query-params';
-
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -110,7 +111,7 @@ export default {
       fvFormRuleSets:            [],
       fvReportedValidationPaths: ['spec'],
       closedErrorMessages:       [],
-      inStore: this.$store.getters['currentStore'](POD),
+      inStore:                   this.$store.getters['currentStore'](POD),
     };
   },
 
@@ -259,12 +260,11 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-
       const { value: { spec: { selector = { } } } } = this;
 
       debugger;
       const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
-      const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0
+      const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0;
 
       if (isEmpty(selector) || namespaceCount === 0) {
         this.matchingPods = {

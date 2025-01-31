@@ -196,6 +196,36 @@ export default {
       </component>
     </div>
     <div
+      ref="prev"
+      role="button"
+      class="prev"
+      :aria-label="t('carousel.previous')"
+      :aria-disabled="sliders.length === 1"
+      :class="{'disable': sliders.length === 1}"
+      tabindex="0"
+      @click="nextPrev('prev')"
+      @keyup.enter.space="nextPrev('prev')"
+    >
+      <i
+        class="icon icon-chevron-left icon-4x"
+      />
+    </div>
+    <div
+      ref="next"
+      role="button"
+      class="next"
+      :aria-label="t('carousel.next')"
+      :aria-disabled="sliders.length === 1"
+      :class="{'disable': sliders.length === 1}"
+      tabindex="0"
+      @click="nextPrev('next')"
+      @keyup.enter.space="nextPrev('next')"
+    >
+      <i
+        class="icon icon-chevron-right icon-4x"
+      />
+    </div>
+    <div
       class="controls"
       :class="{'disable': sliders.length === 1}"
     >
@@ -204,24 +234,12 @@ export default {
         :key="i"
         class="control-item"
         :class="{'active': activeItemId === i}"
+        role="button"
+        tabindex="0"
+        :aria-label="t('carousel.controlItem', { number: i+1 })"
         @click="scrollSlide(i, slider.length)"
+        @keyup.enter.space="scrollSlide(i, slider.length)"
       />
-    </div>
-    <div
-      ref="prev"
-      class="prev"
-      :class="{'disable': sliders.length === 1}"
-      @click="nextPrev('prev')"
-    >
-      <i class="icon icon-chevron-left icon-4x" />
-    </div>
-    <div
-      ref="next"
-      class="next"
-      :class="{'disable': sliders.length === 1}"
-      @click="nextPrev('next')"
-    >
-      <i class="icon icon-chevron-right icon-4x" />
     </div>
   </div>
 </template>
@@ -239,20 +257,6 @@ export default {
   &.disable::before,
   &.disable::after {
     display: none;
-  }
-
-  &.disable:hover {
-    .prev,
-    .next {
-      display: none;
-    }
-  }
-
-  &:hover {
-    .prev,
-    .next {
-      display: block;
-    }
   }
 }
 
@@ -367,12 +371,15 @@ export default {
   position: absolute;
   z-index: 20;
   top: 90px;
-  display: none;
   cursor: pointer;
 
   &.disabled .icon {
     color: var(--disabled-bg);
     cursor: not-allowed;
+  }
+
+  .icon:focus-visible {
+    @include focus-outline;
   }
 }
 

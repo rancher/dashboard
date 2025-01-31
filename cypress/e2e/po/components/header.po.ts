@@ -28,6 +28,12 @@ export class HeaderPo extends ComponentPo {
     return wsFilter.clickOptionWithLabel(name);
   }
 
+  checkCurrentWorkspace(name: string) {
+    const wsFilter = new WorkspaceSwitcherPo();
+
+    return wsFilter.checkOptionSelected(name);
+  }
+
   importYamlHeaderAction() {
     return this.self().find('[data-testid="header-action-import-yaml"]');
   }

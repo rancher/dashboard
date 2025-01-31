@@ -333,7 +333,8 @@ export const AUTH_TYPE = {
   _NONE:  '_none',
   _BASIC: '_basic',
   _SSH:   '_ssh',
-  _S3:    '_S3'
+  _S3:    '_S3',
+  _RKE:   '_RKE',
 };
 
 export const LOCAL_CLUSTER = 'local';

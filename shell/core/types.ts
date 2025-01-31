@@ -238,6 +238,16 @@ export interface ProductOptions {
   to?: PluginRouteRecordRaw;
 
   /**
+   * Alternative to the icon property. Uses require
+   */
+  svg?: Function;
+
+  /**
+   * Product name
+   */
+  name?: string;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
@@ -384,9 +394,14 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   ifHaveType?: string | RegExp | Object;
 
   /**
+   * The label that this type should display
+   */
+  label?: string;
+
+  /**
    * The translation key displayed anywhere this type is referenced
    */
-  labelKey: string;
+  labelKey?: string;
 
   /**
    * An identifier that should be unique across all types
@@ -462,6 +477,37 @@ export interface DSLReturnType {
   // weightGroup: (input, weight, forBasic)
   // weightType: (input, weight, forBasic)
 }
+
+/**
+ * Context for the constructor of a model extension
+ */
+export type ModelExtensionContext = {
+  /**
+   * Dispatch vuex actions
+   */
+  dispatch: any,
+  /**
+   * Get from vuex store
+   */
+  getters: any,
+  /**
+   * Used to make http requests
+   */
+  axios: any,
+  /**
+   * Definition of the extension
+   */
+  $plugin: any,
+  /**
+   * Function to retrieve a localised string
+   */
+  t: (key: string) => string,
+};
+
+/**
+ * Constructor signature for a model extension
+ */
+export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
 /**
  * Interface for a Dashboard plugin
@@ -568,6 +614,15 @@ export interface IPlugin {
     onLeave?: OnNavAwayFromPackage,
     onLogOut?: OnLogOut
   ): void;
+
+  /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void;
 
   /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n

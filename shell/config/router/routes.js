@@ -25,7 +25,6 @@ export default [
   {
     path:      '/',
     component: () => interopDefault(import('@shell/pages/index.vue')),
-    name:      'index',
     meta:      { requiresAuthentication: true },
     children:  [
       {

@@ -24,10 +24,19 @@ export interface BundleNonReadyBundle {
   nonReadyStatus: BundleNonReadyResource[],
 }
 
+export interface Condition {
+  status: string,
+  type: string,
+}
+
 export interface BundleDeploymentStatus {
   resources?: BundleDeploymentResource[],
   modifiedStatus?: BundleModifiedResource[],
   nonReadyStatus?: BundleNonReadyResource[],
+  appliedDeploymentId?: string,
+  ready: boolean
+  nonModified: boolean
+  conditions: Condition[],
 }
 
 export interface BundleStatusSummary {
@@ -37,4 +46,12 @@ export interface BundleStatusSummary {
 export interface BundleStatus {
   resourceKey?: BundleResourceKey[],
   summary?: BundleStatusSummary,
+}
+
+export interface BundleDeployment {
+  spec: {
+    deploymentId: string,
+    stagedDeploymentId: string,
+  }
+  status?: BundleDeploymentStatus
 }

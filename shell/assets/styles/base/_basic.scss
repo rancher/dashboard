@@ -62,12 +62,30 @@ INPUT,
 SELECT,
 TEXTAREA,
 .labeled-input,
-.labeled-select,
-.unlabeled-select,
-.checkbox-custom,
-.radio-custom {
+.checkbox-custom {
   &:focus, &.focused {
-    @include form-focus
+    @include form-focus;
+  }
+}
+
+.radio-custom,
+.labeled-select,
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
+  }
+}
+
+.labeled-select,
+.unlabeled-select {
+  &.focused {
+    border-color: var(--outline);
+  }
+}
+
+.unlabeled-select {
+  &:focus-visible, &.focused {
+    @include focus-outline;
   }
 }
 
@@ -88,6 +106,11 @@ A {
   &:active {
     text-decoration: underline;
     color: var(--body-text);
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
