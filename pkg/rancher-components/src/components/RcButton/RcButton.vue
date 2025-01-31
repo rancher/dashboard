@@ -1,4 +1,12 @@
 <script setup lang="ts">
+/**
+ * A button element used for performing actions, such as submitting forms or
+ * opening dialogs.
+ *
+ * Example:
+ *
+ * <rc-button primary @click="doAction">Perform an Action</rc-button>
+ */
 import { computed, ref, defineExpose } from 'vue';
 import { ButtonRoleProps, ButtonSizeProps } from './types';
 

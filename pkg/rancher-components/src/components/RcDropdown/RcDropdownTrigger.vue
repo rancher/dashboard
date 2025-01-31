@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * A button that opens a menu. Used in conjunction with `RcDropdown.vue`.
+ */
 import { inject, onMounted, useTemplateRef } from 'vue';
 import { RcButton, RcButtonType } from '@components/RcButton';
 import { DropdownContext, defaultContext } from './types';

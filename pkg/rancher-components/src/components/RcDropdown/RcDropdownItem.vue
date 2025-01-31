@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * An item for a dropdown menu. Used in conjunction with RcDropdown.
+ */
 import { inject } from 'vue';
 import { DropdownContext, defaultContext } from './types';
 
