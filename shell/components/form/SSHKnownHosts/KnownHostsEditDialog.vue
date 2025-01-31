@@ -79,7 +79,7 @@ export default {
 <template>
   <app-modal
     v-if="showModal"
-    name="sshKnownHostsDialog"
+    ref="sshKnownHostsDialog"
     height="auto"
     :scrollable="true"
     @close="closeDialog(false)"
@@ -93,8 +93,9 @@ export default {
       <div class="custom mt-10">
         <div class="dialog-panel">
           <CodeMirror
+            class="code-mirror"
             :value="text"
-            class="editor"
+            data-testid="ssh-known-hosts-dialog_code-mirror"
             :options="codeMirrorOptions"
             :showKeyMapBox="true"
             @onInput="onTextChange"
@@ -104,6 +105,7 @@ export default {
           <div class="action-pannel file-selector">
             <FileSelector
               class="btn role-secondary"
+              data-testid="ssh-known-hosts-dialog_file-selector"
               :label="t('generic.readFromFile')"
               @selected="onTextChange"
             />
@@ -111,14 +113,14 @@ export default {
           <div class="action-pannel form-actions">
             <button
               class="btn role-secondary"
-              data-testid="ssh-known-hosts-dialog-cancel-btn"
+              data-testid="ssh-known-hosts-dialog_cancel-btn"
               @click="closeDialog(false)"
             >
               {{ t('generic.cancel') }}
             </button>
             <button
               class="btn role-primary"
-              data-testid="ssh-known-hosts-dialog-save-btn"
+              data-testid="ssh-known-hosts-dialog_save-btn"
               @click="closeDialog(true)"
             >
               {{ t('generic.save') }}
@@ -145,7 +147,7 @@ export default {
       min-height: 100px;
       border: 1px solid var(--border);
 
-      :deep() .editor {
+      :deep() .code-mirror {
         display: flex;
         flex-direction: column;
         resize: none;

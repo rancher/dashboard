@@ -27,11 +27,13 @@ export default defineComponent({
       return this.mode === _VIEW;
     },
 
-    // Summarize number of entries - exclude empty lines and comments
-    summary() {
-      const lines = this.value.split('\n').filter((line: string) => !!line.length && !line.startsWith('#')).length;
+    // The number of entries - exclude empty lines and comments
+    entries() {
+      return this.value.split('\n').filter((line: string) => !!line.trim().length && !line.startsWith('#')).length;
+    },
 
-      return this.t('secret.ssh.editKnownHosts.entries', { entries: lines });
+    summary() {
+      return this.t('secret.ssh.editKnownHosts.entries', { entries: this.entries });
     }
   },
 
@@ -50,14 +52,21 @@ export default defineComponent({
 });
 </script>
 <template>
-  <div class="input-known-ssh-hosts labeled-input">
+  <div
+    class="input-known-ssh-hosts labeled-input"
+    data-testid="input-known-ssh-hosts"
+  >
     <label>{{ t('secret.ssh.knownHosts') }}</label>
-    <div class="hosts-input">
+    <div
+      class="hosts-input"
+      data-testid="input-known-ssh-hosts_summary"
+    >
       {{ summary }}
     </div>
     <template v-if="!isViewMode">
       <button
         ref="button"
+        data-testid="input-known-ssh-hosts_open-dialog"
         class="show-dialog-btn btn"
         @click="openDialog"
       >
