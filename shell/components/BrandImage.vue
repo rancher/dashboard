@@ -2,6 +2,8 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { getSettingValue } from '@shell/utils/settings';
+import { RegistrationType } from '@shell/core/types';
 
 export default {
   props: {
@@ -41,7 +43,7 @@ export default {
     brand() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
-      return setting.value;
+      return getSettingValue(setting, this.$plugin);
     },
 
     uiLogoLight() {
@@ -76,6 +78,11 @@ export default {
       } catch {
         return require(`~shell/assets/images/pl/${ this.fileName }`);
       }
+    },
+
+    // Used when we look up images from extensions - we do this without the file extension
+    fileNameWithoutExtension() {
+      return this.fileName.split('.').slice(0, -1).join('.');
     },
 
     pathToBrandedImage() {
@@ -113,11 +120,23 @@ export default {
         return this.defaultPathToBrandedImage;
       } else {
         if (this.theme === 'dark' || this.dark) {
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/dark/${ this.fileNameWithoutExtension }`);
+
+          if (file) {
+            return file;
+          }
+
           try {
             return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
         }
         try {
+          const file = this.$plugin.getDynamic(RegistrationType.IMAGE, `brand/${ this.brand }/${ this.fileNameWithoutExtension }`);
+
+          if (file) {
+            return file;
+          }
+
           return require(`~shell/assets/brand/${ this.brand }/${ this.fileName }`);
         } catch {}
 

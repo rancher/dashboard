@@ -3,7 +3,8 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { ExtensionPoint } from './types';
+import { ExtensionPoint, RegistrationType } from './types';
+import { createBrand } from './plugin-brand';
 
 const MODEL_TYPE = 'models';
 
@@ -267,6 +268,29 @@ export default function(context, inject, vueApp) {
         plugin.locales.forEach((localeObj) => {
           store.dispatch('i18n/addLocale', localeObj);
         });
+
+        // Brand
+        if (plugin.brands.length) {
+          plugin.brands.forEach((brand) => {
+            createBrand(brand, (name, fn) => this.register('image', name, fn));
+          });
+        }
+
+        // Brand
+        if (plugin.settings.length) {
+          plugin.settings.forEach((setting) => {
+            // Check if the setting has already been set by another extension
+            if (this.getDynamic(RegistrationType.SETTING, setting.name)) {
+              console.warning(`Setting ${ setting.name } has already been set by another extension - ignoring`); // eslint-disable-line no-console
+            } else {
+              this.register(RegistrationType.SETTING, setting.name, {
+                value:     setting.value,
+                extension: plugin.name,
+                override:  setting.override
+              });
+            }
+          });
+        }
 
         // Routes
         pluginRoutes.addRoutes(plugin, plugin.routes);

@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { ALLOWED_SETTINGS } from '@shell/config/settings';
+import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
@@ -49,9 +49,28 @@ export default {
 
         s.enum = `advancedSettings.enum.${ id }.${ v }`;
       }
+
+      // Check for UI brand
+      if (s.id === SETTING.BRAND) {
+        const brand = this.$plugin.getDynamic('setting', 'brand');
+
+        if (brand) {
+          s.fromExtension = brand.extension;
+          s.extensionOverride = brand.override;
+          s.extensionValue = brand.value;
+
+          // User can still set the brand, if extension configuration allows, otherwise they can not
+          if (brand.override && s.data?.links) {
+            delete s.data.links.update;
+            s.readOnly = true;
+          }
+        }
+      }
+
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
       s.hasActions = (!s.readOnly || viewInApi) && setting.availableActions?.length;
+
       settings.push(s);
     }
 
@@ -118,6 +137,10 @@ export default {
               class="modified"
             >{{ t('advancedSettings.setEnv') }}</span>
             <span
+              v-if="setting.fromExtension"
+              class="modified"
+            >{{ t('advancedSettings.setByExtension', { name: setting.fromExtension }) }}</span>
+            <span
               v-else-if="setting.customized"
               class="modified"
             >{{ t('advancedSettings.modified') }}</span>
@@ -141,6 +164,16 @@ export default {
           </button>
         </div>
       </div>
+      <div v-if="setting.extensionOverride">
+        <Banner
+          color="warning"
+          class="settings-banner"
+        >
+          <div>
+            {{ t('advancedSettings.setByExtensionNotEditable') }}
+          </div>
+        </Banner>
+      </div>
       <div value>
         <div v-if="setting.canHide">
           <button
@@ -159,7 +192,7 @@ export default {
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
-          <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
+          <pre v-else-if="setting.data.value || setting.extensionValue || setting.data.default">{{ setting.data.value || setting.extensionValue || setting.data.default }}</pre>
           <pre
             v-else
             class="text-muted"

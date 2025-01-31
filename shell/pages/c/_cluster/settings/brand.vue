@@ -12,11 +12,12 @@ import { Banner } from '@components/Banner';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';
-import { fetchOrCreateSetting } from '@shell/utils/settings';
+import { fetchOrCreateSetting, getSettingFromExtension } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 import TabTitle from '@shell/components/TabTitle';
+import { Settings } from '@shell/core/types';
 
 const Color = require('color');
 
@@ -137,13 +138,27 @@ export default {
   },
 
   computed: {
+    setByExtensionNoOverride() {
+      const setting = getSettingFromExtension(Settings.BRAND, this.$plugin);
+
+      return setting?.override ? setting.extension : undefined;
+    },
+
     mode() {
+      if (this.setByExtensionNoOverride) {
+        return _VIEW;
+      }
+
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
     customLinkColor() {
       return { color: this.uiLinkColor };
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
     }
   },
 
@@ -233,10 +248,10 @@ export default {
           this.uiFaviconSetting.save()
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
-          setVendor(this.uiPLSetting.value);
+          setVendor(this.uiPLSetting.value, this.$plugin);
         }
 
-        setFavIcon(this.$store);
+        setFavIcon(this.$store, this.$plugin);
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -254,6 +269,15 @@ export default {
       <TabTitle>{{ t('branding.label') }}</TabTitle>
     </h1>
     <TypeDescription resource="branding" />
+
+    <Banner
+      v-if="setByExtensionNoOverride"
+      data-testid="brand-from-extension-no-override-banner"
+      color="warning"
+      class="banner-no-margin"
+    >
+      <div v-clean-html="t('branding.setByExtensionNoOverride', {name: setByExtensionNoOverride}, true)" />
+    </Banner>
     <div>
       <div class="row mb-20">
         <div class="col span-6">
@@ -287,6 +311,7 @@ export default {
         <div class="col preview-container logo span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -312,6 +337,7 @@ export default {
         <div class="col preview-container logo span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -358,6 +384,7 @@ export default {
         <div class="col preview-container banner span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -383,6 +410,7 @@ export default {
         <div class="col preview-container banner span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -429,6 +457,7 @@ export default {
         <div class="col preview-container login-background span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -454,6 +483,7 @@ export default {
         <div class="col preview-container login-background span-6">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="200000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -500,6 +530,7 @@ export default {
         <div class="col favicon-container span-12">
           <div class="mb-10">
             <FileImageSelector
+              v-if="isEdit"
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
@@ -601,6 +632,10 @@ export default {
   a {
     margin: auto;
   }
+}
+
+.banner-no-margin {
+  margin-top: 0;
 }
 
 :deep().preview-container {
