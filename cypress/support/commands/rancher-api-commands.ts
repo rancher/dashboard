@@ -486,7 +486,7 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
 /**
  * create a v3 / v1 resource
  */
-Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
@@ -494,11 +494,14 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    body
+    body,
+    failOnStatusCode
   })
     .then((resp) => {
+      if (failOnStatusCode) {
       // Expect 200 or 201, Created HTTP status code
-      expect(resp.status).to.be.oneOf([200, 201]);
+        expect(resp.status).to.be.oneOf([200, 201]);
+      }
     });
 });
 
