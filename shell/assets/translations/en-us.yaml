@@ -6204,6 +6204,11 @@ wm:
     title: "Kubectl: {name}"
 
 workload:
+  scaleWorkloads: Scale workloads
+  healthWorkloads: Jobs/Pods health status
+  healthScaleToggle: Toggle/Expand workloads scaling/health
+  plus: Scale up workload
+  minus: Scale down workload
   container:
     command:
       addEnvVar: Add Variable
