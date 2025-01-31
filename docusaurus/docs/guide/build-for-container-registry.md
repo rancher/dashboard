@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.WORKFLOW_PAT }} # The PAT referenced in prerequisites
           submodules: recursive # If the repo has multiple submodules to checkout
