@@ -23,7 +23,7 @@ import { clone } from '@shell/utils/object';
 import {
   POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE
 } from '@shell/config/types';
-import { matching } from '@shell/utils/selector';
+import { findMatchingResources, matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -261,30 +261,42 @@ export default {
   methods: {
     updateMatchingPods: throttle(async function() {
       // TODO: RC convert to findMatchingResources?
+      // TODO: RC TEST
+
       const { value: { spec: { selector = { } } } } = this;
 
-      debugger;
-      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
-      const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0;
+      this.matchingPods = await findMatchingResources({
+        labelSelector: selector,
+        type:          SERVICE,
+        $store:        this.$store,
+        inStore:       this.inStore,
+        namespace:     this.value?.metadata?.namespace, // TODO: RC is this ever null?
+      });
 
-      if (isEmpty(selector) || namespaceCount === 0) {
-        this.matchingPods = {
-          matched: 0,
-          total:   namespaceCount,
-          none:    true,
-          sample:  null,
-        };
-      } else {
-        debugger;
-        const match = await this.value.fetchPods();
+      // const { value: { spec: { selector = { } } } } = this;
 
-        this.matchingPods = {
-          matched: match.length,
-          total:   namespaceCount,
-          none:    match.length === 0,
-          sample:  match[0] ? match[0].nameDisplay : null,
-        };
-      }
+      // debugger;
+      // const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+      // const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0;
+
+      // if (isEmpty(selector) || namespaceCount === 0) {
+      //   this.matchingPods = {
+      //     matched: 0,
+      //     total:   namespaceCount,
+      //     none:    true,
+      //     sample:  null,
+      //   };
+      // } else {
+      //   debugger;
+      //   const match = await this.value.fetchPods();
+
+      //   this.matchingPods = {
+      //     matched: match.length,
+      //     total:   namespaceCount,
+      //     none:    match.length === 0,
+      //     sample:  match[0] ? match[0].nameDisplay : null,
+      //   };
+      // }
     }, 250, { leading: true }),
 
     async loadPods() {
