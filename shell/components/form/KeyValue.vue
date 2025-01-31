@@ -603,10 +603,16 @@ export default {
     </div>
     <div
       class="kv-container"
+      role="grid"
+      :aria-rowcount="rows.length"
+      :aria-colcount="extraColumns.length + 2"
       :style="containerStyle"
     >
       <template v-if="rows.length || isView">
-        <label class="text-label">
+        <label
+          class="text-label"
+          role="columnheader"
+        >
           {{ _keyLabel }}
           <i
             v-if="_protip && !isView && addAllowed"
@@ -614,12 +620,16 @@ export default {
             class="icon icon-info"
           />
         </label>
-        <label class="text-label">
+        <label
+          class="text-label"
+          role="columnheader"
+        >
           {{ _valueLabel }}
         </label>
         <label
           v-for="(c, i) in extraColumns"
           :key="i"
+          role="columnheader"
         >
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
@@ -631,10 +641,16 @@ export default {
         </slot>
       </template>
       <template v-if="!rows.length && isView">
-        <div class="kv-item key text-muted">
+        <div
+          class="kv-item key text-muted"
+          role="gridcell"
+        >
           &mdash;
         </div>
-        <div class="kv-item key text-muted">
+        <div
+          class="kv-item key text-muted"
+          role="gridcell"
+        >
           &mdash;
         </div>
       </template>
@@ -646,6 +662,9 @@ export default {
         <!-- Key -->
         <div
           class="kv-item key"
+          role="gridcell"
+          :aria-rowindex="i+1"
+          :aria-colindex="1"
         >
           <slot
             name="key"
@@ -687,6 +706,9 @@ export default {
         <div
           :data-testid="`kv-item-value-${i}`"
           class="kv-item value"
+          role="gridcell"
+          :aria-rowindex="i+1"
+          :aria-colindex="2"
         >
           <slot
             name="value"
@@ -762,6 +784,9 @@ export default {
           v-for="(c, j) in extraColumns"
           :key="`${i}-${j}`"
           class="kv-item extra"
+          role="gridcell"
+          :aria-rowindex="i+1"
+          :aria-colindex="j+3"
         >
           <slot
             :name="'col:' + c"
@@ -774,7 +799,9 @@ export default {
           v-if="canRemove"
           :key="i"
           class="kv-item remove"
-          :data-testid="`remove-column-${i}`"
+          role="gridcell"
+          :aria-rowindex="i+1"
+          :aria-colindex="extraColumns.length+3"
         >
           <slot
             name="removeButton"
