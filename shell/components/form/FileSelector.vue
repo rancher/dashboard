@@ -149,6 +149,7 @@ export default {
     v-if="!isView"
     :disabled="disabled"
     type="button"
+    role="button"
     class="file-selector btn"
     data-testid="file-selector__uploader-button"
     @click="selectFile"

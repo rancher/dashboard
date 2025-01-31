@@ -784,6 +784,7 @@ export default {
           >
             <button
               type="button"
+              role="button"
               :disabled="isView || isProtected(row.key) || disabled"
               class="btn role-link"
               @click="remove(i)"
@@ -805,6 +806,7 @@ export default {
         <button
           v-if="addAllowed"
           type="button"
+          role="button"
           class="btn role-tertiary add"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
