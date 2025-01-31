@@ -1,4 +1,25 @@
 <script setup lang="ts">
+/**
+ * Offers a list of choices to the user, such as a set of actions or functions.
+ * Opened by activating RcDropdownTrigger.
+ *
+ * Example:
+ *
+ *  <rc-dropdown :aria-label="t('nav.actionMenu.label')">
+ *    <rc-dropdown-trigger tertiary>
+ *      <i class="icon icon-actions" />
+ *    </rc-dropdown-trigger>
+ *    <template #dropdownCollection>
+ *      <rc-dropdown-item @click="performAction()">
+ *        Action 1
+ *      </rc-dropdown-item>
+ *      <rc-dropdown-separator />
+ *      <rc-dropdown-item @click="performAction()">
+ *        Action 2
+ *      </rc-dropdown-item>
+ *    </template>
+ *  </rc-dropdown>
+ */
 import { useTemplateRef } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
