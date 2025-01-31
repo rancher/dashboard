@@ -175,7 +175,7 @@ export default class Service extends SteveModel {
 
   // async fetchPods() {
   //   if (this.podSelector) {
-  //     await this.$dispatch('cluster/findMatching', {
+  //     await this.$dispatch('cluster/findMatching', { // TODO: RC LEGACY? No-op
   //       type:      POD,
   //       selector:  this.podRelationship.selector,
   //       namespace: this.namespace

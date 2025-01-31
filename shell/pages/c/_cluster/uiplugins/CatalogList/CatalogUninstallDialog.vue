@@ -95,13 +95,13 @@ export default {
 
       if ( selector ) {
         const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatching', {
+          deployment: this.$store.dispatch('management/findMatching', { // TODO: RC LEGACY? No-op
             type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
           }),
-          service: this.$store.dispatch('management/findMatching', {
+          service: this.$store.dispatch('management/findMatching', { // TODO: RC LEGACY? No-op
             type: SERVICE, selector, namespace
           }),
-          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector })
+          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector }) // TODO: RC LEGACY? No-op
         });
 
         for ( const resource of Object.keys(hash) ) {

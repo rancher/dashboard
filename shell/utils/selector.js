@@ -1,5 +1,7 @@
+import { COUNT } from '@shell/config/types';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isArray, addObject, findBy } from '@shell/utils/array';
-import { get } from '@shell/utils/object';
+import { get, isEmpty } from '@shell/utils/object';
 
 const parseCache = {};
 
@@ -226,4 +228,57 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
 
 export function matching(ary, selector, labelKey) {
   return ary.filter((obj) => matches(obj, selector, labelKey));
+}
+
+/**
+ * TODO: RC comment
+ *
+ * inScopeCount OR $store and inStore
+ */
+export async function findMatchingResources({
+  /**
+   * of type `KubeLabelSelector`
+   */
+  labelSelector,
+  type,
+  $store = undefined,
+  inStore = undefined,
+  inScopeCount = undefined,
+  namespace = undefined,
+  transient = false,
+}) {
+  let match = [];
+
+  if (labelSelector?.matchExpressions?.length || !isEmpty(labelSelector?.matchLabel)) {
+    if (!inScopeCount) {
+      const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      inScopeCount = namespace ? counts?.[type]?.namespaces[this.namespace]?.count || 0 : counts?.[type]?.summary?.count || 0;
+    }
+
+    if (inScopeCount) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: namespace,
+        pagination: new FilterArgs({ labelSelector }),
+        transient,
+      };
+
+      const res = await this.$dispatch('findPage', { type, opt: findPageArgs });
+
+      match = res;
+    }
+  }
+
+  // this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
+  // const match = matching(this.allResourcesInScope, this.selectorExpressions);
+  const matched = match.length || 0;
+  const sample = match[0]?.nameDisplay;
+
+  return {
+    matched,
+    matches: match,
+    none:    matched === 0,
+    sample,
+    total:   inScopeCount.length,
+  };
 }

@@ -24,18 +24,18 @@ export default {
       type:    String,
       default: 'ingress'
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    // allPods: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
+    // allNamespaces: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
   },
   data() {
     if (!this.value.spec[this.type]) {
@@ -76,14 +76,17 @@ export default {
             :show-header="false"
             class="container-group"
           >
+          <!--
+          :all-pods="allPods"
+          :all-namespaces="allNamespaces"
+          -->
             <PolicyRule
               ref="lastRule"
               v-model:value="value.spec[type][idx]"
               :mode="mode"
               :type="type"
               :namespace="value.metadata.namespace"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+              
             />
           </Tab>
         </Tabbed>

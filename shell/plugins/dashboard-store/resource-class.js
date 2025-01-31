@@ -1838,7 +1838,7 @@ export default class Resource {
     const out = [];
 
     for ( const sel of selectors ) {
-      const matching = await this.$dispatch('findMatching', sel);
+      const matching = await this.$dispatch('findMatching', sel); // TODO: RC LEGACY? No-op
 
       addObjects(out, matching.data);
     }

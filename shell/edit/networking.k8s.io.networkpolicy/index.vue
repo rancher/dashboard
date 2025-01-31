@@ -8,7 +8,7 @@ import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
-import { convert, matching, simplify } from '@shell/utils/selector';
+import { convert, findMatchingResources, matching, simplify } from '@shell/utils/selector';
 import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
@@ -43,12 +43,12 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+      // allPods:       this.$store.dispatch('cluster/findAll', { type: POD }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+      // allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     });
 
-    this.allPods = hash.allPods; // Used in matchingPods, and PolicyRules --> PolicyRule --> PolicyRuleTarget
-    this.allNamespaces = hash.allNamespaces; // Used in PolicyRules --> PolicyRule --> PolicyRuleTarget
+    // this.allPods = hash.allPods; // Used in matchingPods, and PolicyRules --> PolicyRule --> PolicyRuleTarget
+    // this.allNamespaces = hash.allNamespaces; // Used in PolicyRules --> PolicyRule --> PolicyRuleTarget
 
     this.updateMatchingPods();
   },
@@ -75,8 +75,8 @@ export default {
     return {
       POD,
       matchingPods,
-      allPods:         [],
-      allNamespaces:   [],
+      // allPods:         [],
+      // allNamespaces:   [],
       podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
@@ -127,6 +127,9 @@ export default {
         this.value.spec['policyTypes'] = policyTypes;
       }
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     podSelectorExpressions: {
       get() {
         return convert(
@@ -146,19 +149,27 @@ export default {
   },
 
   methods: {
-    updateMatchingPods: throttle(function() {
-      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
-      const match = matching(allInNamespace, this.podSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    updateMatchingPods: throttle(async function() {
+      //TODO: RC TEST
+      this.matchingPods = await findMatchingResources({
+        labelSelector: { matchExpressions: this.selectorExpressions },
+        type:          POD,
+        $store:        this.$store,
+        inStore: 'cluster',
+        namespace:     this.value.metadata.namespace,
+      });
+      // const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
+      // const match = matching(allInNamespace, this.podSelectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
 
-      this.matchingPods = {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allInNamespace.length,
-      };
+      // this.matchingPods = {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   allInNamespace.length,
+      // };
     }, 250, { leading: true }),
   },
 };
@@ -201,13 +212,16 @@ export default {
               :label="t('networkpolicy.ingress.enable')"
               data-testid="network-policy-ingress-enable-checkbox"
             />
+            <!--
+            :all-pods="allPods"
+             :all-namespaces="allNamespaces"
+             -->
             <PolicyRules
               v-if="hasIngressPolicies"
               :value="value"
               type="ingress"
               :mode="mode"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+              
               @update:value="$emit('input', $event)"
             />
           </Tab>
@@ -226,13 +240,15 @@ export default {
               :mode="mode"
               :label="t('networkpolicy.egress.enable')"
             />
+            <!--
+            :all-namespaces="allNamespaces"
+            :all-pods="allPods" -->
             <PolicyRules
               v-if="hasEgressPolicies"
               :value="value"
               type="egress"
               :mode="mode"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+              
               @update:value="$emit('input', $event)"
             />
           </Tab>

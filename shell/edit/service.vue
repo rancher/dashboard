@@ -260,6 +260,7 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
+      // TODO: RC convert to findMatchingResources?
       const { value: { spec: { selector = { } } } } = this;
 
       debugger;
@@ -294,7 +295,8 @@ export default {
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
-        const res = await allHash(hash);
+        await allHash(hash);
+        // const res = await allHash(hash);
 
         // this.allPods = res.pods;
         this.updateMatchingPods();

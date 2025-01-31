@@ -3,7 +3,7 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, parse } from '@shell/utils/selector';
+import { convertSelectorObj, findMatchingResources, matching, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { FilterArgs } from '@shell/types/store/pagination.types';
@@ -717,13 +717,23 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
+    // TODO: RC where is this used, for shell? test
+    // TODO: RC TEST
+    return await findMatchingResources({
+      labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
+      type:          POD,
+      $store:        this.$store,
+      inStore:       'cluster',
+      namespace:     this.metadata.namespace,
+    });
+
     // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    const all = await this.$dispatch('findAll', { type: POD });
-    const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
+    // const all = await this.$dispatch('findAll', { type: POD });
+    // const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
 
-    const selector = convertSelectorObj(this.spec.selector);
+    // const selector = convertSelectorObj(this.spec.selector);
 
-    return matching(allInNamespace, selector);
+    // return matching(allInNamespace, selector);
   }
 
   cleanForSave(data) {

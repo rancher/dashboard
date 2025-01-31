@@ -41,18 +41,18 @@ export default {
       type:    String,
       default: ''
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    // allPods: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
+    // allNamespaces: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
   },
   data() {
     if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
@@ -78,6 +78,9 @@ export default {
     };
   },
   computed: {
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     podSelectorExpressions: {
       get() {
         return convert(
@@ -89,6 +92,9 @@ export default {
         this.value[TARGET_OPTIONS.POD_SELECTOR] = simplify(podSelectorExpressions);
       }
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     namespaceSelectorExpressions: {
       get() {
         return convert(
@@ -148,10 +154,10 @@ export default {
       handler:   'updateMatches',
       immediate: true
     },
-    allNamespaces: {
-      handler:   'updateMatches',
-      immediate: true
-    },
+    // allNamespaces: {
+    //   handler:   'updateMatches',
+    //   immediate: true // TODO: RC
+    // },
     'value.podSelector': {
       handler:   'updateMatches',
       immediate: true
@@ -173,9 +179,9 @@ export default {
   },
   methods: {
     updateMatches() {
-      throttle(() => {
-        this.matchingNamespaces = this.getMatchingNamespaces();
-        this.matchingPods = this.getMatchingPods();
+      throttle(async() => {
+        this.matchingNamespaces = await this.getMatchingNamespaces();
+        this.matchingPods = await this.getMatchingPods();
       }, this.throttle, { leading: true })();
     },
     validateCIDR() {
@@ -191,34 +197,54 @@ export default {
         this.invalidCidr = null;
       }
     },
-    getMatchingPods() {
-      const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
-      const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
-      const match = matching(allInNamespace, this.podSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    async getMatchingPods() {
+      //TODO: RC TEST
+      return await findMatchingResources({
+        labelSelector: { matchExpressions: this.podSelectorExpressions },
+        type:          POD,
+        $store:        this.$store,
+        inStore: 'cluster',
+        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map(ns => ns.id) : this.namespace, // TODO: RC multiple?
+        transient: true,
+      });
 
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allInNamespace.length,
-      };
+      // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
+      // const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
+      // const match = matching(allInNamespace, this.podSelectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
+
+      // return {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   allInNamespace.length,
+      // };
     },
-    getMatchingNamespaces() {
-      const allNamespaces = this.allNamespaces;
-      const match = matching(allNamespaces, this.namespaceSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    async getMatchingNamespaces() {
+      //TODO: RC TEST
+      return await findMatchingResources({
+        labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
+        type:          NAMESPACE,
+        $store:        this.$store,
+        inStore: 'cluster',
+        transient: true,
+      });
 
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allNamespaces.length,
-      };
+
+      // const allNamespaces = this.allNamespaces;
+      // const match = matching(allNamespaces, this.namespaceSelectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
+
+      // return {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   allNamespaces.length,
+      // };
     },
   }
 };

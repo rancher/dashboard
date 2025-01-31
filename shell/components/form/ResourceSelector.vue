@@ -4,8 +4,10 @@ import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ResourceTable from '@shell/components/ResourceTable';
 import { allHash } from '@shell/utils/promise';
 import { _EDIT } from '@shell/config/query-params';
-import { convert, matching, simplify } from '@shell/utils/selector';
+import { convert, findMatchingResources, matching, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { COUNT } from '@shell/config/types';
 
 export default {
   name: 'ResourceSelector',
@@ -37,9 +39,9 @@ export default {
 
   async fetch() {
     // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
+    // const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
 
-    this.allResources = hash.allResources;
+    // this.allResources = hash.allResources;
 
     this.updateMatchingResources();
   },
@@ -55,11 +57,12 @@ export default {
 
     return {
       matchingResources,
-      allResources:        [],
-      allResourcesInScope: [],
-      tableHeaders:        this.$store.getters['type-map/headersFor'](
+      // allResources:        [],
+      // allResourcesInScope: [],
+      tableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](this.type)
       ),
+      inStore: this.$store.getters['currentProduct'].inStore,
     };
   },
 
@@ -73,6 +76,9 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     selectorExpressions: {
       get() {
         return convert(
@@ -87,22 +93,53 @@ export default {
         this.value['matchExpressions'] = matchExpressions;
       }
     },
+    allResourcesInScope() {
+      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      if (this.namespace) {
+        return counts?.[this.type].namespaces[this.namespace]?.count || 0;
+      }
+
+      return counts[this.type]?.summary?.count || 0;
+    }
   },
 
   methods: {
-    updateMatchingResources: throttle(function() {
-      this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
-      const match = matching(this.allResourcesInScope, this.selectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    updateMatchingResources: throttle(async function() {
+      // TODO: RC TEST
+      this.matchingResources = await findMatchingResources({
+        labelSelector: { matchExpressions: this.selectorExpressions },
+        type:          this.type,
+        $store:        this.$store,
+        inScopeCount:  this.allResourcesInScope,
+        namespace:     this.namespace,
+      });
 
-      this.matchingResources = {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   this.allResourcesInScope.length,
-      };
+      // let match = [];
+
+      // if (this.selectorExpressions?.length) {
+      //   const findPageArgs = { // Of type ActionFindPageArgs
+      //     namespaced: this.namespace,
+      //     pagination: new FilterArgs({ labelSelector: { matchExpressions: this.selectorExpressions } }),
+      //   };
+
+      //   const res = await this.$dispatch('findPage', { type: this.type, opt: findPageArgs });
+
+      //   match = res;
+      // }
+
+      // // this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
+      // // const match = matching(this.allResourcesInScope, this.selectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
+
+      // this.matchingResources = {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   this.allResourcesInScope.length,
+      // };
     }, 250, { leading: true }),
   }
 

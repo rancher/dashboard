@@ -12,7 +12,7 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      this.uiServices = await this.$store.dispatch('cluster/findMatching', {
+      this.uiServices = await this.$store.dispatch('cluster/findMatching', { // TODO: RC LEGACY? No-op
         type:     SERVICE,
         selector: 'app=longhorn-ui'
       });
