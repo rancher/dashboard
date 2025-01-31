@@ -970,6 +970,11 @@ export default {
         position: relative;
       }
 
+      .avatar-round {
+        border: 0;
+        border-radius: 50%;
+      }
+
       > .user {
         outline: none;
         width: var(--header-height);
@@ -1003,11 +1008,6 @@ export default {
         }
 
         background-color: var(--header-bg);
-
-        .avatar-round {
-          border: 0;
-          border-radius: 50%;
-        }
       }
 
       > .center-self {
