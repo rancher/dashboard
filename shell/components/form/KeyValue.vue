@@ -666,6 +666,7 @@ export default {
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
               :data-testid="`select-kv-item-key-${i}`"
+              :aria-label="t('generic.ariaLabel.key', {index: i})"
               @update:value="queueUpdate"
             />
             <input
@@ -675,6 +676,7 @@ export default {
               :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="_keyPlaceholder"
               :data-testid="`input-kv-item-key-${i}`"
+              :aria-label="t('generic.ariaLabel.key', {index: i})"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
@@ -713,6 +715,9 @@ export default {
                 :value="row[valueName]"
                 :as-text-area="true"
                 :mode="mode"
+                :options="{
+                  screenReaderLabel: t('generic.ariaLabel.value', { index: i })
+                }"
                 @onInput="onInputMarkdownMultiline(i, $event)"
                 @onFocus="onFocusMarkdownMultiline(i, $event)"
               />
@@ -726,6 +731,7 @@ export default {
                 :placeholder="_valuePlaceholder"
                 :min-height="40"
                 :spellcheck="false"
+                :aria-label="t('generic.ariaLabel.value', {index: i})"
                 @update:value="queueUpdate"
               />
               <input
@@ -738,6 +744,7 @@ export default {
                 autocapitalize="off"
                 spellcheck="false"
                 :data-testid="`input-kv-item-value-${i}`"
+                :aria-label="t('generic.ariaLabel.value', {index: i})"
                 @input="queueUpdate"
               >
               <FileSelector
@@ -745,6 +752,7 @@ export default {
                 class="btn btn-sm role-secondary file-selector"
                 :label="t('generic.upload')"
                 :include-file-name="true"
+                :aria-label="t('generic.ariaLabel.value', {index: i})"
                 @selected="onValueFileSelected(i, $event)"
               />
             </div>
