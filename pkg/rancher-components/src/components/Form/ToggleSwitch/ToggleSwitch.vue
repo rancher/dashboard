@@ -65,8 +65,11 @@ export default defineComponent({
     <label class="switch hand">
       <input
         type="checkbox"
+        role="switch"
         :checked="state"
+        :aria-label="onLabel"
         @input="toggle(null)"
+        @keydown.enter="toggle(null)"
       >
       <span class="slider round" />
     </label>
