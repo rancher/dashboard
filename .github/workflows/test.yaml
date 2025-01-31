@@ -79,7 +79,7 @@ jobs:
           ['@charts'],
           ['@explorer'],
           ['@explorer2'],
-          ['@fleet'],
+          ['@virtualizationMgmt', '@fleet']
           ['@generic', '@globalSettings'],
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
