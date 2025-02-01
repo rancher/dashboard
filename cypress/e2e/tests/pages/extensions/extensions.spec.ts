@@ -195,6 +195,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();
     appRepoList.waitForPage();
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
@@ -409,6 +410,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
+    extensionsPo.loading().should('not.exist');
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
@@ -418,6 +420,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
 
     // make sure both extensions have been imported
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
@@ -436,7 +440,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure both extensions have been imported after logging in again
     cy.login(undefined, undefined, false);
     extensionsPo.goTo();
-    extensionsPo.waitForPage();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
