@@ -214,26 +214,40 @@ describe('Home Page', () => {
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Hide home page banners
-     * Click the restore link
-     * Verify banners display on home page
-     */
+      // Reset the home page cars pref so that everything is shown
+      cy.setUserPreference({ 'home-page-cards': '{}' });
+
+      /**
+       * Hide home page banners
+       * Click the restore link
+       * Verify banners display on home page
+       */
       HomePagePo.navTo();
       homePage.waitForPage();
-      homePage.restoreAndWait();
 
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.bannerGraphic().graphicBannerCloseButton();
+      homePage.getLoginPageBanner().checkVisible();
+
+      // Hide the banner graphic
+      homePage.toggleBanner();
+
+      // Banner graphic and the login banner should be visible
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
+      // Show the banner graphic
+      homePage.toggleBanner();
+      homePage.bannerGraphic().graphicBanner().should('exist');
+
+      // Close the banner for changing login view
       homePage.getLoginPageBanner().checkVisible();
       homePage.getLoginPageBanner().closeButton();
       homePage.getLoginPageBanner().checkNotExists();
 
+      // Restore the cards should bring back the login banner
       homePage.restoreAndWait();
 
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
       homePage.getLoginPageBanner().checkVisible();
     });
 
