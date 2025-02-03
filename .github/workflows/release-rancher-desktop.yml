@@ -30,7 +30,7 @@ jobs:
         ROUTER_BASE="/dashboard" RANCHER_ENV=desktop ./.github/workflows/scripts/build-dashboard.sh
 
     - name: Upload Build
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ env.RELEASE_DIR}}/${{ env.ARTIFACT_NAME }}*
         name: ${{ env.ARTIFACT_NAME }}
