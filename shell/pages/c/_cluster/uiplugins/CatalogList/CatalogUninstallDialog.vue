@@ -102,7 +102,7 @@ export default {
 
       if ( catalog.name ) {
         const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatchingOrPage', {
+          deployment: this.$store.dispatch('management/findLabelSelector', {
             type:     WORKLOAD_TYPES.DEPLOYMENT,
             matching: { namespace, labelSelector: { matchLabels: pageSelector } }
             // type:             WORKLOAD_TYPES.DEPLOYMENT,            // context:          this.$store,
@@ -111,7 +111,7 @@ export default {
             //   type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
             // }
           }),
-          service: this.$store.dispatch('management/findMatchingOrPage', {
+          service: this.$store.dispatch('management/findLabelSelector', {
             type:     SERVICE,
             matching: { namespace, labelSelector: { matchLabels: pageSelector } }
             // type:             SERVICE,
@@ -121,7 +121,7 @@ export default {
             //   type: SERVICE, selector, namespace
             // }
           }),
-          repo: this.$store.dispatch('management/findMatchingOrPage', {
+          repo: this.$store.dispatch('management/findLabelSelector', {
             type:     CATALOG.CLUSTER_REPO,
             matching: { labelSelector: { matchLabels: pageSelector } }
 

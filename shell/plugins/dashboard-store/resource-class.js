@@ -1844,7 +1844,7 @@ export default class Resource {
         namespace,
         opt,
       } = sel;
-      const matching = await this.$dispatch('findMatchingOrPage', {
+      const matching = await this.$dispatch('findLabelSelector', {
         type,
         matching: {
           namespace,

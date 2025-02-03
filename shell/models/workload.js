@@ -3,10 +3,11 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, findMatchingResources, parse } from '@shell/utils/selector';
+import { convertSelectorObj, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { FilterArgs } from '@shell/types/store/pagination.types';
+import { matching } from '@shell/utils/selector-typed';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -565,6 +566,29 @@ export default class Workload extends WorkloadService {
     }
   }
 
+  async fetchPods() {
+    // const podSelector = this.podSelector;
+
+    // if (podSelector) {
+    return this.$dispatch('findLabelSelector', {
+      type:     POD,
+      matching: {
+        namespaced: this.metadata.namespace,
+        pagination: new FilterArgs({ labelSelector: this.podSelector }),
+      }
+    });
+
+    // const findPageArgs = { // Of type ActionFindPageArgs
+    //   namespaced: this.metadata.namespace,
+    //   pagination: new FilterArgs({ labelSelector: podSelector }),
+    // };
+
+    // return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
+    // }
+
+    // return Promise.resolve(undefined);
+  }
+
   get pods() {
     console.warn('Anything using this must be updated to ????!!!');
 
@@ -587,7 +611,7 @@ export default class Workload extends WorkloadService {
   // }
 
   /**
-   * TODO: RC docs. always return object (relationship selectors are strings)
+   * TODO: RC what SHOULD this do? always return object (relationship selectors are strings)
    */
   get podSelector() {
     const relationships = this.metadata?.relationships || [];
@@ -625,21 +649,6 @@ export default class Workload extends WorkloadService {
 
   get podGauges() {
     return this.calcPodGauges(this.pods);
-  }
-
-  async fetchPods() {
-    const podSelector = this.podSelector;
-
-    if (podSelector) {
-      const findPageArgs = { // Of type ActionFindPageArgs
-        namespaced: this.metadata.namespace,
-        pagination: new FilterArgs({ labelSelector: podSelector }),
-      };
-
-      return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
-    }
-
-    return Promise.resolve(undefined);
   }
 
   // Job Specific
@@ -717,15 +726,19 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
+    // TODO: RC fetchPods (findLabelSelector) vs matchingPods (matching)
+
     // TODO: RC where is this used, for shell? test
     // TODO: RC TEST
-    return await findMatchingResources({
+    const matchInfo = await matching({
       labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
       type:          POD,
       $store:        this.$store,
       inStore:       'cluster',
       namespace:     this.metadata.namespace,
     });
+
+    return matchInfo.matches;
 
     // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
     // const all = await this.$dispatch('findAll', { type: POD });

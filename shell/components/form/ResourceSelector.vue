@@ -6,7 +6,7 @@ import { _EDIT } from '@shell/config/query-params';
 import { convert, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
 import { COUNT } from '@shell/config/types';
-import { findMatchingResources } from '@shell/utils/selector-typed';
+import { matching } from '@shell/utils/selector-typed';
 
 export default {
   name: 'ResourceSelector',
@@ -101,7 +101,7 @@ export default {
   methods: {
     updateMatchingResources: throttle(async function() {
       // TODO: RC TEST
-      this.matchingResources = await findMatchingResources({
+      this.matchingResources = await matching({
         labelSelector: { matchExpressions: this.selectorExpressions },
         type:          this.type,
         $store:        this.$store,

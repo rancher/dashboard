@@ -23,7 +23,7 @@ import { clone } from '@shell/utils/object';
 import {
   POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE
 } from '@shell/config/types';
-import { findMatchingResources } from '@shell/utils/selector-typed';
+import { matching } from '@shell/utils/selector-typed';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -260,12 +260,12 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      // TODO: RC convert to findMatchingResources?
+      // TODO: RC convert to matching?
       // TODO: RC TEST
 
       const { value: { spec: { selector = { } } } } = this;
 
-      this.matchingPods = await findMatchingResources({
+      this.matchingPods = await matching({
         labelSelector: selector,
         type:          SERVICE,
         $store:        this.$store,

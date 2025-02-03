@@ -363,6 +363,9 @@ export default {
   },
 
   /**
+   * If result not already cached, make a http request to fetch a specific set of resources
+   *
+   * This accepts all the new sql-cache backed api features (sort, filter, etc)
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
@@ -448,10 +451,13 @@ export default {
   },
 
   /**
+   * If result not already cached, fetch filtered resource either via
+   * a) sql-cache backed api request (if pagination is supported for this type) - findPage
+   * b) legacy / native kube api request - findMatching
    *
-   * labelSelector is of type KubeLabelSelector
+   * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
    */
-  async findMatchingOrPage(ctx, {
+  async findLabelSelector(ctx, {
     type,
     matching: {
       namespace,
@@ -460,6 +466,8 @@ export default {
     opts
   }) {
     const { getters, dispatch } = ctx;
+
+    // TODO: RC return all if no / empty labelSelector.. or none?
 
     const args = {
       id: type,

@@ -5,12 +5,12 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import { convert, matching, simplify } from '@shell/utils/selector';
-import { POD } from '@shell/config/types';
+import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
-import { findMatchingResources } from '@shell/utils/selector-typed';
+import { matching } from '@shell/utils/selector-typed';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -199,8 +199,7 @@ export default {
       }
     },
     async getMatchingPods() {
-      // TODO: RC TEST
-      return await findMatchingResources({
+      return await matching({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
@@ -208,6 +207,8 @@ export default {
         namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace, // TODO: RC multiple?
         transient:     true,
       });
+
+      // TODO: RC TEST
 
       // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
       // const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
@@ -225,7 +226,7 @@ export default {
     },
     async getMatchingNamespaces() {
       // TODO: RC TEST
-      return await findMatchingResources({
+      return await matching({
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
         $store:        this.$store,

@@ -9,7 +9,7 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
 import { convert, simplify } from '@shell/utils/selector';
-import { findMatchingResources } from '@shell/utils/selector-typed';
+import { matching } from '@shell/utils/selector-typed';
 
 import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
@@ -153,13 +153,15 @@ export default {
   methods: {
     updateMatchingPods: throttle(async function() {
       // TODO: RC TEST
-      this.matchingPods = await findMatchingResources({
-        labelSelector: { matchExpressions: this.selectorExpressions },
+      const matchInfo = await matching({
+        labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
         inStore:       'cluster',
         namespace:     this.value.metadata.namespace,
       });
+
+      this.matchingPods = matchInfo.matches;
       // const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
       // const match = matching(allInNamespace, this.podSelectorExpressions);
       // const matched = match.length || 0;

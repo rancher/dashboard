@@ -165,11 +165,11 @@ export default class Service extends SteveModel {
 
   async fetchPods() {
     // TODO: RC TEST
-    // if (!podSelector) {
-    //   return;
-    // }
+    if (!this.podRelationship?.selector) {
+      return;
+    }
 
-    return await this.$dispatch('findMatchingOrPage', {
+    return await this.$dispatch('findLabelSelector', {
       type:     POD,
       matching: {
         namespace:     this.metadata.namespace,
