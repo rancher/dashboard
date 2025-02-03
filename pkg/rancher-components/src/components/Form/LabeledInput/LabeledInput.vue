@@ -400,6 +400,8 @@ export default defineComponent({
     >
       <div
         v-if="cronHint"
+        role="alert"
+        :aria-label="cronHint"
       >
         {{ cronHint }}
       </div>
