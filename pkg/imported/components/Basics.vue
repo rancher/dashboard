@@ -43,6 +43,12 @@ export default defineComponent({
         return {};
       }
     },
+    upgradeStrategy: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
     loadingVersions: {
       type:    Boolean,
       default: false
@@ -90,14 +96,6 @@ export default defineComponent({
       return this.config?.kubernetesVersion || '';
     },
 
-    upgradeStrategy() {
-      if ( this.value?.rke2Config ) {
-        return this.value.rke2Config?.rke2upgradeStrategy;
-      }
-
-      return this.value?.k3sConfig?.k3supgradeStrategy;
-    }
-
   },
 });
 
@@ -107,7 +105,7 @@ export default defineComponent({
     <div class="row row-basics mb-20">
       <div class="col-basics mr-10 span-6">
         <LabeledSelect
-          v-model:value="config.kubernetesVersion"
+          v-model:value="kubernetesVersion"
           data-testid="cruimported-kubernetesversion"
           :mode="mode"
           :options="versionOptions"
@@ -128,7 +126,7 @@ export default defineComponent({
       </div>
     </div>
     <h3 v-t="'imported.upgradeStrategy.header'" />
-    <div class="col span-4 mt-10 mb-10">
+    <div class="col mt-10 mb-10">
       <div class="col mt-5">
         <Checkbox
           :value="upgradeStrategy.drainServerNodes"

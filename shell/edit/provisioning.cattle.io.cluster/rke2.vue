@@ -2301,7 +2301,6 @@ export default {
             :mode="mode"
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
-            @update:value="$emit('input', $event)"
             @truncate-hostname-changed="truncateHostname"
             @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
             @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"

@@ -110,6 +110,24 @@ export default defineComponent({
       };
     },
 
+    upgradeStrategy: {
+      get() {
+        if ( this.normanCluster?.rke2Config ) {
+          return this.normanCluster.rke2Config?.rke2upgradeStrategy;
+        }
+
+        return this.normanCluster?.k3sConfig?.k3supgradeStrategy;
+      },
+      set(newValue) {
+        if ( this.normanCluster?.rke2Config ) {
+          this.normanCluster.rke2Config.rke2upgradeStrategy = newValue;
+        }
+
+        this.normanCluster.k3sConfig.k3supgradeStrategy = newValue;
+      }
+
+    },
+
     isEdit() {
       return this.mode === _CREATE || this.mode === _EDIT;
     },
@@ -207,34 +225,6 @@ export default defineComponent({
         this.normanCluster.k3sConfig.kubernetesVersion = val;
       }
     },
-    drainServerNodesChanged(val) {
-      if ( !this.isK3s ) {
-        this.normanCluster.rke2Config.rke2upgradeStrategy.drainServerNodes = val;
-      } else {
-        this.normanCluster.k3sConfig.k3supgradeStrategy.drainServerNodes = val;
-      }
-    },
-    drainWorkerNodesChanged(val) {
-      if ( !this.isK3s ) {
-        this.normanCluster.rke2Config.rke2upgradeStrategy.drainWorkerNodes = val;
-      } else {
-        this.normanCluster.k3sConfig.k3supgradeStrategy.drainWorkerNodes = val;
-      }
-    },
-    serverConcurrencyChanged(val) {
-      if ( !this.isK3s ) {
-        this.normanCluster.rke2Config.rke2upgradeStrategy.serverConcurrency = val;
-      } else {
-        this.normanCluster.k3sConfig.k3supgradeStrategy.serverConcurrency = val;
-      }
-    },
-    workerConcurrencyChanged(val) {
-      if ( !this.isK3s ) {
-        this.normanCluster.rke2Config.rke2upgradeStrategy.workerConcurrency = val;
-      } else {
-        this.normanCluster.k3sConfig.k3supgradeStrategy.workerConcurrency = val;
-      }
-    },
     enableLocalClusterAuthEndpoint(neu) {
       this.normanCluster.localClusterAuthEndpoint.enabled = neu;
       if (!!neu) {
@@ -300,15 +290,16 @@ export default defineComponent({
           :value="normanCluster"
           :mode="mode"
           :config="config"
+          :upgrade-strategy="upgradeStrategy"
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
-          @drain-server-nodes-changed="drainServerNodesChanged"
-          @drain-worker-nodes-changed="drainWorkerNodesChanged"
-          @server-concurrency-changed="serverConcurrencyChanged"
-          @worker-concurrency-changed="workerConcurrencyChanged"
+          @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
+          @drain-worker-nodes-changed="(val)=>upgradeStrategy.drainWorkerNodes = val"
+          @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
+          @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
         />
       </Accordion>
       <Accordion
@@ -354,7 +345,6 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isK3s"
         class="mb-20"
         title-key="imported.accordions.advanced"
         :open-initially="false"

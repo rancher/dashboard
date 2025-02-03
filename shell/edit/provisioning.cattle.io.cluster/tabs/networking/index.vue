@@ -10,7 +10,7 @@ const NETBIOS_TRUNCATION_LENGTH = 15;
 
 export default {
   emits: [
-    'update:value', 'input', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
+    'update:value', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
     'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
     'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
     'fqdn-changed', 'tls-san-changed'
@@ -209,7 +209,6 @@ export default {
       @fqdn-changed="$emit('fqdn-changed', $event)"
       @caCerts-changed="$emit('ca-certs-changed', $event)"
       @local-cluster-auth-endpoint-changed="$emit('local-cluster-auth-endpoint-changed', $event)"
-      @update:value="$emit('input', $event)"
     />
   </div>
 </template>
