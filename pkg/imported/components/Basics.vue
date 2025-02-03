@@ -91,11 +91,7 @@ export default defineComponent({
       }
 
       return out;
-    },
-    kubernetesVersion() {
-      return this.config?.kubernetesVersion || '';
-    },
-
+    }
   },
 });
 
@@ -105,7 +101,7 @@ export default defineComponent({
     <div class="row row-basics mb-20">
       <div class="col-basics mr-10 span-6">
         <LabeledSelect
-          v-model:value="kubernetesVersion"
+          v-model:value="config.kubernetesVersion"
           data-testid="cruimported-kubernetesversion"
           :mode="mode"
           :options="versionOptions"
