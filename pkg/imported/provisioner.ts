@@ -1,6 +1,5 @@
-import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
+import { IClusterProvisioner } from '@shell/core/types';
 import CruImported from './components/CruImported.vue';
-import { mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue';
 
 export class ImportedProvisioner implements IClusterProvisioner {
