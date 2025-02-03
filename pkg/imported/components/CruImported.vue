@@ -18,12 +18,13 @@ import Basics from '@pkg/imported/components/Basics.vue';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 import { MANAGEMENT } from '@shell/config/types';
 import KeyValue from '@shell/components/form/KeyValue';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, LabeledInput, Accordion, Banner, ClusterMembershipEditor, Labels
+    Basics, ACE, Loading, CruResource, KeyValue, LabeledInput, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -132,7 +133,14 @@ export default defineComponent({
       return this.mode === _CREATE || this.mode === _EDIT;
     },
     isK3s() {
-      return !!this.normanCluster.k3sConfig;
+      return !!this.value.isK3s;
+    },
+    isRke2() {
+      return !!this.value.isRke2;
+    },
+    enableNetworkPolicySupported() {
+      // https://github.com/rancher/rancher/pull/33070/files
+      return !this.isK3s && !this.isRke2;
     },
     isLocal() {
       return !!this.value.isLocal;
@@ -335,6 +343,21 @@ export default defineComponent({
         title-key="imported.accordions.networking"
         :open-initially="true"
       >
+        <div
+          v-if="enableNetworkPolicySupported"
+          class="mb-20"
+        >
+          <Banner
+            v-if="!!normanCluster.enableNetworkPolicy"
+            color="info"
+            label-key="imported.network.banner"
+          />
+          <Checkbox
+            v-model:value="normanCluster.enableNetworkPolicy"
+            :mode="mode"
+            :label="t('cluster.rke2.enableNetworkPolicy.label')"
+          />
+        </div>
         <h3 v-t="'cluster.tabs.ace'" />
         <ACE
           v-model:value="normanCluster.localClusterAuthEndpoint"

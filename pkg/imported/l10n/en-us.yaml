@@ -6,6 +6,8 @@ imported:
     label: Drain Worker Nodes
   drainControlPlaneNodes:
     label: Drain Control Plane Nodes
+  network:
+    banner: The imported cluster must support Kubernetes NetworkPolicy resources for Project Network Isolation to be enforced
   accordions:
     advanced: Advanced
     basics: Basics

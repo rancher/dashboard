@@ -20,6 +20,10 @@ export class ImportedProvisioner implements IClusterProvisioner {
   get hidden(): boolean {
     return true;
   }
+
+  get group(): string {
+    return 'kontainer';
+  }
 }
 
 export class LocalProvisioner implements IClusterProvisioner {
@@ -39,5 +43,9 @@ export class LocalProvisioner implements IClusterProvisioner {
 
     get hidden(): boolean {
       return true;
+    }
+
+    get group(): string {
+      return 'kontainer';
     }
 }
