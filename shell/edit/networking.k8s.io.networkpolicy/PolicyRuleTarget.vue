@@ -11,6 +11,7 @@ import { Banner } from '@components/Banner';
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 import { matching } from '@shell/utils/selector-typed';
+import { allHash } from '@shell/utils/promise';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -181,9 +182,14 @@ export default {
   methods: {
     updateMatches() {
       throttle(async() => {
-        this.matchingNamespaces = await this.getMatchingNamespaces();
-        this.matchingPods = await this.getMatchingPods();
-      }, this.throttle, { leading: true })();
+        const { ns, p } = await allHash({
+          ns: this.getMatchingNamespaces(),
+          p:  this.getMatchingPods()
+        });
+
+        this.matchingNamespaces = ns;
+        this.matchingPods = p;
+      }, this.throttle, { leading: true })(); // TODO: RC shouldn't there be a number? what's default?
     },
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
