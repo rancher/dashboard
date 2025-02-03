@@ -89,14 +89,6 @@ TEXTAREA,
   }
 }
 
-BUTTON,
-.btn {
-   &:focus, &.focused {
-    outline: none;
-    box-shadow: 0 0 0 var(--outline-width) var(--outline);
-    background: var(--primary-hover-bg);
-   }
-}
 A {
   @include link-color(var(--link), var(--body-text));
 
