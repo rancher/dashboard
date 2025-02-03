@@ -122,7 +122,7 @@ export default {
 
   data() {
     return {
-      paginationContext: 'provisioning.cattle.io.cluster',
+      paginationContext: 'provisioning.cattle.io.cluster-detail',
       hasLocalAccess:    false,
 
       mgmtNodeSchema:     this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),

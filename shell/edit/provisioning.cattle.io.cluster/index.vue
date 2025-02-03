@@ -84,8 +84,7 @@ export default {
   async fetch() {
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      mgmtClusters: this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: this.value.status.clusterName })
     };
 
     // No need to fetch charts when editing an RKE1 cluster
@@ -101,18 +100,6 @@ export default {
 
     if (this.$store.getters[`management/canList`](MANAGEMENT.KONTAINER_DRIVER)) {
       hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
-    }
-
-    if ( this.value.id && !this.value.isRke2 ) {
-      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
-      // so that the edit iframe for ember pages can go to the right place.
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_POOL)) {
-        hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_TEMPLATE)) {
-        hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
     }
 
     const res = await allHash(hash);
@@ -177,16 +164,22 @@ export default {
     const isImport = this.realMode === _IMPORT;
 
     return {
-      nodeDrivers:      [],
-      kontainerDrivers: [],
-      extensions:       [],
+      paginationContext: 'provisioning.cattle.io.cluster-edit',
+      nodeDrivers:       [],
+      kontainerDrivers:  [],
+      extensions:        [],
       subType,
       rkeType,
       chart,
       isImport,
-      providerCluster:  null,
-      iconClasses:      {},
+      providerCluster:   null,
+      iconClasses:       {},
     };
+  },
+
+  beforeUnmount() {
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
   },
 
   computed: {
