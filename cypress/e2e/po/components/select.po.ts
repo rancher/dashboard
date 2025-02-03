@@ -10,11 +10,7 @@ export default class SelectPo extends ComponentPo {
   }
 
   clickOptionWithLabel(label: string) {
-    return this.getOptions()
-      .contains('li', label)
-      .should('be.visible')
-      .wait(100)
-      .click();
+    return this.getOptions().contains('li', label).click();
   }
 
   clickOptionWithLabelForChartReposFilter(label: string) {
