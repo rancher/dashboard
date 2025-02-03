@@ -23,7 +23,7 @@ import { clone } from '@shell/utils/object';
 import {
   POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE
 } from '@shell/config/types';
-import { findMatchingResources, matching } from '@shell/utils/selector';
+import { findMatchingResources } from '@shell/utils/selector-typed';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';

@@ -58,7 +58,6 @@ export default {
       allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
     };
 
-    debugger;
     if (this.podSchema) {
       hash.matchingPods = this.value.fetchPods();
     }

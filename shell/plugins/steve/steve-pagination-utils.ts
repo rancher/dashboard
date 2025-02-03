@@ -474,91 +474,90 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
   private convertLabelSelectorPaginationParams(schema: Schema, labelSelector: KubeLabelSelector): string {
     // Get a list of matchExpressions
-    const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : []
+    const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
     // matchLabels are just shortcuts on matchExpressions, for ease convert them
     if (labelSelector.matchLabels) {
       Object.entries(labelSelector.matchLabels).forEach(([key, value]) => {
         const expression: KubeLabelSelectorExpression = {
           key,
-          values: [value],
+          values:   [value],
           operator: 'In'
-        }
+        };
 
         expressions.push(expression);
-      })
+      });
     }
 
     // TODO: RC gt | lt only applicable to NodeSelector. can check on node schema??
 
     // concert all matchExpressions into string params
     const filters: string[] = expressions.reduce((res, exp) => {
-      const labelKey = `metadata.labels[${exp.key}]`;
+      const labelKey = `metadata.labels[${ exp.key }]`;
 
       // TODO: RC console for all below
-      switch(exp.operator) {
-        case 'In':
-          if (!exp.values?.length) {
-            // The operator 'IN' must have `values` specified
-            return res;
-          }
+      switch (exp.operator) {
+      case 'In':
+        if (!exp.values?.length) {
+          // The operator 'IN' must have `values` specified
+          return res;
+        }
 
-          res.push(`filter=${labelKey} IN (${exp.values.join(',')})`);
-          break;
-        case 'NotIn':
-          if (!exp.values?.length) {
-            // The operator 'NotIn' must have `values` specified
-            return res;
-          }
+        res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
+        break;
+      case 'NotIn':
+        if (!exp.values?.length) {
+          // The operator 'NotIn' must have `values` specified
+          return res;
+        }
 
-          res.push(`filter=${labelKey} NOTIN (${exp.values.join(',')})`);
-          break;
-        case 'Exists':
-          if (exp.values?.length) {
-            // The operator 'Exist' must not have `values` specified
-            return res;
-          }
+        res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
+        break;
+      case 'Exists':
+        if (exp.values?.length) {
+          // The operator 'Exist' must not have `values` specified
+          return res;
+        }
 
-          res.push(`filter=${labelKey}`);
-          break;
-        case 'DoesNotExist':
-          if (exp.values?.length) {
-            // The operator 'DoesNotExist' must not have `values` specified
-            return res;
-          }
+        res.push(`filter=${ labelKey }`);
+        break;
+      case 'DoesNotExist':
+        if (exp.values?.length) {
+          // The operator 'DoesNotExist' must not have `values` specified
+          return res;
+        }
 
-          res.push(`filter=!${labelKey}`);
-          break;
-        case 'Gt': // TODO: RC test
-          if (typeof exp.values !== 'string') {
-            // The operator 'Gt' must not have `values` that is a string
-            return res;
-          }
-          res.push(`filter=${labelKey} > (${exp.values})`);
-          break;
-        case 'Lt': // TODO: RC test
-          if (typeof exp.values !== 'string') {
-            // The operator 'Lt' must not have `values` that is a string
-            return res;
-          }
-          res.push(`filter=${labelKey} < (${exp.values})`);
-          break;
+        res.push(`filter=!${ labelKey }`);
+        break;
+      case 'Gt': // TODO: RC test
+        if (typeof exp.values !== 'string') {
+          // The operator 'Gt' must not have `values` that is a string
+          return res;
+        }
+        res.push(`filter=${ labelKey } > (${ exp.values })`);
+        break;
+      case 'Lt': // TODO: RC test
+        if (typeof exp.values !== 'string') {
+          // The operator 'Lt' must not have `values` that is a string
+          return res;
+        }
+        res.push(`filter=${ labelKey } < (${ exp.values })`);
+        break;
       }
 
-      return res
+      return res;
     }, [] as string[]);
 
-    return filters.join(',')
+    return filters.join(',');
 
     // foo IN [bar] => ?filter=foo+IN+(bar)
-    // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2) 
-    // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2) 
+    // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
+    // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
     // bbb Exists=> ?filter=bbb
     // ccc DoesNotExist ?filter=!bbb. # or %21bbb
 
     // ddd Gt 1=> ?filter=ddd+<+1
     // eee Lt 2=> ?filter=eee+>+2
-
   }
 }
 

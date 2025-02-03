@@ -8,7 +8,9 @@ import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
-import { convert, findMatchingResources, matching, simplify } from '@shell/utils/selector';
+import { convert, simplify } from '@shell/utils/selector';
+import { findMatchingResources } from '@shell/utils/selector-typed';
+
 import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
@@ -150,12 +152,12 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      //TODO: RC TEST
+      // TODO: RC TEST
       this.matchingPods = await findMatchingResources({
         labelSelector: { matchExpressions: this.selectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore: 'cluster',
+        inStore:       'cluster',
         namespace:     this.value.metadata.namespace,
       });
       // const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
@@ -221,7 +223,7 @@ export default {
               :value="value"
               type="ingress"
               :mode="mode"
-              
+
               @update:value="$emit('input', $event)"
             />
           </Tab>
@@ -248,7 +250,7 @@ export default {
               :value="value"
               type="egress"
               :mode="mode"
-              
+
               @update:value="$emit('input', $event)"
             />
           </Tab>

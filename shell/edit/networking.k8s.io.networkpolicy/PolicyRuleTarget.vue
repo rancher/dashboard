@@ -10,6 +10,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
+import { findMatchingResources } from '@shell/utils/selector-typed';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -198,14 +199,14 @@ export default {
       }
     },
     async getMatchingPods() {
-      //TODO: RC TEST
+      // TODO: RC TEST
       return await findMatchingResources({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore: 'cluster',
-        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map(ns => ns.id) : this.namespace, // TODO: RC multiple?
-        transient: true,
+        inStore:       'cluster',
+        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace, // TODO: RC multiple?
+        transient:     true,
       });
 
       // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
@@ -223,15 +224,14 @@ export default {
       // };
     },
     async getMatchingNamespaces() {
-      //TODO: RC TEST
+      // TODO: RC TEST
       return await findMatchingResources({
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
         $store:        this.$store,
-        inStore: 'cluster',
-        transient: true,
+        inStore:       'cluster',
+        transient:     true,
       });
-
 
       // const allNamespaces = this.allNamespaces;
       // const match = matching(allNamespaces, this.namespaceSelectorExpressions);

@@ -4,7 +4,7 @@ export interface KubeLabelSelectorExpression {
    * Gt and Lt are only applicable to node selectors
    */
   operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist' | 'Gt' | 'Lt',
-  /** 
+  /**
    * An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.
    */
   values?: string[],

@@ -320,7 +320,7 @@ export class PaginationArgs {
   /**
    * TODO: RC
    */
-  labelSelector: KubeLabelSelector | null;
+  labelSelector?: KubeLabelSelector;
 
   /**
    * Creates an instance of PaginationArgs.
@@ -333,7 +333,7 @@ export class PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
-    labelSelector = null,
+    labelSelector = undefined,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -364,7 +364,7 @@ export class PaginationArgs {
     /**
      * TODO: RC
      */
-    labelSelector: KubeLabelSelector | null,
+    labelSelector?: KubeLabelSelector,
   }) {
     this.page = page;
     this.pageSize = pageSize;
@@ -398,7 +398,7 @@ export class FilterArgs extends PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
-    labelSelector = null,
+    labelSelector = undefined,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -421,7 +421,7 @@ export class FilterArgs extends PaginationArgs {
     /**
      * TODO: RC
      */
-    labelSelector: KubeLabelSelector | null
+    labelSelector?: KubeLabelSelector
   }) {
     super({
       page: null, pageSize: null, sort, filters, projectsOrNamespaces, labelSelector

@@ -12,9 +12,15 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      this.uiServices = await this.$store.dispatch('cluster/findMatching', { // TODO: RC LEGACY? No-op
+      // TODO: RC TEST
+      this.uiServices = await this.$store.dispatch('cluster/findMatchingOrPage', {
         type:     SERVICE,
-        selector: 'app=longhorn-ui'
+        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } }
+
+        // type:             SERVICE,
+        // context:          this.$store,
+        // findPageOpts:     { pagination: new FilterArgs({ labelSelector: { matchLabels: { app: 'longhorn-ui' } } }) },
+        // findMatchingOpts: { type: SERVICE, selector: 'app=longhorn-ui' }
       });
     }
   },

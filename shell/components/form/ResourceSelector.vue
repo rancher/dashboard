@@ -2,12 +2,11 @@
 import { Banner } from '@components/Banner';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ResourceTable from '@shell/components/ResourceTable';
-import { allHash } from '@shell/utils/promise';
 import { _EDIT } from '@shell/config/query-params';
-import { convert, findMatchingResources, matching, simplify } from '@shell/utils/selector';
+import { convert, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
-import { FilterArgs } from '@shell/types/store/pagination.types';
 import { COUNT } from '@shell/config/types';
+import { findMatchingResources } from '@shell/utils/selector-typed';
 
 export default {
   name: 'ResourceSelector',
@@ -38,11 +37,6 @@ export default {
   },
 
   async fetch() {
-    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    // const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
-
-    // this.allResources = hash.allResources;
-
     this.updateMatchingResources();
   },
 

@@ -153,37 +153,42 @@ export default class Service extends SteveModel {
     // }
 
     if (isEmpty(selector)) {
-      return;
+      return undefined;
     }
 
     return { matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
     };
   }
 
-  async fetchPods(podSelector = this.podSelector) {
-    if (podSelector) {
-      const findPageArgs = { // Of type ActionFindPageArgs
-        namespaced: this.metadata.namespace,
-        pagination: new FilterArgs({ labelSelector: podSelector }),
-      };
+  // TODO: RC confirm with pagination off.... no findPage usage
+  // TODO: RC ARG??? podSelector vs  this.podRelationship.selector
 
-      return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
-    }
+  async fetchPods() {
+    // TODO: RC TEST
+    // if (!podSelector) {
+    //   return;
+    // }
 
-    return Promise.resolve(undefined);
+    return await this.$dispatch('findMatchingOrPage', {
+      type:     POD,
+      matching: {
+        namespace:     this.metadata.namespace,
+        labelSelector: { matchLabels: this.podRelationship.selector } // TODO: RC is this string or map
+      }
+      // findPageOpts: { // Of type ActionFindPageArgs
+      //   namespaced: this.metadata.namespace,
+      //   pagination: new FilterArgs({ labelSelector: { matchLabels: this.podRelationship.selector} }),
+      // },
+      // findMatchingOpts: {
+      //   type:      POD,
+      //   selector:  this.podRelationship.selector,
+      //   namespace: this.namespace
+      // }
+    });
   }
 
-  // async fetchPods() {
-  //   if (this.podSelector) {
-  //     await this.$dispatch('cluster/findMatching', { // TODO: RC LEGACY? No-op
-  //       type:      POD,
-  //       selector:  this.podRelationship.selector,
-  //       namespace: this.namespace
-  //     }, { root: true });
-  //   }
-  // }
-
   get pods() {
+    // TODO: RC What uses this??
     console.warn('Anything using this must be updated to ????!!!');
 
     return [];

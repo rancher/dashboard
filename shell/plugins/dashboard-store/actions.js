@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -444,6 +445,44 @@ export default {
       data: out.data,
       pagination
     } : findAllGetter(getters, type, opt);
+  },
+
+  /**
+   *
+   * labelSelector is of type KubeLabelSelector
+   */
+  async findMatchingOrPage(ctx, {
+    type,
+    matching: {
+      namespace,
+      labelSelector
+    },
+    opts
+  }) {
+    const { getters, dispatch } = ctx;
+
+    const args = {
+      id: type,
+      context,
+    };
+
+    if (getters[`paginationEnabled`]?.(args)) {
+      return dispatch('findPage', {
+        type,
+        opts: {
+          ...(opts || {}),
+          namespaced: namespace,
+          pagination: new FilterArgs({ labelSelector }),
+        }
+      });
+    }
+
+    return dispatch('findMatching', {
+      type,
+      selector: labelSelector.matchLabels,
+      opts,
+      namespace,
+    });
   },
 
   async findMatching(ctx, {

@@ -7,6 +7,7 @@ import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export default {
   emits: ['closed', 'refresh', 'update'],
@@ -90,18 +91,48 @@ export default {
     },
 
     async removeCatalogResources(catalog) {
-      const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ catalog.name }`;
+      // const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ catalog.name }`;
+      const pageSelector = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name };
       const namespace = UI_PLUGIN_NAMESPACE;
 
-      if ( selector ) {
+      // const findPageOpts = {
+      //   namespaced: namespace,
+      //   pagination: new FilterArgs({ labelSelector: { matchLabels: pageSelector } }),
+      // };
+
+      if ( catalog.name ) {
         const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatching', { // TODO: RC LEGACY? No-op
-            type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
+          deployment: this.$store.dispatch('management/findMatchingOrPage', {
+            type:     WORKLOAD_TYPES.DEPLOYMENT,
+            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
+            // type:             WORKLOAD_TYPES.DEPLOYMENT,            // context:          this.$store,
+            // findPageOpts,
+            // findMatchingOpts: {
+            //   type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
+            // }
           }),
-          service: this.$store.dispatch('management/findMatching', { // TODO: RC LEGACY? No-op
-            type: SERVICE, selector, namespace
+          service: this.$store.dispatch('management/findMatchingOrPage', {
+            type:     SERVICE,
+            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
+            // type:             SERVICE,
+            // context:          this.$store,
+            // findPageOpts,
+            // findMatchingOpts: { // TODO: RC LEGACY? No-op
+            //   type: SERVICE, selector, namespace
+            // }
           }),
-          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector }) // TODO: RC LEGACY? No-op
+          repo: this.$store.dispatch('management/findMatchingOrPage', {
+            type:     CATALOG.CLUSTER_REPO,
+            matching: { labelSelector: { matchLabels: pageSelector } }
+
+            // type:         CATALOG.CLUSTER_REPO,
+            // context:      this.$store,
+            // findPageOpts: {
+            //   ...findPageOpts,
+            //   namespace: undefined,
+            // },
+            // findMatchingOpts: { type: CATALOG.CLUSTER_REPO, selector }
+          })
         });
 
         for ( const resource of Object.keys(hash) ) {
