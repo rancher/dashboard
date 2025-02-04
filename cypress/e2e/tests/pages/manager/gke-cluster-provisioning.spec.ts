@@ -18,7 +18,28 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   let gkeVersion = '';
   let clusterId = '';
   let clusterDescription = '';
-  const gkeProjectId = JSON.parse(Cypress.env('gkeServiceAccount')).project_id;
+  const base64EncodedServiceAccount = Cypress.env('gkeServiceAccount');
+
+  // Check if the base64 string is defined and valid
+  if (base64EncodedServiceAccount) {
+    try {
+      // Decode the base64 string into a JSON string
+      const decodedServiceAccountJson = atob(base64EncodedServiceAccount);
+
+      // Parse the decoded JSON string
+      const serviceAccount = JSON.parse(decodedServiceAccountJson);
+
+      // Now you can access the project_id
+      const gkeProjectId = serviceAccount.project_id;
+
+      console.log(gkeProjectId); // Check if the value is correct
+    } catch (error) {
+      // Handle any error that occurs during decoding or parsing
+      console.error('Error decoding or parsing service account JSON:', error);
+    }
+  } else {
+    console.warn('gkeServiceAccount environment variable is undefined or empty.');
+  }
 
   before(() => {
     cy.login();
