@@ -11,6 +11,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
+import Collapse from '@shell/components/Collapse';
 
 const incompatible = {
   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
@@ -33,7 +34,8 @@ export default {
     AsyncButton,
     Banner,
     LabeledInput,
-    UnitInput
+    UnitInput,
+    Collapse,
   },
 
   async fetch() {
@@ -76,7 +78,8 @@ export default {
           resource: MANAGEMENT.FEATURE
         }
       }).href,
-      isDev: process.env.NODE_ENV === 'dev',
+      isDev:                  process.env.NODE_ENV === 'dev',
+      ssPApplicableTypesOpen: false,
     };
   },
 
@@ -239,28 +242,41 @@ export default {
             @update:value="compatibleWarning('serverPagination', $event)"
           />
 
+          <Collapse
+            :title="t('performance.serverPagination.applicable')"
+            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheAndSSPEnabled"
+            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
+          >
+            <p
+              v-clean-html="sspApplicableResources"
+              :class="{ 'text-muted': !value.serverPagination.enabled }"
+            />
+          </Collapse>
+
           <div>
             <Checkbox
-              v-model:value="value.serverPagination.useDefaultStores"
+              :value="!value.serverPagination.useDefaultStores"
               :mode="mode"
               :label-key="'performance.serverPagination.checkboxUseDefault.label'"
               :tooltip-key="'performance.serverPagination.checkboxUseDefault.placeholder'"
               class="mt-10 mb-10"
               :primary="true"
               :disabled="!steveCacheAndSSPEnabled"
+              @update:value="value.serverPagination.useDefaultStores = !value.serverPagination.useDefaultStores"
             />
           </div>
 
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
+          <!-- <p :class="{ 'text-muted': !value.serverPagination.enabled }">
             {{ t('performance.serverPagination.applicable') }}
           </p>
           <p
             v-clean-html="sspApplicableResources"
             :class="{ 'text-muted': !value.serverPagination.enabled }"
-          />
+          /> -->
           <button
             v-if="isDev"
-            class="btn btn-sm role-primary"
+            class="btn btn-sm role-primary mt-10"
             style="width: fit-content;"
             :disabled="!steveCacheAndSSPEnabled"
             @click.prevent="sspApplyDefaults(true)"
