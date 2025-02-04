@@ -6040,6 +6040,8 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  git:
+    repository: Repository URL must be a HTTP(s) or SSH url with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.

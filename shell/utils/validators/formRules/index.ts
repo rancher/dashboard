@@ -157,6 +157,8 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
+  const gitRepository: Validator = (val: string) => val && !/^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(val) ? t('validation.git.repository') : undefined;
+
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
 
   const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key }) : undefined;
@@ -486,6 +488,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     dnsLabelRestricted,
     externalName,
     fileRequired,
+    gitRepository,
     groupsAreValid,
     hostname,
     imageUrl,
