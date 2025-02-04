@@ -17,6 +17,10 @@ export default class TabbedPo extends ComponentPo {
     return this.self().get('[data-testid="tabbed-block"] > li');
   }
 
+  assertTabIsActive(selector: string) {
+    return this.self().find(`${ selector }`).should('have.class', 'active');
+  }
+
   /**
    * Get tab labels
    * @param tabLabelsSelector

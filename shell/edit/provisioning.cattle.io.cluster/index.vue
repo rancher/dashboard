@@ -35,6 +35,8 @@ const SORT_GROUPS = {
 
 // uSed to proxy stylesheets for custom drivers that provide custom UI (RKE1)
 const PROXY_ENDPOINT = '/meta/proxy';
+const IMPORTED = 'imported';
+const LOCAL = 'local';
 
 export default {
   name: 'CruCluster',
@@ -171,7 +173,17 @@ export default {
   },
 
   data() {
-    const subType = this.$route.query[SUB_TYPE] || null;
+    let subType = null;
+
+    subType = this.$route.query[SUB_TYPE] || null;
+
+    if ( this.$route.query[SUB_TYPE]) {
+      subType = this.$route.query[SUB_TYPE];
+    } else if (this.value.isImported) {
+      subType = IMPORTED;
+    } else if (this.value.isLocal) {
+      subType = LOCAL;
+    }
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;

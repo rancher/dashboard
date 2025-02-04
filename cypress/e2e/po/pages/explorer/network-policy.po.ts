@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import CreateEditNetworkPolicyPagePo from '@/cypress/e2e/po/edit/policy/network-policy.po';
 
 export class NetworkPolicyPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -21,7 +22,7 @@ export class NetworkPolicyPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Network Policies');
   }
 
-  constructor(clusterId = 'local') {
+  constructor(private clusterId = 'local') {
     super(NetworkPolicyPagePo.createPath(clusterId));
   }
 
@@ -39,5 +40,9 @@ export class NetworkPolicyPagePo extends PagePo {
 
   searchForNetworkPolicy(name: string) {
     return this.list().resourceTable().sortableTable().filter(name);
+  }
+
+  createEditNetworkPolicyForm(namespace?: string, id?: string): CreateEditNetworkPolicyPagePo {
+    return new CreateEditNetworkPolicyPagePo(this.clusterId, namespace, id);
   }
 }
