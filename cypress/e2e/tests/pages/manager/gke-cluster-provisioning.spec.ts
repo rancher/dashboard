@@ -19,6 +19,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   let clusterId = '';
   let clusterDescription = '';
   const base64EncodedServiceAccount = Cypress.env('gkeServiceAccount');
+  let gkeProjectId = '';
 
   // Check if the base64 string is defined and valid
   if (base64EncodedServiceAccount) {
@@ -30,8 +31,8 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       const serviceAccount = JSON.parse(decodedServiceAccountJson);
 
       // Now you can access the project_id
-      const gkeProjectId = serviceAccount.project_id;
-
+      gkeProjectId = serviceAccount.project_id;
+      /* eslint-disable no-console */
       console.log(gkeProjectId); // Check if the value is correct
     } catch (error) {
       // Handle any error that occurs during decoding or parsing
