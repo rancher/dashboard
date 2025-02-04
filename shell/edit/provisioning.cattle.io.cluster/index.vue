@@ -12,7 +12,7 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
@@ -170,20 +170,24 @@ export default {
     } catch (e) {
       console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
     }
+
+    if (this.value.id) {
+      this.initializeType();
+    }
   },
 
   data() {
-    let subType = null;
+    // let subType = null;
 
-    subType = this.$route.query[SUB_TYPE] || null;
+    // subType = this.$route.query[SUB_TYPE] || null;
 
-    if ( this.$route.query[SUB_TYPE]) {
-      subType = this.$route.query[SUB_TYPE];
-    } else if (this.value.isImported) {
-      subType = IMPORTED;
-    } else if (this.value.isLocal) {
-      subType = LOCAL;
-    }
+    // if ( this.$route.query[SUB_TYPE]) {
+    //   subType = this.$route.query[SUB_TYPE];
+    // } else if (this.value.isImported) {
+    //   subType = IMPORTED;
+    // } else if (this.value.isLocal) {
+    //   subType = LOCAL;
+    // }
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -192,7 +196,7 @@ export default {
       nodeDrivers:      [],
       kontainerDrivers: [],
       extensions:       [],
-      subType,
+      subType:          '',
       rkeType,
       chart,
       isImport,
@@ -222,35 +226,35 @@ export default {
     _RKE2: () => _RKE2,
 
     emberLink() {
-      if (this.value) {
-        // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
-        if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+      if (this.value && !this.value.isRke2) {
+        // // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
+        // if (this.value.provisioner) {
+        //   const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
 
-          if (matchingSubtype) {
-            this.selectType(matchingSubtype.id, false);
-          }
-        }
-        // For custom RKE2 clusters, don't load an Ember page.
-        // It should be the dashboard.
-        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
-          // For admins, this.value.isCustom is used to check if it is a custom cluster.
-          // For cluster owners, this.subtype is used.
-          this.selectType('custom', false);
+        //   if (matchingSubtype) {
+        //     this.selectType(matchingSubtype.id, false);
+        //   }
+        // }
+        // // For custom RKE2 clusters, don't load an Ember page.
+        // // It should be the dashboard.
+        // if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
+        //   // For admins, this.value.isCustom is used to check if it is a custom cluster.
+        //   // For cluster owners, this.subtype is used.
+        //   this.selectType('custom', false);
 
-          return '';
-        }
-        // For RKE2/K3s clusters provisioned in Rancher with node pools,
-        // do not use an iFramed Ember page.
-        if ( this.value.isRke2 && this.value.machineProvider ) {
-          // Edit existing RKE2
-          this.selectType(this.value.machineProvider, false);
+        //   return '';
+        // }
+        // // For RKE2/K3s clusters provisioned in Rancher with node pools,
+        // // do not use an iFramed Ember page.
+        // if ( this.value.isRke2 && this.value.machineProvider ) {
+        //   // Edit existing RKE2
+        //   this.selectType(this.value.machineProvider, false);
 
-          return '';
-        }
+        //   return '';
+        // }
         if ( this.subType ) {
           // if driver type has a custom form component, don't load an ember page
-          if (this.selectedSubType.component) {
+          if (this.selectedSubType?.component) {
             return '';
           }
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
@@ -259,7 +263,7 @@ export default {
             return this.selectedSubType.emberLink;
           }
 
-          this.selectType(this.subType, false);
+          // this.selectType(this.subType, false);
 
           return '';
         }
@@ -562,6 +566,77 @@ export default {
 
     colorFor(obj) {
       return `color${ SORT_GROUPS[obj.group] || 1 }`;
+    },
+
+    /**
+     * CruResource uses 'subTypes' to show a card-picker step
+     * in this form subTypes are a list of the different cluster provisioning UI available
+     *  - rke2 with custom machine-driver component
+     *  - iframed rke1 pages
+     *  - iframed kontainer driver
+     * during creation subType is set when the user clicks a card
+     * during edit subType needs to be programatically set so cruresource loads the correct child component (provisioning form)
+     */
+    initializeType() {
+      if (this.subType) {
+        console.log('*** subtype already set to ', this.subType);
+
+        return;
+      }
+
+      const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
+      if (fromAnnotation) {
+        console.log('*** setting subtype from annotation: ', fromAnnotation);
+        this.selectType(fromAnnotation, false);
+
+        return;
+      }
+
+      // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
+      if (this.value.provisioner) {
+        // const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase() || st.id.toLowerCase() === this.value.provisioner.toLowerCase());
+        const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+
+        if (matchingSubtype) {
+          console.log('*** selecting provisioner', this.value.provisioner);
+          this.selectType(matchingSubtype.id, false);
+
+          return;
+        }
+      }
+
+      if ( this.$route.query[SUB_TYPE]) {
+        this.subType = this.$route.query[SUB_TYPE];
+        console.log('*** setting subtype to route query ', this.$route.query[SUB_TYPE]);
+
+        return;
+      } else if (this.value.isImported) {
+        this.subType = IMPORTED;
+        console.log('*** setting subtype to ', IMPORTED);
+
+        return;
+      } else if (this.value.isLocal) {
+        console.log('*** setting subtype to ', LOCAL);
+        this.subType = LOCAL;
+
+        return;
+      }
+
+      if (this.value.isRke2 && this.value.isCustom) {
+        console.log('*** selecting custom rke2');
+        if (this.mode === _EDIT || (this.as === _CONFIG && this.mode === _VIEW)) {
+          this.selectType('custom', false);
+
+          return;
+        }
+      }
+
+      if (!this.value.isRke1 && this.value.machineProvider ) {
+        console.log('*** selecting machine provider ', this.value.machineProvider);
+        // Edit existing RKE2
+        this.selectType(this.value.machineProvider, false);
+      }
     },
 
     clickedType(obj) {
