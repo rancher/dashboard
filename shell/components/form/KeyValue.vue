@@ -824,6 +824,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || isProtected(row.key) || disabled"
+                  :aria-label="removeLabel || t('generic.remove')"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -850,6 +851,7 @@ export default {
           class="btn role-tertiary add"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
+          :aria-label="_addLabel"
           @click="add()"
         >
           <i

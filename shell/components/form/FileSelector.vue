@@ -148,6 +148,7 @@ export default {
   <button
     v-if="!isView"
     :disabled="disabled"
+    :aria-label="label"
     type="button"
     role="button"
     class="file-selector btn"
