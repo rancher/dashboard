@@ -407,6 +407,8 @@ export default {
         <Banner
           v-for="(err, i) in errorMessages"
           :key="i"
+          role="alert"
+          :aria-label="err"
           color="error"
           :label="err"
           class="mb-0"
