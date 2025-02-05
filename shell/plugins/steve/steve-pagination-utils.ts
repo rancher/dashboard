@@ -142,7 +142,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
-
+      { field: `status.connected` },
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
