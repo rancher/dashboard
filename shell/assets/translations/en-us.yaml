@@ -2744,6 +2744,8 @@ hpa:
 
 import:
   title: Import YAML
+  editor:
+    label: YAML Editor
   defaultNamespace:
     label: Default Namespace
   success: |-
