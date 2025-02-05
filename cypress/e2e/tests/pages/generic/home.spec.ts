@@ -185,8 +185,8 @@ describe('Home Page', () => {
     it('can click on Forums link', () => {
     // click Forums link
       homePage.clickSupportLink(1, true);
-      cy.origin('https://forums.rancher.com', () => {
-        cy.url().should('include', 'forums.rancher.com/');
+      cy.origin('https://forums.suse.com', () => {
+        cy.url().should('include', 'forums.suse.com/');
       });
     });
 
