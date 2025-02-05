@@ -58,7 +58,7 @@ export default class HomePagePo extends PagePo {
 
     cy.intercept('PUT', 'v1/userpreferences/*').as('restoreBanners');
     pageActionsPo.restoreLink().click();
-    cy.wait('@restoreBanners');
+    cy.wait(['@restoreBanners', '@restoreBanners']);
   }
 
   toggleBanner() {
