@@ -182,14 +182,21 @@ export default {
     <div
       id="trigger"
       class="hs-popover__trigger"
+      aria-role="button"
+      tabindex="0"
       :class="{expanded}"
+      :aria-roledescription="t('workload.scaleWorkloads')"
+      :aria-label="t('workload.healthScaleToggle')"
+      :aria-expanded="expanded"
       @click="expanded = !expanded"
+      @keyup.enter.space="expanded = !expanded"
     >
       <ProgressBarMulti
         v-if="parts"
         class="health"
         :values="parts"
         :show-zeros="true"
+        :aria-describedby="t('workload.healthWorkloads')"
       />
       <i :class="{icon: true, 'icon-chevron-up': expanded, 'icon-chevron-down': !expanded}" />
     </div>

@@ -76,7 +76,7 @@
     "cookie": "0.7.0",
     "cookie-universal": "2.2.2",
     "cron-validator": "1.2.0",
-    "cronstrue": "1.95.0",
+    "cronstrue": "2.53.0",
     "cross-env": "7.0.3",
     "custom-event-polyfill": "1.0.7",
     "d3": "7.3.0",
@@ -90,6 +90,7 @@
     "express": "4.17.1",
     "file-saver": "2.0.2",
     "floating-vue": "5.2.2",
+    "focus-trap": "7.6.2",
     "https": "1.0.0",
     "identicon.js": "2.3.3",
     "intl-messageformat": "7.8.4",
@@ -135,7 +136,7 @@
     "yaml": "2.5.1"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-optional-chaining": "7.14.5",
+    "@babel/plugin-proposal-optional-chaining": "7.21.0",
     "@babel/plugin-proposal-private-methods": "7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "7.14.5",
     "@babel/plugin-transform-nullish-coalescing-operator": "7.23.4",
@@ -178,6 +179,7 @@
     "eslint-plugin-cypress": "2.12.1",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules",
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-vue": "9.10.0",
     "eslint": "7.32.0",
@@ -188,7 +190,7 @@
     "lodash.debounce": "4.0.8",
     "nodemon": "2.0.22",
     "nyc": "15.1.0",
-    "start-server-and-test": "1.13.1",
+    "start-server-and-test": "2.0.10",
     "style-loader": "3.3.2",
     "ts-jest": "27.1.5",
     "typescript": "5.6.3",
@@ -197,8 +199,7 @@
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18",
-    "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules"
+    "yarn": "1.22.18"
   },
   "resolutions": {
     "html-webpack-plugin": "^5.0.0"

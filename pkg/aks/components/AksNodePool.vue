@@ -387,26 +387,28 @@ export default defineComponent({
           v-if="(taints && taints.length) || isView"
           class="taints"
         >
-          <tr>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.key') }}
-                <span class="text-error">*</span>
-              </label>
-            </th>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.value') }}
-                <span class="text-error">*</span>
-              </label>
-            </th>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.effect') }}
-              </label>
-            </th>
-            <th />
-          </tr>
+          <thead>
+            <tr>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.key') }}
+                  <span class="text-error">*</span>
+                </label>
+              </th>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.value') }}
+                  <span class="text-error">*</span>
+                </label>
+              </th>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.effect') }}
+                </label>
+              </th>
+              <th />
+            </tr>
+          </thead>
           <template v-if="taints && taints.length">
             <Taint
               v-for="(keyedTaint, i) in taints"

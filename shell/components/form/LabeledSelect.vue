@@ -154,11 +154,22 @@ export default {
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
-      const blurredAgo = Date.now() - this.blurred;
+      // we need this override as in a "closeOnSelect" type of component
+      // if we don't have this override, it would open again
+      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
+        this.$nextTick(() => {
+          const el = this.$refs['select'];
 
-      if (!this.focused && blurredAgo < 250) {
+          if ( el ) {
+            el.focus();
+          }
+
+          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
+        });
+
         return;
       }
+      this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -278,8 +289,9 @@ export default {
         'no-label': !hasLabel
       }
     ]"
+    :tabindex="isView || disabled ? -1 : 0"
     @click="focusSearch"
-    @focus="focusSearch"
+    @keyup.enter.space.down="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
@@ -319,7 +331,7 @@ export default {
       :selectable="selectable"
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
-
+      :tabindex="-1"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -384,7 +396,7 @@ export default {
 
       <template #list-footer>
         <div
-          v-if="canPaginate && totalResults"
+          v-if="canPaginate && totalResults && pages > 1"
           class="pagination-slot"
         >
           <div class="load-more">

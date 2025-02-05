@@ -141,6 +141,8 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   pushd test-app > /dev/null
 
   yarn install
+  # this is the "same" as doing a yarn dev (in a build sense)
+  # it's to make sure the dev environment is running properly
   FORCE_COLOR=true yarn build | cat
 
   # Add test list component to the test package

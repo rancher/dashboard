@@ -798,7 +798,7 @@ export default {
           v-if="addAllowed"
           type="button"
           class="btn role-tertiary add"
-          data-testid="add_link_button"
+          data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
           @click="add()"
         >

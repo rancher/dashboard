@@ -346,21 +346,23 @@ export default {
           class="full-width"
         >
           <thead @click="toggleTable(cluster.id)">
-            <th colspan="4">
-              <div class="cluster-row">
-                <span>Cluster: <b>{{ cluster.name }}</b></span>
-                <span>Namespace: <b>{{ cluster.namespace }}</b></span>
-                <span>Total Resources: <b>{{ sumResourceCount(cluster.counts) }}</b></span>
-                <span>Nodes: <b>{{ nodeCount(cluster.counts) }}</b></span>
-                <i
-                  class="icon"
-                  :class="{
-                    'icon-chevron-down': !cluster.isTableVisible,
-                    'icon-chevron-up': cluster.isTableVisible
-                  }"
-                />
-              </div>
-            </th>
+            <tr>
+              <th colspan="4">
+                <div class="cluster-row">
+                  <span>Cluster: <b>{{ cluster.name }}</b></span>
+                  <span>Namespace: <b>{{ cluster.namespace }}</b></span>
+                  <span>Total Resources: <b>{{ sumResourceCount(cluster.counts) }}</b></span>
+                  <span>Nodes: <b>{{ nodeCount(cluster.counts) }}</b></span>
+                  <i
+                    class="icon"
+                    :class="{
+                      'icon-chevron-down': !cluster.isTableVisible,
+                      'icon-chevron-up': cluster.isTableVisible
+                    }"
+                  />
+                </div>
+              </th>
+            </tr>
           </thead>
           <tbody v-show="cluster.isTableVisible">
             <tr>

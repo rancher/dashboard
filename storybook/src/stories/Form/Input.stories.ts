@@ -64,3 +64,53 @@ export const Error: Story = {
     tooltipKey: 'Error message'
   },
 };
+
+export const SubLabel: Story = {
+  ...Default,
+  args: {
+    label:    'Name',
+    subLabel: 'Additional information',
+    type:     'text',
+    value:    'Simon',
+  },
+};
+
+export const CronType: Story = {
+  ...Default,
+  args: {
+    label: 'Period',
+    type:  'cron',
+    value: '0 * * * *',
+  },
+};
+
+export const CronTypeDaily: Story = {
+  ...Default,
+  args: {
+    label: 'Period',
+    type:  'cron',
+    value: '@daily',
+  },
+};
+
+export const CronTypeError: Story = {
+  ...Default,
+  args: {
+    label: 'Period',
+    type:  'cron',
+    value: 'not a cron expression',
+  },
+};
+
+export const MultilineType: Story = {
+  ...Default,
+  args: {
+    label: 'Period',
+    type:  'multiline',
+    value: `this
+is
+a
+multiline
+text`,
+  },
+};

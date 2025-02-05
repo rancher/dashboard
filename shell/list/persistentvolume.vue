@@ -1,9 +1,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PVC } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 
 export default defineComponent({
   name: 'ListPersistentVolume',
@@ -38,8 +39,15 @@ export default defineComponent({
   },
 
   methods: {
-    fetchSecondaryResources(): { [key: string]: Promise<any>} {
-      return { pvc: this.$store.dispatch(`cluster/findAll`, { type: PVC }) };
+    /**
+     * of type PagTableFetchSecondaryResources
+     */
+    async fetchSecondaryResources({ canPaginate }: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
+      if (canPaginate) {
+        return;
+      }
+
+      return this.$store.dispatch(`cluster/findAll`, { type: PVC });
     },
 
     /**
@@ -47,7 +55,7 @@ export default defineComponent({
      *
      * So when we have a page.... use those entries as filters when fetching the other resources
      */
-    async fetchPageSecondaryResources({ canPaginate, force, page }: FetchPageSecondaryResourcesOpts) {
+    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!page?.length) {
         return;
       }

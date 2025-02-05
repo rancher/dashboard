@@ -9,6 +9,7 @@ generic:
   back: Back
   cancel: Cancel
   confirm: Confirm
+  colorPicker: Color picker
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -134,6 +135,8 @@ nav:
     support: Support page link
     about: About page link
     pinCluster: Pin/Unpin cluster
+    collapseExpand: Collapse/Expand menu group
+    productAboutPage: Product about page link
   alt:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
@@ -514,6 +517,9 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    searchUsingServiceAccount: 
+      label: Enable Service Account Search
+      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
@@ -933,6 +939,7 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    refresh: refresh charts
     all: All
     categories:
       all: All Categories
@@ -952,7 +959,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter
+    search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
   install:
@@ -963,7 +970,7 @@ catalog:
     chart: Chart
     warning:
       managed:
-        Warning, Rancher manages deployment and upgrade of the {name} app. Upgrading this app is not supported.<br>
+        Warning, {manager} manages deployment and upgrade of the {name} app. Upgrading this app is not supported.<br>
         {version, select,
           null { }
           other { Under most circumstances, no user intervention should be needed to ensure that the {version} version is compatible with the version of Rancher that you are running.}
@@ -1063,7 +1070,7 @@ catalog:
       windows: '{ver} (Windows-only)'
   delete:
     warning:
-      managed: Warning, Rancher manages deployment and upgrade of the {name} app. Deleting this app is not supported.
+      managed: Warning, {manager} manages deployment and upgrade of the {name} app. Deleting this app is not supported.
   operation:
     tableHeaders:
       action: Action
@@ -2076,6 +2083,7 @@ cluster:
       label: Control Plane Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     workerConcurrency:
+      header: Worker Nodes
       label: Worker Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
@@ -2111,6 +2119,7 @@ cluster:
       tlsSan:
         label: TLS Alternate Names
       fqdn:
+        label: FQDN
         toolTip: A FQDN which will resolve to the healthy control plane nodes of the cluster.
       caCerts:
         label: CA Certificates
@@ -2383,6 +2392,9 @@ fleet:
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
+    labels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   clusters:
     harvester: |-
       There {count, plural,
@@ -6032,6 +6044,8 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  git:
+    repository: Repository URL must be a HTTP(s) or SSH url with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -6135,6 +6149,11 @@ validation:
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
 
+carousel:
+  previous: Previous
+  next: Next
+  controlItem: Go to slide nº {number}
+
 wizard:
   previous: Previous
   finish: Finish
@@ -6178,7 +6197,7 @@ wm:
   containerShell:
     clear: Clear
     containerName: "Container: {label}"
-    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
+    failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
     logLevel:
       info: INFO
       error: ERROR
@@ -6191,6 +6210,11 @@ wm:
     title: "Kubectl: {name}"
 
 workload:
+  scaleWorkloads: Scale workloads
+  healthWorkloads: Jobs/Pods health status
+  healthScaleToggle: Toggle/Expand workloads scaling/health
+  plus: Scale up workload
+  minus: Scale down workload
   container:
     command:
       addEnvVar: Add Variable
@@ -7434,6 +7458,8 @@ registryConfig:
 ##############################
 
 advancedSettings:
+  setEnv: Set by Environment Variable
+  hideShow: Hide/show setting
   label: Settings
   subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show

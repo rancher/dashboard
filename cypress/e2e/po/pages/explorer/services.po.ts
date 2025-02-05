@@ -26,7 +26,7 @@ export class ServicesPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Service');
   }
 
-  constructor(clusterId = 'local') {
+  constructor(private clusterId = 'local') {
     super(ServicesPagePo.createPath(clusterId));
   }
 
@@ -38,7 +38,7 @@ export class ServicesPagePo extends PagePo {
     return this.list().masthead().create();
   }
 
-  createServicesForm(id? : string): ServicesCreateEditPo {
-    return new ServicesCreateEditPo(id);
+  createServicesForm(namespace?: string, id?: string): ServicesCreateEditPo {
+    return new ServicesCreateEditPo(this.clusterId, namespace, id);
   }
 }

@@ -159,6 +159,10 @@ export default {
     }
   },
 
+  typeDisplay() {
+    // Used by shell/components/ResourceList/index.vue to override list title (usually found via schema, which doesn't exist for this virtual type)
+    return this.$store.getters['type-map/labelFor'](this.schema || workloadSchema, 99);
+  },
 };
 </script>
 

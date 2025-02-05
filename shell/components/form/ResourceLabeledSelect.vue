@@ -3,53 +3,8 @@ import { PropType, defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { labelSelectPaginationFunction, LabelSelectPaginationFunctionOptions } from '@shell/components/form/labeled-select-utils/labeled-select.utils';
-import { LabelSelectPaginateFn, LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '@shell/types/components/labeledSelect';
-
-type PaginateTypeOverridesFn = (opts: LabelSelectPaginationFunctionOptions) => LabelSelectPaginationFunctionOptions;
-
-interface SharedSettings {
-  /**
-   * Provide specific LabelSelect options for this mode (paginated / not paginated)
-   */
-  labelSelectOptions?: { [key: string]: any },
-  /**
-   * Map the resources shown in LabelSelect
-   */
-  mapResult?: (resources: any[]) => any[]
-}
-
-/**
- * Settings to use when the LabelSelect is paginating
- */
-export interface ResourceLabeledSelectPaginateSettings extends SharedSettings {
-  /**
-   * Override the convience function which fetches a page of results
-   */
-  overrideRequest?: LabelSelectPaginateFn,
-  /**
-   * Override the default settings used in the convenience function to fetch a page of results
-   */
-  requestSettings?: PaginateTypeOverridesFn,
-}
-
-/**
- * Settings to use when the LabelSelect is fetching all resources (not paginating)
- */
-export type ResourceLabeledSelectSettings = SharedSettings
-
-/**
- * Force a specific mode
- */
-export enum RESOURCE_LABEL_SELECT_MODE {
-  /**
-   * Fetch all resources
-   */
-  ALL_RESOURCES = 'ALL', // eslint-disable-line no-unused-vars
-  /**
-   * Determine if all resources are fetched given system settings
-   */
-  DYNAMIC = 'DYNAMIC', // eslint-disable-line no-unused-vars
-}
+import { LabelSelectPaginateFnOptions, LabelSelectPaginateFnResponse } from '@shell/types/components/labeledSelect';
+import { RESOURCE_LABEL_SELECT_MODE, ResourceLabeledSelectPaginateSettings, ResourceLabeledSelectSettings } from '@shell/types/components/resourceLabeledSelect';
 
 /**
  * Convenience  wrapper around the LabelSelect component to support pagination
@@ -65,6 +20,8 @@ export default defineComponent({
   name: 'ResourceLabeledSelect',
 
   components: { LabeledSelect },
+
+  emits: ['update:value'],
 
   props: {
     /**
@@ -89,7 +46,7 @@ export default defineComponent({
     },
 
     /**
-     * Specific settings to use when we're showing all results
+     * Specific settings to use when we're showing all results in the drop down
      */
     allResourcesSettings: {
       type:    Object as PropType<ResourceLabeledSelectSettings>,
@@ -97,7 +54,7 @@ export default defineComponent({
     },
 
     /**
-     * Specific settings to use when we're showing paginated results
+     * Specific settings to use when we're showing paginated results in the drop down
      */
     paginatedResourceSettings: {
       type:    Object as PropType<ResourceLabeledSelectPaginateSettings>,
@@ -120,6 +77,7 @@ export default defineComponent({
     }
 
     if (!this.paginate) {
+      // The resource won't be paginated and component expects everything up front
       await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType });
     }
   },
@@ -148,13 +106,14 @@ export default defineComponent({
 
       const all = this.$store.getters[`${ this.inStore }/all`](this.resourceType);
 
-      return this.allResourcesSettings?.mapResult ? this.allResourcesSettings.mapResult(all) : all;
+      return this.allResourcesSettings?.updateResources ? this.allResourcesSettings.updateResources(all) : all;
     }
   },
 
   methods: {
     /**
-     * Typeof LabelSelectPaginateFn
+     * Make the request to fetch the resource given the state of the label select (filter, page, page size, etc see LabelSelectPaginateFn)
+     * opts: Typeof LabelSelectPaginateFn
      */
     async paginateType(opts: LabelSelectPaginateFnOptions): Promise<LabelSelectPaginateFnResponse> {
       if (this.paginatedResourceSettings?.overrideRequest) {
@@ -175,9 +134,9 @@ export default defineComponent({
       const options = this.paginatedResourceSettings?.requestSettings ? this.paginatedResourceSettings.requestSettings(defaultOptions) : defaultOptions;
       const res = await labelSelectPaginationFunction(options);
 
-      return this.paginatedResourceSettings?.mapResult ? {
+      return this.paginatedResourceSettings?.updateResources ? {
         ...res,
-        page: this.paginatedResourceSettings.mapResult(res.page)
+        page: this.paginatedResourceSettings.updateResources(res.page)
       } : res;
     },
   },
@@ -190,5 +149,6 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
+    @update:value="$emit('update:value', $event)"
   />
 </template>
