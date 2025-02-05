@@ -2744,6 +2744,8 @@ hpa:
 
 import:
   title: Import YAML
+  editor:
+    label: YAML Editor
   defaultNamespace:
     label: Default Namespace
   success: |-
@@ -5375,6 +5377,7 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  searchLabel: Filter table results
   in: in
   addFilter: Add Filter
   filterFor: Filter for...

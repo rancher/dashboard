@@ -126,6 +126,7 @@ export default {
             cm.indentSelection('subtract');
           }
         },
+        screenReaderLabel: this.t('import.editor.label'),
         // @TODO find a better way to display the outline
         // foldOptions: {
         //   widget: (from, to) => {
