@@ -126,7 +126,7 @@ export default {
       </div>
       <slot />
       <div
-        v-if="selectedLocaleLabel === t('locale.zh-hans')"
+        v-if="selectedLocaleLabel === t('locale.zh-hans') || selectedLocaleLabel === t('locale.zh-hant')"
         class="support-link"
       >
         <a

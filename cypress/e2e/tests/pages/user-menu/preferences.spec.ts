@@ -46,7 +46,8 @@ describe('User can update their preferences', () => {
     */
     const languages = {
       '[lang="en-us"]':   1,
-      '[lang="zh-hans"]': 2
+      '[lang="zh-hans"]': 2,
+      '[lang="zh-hant"]': 3
     };
 
     prefPage.goTo();
