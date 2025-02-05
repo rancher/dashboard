@@ -296,7 +296,7 @@ export default defineComponent({
         </ArrayList>
       </div>
     </div>
-    <div class="row mb-10">
+    <div class="row mb-10 mt-20">
       <div
         v-if="isNew"
         class="col span-6"

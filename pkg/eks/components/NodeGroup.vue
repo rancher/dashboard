@@ -604,7 +604,7 @@ export default defineComponent({
       :label="minMaxDesiredErrors"
     />
     <div class="row mb-10">
-      <div class="col span-6">
+      <div class="col span-6 mt-20">
         <KeyValue
           :mode="mode"
           :title="t('eks.nodeGroups.groupLabels.label')"
@@ -614,11 +614,13 @@ export default defineComponent({
           @update:value="$emit('update:labels', $event)"
         >
           <template #title>
-            <label class="text-label">{{ t('eks.nodeGroups.groupLabels.label') }}</label>
+            <h4>
+              {{ t('eks.nodeGroups.groupLabels.label') }}
+            </h4>
           </template>
         </KeyValue>
       </div>
-      <div class="col span-6">
+      <div class="col span-6 mt-20">
         <KeyValue
           :mode="mode"
           :title="t('eks.nodeGroups.groupTags.label')"
@@ -629,7 +631,7 @@ export default defineComponent({
           @update:value="$emit('update:tags', $event)"
         >
           <template #title>
-            <label class="text-label">{{ t('eks.nodeGroups.groupTags.label') }}</label>
+            <h4>{{ t('eks.nodeGroups.groupTags.label') }}</h4>
           </template>
         </KeyValue>
       </div>
@@ -812,7 +814,7 @@ export default defineComponent({
       </div>
     </div>
     <div row="mb-10">
-      <div class="col span-12">
+      <div class="col span-12 mt-20">
         <KeyValue
           :mode="mode"
           label-key="eks.nodeGroups.resourceTags.label"
@@ -823,7 +825,9 @@ export default defineComponent({
           @update:value="$emit('update:resourceTags', $event)"
         >
           <template #title>
-            <label class="text-label">{{ t('eks.nodeGroups.resourceTags.label') }}</label>
+            <h4>
+              {{ t('eks.nodeGroups.resourceTags.label') }}
+            </h4>
           </template>
         </KeyValue>
       </div>

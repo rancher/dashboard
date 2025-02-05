@@ -153,7 +153,13 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       displayHelmRepoURLRegex: false,
-      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
+      fvFormRuleSets:          [{
+        path:  'spec.repo',
+        rules: [
+          'required',
+          'gitRepository'
+        ],
+      }]
     };
   },
 

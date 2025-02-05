@@ -47,12 +47,12 @@ export default defineComponent({
         data-testid="accordion-chevron"
       />
       <slot name="header">
-        <h4
+        <h2
           data-testid="accordion-title-slot-content"
           class="mb-0"
         >
           {{ titleKey ? t(titleKey) : title }}
-        </h4>
+        </h2>
       </slot>
     </div>
     <div
@@ -70,7 +70,7 @@ export default defineComponent({
   border: 1px solid var(--border)
 }
 .accordion-header {
-  padding: 5px;
+  padding: 16px 16px 16px 11px;
   display: flex;
   align-items: center;
   &>*{
@@ -81,6 +81,6 @@ export default defineComponent({
   }
 }
 .accordion-body {
-  padding: 10px;
+  padding: 0px 16px 16px;
 }
 </style>
