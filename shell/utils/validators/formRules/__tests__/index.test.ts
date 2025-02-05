@@ -87,6 +87,45 @@ describe('formRules', () => {
     );
   });
 
+  describe('gitRepository', () => {
+    const message = JSON.stringify({ message: 'validation.git.repository' });
+    const testCases = [
+      // Valid HTTP(s)
+      ['https://github.com/rancher/dashboard.git', undefined],
+      ['http://github.com/rancher/dashboard.git', undefined],
+      ['https://github.com/rancher/dashboard', undefined],
+      ['https://github.com/rancher/dashboard/', undefined],
+
+      // Valid SSH
+      ['git@github.com:rancher/dashboard.git', undefined],
+      ['git@github.com:rancher/dashboard', undefined],
+      ['git@github.com:rancher/dashboard/', undefined],
+
+      // Not valid HTTP(s)
+      ['https://github.com/rancher/  dashboard.git', message],
+      ['http://github.com/rancher/  dashboard.git', message],
+      ['https://github.com/rancher/dashboard ', message],
+      ['foo://github.com/rancher/dashboard/', message],
+      ['github.com/rancher/dashboard/', message],
+
+      // Not valid SSH
+      ['git@github.com:rancher/  dashboard.git', message],
+      ['git@github.com:rancher/dashboard  ', message],
+      ['git@github.comrancher/dashboard', message],
+
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Git url: %p',
+      (url, expected) => {
+        const formRuleResult = formRules.gitRepository(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   describe('alphanumeric', () => {
     const message = JSON.stringify({ message: 'validation.alphanumeric', key: 'testDisplayKey' });
     const testCases = [
