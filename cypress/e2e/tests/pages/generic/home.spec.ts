@@ -226,18 +226,7 @@ describe('Home Page', () => {
       homePage.bannerGraphic().graphicBanner().should('be.visible');
       homePage.getLoginPageBanner().checkVisible();
 
-      // Hide the banner graphic
-      homePage.toggleBanner();
-
-      // Banner graphic and the login banner should be visible
-      homePage.bannerGraphic().graphicBanner().should('not.exist');
-
-      // Show the banner graphic
-      homePage.toggleBanner();
-      homePage.bannerGraphic().graphicBanner().should('exist');
-
       // Close the banner for changing login view
-      homePage.getLoginPageBanner().checkVisible();
       homePage.getLoginPageBanner().closeButton();
       homePage.getLoginPageBanner().checkNotExists();
 
@@ -246,6 +235,16 @@ describe('Home Page', () => {
 
       // Check login banner is visible
       homePage.getLoginPageBanner().checkVisible();
+
+      // Hide the main banner graphic
+      homePage.toggleBanner();
+
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('not.exist');
+
+      // Show the banner graphic
+      homePage.toggleBanner();
+      homePage.bannerGraphic().graphicBanner().should('exist');
     });
 
     it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
