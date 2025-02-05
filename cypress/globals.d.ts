@@ -58,6 +58,9 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number): Chainable;
+
+      setupWebSocket: any;
 
       state(state: any): any;
 

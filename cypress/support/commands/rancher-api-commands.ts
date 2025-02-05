@@ -235,6 +235,38 @@ Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
     });
 });
 
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+    })
+      .then((resp) => {
+        if (!testFn(resp)) {
+          retries = retries - 1;
+          if (retries === 0) {
+            cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
+
+            return false;
+          }
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          return retry();
+        }
+
+        return true;
+      });
+  };
+
+  return retry();
+});
+
 /**
  * create a namespace in project
  */
