@@ -187,9 +187,6 @@ export default function(context, inject, vueApp) {
           if (load !== false) {
             plugins[id] = plugin;
 
-            // Uninstall existing product if there is one
-            this.removePlugin(plugin.name);
-
             // Load all of the types etc from the extension
             this.applyPlugin(plugin);
 
