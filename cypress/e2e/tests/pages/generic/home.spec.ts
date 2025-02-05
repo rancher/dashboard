@@ -214,14 +214,10 @@ describe('Home Page', () => {
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      // Reset the home page cars pref so that everything is shown
+      // Reset the home page cards pref so that everything is shown
       cy.setUserPreference({ 'home-page-cards': '{}' });
 
-      /**
-       * Hide home page banners
-       * Click the restore link
-       * Verify banners display on home page
-       */
+      // Go to the home page
       HomePagePo.navTo();
       homePage.waitForPage();
 
@@ -248,6 +244,7 @@ describe('Home Page', () => {
       // Restore the cards should bring back the login banner
       homePage.restoreAndWait();
 
+      // Check login banner is visible
       homePage.getLoginPageBanner().checkVisible();
     });
 
