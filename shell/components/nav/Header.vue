@@ -681,7 +681,7 @@ export default {
                 <div class="user-name">
                   <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
                 </div>
-                <div class="text-small pt-5 pb-5">
+                <div class="text-small">
                   <template v-if="principal.loginName !== principal.name">
                     {{ principal.name }}
                   </template>
@@ -1032,10 +1032,11 @@ export default {
 
   div {
     &.user-info {
-      margin-bottom: 10px;
-      padding: 10px 20px;
+      padding: 0 8px;
+      margin: 0 9px;
       min-width: 200px;
       display: flex;
+      gap: 5px;
       flex-direction: column;
     }
   }
