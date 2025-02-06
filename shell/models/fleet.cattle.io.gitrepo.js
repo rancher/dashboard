@@ -1,3 +1,4 @@
+import { _CREATE } from '@shell/config/query-params';
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
@@ -42,6 +43,19 @@ function normalizeStateCounts(data) {
 }
 
 export default class GitRepo extends SteveModel {
+  get currentUser() {
+    return this.$rootGetters['auth/v3User'] || {};
+  }
+
+  async save(mode) {
+    if (mode === _CREATE) {
+      this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID] = this.currentUser.id;
+      this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME] = this.currentUser.username;
+    }
+
+    await super.save();
+  }
+
   applyDefaults() {
     const spec = this.spec || {};
     const meta = this.metadata || {};
@@ -129,6 +143,13 @@ export default class GitRepo extends SteveModel {
   disablePolling() {
     this.spec.disablePolling = true;
     this.save();
+  }
+
+  goToClone() {
+    delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+
+    super.goToClone();
   }
 
   forceUpdate() {
