@@ -296,6 +296,11 @@ export default class MgmtCluster extends SteveModel {
     return this.providerLogo;
   }
 
+  // Color to use as the underline for the icon in the app bar
+  get iconColor() {
+    return this.metadata?.annotations[CLUSTER_BADGE.COLOR];
+  }
+
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
   get badge() {
     const icon = this.metadata?.annotations?.[CLUSTER_BADGE.ICON_TEXT];
@@ -305,7 +310,7 @@ export default class MgmtCluster extends SteveModel {
       return undefined;
     }
 
-    let color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || DEFAULT_BADGE_COLOR;
+    let color = this.iconColor || DEFAULT_BADGE_COLOR;
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
     let foregroundColor;
 

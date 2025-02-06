@@ -25,7 +25,7 @@ export default {
     },
 
     customColor() {
-      return !this.cluster.removePreviewColor && this.cluster.badge?.iconText ? this.cluster.badge?.color : '';
+      return this.cluster.iconColor || '';
     },
   },
 

@@ -119,6 +119,7 @@ export default {
           osLogo:          mgmtCluster.providerOsLogo,
           providerNavLogo: mgmtCluster.providerMenuLogo,
           badge:           mgmtCluster.badge,
+          iconColor:       mgmtCluster.iconColor,
           isLocal:         mgmtCluster.isLocal,
           isHarvester:     mgmtCluster.isHarvester,
           pinned:          mgmtCluster.pinned,
