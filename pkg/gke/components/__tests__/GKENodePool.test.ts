@@ -166,7 +166,7 @@ describe('gke node pool', () => {
       ...setup
     });
 
-    let maxPodInput = wrapper.findComponent('[data-testid="gke-max-pod-constraint-input"]');
+    let maxPodInput = wrapper.find('[data-testid="gke-max-pod-constraint-input"]');
 
     expect(maxPodInput.exists()).toBe(true);
 
@@ -175,7 +175,7 @@ describe('gke node pool', () => {
     wrapper.setProps({ isNew: true });
     await wrapper.vm.$nextTick();
 
-    maxPodInput = wrapper.findComponent('[data-testid="gke-max-pod-constraint-input"]');
+    maxPodInput = wrapper.find('[data-testid="gke-max-pod-constraint-input"]');
 
     expect(maxPodInput.exists()).toBe(true);
 
