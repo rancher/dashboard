@@ -511,16 +511,22 @@ export default {
               :value="value.creationTimestamp"
             />
           </span>
-          <span v-if="value.showCreatedBy">
+          <span
+            v-if="value.showCreatedBy"
+            data-testid="masthead-subheader-createdBy"
+          >
             {{ t("resourceDetail.masthead.createdBy") }}:
             <router-link
               v-if="value.createdBy.location"
               :to="value.createdBy.location"
-              data-testid="masthead-subheader-createdBy"
+              data-testid="masthead-subheader-createdBy_link"
             >
               {{ value.createdBy.displayName }}
             </router-link>
-            <span v-else>
+            <span
+              v-else
+              data-testid="masthead-subheader-createdBy_plain-text"
+            >
               {{ value.createdBy.displayName }}
             </span>
           </span>
