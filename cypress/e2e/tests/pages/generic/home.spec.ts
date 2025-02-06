@@ -218,7 +218,7 @@ describe('Home Page', () => {
       cy.setUserPreference({ 'home-page-cards': '{}' });
 
       // Go to the home page
-      HomePagePo.navTo();
+      HomePagePo.goToAndWaitForGet();
       homePage.waitForPage();
 
       // Banner graphic and the login banner should be visible
@@ -235,6 +235,23 @@ describe('Home Page', () => {
 
       // Check login banner is visible
       homePage.getLoginPageBanner().checkVisible();
+    });
+
+    it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      // Reset the home page cards pref so that everything is shown
+      cy.setUserPreference({ 'home-page-cards': '{}' });
+
+      // Go to the home page
+      HomePagePo.goToAndWaitForGet();
+      homePage.waitForPage();
+
+      // Wait for the page to settle and the table loading indicator to go away
+      homePage.self().get('.data-loading').should('exist');
+      homePage.self().get('.data-loading').should('not.exist');
+
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('exist');
+      homePage.bannerGraphic().graphicBanner().should('be.visible');
 
       // Hide the main banner graphic
       homePage.toggleBanner();
@@ -245,7 +262,7 @@ describe('Home Page', () => {
       // Show the banner graphic
       homePage.toggleBanner();
       homePage.bannerGraphic().graphicBanner().should('exist');
-    });
+    });    
 
     it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
