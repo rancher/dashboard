@@ -5,7 +5,7 @@ import FleetSummary from '@shell/components/fleet/FleetSummary';
 import { Banner } from '@components/Banner';
 import FleetResources from '@shell/components/fleet/FleetResources';
 import Tab from '@shell/components/Tabbed/Tab';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@shell/components/ResourceSummary.vue';
@@ -100,6 +100,13 @@ export default {
         type:        FLEET.CLUSTER_GROUP
       }
     }, this.$store);
+
+    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      this.$store.dispatch(`management/find`, {
+        type: MANAGEMENT.USER,
+        id:   this.value.authorId,
+      }, { root: true });
+    }
 
     this.allBundleDeployments = allDispatches.allBundleDeployments || [];
     this.allBundles = allDispatches.allBundles || [];
