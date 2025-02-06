@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
@@ -478,5 +478,42 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get authorId() {
+    return this.metadata.labels['fleet.cattle.io/created-by-user-id'];
+  }
+
+  get author() {
+    if (this.authorId) {
+      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
+    }
+
+    return null;
+  }
+
+  get createdBy() {
+    const displayName = this.metadata.labels['fleet.cattle.io/created-by-display-name'];
+
+    if (!displayName) {
+      return null;
+    }
+
+    return {
+      displayName,
+      location: !this.author ? null : {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  'local',
+          product:  'auth',
+          resource: MANAGEMENT.USER,
+          id:       this.author.id,
+        }
+      }
+    };
+  }
+
+  get showCreatedBy() {
+    return !!this.createdBy;
   }
 }
