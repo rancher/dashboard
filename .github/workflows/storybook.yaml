@@ -1,6 +1,4 @@
 name: storybook
-env:
-    STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
 on:
   push:
     branches:
@@ -24,4 +22,6 @@ jobs:
         yarn build-storybook
     - name: Publish Storybook
       if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
+      env:
+        STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
       run: .github/workflows/scripts/publish-storybook
