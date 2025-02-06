@@ -257,7 +257,7 @@ describe('Home Page', () => {
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
-      
+
       // Banner graphic and the login banner should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
