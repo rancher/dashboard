@@ -6,7 +6,8 @@ import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
 
 const NONE = 'none';
-const DEFAULT_LOCALE = 'en-us';
+
+export const DEFAULT_LOCALE = 'en-us';
 
 // Formatters can't be serialized into state
 const intlCache = {};

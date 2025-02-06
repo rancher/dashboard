@@ -5,6 +5,7 @@ import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
+import { DEFAULT_LOCALE } from '@shell/plugins/i18n';
 
 export default function(context, inject, vueApp) {
   const {
@@ -314,9 +315,16 @@ export default function(context, inject, vueApp) {
         });
 
         // l10n
+        const currentLocale = store.getters['i18n/current']() || DEFAULT_LOCALE;
+
         Object.keys(plugin.l10n).forEach((name) => {
           plugin.l10n[name].forEach((fn) => {
             this.register('l10n', name, fn);
+
+            // If we're adding strings for the current locale then load them now
+            if (currentLocale === name) {
+              store.dispatch('i18n/mergeLoad', { locale: name, module: fn });
+            }
           });
         });
 
