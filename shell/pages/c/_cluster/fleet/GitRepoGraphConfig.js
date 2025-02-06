@@ -77,7 +77,7 @@ export const gitRepoGraphConfig = {
           id:                    bd.id,
           matchingId:            bd.id,
           type:                  bd.type,
-          clusterId:             cluster ? cluster.id : undefined,
+          clusterLabel:          cluster ? cluster.namespacedName : undefined,
           clusterDetailLocation: cluster ? cluster.detailLocation : undefined,
           state:                 bd.state,
           stateLabel:            bd.stateDisplay,
@@ -210,7 +210,7 @@ export const gitRepoGraphConfig = {
         type:     'title-link',
         labelKey: 'fleet.fdc.id',
         valueObj: {
-          id:             data.id,
+          label:          data.id,
           detailLocation: data.detailLocation
         }
       }
@@ -221,7 +221,7 @@ export const gitRepoGraphConfig = {
         type:     'title-link',
         labelKey: 'fleet.fdc.cluster',
         valueObj: {
-          id:             data.clusterId,
+          label:          data.clusterLabel,
           detailLocation: data.clusterDetailLocation
         }
       });
