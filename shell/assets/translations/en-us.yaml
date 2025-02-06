@@ -228,6 +228,13 @@ nav:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     logOut: Log Out
+    label: User menu
+    button:
+      label: Open user menu
+  actionMenu:
+    label: Page actions menu
+    button:
+      label: Open page actions menu
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
