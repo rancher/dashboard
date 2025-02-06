@@ -11,6 +11,29 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
+// Reset the home page card prefs, go the home page and ensure the page is fully loaded
+function goToHomePageAndSettle() {
+  // Reset the home page cards pref so that everything is shown
+  cy.setUserPreference({ 'home-page-cards': '{}' });
+
+  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', {
+    statusCode: 200,
+    body:       {
+      count: 0,
+      data:  [],
+    },
+  }).as('fetchClustersHomePage');
+
+  // Go to the home page
+  HomePagePo.goToAndWaitForGet();
+  homePage.waitForPage();
+
+  // Wait for the page to settle - filter the cluster list ensures table is ready and page is ready
+  cy.wait('@fetchClustersHomePage');
+  homeClusterList.resourceTable().sortableTable().filter('local');
+  homeClusterList.name('local').should((el) => expect(el).to.contain.text('local'));
+}
+
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
@@ -214,12 +237,7 @@ describe('Home Page', () => {
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      // Reset the home page cards pref so that everything is shown
-      cy.setUserPreference({ 'home-page-cards': '{}' });
-
-      // Go to the home page
-      HomePagePo.goToAndWaitForGet();
-      homePage.waitForPage();
+      goToHomePageAndSettle();
 
       // Banner graphic and the login banner should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
@@ -238,17 +256,8 @@ describe('Home Page', () => {
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      // Reset the home page cards pref so that everything is shown
-      cy.setUserPreference({ 'home-page-cards': '{}' });
-
-      // Go to the home page
-      HomePagePo.goToAndWaitForGet();
-      homePage.waitForPage();
-
-      // Wait for the page to settle
-      homePage.self().get('.data-loading').should('exist');
-      homePage.self().get('.data-loading').should('not.exist');
-
+      goToHomePageAndSettle();
+      
       // Banner graphic and the login banner should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
