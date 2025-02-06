@@ -326,13 +326,13 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
+    return this.$getters['matching'](FLEET.BUNDLE, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name }, this.namespace);
   }
 
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
-    return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+    return bds.filter((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.REPO_NAME] === this.name);
   }
 
   get allBundlesStatuses() {
@@ -487,7 +487,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get authorId() {
-    return this.metadata.labels['fleet.cattle.io/created-by-user-id'];
+    return this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
 
   get author() {
@@ -499,7 +499,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get createdBy() {
-    const displayName = this.metadata.labels['fleet.cattle.io/created-by-display-name'];
+    const displayName = this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
 
     if (!displayName) {
       return null;
