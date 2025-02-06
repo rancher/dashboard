@@ -30,8 +30,10 @@ function goToHomePageAndSettle() {
 
   // Wait for the page to settle - filter the cluster list ensures table is ready and page is ready
   cy.wait('@fetchClustersHomePage');
-  homeClusterList.resourceTable().sortableTable().filter('local');
-  homeClusterList.name('local').should((el) => expect(el).to.contain.text('local'));
+
+  // Wait for the cluster table to load and filter so there are no rows
+  homeClusterList.resourceTable().sortableTable().filter('random text');
+  homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 
 describe('Home Page', () => {
