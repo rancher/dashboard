@@ -245,7 +245,7 @@ describe('Home Page', () => {
       HomePagePo.goToAndWaitForGet();
       homePage.waitForPage();
 
-      // Wait for the page to settle and the table loading indicator to go away
+      // Wait for the page to settle
       homePage.self().get('.data-loading').should('exist');
       homePage.self().get('.data-loading').should('not.exist');
 
@@ -262,7 +262,7 @@ describe('Home Page', () => {
       // Show the banner graphic
       homePage.toggleBanner();
       homePage.bannerGraphic().graphicBanner().should('exist');
-    });    
+    });
 
     it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     /**
