@@ -1,34 +1,57 @@
 import { mount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
 
-describe('authConfigMixin', () => {
-  describe('on save', () => {
-    it('should not return error', () => {
-      const model = { authConfigName: 'whatever' };
-      const FakeComponent = {
-        render() {},
-        mixins:  [authConfigMixin],
-        methods: { applyHooks: jest.fn() },
-      };
-      const instance = mount(FakeComponent, {
-        data: () => ({
-          value: { configType: 'oidc' },
-          model
-        }),
-        global: {
-          mocks: {
-            $store: { dispatch: { 'auth/test': () => model } },
-            $route: {
-              params: { id: '123' },
-              query:  { mode: 'edit' },
-            },
-          }
+describe('mixin: authConfigMixin', () => {
+  describe('method: save', () => {
+    const componentMock = (model: any) => ({
+      data: () => ({
+        value: { configType: 'oidc' },
+        model,
+      }),
+      computed: { principal: () => ({ me: {} }) },
+      global:   {
+        mocks: {
+          $store: {
+            dispatch: () => model,
+            commit:   () => ({ 'auth/loggedInAs': jest.fn() }),
+          },
+          $route: {
+            params: { id: '123' },
+            query:  { mode: 'edit' },
+          },
         }
-      }).vm as any;
+      }
+    });
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin],
+      methods: { applyHooks: jest.fn() },
+    };
 
-      instance.save(jest.fn());
+    it('should return error', async() => {
+      const instance = mount(FakeComponent, componentMock({
+        doAction: jest.fn(),
+        save:     'make it fail'
+      })).vm as any;
+      const fakeCallback = jest.fn();
 
-      expect(instance.errors).toStrictEqual([]);
+      await instance.save(fakeCallback);
+
+      expect(fakeCallback).toHaveBeenCalledWith(false);
+    });
+
+    it('should not return error', async() => {
+      const model = {
+        authConfigName: 'whatever',
+        doAction:       jest.fn(),
+        save:           async() => {}
+      };
+      const instance = mount(FakeComponent, componentMock(model)).vm as any;
+      const fakeCallback = jest.fn();
+
+      await instance.save(fakeCallback);
+
+      expect(fakeCallback).toHaveBeenCalledWith(true);
     });
 
     it.each([
@@ -38,31 +61,12 @@ describe('authConfigMixin', () => {
       const model = {
         scope,
         authConfigName: 'whatever',
+        doAction:       jest.fn(),
+        save:           async() => {}
       };
-      const FakeComponent = {
-        render() {},
-        mixins:  [authConfigMixin],
-        methods: { applyHooks: jest.fn() },
-      };
-      const instance = mount(FakeComponent, {
-        data: () => ({
-          value: { configType: 'oidc' },
-          model
-        }),
-        global: {
-          mocks: {
-            // $store: { dispatch: { 'auth/test': () => model } },
-            $route: {
-              params: { id: '123' },
-              query:  { mode: 'edit' },
-            },
-          }
-        }
-      }
-      ).vm as any;
-      const btnCb = jest.fn();
+      const instance = mount(FakeComponent, componentMock(model)).vm as any;
 
-      await instance.save(btnCb);
+      await instance.save(jest.fn());
 
       expect(instance.model.scope).toStrictEqual(scope);
     });
