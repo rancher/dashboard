@@ -144,12 +144,19 @@ export const mutations = {
 
     state.modalData = data;
   },
+
+  SET_RESOURCE(state, resources) {
+    state.resources = !isArray(resources) ? [resources] : resources;
+  }
 };
 
 export const actions = {
   execute({ state }, { action, args, opts }) {
     return _execute(state.resources, action, args, opts);
   },
+  setResource({ commit }, resource) {
+    commit('SET_RESOURCE', resource);
+  }
 };
 
 // -----------------------------

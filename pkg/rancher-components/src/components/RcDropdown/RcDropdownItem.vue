@@ -53,12 +53,12 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
   return newIndex;
 };
 
-const handleClick = () => {
+const handleClick = (e: MouseEvent) => {
   if (props.disabled) {
     return;
   }
 
-  emits('click');
+  emits('click', e);
   close();
 };
 
@@ -97,6 +97,9 @@ const handleMouseEnter = (e: MouseEvent) => {
     @keydown.up.down.stop="handleKeydown"
     @mouseenter="handleMouseEnter"
   >
+    <slot name="before">
+      <!--Empty slot content-->
+    </slot>
     <slot name="default">
       <!--Empty slot content-->
     </slot>
@@ -105,6 +108,9 @@ const handleMouseEnter = (e: MouseEvent) => {
 
 <style lang="scss" scoped>
   [dropdown-menu-item] {
+    display: flex;
+    gap: 8px;
+    align-items: center;
     padding: 9px 8px;
     margin: 0 9px;
     border-radius: 4px;
