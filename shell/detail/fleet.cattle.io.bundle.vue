@@ -1,4 +1,5 @@
 <script>
+import { MANAGEMENT } from '@shell/config/types';
 import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
 import FleetUtils from '@shell/utils/fleet';
 
@@ -10,6 +11,15 @@ export default {
     value: {
       type:     Object,
       required: true,
+    }
+  },
+
+  async fetch() {
+    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      this.$store.dispatch(`management/find`, {
+        type: MANAGEMENT.USER,
+        id:   this.value.authorId,
+      }, { root: true });
     }
   },
 

@@ -2,7 +2,7 @@ import { escapeHtml, ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import typeHelper from '@shell/utils/type-helpers';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { convertSelectorObj, matching } from '@shell/utils/selector';
 
 export default class FleetBundle extends SteveModel {
@@ -126,5 +126,42 @@ export default class FleetBundle extends SteveModel {
         'resourceTable.groupLabel.notInAWorkspace'
       );
     }
+  }
+
+  get authorId() {
+    return this.metadata.labels['fleet.cattle.io/created-by-user-id'];
+  }
+
+  get author() {
+    if (this.authorId) {
+      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
+    }
+
+    return null;
+  }
+
+  get createdBy() {
+    const displayName = this.metadata.labels['fleet.cattle.io/created-by-display-name'];
+
+    if (!displayName) {
+      return null;
+    }
+
+    return {
+      displayName,
+      location: !this.author ? null : {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  'local',
+          product:  'auth',
+          resource: MANAGEMENT.USER,
+          id:       this.author.id,
+        }
+      }
+    };
+  }
+
+  get showCreatedBy() {
+    return !!this.createdBy;
   }
 }
