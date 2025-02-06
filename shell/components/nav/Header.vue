@@ -627,6 +627,7 @@ export default {
 
         <button
           v-if="showSearch"
+          id="header-btn-search"
           v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
@@ -646,6 +647,9 @@ export default {
           name="searchModal"
           width="50%"
           height="auto"
+          :trigger-focus-trap="true"
+          :modal-visibility="showSearchModal"
+          return-focus="#header-btn-search"
           @close="hideSearch()"
         >
           <Jump @closeSearch="hideSearch()" />

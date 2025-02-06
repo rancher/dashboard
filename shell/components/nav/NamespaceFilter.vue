@@ -700,7 +700,7 @@ export default {
     <div
       v-if="isOpen"
       class="ns-glass"
-      @click="close()"
+      @click.stop="close()"
     />
 
     <!-- Select Dropdown control -->

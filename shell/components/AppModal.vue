@@ -129,7 +129,7 @@ export default defineComponent({
     document.removeEventListener('focusin', this.focusChanged);
   },
   methods: {
-    focusChanged(ev) {
+    focusChanged(ev: any) {
       this.currFocusedElem = ev.target;
     },
     handleClickOutside(event: MouseEvent) {
