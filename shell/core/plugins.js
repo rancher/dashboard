@@ -173,6 +173,8 @@ export default function(context, inject, vueApp) {
         // Mark the plugin as being built-in
         plugin.builtin = true;
 
+        plugins[id] = plugin;
+
         // Initialize the plugin
         const p = module;
 
@@ -185,17 +187,21 @@ export default function(context, inject, vueApp) {
           // just because it tells us it should not load.
           // Built-in extensions are compiled into the app, so there is a level of trust assumed with them
           if (load !== false) {
-            plugins[id] = plugin;
-
             // Load all of the types etc from the extension
             this.applyPlugin(plugin);
 
             // Add the extension to the store
             store.dispatch('uiplugins/addPlugin', plugin);
+          } else {
+            // Plugin did not load, so remove it so it is not shown as loaded
+            delete plugins[id];
           }
         } catch (e) {
           console.error(`Error loading extension ${ plugin.name }`); // eslint-disable-line no-console
           console.error(e); // eslint-disable-line no-console
+
+          // Plugin did not load, so remove it so it is not shown as loaded
+          delete plugins[id];
         }
       },
 
