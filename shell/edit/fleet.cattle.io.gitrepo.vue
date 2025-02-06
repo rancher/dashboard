@@ -569,10 +569,19 @@ export default {
       });
     },
 
-    onSave() {
+    async saveOverride(btnCb) {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
-      this.save();
+      try {
+        await this.value.save(this.mode);
+
+        btnCb(true);
+
+        this.$router.replace(this.value.listLocation);
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
+      }
     }
   }
 };
@@ -594,7 +603,7 @@ export default {
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
-    @finish="onSave"
+    @finish="saveOverride"
   >
     <template #noticeBanner>
       <Banner
