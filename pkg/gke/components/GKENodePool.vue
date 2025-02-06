@@ -319,6 +319,7 @@ export default defineComponent({
           :mode="mode"
           :value="maxPodsConstraint"
           label-key="gke.maxPodsConstraint.label"
+          :disabled="!isNew"
           @input="$emit('update:maxPodsConstraint', $event)"
         />
       </div>
