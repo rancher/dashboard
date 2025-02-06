@@ -3,6 +3,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import typeHelper from '@shell/utils/type-helpers';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { convertSelectorObj, matching } from '@shell/utils/selector';
 
 export default class FleetBundle extends SteveModel {
@@ -21,7 +22,7 @@ export default class FleetBundle extends SteveModel {
   get repoName() {
     const labels = this.metadata?.labels || {};
 
-    return labels['fleet.cattle.io/repo-name'];
+    return labels[FLEET_ANNOTATIONS.REPO_NAME];
   }
 
   get targetClusters() {
@@ -129,7 +130,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get authorId() {
-    return this.metadata.labels['fleet.cattle.io/created-by-user-id'];
+    return this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
 
   get author() {
@@ -141,7 +142,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get createdBy() {
-    const displayName = this.metadata.labels['fleet.cattle.io/created-by-display-name'];
+    const displayName = this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
 
     if (!displayName) {
       return null;
