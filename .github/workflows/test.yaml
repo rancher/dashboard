@@ -35,7 +35,15 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
-  e2e-ui-build:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check environment
+        run: |
+          env
+          echo $CYPRESS_API_URL
+
+    e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
