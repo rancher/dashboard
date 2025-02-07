@@ -158,4 +158,27 @@ describe('gke node pool', () => {
       NO_SCHEDULE: 'NoSchedule', PREFER_NO_SCHEDULE: 'PreferNoSchedule', NO_EXECUTE: 'NoExecute'
     });
   });
+
+  it('should disable the pod constraint input when editing existing pools', async() => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(GKENodePool, {
+      propsData: { isNew: false },
+      ...setup
+    });
+
+    let maxPodInput = wrapper.find('[data-testid="gke-max-pod-constraint-input"]');
+
+    expect(maxPodInput.exists()).toBe(true);
+
+    expect(maxPodInput.props().disabled).toBe(true);
+
+    wrapper.setProps({ isNew: true });
+    await wrapper.vm.$nextTick();
+
+    maxPodInput = wrapper.find('[data-testid="gke-max-pod-constraint-input"]');
+
+    expect(maxPodInput.exists()).toBe(true);
+
+    expect(maxPodInput.props().disabled).toBe(false);
+  });
 });
