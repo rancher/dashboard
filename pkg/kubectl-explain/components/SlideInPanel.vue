@@ -2,7 +2,7 @@
 import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
-import { watcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 
 const HEADER_HEIGHT = 55;
 
@@ -36,7 +36,7 @@ export default {
   },
 
   created() {
-    watcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '.slide-in', {
+    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '.slide-in', {
       escapeDeactivates: false,
       allowOutsideClick: true
     });
