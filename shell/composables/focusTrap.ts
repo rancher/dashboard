@@ -5,14 +5,16 @@
 import { watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { createFocusTrap, FocusTrap } from 'focus-trap';
 
-export function basicSetupFocusTrap(containerSelector: string) {
-  let focusTrapInstance = {} as FocusTrap;
+export const DEFAULT_FOCUS_TRAP_OPTS = { escapeDeactivates: true, allowOutsideClick: true };
+
+export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
+  let focusTrapInstance: FocusTrap;
+  let focusEl;
 
   onMounted(() => {
-    focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, {
-      escapeDeactivates: true,
-      allowOutsideClick: true,
-    });
+    focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
+
+    focusTrapInstance = createFocusTrap(focusEl, opts);
 
     nextTick(() => {
       focusTrapInstance.activate();
@@ -20,42 +22,43 @@ export function basicSetupFocusTrap(containerSelector: string) {
   });
 
   onBeforeUnmount(() => {
-    if (focusTrapInstance) {
+    if (Object.keys(focusTrapInstance).length) {
       focusTrapInstance.deactivate();
     }
   });
 }
 
-export function watcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, containerSelector: string) {
-  let focusTrapInstance = {} as FocusTrap;
+export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
+  let focusTrapInstance: FocusTrap;
+  let focusEl;
 
   watch(watchVar, (neu) => {
     if (neu) {
       nextTick(() => {
-        focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, {
-          escapeDeactivates: true,
-          allowOutsideClick: true,
-        });
+        focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
+
+        focusTrapInstance = createFocusTrap(focusEl, opts);
+
         nextTick(() => {
           focusTrapInstance.activate();
         });
       });
-    } else if (!neu && focusTrapInstance) {
+    } else if (!neu && Object.keys(focusTrapInstance).length) {
       focusTrapInstance.deactivate();
     }
   });
 }
 
-export function watcherBasedSetupFocusTrap(watchVar:any, containerSelector: string) {
-  let focusTrapInstance = {} as FocusTrap;
+export function useWatcherBasedSetupFocusTrap(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
+  let focusTrapInstance: FocusTrap;
+  let focusEl;
 
   watch(watchVar, (neu) => {
     if (neu) {
       nextTick(() => {
-        focusTrapInstance = createFocusTrap(document.querySelector(containerSelector) as HTMLElement, {
-          escapeDeactivates: true,
-          allowOutsideClick: true,
-        });
+        focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
+
+        focusTrapInstance = createFocusTrap(focusEl, opts);
         nextTick(() => {
           focusTrapInstance.activate();
         });
@@ -64,7 +67,7 @@ export function watcherBasedSetupFocusTrap(watchVar:any, containerSelector: stri
   }, { immediate: true });
 
   onBeforeUnmount(() => {
-    if (focusTrapInstance) {
+    if (Object.keys(focusTrapInstance).length) {
       focusTrapInstance.deactivate();
     }
   });

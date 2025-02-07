@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { watcherBasedSetupFocusTrap } from '@shell/composables/focusTrap';
+import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
   name: 'AppModal',
@@ -59,18 +59,18 @@ export default defineComponent({
       default: '',
     },
     /**
-     * Modal visibility (used for focus-trap)
-     */
-    modalVisibility: {
-      type:    Boolean,
-      default: false,
-    },
-    /**
      * trigger focus trap
      */
     triggerFocusTrap: {
       type:    Boolean,
       default: false,
+    },
+    /**
+     * forcefully set return focus element
+     */
+    returnFocus: {
+      type:    String,
+      default: '',
     }
   },
   computed: {
@@ -100,9 +100,17 @@ export default defineComponent({
       };
     }
   },
-  created() {
-    if (this.triggerFocusTrap) {
-      watcherBasedSetupFocusTrap(() => this.modalVisibility, '.modal-container');
+  setup(props) {
+    if (props.triggerFocusTrap) {
+      let opts:any = DEFAULT_FOCUS_TRAP_OPTS;
+
+      if (props.returnFocus) {
+        opts = {
+          ...DEFAULT_FOCUS_TRAP_OPTS,
+          setReturnFocus: props.returnFocus
+        };
+      }
+      useBasicSetupFocusTrap('#modal-container-element', opts);
     }
   },
   mounted() {
@@ -154,6 +162,7 @@ export default defineComponent({
       >
         <div
           v-bind="$attrs"
+          id="modal-container-element"
           ref="modalRef"
           :class="customClass"
           class="modal-container"
