@@ -943,7 +943,8 @@ export default {
                       :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
                       role="button"
                       :aria-label="t('plugins.uninstall.label')"
-                      @click="showUninstallDialog(plugin, $event)"
+                      @click.stop="showUninstallDialog(plugin, $event)"
+                      @keyup.space.stop="showUninstallDialog(plugin, $event)"
                     >
                       {{ t('plugins.uninstall.label') }}
                     </button>
@@ -953,7 +954,8 @@ export default {
                       :data-testid="`extension-card-update-btn-${plugin.name}`"
                       role="button"
                       :aria-label="t('plugins.update.label')"
-                      @click="showInstallDialog(plugin, 'update', $event)"
+                      @click.stop="showInstallDialog(plugin, 'update', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'update', $event)"
                     >
                       {{ t('plugins.update.label') }}
                     </button>
@@ -963,7 +965,8 @@ export default {
                       :data-testid="`extension-card-rollback-btn-${plugin.name}`"
                       role="button"
                       :aria-label="t('plugins.rollback.label')"
-                      @click="showInstallDialog(plugin, 'rollback', $event)"
+                      @click.stop="showInstallDialog(plugin, 'rollback', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'rollback', $event)"
                     >
                       {{ t('plugins.rollback.label') }}
                     </button>
@@ -977,7 +980,8 @@ export default {
                       :data-testid="`extension-card-install-btn-${plugin.name}`"
                       role="button"
                       :aria-label="t('plugins.install.label')"
-                      @click="showInstallDialog(plugin, 'install', $event)"
+                      @click.stop="showInstallDialog(plugin, 'install', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'install', $event)"
                     >
                       {{ t('plugins.install.label') }}
                     </button>
