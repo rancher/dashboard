@@ -703,7 +703,6 @@ export default {
               :class="{'avatar-round': principal.roundAvatar}"
               width="36"
               height="36"
-              :alt="t('generic.userAvatar')"
             >
             <i
               v-else
