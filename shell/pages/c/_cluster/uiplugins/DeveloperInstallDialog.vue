@@ -154,7 +154,6 @@ export default {
     name="developerInstallPluginDialog"
     height="auto"
     :scrollable="true"
-    :modal-visibility="showModal"
     :trigger-focus-trap="true"
     @close="closeDialog()"
   >

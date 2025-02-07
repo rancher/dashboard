@@ -5,7 +5,7 @@ import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { watcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 
 export default {
   async fetch() {
@@ -36,7 +36,7 @@ export default {
     };
   },
   created() {
-    watcherBasedSetupFocusTrapWithDestroyIncluded(() => this.showSlideIn, '.slideIn');
+    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.showSlideIn, '#slide-in-content-element');
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
@@ -169,6 +169,7 @@ export default {
     >
       <div
         v-if="showSlideIn"
+        id="slide-in-content-element"
         class="slideIn"
         data-testid="extension-details"
         :class="{'active': isActive}"

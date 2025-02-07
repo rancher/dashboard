@@ -60,7 +60,6 @@ export default {
     :name="name"
     height="auto"
     :scrollable="true"
-    :modal-visibility="!closed"
     :trigger-focus-trap="true"
     @close="closeDialog(false)"
     @before-open="beforeOpen"
