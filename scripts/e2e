@@ -23,8 +23,14 @@ else
   CYPRESS_COMMAND="cy2 run ${SPEC_ARG} --ci-build-id \"$ID\" --record --key rancher-dashboard --parallel --group \"$GREP_TAGS\""
 fi
 
+echo ">>>>>>"
+env
+echo ${CYPRESS_API_URL}
+
 # Construct the full command
 E2E_COMMAND="CYPRESS_API_URL='"${CYPRESS_API_URL}"' ${CYPRESS_COMMAND} --browser chrome"
+
+echo ${E2E_COMMAND}
 
 # Execute the command
 eval $E2E_COMMAND
