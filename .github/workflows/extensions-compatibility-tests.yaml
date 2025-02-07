@@ -10,7 +10,7 @@ env:
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
   TEST_PROJECT_ID: rancher-dashboard
-  CYPRESS_API_URL: http://139.59.134.103:1234/
+  CYPRESS_API_URL: ${{ secrets.CYPRESS_API_URL }}
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests
 
 jobs:

@@ -24,7 +24,7 @@ else
 fi
 
 # Construct the full command
-E2E_COMMAND="CYPRESS_API_URL='http://139.59.134.103:1234' ${CYPRESS_COMMAND} --browser chrome"
+E2E_COMMAND="CYPRESS_API_URL='"${CYPRESS_API_URL}"' ${CYPRESS_COMMAND} --browser chrome"
 
 # Execute the command
 eval $E2E_COMMAND
