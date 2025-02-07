@@ -224,6 +224,7 @@ nav:
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
+    showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys

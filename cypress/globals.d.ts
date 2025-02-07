@@ -106,6 +106,8 @@ declare global {
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
 
+      setUserPreference(prefs: any);
+
       /**
        * update namespace filter
        * @param clusterName
