@@ -14,10 +14,12 @@ import {
   ExtensionPoint,
   TabLocation,
   ModelExtensionConstructor,
-  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
+  ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
+import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 
 // Registration IDs used for different extension points in the extensions catalog
 export const EXT_IDS = {
@@ -63,6 +65,17 @@ export class Plugin implements IPlugin {
     Object.values(ExtensionPoint).forEach((v) => {
       this.uiConfig[v] = {};
     });
+  }
+
+  get environment(): ExtensionEnvironment {
+    const versionData = getVersionData();
+
+    return {
+      version:     versionData.Version,
+      commit:      versionData.GitCommit,
+      isPrime:     versionData.RancherPrime === 'true',
+      docsVersion: `v${ CURRENT_RANCHER_VERSION }`
+    };
   }
 
   get metadata() {

@@ -7,6 +7,7 @@ import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
 import { fetchLinks } from '@shell/config/home-links';
+import { processLink } from '@shell/plugins/clean-html';
 
 // i18n-ignore footer.wechat.title, footer.wechat.modalText, footer.wechat.modalText2
 export default {
@@ -77,7 +78,11 @@ export default {
         all.push(...this.links.defaults.filter((link) => link.enabled));
       }
 
-      return all;
+      // Process the links
+      return all.map((item) => ({
+        ...item,
+        value: processLink(item.value)
+      }));
     }
   },
   methods: {

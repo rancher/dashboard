@@ -156,6 +156,16 @@ export type LocationConfig = {
   context?: { [key: string]: string},
 };
 
+/**
+ * Environment metadata that extensions can access
+ */
+export type ExtensionEnvironment = {
+  version: string;
+  commit: string;
+  isPrime: boolean;
+  docsVersion: string; /** e.g. 'v2.10' */
+};
+
 export interface ProductOptions {
   /**
    * The category this product belongs under. i.e. 'config'
@@ -638,6 +648,11 @@ export interface IPlugin {
    * @param productName The name of the new product. This name is displayed in the navigation.
    */
   DSL(store: any, productName: string): DSLReturnType;
+
+  /**
+   * Get information about the Extension Environment
+   */
+  get environment(): ExtensionEnvironment;
 }
 
 // Internal interface
