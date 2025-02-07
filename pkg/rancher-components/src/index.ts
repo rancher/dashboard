@@ -7,6 +7,7 @@ export {
   RcDropdown,
   RcDropdownItem,
   RcDropdownSeparator,
-  RcDropdownTrigger
+  RcDropdownTrigger,
+  RcDropdownMenu
 } from './components/RcDropdown';
 export * from './components/Form';
