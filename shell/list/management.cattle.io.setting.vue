@@ -5,11 +5,11 @@ import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
-import { RcDropdownMenu } from '@components/RcDropdown';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 export default {
   components: {
-    Banner, Loading, RcDropdownMenu
+    Banner, Loading, ActionMenu
   },
 
   async fetch() {
@@ -67,40 +67,8 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapGetters({
-      // Use either these Vuex getters
-      // OR the props to set the action menu state,
-      // but don't use both.
-      targetElem: 'action-menu/elem',
-      shouldShow: 'action-menu/showing',
-      options:    'action-menu/optionsArray'
-    }),
+    ...mapGetters({ options: 'action-menu/optionsArray' }),
   },
-
-  methods: {
-    toggleActionMenu(e, setting) {
-      const actionElement = e.srcElement;
-
-      if (!this.targetElem && !this.shouldShow) {
-        this.$store.commit(`action-menu/show`, {
-          resources: setting.data,
-          elem:      actionElement
-        });
-      } else if (this.targetElem === actionElement && this.shouldShow) {
-        // this condition is needed so that we can "toggle" the action menu with
-        // the keyboard for accessibility (row action menu)
-        this.$store.commit('action-menu/hide');
-      }
-    },
-    openChanged(event, setting) {
-      if (event) {
-        this.$store.dispatch('action-menu/setResource', setting.data);
-      }
-    },
-    execute(action) {
-      this.$store.dispatch('action-menu/execute', { action });
-    }
-  }
 };
 </script>
 
@@ -140,14 +108,7 @@ export default {
           v-if="setting.hasActions"
           class="action"
         >
-          <rc-dropdown-menu
-            button-role="tertiary"
-            button-size="small"
-            :options="options"
-            :button-aria-label="t('advancedSettings.edit.label')"
-            @update:open="(e) => openChanged(e, setting)"
-            @select="execute"
-          />
+          <action-menu :resource="setting.data" />
         </div>
       </div>
       <div value>

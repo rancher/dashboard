@@ -23,7 +23,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
-import ActionMenu from '@shell/components/SortableTable/ActionMenu.vue';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
