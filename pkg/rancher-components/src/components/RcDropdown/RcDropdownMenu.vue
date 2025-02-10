@@ -6,6 +6,7 @@ import {
   RcDropdownTrigger
 } from '@components/RcDropdown';
 import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 type DropdownOption = {
   action?: string;
@@ -44,6 +45,7 @@ const emit = defineEmits(['update:open', 'select']);
   >
     <rc-dropdown-trigger
       :[buttonRole]="true"
+      :[buttonSize]="true"
       data-testid="page-actions-menu"
       :aria-label="buttonAriaLabel"
     >
@@ -56,7 +58,7 @@ const emit = defineEmits(['update:open', 'select']);
       >
         <rc-dropdown-item
           v-if="!a.divider"
-          @click="emit('select', a)"
+          @click="(e: MouseEvent) => emit('select', e, a)"
         >
           <template #before>
             <IconOrSvg

@@ -5,9 +5,12 @@ import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
+import { RcDropdownMenu } from '@components/RcDropdown';
 
 export default {
-  components: { Banner, Loading },
+  components: {
+    Banner, Loading, RcDropdownMenu
+  },
 
   async fetch() {
     const viewInApi = this.$store.getters['prefs/get'](VIEW_IN_API);
@@ -70,6 +73,7 @@ export default {
       // but don't use both.
       targetElem: 'action-menu/elem',
       shouldShow: 'action-menu/showing',
+      options:    'action-menu/optionsArray'
     }),
   },
 
@@ -88,6 +92,14 @@ export default {
         this.$store.commit('action-menu/hide');
       }
     },
+    openChanged(event, setting) {
+      if (event) {
+        this.$store.dispatch('action-menu/setResource', setting.data);
+      }
+    },
+    execute(action) {
+      this.$store.dispatch('action-menu/execute', { action });
+    }
   }
 };
 </script>
@@ -104,8 +116,8 @@ export default {
       </div>
     </Banner>
     <div
-      v-for="(setting, i) in settings"
-      :key="i"
+      v-for="(setting) in settings"
+      :key="setting.id"
       class="advanced-setting mb-20"
       :data-testid="`advanced-setting__option-${setting.id}`"
     >
@@ -128,20 +140,14 @@ export default {
           v-if="setting.hasActions"
           class="action"
         >
-          <button
-            aria-haspopup="true"
-            aria-expanded="false"
-            type="button"
-            class="btn btn-sm role-multi-action actions"
-            role="button"
-            :aria-label="t('advancedSettings.edit.moreActions', { setting: setting.id })"
-            @click="toggleActionMenu($event, setting)"
-          >
-            <i
-              class="icon icon-actions"
-              :alt="t('advancedSettings.edit.moreActions', { setting: setting.id })"
-            />
-          </button>
+          <rc-dropdown-menu
+            button-role="tertiary"
+            button-size="small"
+            :options="options"
+            :button-aria-label="t('advancedSettings.edit.label')"
+            @update:open="(e) => openChanged(e, setting)"
+            @select="execute"
+          />
         </div>
       </div>
       <div value>

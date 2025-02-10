@@ -27,7 +27,7 @@ export const getters = {
   event:     (state) => state.event,
   resources: (state) => state.resources,
 
-  options(state) {
+  optionsArray(state) {
     let selected = state.resources;
 
     if ( !selected ) {
@@ -50,7 +50,10 @@ export const getters = {
 
     const out = _filter(map);
 
-    return { ...out };
+    return [...out];
+  },
+  options(_state, getters) {
+    return { ...getters.options };
   },
 
 };
