@@ -79,7 +79,7 @@ jobs:
           ['@charts'],
           ['@explorer'],
           ['@explorer2'],
-          ['@fleet'],
+          ['@virtualizationMgmt', '@fleet'],
           ['@generic', '@globalSettings'],
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
@@ -126,6 +126,10 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
+      - name: Debug test matrix
+        run: |
+          echo "Running tests with username=${{ matrix.role.username }}"
+          echo "Features: ${{ matrix.features }}"
       - name: Run user tests
         run: |
           yarn e2e:prod
