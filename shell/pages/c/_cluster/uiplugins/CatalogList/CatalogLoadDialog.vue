@@ -128,6 +128,7 @@ export default {
       ...initialState(),
       secondaryResourceData: null,
       showModal:             false,
+      returnFocusSelector:   '[data-testid="extensions-catalog-load-dialog"]'
     };
   },
 
@@ -435,6 +436,7 @@ export default {
     height="auto"
     :scrollable="true"
     :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
     @close="closeDialog()"
   >
     <Loading

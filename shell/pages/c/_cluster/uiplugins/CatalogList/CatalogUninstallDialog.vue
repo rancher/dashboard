@@ -23,7 +23,11 @@ export default {
 
   data() {
     return {
-      catalog: undefined, busy: false, plugins: null, showModal: false,
+      catalog:             undefined,
+      busy:                false,
+      plugins:             null,
+      showModal:           false,
+      returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]'
     };
   },
 
@@ -122,6 +126,7 @@ export default {
     height="auto"
     :scrollable="true"
     :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
     @close="closeDialog(false)"
   >
     <div

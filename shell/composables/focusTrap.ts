@@ -5,7 +5,25 @@
 import { watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { createFocusTrap, FocusTrap } from 'focus-trap';
 
-export const DEFAULT_FOCUS_TRAP_OPTS = { escapeDeactivates: true, allowOutsideClick: true };
+export function getFirstFocusableElement(element:any = document):any {
+  const focusableElements = element.querySelectorAll(
+    'a, button, input, textarea, select, details,[tabindex]:not([tabindex="-1"])'
+  );
+  const filteredFocusableElements:any = [];
+
+  focusableElements.forEach((el:any) => {
+    if (!el.hasAttribute('disabled')) {
+      filteredFocusableElements.push(el);
+    }
+  });
+
+  return filteredFocusableElements.length ? filteredFocusableElements[0] : document.body;
+}
+
+export const DEFAULT_FOCUS_TRAP_OPTS = {
+  escapeDeactivates: true,
+  allowOutsideClick: true
+};
 
 export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
   let focusTrapInstance: FocusTrap;

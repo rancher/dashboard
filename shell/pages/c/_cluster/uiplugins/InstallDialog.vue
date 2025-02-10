@@ -74,6 +74,10 @@ export default {
 
     chartVersionLoadsWithoutAuth() {
       return this.chartVersionInfo?.values?.plugin?.noAuth;
+    },
+
+    returnFocusSelector() {
+      return `[data-testid="extension-card-${ this.mode }-btn-${ this.plugin?.name }"]`;
     }
   },
 
@@ -252,6 +256,8 @@ export default {
     height="auto"
     :scrollable="true"
     :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
+    :return-focus-first-iterable-node-selector="'#extensions-main-page'"
     @close="closeDialog(false)"
   >
     <div

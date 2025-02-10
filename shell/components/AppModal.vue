@@ -1,6 +1,8 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
+import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
+
+const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
 export default defineComponent({
   name: 'AppModal',
@@ -66,11 +68,18 @@ export default defineComponent({
       default: false,
     },
     /**
-     * forcefully set return focus element
+     * forcefully set return focus element based on this selector
      */
-    returnFocus: {
+    returnFocusSelector: {
       type:    String,
       default: '',
+    },
+    /**
+     * will return focus to the first iterable node of this container select
+     */
+    returnFocusFirstIterableNodeSelector: {
+      type:    String,
+      default: DEFAULT_ITERABLE_NODE_SELECTOR,
     }
   },
   computed: {
@@ -104,12 +113,24 @@ export default defineComponent({
     if (props.triggerFocusTrap) {
       let opts:any = DEFAULT_FOCUS_TRAP_OPTS;
 
-      if (props.returnFocus) {
+      // if we have a "returnFocusFirstIterableNodeSelector" on top of "returnFocusSelector"
+      // then we will use "returnFocusFirstIterableNodeSelector" as a fallback of "returnFocusSelector"
+      if (props.returnFocusFirstIterableNodeSelector && props.returnFocusFirstIterableNodeSelector !== DEFAULT_ITERABLE_NODE_SELECTOR && props.returnFocusSelector) {
         opts = {
           ...DEFAULT_FOCUS_TRAP_OPTS,
-          setReturnFocus: props.returnFocus
+          setReturnFocus: () => {
+            return document.querySelector(props.returnFocusSelector) ? props.returnFocusSelector : getFirstFocusableElement(document.querySelector(props.returnFocusFirstIterableNodeSelector));
+          }
+        };
+      // otherwise, if we are sure of permanent existance of "returnFocusSelector"
+      // we just return to that element
+      } else if (props.returnFocusSelector) {
+        opts = {
+          ...DEFAULT_FOCUS_TRAP_OPTS,
+          setReturnFocus: props.returnFocusSelector
         };
       }
+
       useBasicSetupFocusTrap('#modal-container-element', opts);
     }
   },

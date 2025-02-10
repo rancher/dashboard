@@ -627,7 +627,10 @@ export default {
 </script>
 
 <template>
-  <div class="plugins">
+  <div
+    id="extensions-main-page"
+    class="plugins"
+  >
     <div class="plugin-header">
       <!-- catalog view header -->
       <template v-if="showCatalogList">
@@ -819,6 +822,7 @@ export default {
             <!-- extension card! -->
             <div
               v-for="(plugin, i) in list"
+              :id="`list-item-${i}`"
               :key="i"
               class="plugin"
               :data-testid="`extension-card-${plugin.name}`"
