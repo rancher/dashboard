@@ -2,23 +2,19 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
-import IconOrSvg from '@shell/components/IconOrSvg';
 import { isAlternate } from '@shell/utils/platform';
-import {
-  RcDropdown,
-  RcDropdownItem,
-  RcDropdownSeparator,
-  RcDropdownTrigger
-} from '@components/RcDropdown';
+import { RcDropdownMenu } from '@components/RcDropdown';
 
 const store = useStore();
 
-const options = computed(() => store.getters['action-menu/options']);
+const options = computed(() => store.getters['action-menu/optionsArray']);
 
 const props = defineProps < { resource: Object }>();
 
-const openChanged = () => {
-  store.dispatch('action-menu/setResource', props.resource);
+const openChanged = (event: boolean) => {
+  if (event) {
+    store.dispatch('action-menu/setResource', props.resource);
+  }
 };
 
 const execute = (action: any, event: MouseEvent, args?: any) => {
@@ -55,42 +51,13 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
 </script>
 
 <template>
-  <rc-dropdown
-    :aria-label="t('nav.actionMenu.label')"
+  <rc-dropdown-menu
+    button-role="link"
+    button-size="small"
+    :button-aria-label="t('nav.actionMenu.button.label')"
+    :dropdown-aria-label="t('nav.actionMenu.label')"
+    :options="options"
     @update:open="openChanged"
-  >
-    <rc-dropdown-trigger
-      link
-      small
-      data-testid="page-actions-menu"
-      :aria-label="t('nav.actionMenu.button.label')"
-    >
-      <i class="icon icon-actions" />
-    </rc-dropdown-trigger>
-    <template #dropdownCollection>
-      <template
-        v-for="(a) in options"
-        :key="a.label"
-      >
-        <rc-dropdown-item
-          v-if="!a.divider"
-          @click="(e: MouseEvent) => execute(a, e)"
-        >
-          <template #before>
-            <IconOrSvg
-              v-if="a.icon || a.svg"
-              :icon="a.icon"
-              :src="a.svg"
-              class="icon"
-              color="header"
-            />
-          </template>
-          {{ a.labelKey ? t(a.labelKey) : a.label }}
-        </rc-dropdown-item>
-        <rc-dropdown-separator
-          v-else
-        />
-      </template>
-    </template>
-  </rc-dropdown>
+    @select="(e: MouseEvent, option: object) => execute(option, e)"
+  />
 </template>
