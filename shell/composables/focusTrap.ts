@@ -66,27 +66,3 @@ export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, f
     }
   });
 }
-
-export function useWatcherBasedSetupFocusTrap(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
-  let focusTrapInstance: FocusTrap;
-  let focusEl;
-
-  watch(watchVar, (neu) => {
-    if (neu) {
-      nextTick(() => {
-        focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
-
-        focusTrapInstance = createFocusTrap(focusEl, opts);
-        nextTick(() => {
-          focusTrapInstance.activate();
-        });
-      });
-    }
-  }, { immediate: true });
-
-  onBeforeUnmount(() => {
-    if (Object.keys(focusTrapInstance).length) {
-      focusTrapInstance.deactivate();
-    }
-  });
-}

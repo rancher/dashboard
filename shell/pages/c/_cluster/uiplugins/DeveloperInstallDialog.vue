@@ -18,12 +18,13 @@ export default {
 
   data() {
     return {
-      name:              '',
-      location:          '',
-      persist:           false,
-      canModifyName:     true,
-      canModifyLocation: true,
-      showModal:         false,
+      name:                '',
+      location:            '',
+      persist:             false,
+      canModifyName:       true,
+      canModifyLocation:   true,
+      showModal:           false,
+      returnFocusSelector: '[data-testid="extensions-page-menu"]'
     };
   },
 
@@ -155,6 +156,7 @@ export default {
     height="auto"
     :scrollable="true"
     :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
     @close="closeDialog()"
   >
     <div class="plugin-install-dialog">

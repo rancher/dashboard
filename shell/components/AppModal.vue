@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue';
 import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
 
-const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
+export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
 export default defineComponent({
   name: 'AppModal',

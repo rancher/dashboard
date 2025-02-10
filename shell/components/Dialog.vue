@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
+import AppModal, { DEFAULT_ITERABLE_NODE_SELECTOR } from '@shell/components/AppModal.vue';
 
 export default {
   emits: ['okay', 'closed'],
@@ -21,6 +21,22 @@ export default {
     mode: {
       type:    String,
       default: '',
+    },
+
+    /**
+     * forcefully set return focus element based on this selector
+     */
+    returnFocusSelector: {
+      type:    String,
+      default: '',
+    },
+
+    /**
+     * will return focus to the first iterable node of this container select
+     */
+    returnFocusFirstIterableNodeSelector: {
+      type:    String,
+      default: DEFAULT_ITERABLE_NODE_SELECTOR,
     }
   },
 
@@ -61,6 +77,8 @@ export default {
     height="auto"
     :scrollable="true"
     :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
+    :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
     @close="closeDialog(false)"
     @before-open="beforeOpen"
   >
