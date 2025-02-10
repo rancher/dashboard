@@ -173,7 +173,7 @@ export default {
   $loadingResources() {
     // results are filtered so we wouldn't get the correct count on indicator...
     return { loadIndeterminate: true };
-  },
+  }
 
 };
 </script>

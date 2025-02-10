@@ -268,8 +268,6 @@ export default {
             return this.selectedSubType.emberLink;
           }
 
-          // this.selectType(this.subType, false);
-
           return '';
         }
 
@@ -385,24 +383,23 @@ export default {
 
           addType(this.$plugin, 'custom', 'custom2', false);
         }
-      }
 
-      // TODO nb should this be outside the above else block??
-      // Add from extensions
-      this.extensions.forEach((ext) => {
+        // Add from extensions
+        this.extensions.forEach((ext) => {
         // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
         // default group is rke2
-        if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
-          return;
-        }
-        // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
-        if (isImport && !ext.showImport) {
-          return;
-        }
-        // Allow extensions to overwrite provisioners with the same id
-        out = out.filter((type) => type.id !== ext.id);
-        addExtensionType(ext, getters);
-      });
+          if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
+            return;
+          }
+          // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
+          if (isImport && !ext.showImport) {
+            return;
+          }
+          // Allow extensions to overwrite provisioners with the same id
+          out = out.filter((type) => type.id !== ext.id);
+          addExtensionType(ext, getters);
+        });
+      }
 
       return out;
 
