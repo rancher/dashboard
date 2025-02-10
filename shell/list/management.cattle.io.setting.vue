@@ -110,6 +110,7 @@ export default {
         >
           <action-menu
             :resource="setting.data"
+            :button-aria-label="t('advancedSettings.edit.label')"
             button-role="tertiary"
           />
         </div>
