@@ -170,10 +170,6 @@ export default {
     } catch (e) {
       console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
     }
-
-    if (this.value.id) {
-      this.initializeType();
-    }
   },
 
   data() {
@@ -216,19 +212,67 @@ export default {
     _RKE2: () => _RKE2,
 
     emberLink() {
-      // TODO nb only not-rke2?
-      if (this.value && !this.value.isRke2) {
-        // if subtype is selected, use that to determine which ui to show
-        if (this.subType) {
-          // don't load an iframed ember page if a ui extension has a component for this cluster type
-          if (this.selectedSubType?.emberLink && !this.selectedSubType?.component) {
-            return this.selectedSubType.emberLink;
+      if (this.value) {
+        // for imported and local clusters, set subtype using properties from prov cluster model
+        //
+        if (this.value.isImported) {
+          this.selectType(IMPORTED, false);
+        } else if (this.value.isLocal) {
+          this.selectType(LOCAL, false);
+        }
+
+        // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
+        if (this.value.provisioner) {
+          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+
+          if (matchingSubtype) {
+            this.selectType(matchingSubtype.id, false);
           }
+        }
+
+        // subType set by the ui during cluster creation
+        // this is likely from a ui extension trying to load custom ui to edit the cluster
+        const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
+        if (fromAnnotation) {
+          this.selectType(fromAnnotation, false);
+
+          return '';
+        }
+        // For custom RKE2 clusters, don't load an Ember page.
+        // It should be the dashboard.
+        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
+          // For admins, this.value.isCustom is used to check if it is a custom cluster.
+          // For cluster owners, this.subtype is used.
+          this.selectType('custom', false);
+
+          return '';
+        }
+        // For existing RKE2/K3s clusters provisioned in Rancher,
+        // set the subtype using the machine pool provisioner
+        // do not use an iFramed Ember page.
+        if ( this.value.isRke2 && this.value.machineProvider ) {
+          this.selectType(this.value.machineProvider, false);
 
           return '';
         }
 
-        // if subtype is not set, fall back to using the old edit page for the associated norman cluster object
+        if ( this.subType ) {
+          // if driver type has a custom form component, don't load an ember page
+          if (this.selectedSubType?.component) {
+            return '';
+          }
+          // For RKE1 and hosted Kubernetes Clusters, set the ember link
+          // so that we load the page rather than using RKE2 create
+          if (this.selectedSubType?.emberLink) {
+            return this.selectedSubType.emberLink;
+          }
+
+          // this.selectType(this.subType, false);
+
+          return '';
+        }
+
         if ( this.value.mgmt?.emberEditPath ) {
           // Iframe an old page
           return this.value.mgmt.emberEditPath;
@@ -341,23 +385,24 @@ export default {
 
           addType(this.$plugin, 'custom', 'custom2', false);
         }
-
-        // Add from extensions
-        this.extensions.forEach((ext) => {
-          // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
-          // default group is rke2
-          if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
-            return;
-          }
-          // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
-          if (isImport && !ext.showImport) {
-            return;
-          }
-          // Allow extensions to overwrite provisioners with the same id
-          out = out.filter((type) => type.id !== ext.id);
-          addExtensionType(ext, getters);
-        });
       }
+
+      // TODO nb should this be outside the above else block??
+      // Add from extensions
+      this.extensions.forEach((ext) => {
+        // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
+        // default group is rke2
+        if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
+          return;
+        }
+        // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
+        if (isImport && !ext.showImport) {
+          return;
+        }
+        // Allow extensions to overwrite provisioners with the same id
+        out = out.filter((type) => type.id !== ext.id);
+        addExtensionType(ext, getters);
+      });
 
       return out;
 
@@ -527,69 +572,6 @@ export default {
 
     colorFor(obj) {
       return `color${ SORT_GROUPS[obj.group] || 1 }`;
-    },
-
-    /**
-     * CruResource uses 'subTypes' to show a card-picker step
-     * in this form subTypes are a list of the different cluster provisioning UI available
-     * during creation subType is set when the user clicks a card
-     * during edit subType needs to be programatically set so cruresource loads the correct provisioning form
-     */
-    initializeType() {
-      // subType was explicitly set by query string
-      if (this.subType) {
-        return;
-      }
-
-      // subType set by the ui during cluster creation
-      // this is likely from a ui extension trying to load custom ui to edit the cluster
-      const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
-
-      if (fromAnnotation) {
-        this.selectType(fromAnnotation, false);
-
-        return;
-      }
-
-      // set subtype if editing EKS/GKE/AKS cluster
-      // we need to map between the id of the kontainer driver (which may provide UI) and the machine provisioner determined from cluster spec
-      if (this.value.provisioner) {
-        const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
-
-        // const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase() || st.id.toLowerCase() === this.value.provisioner.toLowerCase());
-
-        if (matchingSubtype) {
-          this.selectType(matchingSubtype.id, false);
-
-          return;
-        }
-      }
-
-      // imported, local, custom clusters set subtype using properties computed on provisioning model
-      if (this.value.isImported) {
-        this.selectType(IMPORTED, false);
-
-        return;
-      }
-
-      if (this.value.isLocal) {
-        this.selectType(LOCAL, false);
-
-        return;
-      }
-
-      if (this.value.isRke2 && this.value.isCustom) {
-        if (this.mode === _EDIT || (this.as === _CONFIG && this.mode === _VIEW)) {
-          this.selectType('custom', false);
-
-          return;
-        }
-      }
-
-      // select a subtype based off machine type
-      if (!this.value.isRke1 && this.value.machineProvider ) {
-        this.selectType(this.value.machineProvider, false);
-      }
     },
 
     clickedType(obj) {

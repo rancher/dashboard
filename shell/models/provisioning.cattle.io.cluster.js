@@ -988,17 +988,7 @@ export default class ProvCluster extends SteveModel {
 
   get groupByParent() {
     // Customer helper can report if the cluster has a parent cluster
-    return this.customProvisionerHelper?.parentCluster?.(this);
-  }
-
-  get groupByLabel() {
-    const name = this.groupByParent;
-
-    if (name) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInACluster');
-    }
+    return this.customProvisionerHelper?.parentCluster?.(this) || this.t('resourceTable.groupLabel.NotInACluster');
   }
 
   get hasError() {

@@ -170,17 +170,6 @@ export default {
     }
   },
 
-  methods: {
-    groupDetails(clusterId) {
-    // find capi cluster?
-      const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-      console.log('*** cluster from id', cluster);
-
-      return cluster ? { to: cluster.detailLocation, label: cluster.nameDisplay } : {};
-    }
-  },
-
   $loadingResources() {
     // results are filtered so we wouldn't get the correct count on indicator...
     return { loadIndeterminate: true };
@@ -241,15 +230,6 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :sub-rows="true"
     >
-      <template #group-by="{group}">
-        <div class="group-bar">
-          <div class="group-tab">
-            <span v-if="group.key"> Host Cluster: <router-link :to="groupDetails(group.key).to">{{ groupDetails(group.key).label }}</router-link> </span>
-            <span v-else>Hosts</span>
-          </div>
-        </div>
-      </template>
-
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
       <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
