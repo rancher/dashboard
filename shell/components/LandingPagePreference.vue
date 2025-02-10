@@ -116,6 +116,7 @@ export default {
       <template #2="{option}">
         <div class="custom-page">
           <RadioButton
+            id="take-me-to-cluster"
             :label="option.label"
             :val="false"
             :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
@@ -124,6 +125,7 @@ export default {
           />
           <Select
             v-model:value="routeFromDropdown"
+            aria-labelledby="take-me-to-cluster"
             :searchable="true"
             :disabled="afterLoginRoute === 'home' || afterLoginRoute === 'last-visited'"
             :clearable="false"

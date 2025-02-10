@@ -116,7 +116,8 @@ export default {
   data() {
     return {
       selectedVisibility: 'visible',
-      shouldOpen:         true
+      shouldOpen:         true,
+      uid:                this.generateRandomAlphaString(10)
     };
   },
 
@@ -152,6 +153,9 @@ export default {
   },
 
   methods: {
+    generateRandomAlphaString(length) {
+      return Array.from({ length }, () => String.fromCharCode(97 + Math.random() * 26 | 0)).join('');
+    },
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {
@@ -302,7 +306,10 @@ export default {
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :id="`labeled-select-uid-${uid}`"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -317,6 +324,7 @@ export default {
     </div>
     <v-select
       ref="select-input"
+      :aria-labelledby="hasLabel ? `labeled-select-uid-${uid}` : ''"
       v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -337,6 +345,7 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
+      role="listbox"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
