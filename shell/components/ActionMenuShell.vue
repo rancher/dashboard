@@ -4,12 +4,22 @@ import { useStore } from 'vuex';
 
 import { isAlternate } from '@shell/utils/platform';
 import { RcDropdownMenu } from '@components/RcDropdown';
+import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
 
 const store = useStore();
 
 const options = computed(() => store.getters['action-menu/optionsArray']);
 
-const props = defineProps < { resource: Object }>();
+type RcDropdownMenuComponentProps = {
+  buttonRole?: keyof ButtonRoleProps;
+  buttonSize?: keyof ButtonSizeProps;
+  buttonAriaLabel?: string;
+  dropdownAriaLabel?: string;
+  testId?: string;
+  resource: Object;
+}
+
+const props = defineProps <RcDropdownMenuComponentProps>();
 
 const openChanged = (event: boolean) => {
   if (event) {
@@ -52,10 +62,10 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
 
 <template>
   <rc-dropdown-menu
-    button-role="link"
-    button-size="small"
-    :button-aria-label="t('nav.actionMenu.button.label')"
-    :dropdown-aria-label="t('nav.actionMenu.label')"
+    :button-role="buttonRole || 'link'"
+    :button-size="buttonSize || 'small'"
+    :button-aria-label="buttonAriaLabel"
+    :dropdown-aria-label="dropdownAriaLabel"
     :options="options"
     @update:open="openChanged"
     @select="(e: MouseEvent, option: object) => execute(option, e)"

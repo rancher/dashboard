@@ -108,7 +108,10 @@ export default {
           v-if="setting.hasActions"
           class="action"
         >
-          <action-menu :resource="setting.data" />
+          <action-menu
+            :resource="setting.data"
+            button-role="tertiary"
+          />
         </div>
       </div>
       <div value>

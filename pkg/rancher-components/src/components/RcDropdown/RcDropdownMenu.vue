@@ -5,37 +5,17 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
+import { RcDropdownMenuComponentProps, DropdownOption } from './types';
 import IconOrSvg from '@shell/components/IconOrSvg';
 
-type DropdownOption = {
-  action?: string;
-  divider?: boolean;
-  enabled: boolean;
-  icon?: string;
-  svg?: string;
-  label?: string;
-  total: number;
-  allEnabled: boolean;
-  anyEnabled: boolean;
-  available: number;
-  bulkable?: boolean;
-  bulkAction?: string;
-  altAction?: string;
-  weight?: number;
-}
-
-type ComponentProps = {
-  options: DropdownOption[];
-  buttonRole?: keyof ButtonRoleProps;
-  buttonSize?: keyof ButtonSizeProps;
-  buttonAriaLabel?: string;
-  dropdownAriaLabel?: string;
-}
-
-const { buttonRole = 'primary' } = defineProps<ComponentProps>();
+// eslint-disable-next-line vue/no-setup-props-destructure
+const { buttonRole = 'primary', buttonSize = '' } = defineProps<RcDropdownMenuComponentProps>();
 
 const emit = defineEmits(['update:open', 'select']);
+
+const hasOptions = (options: DropdownOption[]) => {
+  return options.length !== undefined ? options.length : Object.keys(options).length > 0;
+};
 </script>
 
 <template>
@@ -75,6 +55,12 @@ const emit = defineEmits(['update:open', 'select']);
           v-else
         />
       </template>
+      <rc-dropdown-item
+        v-if="!hasOptions(options)"
+        disabled
+      >
+        No actions available
+      </rc-dropdown-item>
     </template>
   </rc-dropdown>
 </template>
