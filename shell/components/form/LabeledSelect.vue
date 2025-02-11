@@ -291,7 +291,8 @@ export default {
     ]"
     :tabindex="isView || disabled ? -1 : 0"
     @click="focusSearch"
-    @keydown.enter.space.down="focusSearch"
+    @keydown.enter.down="focusSearch"
+    @keydown.space.prevent="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
