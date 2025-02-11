@@ -12,6 +12,8 @@ kubectl get nodes
 
 node -v
 
+env
+
 yarn config set ignore-engines true
 
 yarn add -W mocha cypress-mochawesome-reporter cypress-multi-reporters cypress-commands \
