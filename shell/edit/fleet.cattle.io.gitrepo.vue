@@ -26,6 +26,9 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
+import UnitInput from '@shell/components/form/UnitInput';
+
+const DEFAULT_POLLING_INTERVAL = 15;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -51,6 +54,7 @@ export default {
     NameNsDescription,
     YamlEditor,
     SelectOrCreateAuthSecret,
+    UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -92,6 +96,7 @@ export default {
   },
 
   data() {
+    const pollingInterval = this.value.spec.pollingInterval || DEFAULT_POLLING_INTERVAL;
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
@@ -144,6 +149,7 @@ export default {
       correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
+      pollingInterval,
       ref,
       refValue,
       targetMode,
@@ -263,6 +269,16 @@ export default {
         { label: this.t('fleet.gitRepo.tls.specify'), value: _SPECIFY },
         { label: this.t('fleet.gitRepo.tls.skip'), value: _SKIP },
       ];
+    },
+
+    showPollingIntervalWarning() {
+      const isVisible = !this.isView && this.pollingInterval < DEFAULT_POLLING_INTERVAL;
+
+      if (isVisible) {
+        this.scrollToBottom();
+      }
+
+      return isVisible;
     },
 
     stepOneRequires() {
@@ -512,6 +528,26 @@ export default {
       }
     },
 
+    updatePollingInterval(value) {
+      if (!value || value === DEFAULT_POLLING_INTERVAL) {
+        delete this.value.spec.pollingInterval;
+
+        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+      } else {
+        this.value.spec.pollingInterval = value.toString();
+      }
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const scrollable = document.getElementsByTagName('main')[0];
+
+        if (scrollable) {
+          scrollable.scrollTop = scrollable.scrollHeight;
+        }
+      });
+    },
+
     onSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
@@ -694,6 +730,29 @@ export default {
         :add-label="t('fleet.gitRepo.paths.addLabel')"
         :protip="t('fleet.gitRepo.paths.empty')"
       />
+
+      <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.syncronization.label'" />
+      <div class="row">
+        <div class="col span-6">
+          <Banner
+            v-if="showPollingIntervalWarning"
+            color="warning"
+            label-key="fleet.gitRepo.syncronization.pollingInterval.warning"
+            data-testid="GitRepo-pollingInterval-warning"
+          />
+          <UnitInput
+            v-model:value="pollingInterval"
+            data-testid="GitRepo-pollingInterval-input"
+            min="1"
+            :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
+            :label="t('fleet.gitRepo.syncronization.pollingInterval.label')"
+            :mode="mode"
+            tooltip-key="fleet.gitRepo.syncronization.pollingInterval.tooltip"
+            @update:value="updatePollingInterval"
+          />
+        </div>
+      </div>
     </template>
     <template #stepTargetInfo>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
