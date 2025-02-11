@@ -109,8 +109,13 @@ export default {
             :href="field.$moreInfo"
             target="_blank"
             class="field-link"
+            role="link"
+            :aria-label="t('kubectl-explain.externalLinkInfo', { name: field.name })"
           >
-            <i class="icon icon-external-link" />
+            <i
+              class="icon icon-external-link"
+              :alt="t('kubectl-explain.externalLink')"
+            />
           </a>
         </div>
         <div
@@ -134,16 +139,22 @@ export default {
           <div
             v-if="field.$refName"
             class="field-type field-expander"
+            tabindex="0"
+            role="button"
+            :aria-expanded="expanded[field.name]"
             @click="expand(field.name)"
+            @keyup.enter.space="expand(field.name)"
           >
             {{ field.$refNameShort }}
             <i
               v-if="!expanded[field.name]"
               class="icon icon-chevron-down"
+              :alt="t('kubectl-explain.areaCollapsed')"
             />
             <i
               v-else
               class="icon icon-chevron-up"
+              :alt="t('kubectl-explain.areaExpanded')"
             />
           </div>
           <div
@@ -166,14 +177,20 @@ export default {
           <a
             href="#"
             class="sub-type-link"
+            role="button"
+            :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: field.$refName })"
             @click="navigate(field.$breadcrumbs)"
+            @keyup.enter.space="navigate(field.$breadcrumbs)"
           >
             {{ field.$refName }}
           </a>
           <a
             href="#"
             class="sub-type-link"
+            role="button"
+            :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: field.$refName })"
             @click="navigate(field.$breadcrumbs)"
+            @keyup.enter.space="navigate(field.$breadcrumbs)"
           >
             <i class="sub-name-goto icon icon-upload" />
           </a>
@@ -298,6 +315,11 @@ export default {
       background-color: var(--link);
       color: var(--link-text);
       cursor: pointer;
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
     }
   }
 </style>

@@ -1,4 +1,12 @@
 kubectl-explain:
+  externalLink: External link
+  areaExpanded: area expanded
+  areaCollapsed: area collapsed
+  externalLinkInfo: External link for resource {name} information
+  errorLoading: Error loading information
+  informationLoading: Information loading
+  navigateToBreadcrumb: Navigate to breadcrumb {breadcrumb}
+  scrollToTop: Scroll to top
   action: "Explain ..."
   errors:
     load: Could not load the Open API data from the cluster
