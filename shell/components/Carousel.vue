@@ -44,7 +44,7 @@ export default {
       autoScroll:              true,
       autoScrollSlideInterval: null,
       isTransitionning:        false, // prevents showing empty spaces caused by aggressive clicking
-      shouldDisableTransition: false // smoothes the move from the first/last slides to the previous/last slide
+      shouldDisableTransition: false // smoothes the move from the first/last slides to the previous/next slide
     };
   },
 
@@ -54,16 +54,16 @@ export default {
       if (this.slider.length === 1) {
         return `
           width: 100%;
-          left: 0;
+          left: 0%;
         `;
       }
 
       const width = 60 * (this.slider.length + 2);
-      const left = this.activeItemId * 60;
+      const left = -(40 + this.activeItemId * 60);
 
       return `
         width: ${ width }%;
-        left: calc(-40% - ${ left }%);
+        left: ${ left }%;
         transition: ${ this.shouldDisableTransition ? 'none' : '700ms ease-in-out' };
       `;
     }
