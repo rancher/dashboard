@@ -256,7 +256,7 @@ export default {
     }"
     :tabindex="disabled || isView ? -1 : 0"
     @click="focusSearch"
-    @keyup.enter.space.down="focusSearch"
+    @keydown.enter.space.down="focusSearch"
   >
     <v-select
       ref="select-input"

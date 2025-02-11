@@ -364,6 +364,7 @@ export default defineComponent({
       <input
         v-else
         ref="value"
+        role="textbox"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :maxlength="_maxlength"

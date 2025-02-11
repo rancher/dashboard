@@ -35,6 +35,7 @@ const {
   setFocus,
   provideDropdownContext,
   registerDropdownCollection,
+  handleKeydown,
 } = useDropdownContext();
 
 provideDropdownContext();
@@ -68,10 +69,14 @@ const applyShow = () => {
     <template #popper>
       <div
         ref="dropdownTarget"
+        class="dropdownTarget"
+        tabindex="-1"
         role="menu"
         aria-orientation="vertical"
         dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
+        @keydown="handleKeydown"
+        @keydown.down="setFocus()"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
@@ -106,6 +111,12 @@ const applyShow = () => {
           padding: 10px 0 10px 0;
         }
       }
+    }
+  }
+
+  .dropdownTarget {
+    &:focus-visible, &:focus {
+      outline: none;
     }
   }
 </style>

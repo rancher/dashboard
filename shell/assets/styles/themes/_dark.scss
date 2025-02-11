@@ -72,7 +72,7 @@
   --banner-text-color          : #{$lightest};
 
   --nav-bg                     : #{$darkest};
-  --nav-active                 : var(--primary-active-bg);
+  --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : var(--primary);
   --nav-expander-hover         : var(--primary-banner-bg);

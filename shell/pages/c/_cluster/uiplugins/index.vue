@@ -627,8 +627,12 @@ export default {
 </script>
 
 <template>
-  <div class="plugins">
+  <div
+    id="extensions-main-page"
+    class="plugins"
+  >
     <div class="plugin-header">
+      <!-- catalog view header -->
       <template v-if="showCatalogList">
         <div class="catalog-title">
           <h2
@@ -637,6 +641,9 @@ export default {
           >
             <a
               class="link"
+              role="link"
+              tabindex="0"
+              :aria-label="t('plugins.manageCatalog.title')"
               @click="manageExtensionView()"
             >
               {{ t('plugins.manageCatalog.title') }}:
@@ -650,6 +657,7 @@ export default {
           />
         </div>
       </template>
+      <!-- normal extensions view header -->
       <template v-else>
         <h2 data-testid="extensions-page-title">
           <TabTitle breadcrumb="vendor-only">
@@ -658,6 +666,7 @@ export default {
         </h2>
       </template>
       <div class="actions-container">
+        <!-- extensions reload toast/notification -->
         <div
           v-if="reloadRequired"
           class="plugin-reload-banner mr-20"
@@ -670,11 +679,14 @@ export default {
           <button
             class="ml-10 btn btn-sm role-primary"
             data-testid="extension-reload-banner-reload-btn"
+            role="button"
+            :aria-label="t('plugins.labels.reloadRancher')"
             @click="reload()"
           >
             {{ t('generic.reload') }}
           </button>
         </div>
+        <!-- extensions menu -->
         <div v-if="hasFeatureFlag && hasMenuActions">
           <button
             ref="actions"
@@ -682,6 +694,8 @@ export default {
             type="button"
             class="btn role-multi-action actions"
             data-testid="extensions-page-menu"
+            role="button"
+            :aria-label="t('plugins.labels.menu')"
             @click="setMenu"
           >
             <i class="icon icon-actions" />
@@ -702,8 +716,10 @@ export default {
       </div>
     </div>
 
+    <!-- extensions slide-in panel -->
     <PluginInfoPanel ref="infoPanel" />
 
+    <!-- extensions not enabled by feature flag -->
     <div v-if="!hasFeatureFlag">
       <div
         v-if="loading"
@@ -724,6 +740,7 @@ export default {
       />
     </div>
     <div v-else>
+      <!-- Extension Catalog list view -->
       <template v-if="showCatalogList">
         <CatalogList
           @showCatalogLoadDialog="showCatalogLoadDialog"
@@ -741,6 +758,8 @@ export default {
           <button
             class="ml-10 btn btn-sm role-primary"
             data-testid="extensions-new-repos-banner-action-btn"
+            role="button"
+            :aria-label="t('plugins.addRepos.bannerBtn')"
             @click="showAddExtensionReposDialog()"
           >
             {{ t('plugins.addRepos.bannerBtn') }}
@@ -800,14 +819,20 @@ export default {
             :message="emptyMessage"
           />
           <template v-else>
+            <!-- extension card! -->
             <div
               v-for="(plugin, i) in list"
+              :id="`list-item-${i}`"
               :key="i"
               class="plugin"
               :data-testid="`extension-card-${plugin.name}`"
+              role="button"
+              tabindex="0"
+              :aria-label="plugin.name || ''"
               @click="showPluginDetail(plugin)"
+              @keyup.enter.space="showPluginDetail(plugin)"
             >
-              <!-- plugin icon -->
+              <!-- extension icon -->
               <div
                 class="plugin-icon"
                 :class="applyDarkModeBg"
@@ -825,13 +850,14 @@ export default {
                   class="icon plugin-icon-img"
                 >
               </div>
-              <!-- plugin card -->
+              <!-- extension card -->
               <div class="plugin-metadata">
-                <!-- plugin basic info -->
+                <!-- extension basic info -->
                 <div class="plugin-name">
                   {{ plugin.label }}
                 </div>
                 <div>{{ plugin.description }}</div>
+                <!-- extension version info and error display -->
                 <div class="plugin-version">
                   <span
                     v-if="plugin.installing"
@@ -858,7 +884,7 @@ export default {
                     >{{ plugin.incompatibilityMessage }}</p>
                   </span>
                 </div>
-                <!-- plugin badges -->
+                <!-- extension badges -->
                 <div
                   v-if="plugin.builtin"
                   class="plugin-badges"
@@ -885,9 +911,9 @@ export default {
                   </div>
                 </div>
                 <div class="plugin-spacer" />
-                <!-- plugin badges -->
+                <!-- extension actions -->
                 <div class="plugin-actions">
-                  <!-- plugin status -->
+                  <!-- extension status -->
                   <div
                     v-if="plugin.helmError"
                     v-clean-tooltip="t('plugins.helmError')"
@@ -910,7 +936,7 @@ export default {
                       {{ t('plugins.labels.uninstalling') }}
                     </div>
                   </div>
-                  <!-- plugin buttons -->
+                  <!-- extension buttons -->
                   <div
                     v-else-if="plugin.installed"
                     class="plugin-buttons"
@@ -919,7 +945,10 @@ export default {
                       v-if="!plugin.builtin"
                       class="btn role-secondary"
                       :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
-                      @click="showUninstallDialog(plugin, $event)"
+                      role="button"
+                      :aria-label="t('plugins.uninstall.label')"
+                      @click.stop="showUninstallDialog(plugin, $event)"
+                      @keyup.space.stop="showUninstallDialog(plugin, $event)"
                     >
                       {{ t('plugins.uninstall.label') }}
                     </button>
@@ -927,7 +956,10 @@ export default {
                       v-if="plugin.upgrade"
                       class="btn role-secondary"
                       :data-testid="`extension-card-update-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'update', $event)"
+                      role="button"
+                      :aria-label="t('plugins.update.label')"
+                      @click.stop="showInstallDialog(plugin, 'update', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'update', $event)"
                     >
                       {{ t('plugins.update.label') }}
                     </button>
@@ -935,7 +967,10 @@ export default {
                       v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
                       class="btn role-secondary"
                       :data-testid="`extension-card-rollback-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'rollback', $event)"
+                      role="button"
+                      :aria-label="t('plugins.rollback.label')"
+                      @click.stop="showInstallDialog(plugin, 'rollback', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'rollback', $event)"
                     >
                       {{ t('plugins.rollback.label') }}
                     </button>
@@ -947,7 +982,10 @@ export default {
                     <button
                       class="btn role-secondary"
                       :data-testid="`extension-card-install-btn-${plugin.name}`"
-                      @click="showInstallDialog(plugin, 'install', $event)"
+                      role="button"
+                      :aria-label="t('plugins.install.label')"
+                      @click.stop="showInstallDialog(plugin, 'install', $event)"
+                      @keyup.space.stop="showInstallDialog(plugin, 'install', $event)"
                     >
                       {{ t('plugins.install.label') }}
                     </button>

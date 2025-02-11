@@ -9,8 +9,8 @@ import { DropdownContext, defaultContext } from './types';
 const {
   showMenu,
   registerTrigger,
-  focusFirstElement,
   isMenuOpen,
+  handleKeydown,
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const dropdownTrigger = useTemplateRef<RcButtonType>('dropdownTrigger');
@@ -32,8 +32,7 @@ defineExpose({ focus });
     role="button"
     aria-haspopup="menu"
     :aria-expanded="isMenuOpen"
-    @keydown.down="focusFirstElement"
-    @keydown.escape="showMenu(false)"
+    @keydown.enter.space="handleKeydown"
     @click="showMenu(true)"
   >
     <slot name="default">

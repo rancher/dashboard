@@ -117,6 +117,10 @@ generic:
         }
   basic: Basic
 
+  ariaLabel:
+    key: Key {index}
+    value: Value {index}
+
 locale:
   menu: Locale selector menu
   en-us: English
@@ -4376,6 +4380,8 @@ plugins:
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
+  closePluginPanel: Close plugin description panel
+  viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4383,6 +4389,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    menu: Extensions menu
+    reloadRancher: Reload Rancher
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
