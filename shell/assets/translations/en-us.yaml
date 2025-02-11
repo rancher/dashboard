@@ -16,6 +16,7 @@ generic:
   comingSoon: Coming Soon
   comma: ', '
   copy: Copy
+  copyToClipboard: Copy text to Clipboard
   create: Create
   created: Created
   customize: Customize
