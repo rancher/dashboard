@@ -167,6 +167,10 @@ export default {
         expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
         expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
       };
+    },
+
+    showRke1DeprecationWarning() {
+      return this.rows.some((r) => r.isRke1);
     }
   },
 
@@ -179,6 +183,12 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="showRke1DeprecationWarning"
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
+
     <Banner
       v-if="hiddenHarvesterCount"
       color="info"
