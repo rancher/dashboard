@@ -2388,20 +2388,20 @@ fleet:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default.  To use one or more different directories, add them here.
+      empty: The root of the repo is used by default. Multiple different directories can be provided.
     repo:
+      title: Source
       label: Repository URL
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
-      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
       keepResources: Always Keep Resources
-      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
-      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
+      correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     add:
       steps:
         repoInfo:
