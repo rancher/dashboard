@@ -1080,6 +1080,7 @@ export default {
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
                 @click="applyTableAction(act, null, $event)"
+                @keydown.enter.stop
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
