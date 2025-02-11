@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, useTemplateRef, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -42,7 +42,14 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 export default {
   name: 'SortableTable',
 
-  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change', 'selection', 'rowClick'],
+  emits: [
+    'clickedActionButton',
+    'pagination-changed',
+    'group-value-change',
+    'selection',
+    'rowClick',
+    'enter',
+  ],
 
   components: {
     THead,
@@ -517,6 +524,23 @@ export default {
       },
       immediate: true
     },
+  },
+  setup(_props, { emit }) {
+    const table = useTemplateRef('table');
+
+    const handleEnterKey = (event) => {
+      if (event.key === 'Enter' && !event.target?.classList?.contains('checkbox-custom')) {
+        emit('enter', event);
+      }
+    };
+
+    onMounted(() => {
+      table.value.addEventListener('keyup', handleEnterKey);
+    });
+
+    onBeforeUnmount(() => {
+      table.value.removeEventListener('keyup', handleEnterKey);
+    });
   },
 
   created() {
@@ -1221,6 +1245,7 @@ export default {
       </div>
     </div>
     <table
+      ref="table"
       class="sortable-table"
       :class="classObject"
       width="100%"
@@ -1299,6 +1324,7 @@ export default {
         v-for="(groupedRows) in displayRows"
         v-else
         :key="groupedRows.key"
+        tabindex="-1"
         :class="{ group: groupBy }"
       >
         <slot
@@ -1350,7 +1376,8 @@ export default {
                   class="row-check"
                   align="middle"
                 >
-                  {{ row.mainRowKey }}<Checkbox
+                  {{ row.mainRowKey }}
+                  <Checkbox
                     class="selection-checkbox"
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
