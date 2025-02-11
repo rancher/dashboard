@@ -24,9 +24,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="config-badge"
-  >
+  <div class="config-badge">
     <div>
       <button
         class="badge-install btn btn-sm role-secondary"
@@ -34,7 +32,6 @@ export default {
         role="button"
         tabindex="0"
         @click="customBadgeDialog"
-        @keyup.space="customBadgeDialog"
       >
         <i
           v-clean-tooltip="tooltip"
@@ -59,6 +56,10 @@ export default {
 
     > I {
       line-height: inherit;
+    }
+
+    &:focus {
+      outline: 0;
     }
   }
 
