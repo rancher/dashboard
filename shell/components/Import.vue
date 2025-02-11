@@ -121,6 +121,7 @@ export default {
     v-else
     :show-highlight-border="false"
     data-testid="import-yaml"
+    :trigger-focus-trap="true"
   >
     <template #title>
       <div style="display: block; width: 100%;">
@@ -134,6 +135,8 @@ export default {
           <div class="row">
             <div class="col span-6">
               <FileSelector
+                role="button"
+                :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
                 class="btn role-secondary pull-left"
                 :label="t('generic.readFromFile')"
                 @selected="onFileSelected"
@@ -189,6 +192,8 @@ export default {
         style="width: 100%"
       >
         <button
+          :aria-label="t('generic.close')"
+          role="button"
           type="button"
           class="btn role-primary"
           data-testid="import-yaml-close"
@@ -203,6 +208,8 @@ export default {
         style="width: 100%"
       >
         <button
+          :aria-label="t('generic.cancel')"
+          role="button"
           type="button"
           class="btn role-secondary mr-10"
           data-testid="import-yaml-cancel"
@@ -215,6 +222,7 @@ export default {
           mode="import"
           :disabled="!currentYaml.length"
           data-testid="import-yaml-import-action"
+          :aria-label="t('import.title')"
           @click="importYaml"
         />
       </div>
