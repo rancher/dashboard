@@ -9,7 +9,6 @@ import { DropdownContext, defaultContext } from './types';
 const {
   showMenu,
   registerTrigger,
-  focusFirstElement,
   isMenuOpen,
   handleKeydown,
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
@@ -34,8 +33,6 @@ defineExpose({ focus });
     aria-haspopup="menu"
     :aria-expanded="isMenuOpen"
     @keydown.enter.space="handleKeydown"
-    @keydown.down="focusFirstElement"
-    @keydown.escape="showMenu(false)"
     @click="showMenu(true)"
   >
     <slot name="default">
