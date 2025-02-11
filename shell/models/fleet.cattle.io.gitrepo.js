@@ -376,7 +376,7 @@ export default class GitRepo extends SteveModel {
 
       Object.entries(perClusterState).forEach(([state, clusterIds]) => {
         clusterIds.filter((id) => !!clusters[id]).forEach((clusterId) => {
-          acc.push(Object.assign({ clusterId, state }, resource));
+          acc.push(Object.assign({}, resource, { clusterId, state }));
         });
       });
 
