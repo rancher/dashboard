@@ -12,7 +12,12 @@ import { RcButtonType } from '@components/RcButton';
  * interactions and setting focus.
  */
 export const useDropdownContext = () => {
-  const { dropdownItems, firstDropdownItem, registerDropdownCollection } = useDropdownCollection();
+  const {
+    dropdownItems,
+    firstDropdownItem,
+    dropdownContainer,
+    registerDropdownCollection,
+  } = useDropdownCollection();
 
   const isMenuOpen = ref(false);
 
@@ -21,6 +26,9 @@ export const useDropdownContext = () => {
    * @param show - Whether to show or hide the dropdown menu.
    */
   const showMenu = (show: boolean) => {
+    if (!show) {
+      didKeydown.value = false;
+    }
     isMenuOpen.value = show;
   };
 
@@ -47,11 +55,28 @@ export const useDropdownContext = () => {
   };
 
   /**
+     * Tracks if a keydown event has occurred. Important for distinguishing keyboard
+     * events from mouse events.
+     */
+  const didKeydown = ref(false);
+
+  const handleKeydown = () => {
+    didKeydown.value = true;
+  };
+
+  /**
    * Sets focus to the first dropdown item if a keydown event has occurred.
    */
   const setFocus = () => {
     nextTick(() => {
+      if (!didKeydown.value) {
+        dropdownContainer.value?.focus();
+
+        return;
+      }
+
       firstDropdownItem.value?.focus();
+      didKeydown.value = false;
     });
   };
 
@@ -69,6 +94,7 @@ export const useDropdownContext = () => {
       focusFirstElement: () => {
         setFocus();
       },
+      handleKeydown,
     });
   };
 
@@ -79,5 +105,6 @@ export const useDropdownContext = () => {
     setFocus,
     provideDropdownContext,
     registerDropdownCollection,
+    handleKeydown,
   };
 };
