@@ -609,8 +609,7 @@ export default {
       </div>
 
       <template v-if="isTls">
-        <div class="spacer" />
-        <div class="row">
+        <div class="row mt-20">
           <div class="col span-6">
             <LabeledSelect
               :label="t('fleet.gitRepo.tls.label')"

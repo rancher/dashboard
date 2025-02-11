@@ -2388,11 +2388,11 @@ fleet:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default.  To use one or more different directories, add them below.
+      empty: The root of the repo is used by default. Multiple different directories can be provided.
     repo:
       title: Source
       label: Repository URL
-      placeholder: Enter a valid HTTPS or SSH URL to a git repository
+      placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
