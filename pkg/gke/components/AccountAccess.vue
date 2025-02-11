@@ -44,6 +44,12 @@ export default defineComponent({
     if (this.mode === _VIEW) {
       this.$emit('update:isAuthenticated', true);
     }
+    // TODO nb remove
+    if (!this.project) {
+      if (process.env.VUE_APP_GCP_PROJECT) {
+        this.$emit('update:project', process.env.VUE_APP_GCP_PROJECT);
+      }
+    }
   },
 
   computed: {

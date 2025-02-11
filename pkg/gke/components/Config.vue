@@ -4,6 +4,8 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+
 import {
   DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone,
   getGKEVersions, getGKEClusters,
@@ -18,18 +20,17 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
-import KeyValue from '@shell/components/form/KeyValue.vue';
 
 export default defineComponent({
   name: 'GKEConfig',
 
-  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:labels'],
+  emits: ['update:kubernetesVersion', 'update:locations', 'update:zone', 'update:region', 'update:defaultImageType', 'error', 'update:clusterName', 'update:clusterDescription'],
 
   components: {
     RadioGroup,
     LabeledSelect,
     Checkbox,
-    KeyValue
+    LabeledInput
   },
 
   props: {
@@ -83,6 +84,11 @@ export default defineComponent({
       default: ''
     },
 
+    clusterDescription: {
+      type:    String,
+      default: ''
+    },
+
     kubernetesVersion: {
       type:    String,
       default: ''
@@ -92,13 +98,13 @@ export default defineComponent({
       type:    String,
       default: ''
     },
-    // these are gkeconfig.labels NOT normancluster.labels (handled in another accordion)
-    labels: {
-      type:    Object as PropType<{[key:string]: string}>,
+
+    rules: {
+      type:    Object,
       default: () => {
         return {};
       }
-    },
+    }
   },
 
   created() {
@@ -411,6 +417,27 @@ export default defineComponent({
   <div>
     <div class="row mb-10">
       <div class="col span-4">
+        <LabeledInput
+          :value="clusterName"
+          :mode="mode"
+          label-key="generic.name"
+          required
+          :rules="rules.clusterName"
+          data-testid="gke-cluster-name"
+          @update:value="$emit('update:clusterName', $event)"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          :value="clusterDescription"
+          :mode="mode"
+          label-key="nameNsDescription.description.label"
+          :placeholder="t('nameNsDescription.description.placeholder')"
+          data-testid="gke-cluster-description"
+          @update:value="$emit('update:clusterDescription', $event)"
+        />
+      </div>
+      <div class="col span-4">
         <LabeledSelect
           :options="versionOptions"
           label-key="gke.version.label"
@@ -423,6 +450,7 @@ export default defineComponent({
         />
       </div>
     </div>
+
     <div class="row location-row mb-10">
       <div class="col span-4">
         <LabeledSelect
@@ -479,25 +507,6 @@ export default defineComponent({
           :disabled="!isNewOrUnprovisioned"
           data-testid="gke-location-mode-radio"
         />
-      </div>
-    </div>
-    <div class="row mt-20 mb-10">
-      <div class="col span-12">
-        <KeyValue
-          :mode="mode"
-          :value="labels"
-          :as-map="true"
-          :title="t('gke.clusterLabels.label')"
-          :add-label="t('gke.clusterLabels.add')"
-          @update:value="$emit('update:labels', $event)"
-        >
-          <template #title>
-            <!-- keyvalue title by default is an h3 and looks bad with the accordion header also being an h3 -->
-            <h4>
-              {{ t('gke.clusterLabels.label') }}
-            </h4>
-          </template>
-        </KeyValue>
       </div>
     </div>
   </div>

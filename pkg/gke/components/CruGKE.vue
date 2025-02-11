@@ -694,12 +694,8 @@ export default defineComponent({
         class="mt-10"
         data-testid="crugke-form"
       >
-        <div
-          class="row mb-10"
-        >
-          <div
-            class="col span-6"
-          >
+        <!-- <div class="row mb-10">
+          <div class="col span-6">
             <LabeledInput
               :value="normanCluster.name"
               :mode="mode"
@@ -722,7 +718,30 @@ export default defineComponent({
               @update:value="setClusterDescription"
             />
           </div>
-        </div>
+        </div> -->
+
+        <Config
+          v-model:kubernetes-version="config.kubernetesVersion"
+          v-model:zone="config.zone"
+          v-model:region="config.region"
+          v-model:locations="config.locations"
+          v-model:default-image-type="defaultImageType"
+          v-model:labels="config.labels"
+          :mode="mode"
+          :cloud-credential-id="config.googleCredentialSecret"
+          :project-id="config.projectID"
+          :is-new-or-unprovisioned="isNewOrUnprovisioned"
+          :original-version="originalVersion"
+          :cluster-id="normanCluster.id"
+          :cluster-name="config.clusterName"
+          :cluster-description="normanCluster.description"
+          :rules="{
+            clusterName: fvGetAndReportPathRules('clusterName')
+          }"
+          @update:clusterName="setClusterName"
+          @update:clusterDescription="setClusterDescription"
+        />
+
         <div><h3>{{ t('gke.accordion.nodePools') }}</h3></div>
         <Tabbed
           ref="pools"
@@ -776,7 +795,7 @@ export default defineComponent({
             />
           </Tab>
         </Tabbed>
-        <Accordion
+        <!-- <Accordion
           class="mb-20"
           :title="t('gke.accordion.config')"
           :open-initially="true"
@@ -796,7 +815,7 @@ export default defineComponent({
             :cluster-id="normanCluster.id"
             :cluster-name="config.clusterName"
           />
-        </Accordion>
+        </Accordion> -->
         <Accordion
           class="mb-20"
           :title="t('gke.accordion.networking')"
