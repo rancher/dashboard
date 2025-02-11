@@ -40,6 +40,7 @@ export const useDropdownCollection = () => {
   return {
     dropdownItems,
     firstDropdownItem,
+    dropdownContainer,
     registerDropdownCollection,
   };
 };
