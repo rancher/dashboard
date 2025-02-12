@@ -97,6 +97,7 @@ export default {
   },
 
   data() {
+    const isPollingEnabled = !this.value.spec.disablePolling;
     const pollingInterval = this.value.spec.pollingInterval || DEFAULT_POLLING_INTERVAL;
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
@@ -150,6 +151,7 @@ export default {
       correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
+      isPollingEnabled,
       pollingInterval,
       ref,
       refValue,
@@ -529,6 +531,14 @@ export default {
       }
     },
 
+    enablePolling(value) {
+      if (value) {
+        delete this.value.spec.disablePolling;
+      } else {
+        this.value.spec.disablePolling = true;
+      }
+    },
+
     updatePollingInterval(value) {
       let interval = (value || DEFAULT_POLLING_INTERVAL).toString();
 
@@ -740,8 +750,22 @@ export default {
 
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.polling.label'" />
-      <div class="row">
+      <div class="row polling">
         <div class="col span-6">
+          <Checkbox
+            v-model:value="isPollingEnabled"
+            data-testid="GitRepo-enablePolling-checkbox"
+            class="check"
+            type="checkbox"
+            label-key="fleet.gitRepo.polling.enable"
+            :mode="mode"
+            @update:value="enablePolling"
+          />
+        </div>
+        <div
+          v-if="isPollingEnabled"
+          class="col span-6"
+        >
           <Banner
             v-if="showPollingIntervalWarning"
             color="warning"
@@ -845,6 +869,11 @@ export default {
   .resource-handling {
     display: flex;
     flex-direction: column;
-    gap: 5px
+    gap: 5px;
+  }
+  .polling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 </style>
