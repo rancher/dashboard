@@ -1,0 +1,23 @@
+registration:
+  title: Prime Suite Support and Registration
+  description: Register to receive full product updates and support. Registration requires an active account with the SUSE Customer Center (http://scc.suse.com) and a valid subscription with free capacity to the SUSE Rancher Manager Prime Suite..
+  online:
+    title: Online Registration
+    description: To register online, you will be required to login to the SUSE Customer Center (http://scc.suse.com) and copy a valid registration code for Rancher Manager into the field below and click on Register online
+    input:
+      label: Registration code
+      placeholder: \****-*******-*****-******-***************
+    button-cta:
+      label: Register online
+  offline:
+    title: Offline Registration
+    description: Register offline in cases of limited or no internet access. \n Download a registration token, visit your account at the SUSE Customer Center (http://scc.suse.com) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
+    button-request: 
+      label: Download offline registration request
+    input:
+      label: Offline registration certificate
+      placeholder: \****-*******-*****-******-***************
+    button-cta:
+      label: Register offline
+
+    

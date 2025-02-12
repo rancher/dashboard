@@ -2,6 +2,8 @@
 import { IPlugin } from '@shell/core/types';
 import { installDocHandler } from './docs';
 
+import routing from './routing/index';
+
 // Init the package
 export default function(plugin: IPlugin) {
   if (!plugin.environment.isPrime) {
@@ -19,4 +21,7 @@ export default function(plugin: IPlugin) {
 
   // Add the handler that will intercept and replace doc links with their Prime doc counterpart
   installDocHandler(plugin);
+
+  // Add Vue Routes
+  plugin.addRoutes(routing);
 }
