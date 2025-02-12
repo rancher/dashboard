@@ -166,7 +166,7 @@ export default {
               this.model.accessMode = 'unrestricted';
             }
             if (this.model.openLdapConfig && !this.showLdap) {
-              delete this.model.openLdapConfig;
+              this.model.openLdapConfig = null;
             }
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
