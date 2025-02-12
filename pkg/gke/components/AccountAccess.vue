@@ -112,40 +112,45 @@ export default defineComponent({
 </script>
 
 <template>
-  <div
-    :class="{'showing-form': !credential}"
-    class="credential-project"
-  >
+  <div>
     <div
-      v-show="!!credential"
-      class="project mb-10"
+      :class="{'showing-form': !credential}"
+      class="credential-project"
     >
-      <LabeledInput
-        :disabled="isAuthenticated"
-        :value="project"
-        label-key="gke.project.label"
-        required
-        @update:value="$emit('update:project', $event)"
-      />
+      <div
+        v-show="!!credential"
+        class="project mb-10"
+      >
+        <LabeledInput
+          :disabled="isAuthenticated"
+          :value="project"
+          label-key="gke.project.label"
+          required
+          @update:value="$emit('update:project', $event)"
+        />
+      </div>
+      <div
+        :class="{'view': isView}"
+        class="select-credential-container mb-10"
+      >
+        <SelectCredential
+          :value="credential"
+          data-testid="crugke-select-credential"
+          :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
+          provider="gcp"
+          :default-on-cancel="true"
+          :showing-form="!credential"
+          class="select-credential"
+          :cancel="()=>$emit('cancel-credential')"
+          @update:value="$emit('update:credential', $event)"
+          @credential-created="parseNewCredential"
+        />
+      </div>
     </div>
     <div
-      :class="{'view': isView}"
-      class="select-credential-container mb-10"
+      v-if="!isView && !isAuthenticated"
+      class="row mt-10"
     >
-      <SelectCredential
-        :value="credential"
-        data-testid="crugke-select-credential"
-        :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
-        provider="gcp"
-        :default-on-cancel="true"
-        :showing-form="!credential"
-        class="select-credential"
-        :cancel="()=>$emit('cancel-credential')"
-        @update:value="$emit('update:credential', $event)"
-        @credential-created="parseNewCredential"
-      />
-    </div>
-    <template v-if="!isView">
       <div
         v-show="!!credential"
         class="auth-button-container mb-10"
@@ -158,7 +163,7 @@ export default defineComponent({
           @click="testProjectId"
         />
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -167,7 +172,7 @@ export default defineComponent({
     display: flex;
     min-width: 150px;
     .project {
-      flex-basis: 50%;
+      flex-basis: 49.25%;
       flex-grow: 0;
       margin: 0 1.75% 0 0;
     }
@@ -188,8 +193,8 @@ export default defineComponent({
     }
 
     &>.select-credential-container{
-      flex-basis: 50%;
-      margin: 0 1.75% 0 0;
+      flex-basis: 49.25%;
+      // margin: 0 1.75% 0 0;
 
       &.view{
         margin: 0;
@@ -204,7 +209,7 @@ export default defineComponent({
 
   .auth-button-container {
     align-content: center;
-    min-width: 150px;
+    width:100%;
     display: flex;
     align-items: center;
     justify-content: center;

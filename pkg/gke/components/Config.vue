@@ -99,6 +99,11 @@ export default defineComponent({
       default: ''
     },
 
+    isImport: {
+      type:    Boolean,
+      default: false
+    },
+
     rules: {
       type:    Object,
       default: () => {
@@ -328,8 +333,12 @@ export default defineComponent({
     // when credential/region/zone change, fetch dependent resources from gcp
     loadGCPData(loadZones = true) {
       if (!this.isView) {
-        this.loadingVersions = true;
-        this.getVersions();
+        // wont show a version picker when initially importing a cluster
+        if (!this.isImport) {
+          this.loadingVersions = true;
+          this.getVersions();
+        }
+
         if (loadZones) {
           this.loadingZones = true;
           this.getZones();
@@ -416,7 +425,7 @@ export default defineComponent({
 <template>
   <div>
     <div class="row mb-10">
-      <div class="col span-4">
+      <div :class="{col: true, 'span-4': !isImport, 'span-6': isImport}">
         <LabeledInput
           :value="clusterName"
           :mode="mode"
@@ -427,7 +436,7 @@ export default defineComponent({
           @update:value="$emit('update:clusterName', $event)"
         />
       </div>
-      <div class="col span-4">
+      <div :class="{col: true, 'span-4': !isImport, 'span-6': isImport}">
         <LabeledInput
           :value="clusterDescription"
           :mode="mode"
@@ -437,7 +446,10 @@ export default defineComponent({
           @update:value="$emit('update:clusterDescription', $event)"
         />
       </div>
-      <div class="col span-4">
+      <div
+        v-if="!isImport"
+        class="col span-4"
+      >
         <LabeledSelect
           :options="versionOptions"
           label-key="gke.version.label"
@@ -479,7 +491,7 @@ export default defineComponent({
       </div>
       <div
         v-if="!loadingZones"
-        class="col span-3 extra-zones"
+        class="col span-2 extra-zones"
         data-testid="gke-extra-zones-container"
       >
         <span class="text-muted">{{ t('gke.location.extraZones') }}</span>
