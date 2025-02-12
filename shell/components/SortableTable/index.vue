@@ -1479,6 +1479,7 @@ export default {
                       :ref="`actionButton${i}`"
                       aria-haspopup="true"
                       aria-expanded="false"
+                      :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
                       :data-testid="componentTestid + '-' + i + '-action-button'"
                       :borderless="true"
                       @click="handleActionButtonClick(i, $event)"
