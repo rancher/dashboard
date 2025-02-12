@@ -48,9 +48,12 @@ export default {
   <a
     v-if="text"
     class="copy-to-clipboard-text"
+    role="button"
+    :aria-label="t('generic.copyToClipboard')"
     :class="{ 'copied': copied, 'plain': plain}"
     href="#"
     @click="clicked"
+    @keyup.space="clicked"
   >
     {{ text }} <i
       class="icon"
