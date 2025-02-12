@@ -28,7 +28,8 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 
-const DEFAULT_POLLING_INTERVAL = 15;
+const MINIMUM_POLLING_INTERVAL = 15;
+const DEFAULT_POLLING_INTERVAL = 60;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -272,7 +273,7 @@ export default {
     },
 
     showPollingIntervalWarning() {
-      const isVisible = !this.isView && this.pollingInterval < DEFAULT_POLLING_INTERVAL;
+      const isVisible = !this.isView && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
 
       if (isVisible) {
         this.scrollToBottom();
@@ -529,12 +530,18 @@ export default {
     },
 
     updatePollingInterval(value) {
-      if (!value || value === DEFAULT_POLLING_INTERVAL) {
+      let interval = (value || DEFAULT_POLLING_INTERVAL).toString();
+
+      if (!value) {
+        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+      }
+
+      if (value === MINIMUM_POLLING_INTERVAL) {
         delete this.value.spec.pollingInterval;
 
-        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+        interval = MINIMUM_POLLING_INTERVAL.toString();
       } else {
-        this.value.spec.pollingInterval = value.toString();
+        this.value.spec.pollingInterval = interval;
       }
     },
 
