@@ -732,13 +732,13 @@ export default {
       />
 
       <div class="spacer" />
-      <h2 v-t="'fleet.gitRepo.syncronization.label'" />
+      <h2 v-t="'fleet.gitRepo.polling.label'" />
       <div class="row">
         <div class="col span-6">
           <Banner
             v-if="showPollingIntervalWarning"
             color="warning"
-            label-key="fleet.gitRepo.syncronization.pollingInterval.warning"
+            label-key="fleet.gitRepo.polling.pollingInterval.warning"
             data-testid="GitRepo-pollingInterval-warning"
           />
           <UnitInput
@@ -746,9 +746,9 @@ export default {
             data-testid="GitRepo-pollingInterval-input"
             min="1"
             :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
-            :label="t('fleet.gitRepo.syncronization.pollingInterval.label')"
+            :label="t('fleet.gitRepo.polling.pollingInterval.label')"
             :mode="mode"
-            tooltip-key="fleet.gitRepo.syncronization.pollingInterval.tooltip"
+            tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
             @update:value="updatePollingInterval"
           />
         </div>
