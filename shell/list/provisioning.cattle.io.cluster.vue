@@ -82,9 +82,9 @@ export default {
 
   data() {
     return {
-      resource:     CAPI.RANCHER_CLUSTER,
-      schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters: [],
+      resource:                   CAPI.RANCHER_CLUSTER,
+      schema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusters:               [],
       showRke1DeprecationWarning: false
     };
   },
