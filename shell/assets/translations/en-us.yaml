@@ -17,6 +17,7 @@ generic:
   comma: ', '
   copy: Copy
   copyToClipboard: Copy text to Clipboard
+  copiedToClipboard: Text copied to Clipboard
   create: Create
   created: Created
   customize: Customize
@@ -6200,6 +6201,8 @@ wm:
     disconnected: Disconnected
     error: Error
   containerLogs:
+    options: Additional container logs options
+    expand: Expand additional container logs options
     clear: Clear
     containerName: "Container: {label}"
     download: Download
@@ -6226,6 +6229,9 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
+    resizeShellWindow: Resize Shell window
+    tabIcon: Shell tab icon
+    closeShellTab: Close Shell tab - {tab}
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
