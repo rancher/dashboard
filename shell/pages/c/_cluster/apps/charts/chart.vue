@@ -169,6 +169,7 @@ export default {
             <LazyImage
               :src="chart.icon"
               class="logo"
+              :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
             />
           </div>
           <h1>
