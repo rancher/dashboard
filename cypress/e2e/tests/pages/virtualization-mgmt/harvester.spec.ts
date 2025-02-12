@@ -11,6 +11,7 @@ const harvesterGitRepoName = 'harvester';
 const branchName = 'gh-pages';
 const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
 
+// comment
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
