@@ -486,7 +486,7 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
 /**
  * create a v3 / v1 resource
  */
-Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
@@ -494,11 +494,14 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    body
+    body,
+    failOnStatusCode
   })
     .then((resp) => {
+      if (failOnStatusCode) {
       // Expect 200 or 201, Created HTTP status code
-      expect(resp.status).to.be.oneOf([200, 201]);
+        expect(resp.status).to.be.oneOf([200, 201]);
+      }
     });
 });
 
@@ -1083,5 +1086,19 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
 Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
   return cy.tableRowsPerPageAndPreferences(rows, {
     clusterName, groupBy, namespaceFilter
+  });
+});
+
+// Update the user preferences by over-writing the given prefrence
+Cypress.Commands.add('setUserPreference', (prefs: any) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const update = resp.body.data[0];
+
+    update.data = {
+      ...update.data,
+      ...prefs
+    };
+
+    return cy.setRancherResource('v1', 'userpreferences', update.id, update);
   });
 });

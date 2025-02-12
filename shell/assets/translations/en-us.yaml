@@ -16,6 +16,7 @@ generic:
   comingSoon: Coming Soon
   comma: ', '
   copy: Copy
+  copyToClipboard: Copy text to Clipboard
   create: Create
   created: Created
   customize: Customize
@@ -116,6 +117,10 @@ generic:
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
   basic: Basic
+
+  ariaLabel:
+    key: Key {index}
+    value: Value {index}
 
 locale:
   menu: Locale selector menu
@@ -224,10 +229,18 @@ nav:
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
+    showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     logOut: Log Out
+    label: User menu
+    button:
+      label: Open user menu
+  actionMenu:
+    label: Page actions menu
+    button:
+      label: Open page actions menu
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
@@ -2430,6 +2443,7 @@ fleet:
       resources: Resources
       unready: Non-Ready
     auth:
+      title: Authentication
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
@@ -2440,20 +2454,20 @@ fleet:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default.  To use one or more different directories, add them here.
+      empty: The root of the repo is used by default. Multiple different directories can be provided.
     repo:
+      title: Source
       label: Repository URL
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
-      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
       keepResources: Always Keep Resources
-      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
-      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
+      correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2746,6 +2760,8 @@ hpa:
 
 import:
   title: Import YAML
+  editor:
+    label: YAML Editor
   defaultNamespace:
     label: Default Namespace
   success: |-
@@ -4368,6 +4384,8 @@ plugins:
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
+  closePluginPanel: Close plugin description panel
+  viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4375,6 +4393,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    menu: Extensions menu
+    reloadRancher: Reload Rancher
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
@@ -5127,10 +5147,22 @@ secret:
     username: Username
   ssh:
     keys: Keys
+    keysAndHosts: Keys and Known Hosts
     public: Public Key
     publicPlaceholder: "Paste in your public key"
     private: Private Key
     privatePlaceholder: "Paste in your private key"
+    knownHosts: Known Hosts
+    knownHostsPlaceholder: "Known hosts metadata, one per line"
+    editKnownHosts:
+      title: SSH Known Hosts Configuration
+      entries:  |-
+        {entries, plural,
+          =0 {Empty}
+          =1 {1 Entry}
+          other {{entries} Entries}
+        }
+
   serviceAcct:
     ca: CA Certificate
     token: Token
@@ -5377,6 +5409,7 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  searchLabel: Filter table results
   in: in
   addFilter: Add Filter
   filterFor: Filter for...
@@ -7772,7 +7805,7 @@ customLinks:
     issues:     File an Issue
     getStarted: Get Started
     commercialSupport: Commercial Support
-    suseCollective: SUSE Collective
+    appCo: SUSE Application Collection
 
 
 ##############################

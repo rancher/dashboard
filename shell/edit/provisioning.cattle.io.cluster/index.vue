@@ -12,7 +12,7 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
@@ -173,17 +173,7 @@ export default {
   },
 
   data() {
-    let subType = null;
-
-    subType = this.$route.query[SUB_TYPE] || null;
-
-    if ( this.$route.query[SUB_TYPE]) {
-      subType = this.$route.query[SUB_TYPE];
-    } else if (this.value.isImported) {
-      subType = IMPORTED;
-    } else if (this.value.isLocal) {
-      subType = LOCAL;
-    }
+    const subType = this.$route.query[SUB_TYPE] || null;
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -223,6 +213,14 @@ export default {
 
     emberLink() {
       if (this.value) {
+        // for imported and local clusters, set subtype using properties from prov cluster model
+        //
+        if (this.value.isImported) {
+          this.selectType(IMPORTED, false);
+        } else if (this.value.isLocal) {
+          this.selectType(LOCAL, false);
+        }
+
         // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
         if (this.value.provisioner) {
           const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
@@ -230,6 +228,16 @@ export default {
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);
           }
+        }
+
+        // subType set by the ui during cluster creation
+        // this is likely from a ui extension trying to load custom ui to edit the cluster
+        const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
+        if (fromAnnotation) {
+          this.selectType(fromAnnotation, false);
+
+          return '';
         }
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
@@ -240,17 +248,18 @@ export default {
 
           return '';
         }
-        // For RKE2/K3s clusters provisioned in Rancher with node pools,
+        // For existing RKE2/K3s clusters provisioned in Rancher,
+        // set the subtype using the machine pool provisioner
         // do not use an iFramed Ember page.
         if ( this.value.isRke2 && this.value.machineProvider ) {
-          // Edit existing RKE2
           this.selectType(this.value.machineProvider, false);
 
           return '';
         }
+
         if ( this.subType ) {
           // if driver type has a custom form component, don't load an ember page
-          if (this.selectedSubType.component) {
+          if (this.selectedSubType?.component) {
             return '';
           }
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
@@ -258,8 +267,6 @@ export default {
           if (this.selectedSubType?.emberLink) {
             return this.selectedSubType.emberLink;
           }
-
-          this.selectType(this.subType, false);
 
           return '';
         }
@@ -379,8 +386,8 @@ export default {
 
         // Add from extensions
         this.extensions.forEach((ext) => {
-          // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
-          // default group is rke2
+        // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
+        // default group is rke2
           if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
             return;
           }

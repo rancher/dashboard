@@ -276,12 +276,11 @@ export default {
           :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
-          :aria-label="tab.labelDisplay"
+          :aria-label="tab.labelDisplay || ''"
           role="tab"
           tabindex="0"
           @click.prevent="select(tab.name, $event)"
-          @keyup.enter="select(tab.name, $event)"
-          @keyup.space="select(tab.name, $event)"
+          @keyup.enter.space="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
           <span
@@ -409,10 +408,8 @@ export default {
 
       &:focus-visible {
         @include focus-outline;
-
-        span {
-          text-decoration: underline;
-        }
+        outline-offset: -4px;
+        text-decoration: none;
       }
     }
 

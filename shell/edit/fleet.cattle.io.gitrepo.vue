@@ -408,7 +408,12 @@ export default {
     },
 
     async doCreate(name, credentials) {
-      const { selected, publicKey, privateKey } = credentials;
+      const {
+        selected,
+        publicKey,
+        privateKey,
+        sshKnownHosts
+      } = credentials;
 
       if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
         return;
@@ -456,6 +461,11 @@ export default {
           [publicField]:  base64Encode(publicKey),
           [privateField]: base64Encode(privateKey),
         };
+
+        // Add ssh known hosts
+        if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
+          secret.data.known_hosts = base64Encode(sshKnownHosts);
+        }
       }
 
       await secret.save();
@@ -546,17 +556,7 @@ export default {
         @update:value="$emit('input', $event)"
       />
 
-      <div class="row">
-        <div class="col span-6">
-          <Banner
-            color="info col span-6"
-          >
-            <div>
-              {{ t('fleet.gitRepo.repo.protocolBanner') }}
-            </div>
-          </Banner>
-        </div>
-      </div>
+      <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -586,6 +586,10 @@ export default {
           />
         </div>
       </div>
+
+      <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.auth.title'" />
+
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
@@ -633,8 +637,7 @@ export default {
       </div>
 
       <template v-if="isTls">
-        <div class="spacer" />
-        <div class="row">
+        <div class="row mt-20">
           <div class="col span-6">
             <LabeledSelect
               :label="t('fleet.gitRepo.tls.label')"
@@ -663,7 +666,7 @@ export default {
       <div class="resource-handling">
         <Checkbox
           v-model:value="correctDriftEnabled"
-          :tooltip="t('fleet.gitRepo.resources.correctDriftBanner')"
+          :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
           data-testid="GitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
@@ -672,7 +675,7 @@ export default {
         />
         <Checkbox
           v-model:value="value.spec.keepResources"
-          :tooltip="t('fleet.gitRepo.resources.keepResourcesBanner')"
+          :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
           data-testid="GitRepo-keepResources-checkbox"
           class="check"
           type="checkbox"
@@ -681,19 +684,16 @@ export default {
         />
       </div>
       <div class="spacer" />
-      <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model:value="value.spec.paths"
         data-testid="gitRepo-paths"
+        :title="t('fleet.gitRepo.paths.label')"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
         :add-label="t('fleet.gitRepo.paths.addLabel')"
-      >
-        <template #empty>
-          <Banner label-key="fleet.gitRepo.paths.empty" />
-        </template>
-      </ArrayList>
+        :protip="t('fleet.gitRepo.paths.empty')"
+      />
     </template>
     <template #stepTargetInfo>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
@@ -771,6 +771,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  :deep() .select-or-create-auth-secret {
+    .row {
+      margin-top: 10px !important;
+    }
+  }
   .resource-handling {
     display: flex;
     flex-direction: column;

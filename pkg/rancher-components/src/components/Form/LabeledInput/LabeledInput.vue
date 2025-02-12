@@ -364,6 +364,7 @@ export default defineComponent({
       <input
         v-else
         ref="value"
+        role="textbox"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :maxlength="_maxlength"
@@ -400,6 +401,8 @@ export default defineComponent({
     >
       <div
         v-if="cronHint"
+        role="alert"
+        :aria-label="cronHint"
       >
         {{ cronHint }}
       </div>
