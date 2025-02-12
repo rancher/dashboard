@@ -2471,6 +2471,7 @@ fleet:
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     polling:
       label: Polling
+      enable: Enable Polling
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet reacting to it.

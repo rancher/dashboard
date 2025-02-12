@@ -72,6 +72,38 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
   });
 
   it.each([
+    ['show Polling Interval', 'enabled', undefined, true],
+    ['show Polling Interval', 'enabled', false, true],
+    ['hide Polling Interval', 'disabled', true, false],
+  ])('show Enable Polling checkbox and %p if %p, with spec.disablePolling: %p', (
+    showPollingIntervalMessage,
+    enabledMessage,
+    disablePolling,
+    enabled
+  ) => {
+    const wrapper = mount(GitRepo, {
+      props: {
+        value: {
+          ...values,
+          spec: {
+            disablePolling,
+            pollingInterval: 60
+          }
+        },
+        mode: _EDIT
+      },
+      global: { mocks },
+    });
+
+    const pollingCheckbox = wrapper.findComponent('[data-testid="GitRepo-enablePolling-checkbox"]') as any;
+    const pollingIntervalInput = wrapper.find('[data-testid="GitRepo-pollingInterval-input"]');
+
+    expect(pollingCheckbox.exists()).toBeTruthy();
+    expect(pollingCheckbox.vm.value).toBe(enabled);
+    expect(pollingIntervalInput.exists()).toBe(enabled);
+  });
+
+  it.each([
     ['null', 'default 60 seconds', null, '60'],
     ['0', 'default 60 seconds', 0, '60'],
     ['1', 'custom 1 second', 1, '1'],
