@@ -16,6 +16,7 @@ generic:
   comingSoon: Coming Soon
   comma: ', '
   copy: Copy
+  copyToClipboard: Copy text to Clipboard
   create: Create
   created: Created
   customize: Customize
@@ -116,6 +117,10 @@ generic:
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
   basic: Basic
+
+  ariaLabel:
+    key: Key {index}
+    value: Value {index}
 
 locale:
   menu: Locale selector menu
@@ -224,10 +229,18 @@ nav:
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
+    showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     logOut: Log Out
+    label: User menu
+    button:
+      label: Open user menu
+  actionMenu:
+    label: Page actions menu
+    button:
+      label: Open page actions menu
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
@@ -517,6 +530,9 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    searchUsingServiceAccount: 
+      label: Enable Service Account Search
+      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
@@ -2084,6 +2100,7 @@ cluster:
       label: Control Plane Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     workerConcurrency:
+      header: Worker Nodes
       label: Worker Concurrency
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
@@ -2119,6 +2136,7 @@ cluster:
       tlsSan:
         label: TLS Alternate Names
       fqdn:
+        label: FQDN
         toolTip: A FQDN which will resolve to the healthy control plane nodes of the cluster.
       caCerts:
         label: CA Certificates
@@ -2391,6 +2409,9 @@ fleet:
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
+    labels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   clusters:
     harvester: |-
       There {count, plural,
@@ -2436,20 +2457,20 @@ fleet:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default.  To use one or more different directories, add them here.
+      empty: The root of the repo is used by default. Multiple different directories can be provided.
     repo:
+      title: Source
       label: Repository URL
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
-      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
       keepResources: Always Keep Resources
-      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
-      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
+      correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2742,6 +2763,8 @@ hpa:
 
 import:
   title: Import YAML
+  editor:
+    label: YAML Editor
   defaultNamespace:
     label: Default Namespace
   success: |-
@@ -4364,6 +4387,8 @@ plugins:
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
+  closePluginPanel: Close plugin description panel
+  viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4371,6 +4396,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    menu: Extensions menu
+    reloadRancher: Reload Rancher
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
@@ -5373,6 +5400,7 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  searchLabel: Filter table results
   in: in
   addFilter: Add Filter
   filterFor: Filter for...
@@ -6040,6 +6068,8 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  git:
+    repository: Repository URL must be a HTTP(s) or SSH url with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -6191,7 +6221,7 @@ wm:
   containerShell:
     clear: Clear
     containerName: "Container: {label}"
-    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
+    failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
     logLevel:
       info: INFO
       error: ERROR
@@ -6204,6 +6234,11 @@ wm:
     title: "Kubectl: {name}"
 
 workload:
+  scaleWorkloads: Scale workloads
+  healthWorkloads: Jobs/Pods health status
+  healthScaleToggle: Toggle/Expand workloads scaling/health
+  plus: Scale up workload
+  minus: Scale down workload
   container:
     command:
       addEnvVar: Add Variable
@@ -7761,7 +7796,7 @@ customLinks:
     issues:     File an Issue
     getStarted: Get Started
     commercialSupport: Commercial Support
-    suseCollective: SUSE Collective
+    appCo: SUSE Application Collection
 
 
 ##############################

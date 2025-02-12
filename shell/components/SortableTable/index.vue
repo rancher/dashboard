@@ -1213,6 +1213,7 @@ export default {
             v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
+            :aria-label="t('sortableTable.searchLabel')"
             :placeholder="t('sortableTable.search')"
           >
           <slot name="header-button" />

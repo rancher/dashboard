@@ -10,7 +10,7 @@ import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/p
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
-import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
+import ClusterManagerEditImportedPagePo from '@/cypress/e2e/po/extensions/imported/cluster-edit.po';
 import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manager/namespace.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
@@ -426,7 +426,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
 
-    describe('RKE1 Custom', () => {
+    describe('RKE1 Custom', { tags: ['@jenkins'] }, () => {
       it('can create new cluster', () => {
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -436,7 +436,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createClusterRKE1Page.rkeToggle().set('RKE1');
         createClusterRKE1Page.selectCustom(0);
-        loadingPo.checkNotExists();
+        loadingPo.checkNotExists(MEDIUM_TIMEOUT_OPT);
 
         createClusterRKE1Page.clusterName().set(rke1CustomName);
 
@@ -481,10 +481,35 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         }
 
         createClusterRKE1Page.nodeCommand().checkExists();
+        createClusterRKE1Page.etcdRole().click();
+        createClusterRKE1Page.cpRole().click();
+        createClusterRKE1Page.registrationCommand().then(($value) => {
+          const registrationCommand = $value.text().replace('sudo', '');
+
+          cy.log(registrationCommand);
+
+          cy.exec(`echo ${ Cypress.env('customNodeKeyRke1') } | base64 -d > custom_node_rke1.key && chmod 600 custom_node_rke1.key`).then((result) => {
+            cy.log('Creating the custom_node_rke1.key');
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(`head custom_node_rke1.key`).then((result) => {
+            cy.log(result.stdout);
+            cy.log(result.stderr);
+            expect(result.code).to.eq(0);
+          });
+          cy.exec(createClusterRKE1Page.customClusterRegistrationCmd(registrationCommand, 1), { failOnNonZeroExit: false, timeout: 120000 }).then((result) => {
+            cy.log(result.stderr);
+            cy.log(result.stdout);
+          });
+        });
         createClusterRKE1Page.done();
 
         clusterList.waitForPage();
         clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+        clusterList.list().state(rke1CustomName).should('contain.text', 'Provisioning');
+        clusterList.list().state(rke1CustomName).contains('Active', { timeout: 500000 }); // super long timeout needed for cluster provisioning to complete
       });
 
       // it.skip('can create new snapshots', () => {
@@ -563,9 +588,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const fqdn = 'fqdn';
+    const cacert = 'cacert';
 
     describe('Generic', () => {
-      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(undefined, importGenericName);
+      const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, importGenericName);
 
       it('can create new cluster', () => {
         const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importGenericName);
@@ -614,11 +641,30 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
       });
 
-      it('can navigate to cluster edit page', () => {
+      it('can edit imported cluster and see changes afterwards', () => {
+        cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
         clusterList.goTo();
+        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
+        editImportedClusterPage.waitForPage('mode=edit');
+
+        editImportedClusterPage.name().value().should('eq', importGenericName );
+        // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
+        editImportedClusterPage.name().expectToBeDisabled();
+
+        editImportedClusterPage.ace().enable();
+        editImportedClusterPage.ace().enterFdqn(fqdn);
+        editImportedClusterPage.ace().enterCaCerts(cacert);
+
+        editImportedClusterPage.save();
+
+        // We should be taken back to the list page if the save was successful
+        clusterList.waitForPage();
+
         clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
         editImportedClusterPage.waitForPage('mode=edit');
+        editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
+        editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
       });
 
       it('can delete cluster by bulk actions', () => {

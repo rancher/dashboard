@@ -126,6 +126,11 @@ button,
   &.btn:not(.btn-sm) {
     line-height: $btn-height - 2px;
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-link {

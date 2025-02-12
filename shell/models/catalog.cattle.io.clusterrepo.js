@@ -2,6 +2,7 @@ import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
 import { CATALOG as CATALOG_TYPE } from '@shell/config/types';
+import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 
@@ -12,18 +13,40 @@ export default class ClusterRepo extends SteveModel {
     }
   }
 
+  get _isClusterRepoDisabled() {
+    return this.spec?.enabled === false;
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
     insertAt(out, 0, { divider: true });
 
-    insertAt(out, 0, {
-      action:   'refresh',
-      label:    this.t('action.refresh'),
-      icon:     'icon icon-refresh',
-      enabled:  !!this.links.update,
-      bulkable: true,
-    });
+    if (this._isClusterRepoDisabled) {
+      insertAt(out, 1, {
+        action:   'enableClusterRepo',
+        label:    this.t('action.enable'),
+        icon:     'icon icon-play',
+        enabled:  true,
+        bulkable: true,
+      });
+    } else {
+      insertAt(out, 1, {
+        action:   'disableClusterRepo',
+        label:    this.t('action.disable'),
+        icon:     'icon icon-pause',
+        enabled:  true,
+        bulkable: true,
+      });
+
+      insertAt(out, 0, {
+        action:   'refresh',
+        label:    this.t('action.refresh'),
+        icon:     'icon icon-refresh',
+        enabled:  !!this.links.update,
+        bulkable: true,
+      });
+    }
 
     return out;
   }
@@ -37,6 +60,16 @@ export default class ClusterRepo extends SteveModel {
     await this.waitForState('active', 10000, 1000);
 
     this.$dispatch('catalog/load', { force: true, reset: true }, { root: true });
+  }
+
+  async disableClusterRepo() {
+    this.spec.enabled = false;
+    await this.save();
+  }
+
+  async enableClusterRepo() {
+    this.spec.enabled = true;
+    await this.save();
   }
 
   get isGit() {
@@ -155,6 +188,22 @@ export default class ClusterRepo extends SteveModel {
       ...this.metadata.state,
       transitioning: this.metadata.generation > this.status?.observedGeneration ? false : this.metadata.state.transitioning
     } : undefined;
+  }
+
+  get stateDisplay() {
+    if (this._isClusterRepoDisabled) {
+      return this.t('generic.disabled');
+    } else {
+      return stateDisplay(this.state);
+    }
+  }
+
+  get stateBackground() {
+    if (this._isClusterRepoDisabled) {
+      return 'badge-disabled';
+    } else {
+      return colorForState(this.state, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
+    }
   }
 
   waitForOperation(operationId, timeout, interval = 2000) {

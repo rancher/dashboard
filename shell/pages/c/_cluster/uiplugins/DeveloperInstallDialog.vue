@@ -18,17 +18,18 @@ export default {
 
   data() {
     return {
-      name:              '',
-      location:          '',
-      persist:           false,
-      canModifyName:     true,
-      canModifyLocation: true,
-      showModal:         false,
+      name:                '',
+      location:            '',
+      persist:             false,
+      canModifyName:       true,
+      canModifyLocation:   true,
+      showModal:           false,
+      returnFocusSelector: '[data-testid="extensions-page-menu"]'
     };
   },
 
   watch: {
-    name(neu, old) {
+    name(neu) {
       if (this.canModifyLocation) {
         this.location = `/pkg/${ neu }/${ neu }.umd.min.js`;
       }
@@ -154,6 +155,8 @@ export default {
     name="developerInstallPluginDialog"
     height="auto"
     :scrollable="true"
+    :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
     @close="closeDialog()"
   >
     <div class="plugin-install-dialog">

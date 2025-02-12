@@ -609,7 +609,7 @@ export default {
       .masthead-resource-title {
         padding: 0 8px;
         text-overflow: ellipsis;
-        overflow-x: hidden;
+        overflow: hidden;
         white-space: nowrap;
       }
 

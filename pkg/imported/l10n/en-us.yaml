@@ -1,0 +1,24 @@
+imported:
+  label: Imported
+  agentEnv:
+    header: Agent Environment Variables
+  drainWorkerNodes:
+    label: Drain Worker Nodes
+  drainControlPlaneNodes:
+    label: Drain Control Plane Nodes
+  network:
+    banner: The imported cluster must support Kubernetes NetworkPolicy resources for Project Network Isolation to be enforced
+  accordions:
+    advanced: Advanced
+    basics: Basics
+    upgrade: Upgrade Strategy
+    networking: Networking
+    clusterMembers: Cluster Members
+    labels: Labels and Annotations
+    k3sOptions: K3S Options
+    rke2Options: RKE2 Options
+  upgradeStrategy:
+    header: Upgrade Strategy
+  errors:
+    concurrency: '{key} must be an integer greater than 0'
+    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'

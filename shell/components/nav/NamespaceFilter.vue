@@ -1008,7 +1008,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--dropdown-hover-bg);
+                color: var(--primary);
               }
             }
 

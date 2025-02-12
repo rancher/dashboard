@@ -61,13 +61,13 @@ BODY {
 INPUT,
 SELECT,
 TEXTAREA,
-.labeled-input,
 .checkbox-custom {
   &:focus, &.focused {
     @include form-focus;
   }
 }
 
+.labeled-input,
 .radio-custom,
 .labeled-select,
 .unlabeled-select {
@@ -76,6 +76,7 @@ TEXTAREA,
   }
 }
 
+.labeled-input,
 .labeled-select,
 .unlabeled-select {
   &.focused {
@@ -89,14 +90,6 @@ TEXTAREA,
   }
 }
 
-BUTTON,
-.btn {
-   &:focus, &.focused {
-    outline: none;
-    box-shadow: 0 0 0 var(--outline-width) var(--outline);
-    background: var(--primary-hover-bg);
-   }
-}
 A {
   @include link-color(var(--link), var(--body-text));
 
