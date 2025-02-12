@@ -86,7 +86,10 @@ export default defineConfig({
     azureClientId:       process.env.AZURE_CLIENT_ID,
     azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
     customNodeIp:        process.env.CUSTOM_NODE_IP,
-    customNodeKey:       process.env.CUSTOM_NODE_KEY
+    customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
+    customNodeIpRke1:    process.env.CUSTOM_NODE_IP_RKE1,
+    customNodeKeyRke1:   process.env.CUSTOM_NODE_KEY_RKE1
   },
   // Jenkins reporters configuration jUnit and HTML
   reporter:        'cypress-multi-reporters',

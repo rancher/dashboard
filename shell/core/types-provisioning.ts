@@ -13,6 +13,37 @@ export type ClusterSaveHook = (cluster: any) => Promise<any>
  */
 export type RegisterClusterSaveHook = (hook: ClusterSaveHook, name: string, priority?: number, fnContext?: any) => void;
 
+export type ClusterDetailTabs = {
+  /**
+   * RKE2 machine pool tabs
+   */
+  machines: boolean,
+  /**
+   * RKE2 provisioning logs
+   */
+  logs: boolean,
+  /**
+   * RKE2 registration commands
+   */
+  registration: boolean,
+  /**
+   * RKE2 snapshots
+   */
+  snapshots: boolean,
+  /**
+   * Kube resources related to the instance of provisioning.cattle.io.cluster
+   */
+  related: boolean,
+  /**
+   * Kube events associated with the instance of provisioning.cattle.io.cluster
+   */
+  events: boolean,
+  /**
+   * Kube conditions of the provisioning.cattle.io.cluster instance
+   */
+  conditions: boolean
+};
+
 /**
  * Params used when constructing an instance of the cluster provisioner
  */
@@ -57,7 +88,6 @@ export interface ClusterProvisionerContext {
  * The majority of these hooks are used in shell/edit/provisioning.cattle.io.cluster/rke2.vue
  */
 export interface IClusterProvisioner {
-
   /**
    * Unique ID of the Cluster Provisioner
    * If this overlaps with the name of an existing provisioner (seen in the type query param while creating a cluster) this provisioner will overwrite the built-in ui
@@ -233,7 +263,7 @@ export interface IClusterProvisioner {
   registerSaveHooks?(registerBeforeHook: RegisterClusterSaveHook, registerAfterHook: RegisterClusterSaveHook, cluster: any): void;
 
   /**
-   * Optionally override the save of the cluster resource itself.
+   * Optionally override the save of the cluster resource itself
    *
    * https://github.com/rancher/dashboard/blob/master/shell/mixins/create-edit-view/impl.js#L179
    *
@@ -262,4 +292,63 @@ export interface IClusterProvisioner {
    * @returns Array of errors. If there are no errors the array will be empty
    */
   provision?(cluster: any, pools: any[]): Promise<any[]>;
+}
+
+/**
+ * Interface that a model extension for the provisioning cluster model should implement
+ */
+export interface IClusterModelExtension {
+  /**
+   * Indicates if this extension should be used for the given cluster
+   *
+   * This allows the extension to determine if it should be used for a cluster based on attributes/metadata of its choosing
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns Whether to use this provisioner for the given cluster.
+   */
+  useFor(cluster: any): boolean;
+
+  /**
+   * Optionally Process the available actions for a cluster and return a (possibly modified) set of actions
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns List of actions for the cluster or undefined if the list is modified in-place
+   */
+  availableActions?(cluster: any, actions: any[]): any[] | undefined;
+
+  /**
+   * Get the display name for the machine provider for this model
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns Machine provider display name
+   */
+  machineProviderDisplay?(cluster: any): string;
+
+  /**
+   * Get the display name for the provisioner for this model
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns Provisioner display name
+   */
+  provisionerDisplay?(cluster: any): string;
+
+  /**
+   * Get the parent cluster for this cluster, or undefined if no parent cluster
+   *
+   * @param cluster The cluster model (`provisioning.cattle.io.cluster`)
+   * @returns ID of the parent cluster
+   */
+  parentCluster?(cluster: any): string;
+
+  /**
+   * Function to run after the cluster has been deleted
+   *
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   */
+  postDelete?(cluster: any): void;
+
+  /**
+   * Existing tabs to show or hide in the cluster's detail view
+   */
+  get detailTabs(): ClusterDetailTabs;
 }

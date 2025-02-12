@@ -1,5 +1,6 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
+import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
@@ -19,6 +20,7 @@ export default {
   emits: ['inputauthval', 'update:value'],
 
   components: {
+    Banner,
     LabeledInput,
     LabeledSelect,
   },
@@ -118,7 +120,7 @@ export default {
     },
 
     /**
-     * This component is used in MultiStep Priocess
+     * This component is used in MultiStep Process
      * So when user click through to final step and submit the form
      * This component get recreated therefore register `doCreate` as a hook each time
      * Also, the parent step component is not aware that credential is created
@@ -194,6 +196,7 @@ export default {
       SSH:   AUTH_TYPE._SSH,
       BASIC: AUTH_TYPE._BASIC,
       S3:    AUTH_TYPE._S3,
+      RKE:   AUTH_TYPE._RKE,
     };
   },
 
@@ -308,7 +311,7 @@ export default {
         });
       }
 
-      if (this.allowSsh || this.allowS3 || this.allowBasic) {
+      if (this.allowSsh || this.allowS3 || this.allowBasic || this.allowRke) {
         out.unshift({
           label:    'divider',
           disabled: true,
@@ -340,6 +343,15 @@ export default {
         });
       }
 
+      // Note here about order
+      if ( this.allowRke ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createRKE'),
+          value: AUTH_TYPE._RKE,
+          kind:  'highlighted'
+        });
+      }
+
       return out;
     },
 
@@ -348,7 +360,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._S3 ) {
+      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._RKE || this.selected === AUTH_TYPE._S3 ) {
         return 'col span-4';
       }
 
@@ -448,7 +460,7 @@ export default {
     },
 
     updateKeyVal() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) ) {
         this.privateKey = '';
         this.publicKey = '';
       }
@@ -461,7 +473,7 @@ export default {
     },
 
     update() {
-      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._NONE].includes(this.selected))) {
+      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE, AUTH_TYPE._NONE].includes(this.selected))) {
         this.$emit('update:value', null);
       } else if ( this.selected.includes(':') ) {
         // Cloud creds
@@ -485,7 +497,7 @@ export default {
     },
 
     async doCreate() {
-      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) || this.delegateCreateToParent ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._RKE].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
@@ -521,15 +533,24 @@ export default {
           publicField = 'username';
           privateField = 'password';
           break;
+        case AUTH_TYPE._RKE:
+          type = SECRET_TYPES.RKE_AUTH_CONFIG;
+          // Set the 'auth' key to be the base64 of the username and password concatenated with a ':' character
+          secret.data = { auth: base64Encode(`${ this.publicKey }:${ this.privateKey }`) };
+          break;
         default:
           throw new Error('Unknown type');
         }
 
         secret._type = type;
-        secret.data = {
-          [publicField]:  base64Encode(this.publicKey),
-          [privateField]: base64Encode(this.privateKey),
-        };
+
+        // Set the data if not set by one of the specific cases above
+        if (!secret.data) {
+          secret.data = {
+            [publicField]:  base64Encode(this.publicKey),
+            [privateField]: base64Encode(this.privateKey),
+          };
+        }
       }
 
       await secret.save();
@@ -583,7 +604,14 @@ export default {
           />
         </div>
       </template>
-      <template v-else-if="selected === BASIC">
+      <template v-else-if="selected === BASIC || selected === RKE">
+        <Banner
+          v-if="selected === RKE"
+          color="info"
+          :class="moreCols"
+        >
+          {{ t('selectOrCreateAuthSecret.rke.info', {}, true) }}
+        </Banner>
         <div :class="moreCols">
           <LabeledInput
             v-model:value="publicKey"

@@ -4,8 +4,8 @@ import { v1LinksSettingDefaultValue } from '@/cypress/e2e/blueprints/global_sett
 
 const homePage = new HomePagePo();
 const homeLinksSettingsPage = new HomeLinksPagePo();
-const COLLECTIVE_LINK = 'https://susecollective.suse.com/join/prime';
-const COLLECTIVE_BASE = 'https://susecollective.suse.com';
+const APP_CO_LINK = 'https://apps.rancher.io/';
+const APP_CO_LABEL = 'SUSE Application Collection';
 
 function interceptVersionAndSetToPrime() {
   return cy.intercept('GET', '/rancherversion', {
@@ -29,7 +29,7 @@ function resetCustomLinks() {
   });
 }
 
-describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
+describe('SUSE Application page and link', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
@@ -44,13 +44,13 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
       resetCustomLinks();
     });
 
-    it('should allow collective link to be hidden', () => {
+    it('should allow app co link to be hidden', () => {
       HomeLinksPagePo.goTo();
       homeLinksSettingsPage.waitForPage();
 
       homeLinksSettingsPage.defaultLinkNames().should('have.length', 6);
-      homeLinksSettingsPage.checkDefaultLinkName(5, 'SUSE Collective');
-      homeLinksSettingsPage.checkDefaultLinkTargets(5, COLLECTIVE_LINK);
+      homeLinksSettingsPage.checkDefaultLinkName(5, APP_CO_LABEL);
+      homeLinksSettingsPage.checkDefaultLinkTargets(5, APP_CO_LINK);
 
       // Check the checkbox - this will hide the link
       homeLinksSettingsPage.defaultLinkCheckbox(5).then((cb) => {
@@ -95,8 +95,8 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
       homeLinksSettingsPage.waitForPage();
 
       homeLinksSettingsPage.defaultLinkNames().should('have.length', 6);
-      homeLinksSettingsPage.checkDefaultLinkName(5, 'SUSE Collective');
-      homeLinksSettingsPage.checkDefaultLinkTargets(5, COLLECTIVE_LINK);
+      homeLinksSettingsPage.checkDefaultLinkName(5, APP_CO_LABEL);
+      homeLinksSettingsPage.checkDefaultLinkTargets(5, APP_CO_LINK);
 
       // Check the checkbox - this will hide the link
       homeLinksSettingsPage.defaultLinkCheckbox(5).then((cb) => {
@@ -125,16 +125,16 @@ describe('SUSE Collective Page and link', { testIsolation: 'off' }, () => {
       HomePagePo.goTo();
     });
 
-    it('can click on Collective link', () => {
+    it('can click on Application Collection link', () => {
       homePage.supportLinks().should('have.length', 6);
-      homePage.checkSupportLinkText(5, 'SUSE Collective');
+      homePage.checkSupportLinkText(5, APP_CO_LABEL);
 
       homePage.clickSupportLink(5, true);
 
-      cy.url().should('contain', COLLECTIVE_BASE);
+      cy.url().should('contain', APP_CO_LINK);
 
       // Check the page title
-      cy.title().should('eq', 'SUSE Collective');
+      cy.title().should('eq', APP_CO_LABEL);
     });
   });
 });

@@ -1,0 +1,26 @@
+{
+  "name": "rancher-prime",
+  "description": "Provides customizations for Rancher Prime",
+  "version": "1.0.0",
+  "private": false,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/rancher-version": ">= v2.10.0",
+      "catalog.cattle.io/display-name": "Rancher Prime"
+    }
+  },
+
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

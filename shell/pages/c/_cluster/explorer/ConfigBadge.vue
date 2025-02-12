@@ -26,16 +26,18 @@ export default {
 <template>
   <div class="config-badge">
     <div>
-      <a
+      <button
         class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
+        role="button"
+        tabindex="0"
         @click="customBadgeDialog"
       >
         <i
           v-clean-tooltip="tooltip"
           class="icon icon-brush-icon"
         />
-      </a>
+      </button>
     </div>
   </div>
 </template>

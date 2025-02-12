@@ -126,6 +126,11 @@ button,
   &.btn:not(.btn-sm) {
     line-height: $btn-height - 2px;
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-link {
@@ -140,6 +145,11 @@ button,
     background: transparent;
     color: var(--link);
     box-shadow: none;
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
@@ -185,6 +195,11 @@ fieldset[disabled] .btn {
       z-index: 1;
     }
 
+    &:focus-visible {
+      z-index: 1;
+      @include focus-outline;
+    }
+    
     &.active {
       @extend .bg-primary;
     }

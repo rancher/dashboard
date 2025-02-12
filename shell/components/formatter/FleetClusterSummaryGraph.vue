@@ -11,7 +11,7 @@ export default {
       required: true
     },
 
-    clusterLabel: {
+    clusterId: {
       type:     String,
       required: true
     }
@@ -22,6 +22,6 @@ export default {
 <template>
   <FleetSummaryGraph
     :row="row"
-    :clusterLabel="clusterLabel"
+    :clusterId="clusterId"
   />
 </template>

@@ -157,6 +157,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: '_type' },
       { field: 'reason' },
       { field: 'involvedObject.kind' },
+      // { field: 'involvedObject.uid' }, // Pending API Support - https://github.com/rancher/rancher/issues/48603
       { field: 'message' },
     ],
     [CATALOG.CLUSTER_REPO]: [
@@ -431,7 +432,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const exactPartial = field.exact ? `'${ field.value }'` : field.value;
+              const value = encodeURIComponent(field.value);
+              const exactPartial = field.exact ? `'${ value }'` : value;
 
               return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
             }

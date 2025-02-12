@@ -386,10 +386,10 @@ export default {
                   <router-link
                     :to="item.valueObj.detailLocation"
                   >
-                    {{ item.valueObj.id }}
+                    {{ item.valueObj.label }}
                   </router-link>
                 </span>
-                <span v-else>{{ item.valueObj.id }}</span>
+                <span v-else>{{ item.valueObj.label }}</span>
               </td>
               <!-- state-badge template -->
               <td

@@ -388,17 +388,16 @@ export default defineComponent({
       </div>
     </div>
 
-    <div class="col span-6">
+    <div class="col span-6 mt-20">
       <KeyValue
         :value="tags"
         :mode="mode"
-        :title="t('eks.tags.label')"
         :as-map="true"
         :read-allowed="false"
         @update:value="$emit('update:tags', $event)"
       >
         <template #title>
-          <label class="text-label">{{ t('eks.tags.label') }}</label>
+          <h3 v-t="'eks.tags.label'" />
         </template>
       </KeyValue>
     </div>

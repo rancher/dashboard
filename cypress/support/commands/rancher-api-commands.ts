@@ -497,8 +497,8 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
     body
   })
     .then((resp) => {
-      // Expect 201, Created HTTP status code
-      expect(resp.status).to.eq(201);
+      // Expect 200 or 201, Created HTTP status code
+      expect(resp.status).to.be.oneOf([200, 201]);
     });
 });
 
@@ -602,7 +602,9 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
  * Create RKE2 cluster with Amazon EC2 cloud provider
  */
 Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
-  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+  const {
+    machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon, metadata
+  } = params;
 
   return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
     .then((resp: Cypress.Response<any>) => {
@@ -625,8 +627,12 @@ Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2Cluster
               type:     'provisioning.cattle.io.cluster',
               metadata: {
                 namespace:   rke2ClusterAmazon.namespace,
-                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
-                name:        rke2ClusterAmazon.clusterName
+                annotations: {
+                  'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description`,
+                  ...(metadata?.annotations || {}),
+                },
+                labels: metadata?.labels || {},
+                name:   rke2ClusterAmazon.clusterName
               },
               spec: {
                 rkeConfig: {
@@ -1077,5 +1083,19 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
 Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
   return cy.tableRowsPerPageAndPreferences(rows, {
     clusterName, groupBy, namespaceFilter
+  });
+});
+
+// Update the user preferences by over-writing the given prefrence
+Cypress.Commands.add('setUserPreference', (prefs: any) => {
+  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    const update = resp.body.data[0];
+
+    update.data = {
+      ...update.data,
+      ...prefs
+    };
+
+    return cy.setRancherResource('v1', 'userpreferences', update.id, update);
   });
 });

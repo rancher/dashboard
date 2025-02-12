@@ -55,6 +55,17 @@ export class FeatureFlagsPagePo extends RootClusterPage {
   }
 
   /**
+   * Get card body error
+   * @param error
+   * @returns
+   */
+  cardActionError(error: string): CypressChainable {
+    const card = new CardPo();
+
+    return card.getError().contains(error);
+  }
+
+  /**
    * Click action button
    * @param label Activate or Deactivate
    * @param endpoint

@@ -697,7 +697,9 @@ export default defineComponent({
         <div
           class="row mb-10"
         >
-          <div class="col span-6">
+          <div
+            class="col span-6"
+          >
             <LabeledInput
               :value="normanCluster.name"
               :mode="mode"
@@ -708,7 +710,9 @@ export default defineComponent({
               @update:value="setClusterName"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+          >
             <LabeledInput
               :value="normanCluster.description"
               :mode="mode"

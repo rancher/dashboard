@@ -54,4 +54,20 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
   nodeCommand(): EmberAccordionPo {
     return new EmberAccordionPo('cluster-driver__role');
   }
+
+  etcdRole() {
+    return this.nodeCommand().content().find('div.row > div:nth-of-type(1) > label > input');
+  }
+
+  cpRole() {
+    return this.nodeCommand().content().find('div.row > div:nth-of-type(2) > label > input');
+  }
+
+  workerRole() {
+    return this.nodeCommand().content().find('div.row > div:nth-of-type(3) > label > input');
+  }
+
+  registrationCommand() {
+    return this.nodeCommand().content().find('#registration-command');
+  }
 }

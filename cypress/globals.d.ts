@@ -29,7 +29,7 @@ export type CreateAmazonRke2ClusterParams = {
     type: string,
     clusterName: string,
     namespace: string
-},
+  },
   cloudCredentialsAmazon: {
     workspace: string,
     name: string,
@@ -40,7 +40,11 @@ export type CreateAmazonRke2ClusterParams = {
   rke2ClusterAmazon: {
     clusterName: string,
     namespace: string,
-  }
+  },
+  metadata?: {
+    labels?: { [key: string]: string },
+    annotations?: { [key: string]: string },
+  },
 }
 export type CreateAmazonRke2ClusterWithoutMachineConfigParams = {
   cloudCredentialsAmazon: {
@@ -101,6 +105,8 @@ declare global {
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+
+      setUserPreference(prefs: any);
 
       /**
        * update namespace filter

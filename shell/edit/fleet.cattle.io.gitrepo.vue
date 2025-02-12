@@ -86,9 +86,7 @@ export default {
 
     this.tlsMode = tls;
 
-    if (this.value.spec.correctDrift === undefined) {
-      this.value.spec['correctDrift'] = { enabled: false };
-    }
+    this.correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
     this.updateTargets();
   },
@@ -119,7 +117,7 @@ export default {
       subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
       ready:          false,
-      weight:         30
+      weight:         1
     };
 
     const stepTargetInfo = {
@@ -129,10 +127,8 @@ export default {
       subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
       descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
       ready:          true,
-      weight:         30
+      weight:         1
     };
-
-    const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
       allClusters:             [],
@@ -145,6 +141,7 @@ export default {
       privateKey:              null,
       tlsMode:                 null,
       caBundle:                null,
+      correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
       ref,
@@ -155,9 +152,14 @@ export default {
       targetAdvanced,
       stepRepoInfo,
       stepTargetInfo,
-      addRepositorySteps,
       displayHelmRepoURLRegex: false,
-      fvFormRuleSets:          [{ path: 'spec.repo', rules: ['required'] }]
+      fvFormRuleSets:          [{
+        path:  'spec.repo',
+        rules: [
+          'required',
+          'gitRepository'
+        ],
+      }]
     };
   },
 
@@ -166,6 +168,13 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
+    },
+
+    steps() {
+      return [
+        this.stepRepoInfo,
+        this.stepTargetInfo
+      ];
     },
 
     isLocal() {
@@ -463,7 +472,7 @@ export default {
     },
 
     stepOneReady() {
-      this.addRepositorySteps[0]['ready'] = this.stepOneRequires;
+      this.stepRepoInfo['ready'] = this.stepOneRequires;
     },
 
     updateTls() {
@@ -492,6 +501,12 @@ export default {
         }
       }
     },
+
+    onSave() {
+      this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
+
+      this.save();
+    }
   }
 };
 </script>
@@ -507,13 +522,12 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="addRepositorySteps"
-    :edit-first-step="true"
+    :steps="steps"
     :finish-mode="'finish'"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="onSave"
   >
     <template #noticeBanner>
       <Banner
@@ -532,17 +546,7 @@ export default {
         @update:value="$emit('input', $event)"
       />
 
-      <div class="row">
-        <div class="col span-6">
-          <Banner
-            color="info col span-6"
-          >
-            <div>
-              {{ t('fleet.gitRepo.repo.protocolBanner') }}
-            </div>
-          </Banner>
-        </div>
-      </div>
+      <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -619,8 +623,7 @@ export default {
       </div>
 
       <template v-if="isTls">
-        <div class="spacer" />
-        <div class="row">
+        <div class="row mt-20">
           <div class="col span-6">
             <LabeledSelect
               :label="t('fleet.gitRepo.tls.label')"
@@ -646,49 +649,37 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
-      <div>
+      <div class="resource-handling">
         <Checkbox
-          v-model:value="value.spec.correctDrift.enabled"
+          v-model:value="correctDriftEnabled"
+          :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
           data-testid="GitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.correctDrift"
           :mode="mode"
         />
-        <Banner
-          data-testid="GitRepo-correctDrift-banner"
-          color="info"
-        >
-          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
-        </Banner>
+        <Checkbox
+          v-model:value="value.spec.keepResources"
+          :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
+          data-testid="GitRepo-keepResources-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.keepResources"
+          :mode="mode"
+        />
       </div>
-
-      <Checkbox
-        v-model:value="value.spec.keepResources"
-        class="check"
-        type="checkbox"
-        label-key="fleet.gitRepo.resources.keepResources"
-        :mode="mode"
-      />
-      <Banner
-        color="info"
-      >
-        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
-      </Banner>
       <div class="spacer" />
-      <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model:value="value.spec.paths"
         data-testid="gitRepo-paths"
+        :title="t('fleet.gitRepo.paths.label')"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
         :add-label="t('fleet.gitRepo.paths.addLabel')"
-      >
-        <template #empty>
-          <Banner label-key="fleet.gitRepo.paths.empty" />
-        </template>
-      </ArrayList>
+        :protip="t('fleet.gitRepo.paths.empty')"
+      />
     </template>
     <template #stepTargetInfo>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
@@ -764,3 +755,11 @@ export default {
     </template>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+  .resource-handling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+  }
+</style>

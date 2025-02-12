@@ -13,10 +13,19 @@ import {
   LocationConfig,
   ExtensionPoint,
   TabLocation,
-  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  ModelExtensionConstructor,
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
+  ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
+import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
+
+// Registration IDs used for different extension points in the extensions catalog
+export const EXT_IDS = {
+  MODELS:          'models',
+  MODEL_EXTENSION: 'model-extension',
+};
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -25,6 +34,7 @@ export class Plugin implements IPlugin {
   public name: string;
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
+  public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
@@ -55,6 +65,17 @@ export class Plugin implements IPlugin {
     Object.values(ExtensionPoint).forEach((v) => {
       this.uiConfig[v] = {};
     });
+  }
+
+  get environment(): ExtensionEnvironment {
+    const versionData = getVersionData();
+
+    return {
+      version:     versionData.Version,
+      commit:      versionData.GitCommit,
+      isPrime:     versionData.RancherPrime === 'true',
+      docsVersion: `v${ CURRENT_RANCHER_VERSION }`
+    };
   }
 
   get metadata() {
@@ -184,6 +205,17 @@ export class Plugin implements IPlugin {
    */
   addCard( where: string, when: LocationConfig | string, card: Card): void {
     this._addUIConfig(ExtensionPoint.CARD, where, when, this._createAsyncComponent(card));
+  }
+
+  /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void {
+    this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
   }
 
   /**
@@ -317,10 +349,18 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
+
+    // Accumulate model extensions
+    } else if (type === EXT_IDS.MODEL_EXTENSION) {
+      if (!this.modelExtensions[name]) {
+        this.modelExtensions[name] = [];
+      }
+      this.modelExtensions[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};
       }
+
       this.types[type][name] = fn;
     }
   }

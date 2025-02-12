@@ -1,7 +1,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
+
   name:  'Card',
   props: {
     /**
@@ -50,12 +52,22 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     },
+    triggerFocusTrap: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+  setup(props) {
+    if (props.triggerFocusTrap) {
+      useBasicSetupFocusTrap('#focus-trap-card-container-element');
+    }
   }
 });
 </script>
 
 <template>
   <div
+    id="focus-trap-card-container-element"
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
     data-testid="card"

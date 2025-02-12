@@ -4,7 +4,7 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
-import PaginatedResourceTable, { FetchPageSecondaryResourcesOpts, FetchSecondaryResourcesOpts } from '@shell/components/PaginatedResourceTable.vue';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
@@ -23,11 +23,12 @@ import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilte
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
-import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
+import { RESET_CARDS_ACTION, SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
+import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 
 export default defineComponent({
   name:       'Home',
@@ -56,6 +57,10 @@ export default defineComponent({
           action:   SET_LOGIN_ACTION
         },
         { separator: true },
+        {
+          labelKey: 'nav.header.showHideBanner',
+          action:   SHOW_HIDE_BANNER_ACTION
+        },
         {
           labelKey: 'nav.header.restoreCards',
           action:   RESET_CARDS_ACTION
@@ -238,9 +243,9 @@ export default defineComponent({
 
   methods: {
     /**
-     * Of type FetchSecondaryResources
+     * Of type PagTableFetchSecondaryResources
      */
-    fetchSecondaryResources(opts: FetchSecondaryResourcesOpts): Promise<any> {
+    fetchSecondaryResources(opts: PagTableFetchSecondaryResourcesOpts): PagTableFetchSecondaryResourcesReturns {
       if (opts.canPaginate) {
         return Promise.resolve({});
       }
@@ -271,7 +276,7 @@ export default defineComponent({
 
     async fetchPageSecondaryResources({
       canPaginate, force, page, pagResult
-    }: FetchPageSecondaryResourcesOpts) {
+    }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!canPaginate || !page?.length) {
         this.clusterCount = 0;
 
@@ -367,6 +372,10 @@ export default defineComponent({
         this.resetCards();
         break;
 
+      case SHOW_HIDE_BANNER_ACTION:
+        this.toggleBanner();
+        break;
+
       case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
         break;
@@ -406,8 +415,25 @@ export default defineComponent({
     },
 
     async resetCards() {
-      await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
+      const value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS) || {};
+
+      delete value.setLoginPage;
+
+      await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
+
       await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
+    },
+
+    async toggleBanner() {
+      const value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS) || {};
+
+      if (value.welcomeBanner) {
+        delete value.welcomeBanner;
+      } else {
+        value.welcomeBanner = true;
+      }
+
+      await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
     },
 
     async closeSetLoginBanner(retry = 0) {
