@@ -2441,6 +2441,7 @@ fleet:
       resources: Resources
       unready: Non-Ready
     auth:
+      title: Authentication
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
@@ -5144,10 +5145,22 @@ secret:
     username: Username
   ssh:
     keys: Keys
+    keysAndHosts: Keys and Known Hosts
     public: Public Key
     publicPlaceholder: "Paste in your public key"
     private: Private Key
     privatePlaceholder: "Paste in your private key"
+    knownHosts: Known Hosts
+    knownHostsPlaceholder: "Known hosts metadata, one per line"
+    editKnownHosts:
+      title: SSH Known Hosts Configuration
+      entries:  |-
+        {entries, plural,
+          =0 {Empty}
+          =1 {1 Entry}
+          other {{entries} Entries}
+        }
+
   serviceAcct:
     ca: CA Certificate
     token: Token

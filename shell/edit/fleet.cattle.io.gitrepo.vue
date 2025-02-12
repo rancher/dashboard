@@ -408,7 +408,12 @@ export default {
     },
 
     async doCreate(name, credentials) {
-      const { selected, publicKey, privateKey } = credentials;
+      const {
+        selected,
+        publicKey,
+        privateKey,
+        sshKnownHosts
+      } = credentials;
 
       if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
         return;
@@ -456,6 +461,11 @@ export default {
           [publicField]:  base64Encode(publicKey),
           [privateField]: base64Encode(privateKey),
         };
+
+        // Add ssh known hosts
+        if (selected === AUTH_TYPE._SSH && sshKnownHosts) {
+          secret.data.known_hosts = base64Encode(sshKnownHosts);
+        }
       }
 
       await secret.save();
@@ -576,6 +586,10 @@ export default {
           />
         </div>
       </div>
+
+      <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.auth.title'" />
+
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
@@ -757,6 +771,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  :deep() .select-or-create-auth-secret {
+    .row {
+      margin-top: 10px !important;
+    }
+  }
   .resource-handling {
     display: flex;
     flex-direction: column;
