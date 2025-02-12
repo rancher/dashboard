@@ -77,6 +77,7 @@ export default {
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;
+    this.showRke1DeprecationWarning = this.rows.some((r) => r.isRke1);
   },
 
   data() {
@@ -84,6 +85,7 @@ export default {
       resource:     CAPI.RANCHER_CLUSTER,
       schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusters: [],
+      showRke1DeprecationWarning: false
     };
   },
 
@@ -167,10 +169,6 @@ export default {
         expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
         expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
       };
-    },
-
-    showRke1DeprecationWarning() {
-      return this.rows.some((r) => r.isRke1);
     }
   },
 
