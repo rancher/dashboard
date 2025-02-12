@@ -237,8 +237,8 @@ export default {
       />
     </div>
     <div
+      v-if="sliders.length > 1"
       class="controls"
-      :class="{'disabled': sliders.length === 1}"
     >
       <div
         v-for="(slide, i) in slider"
@@ -359,10 +359,6 @@ export default {
   display: flex;
   justify-content: center;
   margin-top: 10px;
-
-  &.disabled {
-    display: none;
-  }
 
   .control-item {
     width: 10px;
