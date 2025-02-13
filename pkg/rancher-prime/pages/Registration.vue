@@ -13,6 +13,8 @@ const { t } = useI18n(store);
 // Globals
 // const isRegistered = computed(() => false);
 const isRegistered = ref(false);
+const isRegistering = computed(() => false);
+const expirationDate = computed(() => 'XX/XX/XXXX');
 const patchRegistration = (value: boolean, callback: () => void) => {
   setTimeout(() => {
     console.log('Patching registration', value);
@@ -23,7 +25,6 @@ const patchRegistration = (value: boolean, callback: () => void) => {
 
 // Online
 const registrationCode = ref('');
-const isRegisteringOnline = computed(() => false);
 const registerOnline = (callback: () => void) => {
   patchRegistration(true, callback);
 };
@@ -31,7 +32,6 @@ const registerOnline = (callback: () => void) => {
 // Offline
 const downloadOfflineRequest = () => { };
 const offlineRegistrationCertificate = ref('');
-const isRegisteringOffline = computed(() => false);
 const registerOffline = (callback: () => void) => {
   patchRegistration(true, callback);
 };
@@ -44,126 +44,133 @@ const deregister = (callback: () => void) => {
 
 <template>
   <h1>{{ t('registration.title') }}</h1>
-  <p>{{ t('registration.description') }}</p>
+  <p
+    v-clean-html="t('registration.description', {}, true)"
+  />
 
-  <!-- Not registered -->
-  <div
-    v-if="isRegistered"
-    class="row"
-  >
-    <div class="col span-6">
-      <Card :showActions="false">
-        <template #title>
-          <h2>{{ t('registration.registered.title') }}</h2>
-        </template>
+  <!-- Cards -->
+  <div class="mt-20">
+    <!-- Not registered -->
+    <div
+      v-if="isRegistered"
+      class="row"
+    >
+      <div class="col span-6">
+        <Card :showActions="false">
+          <template #title>
+            <h2>{{ t('registration.registered.title') }}</h2>
+          </template>
 
-        <template #body>
-          <p class="mt-20">
-            <i class="icon icon-user-check" />
-            <span>{{ t('registration.registered.description') }}</span>
-          </p>
-          <div class="mt-20">
-            <AsyncButton
-              currentPhase="error"
-              :waitingLabel="t('registration.registered.button-cta.progress')"
-              data-testid="registration-deregister-cta"
-              :disabled="isRegisteringOnline"
-              :error-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
-              @click="deregister"
+          <template #body>
+            <p class="mt-20">
+              <i class="icon icon-user-check" />
+              <span v-clean-html="t('registration.registered.description', { expirationDate }, true)" />
+            </p>
+            <div class="mt-20">
+              <AsyncButton
+                currentPhase="error"
+                :waitingLabel="t('registration.registered.button-cta.progress')"
+                data-testid="registration-deregister-cta"
+                :disabled="isRegistering"
+                :error-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.online.button-cta.label')"
+                @click="deregister"
+              />
+            </div>
+          </template>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Registered -->
+    <div
+      v-else
+      class="row"
+    >
+      <!-- Online registration -->
+      <div class="col span-6">
+        <Card :showActions="false">
+          <template #title>
+            <h2>{{ t('registration.online.title') }}</h2>
+          </template>
+
+          <template #body>
+            <p
+              v-clean-html="t('registration.online.description', {}, true)"
+              class="mt-20"
             />
-          </div>
-        </template>
-      </Card>
-    </div>
-  </div>
 
-  <!-- Registered -->
-  <div
-    v-else
-    class="row"
-  >
-    <!-- Online registration -->
-    <div class="col span-6">
-      <Card :showActions="false">
-        <template #title>
-          <h2>{{ t('registration.online.title') }}</h2>
-        </template>
+            <div class="row mt-20">
+              <div class="col span-8">
+                <LabeledInput
+                  v-model:value="registrationCode"
+                  label-key="registration.online.input.label"
+                  placeholder-key="registration.online.input.placeholder"
+                  data-testid="registration-code"
+                />
+              </div>
 
-        <template #body>
-          <p class="mt-20">
-            {{ t('registration.online.description') }}
-          </p>
+              <div class="col span-3">
+                <AsyncButton
+                  :waitingLabel="t('registration.online.button-cta.progress')"
+                  data-testid="registration-online-cta"
+                  :disabled="isRegistering || !registrationCode"
+                  :action-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.online.button-cta.label')"
+                  @click="registerOnline"
+                />
+              </div>
+            </div>
+          </template>
+        </Card>
+      </div>
 
-          <div class="row mt-20">
-            <div class="col span-8">
-              <LabeledInput
-                v-model:value="registrationCode"
-                label-key="registration.online.input.label"
-                placeholder-key="registration.online.input.placeholder"
-                data-testid="registration-code"
-              />
+      <!-- Offline registration -->
+      <div class="col span-6">
+        <Card
+          :showHighlightBorder="false"
+          :showActions="false"
+        >
+          <template #title>
+            <h2>{{ t('registration.offline.title') }}</h2>
+          </template>
+
+          <template #body>
+            <p
+              v-clean-html="t('registration.offline.description', {}, true)"
+              class="mt-20"
+            />
+
+            <div>
+              <button
+                class="btn role-secondary mt-20"
+                @click="downloadOfflineRequest()"
+              >
+                {{ t('registration.offline.button-request.label') }}
+              </button>
             </div>
 
-            <div class="col span-3">
-              <AsyncButton
-                :waitingLabel="t('registration.online.button-cta.progress')"
-                data-testid="registration-online-cta"
-                :disabled="isRegisteringOnline || !registrationCode"
-                :action-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
-                @click="registerOnline"
-              />
+            <div class="row mt-20">
+              <div class="col span-8">
+                <LabeledInput
+                  v-model:value="offlineRegistrationCertificate"
+                  label-key="registration.offline.input.label"
+                  placeholder-key="registration.offline.input.placeholder"
+                  data-testid="offline-registration-certificate"
+                />
+              </div>
+
+              <div class="col span-3">
+                <AsyncButton
+                  :waitingLabel="t('registration.offline.button-cta.progress')"
+                  data-testid="registration-offline-cta"
+                  :disabled="isRegistering || !offlineRegistrationCertificate"
+                  :action-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.offline.button-cta.label')"
+                  @click="registerOffline"
+                />
+              </div>
             </div>
-          </div>
-        </template>
-      </Card>
-    </div>
-
-    <!-- Offline registration -->
-    <div class="col span-6">
-      <Card
-        :showHighlightBorder="false"
-        :showActions="false"
-      >
-        <template #title>
-          <h2>{{ t('registration.offline.title') }}</h2>
-        </template>
-
-        <template #body>
-          <p class="mt-20">
-            {{ t('registration.offline.description') }}
-          </p>
-
-          <div>
-            <button
-              class="btn role-secondary mt-20"
-              @click="downloadOfflineRequest()"
-            >
-              {{ t('registration.offline.button-request.label') }}
-            </button>
-          </div>
-
-          <div class="row mt-20">
-            <div class="col span-8">
-              <LabeledInput
-                v-model:value="offlineRegistrationCertificate"
-                label-key="registration.offline.input.label"
-                placeholder-key="registration.offline.input.placeholder"
-                data-testid="offline-registration-certificate"
-              />
-            </div>
-
-            <div class="col span-3">
-              <AsyncButton
-                :waitingLabel="t('registration.offline.button-cta.progress')"
-                data-testid="registration-offline-cta"
-                :disabled="isRegisteringOffline || !offlineRegistrationCertificate"
-                :action-label="isRegisteringOffline ? t('generic.save') : t('registration.offline.button-cta.label')"
-                @click="registerOffline"
-              />
-            </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+        </Card>
+      </div>
     </div>
   </div>
 </template>

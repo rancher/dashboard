@@ -1,9 +1,9 @@
 registration:
   title: Prime Suite Support and Registration
-  description: Register to receive full product updates and support. Registration requires an active account with the SUSE Customer Center (http://scc.suse.com) and a valid subscription with free capacity to the SUSE Rancher Manager Prime Suite..
+  description: Register to receive full product updates and support. Registration requires an active account with the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and a valid subscription with free capacity to the SUSE Rancher Manager Prime Suite..
   online:
     title: Online Registration
-    description: To register online, you will be required to login to the SUSE Customer Center (http://scc.suse.com) and copy a valid registration code for Rancher Manager into the field below and click on Register online
+    description: To register online, you will be required to login to the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and copy a valid registration code for Rancher Manager into the field below and click on Register online
     input:
       label: Registration code
       placeholder: e.g. ****-*******-*****-******-***************
@@ -12,7 +12,7 @@ registration:
       progress: Registering
   offline:
     title: Offline Registration
-    description: Register offline in cases of limited or no internet access. \n Download a registration token, visit your account at the SUSE Customer Center (http://scc.suse.com) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
+    description: Register offline in cases of limited or no internet access. \n Download a registration token, visit your account at the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
     button-request: 
       label: Download offline registration request
     input:
@@ -23,7 +23,7 @@ registration:
       progress: Registering
   registered:
     title: System registered
-    description: This registration will automatically expire on XX/XX/XXXX
+    description: This registration will automatically expire on {expirationDate}.
     button-cta:
       label: Deregister
       progress: Deregistering
