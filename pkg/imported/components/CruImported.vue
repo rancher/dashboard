@@ -352,6 +352,7 @@ export default defineComponent({
               <LabeledInput
                 v-model:value="normanCluster.name"
                 :mode="mode"
+                required
                 :disabled="isEdit"
                 :rules="fvGetAndReportPathRules('name')"
                 label-key="generic.name"
