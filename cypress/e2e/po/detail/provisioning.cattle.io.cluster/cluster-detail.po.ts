@@ -12,6 +12,7 @@ import ClusterRecentEventsListPo from '~/cypress/e2e/po/lists/cluster-recent-eve
  */
 export default abstract class ClusterManagerDetailPagePo extends PagePo {
   private static createPath(clusterId: string, clusterName?: string, tab?: string) {
+    // In case of an imported cluster, we do not know the name of the provisioning cluster we need to navigate to
     if (!clusterName) {
       return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default`;
     }
