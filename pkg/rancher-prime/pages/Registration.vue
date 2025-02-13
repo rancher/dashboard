@@ -10,23 +10,79 @@ import AsyncButton from '@shell/components/AsyncButton';
 const store = useStore();
 const { t } = useI18n(store);
 
+// Globals
+// const isRegistered = computed(() => false);
+const isRegistered = ref(false);
+const patchRegistration = (value: boolean, callback: () => void) => {
+  setTimeout(() => {
+    console.log('Patching registration', value);
+    isRegistered.value = value;
+    callback();
+  }, 2000);
+};
+
+// Online
 const registrationCode = ref('');
 const isRegisteringOnline = computed(() => false);
-const registerOnline = () => { };
+const registerOnline = (callback: () => void) => {
+  patchRegistration(true, callback);
+};
 
+// Offline
 const downloadOfflineRequest = () => { };
 const offlineRegistrationCertificate = ref('');
 const isRegisteringOffline = computed(() => false);
-const registerOffline = () => { };
+const registerOffline = (callback: () => void) => {
+  patchRegistration(true, callback);
+};
 
-const hasCertificate = computed(() => false);
+// Deregistration
+const deregister = (callback: () => void) => {
+  patchRegistration(false, callback);
+};
 </script>
 
 <template>
   <h1>{{ t('registration.title') }}</h1>
   <p>{{ t('registration.description') }}</p>
 
-  <div class="row">
+  <!-- Not registered -->
+  <div
+    v-if="isRegistered"
+    class="row"
+  >
+    <div class="col span-6">
+      <Card :showActions="false">
+        <template #title>
+          <h2>{{ t('registration.registered.title') }}</h2>
+        </template>
+
+        <template #body>
+          <p class="mt-20">
+            <i class="icon icon-user-check" />
+            <span>{{ t('registration.registered.description') }}</span>
+          </p>
+          <div class="mt-20">
+            <AsyncButton
+              currentPhase="error"
+              :waitingLabel="t('registration.registered.button-cta.progress')"
+              data-testid="registration-deregister-cta"
+              :disabled="isRegisteringOnline"
+              :error-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
+              @click="deregister"
+            />
+          </div>
+        </template>
+      </Card>
+    </div>
+  </div>
+
+  <!-- Registered -->
+  <div
+    v-else
+    class="row"
+  >
+    <!-- Online registration -->
     <div class="col span-6">
       <Card :showActions="false">
         <template #title>
@@ -54,7 +110,7 @@ const hasCertificate = computed(() => false);
                 data-testid="registration-online-cta"
                 :disabled="isRegisteringOnline"
                 :action-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
-                @click="registerOnline()"
+                @click="registerOnline"
               />
             </div>
           </div>
@@ -62,6 +118,7 @@ const hasCertificate = computed(() => false);
       </Card>
     </div>
 
+    <!-- Offline registration -->
     <div class="col span-6">
       <Card
         :showHighlightBorder="false"
@@ -101,7 +158,7 @@ const hasCertificate = computed(() => false);
                 data-testid="registration-offline-cta"
                 :disabled="isRegisteringOffline"
                 :action-label="isRegisteringOffline ? t('generic.save') : t('registration.offline.button-cta.label')"
-                @click="registerOffline()"
+                @click="registerOffline"
               />
             </div>
           </div>

@@ -21,3 +21,9 @@ registration:
     button-cta:
       label: Register offline
       progress: Registering
+  registered:
+    title: System registered
+    description: This registration will automatically expire on XX/XX/XXXX
+    button-cta:
+      label: Deregister
+      progress: Deregistering
