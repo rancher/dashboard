@@ -180,7 +180,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
-      onUpdate: () => {
+      onChange: () => {
         // trigger on websocket update (only need 1 trigger for this cluster type)
         // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {
@@ -197,7 +197,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     });
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
-      onUpdate: (res) => {
+      onChange: () => {
         // trigger on websocket update (only need 1 trigger for this cluster type)
         // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {
@@ -214,7 +214,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     });
     this.provClusterWrapper = new PaginationWrapper({
       $store,
-      onUpdate: (res) => {
+      onChange: () => {
         // trigger on websocket update (only need 1 trigger for this cluster type)
         // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
         if (this.args) {

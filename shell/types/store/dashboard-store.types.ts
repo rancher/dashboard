@@ -1,4 +1,5 @@
 import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { STEVE_LISTENER_CALLBACK } from '@shell/types/store/subscribe.types';
 
 /**
  * Properties on all findX actions
@@ -41,6 +42,13 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
   /**
    * Result of request is transient and not persisted to store
    */
-  transient?: boolean,
+  transient?: {
+    id: string,
+    listener: STEVE_LISTENER_CALLBACK,
+  },
+  /**
+   * TODO: RC undefined = true
+   */
+  watch?: boolean,
   hasManualRefresh?: boolean,
 }

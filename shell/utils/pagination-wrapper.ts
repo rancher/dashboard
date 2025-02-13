@@ -16,30 +16,29 @@ interface Result<T> {
  *
  * This is designed to work in places where we don't/can't store the resource in the store
  * - There already exists a resource we don't want to overwrite
- * - We're transient and want something nicer than just cluster/request
+ * - We're transient and want something nicer than just `cluster/request` + all the trimmings
  */
 class PaginationWrapper<T = any> {
     private $store: VuexStore;
     private enabledFor: PaginationResourceContext;
-
-    // Blocked on https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
-    private onUpdate: (out: Result<T>) => void;
+    private onChange: () => void;
 
     public isEnabled: boolean;
 
     constructor({
       $store,
       enabledFor,
-      onUpdate,
+      onChange,
     }: {
         $store: VuexStore,
-        onUpdate: (res: Result<T>) => void,
+        onChange: () => void,
         enabledFor: PaginationResourceContext,
+        classify?: boolean,
     }) {
       this.$store = $store;
       this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters }, enabledFor);
       this.enabledFor = enabledFor;
-      this.onUpdate = onUpdate;
+      this.onChange = onChange;
     }
 
     async request(args: {
@@ -51,10 +50,15 @@ class PaginationWrapper<T = any> {
       }
       const { pagination, classify: doClassify } = args;
       const opt: ActionFindPageArgs = {
-        transient: true,
-        pagination
+        transient: {
+          id:       'abs', // TODO: RC
+          listener: () => this.onChange(),
+        },
+        watch: true,
+        pagination,
       };
 
+      // TODO: RC what happens if re-sub -- too old -- force update here??
       const out: Result<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
       if (doClassify) {

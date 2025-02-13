@@ -348,15 +348,15 @@ export function loadAll(state, {
   cache.revision = revision || 0;
   cache.generation++;
 
-  if (type.indexOf('clusterrepo') >= 0) {
-    const a = data.find((a) => a.id === 'harvester');
+  // if (type.indexOf('clusterrepo') >= 0) {
+  //   const a = data.find((a) => a.id === 'harvester');
 
-    console.warn('loadAll', 'raw from response', a.id, a.metadata.state.name);
+  //   console.warn('loadAll', 'raw from response', a.id, a.metadata.state.name);
 
-    const b = data.find((a) => a.id === 'harvester');
+  //   const b = data.find((a) => a.id === 'harvester');
 
-    console.warn('loadAll', 'proxied from response', b.id, b.metadata.state.name);
-  }
+  //   console.warn('loadAll', 'proxied from response', b.id, b.metadata.state.name);
+  // }
 
   addObjects(cache.list, proxies);
 

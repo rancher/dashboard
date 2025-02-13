@@ -9,7 +9,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import Type from '@shell/components/nav/Type.vue';
+import { STEVE_WATCH_MODES } from '@shell/types/store/subscribe.types';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -215,7 +215,10 @@ export default {
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
     // TODO: RC does not contain any filters (all, ns, id, labelSelector)
     // TODO: RC does not cover anything fetched secondary / page resources
-    const watchOpts = this.schema?.id ? { type: this.schema.id, mode: 'summary' } : undefined; // TODO: RC is of type socket message, not findAll opt
+    const watchOpts = this.schema?.id ? {
+      type: this.schema.id,
+      mode: STEVE_WATCH_MODES.RESOURCE_CHANGES
+    } : undefined; // TODO: RC is of type socket message, not findAll opt
 
     return {
       inStore,

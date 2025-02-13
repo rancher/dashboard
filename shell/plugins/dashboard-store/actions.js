@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { STEVE_WATCH_EVENTS, STEVE_WATCH_MODES } from '@shell/types/store/subscribe.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -155,7 +156,6 @@ export default {
 
     opt = opt || {};
     type = getters.normalizeType(type);
-
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
@@ -284,13 +284,13 @@ export default {
       return Promise.reject(e);
     }
 
-    if (type.indexOf('clusterrepo') >= 0) {
-      const a = out.data.find((a) => a.id === 'harvester');
+    // if (type.indexOf('clusterrepo') >= 0) {
+    //   const a = out.data.find((a) => a.id === 'harvester');
 
-      console.warn('findAll', 'raw from response', a.id, a.metadata.state.name);
+    //   console.warn('findAll', 'raw from response', a.id, a.metadata.state.name);
 
-      debugger;
-    }
+    //   debugger;
+    // }
 
     if ( load === _NONE ) {
       if (!opt.incremental && opt.hasManualRefresh) {
@@ -387,12 +387,18 @@ export default {
 
     type = getters.normalizeType(type);
 
+    // if (type === 'management.cattle.io.node') {
+    //   debugger;
+    // }
+
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
 
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
+      // TODO: RC watch
+
       return findAllGetter(getters, type, opt);
     }
 
@@ -416,7 +422,7 @@ export default {
       return Promise.reject(e);
     }
 
-    // ¬!!!!!!!!!!!!!!!!!operation now doesn't wathc individual one???
+    // TODO: RC Confirm multiple watches (id, different modes, etc) work together
 
     // TODO: RC this should be done to catch watch all --> watch some
     // await dispatch('unwatch', { type });
@@ -444,15 +450,29 @@ export default {
     }
 
     // TODO: RC
+    // !opt.transient
     if ( opt.watch !== false ) {
+      // of type @STEVE_WATCH_PARAMS
       const args = {
         type,
-        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
-        force:     opt.forceWatch === true,
-        mode:      'summary'
+        namespace:  opt.watchNamespace || opt.namespaced, // it could be either apparently
+        pagination: opt.transient ? opt.pagination : null,
+        force:      opt.forceWatch === true,
+        mode:       STEVE_WATCH_MODES.RESOURCE_CHANGES,
       };
 
-      dispatch('watch', args);
+      if (!!opt.transient) {
+        if (!!opt.transient.listener) {
+          dispatch('registerListener', {
+            event:    STEVE_WATCH_EVENTS.CHANGES,
+            id:       opt.transient.id,
+            callback: opt.transient.listener,
+            params:   args,
+          });
+        }
+      } else {
+        dispatch('watch', args);
+      }
     }
 
     if (opt.hasManualRefresh) {
