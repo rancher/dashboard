@@ -4715,6 +4715,7 @@ projectMembers:
     workloadsView: View Workloads
 
 projectNamespaces:
+  tableActionsLabel: More actions for project { resource }
   createNamespace: Create Namespace
   createProject: Create Project
   label: Projects/Namespaces
@@ -5390,6 +5391,8 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  tableActionsLabel: More actions - { resource }
+  tableActionsImgAlt: More actions icon
   bulkActions:
     collapsed:
       label: Actions
@@ -7507,6 +7510,7 @@ advancedSettings:
   none: None
   modified: Modified
   edit:
+    moreActions: More actions for setting - { setting }
     label: Edit Setting
     changeSetting: "Change Setting:"
     trueOption: "True"

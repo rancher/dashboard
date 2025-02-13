@@ -134,10 +134,13 @@ export default {
             type="button"
             class="btn btn-sm role-multi-action actions"
             role="button"
-            :aria-label="t('advancedSettings.edit.label')"
+            :aria-label="t('advancedSettings.edit.moreActions', { setting: setting.id })"
             @click="toggleActionMenu($event, setting)"
           >
-            <i class="icon icon-actions" />
+            <i
+              class="icon icon-actions"
+              :alt="t('advancedSettings.edit.moreActions', { setting: setting.id })"
+            />
           </button>
         </div>
       </div>
