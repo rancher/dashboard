@@ -6,9 +6,9 @@ import routing from './routing/index';
 
 // Init the package
 export default function(plugin: IPlugin) {
-  if (!plugin.environment.isPrime) {
-    return false;
-  }
+  // if (!plugin.environment.isPrime) {
+  //   return false;
+  // }
 
   // Auto-import model, detail, edit from the folders
   // importTypes(plugin);
@@ -22,6 +22,9 @@ export default function(plugin: IPlugin) {
   // Add the handler that will intercept and replace doc links with their Prime doc counterpart
   installDocHandler(plugin);
 
-  // Add Vue Routes
+  // Load the navigation page
+  plugin.addProduct(require('./config/navigation'));
+
+  // Add routes
   plugin.addRoutes(routing);
 }

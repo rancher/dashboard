@@ -1,13 +1,14 @@
-import { CUSTOM_PAGE_NAME, PRODUCT_NAME } from '../config';
+import { CUSTOM_PAGE_NAME, SETTING_PAGE_NAME, SETTING_PRODUCT } from '../config/constants';
 import { RouteRecordRaw } from 'vue-router';
 
 import Registration from '../pages/Registration.vue';
 
 const routes: RouteRecordRaw[] = [
   {
-    name:      `${ PRODUCT_NAME }-c-cluster`,
-    path:      `/:product/c/:cluster/${ CUSTOM_PAGE_NAME }`,
+    name:      SETTING_PAGE_NAME,
+    path:      `/c/:cluster/settings/${ CUSTOM_PAGE_NAME }`, // /c/local/settings/registration
     component: Registration,
+    meta:      { product: SETTING_PRODUCT },
   },
 ];
 
