@@ -19,7 +19,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import YamlEditor from '@shell/components/YamlEditor';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
@@ -98,7 +98,17 @@ export default {
 
   data() {
     const isPollingEnabled = !this.value.spec.disablePolling;
-    const pollingInterval = this.value.spec.pollingInterval || DEFAULT_POLLING_INTERVAL;
+
+    let pollingInterval = this.value.spec.pollingInterval;
+
+    if (!pollingInterval) {
+      if (this.realMode === _CREATE) {
+        pollingInterval = DEFAULT_POLLING_INTERVAL;
+      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
+        pollingInterval = MINIMUM_POLLING_INTERVAL;
+      }
+    }
+
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
