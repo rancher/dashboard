@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import GitRepo from '@shell/edit/fleet.cattle.io.gitrepo.vue';
 
 const values = {
@@ -11,7 +11,10 @@ const values = {
   targetInfo: { mode: 'all' },
 };
 
-describe('view: fleet.cattle.io.gitrepo should', () => {
+describe.each([
+  _CREATE,
+  _EDIT
+])('view: fleet.cattle.io.gitrepo should, mode: %p', (mode) => {
   const mockStore = {
     dispatch: jest.fn(),
     getters:  {
@@ -36,7 +39,7 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
     },
   };
   const wrapper = mount(GitRepo, {
-    props:  { value: values, mode: _EDIT },
+    props:  { value: values, mode },
     global: { mocks }
   });
 
@@ -90,7 +93,7 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
             pollingInterval: 60
           }
         },
-        mode: _EDIT
+        realMode: mode
       },
       global: { mocks },
     });
@@ -103,12 +106,14 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
     expect(pollingIntervalInput.exists()).toBe(enabled);
   });
 
+  const defaultPollingInterval = mode === _CREATE ? '60' : '15';
+
   it.each([
-    ['null', 'default 60 seconds', null, '60'],
-    ['0', 'default 60 seconds', 0, '60'],
+    ['null', `default ${ defaultPollingInterval } seconds`, null, defaultPollingInterval],
+    ['0', `default ${ defaultPollingInterval } seconds`, 0, defaultPollingInterval],
     ['1', 'custom 1 second', 1, '1'],
     ['60', 'custom 60 seconds', 60, '60'],
-    ['20', 'custom 15 seconds', 15, '15'],
+    ['15', 'custom 15 seconds', 15, '15'],
   ])('show Polling Interval input with source: %p, value: %p', async(
     source,
     actual,
@@ -121,7 +126,7 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
           ...values,
           spec: { pollingInterval }
         },
-        mode: _EDIT
+        realMode: mode
       },
       global: { mocks },
     });
@@ -151,7 +156,7 @@ describe('view: fleet.cattle.io.gitrepo should', () => {
           ...values,
           spec: { pollingInterval }
         },
-        mode: _EDIT
+        realMode: mode
       },
       global: { mocks },
     });
