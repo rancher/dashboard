@@ -52,7 +52,18 @@ export default {
     showLabelTitle: {
       type:    Boolean,
       default: true,
-    }
+    },
+
+    showLabelDescription: {
+      type:    Boolean,
+      default: true,
+    },
+
+    // A custom label description. Defaults to `labels.labels.description` if empty.
+    labelDescription: {
+      type:    String,
+      default: '',
+    },
   },
 
   data() {
@@ -89,8 +100,15 @@ export default {
             :on-label="t('labels.labels.show')"
           />
         </div>
-        <p class="mt-10 mb-10">
-          <t k="labels.labels.description" />
+        <p
+          v-if="showLabelDescription"
+          class="mt-10 mb-10"
+        >
+          <span v-if="labelDescription">{{ labelDescription }}</span>
+          <t
+            v-if="!labelDescription"
+            k="labels.labels.description"
+          />
         </p>
         <div :class="columnsClass">
           <slot
