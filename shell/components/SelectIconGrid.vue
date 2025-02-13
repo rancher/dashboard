@@ -148,10 +148,12 @@ export default {
         <i
           v-if="r.iconClass"
           :class="r.iconClass"
+          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
         />
         <LazyImage
           v-else
           :src="get(r, iconField)"
+          :alt="t('catalog.charts.iconAlt', { app: get(r, nameField) })"
         />
       </div>
       <h4 class="name">

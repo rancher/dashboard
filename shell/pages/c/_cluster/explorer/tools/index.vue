@@ -309,9 +309,11 @@ export default {
             v-if="opt.chart.iconName"
             class="icon"
             :class="opt.chart.iconName"
+            :alt="t('catalog.tools.iconAlt', { app: opt.chart.chartNameDisplay })"
           />
           <LazyImage
             v-else
+            :alt="t('catalog.tools.iconAlt', { app: opt.chart.chartNameDisplay })"
             :src="opt.chart.icon"
           />
         </div>
@@ -347,6 +349,8 @@ export default {
           <template v-if="opt.blocked">
             <button
               v-clean-html="t('catalog.tools.action.install')"
+              role="button"
+              :aria-label="t('catalog.tools.action.install')"
               disabled="true"
               class="btn btn-sm role-primary"
             />
@@ -354,12 +358,19 @@ export default {
           <template v-else-if="opt.app">
             <button
               class="btn btn-sm role-secondary"
+              role="button"
+              :aria-label="t('catalog.tools.action.remove')"
               @click="remove(opt.app, $event)"
             >
-              <i class="icon icon-delete icon-lg" />
+              <i
+                class="icon icon-delete icon-lg"
+                :alt="t('catalog.tools.action.remove')"
+              />
             </button>
             <button
               v-clean-html="t('catalog.tools.action.edit')"
+              role="button"
+              :aria-label="t('catalog.tools.action.edit')"
               class="btn btn-sm role-secondary"
               @click="edit(opt.app)"
             />
@@ -367,6 +378,8 @@ export default {
           <template v-else>
             <button
               v-clean-html="t('catalog.tools.action.install')"
+              role="button"
+              :aria-label="t('catalog.tools.action.install')"
               class="btn btn-sm role-primary"
               @click="install(opt.chart)"
             />

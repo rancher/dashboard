@@ -843,11 +843,13 @@ export default {
                   :error-src="defaultIcon"
                   :src="plugin.icon"
                   class="icon plugin-icon-img"
+                  :alt="t('plugins.altIcon', { extension: plugin.name })"
                 />
                 <img
                   v-else
                   :src="defaultIcon"
                   class="icon plugin-icon-img"
+                  :alt="t('plugins.altIcon', { extension: plugin.name })"
                 >
               </div>
               <!-- extension card -->
