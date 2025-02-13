@@ -108,7 +108,7 @@ const deregister = (callback: () => void) => {
               <AsyncButton
                 :waitingLabel="t('registration.online.button-cta.progress')"
                 data-testid="registration-online-cta"
-                :disabled="isRegisteringOnline"
+                :disabled="isRegisteringOnline || !registrationCode"
                 :action-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
                 @click="registerOnline"
               />
@@ -156,7 +156,7 @@ const deregister = (callback: () => void) => {
               <AsyncButton
                 :waitingLabel="t('registration.offline.button-cta.progress')"
                 data-testid="registration-offline-cta"
-                :disabled="isRegisteringOffline"
+                :disabled="isRegisteringOffline || !offlineRegistrationCertificate"
                 :action-label="isRegisteringOffline ? t('generic.save') : t('registration.offline.button-cta.label')"
                 @click="registerOffline"
               />
