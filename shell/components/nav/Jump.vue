@@ -64,7 +64,7 @@ export default {
 
         g.hidden = !!hidden;
       });
-    },
+    }
   },
 };
 </script>
@@ -76,6 +76,8 @@ export default {
       v-model="value"
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
+      role="textbox"
+      :aria-label="t('nav.resourceSearch.label')"
       @keyup.esc="$emit('closeSearch')"
     >
     <div class="results">
@@ -103,11 +105,15 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .search, .search:hover, .search:focus {
+  .search, .search:hover {
     position: relative;
     background-color: var(--dropdown-bg);
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .search:focus-visible {
+    outline-offset: -2px;
   }
 
   .results {

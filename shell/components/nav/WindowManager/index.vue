@@ -311,6 +311,9 @@ export default {
       :class="{
         'resizer-left': userPin == 'left',
       }"
+      role="tablist"
+      @keyup.right.prevent="selectNext(1)"
+      @keyup.left.prevent="selectNext(-1)"
       @mousedown="emitDraggable(true)"
       @mouseup="emitDraggable(false)"
     >
@@ -327,7 +330,13 @@ export default {
         :key="i"
         class="tab"
         :class="{'active': tab.id === active}"
+        role="tab"
+        :aria-selected="tab.id === active"
+        :aria-label="tab.label"
+        :aria-controls="`panel-${tab.id}`"
+        tabindex="0"
         @click="switchTo(tab.id)"
+        @keyup.enter.space="switchTo(tab.id)"
       >
         <i
           v-if="tab.icon"
@@ -338,7 +347,10 @@ export default {
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-fw icon-x wm-closer-button"
+          tabindex="0"
+          :aria-label="t('windowmanager.closeTab', { tabId: tab.id })"
           @click.stop="close(tab.id)"
+          @keyup.enter.space.stop="close(tab.id)"
         />
       </div>
       <div
@@ -361,10 +373,12 @@ export default {
     </div>
     <div
       v-for="(tab, i) in tabs"
+      :id="`panel-${tab.id}`"
       :key="i"
       class="body"
       :class="{'active': tab.id === active}"
       draggable="false"
+      role="tabpanel"
       @dragstart.prevent.stop
       @dragend.prevent.stop
       @mouseover="emitDraggable(false)"
@@ -431,6 +445,11 @@ export default {
           z-index: 1;
         }
 
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: -3px;
+        }
+
         .closer {
           margin-left: 5px;
           border: 1px solid var(--body-text);
@@ -445,6 +464,11 @@ export default {
           &:hover {
             border-color: var(--link-border);
             color: var(--link-border);
+          }
+
+          &:focus-visible {
+            @include focus-outline;
+            outline-offset: 1px;
           }
         }
       }
