@@ -11,7 +11,10 @@ import ClusterRecentEventsListPo from '~/cypress/e2e/po/lists/cluster-recent-eve
  * Covers core functionality that's common to the dashboard's cluster detail pages
  */
 export default abstract class ClusterManagerDetailPagePo extends PagePo {
-  private static createPath(clusterId: string, clusterName: string, tab?: string) {
+  private static createPath(clusterId: string, clusterName?: string, tab?: string) {
+    if (!clusterName) {
+      return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default`;
+    }
     const namespace = clusterName === 'local' ? 'fleet-local' : 'fleet-default';
 
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/${ namespace }/${ clusterName }`;
