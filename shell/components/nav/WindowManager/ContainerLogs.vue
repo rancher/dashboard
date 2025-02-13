@@ -625,9 +625,19 @@ export default {
             placement="top"
             popperClass="containerLogsDropdown"
           >
-            <button class="btn bg-primary btn-cog">
-              <i class="icon icon-gear" />
-              <i class="icon icon-chevron-up" />
+            <button
+              class="btn bg-primary btn-cog"
+              role="button"
+              :aria-label="t('wm.containerLogs.options')"
+            >
+              <i
+                class="icon icon-gear"
+                :alt="t('wm.containerLogs.options')"
+              />
+              <i
+                class="icon icon-chevron-up"
+                :alt="t('wm.containerLogs.expand')"
+              />
             </button>
 
             <template #popper>
