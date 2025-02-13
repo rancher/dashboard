@@ -83,6 +83,22 @@ export default class GitRepo extends SteveModel {
     });
 
     insertAt(out, 2, {
+      action:   'enablePolling',
+      label:    'Enable Polling',
+      icon:     'icon icon-gear',
+      bulkable: true,
+      enabled:  !!this.links.update && !!this.spec?.disablePolling
+    });
+
+    insertAt(out, 3, {
+      action:   'disablePolling',
+      label:    'Disable Polling',
+      icon:     'icon icon-gear',
+      bulkable: true,
+      enabled:  !!this.links.update && !this.spec?.disablePolling
+    });
+
+    insertAt(out, 4, {
       action:   'forceUpdate',
       label:    'Force Update',
       icon:     'icon icon-refresh',
@@ -90,7 +106,7 @@ export default class GitRepo extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    insertAt(out, 3, { divider: true });
+    insertAt(out, 5, { divider: true });
 
     return out;
   }
@@ -102,6 +118,16 @@ export default class GitRepo extends SteveModel {
 
   unpause() {
     this.spec.paused = false;
+    this.save();
+  }
+
+  enablePolling() {
+    this.spec.disablePolling = false;
+    this.save();
+  }
+
+  disablePolling() {
+    this.spec.disablePolling = true;
     this.save();
   }
 
