@@ -80,6 +80,7 @@ export default defineComponent({
             v-if="!isView"
             :mode="mode"
             :disabled="disableSave"
+            :return-focus-on-error="true"
             @click="save"
           />
         </slot>

@@ -462,6 +462,7 @@ export default {
                   :waiting-label="t('login.loggingIn')"
                   :success-label="t('login.loggedIn')"
                   :error-label="t('asyncButton.default.error')"
+                  :return-focus-on-error="true"
                   @click="loginLocal"
                 />
                 <div

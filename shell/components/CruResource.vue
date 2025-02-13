@@ -643,6 +643,7 @@ export default {
                     <AsyncButton
                       v-if="!showSubtypeSelection && !isView"
                       ref="save"
+                      :return-focus-on-error="true"
                       :disabled="!activeStep.ready"
                       :mode="finishButtonMode || mode"
                       @click="$emit('finish', $event)"
@@ -718,6 +719,7 @@ export default {
                   :disabled="!canSave"
                   :mode="finishButtonMode || mode"
                   :data-testid="componentTestid + '-save'"
+                  :return-focus-on-error="true"
                   @click="clickSave($event)"
                 />
               </div>
@@ -790,6 +792,7 @@ export default {
                     </button>
                     <AsyncButton
                       v-if="!showSubtypeSelection"
+                      :return-focus-on-error="true"
                       :data-testid="componentTestid + '-yaml-save'"
                       :disabled="!canSave"
                       :action-label="isEdit ? t('generic.save') : t('generic.create')"

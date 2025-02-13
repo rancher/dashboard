@@ -117,7 +117,10 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     },
-
+    returnFocusOnError: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   setup() {
@@ -231,7 +234,7 @@ export default defineComponent({
   },
 
   methods: {
-    clicked() {
+    clicked(ev: any) {
       if ( this.isDisabled ) {
         return;
       }
@@ -246,16 +249,21 @@ export default defineComponent({
       }
 
       const cb: AsyncButtonCallback = (success) => {
-        this.done(success);
+        this.done(success, ev);
       };
 
       this.$emit('click', cb);
     },
 
-    done(success: boolean | 'cancelled') {
+    done(success: boolean | 'cancelled', ev?: any) {
       if (success === 'cancelled') {
         this.phase = ASYNC_BUTTON_STATES.ACTION;
       } else {
+        // ev.detail = 0 means that the trigger was a key press
+        if (!success && this.returnFocusOnError && ev && ev.detail === 0) {
+          // set the focus back on the async button. We lose it when saving a "form" HTML element
+          setTimeout(() => this.focus(), 0);
+        }
         this.phase = (success ? ASYNC_BUTTON_STATES.SUCCESS : ASYNC_BUTTON_STATES.ERROR );
         this.timer = setTimeout(() => {
           this.timerDone();
