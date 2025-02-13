@@ -97,8 +97,6 @@ export default {
   },
 
   data() {
-    const isPollingEnabled = !this.value.spec.disablePolling;
-
     let pollingInterval = this.value.spec.pollingInterval;
 
     if (!pollingInterval) {
@@ -161,7 +159,6 @@ export default {
       correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
-      isPollingEnabled,
       pollingInterval,
       ref,
       refValue,
@@ -202,6 +199,10 @@ export default {
 
     isTls() {
       return !(this.value?.spec?.repo || '').startsWith('http://');
+    },
+
+    isPollingEnabled() {
+      return !this.value.spec.disablePolling;
     },
 
     isWebhookConfigured() {
