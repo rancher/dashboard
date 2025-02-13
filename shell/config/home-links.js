@@ -13,7 +13,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'forums',
-    value:   'https://forums.rancher.com/',
+    value:   'https://forums.suse.com/',
     enabled: true,
   },
   {
