@@ -8,7 +8,7 @@ gke:
     advanced: Additional Options
     config: Config
     labels: Labels and Annotations
-    members: Cluster Members
+    members: Member Roles
     networking: Networking
     nodePools: Node Pools
   authScopes:
