@@ -4,7 +4,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
 import { Card } from '@components/Card';
-import { LabeledInput } from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import AsyncButton from '@shell/components/AsyncButton';
 
 const store = useStore();
@@ -26,49 +26,87 @@ const hasCertificate = computed(() => false);
   <h1>{{ t('registration.title') }}</h1>
   <p>{{ t('registration.description') }}</p>
 
-  <Card
-    :title="t('registration.online.title')"
-    :description="t('registration.online.description')"
-  >
-    <LabeledInput
-      v-model:value="registrationCode"
-      label-key="registration.online.input.label"
-      placeholder-key="registration.online.input.placeholder"
-      data-testid="registration-code"
-    />
+  <div class="row">
+    <div class="col span-6">
+      <Card :showActions="false">
+        <template #title>
+          <h2>{{ t('registration.online.title') }}</h2>
+        </template>
 
-    <AsyncButton
-      data-testid="registration-online-cta"
-      :disabled="isRegisteringOnline"
-      :action-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
-      @click="registerOnline()"
-    />
-  </Card>
+        <template #body>
+          <p class="mt-20">
+            {{ t('registration.online.description') }}
+          </p>
 
-  <Card
-    showHighlightBorder="true"
-    :title="t('registration.offline.title')"
-    :description="t('registration.offline.description')"
-  >
-    <button
-      class="btn role-secondary"
-      @click="downloadOfflineRequest()"
-    >
-      {{ t('registration.online.button-request.label') }}
-    </button>
+          <div class="row mt-20">
+            <div class="col span-8">
+              <LabeledInput
+                v-model:value="registrationCode"
+                label-key="registration.online.input.label"
+                placeholder-key="registration.online.input.placeholder"
+                data-testid="registration-code"
+              />
+            </div>
 
-    <LabeledInput
-      v-model:value="offlineRegistrationCertificate"
-      label-key="registration.offline.input.label"
-      placeholder-key="registration.offline.input.placeholder"
-      data-testid="offline-registration-certificate"
-    />
+            <div class="col span-3">
+              <AsyncButton
+                :waitingLabel="t('registration.online.button-cta.progress')"
+                data-testid="registration-online-cta"
+                :disabled="isRegisteringOnline"
+                :action-label="isRegisteringOnline ? t('generic.save') : t('registration.online.button-cta.label')"
+                @click="registerOnline()"
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
+    </div>
 
-    <AsyncButton
-      data-testid="registration-offline-cta"
-      :disabled="isRegisteringOffline"
-      :action-label="isRegisteringOffline ? t('generic.save') : t('registration.offline.button-cta.label')"
-      @click="registerOffline()"
-    />
-  </Card>
+    <div class="col span-6">
+      <Card
+        :showHighlightBorder="false"
+        :showActions="false"
+      >
+        <template #title>
+          <h2>{{ t('registration.offline.title') }}</h2>
+        </template>
+
+        <template #body>
+          <p class="mt-20">
+            {{ t('registration.offline.description') }}
+          </p>
+
+          <div>
+            <button
+              class="btn role-secondary mt-20"
+              @click="downloadOfflineRequest()"
+            >
+              {{ t('registration.online.button-request.label') }}
+            </button>
+          </div>
+
+          <div class="row mt-20">
+            <div class="col span-8">
+              <LabeledInput
+                v-model:value="offlineRegistrationCertificate"
+                label-key="registration.offline.input.label"
+                placeholder-key="registration.offline.input.placeholder"
+                data-testid="offline-registration-certificate"
+              />
+            </div>
+
+            <div class="col span-3">
+              <AsyncButton
+                :waitingLabel="t('registration.offline.button-cta.progress')"
+                data-testid="registration-offline-cta"
+                :disabled="isRegisteringOffline"
+                :action-label="isRegisteringOffline ? t('generic.save') : t('registration.offline.button-cta.label')"
+                @click="registerOffline()"
+              />
+            </div>
+          </div>
+        </template>
+      </Card>
+    </div>
+  </div>
 </template>

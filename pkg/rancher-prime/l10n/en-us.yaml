@@ -9,6 +9,7 @@ registration:
       placeholder: \****-*******-*****-******-***************
     button-cta:
       label: Register online
+      progress: Registering
   offline:
     title: Offline Registration
     description: Register offline in cases of limited or no internet access. \n Download a registration token, visit your account at the SUSE Customer Center (http://scc.suse.com) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
@@ -19,5 +20,4 @@ registration:
       placeholder: \****-*******-*****-******-***************
     button-cta:
       label: Register offline
-
-    
+      progress: Registering
