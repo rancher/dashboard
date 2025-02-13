@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+
+import { Card } from '@components/Card';
+import { LabeledInput } from '@components/Form/LabeledInput/LabeledInput.vue';
+import AsyncButton from '@shell/components/AsyncButton';
 
 const store = useStore();
-const t = (text: string) => { };
+const { t } = useI18n(store);
 
 const registrationCode = ref('');
 const isRegisteringOnline = computed(() => false);
