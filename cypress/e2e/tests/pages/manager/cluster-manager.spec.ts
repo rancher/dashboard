@@ -9,7 +9,7 @@ import ClusterManagerDetailSnapshotsPo from '@/cypress/e2e/po/detail/provisionin
 import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-import-generic.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
-import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import ClusterManagerImportGenericPagePo from '~/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import ClusterManagerEditImportedPagePo from '@/cypress/e2e/po/extensions/imported/cluster-edit.po';
 import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manager/namespace.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -35,6 +35,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 // File specific consts
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
+const importType = 'cluster';
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
@@ -588,16 +589,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const editImportedClusterPage = new ClusterManagerEditImportedPagePo('_');
     const fqdn = 'fqdn';
     const cacert = 'cacert';
 
     describe('Generic', () => {
-      const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, importGenericName);
-
       it('can create new cluster', () => {
         const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importGenericName);
 
-        cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
+        cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -605,20 +605,20 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         importClusterPage.waitForPage('mode=import');
         importClusterPage.selectGeneric(0);
-        importClusterPage.nameNsDescription().name().set(importGenericName);
+        importClusterPage.name().set(importGenericName);
         importClusterPage.create();
 
         cy.wait('@importRequest').then((intercept) => {
           expect(intercept.request.body).to.deep.equal({
-            type,
-            metadata: {
-              namespace,
-              name: importGenericName
-            },
-            spec: {}
+            type:         importType,
+            agentEnvVars: [],
+            annotations:  {},
+            labels:       {},
+            name:         importGenericName
+
           });
         });
-        detailClusterPage.waitForPage(undefined, 'registration');
+        detailClusterPage.waitForPage(undefined);
         detailClusterPage.kubectlCommandForImported().contains('--insecure').then(($value) => {
           const kubectlCommand = $value.text();
 
@@ -645,12 +645,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
         clusterList.goTo();
         clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
-        editImportedClusterPage.waitForPage('mode=edit');
+        editImportedClusterPage.waitForPage();
 
         editImportedClusterPage.name().value().should('eq', importGenericName );
         // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
         editImportedClusterPage.name().expectToBeDisabled();
 
+        editImportedClusterPage.enableNetworkAccordion();
         editImportedClusterPage.ace().enable();
         editImportedClusterPage.ace().enterFdqn(fqdn);
         editImportedClusterPage.ace().enterCaCerts(cacert);
@@ -662,7 +663,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
-        editImportedClusterPage.waitForPage('mode=edit');
+        editImportedClusterPage.waitForPage();
         editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
         editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
       });

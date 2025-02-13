@@ -19,7 +19,6 @@ import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
-import Import from './import';
 import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const SORT_GROUPS = {
@@ -46,7 +45,6 @@ export default {
   components: {
     CruResource,
     EmberPage,
-    Import,
     Loading,
     Rke2Config,
     SelectIconGrid,
@@ -345,10 +343,7 @@ export default {
           addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
-
-      if ( isImport ) {
-        addType(this.$plugin, 'import', 'custom', false);
-      } else {
+      if (!isImport) {
         templates.forEach((chart) => {
           out.push({
             id:          `chart:${ chart.id }`,
@@ -386,6 +381,10 @@ export default {
           addType(this.$plugin, 'custom', 'custom2', false);
         }
       }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 79b01a0299 ([FEAT] Switched from creating provisioning cluster for cluster import)
       // Add from extensions
       this.extensions.forEach((ext) => {
         // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
@@ -397,6 +396,13 @@ export default {
         if (isImport && !ext.showImport) {
           return;
         }
+<<<<<<< HEAD
+=======
+        // Do not show the extension provisioner on create if it is disabled
+        if (!isImport && !!ext.hideCreate) {
+          return;
+        }
+>>>>>>> 79b01a0299 ([FEAT] Switched from creating provisioning cluster for cluster import)
         // Allow extensions to overwrite provisioners with the same id
         out = out.filter((type) => type.id !== ext.id);
         addExtensionType(ext, getters);

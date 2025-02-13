@@ -150,6 +150,11 @@ export interface IClusterProvisioner {
    * Text to show top right on the cluster provider card. For example `Experimental`
    */
   tag?: string;
+  /**
+   * Hide the provider card in the cluster creation flow
+   * If not set, the card will be shown in the cluster creation page
+   */
+  hideCreate?: boolean
 
   /**
    * Also show the provider card in the cluster importing flow
