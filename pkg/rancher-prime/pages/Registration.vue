@@ -138,7 +138,7 @@ const deregister = (callback: () => void) => {
               class="btn role-secondary mt-20"
               @click="downloadOfflineRequest()"
             >
-              {{ t('registration.online.button-request.label') }}
+              {{ t('registration.offline.button-request.label') }}
             </button>
           </div>
 

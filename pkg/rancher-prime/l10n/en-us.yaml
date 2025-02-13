@@ -6,7 +6,7 @@ registration:
     description: To register online, you will be required to login to the SUSE Customer Center (http://scc.suse.com) and copy a valid registration code for Rancher Manager into the field below and click on Register online
     input:
       label: Registration code
-      placeholder: \****-*******-*****-******-***************
+      placeholder: e.g. ****-*******-*****-******-***************
     button-cta:
       label: Register online
       progress: Registering
@@ -17,7 +17,7 @@ registration:
       label: Download offline registration request
     input:
       label: Offline registration certificate
-      placeholder: \****-*******-*****-******-***************
+      placeholder: e.g. ****-*******-*****-******-***************
     button-cta:
       label: Register offline
       progress: Registering
