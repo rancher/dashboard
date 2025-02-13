@@ -204,6 +204,10 @@ export default {
       return !(this.value?.spec?.repo || '').startsWith('http://');
     },
 
+    isWebhookConfigured() {
+      return !!this.value.status?.webhookCommit;
+    },
+
     targetOptions() {
       const out = [
         {
@@ -772,27 +776,34 @@ export default {
             @update:value="enablePolling"
           />
         </div>
-        <div
-          v-if="isPollingEnabled"
-          class="col span-6"
-        >
-          <Banner
-            v-if="showPollingIntervalWarning"
-            color="warning"
-            label-key="fleet.gitRepo.polling.pollingInterval.warning"
-            data-testid="GitRepo-pollingInterval-warning"
-          />
-          <UnitInput
-            v-model:value="pollingInterval"
-            data-testid="GitRepo-pollingInterval-input"
-            min="1"
-            :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
-            :label="t('fleet.gitRepo.polling.pollingInterval.label')"
-            :mode="mode"
-            tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
-            @update:value="updatePollingInterval"
-          />
-        </div>
+        <template v-if="isPollingEnabled">
+          <div class="col">
+            <Banner
+              v-if="showPollingIntervalWarning"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              data-testid="GitRepo-pollingInterval-minimumValueWarning"
+            />
+            <Banner
+              v-if="isWebhookConfigured"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
+              data-testid="GitRepo-pollingInterval-webhookWarning"
+            />
+          </div>
+          <div class="col span-6">
+            <UnitInput
+              v-model:value="pollingInterval"
+              data-testid="GitRepo-pollingInterval-input"
+              min="1"
+              :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
+              :label="t('fleet.gitRepo.polling.pollingInterval.label')"
+              :mode="mode"
+              tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
+              @update:value="updatePollingInterval"
+            />
+          </div>
+        </template>
       </div>
     </template>
     <template #stepTargetInfo>

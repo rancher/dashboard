@@ -14,7 +14,7 @@ const values = {
 describe.each([
   _CREATE,
   _EDIT
-])('view: fleet.cattle.io.gitrepo should, mode: %p', (mode) => {
+])('view: fleet.cattle.io.gitrepo, mode: %p - should', (mode) => {
   const mockStore = {
     dispatch: jest.fn(),
     getters:  {
@@ -75,12 +75,12 @@ describe.each([
   });
 
   it.each([
-    ['show Polling Interval', 'enabled', undefined, true],
-    ['show Polling Interval', 'enabled', false, true],
-    ['hide Polling Interval', 'disabled', true, false],
+    ['show Polling Interval and warnings', 'enabled', undefined, true],
+    ['show Polling Interval and warnings', 'enabled', false, true],
+    ['hide Polling Interval and warnings', 'disabled', true, false],
   ])('show Enable Polling checkbox and %p if %p, with spec.disablePolling: %p', (
-    showPollingIntervalMessage,
-    enabledMessage,
+    descr1,
+    descr2,
     disablePolling,
     enabled
   ) => {
@@ -90,8 +90,9 @@ describe.each([
           ...values,
           spec: {
             disablePolling,
-            pollingInterval: 60
-          }
+            pollingInterval: 10
+          },
+          status: { webhookCommit: 'sha' },
         },
         realMode: mode
       },
@@ -100,7 +101,11 @@ describe.each([
 
     const pollingCheckbox = wrapper.findComponent('[data-testid="GitRepo-enablePolling-checkbox"]') as any;
     const pollingIntervalInput = wrapper.find('[data-testid="GitRepo-pollingInterval-input"]');
+    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-minimumValueWarning"]');
+    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-webhookWarning"]');
 
+    expect(pollingIntervalMinimumValueWarning.exists()).toBe(enabled);
+    expect(pollingIntervalWebhookWarning.exists()).toBe(enabled);
     expect(pollingCheckbox.exists()).toBeTruthy();
     expect(pollingCheckbox.vm.value).toBe(enabled);
     expect(pollingIntervalInput.exists()).toBe(enabled);
@@ -115,8 +120,8 @@ describe.each([
     ['60', 'custom 60 seconds', 60, '60'],
     ['15', 'custom 15 seconds', 15, '15'],
   ])('show Polling Interval input with source: %p, value: %p', async(
-    source,
-    actual,
+    descr1,
+    descr2,
     pollingInterval,
     unitValue,
   ) => {
@@ -145,8 +150,8 @@ describe.each([
     ['hide', 'source: 16, value: higher than 15', 16, false],
     ['show', 'source: 1, value: lower than 15', 1, true],
   ])('%p Polling Interval warning if %p', async(
-    status,
-    condition,
+    descr1,
+    descr2,
     pollingInterval,
     visible,
   ) => {
@@ -161,8 +166,36 @@ describe.each([
       global: { mocks },
     });
 
-    const pollingIntervalWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-warning"]');
+    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-minimumValueWarning"]');
 
-    expect(pollingIntervalWarning.exists()).toBe(visible);
+    expect(pollingIntervalMinimumValueWarning.exists()).toBe(visible);
+  });
+
+  it.each([
+    ['hide', 'disabled', null, false],
+    ['hide', 'disabled', false, false],
+    ['hide', 'disabled', '', false],
+    ['show', 'enabled', 'sha', true],
+  ])('%p Webhook configured warning if webhook is %p', (
+    descr1,
+    descr2,
+    webhookCommit,
+    visible
+  ) => {
+    const wrapper = mount(GitRepo, {
+      props: {
+        value: {
+          ...values,
+          spec:   { pollingInterval: 60 },
+          status: { webhookCommit },
+        },
+        realMode: mode
+      },
+      global: { mocks },
+    });
+
+    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-webhookWarning"]');
+
+    expect(pollingIntervalWebhookWarning.exists()).toBe(visible);
   });
 });
