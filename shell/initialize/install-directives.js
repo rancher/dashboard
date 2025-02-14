@@ -10,6 +10,7 @@ import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import positiveIntNumberDirective from '@shell/directives/positive-int-number.js';
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 import intNumberDirective from '@shell/directives/int-number';
+import htmlStrippedAriaLabelDirective from '@shell/directives/strip-aria-label';
 
 /**
  * Prevent extensions from overriding existing directives
@@ -47,6 +48,7 @@ function addDirectives(vueApp) {
   vueApp.directive('focus', focusDirective);
   vueApp.directive('intNumber', intNumberDirective);
   vueApp.directive('positiveIntNumber', positiveIntNumberDirective);
+  vueApp.directive('stripped-aria-label', htmlStrippedAriaLabelDirective);
 }
 
 /**

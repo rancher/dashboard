@@ -31,6 +31,16 @@ export default defineComponent({
   computed: {
     iconClass(): string {
       return this.status === 'error' ? 'icon-warning' : 'icon-info';
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tooltipContent(): {[key: string]: any} | string {
+      if (this.isObject(this.value)) {
+        return {
+          ...{ content: this.value.content, popperClass: [`tooltip-${ status }`] }, ...this.value, triggers: ['hover', 'touch', 'focus']
+        };
+      }
+
+      return this.value ? { content: this.value, triggers: ['hover', 'touch', 'focus'] } : '';
     }
   },
   methods: {
@@ -49,9 +59,11 @@ export default defineComponent({
   >
     <template v-if="hover">
       <i
-        v-clean-tooltip="isObject(value) ? { ...{content: value.content, popperClass: [`tooltip-${status}`]}, ...value } : value"
+        v-clean-tooltip="tooltipContent"
+        v-stripped-aria-label="isObject(value) ? value.content : value"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
+        tabindex="0"
       />
     </template>
     <template v-else>

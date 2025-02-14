@@ -131,6 +131,9 @@ locale:
 
 nav:
   ariaLabel:
+    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
+    clusterIcon: Cluster icon
+    clusterProvIcon: Cluster provider icon
     topLevelMenu: Main menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
@@ -2627,6 +2630,7 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  badgeAppearance: Cluster bagde Appearance
   customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
