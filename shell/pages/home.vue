@@ -53,17 +53,17 @@ export default defineComponent({
       // Page actions don't change on the Home Page
       pageActions: [
         {
-          labelKey: 'nav.header.setLoginPage',
-          action:   SET_LOGIN_ACTION
+          label:  this.t('nav.header.setLoginPage'),
+          action: SET_LOGIN_ACTION
         },
-        { separator: true },
+        { divider: true },
         {
-          labelKey: 'nav.header.showHideBanner',
-          action:   SHOW_HIDE_BANNER_ACTION
+          label:  this.t('nav.header.showHideBanner'),
+          action: SHOW_HIDE_BANNER_ACTION
         },
         {
-          labelKey: 'nav.header.restoreCards',
-          action:   RESET_CARDS_ACTION
+          label:  this.t('nav.header.restoreCards'),
+          action: RESET_CARDS_ACTION
         },
       ],
       vendor: getVendor(),

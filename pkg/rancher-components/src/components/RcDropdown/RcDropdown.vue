@@ -28,6 +28,8 @@ defineProps<{
   ariaLabel?: string
 }>();
 
+const emit = defineEmits(['update:open']);
+
 const {
   isMenuOpen,
   showMenu,
@@ -35,8 +37,7 @@ const {
   setFocus,
   provideDropdownContext,
   registerDropdownCollection,
-  handleKeydown,
-} = useDropdownContext();
+} = useDropdownContext(emit);
 
 provideDropdownContext();
 
