@@ -48,3 +48,28 @@ describe('action: redirectTo', () => {
     expect(url).toStrictEqual(expectation);
   });
 });
+
+describe('action: test', () => {
+  it('should call redirect with all the options', async() => {
+    const provider = 'whatever';
+    const redirectUrl = 'whatever';
+    const body = { scope: ['whatever'] };
+    const options = {
+      provider,
+      redirectUrl,
+      scope:    body.scope,
+      test:     true,
+      redirect: false
+    };
+    const dispatchSpy = jest.fn().mockResolvedValue({ doAction: () => ({ redirectUrl }) });
+    const store = {
+      state:    {},
+      commit:   jest.fn(),
+      dispatch: dispatchSpy,
+    };
+
+    await actions.test(store, { provider, body });
+
+    expect(dispatchSpy).toHaveBeenCalledWith('dispatch', options);
+  });
+});
