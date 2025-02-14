@@ -208,7 +208,7 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20;
+    z-index: z-index('modalOverlay');
 
     .modal-container {
       background-color: var(--modal-bg);
