@@ -73,7 +73,7 @@ const deregister = (callback: () => void) => {
                   :waitingLabel="t('registration.registered.button-cta.progress')"
                   data-testid="registration-deregister-cta"
                   :disabled="isRegistering"
-                  :error-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.online.button-cta.label')"
+                  :error-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.registered.button-cta.label')"
                   @click="deregister"
                 />
               </div>
