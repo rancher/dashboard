@@ -6,6 +6,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { Card } from '@components/Card';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import AsyncButton from '@shell/components/AsyncButton';
+import Banner from '@components/Banner/Banner.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -13,14 +14,19 @@ const { t } = useI18n(store);
 // Globals
 // const isRegistered = computed(() => false);
 const isRegistered = ref(false);
+const errors = ref([] as string[]);
 const isRegistering = computed(() => false);
 const expirationDate = computed(() => 'XX/XX/XXXX');
 const patchRegistration = (value: boolean, callback: () => void) => {
+  errors.value = [];
   setTimeout(() => {
     console.log('Patching registration', value);
     isRegistered.value = value;
     callback();
   }, 2000);
+};
+const onError = () => {
+  errors.value.push('An error occurred');
 };
 
 // Online
@@ -33,7 +39,12 @@ const registerOnline = (callback: () => void) => {
 const downloadOfflineRequest = () => { };
 const offlineRegistrationCertificate = ref('');
 const registerOffline = (callback: () => void) => {
-  patchRegistration(true, callback);
+  // patchRegistration(true, callback);
+  errors.value = [];
+  setTimeout(() => {
+    onError();
+    callback();
+  }, 1000);
 };
 
 // Deregistration
@@ -48,6 +59,20 @@ const deregister = (callback: () => void) => {
     <p
       v-clean-html="t('registration.description', {}, true)"
     />
+
+    <Banner
+      v-if="errors.length"
+      :label="errors"
+      color="error"
+      data-testid="registration-errors"
+    >
+      <p
+        v-for="(error, i) in errors"
+        :key="i"
+      >
+        {{ error }}
+      </p>
+    </Banner>
 
     <!-- Cards -->
     <div class="mt-20">
