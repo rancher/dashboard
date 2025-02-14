@@ -1479,6 +1479,7 @@ export default {
                     <ActionMenu
                       :resource="row.row"
                       :test-id="componentTestid + '-' + i"
+                      :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
                     />
                   </slot>
                 </td>
