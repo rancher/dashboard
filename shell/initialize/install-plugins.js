@@ -35,7 +35,12 @@ export async function installPlugins(vueApp) {
   vueApp.use(PortalVue);
   vueApp.use(Vue3Resize);
   vueApp.use(FloatingVue, floatingVueOptions);
-  vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+  vueApp.use(
+    ShortKey,
+    {
+      prevent:          ['input', 'textarea', 'select'],
+      preventContainer: ['#modal-container-element']
+    });
   vueApp.use(InstallCodeMirror);
   vueApp.component('v-select', vSelect);
 }
