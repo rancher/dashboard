@@ -53,7 +53,7 @@ export const getters = {
     return [...out];
   },
   options(_state, getters) {
-    return { ...getters.options };
+    return { ...getters.optionsArray };
   },
 
 };

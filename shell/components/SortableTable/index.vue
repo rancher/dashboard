@@ -1476,7 +1476,10 @@ export default {
                     :row="row.row"
                     :index="i"
                   >
-                    <ActionMenu :resource="row.row" />
+                    <ActionMenu
+                      :resource="row.row"
+                      :test-id="componentTestid + '-' + i"
+                    />
                   </slot>
                 </td>
               </tr>
@@ -1773,7 +1776,6 @@ export default {
     min-width: 400px;
     border-radius: 5px 5px 0 0;
     outline: 1px solid var(--border);
-    overflow: hidden;
     background: var(--sortable-table-bg);
     border-radius: 4px;
 

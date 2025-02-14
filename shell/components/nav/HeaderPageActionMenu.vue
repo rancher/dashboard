@@ -5,7 +5,7 @@ import { RcDropdownMenu } from '@components/RcDropdown';
 
 const store = useStore();
 const pageActions = computed(() => store.getters.pageActions);
-const pageAction = (action: string) => {
+const pageAction = (_event: Event, action: string) => {
   store.dispatch('handlePageAction', action);
 };
 </script>
@@ -15,6 +15,7 @@ const pageAction = (action: string) => {
     :options="pageActions"
     :button-aria-label="t('nav.actionMenu.label')"
     :dropdown-aria-label="t('nav.actionMenu.button.label')"
+    test-id="page-actions-menu"
     button-role="tertiary"
     @select="pageAction"
   />

@@ -88,7 +88,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
 
     // check list details

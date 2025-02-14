@@ -26,7 +26,7 @@ const hasOptions = (options: DropdownOption[]) => {
     <rc-dropdown-trigger
       :[buttonRole]="true"
       :[buttonSize]="true"
-      data-testid="page-actions-menu"
+      :data-testid="`${ testId }-action-button`"
       :aria-label="buttonAriaLabel"
     >
       <i class="icon icon-actions" />

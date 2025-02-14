@@ -67,6 +67,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
     :button-aria-label="buttonAriaLabel"
     :dropdown-aria-label="dropdownAriaLabel"
     :options="options"
+    :testId="testId"
     @update:open="openChanged"
     @select="(e: MouseEvent, option: object) => execute(option, e)"
   />
