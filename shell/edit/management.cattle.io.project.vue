@@ -132,7 +132,7 @@ export default {
             });
           }
 
-          // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
+          // We allow users with permissions for projectroletemplatebindings to be able to manage members on projects
           if (this.membershipUpdate.save) {
             const norman = await this.value.norman;
 
