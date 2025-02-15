@@ -490,7 +490,12 @@ export default {
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
             :data-testid="`subtype-banner-item-${subtype.id}`"
+            tabindex="0"
+            :aria-disabled="false"
+            :aria-label="subtype.description ? `${subtype.label} - ${subtype.description}` : subtype.label"
+            role="link"
             @click="selectType(subtype.id, $event)"
+            @keyup.enter.space="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
               <div class="subtype-container">
@@ -824,6 +829,10 @@ export default {
   .subtype-banner {
     .round-image {
       background-color: var(--primary);
+    }
+
+    &:focus-visible {
+      @include focus-outline;
     }
   }
 }
