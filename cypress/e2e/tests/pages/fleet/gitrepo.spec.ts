@@ -171,9 +171,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // check table headers
       const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
 
-      gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
-        .tableHeaderRow()
-        .within('.table-header-container .content')
+      cy.get('#bundles [data-testid="sortable-table-list-container"] .table-header-container .content', { timeout: 20000 })
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
         });
