@@ -49,9 +49,6 @@ export default {
   },
 
   computed: {
-    allBundleDeployments() {
-      return this.value.bundleDeployments;
-    },
     clusterId() {
       return this.value.id;
     },
