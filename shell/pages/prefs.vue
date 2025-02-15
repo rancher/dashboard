@@ -191,11 +191,15 @@ export default {
       v-if="hasMultipleLocales && !isHarvester"
       class="mt-10 mb-10"
     >
-      <h4 v-t="'prefs.language'" />
+      <h4
+        id="prefs-language"
+        v-t="'prefs.language'"
+      />
       <div class="row">
         <div class="col span-4">
           <LocaleSelector
             data-testid="prefs__languageSelector"
+            aria-labelledby="prefs-language"
           />
         </div>
       </div>
