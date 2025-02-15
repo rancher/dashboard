@@ -673,11 +673,13 @@ export default {
       </div>
       <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate
-          :value="currentCluster.metadata.creationTimestamp"
-          :add-suffix="true"
-          :show-tooltip="true"
-        /></span>
+        <span>
+          <LiveDate
+            :value="currentCluster.metadata.creationTimestamp"
+            :add-suffix="true"
+            :show-tooltip="true"
+          />
+        </span>
       </div>
       <div :style="{'flex':1}" />
       <div v-if="showClusterTools">
