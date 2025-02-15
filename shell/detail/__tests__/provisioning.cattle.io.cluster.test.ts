@@ -10,6 +10,7 @@ describe('view: provisioning.cattle.io.cluster', () => {
     getters: {
       'management/canList':      () => true,
       'management/schemaFor':    jest.fn(),
+      'management/all':          (type: string) => (type === 'cluster.x-k8s.io.machine') ? [] : undefined,
       'i18n/t':                  (text: string) => text,
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
