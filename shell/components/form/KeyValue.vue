@@ -240,6 +240,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    description: {
+      default: '',
+      type:    String,
+    },
   },
   data() {
     const rows = this.getRows(this.value);
@@ -600,6 +604,11 @@ export default {
           />
         </h3>
       </slot>
+    </div>
+    <div v-if="description">
+      <p class="mt-10 mb-10">
+        {{ description }}
+      </p>
     </div>
     <div
       class="kv-container"
