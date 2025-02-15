@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
+import websocketTasks from './cypress/support/utils/webSocket-utils';
+
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
@@ -108,6 +110,9 @@ export default defineConfig({
       require('cypress-mochawesome-reporter/plugin')(on);
       require('@cypress/grep/src/plugin')(config);
       on('task', { removeDirectory });
+      websocketTasks(on, config);
+
+      return config;
     },
     fixturesFolder:               'cypress/e2e/blueprints',
     experimentalSessionAndOrigin: true,
