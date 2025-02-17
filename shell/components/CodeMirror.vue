@@ -138,7 +138,7 @@ export default {
 
     isCodeMirrorContainerFocused: {
       handler(neu) {
-        const codeMirrorEl = this.codeMirrorRef.getInputField();
+        const codeMirrorEl = this.codeMirrorRef?.getInputField();
 
         if (codeMirrorEl) {
           codeMirrorEl.tabIndex = neu ? -1 : 0;
