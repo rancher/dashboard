@@ -35,7 +35,7 @@ import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
-import { STEVE_WATCH_EVENTS, STEVE_WATCH_MODES } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -264,9 +264,9 @@ function growlsDisabled(rootGetters) {
 /**
  * Supported events are listed
  *
- * of type { [key: STEVE_WATCH_EVENTS]: STEVE_LISTENER[]}
+ * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
  */
-const listeners = { [STEVE_WATCH_EVENTS.CHANGES]: [] };
+const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
 
 /**
  * Actions that cover all cases (see file description)
@@ -366,12 +366,13 @@ const sharedActions = {
     return Promise.all(cleanupTasks);
   },
 
+  // TODO: RC bug - create imported cluster.... no mgmt cluster received....
   /**
-   * @param {STEVE_WATCH_EVENTS} event
-   * @param {} params
+   * @param {} ctx
+   * @param {STEVE_WATCH_EVENT_PARAMS} event
    */
-  registerListener(ctx, {
-    event = STEVE_WATCH_EVENTS.CHANGES,
+  watchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
     id,
     callback,
     /**
@@ -385,7 +386,8 @@ const sharedActions = {
       return;
     }
 
-    let listener = listeners[event].find((sl) => equivalentWatch(sl.params, params));
+    // STEVE_WATCH_EVENT_LISTENER | undefined
+    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
 
     if (!listener) {
       listener = {
@@ -402,11 +404,12 @@ const sharedActions = {
   },
 
   /**
-   * @param {STEVE_WATCH_EVENTS} event
-   * @param {} params
+   * @param {} ctx
+   * @param {STEVE_UNWATCH_EVENT_PARAMS} event
    */
-  unregisterListener(ctx, {
-    event = STEVE_WATCH_EVENTS.CHANGES,
+  unwatchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
+    id,
     /**
      * of type @STEVE_WATCH_PARAMS
      */
@@ -419,10 +422,10 @@ const sharedActions = {
       return;
     }
 
-    const existing = listeners[event].findIndex((l) => equivalentWatch(l, params)) >= 0;
+    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
 
-    if (existing >= 0) {
-      listeners[event].splice(existing, 1);
+    if (existing) {
+      delete existing.callbacks[id];
     }
   },
 
@@ -670,19 +673,6 @@ const defaultActions = {
   },
 
   /**
-   * Fetch the latest resources associated with a watch
-   */
-  async refetch({ getters, dispatch }, params) {
-    // TODO: RC will this be spammy?
-    console.info(`Refetch [${ getters.storeName }]`, params); // eslint-disable-line no-console
-
-    await dispatch('fetchResources', {
-      ...params,
-      opt: { force: true, load: _MERGE }
-    } );
-  },
-
-  /**
    * Socket has been closed, restart afresh (make http request, ensure we re-watch)
    */
   async resyncWatch({ getters, dispatch }, params) {
@@ -736,7 +726,7 @@ const defaultActions = {
         opt,
       });
     } else {
-      if (mode === STEVE_WATCH_MODES.RESOURCE_CHANGES) {
+      if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
       // Other findX use options (id/ns/selector) from the messages received over socket.
         // For paginated requests though we need to get them from the store.
         const storePagination = getters['havePage'](resourceType); // TODO: RC other messages just id/namespace/labelSelect from socket message
@@ -752,6 +742,12 @@ const defaultActions = {
               ...storePagination.request
             }
           });
+
+          const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
+
+          if (listener) {
+            Object.values(listener.callbacks).forEach((cb) => cb());
+          }
         }
       } else {
         have = getters['all'](resourceType).slice();
@@ -926,7 +922,6 @@ const defaultActions = {
       id:        msg.id,
       selector:  msg.selector,
       mode:      msg.mode,
-      // mode:      getters['havePage'](msg.resourceType) ? STEVE_WATCH_MODES.RESOURCE_CHANGES : undefined // TODO: RC !!!!!!!!!!!!
     };
 
     state.started.filter((entry) => {
@@ -1058,13 +1053,10 @@ const defaultActions = {
   },
 
   'ws.resource.changes'({ dispatch }, msg) {
-    dispatch('refetch', { ...msg });
-
-    const listener = listeners[STEVE_WATCH_MODES.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, msg));
-
-    if (listener) {
-      Object.values(listener.callbacks).forEach((cb) => cb());
-    }
+    dispatch('fetchResources', {
+      ...msg,
+      opt: { force: true, load: _MERGE }
+    } );
   },
 
   'ws.resource.remove'(ctx, msg) {

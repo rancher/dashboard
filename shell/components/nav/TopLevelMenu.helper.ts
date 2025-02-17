@@ -86,7 +86,15 @@ export interface TopLevelMenuHelper {
   */
   clustersOthers: Array<TopLevelMenuCluster>;
 
-  update: (args: UpdateArgs) => Promise<void>
+  /**
+   * Fetch all cluster resources
+   */
+  update: (args: UpdateArgs) => Promise<void>;
+
+  /**
+   * Cleanup on destroy of TopLevelMenu
+   */
+  destroy: () => Promise<void>;
 }
 
 export abstract class BaseTopLevelMenuHelper {
@@ -180,9 +188,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
+      id:       'tlm-pinned-clusters',
       onChange: () => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
+        console.warn('TLM:H', 'clustersPinnedWrapper', 'onChange', this.args);
         if (this.args) {
           this.update(this.args);
         }
@@ -193,30 +201,27 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           id:      MANAGEMENT.CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      classify: true,
     });
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
-      onChange: () => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
-        if (this.args) {
-          this.update(this.args);
-        }
-      },
+      id:         'tlm-unpinned-clusters',
       enabledFor: {
         store:    'management',
         resource: {
           id:      MANAGEMENT.CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      classify: true,
     });
     this.provClusterWrapper = new PaginationWrapper({
       $store,
+      id:       'tlm-prov-clusters',
       onChange: () => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
+        console.warn('TLM:H', 'provClusterWrapper', 'onChange', this.args);
+
         if (this.args) {
           this.update(this.args);
         }
@@ -227,7 +232,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           id:      CAPI.RANCHER_CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      classify: true,
     });
   }
 
@@ -258,6 +264,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       return res;
     }, {} as { [mgmtId: string]: ProvCluster});
 
+    // Filter out mgmt clusters that don't have matching prov cluster and convert remaining to required format
     const _clustersNotPinned = res.notPinned
       .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
       .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
@@ -274,6 +281,19 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.cacheClusters();
   }
 
+  async destroy() {
+    this.clustersPinnedWrapper.onDestroy();
+    this.clustersOthersWrapper.onDestroy();
+    this.provClusterWrapper.onDestroy();
+  }
+
+  /**
+   * Helper function
+   *
+   * This extracts all the functionality previously in TopLevelMenu
+   *
+   * Construct SSP filter params
+   */
   private constructParams({
     pinnedIds,
     searchTerm,
@@ -341,8 +361,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-      classify: true,
-    }).then((r) => r.data);
+    });
   }
 
   /**
@@ -362,8 +381,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-      classify: true,
-    }).then((r) => r.data);
+    });
   }
 
   /**
@@ -386,8 +404,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
-      classify: true,
-    }).then((r) => r.data);
+    });
   }
 }
 
@@ -417,6 +434,10 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.clustersOthers.push(..._clustersNotPinned);
 
     this.cacheClusters();
+  }
+
+  async destroy() {
+    // No-op
   }
 
   /**

@@ -9,7 +9,7 @@ import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { STEVE_WATCH_MODES } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -217,7 +217,7 @@ export default {
     // TODO: RC does not cover anything fetched secondary / page resources
     const watchOpts = this.schema?.id ? {
       type: this.schema.id,
-      mode: STEVE_WATCH_MODES.RESOURCE_CHANGES
+      mode: STEVE_WATCH_MODE.RESOURCE_CHANGES
     } : undefined; // TODO: RC is of type socket message, not findAll opt
 
     return {

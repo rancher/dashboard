@@ -9,7 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
-import { STEVE_WATCH_EVENTS, STEVE_WATCH_MODES } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -455,22 +455,12 @@ export default {
       // of type @STEVE_WATCH_PARAMS
       const args = {
         type,
-        namespace:  opt.watchNamespace || opt.namespaced, // it could be either apparently
-        pagination: opt.transient ? opt.pagination : null,
-        force:      opt.forceWatch === true,
-        mode:       STEVE_WATCH_MODES.RESOURCE_CHANGES,
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+        force:     opt.forceWatch === true,
+        mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      if (!!opt.transient) {
-        if (!!opt.transient.listener) {
-          dispatch('registerListener', {
-            event:    STEVE_WATCH_EVENTS.CHANGES,
-            id:       opt.transient.id,
-            callback: opt.transient.listener,
-            params:   args,
-          });
-        }
-      } else {
+      if (!opt.transient) {
         dispatch('watch', args);
       }
     }

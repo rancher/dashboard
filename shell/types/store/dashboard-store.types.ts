@@ -1,5 +1,4 @@
 import { PaginationArgs } from '@shell/types/store/pagination.types';
-import { STEVE_LISTENER_CALLBACK } from '@shell/types/store/subscribe.types';
 
 /**
  * Properties on all findX actions
@@ -39,13 +38,6 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * The single namespace to filter by (used in url path, not part of pagination params)
    */
   namespaced?: string,
-  /**
-   * Result of request is transient and not persisted to store
-   */
-  transient?: {
-    id: string,
-    listener: STEVE_LISTENER_CALLBACK,
-  },
   /**
    * TODO: RC undefined = true
    */

@@ -327,6 +327,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
+    this.helper?.destroy();
   },
 
   methods: {
