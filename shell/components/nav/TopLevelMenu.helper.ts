@@ -37,7 +37,7 @@ type ProvCluster = {
 }
 
 /**
- * Order
+ * Order of v1 mgmt clusters
  * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
  * 2. working clusters
  * 3. name
@@ -47,10 +47,10 @@ const DEFAULT_SORT: Array<PaginationSort> = [
     asc:   false,
     field: 'spec.internal',
   },
-  // {
-  //   asc:   true,
-  //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
-  // },
+  {
+    asc:   false,
+    field: 'status.connected'
+  },
   {
     asc:   true,
     field: 'spec.displayName',
