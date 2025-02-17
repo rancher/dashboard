@@ -34,7 +34,7 @@ describe('Setup Vai', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, ()
     performancePage.serverSidePaginationCheckbox().set();
 
     performancePage.incompatibleModal().checkVisible();
-    performancePage.incompatibleModal().submit('Enable');
+    performancePage.incompatibleModal().submit('Continue');
 
     performancePage.serverSidePaginationCheckbox().isChecked();
 
