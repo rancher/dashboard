@@ -6,7 +6,7 @@ describe('action: redirectTo', () => {
     jest.spyOn(window, 'window', 'get');
     const store = { dispatch: jest.fn() };
     const clientId = '123';
-    const uri = 'whatever';
+    const uri = 'anyURI';
     const extras = '&response_type=code&response_mode=query&scope=&state=undefined';
     const expectation = `:///?client_id=${ clientId }&redirect_uri=${ uri }${ extras }`;
     const options = {
@@ -21,15 +21,15 @@ describe('action: redirectTo', () => {
   });
 
   it.each([
-    ['genericoidc', '://whatever/?redirect_uri=whatever&scope=openid%20profile%20email&state=undefined'],
+    ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email&state=undefined'],
   ])('given provider %p should return URL %p', async(provider, expectation) => {
     jest.spyOn(window, 'window', 'get');
     const store = { dispatch: jest.fn() };
-    const uri = 'whatever'; // This field is added anyway, so we set a random value
+    const uri = 'anyURI'; // This field is added anyway, so we set a random value
     const options = {
       provider,
       redirect:    false,
-      redirectUrl: `whatever?redirect_uri=${ uri }`,
+      redirectUrl: `myhost?redirect_uri=${ uri }`,
     };
 
     const url = await actions.redirectTo(store as any, options);
@@ -38,10 +38,10 @@ describe('action: redirectTo', () => {
   });
 
   it('should keep scope from options', async() => {
-    const scope = 'whatever';
+    const scope = 'myScope';
     const options = {
-      provider:    'whatever',
-      redirectUrl: 'whatever',
+      provider:    'genericoidc',
+      redirectUrl: 'anyURL',
       scope,
       test:        true,
       redirect:    false
@@ -60,17 +60,16 @@ jest.mock('@shell/utils/auth');
 describe('action: test', () => {
   describe('given providers with an action (github, google, azuread, oidc)', () => {
     it('should call redirectTo with all the options', async() => {
-      const dispatchSpy = jest.fn().mockReturnValue('whatever');
+      const dispatchSpy = jest.fn().mockReturnValue('anyURL');
       const store = createStore({
         actions: {
-          getAuthConfig: () => ({ doAction: () => 'whatever' }),
+          getAuthConfig: () => ({ doAction: () => 'no action' }),
           redirectTo:    dispatchSpy,
         }
       });
-      const provider = 'whatever';
-      // const redirectUrl = 'whatever';
+      const provider = 'anyProvider';
       const redirectUrl = undefined;
-      const body = { scope: ['whatever'] };
+      const body = { scope: ['any scope'] };
       const options = {
         provider,
         redirectUrl,
