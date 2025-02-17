@@ -18,12 +18,11 @@ export const BASE_SCOPES = {
 
 const KEY = 'rc_nonce';
 
-const ERR_NONCE = 'nonce';
-
 export const LOGIN_ERRORS = {
   CLIENT:              'client',
   CLIENT_UNAUTHORIZED: 'client_unauthorized',
-  SERVER:              'server'
+  SERVER:              'server',
+  NONCE:               'nonce',
 };
 
 export const state = function() {
@@ -267,13 +266,13 @@ export const actions = {
     try {
       parsed = JSON.parse(expectJSON);
     } catch {
-      return ERR_NONCE;
+      return LOGIN_ERRORS.NONCE;
     }
 
     const expect = parsed.nonce;
 
     if ( !expect || expect !== nonce ) {
-      return ERR_NONCE;
+      return LOGIN_ERRORS.NONCE;
     }
 
     const body = { code };

@@ -105,6 +105,8 @@ export default {
         return this.t('login.clientError');
       } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
         return this.t('login.error');
+      } else if (this.err === LOGIN_ERRORS.NONCE) {
+        return this.t('login.invalidResponseError');
       }
 
       return this.err?.length ? this.t('login.specificError', { msg: this.err }) : '';

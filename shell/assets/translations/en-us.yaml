@@ -3392,6 +3392,7 @@ login:
     invalidSamlAttrs: "Invalid saml attributes"
     noResponse: "No response received"
   error: An error occurred logging in. Please try again.
+  invalidResponseError: Invalid response received to login request. Please try again.
   clientError: Invalid username or password. Please try again.
   specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
