@@ -189,7 +189,8 @@ export default {
       :aria-label="t('workload.healthScaleToggle')"
       :aria-expanded="expanded"
       @click="expanded = !expanded"
-      @keyup.enter.space="expanded = !expanded"
+      @keyup.enter="expanded = !expanded"
+      @keydown.space.prevent="expanded = !expanded"
     >
       <ProgressBarMulti
         v-if="parts"
