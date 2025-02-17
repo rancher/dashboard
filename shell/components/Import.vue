@@ -14,7 +14,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
-  emits: ['close'],
+  emits: ['close', 'onReadyYamlEditor'],
 
   components: {
     AsyncButton,
@@ -111,6 +111,10 @@ export default {
         this.close();
       }
     },
+
+    onReadyYamlEditor(arg) {
+      this.$emit('onReadyYamlEditor', arg);
+    }
   },
 };
 </script>
@@ -177,6 +181,7 @@ export default {
         ref="yamleditor"
         v-model:value="currentYaml"
         class="yaml-editor"
+        @onReady="onReadyYamlEditor"
       />
       <Banner
         v-for="(err, i) in errors"

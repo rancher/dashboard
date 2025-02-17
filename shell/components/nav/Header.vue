@@ -82,6 +82,7 @@ export default {
       ctx:                    this,
       showImportModal:        false,
       showSearchModal:        false,
+      currYamlEditor:         undefined
     };
   },
 
@@ -390,6 +391,10 @@ export default {
       }
 
       return null;
+    },
+
+    onReadyYamlEditor(yamlEditor) {
+      this.currYamlEditor = yamlEditor;
     }
   }
 };
@@ -562,10 +567,12 @@ export default {
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
+            :yaml-editor="currYamlEditor"
             @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
+              @onReadyYamlEditor="onReadyYamlEditor"
               @close="closeImport"
             />
           </app-modal>

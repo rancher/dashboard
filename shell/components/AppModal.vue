@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
-import { CODEMIRROR_FOCUS_TRIGGER } from '@shell/components/CodeMirror.vue';
 
 export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
@@ -62,6 +61,15 @@ export default defineComponent({
       default: '',
     },
     /**
+     * pass codemirror yaml editor reference (optional)
+     * will be used to prevent "escape" from triggering modal closing
+     * IF there's an instance of codemirror focused on this modal
+     */
+    yamlEditor: {
+      type:    Object,
+      default: () => {},
+    },
+    /**
      * trigger focus trap
      */
     triggerFocusTrap: {
@@ -82,9 +90,6 @@ export default defineComponent({
       type:    String,
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
     }
-  },
-  data() {
-    return { currFocusedElem: {} as Event | null };
   },
   computed: {
     modalWidth(): string {
@@ -111,9 +116,6 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
-    },
-    isCodeMirrorFocused() {
-      return this.currFocusedElem === document.querySelector(CODEMIRROR_FOCUS_TRIGGER);
     },
   },
   setup(props) {
@@ -143,16 +145,11 @@ export default defineComponent({
   },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
-    document.addEventListener('focusin', this.focusChanged);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
-    document.removeEventListener('focusin', this.focusChanged);
   },
   methods: {
-    focusChanged(ev: any) {
-      this.currFocusedElem = ev.target;
-    },
     handleClickOutside(event: MouseEvent) {
       if (
         this.clickToClose &&
@@ -163,7 +160,7 @@ export default defineComponent({
       }
     },
     handleEscapeKey(event: KeyboardEvent) {
-      if (this.clickToClose && !this.isCodeMirrorFocused && event.key === 'Escape') {
+      if (this.clickToClose && (!Object.keys(this.yamlEditor).length || (Object.keys(this.yamlEditor).length && !this.yamlEditor.hasFocus())) && event.key === 'Escape') {
         this.$emit('close');
       }
     },
