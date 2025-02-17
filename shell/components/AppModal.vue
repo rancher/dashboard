@@ -160,7 +160,9 @@ export default defineComponent({
       }
     },
     handleEscapeKey(event: KeyboardEvent) {
-      if (this.clickToClose && (!Object.keys(this.yamlEditor).length || (Object.keys(this.yamlEditor).length && !this.yamlEditor.hasFocus())) && event.key === 'Escape') {
+      if (this.clickToClose &&
+        (!this.yamlEditor || !Object.keys(this.yamlEditor).length || (Object.keys(this.yamlEditor).length && !this.yamlEditor.hasFocus())) &&
+        event.key === 'Escape') {
         this.$emit('close');
       }
     },
