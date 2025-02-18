@@ -336,3 +336,7 @@ export function isBase64(value) {
 
   return base64regex.test(value);
 }
+
+export function generateRandomAlphaString(length) {
+  return Array.from({ length }, () => String.fromCharCode(97 + Math.random() * 26 | 0)).join('');
+}

@@ -2,7 +2,7 @@
 import { defineComponent, inject } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
@@ -137,8 +137,9 @@ export default defineComponent({
 
   data() {
     return {
-      updated:          false,
-      validationErrors: '',
+      updated:            false,
+      validationErrors:   '',
+      labelForIdentifier: `labeled-input-for-id-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -330,7 +331,10 @@ export default defineComponent({
     }"
   >
     <slot name="label">
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="labelForIdentifier"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -349,6 +353,7 @@ export default defineComponent({
     <slot name="field">
       <TextAreaAutoGrow
         v-if="type === 'multiline' || type === 'multiline-password'"
+        :id="hasLabel ? labelForIdentifier : ''"
         ref="value"
         v-bind="$attrs"
         :maxlength="_maxlength"
@@ -363,6 +368,7 @@ export default defineComponent({
       />
       <input
         v-else
+        :id="hasLabel ? labelForIdentifier : ''"
         ref="value"
         role="textbox"
         :class="{ 'no-label': !hasLabel }"
