@@ -224,7 +224,7 @@ export default {
 
         if (nxt >= tabsLength) {
           return 0;
-        } else if (nxt <= 0) {
+        } else if (nxt < 0) {
           return tabsLength - 1;
         } else {
           return nxt;
@@ -259,11 +259,13 @@ export default {
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
       data-testid="tabbed-block"
+      tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
       @keydown.down.prevent="selectNext(1)"
       @keydown.up.prevent="selectNext(-1)"
     >
+      <!-- This is the tabs link... tabs appear here because they are injected from the "Tab" component -->
       <li
         v-for="tab in sortedTabs"
         :id="tab.name"
@@ -278,7 +280,6 @@ export default {
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
-          tabindex="0"
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
@@ -336,8 +337,9 @@ export default {
         'tab-container--flat': !!flat,
       }"
     >
+      <!-- This is where "normal" tab content goes... -->
       <slot />
-      <!-- Extension tabs -->
+      <!-- Extension tabs content goes here... -->
       <Tab
         v-for="tab, i in extensionTabs"
         :key="`${tab.name}${i}`"
@@ -380,12 +382,13 @@ export default {
     }
   }
 
-  &:focus {
-    outline: none;
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
 
-    & .tab.active a span {
-      text-decoration: underline;
-    }
+  &:focus .tab.active a span {
+    text-decoration: underline;
   }
 
   .tab {
@@ -404,12 +407,6 @@ export default {
         span {
           text-decoration: underline;
         }
-      }
-
-      &:focus-visible {
-        @include focus-outline;
-        outline-offset: -4px;
-        text-decoration: none;
       }
     }
 
