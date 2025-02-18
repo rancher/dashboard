@@ -1,6 +1,7 @@
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 describe('chartMixin', () => {
   const testCases = {
@@ -10,10 +11,10 @@ describe('chartMixin', () => {
       ['any_other_id', 0]
     ],
     managedApps: [
-      [false, false, 0],
-      [true, null, 0],
-      [true, true, 0],
-      [true, false, 1],
+      [false, APP_UPGRADE_STATUS.NOT_APPLICABLE, 0],
+      [true, APP_UPGRADE_STATUS.NO_UPGRADE, 0],
+      [true, 'some-version', 0],
+      [true, APP_UPGRADE_STATUS.NOT_APPLICABLE, 1],
     ],
   };
 

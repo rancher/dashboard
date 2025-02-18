@@ -14,7 +14,7 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
-import { LINUX } from '@shell/store/catalog';
+import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
 
@@ -181,7 +181,7 @@ export default {
         warnings.unshift(this.t('gatekeeperIndex.deprecated', {}, true));
       }
 
-      if (this.existing && this.existing.upgradeAvailable === false) {
+      if (this.existing && this.existing.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE) {
         const manager = this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] || 'Rancher';
 
         warnings.unshift(this.t('catalog.install.warning.managed', {
