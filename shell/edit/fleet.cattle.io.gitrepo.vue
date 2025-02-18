@@ -605,14 +605,6 @@ export default {
     @error="e=>errors = e"
     @finish="onSave"
   >
-    <template #noticeBanner>
-      <Banner
-        v-if="isLocal && mode === 'create'"
-        color="info"
-      >
-        {{ t('fleet.gitRepo.createLocalBanner') }}
-      </Banner>
-    </template>
     <template #stepMetadata>
       <NameNsDescription
         v-if="!isView"
@@ -626,7 +618,7 @@ export default {
         :mode="mode"
         :display-side-by-side="false"
       />
-          </template>
+    </template>
     <template #stepRepo>
       <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
