@@ -37,12 +37,19 @@ describe('action: redirectTo', () => {
     expect(url).toStrictEqual(expectation);
   });
 
-  it('should keep scope from options', async() => {
-    const scope = 'myScope';
+  it.each([
+    'whatever',
+    'github',
+    'googleoauth',
+    'azuread',
+    'keycloakoidc',
+    'genericoidc',
+  ])('should keep scope from options', async(provider) => {
+    const scopes = ['myScope'];
     const options = {
-      provider:    'genericoidc',
+      provider,
       redirectUrl: 'anyURL',
-      scope,
+      scopes,
       test:        true,
       redirect:    false
     };
@@ -51,7 +58,7 @@ describe('action: redirectTo', () => {
     jest.spyOn(window, 'window', 'get');
     const url = await actions.redirectTo(store as any, options);
 
-    expect(url).toContain(scope);
+    expect(url).toContain(scopes);
   });
 });
 
@@ -73,7 +80,7 @@ describe('action: test', () => {
       const options = {
         provider,
         redirectUrl,
-        scope:    body.scope,
+        scopes:   body.scope,
         test:     true,
         redirect: false
       };
