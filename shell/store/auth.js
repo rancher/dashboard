@@ -310,7 +310,7 @@ export const actions = {
         const url = await dispatch('redirectTo', {
           provider,
           redirectUrl,
-          scope:    body.scope,
+          scopes:   body.scope,
           test:     true,
           redirect: false
         });
