@@ -64,9 +64,9 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
 
       horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
 
-      // group by namespace - added force=true because it's hidden behind the namespace transparent bg
+      // group by namespace
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click({ force: true });
+        .click();
 
       //  check table headers are visible (minus namespace given we're now grouped by it)
       const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];

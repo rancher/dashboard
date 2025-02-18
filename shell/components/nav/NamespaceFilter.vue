@@ -505,6 +505,7 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.selectOption(opt);
+        e.target.focus();
       }
     },
     inputKeyHandler(e) {
@@ -516,6 +517,7 @@ export default {
         break;
       case KEY.TAB:
         // Tab out of the input box
+        this.close();
         e.target.blur();
         break;
       case KEY.CR:
@@ -690,17 +692,13 @@ export default {
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
-    role="menu"
-    :aria-label="t('generic.namespaceFilter')"
     @mousedown.prevent
-    @click="open()"
-    @keyup.enter="toggle()"
-    @keyup.space="toggle()"
+    @focus="open()"
   >
     <div
       v-if="isOpen"
       class="ns-glass"
-      @click.stop="close()"
+      @click="close()"
     />
 
     <!-- Select Dropdown control -->
@@ -753,11 +751,6 @@ export default {
           :key="ns.id"
           :data-testid="`namespaces-value-${j}`"
           class="ns-value"
-          tabindex="0"
-          role="button"
-          :aria-label="ns.label"
-          @keyup.enter.stop="removeOption(ns, $event)"
-          @keyup.space.stop="removeOption(ns, $event)"
         >
           <div>{{ ns.label }}</div>
           <!-- block user from removing the last selection if ns forced filtering is on -->
@@ -808,20 +801,13 @@ export default {
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
-            role="searchbox"
-            :aria-label="t('generic.filterNamespaces')"
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
           <i
             v-if="hasFilter"
             class="ns-filter-clear icon icon-close"
-            role="button"
-            tabindex="0"
-            :aria-label="t('generic.clearSearch')"
             @click="filter = ''"
-            @keyup.enter.stop="filter = ''"
-            @keyup.space.stop="filter = ''"
           />
         </div>
         <div
@@ -838,13 +824,8 @@ export default {
           class="ns-clear"
         >
           <i
-            class="ns-filter-clear-all icon icon-close"
-            role="button"
-            tabindex="0"
-            :aria-label="t('generic.clearFilters')"
+            class="icon icon-close"
             @click="clear()"
-            @keyup.enter.stop="clear()"
-            @keyup.space.stop="clear()"
           />
         </div>
       </div>
@@ -852,7 +833,7 @@ export default {
       <div
         ref="options"
         class="ns-options"
-        role="listbox"
+        role="list"
       >
         <div
           v-for="(opt, i) in cachedFiltered"
@@ -866,8 +847,6 @@ export default {
             'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
           }"
           :data-testid="`namespaces-option-${i}`"
-          role="option"
-          :aria-label="opt.label"
           @click="opt.enabled && selectOption(opt)"
           @mouseover="opt.enabled && mouseOver($event)"
           @keydown="itemKeyHandler($event, opt)"
@@ -914,10 +893,6 @@ export default {
     width: 280px;
     display: inline-block;
 
-    &:focus-visible {
-      @include focus-outline;
-    }
-
     .ns-glass {
       height: 100vh;
       left: 0;
@@ -944,7 +919,7 @@ export default {
       align-items: center;
       display: flex;
       > i {
-        margin-right: 5px;
+        padding-right: 5px;
       }
     }
 
@@ -956,10 +931,6 @@ export default {
 
     .ns-filter-input {
       height: 24px;
-
-      &:focus-visible {
-        @include focus-outline;
-      }
     }
 
     .ns-filter-clear {
@@ -970,16 +941,6 @@ export default {
       line-height: 24px;
       text-align: center;
       width: 24px;
-
-      &:focus-visible {
-        @include focus-outline;
-        outline-offset: 2px;
-      }
-    }
-
-    .ns-filter-clear-all:focus-visible {
-      @include focus-outline;
-      outline-offset: 2px;
     }
 
     .ns-dropdown-menu {
