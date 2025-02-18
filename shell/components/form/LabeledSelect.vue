@@ -154,6 +154,10 @@ export default {
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
+      if (this.isView || this.disabled || this.loading) {
+        return;
+      }
+
       // we need this override as in a "closeOnSelect" type of component
       // if we don't have this override, it would open again
       if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
