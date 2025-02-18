@@ -24,19 +24,21 @@ import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
-  agentEnvVars: [],
-  labels:       {},
-  annotations:  {}
+  agentEnvVars:   [],
+  labels:         {},
+  annotations:    {},
+  importedConfig: { privateRegistryURL: null }
 };
 
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
+    Basics, ACE, LabeledInput, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -71,6 +73,11 @@ export default defineComponent({
       if ( this.normanCluster && !this.normanCluster?.agentEnvVars) {
         this.normanCluster.agentEnvVars = [];
       }
+      if ( this.normanCluster && !this.normanCluster?.importedConfig) {
+        this.normanCluster.importedConfig = {};
+      }
+
+      this.showPrivateRegistryInput = !!this.normanCluster?.importedConfig?.privateRegistryURL;
       this.getVersions();
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
@@ -79,13 +86,14 @@ export default defineComponent({
 
   data() {
     return {
-      normanCluster:    { name: '' },
-      loadingVersions:  false,
-      membershipUpdate: {},
-      config:           null,
-      allVersions:      [],
-      defaultVer:       '',
-      fvFormRuleSets:   [{
+      showPrivateRegistryInput: false,
+      normanCluster:            { name: '', importedConfig: { privateRegistryURL: null } },
+      loadingVersions:          false,
+      membershipUpdate:         {},
+      config:                   null,
+      allVersions:              [],
+      defaultVer:               '',
+      fvFormRuleSets:           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       }, {
@@ -94,6 +102,9 @@ export default defineComponent({
       }, {
         path:  'controlPlaneConcurrency',
         rules: ['controlPlaneConcurrencyRule']
+      }, {
+        path:  'normanCluster.importedConfig.privateRegistryURL',
+        rules: ['registryUrl']
       }
       ],
     };
@@ -301,6 +312,14 @@ export default defineComponent({
     },
   },
 
+  watch: {
+    showCustomRegistryInput(value) {
+      if (!value) {
+        this.normanCluster.importedConfig.privateRegistryURL = null;
+      }
+    }
+  }
+
 });
 </script>
 
@@ -428,6 +447,36 @@ export default defineComponent({
           @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
           @ca-certs-changed="(val)=>normanCluster.localClusterAuthEndpoint.caCerts = val"
           @fqdn-changed="(val)=>normanCluster.localClusterAuthEndpoint.fqdn = val"
+        />
+      </Accordion>
+      <Accordion
+        v-if="isEdit"
+        class="mb-20 accordion"
+        title-key="imported.accordions.registries"
+        data-testid="registries-accordion"
+        :open-initially="false"
+      >
+        <Banner
+          color="info"
+          class="mt-0"
+        >
+          {{ t('cluster.privateRegistry.importedDescription') }}
+        </Banner>
+        <Checkbox
+          v-model:value="showPrivateRegistryInput"
+          class="mb-20"
+          :label="t('cluster.privateRegistry.label')"
+          data-testid="private-registry-enable-checkbox"
+        />
+        <LabeledInput
+          v-if="showPrivateRegistryInput"
+          v-model:value="normanCluster.importedConfig.privateRegistryURL"
+          :mode="mode"
+          :disabled="!isEdit"
+          :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
+          label-key="catalog.chart.registry.custom.inputLabel"
+          data-testid="private-registry-url"
+          :placeholder="t('catalog.chart.registry.custom.placeholder')"
         />
       </Accordion>
       <Accordion
