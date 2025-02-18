@@ -213,17 +213,21 @@ export default {
         class="btn-group btn-sm diff-mode"
       >
         <button
+          role="button"
+          :aria-label="t('generic.unified')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode !== 'split'}"
           @click="diffMode='unified'"
-        >Unified</button>
+        >{{ t('generic.unified') }}</button>
         <button
+          role="button"
+          :aria-label="t('generic.split')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode === 'split'}"
           @click="diffMode='split'"
-        >Split</button>
+        >{{ t('generic.split') }}</button>
       </span>
     </div>
     <CodeMirror

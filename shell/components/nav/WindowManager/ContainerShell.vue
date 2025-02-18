@@ -25,6 +25,9 @@ const commands = {
   windows: ['cmd']
 };
 
+const XTERM_SHELL_CLASS = 'xterm-helper-textarea';
+const XTERM_CONTAINER_CLASS = 'shell-body';
+
 export default {
   components: { Window, Select },
 
@@ -74,22 +77,23 @@ export default {
 
   data() {
     return {
-      container:      this.initialContainer || this.pod?.defaultContainerName,
-      socket:         null,
-      terminal:       null,
-      fitAddon:       null,
-      searchAddon:    null,
-      webglAddon:     null,
-      canvasAddon:    null,
-      isOpen:         false,
-      isOpening:      false,
-      backlog:        [],
-      node:           null,
-      keepAliveTimer: null,
-      errorMsg:       '',
-      backupShells:   ['linux', 'windows'],
-      os:             undefined,
-      retries:        0
+      container:       this.initialContainer || this.pod?.defaultContainerName,
+      socket:          null,
+      terminal:        null,
+      fitAddon:        null,
+      searchAddon:     null,
+      webglAddon:      null,
+      canvasAddon:     null,
+      isOpen:          false,
+      isOpening:       false,
+      backlog:         [],
+      node:            null,
+      keepAliveTimer:  null,
+      errorMsg:        '',
+      backupShells:    ['linux', 'windows'],
+      os:              undefined,
+      retries:         0,
+      currFocusedElem: undefined
     };
   },
 
@@ -106,7 +110,20 @@ export default {
     containerChoices() {
       return this.pod?.spec?.containers?.map((x) => x.name) || [];
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+
+    isXtermFocused() {
+      return !!this.currFocusedElem?.classList?.contains(XTERM_SHELL_CLASS);
+    },
+
+    isXtermContainerFocused() {
+      return !!this.currFocusedElem?.classList?.contains(XTERM_CONTAINER_CLASS);
+    },
+
+    xTermContainerTabIndex() {
+      return this.isXtermFocused ? 0 : -1;
+    }
   },
 
   watch: {
@@ -121,14 +138,31 @@ export default {
     width() {
       this.fit();
     },
+
+    isXtermContainerFocused: {
+      handler(neu) {
+        const shellEl = document.querySelector(`.${ XTERM_SHELL_CLASS }`);
+
+        if (shellEl) {
+          shellEl.tabIndex = neu ? -1 : 0;
+        }
+      },
+      immediate: true
+    }
   },
 
   beforeUnmount() {
+    document.removeEventListener('keyup', this.handleKeyPress);
+    document.removeEventListener('focusin', this.focusChanged);
+
     clearInterval(this.keepAliveTimer);
     this.cleanup();
   },
 
   async mounted() {
+    document.addEventListener('keyup', this.handleKeyPress);
+    document.addEventListener('focusin', this.focusChanged);
+
     const nodeId = this.pod.spec?.nodeName;
 
     try {
@@ -149,6 +183,25 @@ export default {
   },
 
   methods: {
+    focusChanged(ev) {
+      this.currFocusedElem = ev.target;
+    },
+
+    handleKeyPress(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      // make focus leave the shell for it's parent container so that we can tab
+      if (this.isXtermFocused && ev.code === 'Escape') {
+        this.$refs.xterm.focus();
+      }
+
+      // if parent container is focused and we press a trigger, focus goes to the shell inside
+      if (this.isXtermContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
+        document.querySelector(`.${ XTERM_SHELL_CLASS }`).focus();
+      }
+    },
+
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -412,7 +465,9 @@ export default {
       </Select>
       <div class="pull-left ml-5">
         <button
-          class="btn btn-sm bg-primary"
+          class="btn btn-sm role-primary"
+          role="button"
+          :aria-label="t('wm.containerShell.clear')"
           @click="clear"
         >
           <t
@@ -439,6 +494,12 @@ export default {
           class="text-error"
           data-testid="shell-status-disconnected"
         />
+        <span
+          v-show="isXtermFocused"
+          class="escape-text"
+          role="comment"
+          :aria-describedby="t('wm.containerShell.escapeText')"
+        >{{ t('wm.containerShell.escapeText') }}</span>
       </div>
     </template>
     <template #body>
@@ -448,6 +509,7 @@ export default {
       >
         <div
           ref="xterm"
+          :tabindex="xTermContainerTabIndex"
           class="shell-body"
         />
         <resize-observer @notify="fit" />
@@ -464,6 +526,11 @@ export default {
 .container-shell {
   .text-warning {
     animation: flasher 2.5s linear infinite;
+  }
+
+  .escape-text {
+    font-size: 12px;
+    margin-left: 20px;
   }
 
   @keyframes flasher {
@@ -483,6 +550,11 @@ export default {
   .shell-body {
     padding: calc(2 * var(--outline-width));
     height: 100%;
+
+    &:focus-visible, &:focus {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
   }
 
   .containerPicker.unlabeled-select {

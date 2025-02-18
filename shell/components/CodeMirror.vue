@@ -2,6 +2,8 @@
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
+export const CODEMIRROR_FOCUS_TRIGGER = '.CodeMirror.CodeMirror-wrap > div > textarea';
+
 export default {
   name: 'CodeMirror',
 
@@ -36,10 +38,12 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:   null,
-      loaded:          false,
-      removeKeyMapBox: false,
-      hasLintErrors:   false,
+      codeMirrorRef:       null,
+      loaded:              false,
+      removeKeyMapBox:     false,
+      hasLintErrors:       false,
+      currFocusedElem:     undefined,
+      isCodeMirrorFocused: false
     };
   },
 
@@ -98,6 +102,14 @@ export default {
 
     isNonDefaultKeyMap() {
       return this.combinedOptions?.keyMap !== 'sublime';
+    },
+
+    isCodeMirrorContainerFocused() {
+      return this.currFocusedElem === this.$refs?.codeMirrorContainer;
+    },
+
+    codeMirrorContainerTabIndex() {
+      return this.isCodeMirrorFocused ? 0 : -1;
     }
   },
 
@@ -111,13 +123,54 @@ export default {
     }
   },
 
+  async mounted() {
+    document.addEventListener('keyup', this.handleKeyPress);
+  },
+
+  beforeUnmount() {
+    document.removeEventListener('keyup', this.handleKeyPress);
+  },
+
   watch: {
     hasLintErrors(neu) {
       this.$emit('validationChanged', !neu);
+    },
+
+    isCodeMirrorContainerFocused: {
+      handler(neu) {
+        const codeMirrorEl = this.codeMirrorRef?.getInputField();
+
+        if (codeMirrorEl) {
+          codeMirrorEl.tabIndex = neu ? -1 : 0;
+        }
+      },
+      immediate: true
     }
   },
 
   methods: {
+    focusChanged(ev, isBlurred = false) {
+      if (isBlurred) {
+        this.currFocusedElem = undefined;
+      } else {
+        this.currFocusedElem = ev.target;
+      }
+    },
+
+    handleKeyPress(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      // make focus leave the editor for it's parent container so that we can tab
+      if (this.isCodeMirrorFocused && ev.code === 'Escape') {
+        this.$refs?.codeMirrorContainer?.focus();
+      }
+
+      // if parent container is focused and we press a trigger, focus goes to the editor inside
+      if (this.isCodeMirrorContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
+        this.codeMirrorRef.focus();
+      }
+    },
     /**
      * Codemirror yaml linting uses js-yaml parse
      * it does not distinguish between warnings and errors so we will treat all yaml lint messages as errors
@@ -161,10 +214,12 @@ export default {
     },
 
     onFocus() {
+      this.isCodeMirrorFocused = true;
       this.$emit('onFocus', true);
     },
 
     onBlur() {
+      this.isCodeMirrorFocused = false;
       this.$emit('onFocus', false);
     },
 
@@ -183,8 +238,12 @@ export default {
 
 <template>
   <div
-    class="code-mirror"
+    ref="codeMirrorContainer"
+    :tabindex="codeMirrorContainerTabIndex"
+    class="code-mirror code-mirror-container"
     :class="{['as-text-area']: asTextArea}"
+    @focusin="focusChanged"
+    @blur="focusChanged($event, true)"
   >
     <div v-if="loaded">
       <div
@@ -204,6 +263,7 @@ export default {
         </div>
       </div>
       <Codemirror
+        id="code-mirror-el"
         ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
@@ -215,6 +275,12 @@ export default {
         @focus="onFocus"
         @blur="onBlur"
       />
+      <span
+        v-show="isCodeMirrorFocused"
+        class="escape-text"
+        role="alert"
+        :aria-describedby="t('wm.containerShell.escapeText')"
+      >{{ t('codeMirror.escapeText') }}</span>
     </div>
     <div v-else>
       Loading...
@@ -225,7 +291,15 @@ export default {
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
 
+  .escape-text {
+    font-size: 12px;
+  }
+
   .code-mirror {
+    &.code-mirror-container:focus-visible {
+      @include focus-outline;
+    }
+
     &.as-text-area .codemirror-container{
       min-height: 40px;
       position: relative;
