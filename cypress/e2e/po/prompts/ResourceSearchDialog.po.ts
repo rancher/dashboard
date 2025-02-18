@@ -7,8 +7,8 @@ const CMD_K_KEY = {
   code:     'KeyK',
   location: 0,
   altKey:   false,
-  ctrlKey:  false,
-  metaKey:  true,
+  ctrlKey:  true,
+  metaKey:  false,
   shiftKey: false,
   repeat:   false
 };
@@ -19,7 +19,12 @@ export default class ResourceSearchDialog extends ComponentPo {
   }
 
   open() {
-    cy.keyboardControls(CMD_K_KEY, 1);
+    // with PR https://github.com/rancher/dashboard/pull/13369 + https://github.com/rancher/dashboard/pull/1342
+    // this stopped working... Can't seem to pinpoint root cause to make it work again. Let's opt for button click
+    // cy.keyboardControls(CMD_K_KEY, 1);
+
+    // since it's covered by the namespace transparent backdrop, we need to "force" the click
+    cy.get('[data-testid="header-resource-search"]').click({ force: true });
   }
 
   close() {
