@@ -1,17 +1,17 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
-const CMD_K_KEY = {
-  key:      'k',
-  keyCode:  75,
-  which:    75,
-  code:     'KeyK',
-  location: 0,
-  altKey:   false,
-  ctrlKey:  true,
-  metaKey:  false,
-  shiftKey: false,
-  repeat:   false
-};
+// const CMD_K_KEY = {
+//   key:      'k',
+//   keyCode:  75,
+//   which:    75,
+//   code:     'KeyK',
+//   location: 0,
+//   altKey:   false,
+//   ctrlKey:  true,
+//   metaKey:  false,
+//   shiftKey: false,
+//   repeat:   false
+// };
 
 export default class ResourceSearchDialog extends ComponentPo {
   constructor() {
