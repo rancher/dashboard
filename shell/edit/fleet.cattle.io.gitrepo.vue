@@ -125,26 +125,6 @@ export default {
       targetMode = `group://${ targetClusterGroup }`;
     }
 
-    const stepRepoInfo = {
-      name:           'stepRepoInfo',
-      title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-      label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-      subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-      descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
-      ready:          false,
-      weight:         1
-    };
-
-    const stepTargetInfo = {
-      name:           'stepTargetInfo',
-      title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
-      label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
-      subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
-      descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
-      ready:          true,
-      weight:         1
-    };
-
     return {
       allClusters:             [],
       allClusterGroups:        [],
@@ -166,8 +146,6 @@ export default {
       targetCluster,
       targetClusterGroup,
       targetAdvanced,
-      stepRepoInfo,
-      stepTargetInfo,
       displayHelmRepoURLRegex: false,
       fvFormRuleSets:          [{
         path:  'spec.repo',
@@ -188,8 +166,42 @@ export default {
 
     steps() {
       return [
-        this.stepRepoInfo,
-        this.stepTargetInfo
+        {
+          name:           'stepMetadata',
+          title:          this.t('fleet.gitRepo.add.steps.metadata.title'),
+          label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
+          ready:          this.isView || !!this.value.metadata.name,
+          weight:         1
+        },
+        {
+          name:           'stepRepo',
+          title:          this.t('fleet.gitRepo.add.steps.repo.title'),
+          label:          this.t('fleet.gitRepo.add.steps.repo.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.repo.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.repo.description',
+          ready:          this.isView || (!!this.refValue && !!this.fvFormIsValid),
+          weight:         1
+        },
+        {
+          name:           'stepAdvanced',
+          title:          this.t('fleet.gitRepo.add.steps.advanced.title'),
+          label:          this.t('fleet.gitRepo.add.steps.advanced.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.advanced.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.advanced.description',
+          ready:          this.isView,
+          weight:         1,
+        },
+        {
+          name:           'stepTarget',
+          title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
+          label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
+          descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
+          ready:          this.isView || !!this.fvFormIsValid,
+          weight:         1
+        }
       ];
     },
 
@@ -298,10 +310,6 @@ export default {
 
       return isVisible;
     },
-
-    stepOneRequires() {
-      return !!this.value.metadata.name && !!this.refValue && !!this.fvFormIsValid;
-    },
   },
 
   watch: {
@@ -312,8 +320,6 @@ export default {
     targetAdvanced:             'updateTargets',
     tlsMode:                    'updateTls',
     caBundle:                   'updateTls',
-    'value.metadata.name':      'stepOneReady',
-    'value.spec.repo':          'stepOneReady',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -411,8 +417,6 @@ export default {
       } else {
         spec.targets = [];
       }
-
-      this.stepOneReady();
     },
 
     changeRef({ text, selected }) {
@@ -427,8 +431,6 @@ export default {
         delete spec.branch;
         spec.revision = text;
       }
-
-      this.stepOneReady();
     },
 
     async doCreateSecrets() {
@@ -513,10 +515,6 @@ export default {
 
     updateTlsMode(event) {
       this.tlsMode = event;
-    },
-
-    stepOneReady() {
-      this.stepRepoInfo['ready'] = this.stepOneRequires;
     },
 
     updateTls() {
@@ -615,7 +613,7 @@ export default {
         {{ t('fleet.gitRepo.createLocalBanner') }}
       </Banner>
     </template>
-    <template #stepRepoInfo>
+    <template #stepMetadata>
       <NameNsDescription
         v-if="!isView"
         :value="value"
@@ -623,10 +621,16 @@ export default {
         :mode="mode"
         @update:value="$emit('input', $event)"
       />
-
+      <Labels
+        :value="value"
+        :mode="mode"
+        :display-side-by-side="false"
+      />
+          </template>
+    <template #stepRepo>
       <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
-        class="row"
+        class="row mb-20"
         :class="{'mt-20': isView}"
       >
         <div class="col span-6">
@@ -655,7 +659,19 @@ export default {
         </div>
       </div>
 
-      <div class="spacer" />
+      <ArrayList
+        v-model:value="value.spec.paths"
+        data-testid="gitRepo-paths"
+        :title="t('fleet.gitRepo.paths.label')"
+        :mode="mode"
+        :initial-empty-row="false"
+        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+        :add-label="t('fleet.gitRepo.paths.addLabel')"
+        :protip="t('fleet.gitRepo.paths.empty')"
+      />
+    </template>
+
+    <template #stepAdvanced>
       <h2 v-t="'fleet.gitRepo.auth.title'" />
 
       <SelectOrCreateAuthSecret
@@ -751,17 +767,6 @@ export default {
           :mode="mode"
         />
       </div>
-      <div class="spacer" />
-      <ArrayList
-        v-model:value="value.spec.paths"
-        data-testid="gitRepo-paths"
-        :title="t('fleet.gitRepo.paths.label')"
-        :mode="mode"
-        :initial-empty-row="false"
-        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-        :add-label="t('fleet.gitRepo.paths.addLabel')"
-        :protip="t('fleet.gitRepo.paths.empty')"
-      />
 
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.polling.label'" />
@@ -807,7 +812,8 @@ export default {
         </template>
       </div>
     </template>
-    <template #stepTargetInfo>
+
+    <template #stepTarget>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
@@ -872,12 +878,6 @@ export default {
           />
         </div>
       </div>
-      <div class="spacer" />
-      <Labels
-        :value="value"
-        :mode="mode"
-        :display-side-by-side="false"
-      />
     </template>
   </CruResource>
 </template>
