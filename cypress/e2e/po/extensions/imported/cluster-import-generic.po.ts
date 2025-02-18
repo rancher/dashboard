@@ -23,6 +23,10 @@ export default class ClusterManagerImportGenericPagePo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'Name');
   }
 
+  repositoriesAccordion() {
+    return this.self().find('[data-testid="repositories-accordion"]');
+  }
+
   resourceDetail() {
     return new ResourceDetailPo(this.self());
   }

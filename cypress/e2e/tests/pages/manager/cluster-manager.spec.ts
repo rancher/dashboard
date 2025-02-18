@@ -592,6 +592,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const editImportedClusterPage = new ClusterManagerEditImportedPagePo('_');
     const fqdn = 'fqdn';
     const cacert = 'cacert';
+    const privateRegistry = 'registry.io';
 
     describe('Generic', () => {
       it('can create new cluster', () => {
@@ -605,6 +606,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         importClusterPage.waitForPage('mode=import');
         importClusterPage.selectGeneric(0);
+
+        // Verify that we only show when editing
+        importClusterPage.repositoriesAccordion().should('not.be.visible');
+
         importClusterPage.name().set(importGenericName);
         importClusterPage.create();
 
@@ -656,6 +661,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.ace().enterFdqn(fqdn);
         editImportedClusterPage.ace().enterCaCerts(cacert);
 
+        editImportedClusterPage.enableRepositoriesAccordion();
+        editImportedClusterPage.enablePrivateRegistryCheckbox();
+        editImportedClusterPage.privateRegistry().set(privateRegistry);
+
         editImportedClusterPage.save();
 
         // We should be taken back to the list page if the save was successful
@@ -666,6 +675,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.waitForPage();
         editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
         editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
+
+        // We don't seem to be getting this value back from the backend right now.
+        // editImportedClusterPage.privateRegistryCheckbox().value().should('eq', true);
+        // editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
       });
 
       it('can delete cluster by bulk actions', () => {

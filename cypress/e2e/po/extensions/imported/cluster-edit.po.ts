@@ -31,6 +31,22 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return this.self().find('[data-testid="network-accordion"]').click();
   }
 
+  enableRepositoriesAccordion() {
+    return this.self().find('[data-testid="repositories-accordion"]').click();
+  }
+
+  privateRegistryCheckbox() {
+    return this.self().find('[data-testid="private-registry-enable-checkbox"]');
+  }
+
+  enablePrivateRegistryCheckbox() {
+    return this.privateRegistryCheckbox().click();
+  }
+
+  privateRegistry() {
+    return LabeledInputPo.byLabel(this.self(), 'Container Registry');
+  }
+
   resourceDetail() {
     return new ResourceDetailPo(this.self());
   }
