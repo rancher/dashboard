@@ -319,6 +319,7 @@ export default {
   created() {
     this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
+    this.registerBeforeHook(this.updateBeforeSave);
   },
 
   methods: {
@@ -569,20 +570,14 @@ export default {
       });
     },
 
-    async saveOverride(btnCb) {
-      this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
+    updateBeforeSave(value) {
+      value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
-      try {
-        await this.value.save(this.mode);
-
-        btnCb(true);
-
-        this.$router.replace(this.value.listLocation);
-      } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
-        btnCb(false);
+      if (this.realMode === _CREATE) {
+        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = value.currentUser.id;
+        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = value.currentUser.username;
       }
-    }
+    },
   }
 };
 </script>
@@ -603,7 +598,7 @@ export default {
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
-    @finish="saveOverride"
+    @finish="save"
   >
     <template #noticeBanner>
       <Banner

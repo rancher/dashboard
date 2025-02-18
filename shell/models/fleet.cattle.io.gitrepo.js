@@ -1,4 +1,3 @@
-import { _CREATE } from '@shell/config/query-params';
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
@@ -45,15 +44,6 @@ function normalizeStateCounts(data) {
 export default class GitRepo extends SteveModel {
   get currentUser() {
     return this.$rootGetters['auth/v3User'] || {};
-  }
-
-  async save(mode) {
-    if (mode === _CREATE) {
-      this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID] = this.currentUser.id;
-      this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME] = this.currentUser.username;
-    }
-
-    await super.save();
   }
 
   applyDefaults() {
@@ -514,7 +504,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get createdBy() {
-    const displayName = this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
 
     if (!displayName) {
       return null;
