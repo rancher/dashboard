@@ -142,7 +142,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get createdBy() {
-    const displayName = this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
 
     if (!displayName) {
       return null;

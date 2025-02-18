@@ -2,7 +2,8 @@ export const gitRepoCreateRequest = {
   type:     'fleet.cattle.io.gitrepo',
   metadata: {
     namespace: 'fleet-default',
-    name:      'fleet-e2e-test-gitrepo'
+    name:      'fleet-e2e-test-gitrepo',
+    labels:    {},
   },
   spec: {
     repo:         'https://github.com/rancher/fleet-test-data.git',
