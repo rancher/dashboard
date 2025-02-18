@@ -179,14 +179,10 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private clustersOthersWrapper: PaginationWrapper<any>;
   private provClusterWrapper: PaginationWrapper<any>;
 
-  private commonClusterFilters: PaginationParam[];
-
   constructor({ $store }: {
       $store: VuexStore,
   }) {
     super({ $store });
-
-    this.commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
 
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
@@ -316,7 +312,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     includePinned?: boolean,
     excludePinned?: boolean,
   }): PaginationParam[] {
-    const filters: PaginationParam[] = [...this.commonClusterFilters];
+    const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
+    const filters: PaginationParam[] = [...commonClusterFilters];
 
     if (pinnedIds) {
       if (includePinned) {
