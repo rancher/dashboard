@@ -151,7 +151,9 @@ export default {
   </span>
   <span
     v-else-if="showTooltip"
-    v-clean-tooltip="{content: title, placement: tooltipPlacement}"
+    v-clean-tooltip="{content: title, placement: tooltipPlacement, triggers: ['hover', 'touch', 'focus'] }"
+    v-stripped-aria-label="title"
+    tabindex="0"
     class="live-date"
   >
     {{ suffixedLabel }}

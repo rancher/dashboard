@@ -27,16 +27,14 @@ export default {
   <div class="config-badge">
     <div>
       <button
+        v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus'] }"
+        v-stripped-aria-label="tooltip"
         class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
         role="button"
-        tabindex="0"
         @click="customBadgeDialog"
       >
-        <i
-          v-clean-tooltip="tooltip"
-          class="icon icon-brush-icon"
-        />
+        <i class="icon icon-brush-icon" />
       </button>
     </div>
   </div>

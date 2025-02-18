@@ -383,12 +383,14 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- informational tooltip about field -->
     <LabeledTooltip
-      v-if="hasTooltip && !focused"
+      v-if="hasTooltip"
       :hover="hoverTooltip"
       :value="tooltipValue"
       :status="status"
     />
+    <!-- validation tooltip -->
     <LabeledTooltip
       v-if="!!validationMessage"
       :hover="hoverTooltip"
