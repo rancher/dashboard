@@ -7,8 +7,8 @@ const CMD_K_KEY = {
   code:     'KeyK',
   location: 0,
   altKey:   false,
-  ctrlKey:  true,
-  metaKey:  false,
+  ctrlKey:  false,
+  metaKey:  true,
   shiftKey: false,
   repeat:   false
 };
