@@ -2,6 +2,8 @@
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
 import { getSpecPattern } from '@/scripts/cypress';
+import websocketTasks from './cypress/support/utils/webSocket-utils';
+
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
@@ -105,6 +107,7 @@ export default defineConfig({
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
       on('task', { removeDirectory });
+      websocketTasks(on, config);
 
       return config;
     },
