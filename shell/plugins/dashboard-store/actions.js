@@ -427,6 +427,7 @@ export default {
     // TODO: RC this should be done to catch watch all --> watch some
     // await dispatch('unwatch', { type });
 
+    // Of type @StorePagination
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,
@@ -450,8 +451,8 @@ export default {
     }
 
     // TODO: RC
-    // !opt.transient
-    if ( opt.watch !== false ) {
+    //
+    if ( !opt.transient && opt.watch !== false ) {
       // of type @STEVE_WATCH_PARAMS
       const args = {
         type,
@@ -460,9 +461,7 @@ export default {
         mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      if (!opt.transient) {
-        dispatch('watch', args);
-      }
+      dispatch('watch', args);
     }
 
     if (opt.hasManualRefresh) {

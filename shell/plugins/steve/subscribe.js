@@ -380,6 +380,8 @@ const sharedActions = {
      */
     params
   }) {
+    // console.warn(event, id, callback, params);
+
     if (!listeners[event]) {
       console.error('....'); // TODO: RC
 
@@ -727,7 +729,7 @@ const defaultActions = {
       });
     } else {
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
-      // Other findX use options (id/ns/selector) from the messages received over socket.
+        // Other findX use options (id/ns/selector) from the messages received over socket.
         // For paginated requests though we need to get them from the store.
         const storePagination = getters['havePage'](resourceType); // TODO: RC other messages just id/namespace/labelSelect from socket message
 
@@ -742,12 +744,13 @@ const defaultActions = {
               ...storePagination.request
             }
           });
+        }
 
-          const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
+        // Should any listeners be notified of this request for them to kick off their own event handling?
+        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
 
-          if (listener) {
-            Object.values(listener.callbacks).forEach((cb) => cb());
-          }
+        if (listener) {
+          Object.values(listener.callbacks).forEach((cb) => cb());
         }
       } else {
         have = getters['all'](resourceType).slice();

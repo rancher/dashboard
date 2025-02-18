@@ -1,10 +1,11 @@
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext, StorePagination } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
 import {
   STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE, STEVE_WATCH_PARAMS
 } from '@shell/types/store/subscribe.types';
+import { Reactive, reactive } from 'vue';
 
 interface Args {
   $store: VuexStore,
@@ -20,10 +21,18 @@ interface Args {
    * Callback called when the resource is changed (notified by socket)
    */
   onChange?: () => void,
-  /**
-   * Convert the response into a model class instance
-   */
-  classify?: boolean,
+
+  formatResponse?: {
+    /**
+     * Convert the response into a model class instance
+     */
+    classify?: boolean,
+    reactive?: boolean,
+  }
+}
+
+interface Result<T> extends Omit<ActionFindPageTransientResult<T>, 'data'> {
+  data: Reactive<T[]>
 }
 
 /**
@@ -35,47 +44,52 @@ interface Args {
  *
  * It ...
  * - Handles if the resource can be fetched by the new pagination api
- * - Makes a request to get a page (including classify)
+ * - Makes a request to get a page (including optional classify & reactive)
  * - Provide updates when the resource changes
  */
-class PaginationWrapper<T = any> {
+class PaginationWrapper<T extends object> {
   private $store: VuexStore;
   private enabledFor: PaginationResourceContext;
   private onChange?: STEVE_WATCH_EVENT_LISTENER_CALLBACK;
   private id: string;
   private classify: boolean;
+  private reactive: boolean;
 
   public isEnabled: boolean;
   private steveWatchParams: STEVE_WATCH_EVENT_PARAMS_COMMON | undefined;
 
   constructor(args: Args) {
     const {
-      $store, id, enabledFor, onChange, classify
+      $store, id, enabledFor, onChange, formatResponse
     } = args;
 
     this.$store = $store;
     this.id = id;
     this.enabledFor = enabledFor;
     this.onChange = onChange;
-    this.classify = classify || false;
+    this.classify = formatResponse?.classify || false;
+    this.reactive = formatResponse?.reactive || false;
 
     this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters }, enabledFor);
   }
 
   async request(args: {
       pagination: PaginationArgs,
-  }): Promise<T[]> {
+  }): Promise<Result<T>> {
+    // console.warn(this.id, this.enabledFor.resource?.id, args.pagination, !!this.onChange);
+
     if (!this.isEnabled) {
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
     }
     const { pagination } = args;
     const opt: ActionFindPageArgs = {
-      watch: false,
+      watch:     false,
       pagination,
+      transient: true,
     };
 
     // Fetch
-    const out: T[] = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
+    const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     // Watch
     if (this.onChange && !this.steveWatchParams) {
@@ -91,9 +105,16 @@ class PaginationWrapper<T = any> {
       this.watch();
     }
 
-    // Convert
+    // Convert Response
     if (this.classify) {
-      return await this.$store.dispatch(`${ this.enabledFor.store }/createMany`, out);
+      out.data = await this.$store.dispatch(`${ this.enabledFor.store }/createMany`, out.data);
+    }
+
+    if (this.reactive) {
+      return {
+        ...out,
+        data: reactive(out.data)
+      };
     }
 
     return out;

@@ -1,4 +1,4 @@
-import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationArgs, StorePagination } from '@shell/types/store/pagination.types';
 
 /**
  * Properties on all findX actions
@@ -24,6 +24,11 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
   depaginate?: boolean,
 }
 
+export interface ActionFindPageTransientResult<T> {
+  pagination: StorePagination,
+  data: T[],
+}
+
 /**
  * Args used for findPage action
  */
@@ -43,4 +48,8 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   watch?: boolean,
   hasManualRefresh?: boolean,
+  /**
+   * TODO: RC
+   */
+  transient?: boolean,
 }

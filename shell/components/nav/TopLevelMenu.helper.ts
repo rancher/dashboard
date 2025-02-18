@@ -1,10 +1,12 @@
 import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
+import { reactive } from 'vue';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 interface TopLevelMenuCluster {
@@ -114,7 +116,7 @@ export abstract class BaseTopLevelMenuHelper {
   * 2. ready
   * 3. name
   */
-  public clustersPinned: Array<TopLevelMenuCluster> = [];
+  public clustersPinned: Array<TopLevelMenuCluster> = reactive([]);
 
   /**
   * Filter mgmt clusters by
@@ -129,7 +131,7 @@ export abstract class BaseTopLevelMenuHelper {
   * 2. ready
   * 3. name
   */
-  public clustersOthers: Array<TopLevelMenuCluster> = [];
+  public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
 
   constructor({ $store }: {
     $store: VuexStore,
@@ -173,9 +175,9 @@ export abstract class BaseTopLevelMenuHelper {
 export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private args?: UpdateArgs;
 
-  private clustersPinnedWrapper: PaginationWrapper;
-  private clustersOthersWrapper: PaginationWrapper;
-  private provClusterWrapper: PaginationWrapper;
+  private clustersPinnedWrapper: PaginationWrapper<any>;
+  private clustersOthersWrapper: PaginationWrapper<any>;
+  private provClusterWrapper: PaginationWrapper<any>;
 
   private commonClusterFilters: PaginationParam[];
 
@@ -188,52 +190,54 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
-      id:       'tlm-pinned-clusters',
+      id:         'tlm-pinned-clusters',
+      // Note - no onChange is required for this v1 mgmt cluster request, as all roads lead back to both v1 mgmt cluster requests being made
+      // It needs to be other, as in some cases there's no pinned... so won't make the request... so won't watch
+      enabledFor: {
+        store:    STORE.MANAGEMENT,
+        resource: {
+          id:      MANAGEMENT.CLUSTER,
+          context: 'side-bar',
+        }
+      },
+      formatResponse: { classify: true }
+    });
+    this.clustersOthersWrapper = new PaginationWrapper({
+      $store,
+      id:       'tlm-unpinned-clusters',
       onChange: () => {
-        console.warn('TLM:H', 'clustersPinnedWrapper', 'onChange', this.args);
+        // console.warn('TLM:H', 'clustersPinnedWrapper', 'onChange', this.args);
         if (this.args) {
           this.update(this.args);
         }
       },
       enabledFor: {
-        store:    'management',
+        store:    STORE.MANAGEMENT,
         resource: {
           id:      MANAGEMENT.CLUSTER,
           context: 'side-bar',
         }
       },
-      classify: true,
-    });
-    this.clustersOthersWrapper = new PaginationWrapper({
-      $store,
-      id:         'tlm-unpinned-clusters',
-      enabledFor: {
-        store:    'management',
-        resource: {
-          id:      MANAGEMENT.CLUSTER,
-          context: 'side-bar',
-        }
-      },
-      classify: true,
+      formatResponse: { classify: true }
     });
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
       onChange: () => {
-        console.warn('TLM:H', 'provClusterWrapper', 'onChange', this.args);
+        // console.warn('TLM:H', 'provClusterWrapper', 'onChange', this.args);
 
         if (this.args) {
           this.update(this.args);
         }
       },
       enabledFor: {
-        store:    'management',
+        store:    STORE.MANAGEMENT,
         resource: {
           id:      CAPI.RANCHER_CLUSTER,
           context: 'side-bar',
         }
       },
-      classify: true,
+      formatResponse: { classify: true }
     });
   }
 
@@ -271,6 +275,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     const _clustersPinned = res.pinned
       .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
       .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
+
+    debugger;
+    // console.warn('TLM:H', 'update', '_clustersPinned', JSON.parse(JSON.stringify(_clustersPinned))[0]);
 
     this.clustersPinned.length = 0;
     this.clustersOthers.length = 0;
@@ -361,7 +368,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    });
+    }).then((r) => r.data);
   }
 
   /**
@@ -381,7 +388,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    });
+    }).then((r) => r.data);
   }
 
   /**
@@ -404,7 +411,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
-    });
+    }).then((r) => r.data);
   }
 }
 
