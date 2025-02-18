@@ -592,6 +592,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const importClusterPage = new ClusterManagerImportGenericPagePo();
     const fqdn = 'fqdn';
     const cacert = 'cacert';
+    const privateRegistry = 'registry.io';
 
     describe('Generic', () => {
       it('can create new cluster', () => {
@@ -603,6 +604,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         importClusterPage.waitForPage('mode=import');
         importClusterPage.selectGeneric(0);
+        // Verify that we only show when editing
+        importClusterPage.repositoriesAccordion().should('not.be.visible');
         importClusterPage.nameNsDescription().name().set(importGenericName);
         importClusterPage.create();
 
@@ -663,6 +666,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.ace().enterFdqn(fqdn);
         editImportedClusterPage.ace().enterCaCerts(cacert);
 
+        editImportedClusterPage.enableRepositoriesAccordion();
+        editImportedClusterPage.enablePrivateRegistryCheckbox();
+        editImportedClusterPage.privateRegistry().set(privateRegistry);
+
         editImportedClusterPage.save();
 
         // We should be taken back to the list page if the save was successful
@@ -673,6 +680,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.waitForPage('mode=edit');
         editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
         editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
+
+        // Verify the private registry values
+        editImportedClusterPage.privateRegistryCheckbox().isChecked();
+        editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
       });
 
       it('can delete cluster by bulk actions', () => {
