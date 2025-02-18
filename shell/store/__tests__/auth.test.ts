@@ -45,20 +45,21 @@ describe('action: redirectTo', () => {
     'keycloakoidc',
     'genericoidc',
   ])('should keep scope from options', async(provider) => {
-    const scopes = ['myScope'];
+    const customScope = 'myScope';
     const options = {
       provider,
-      redirectUrl: 'anyURL',
-      scopes,
-      test:        true,
-      redirect:    false
+      redirectUrl:    'anyURL',
+      scopes:         [customScope],
+      scopesJoinChar: ' ',
+      test:           true,
+      redirect:       false
     };
     const store = { dispatch: jest.fn() };
 
     jest.spyOn(window, 'window', 'get');
     const url = await actions.redirectTo(store as any, options);
 
-    expect(url).toContain(scopes);
+    expect(url).toContain(customScope);
   });
 });
 
