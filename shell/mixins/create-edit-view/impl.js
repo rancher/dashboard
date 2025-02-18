@@ -159,8 +159,10 @@ export default {
 
         this.done();
       } catch (err) {
+        const IS_ERR_409 = err.status === 409 || err._status === 409;
+
         // Conflict, the resource being edited has changed since starting editing
-        if ( err.status === 409 && depth === 0 && this.isEdit) {
+        if (IS_ERR_409 && depth === 0 && this.isEdit) {
           const errors = await this.conflict();
 
           if ( errors === false ) {
