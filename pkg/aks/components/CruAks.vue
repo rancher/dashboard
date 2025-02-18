@@ -28,6 +28,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
+import { RadioGroup } from '@components/Form/Radio';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
@@ -104,6 +105,11 @@ const DEFAULT_REGION = 'eastus';
 
 const _NONE = 'none';
 
+const NETWORKING_AUTH_MODES = {
+  MANAGED_IDENTITY:  'managedIdentity',
+  SERVICE_PRINCIPAL: 'servicePrincipal' // this is an arbitrary value that UI uses only to show a radio group, it won't be sent along with the config object
+};
+
 export default defineComponent({
   name: 'CruAKS',
 
@@ -125,7 +131,8 @@ export default defineComponent({
     Tab,
     Accordion,
     Banner,
-    Loading
+    Loading,
+    RadioGroup
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -184,6 +191,10 @@ export default defineComponent({
       pool['_isNewOrUnprovisioned'] = this.isNewOrUnprovisioned;
       pool['_validation'] = {};
     });
+
+    if (this.config.managedIdentity) {
+      this.networkingAuthMode = NETWORKING_AUTH_MODES.MANAGED_IDENTITY;
+    }
   },
 
   data() {
@@ -193,6 +204,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
+      NETWORKING_AUTH_MODES,
       normanCluster:    { name: '' } as any,
       nodePools:        [] as AKSNodePool[],
       config:           { } as AKSConfig,
@@ -222,6 +234,7 @@ export default defineComponent({
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
       setAuthorizedIPRanges:  false,
+      networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
       fvFormRuleSets:         [{
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -722,9 +735,7 @@ export default defineComponent({
     setAuthorizedIPRanges(neu) {
       if (neu) {
         this.config['privateCluster'] = false;
-        delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
-        delete this.config.userAssignedIdentity;
       } else {
         this.config['authorizedIpRanges'] = [];
       }
@@ -772,9 +783,7 @@ export default defineComponent({
 
     'config.privateCluster'(neu) {
       if (!neu) {
-        delete this.config.managedIdentity;
         delete this.config.privateDnsZone;
-        delete this.config.userAssignedIdentity;
       }
     },
 
@@ -986,6 +995,16 @@ export default defineComponent({
         (this.$refs.cruresource as any).emitOrRoute();
       }
     },
+
+    onNetworkingAuthModeChange(authMode) {
+      this.networkingAuthMode = authMode;
+
+      if (authMode === NETWORKING_AUTH_MODES.MANAGED_IDENTITY) {
+        this.config.managedIdentity = true;
+      } else {
+        delete this.config.managedIdentity;
+      }
+    }
   },
 
 });
@@ -1347,6 +1366,26 @@ export default defineComponent({
           </div>
 
           <div class="row mb-10">
+            <div class="col span-6">
+              <RadioGroup
+                class="mb-10"
+                :value="networkingAuthMode"
+                :options="[NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL, NETWORKING_AUTH_MODES.MANAGED_IDENTITY]"
+                :labels="[t('aks.servicePrincipal.label'), t('aks.managedIdentity.label')]"
+                @update:value="onNetworkingAuthModeChange"
+              />
+              <LabeledInput
+                v-model:value="config.userAssignedIdentity"
+                :mode="mode"
+                label-key="aks.userAssignedIdentity.label"
+                :tooltip="t('aks.userAssignedIdentity.tooltip')"
+                :disabled="!isNewOrUnprovisioned"
+                data-testid="cruaks-user-assigned-identity"
+              />
+            </div>
+          </div>
+
+          <div class="row mb-10">
             <div class="networking-checkboxes col span-6">
               <Checkbox
                 v-model:value="value.enableNetworkPolicy"
@@ -1413,24 +1452,6 @@ export default defineComponent({
                   :disabled="!isNewOrUnprovisioned"
                   :rules="fvGetAndReportPathRules('privateDnsZone')"
                   data-testid="cruaks-private-dns-zone"
-                />
-              </div>
-              <div class="col span-4">
-                <LabeledInput
-                  v-model:value="config.userAssignedIdentity"
-                  :mode="mode"
-                  label-key="aks.userAssignedIdentity.label"
-                  :tooltip="t('aks.userAssignedIdentity.tooltip')"
-                  :disabled="!isNewOrUnprovisioned"
-                  data-testid="cruaks-user-assigned-identity"
-                />
-              </div>
-              <div class="col span-4">
-                <Checkbox
-                  v-model:value="config.managedIdentity"
-                  :mode="mode"
-                  label-key="aks.managedIdentity.label"
-                  data-testid="cruaks-managed-identity"
                 />
               </div>
             </div>
