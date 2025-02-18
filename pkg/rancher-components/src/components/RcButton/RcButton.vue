@@ -68,7 +68,7 @@ defineExpose({ focus });
 button {
   &.role-link {
     &:focus, &.focused {
-      outline: 2px solid var(--primary-keyboard-focus);
+      @include focus-outline;
       outline-offset: -2px;
     }
 
@@ -83,12 +83,12 @@ button {
     background-color: transparent;
 
     &:focus, &.focused {
-      outline: 2px solid var(--primary-keyboard-focus);
+      @include focus-outline;
       outline-offset: 0;
     }
 
     &:focus-visible {
-      outline: 2px solid var(--primary-keyboard-focus);
+      @include focus-outline;
       outline-offset: 0;
     }
   }
