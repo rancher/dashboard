@@ -1,4 +1,5 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { CAPI } from '@shell/config/types';
 
 export const LABEL_CONTAINS_PROTECTED = [
   'io.cattle.lifecycle',
@@ -29,5 +30,14 @@ export default class NormanCluster extends NormanModel {
 
   get hasSystemAnnotations() {
     return !!(this.systemAnnotations || []).length;
+  }
+
+  waitForProvisioning(timeout = 60000, interval) {
+    return this.waitForTestFn(() => {
+      const ns = this.annotations['objectset.rio.cattle.io/owner-namespace'] || 'fleet-default';
+      const id = `${ ns }/${ this.id }`;
+
+      return id && !!this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, id);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
   }
 }

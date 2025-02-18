@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ImportedProvisioner, LocalProvisioner } from './provisioner';
+import { ImportProvisioner, ImportedProvisioner, LocalProvisioner } from './provisioner';
 
 // Init the package
 export default function(plugin: IPlugin): void {
@@ -12,5 +12,6 @@ export default function(plugin: IPlugin): void {
 
   // Register custom provisioner object
   plugin.register('provisioner', ImportedProvisioner.ID, ImportedProvisioner);
+  plugin.register('provisioner', ImportProvisioner.ID, ImportProvisioner);
   plugin.register('provisioner', LocalProvisioner.ID, LocalProvisioner);
 }
