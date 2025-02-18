@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import FleetSummary from '@shell/components/fleet/FleetSummary.vue';
 
 const REPO_NAME = 'testrepo';
@@ -296,7 +297,7 @@ describe('component: FleetSummary', () => {
     [mockedBundlesInRepo, '2'],
   ])('displays the number of bundles associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
-      props:  { bundles, value: mockRepo },
+      props:  { bundles, value: new GitRepo(mockRepo) },
       global: { mocks: { $store: mockStore } }
     });
 
@@ -311,7 +312,7 @@ describe('component: FleetSummary', () => {
 
   ])('displays the number of deployments associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
-      props:  { bundles, value: mockRepo },
+      props:  { bundles, value: new GitRepo(mockRepo) },
       global: { mocks: { $store: mockStore } }
     });
 
