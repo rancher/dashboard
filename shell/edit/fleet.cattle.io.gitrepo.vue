@@ -291,6 +291,7 @@ export default {
   created() {
     this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
+    this.registerBeforeHook(this.updateBeforeSave);
   },
 
   methods: {
@@ -512,11 +513,14 @@ export default {
       }
     },
 
-    onSave() {
-      this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
+    updateBeforeSave(value) {
+      value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
-      this.save();
-    }
+      if (this.realMode === _CREATE) {
+        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = value.currentUser.id;
+        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = value.currentUser.username;
+      }
+    },
   }
 };
 </script>
@@ -537,7 +541,7 @@ export default {
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
-    @finish="onSave"
+    @finish="save"
   >
     <template #noticeBanner>
       <Banner
