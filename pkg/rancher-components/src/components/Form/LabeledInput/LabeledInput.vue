@@ -137,9 +137,9 @@ export default defineComponent({
 
   data() {
     return {
-      updated:            false,
-      validationErrors:   '',
-      inputId: `input-${ generateRandomAlphaString(12) }`
+      updated:          false,
+      validationErrors: '',
+      inputId:          `input-${ generateRandomAlphaString(12) }`
     };
   },
 
