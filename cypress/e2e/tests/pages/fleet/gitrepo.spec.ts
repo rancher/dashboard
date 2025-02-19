@@ -6,6 +6,7 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import 'cypress-real-events/support';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -62,6 +63,19 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+
+      // #Percy tests
+      cy.get('span:contains("Enable Self-Healing") ~ i.icon-info').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Self-Healing test');
+
+      cy.get('span:contains("Always Keep Resource") ~ i.icon-info').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Always Keep Resource test');
+
+      cy.get('h3:contains("Paths ") > i.icon-info').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Paths test');
 
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
       gitRepoCreatePage.goToNext();
