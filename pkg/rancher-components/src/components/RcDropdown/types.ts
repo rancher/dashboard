@@ -45,5 +45,5 @@ export type RcDropdownMenuComponentProps = {
   buttonSize?: keyof ButtonSizeProps;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
-  testId?: string;
+  dataTestid?: string;
 }

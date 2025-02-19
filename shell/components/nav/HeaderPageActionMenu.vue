@@ -15,7 +15,7 @@ const pageAction = (_event: Event, action: string) => {
     :options="pageActions"
     :button-aria-label="t('nav.actionMenu.label')"
     :dropdown-aria-label="t('nav.actionMenu.button.label')"
-    test-id="page-actions-menu"
+    data-testid="page-actions-menu-action-button"
     button-role="tertiary"
     @select="pageAction"
   />

@@ -15,7 +15,7 @@ type RcDropdownMenuComponentProps = {
   buttonSize?: keyof ButtonSizeProps;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
-  testId?: string;
+  dataTestid?: string;
   resource: Object;
 }
 
@@ -67,7 +67,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
     :button-aria-label="buttonAriaLabel"
     :dropdown-aria-label="dropdownAriaLabel"
     :options="options"
-    :testId="testId"
+    :data-testid="dataTestid"
     @update:open="openChanged"
     @select="(e: MouseEvent, option: object) => execute(option, e)"
   />
