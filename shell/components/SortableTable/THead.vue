@@ -270,6 +270,7 @@ export default {
           <div
             v-if="col.sort"
             class="sort"
+            aria-hidden="true"
           >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
