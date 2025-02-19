@@ -68,7 +68,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 0, {
       action:   'pause',
-      label:    'Pause',
+      label:    this.t('fleet.gitRepo.actions.pause.label'),
       icon:     'icon icon-pause',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.paused
@@ -76,7 +76,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 1, {
       action:   'unpause',
-      label:    'Unpause',
+      label:    this.t('fleet.gitRepo.actions.unpause.label'),
       icon:     'icon icon-play',
       bulkable: true,
       enabled:  !!this.links.update && this.spec?.paused === true
@@ -84,7 +84,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 2, {
       action:   'enablePolling',
-      label:    'Enable Polling',
+      label:    this.t('fleet.gitRepo.actions.enablePolling.label'),
       icon:     'icon icon-gear',
       bulkable: true,
       enabled:  !!this.links.update && !!this.spec?.disablePolling
@@ -92,18 +92,19 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 3, {
       action:   'disablePolling',
-      label:    'Disable Polling',
+      label:    this.t('fleet.gitRepo.actions.disablePolling.label'),
       icon:     'icon icon-gear',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.disablePolling
     });
 
     insertAt(out, 4, {
-      action:   'forceUpdate',
-      label:    'Force Update',
-      icon:     'icon icon-refresh',
-      bulkable: true,
-      enabled:  !!this.links.update
+      action:     'forceUpdate',
+      label:      this.t('fleet.gitRepo.actions.forceUpdate.label'),
+      icon:       'icon icon-refresh',
+      bulkable:   true,
+      bulkAction: 'forceUpdate',
+      enabled:    !!this.links.update
     });
 
     insertAt(out, 5, { divider: true });
@@ -131,11 +132,22 @@ export default class GitRepo extends SteveModel {
     this.save();
   }
 
-  forceUpdate() {
-    const now = this.spec.forceSyncGeneration || 1;
+  forceUpdate(resources) {
+    this.$dispatch('promptModal', {
+      component:      'GenericPrompt',
+      componentProps: {
+        applyMode:   'update',
+        applyAction: () => {
+          const now = this.spec.forceSyncGeneration || 1;
 
-    this.spec.forceSyncGeneration = now + 1;
-    this.save();
+          this.spec.forceSyncGeneration = now + 1;
+
+          this.save();
+        },
+        title: this.t('fleet.gitRepo.actions.forceUpdate.promptTitle'),
+        body:  this.t('fleet.gitRepo.actions.forceUpdate.promptBody', { count: resources?.length || 1 }, true),
+      },
+    });
   }
 
   get state() {
