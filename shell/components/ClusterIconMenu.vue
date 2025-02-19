@@ -76,7 +76,7 @@ export default {
         style="enable-background:new 0 0 100 100;"
         xml:space="preserve"
       >
-        <title>{{ t('nav.ariaLabel.clusterIcon') }}</title>
+        <title>{{ t('nav.ariaLabel.localClusterIcon') }}</title>
         <g>
           <g>
             <path
@@ -107,7 +107,7 @@ export default {
     <i
       v-if="!routeCombo && cluster.pinned"
       class="icon icon-pin cluster-pin-icon"
-      :alt="t('nav.ariaLabel.pinCluster')"
+      :alt="t('nav.ariaLabel.pinCluster', { cluster: 'Local' })"
     />
     <i
       v-else-if="routeCombo"

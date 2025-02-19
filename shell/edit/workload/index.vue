@@ -259,7 +259,6 @@ export default {
               </div>
               <div class="spacer" />
               <div>
-                zzz
                 <h3>
                   {{ t('workload.container.ports.expose') }}
                   <i

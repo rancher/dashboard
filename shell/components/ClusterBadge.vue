@@ -23,7 +23,7 @@ export default {
     :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
     class="cluster-badge"
     :class="{'cluster-badge-border': showBorders}"
-    :aria-label="t('clusterBadge.badgeAppearance')"
+    :aria-label="t('clusterBadge.clusterComment', { text: cluster.badge?.text || '' })"
   >
     {{ cluster.badge.text }}
   </div>

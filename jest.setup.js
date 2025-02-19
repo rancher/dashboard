@@ -7,7 +7,7 @@ import { floatingVueOptions } from '@shell/plugins/floating-vue';
 import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
-import htmlStrippedAriaLabelDirective from '@shell/directives/strip-aria-label';
+import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import '@shell/plugins/replaceall';
 import { TextEncoder, TextDecoder } from 'util';
 

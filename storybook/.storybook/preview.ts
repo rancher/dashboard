@@ -10,7 +10,7 @@ import cleanTooltipDirective  from '@shell/directives/clean-tooltip';
 import ShortKey from '@shell/plugins/shortkey';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
-import htmlStrippedAriaLabelDirective from '@shell/directives/strip-aria-label';
+import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import store from './store'
 
 // i18n

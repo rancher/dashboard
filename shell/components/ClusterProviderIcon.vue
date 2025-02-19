@@ -49,7 +49,7 @@ export default {
       viewBox="0 0 100 100" 
       style="enable-background:new 0 0 100 100;" 
       xml:space="preserve">
-      <title>{{ t('nav.ariaLabel.clusterProvIcon') }}</title>
+      <title>{{ t('nav.ariaLabel.clusterProvIcon', { cluster: 'local' }) }}</title>
       <g>
         <g>
           <path class="rancher-icon-fill" d="M26.0862026,44.4953918H8.6165142c-5.5818157,0-9.3979139-4.6252708-8.4802637-10.1311035l2.858391-17.210701
@@ -72,7 +72,7 @@ export default {
       v-else-if="cluster.providerNavLogo"
       class="cluster-os-logo"
       :src="cluster.providerNavLogo"
-      :alt="t('nav.ariaLabel.clusterProvIcon')"
+      :alt="t('nav.ariaLabel.clusterProvIcon', { cluster: cluster.nameDisplay })"
     >
   </div>
 </template>
