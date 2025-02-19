@@ -1,7 +1,7 @@
 import semver from 'semver';
 import flushPromises from 'flush-promises';
 import { shallowMount, Wrapper, mount } from '@vue/test-utils';
-import CruAks from '@pkg/aks/components/CruAks.vue';
+import CruAks, { NETWORKING_AUTH_MODES } from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockRegions, mockVersionsSorted } from '../../util/__mocks__/aks';
 import { AKSNodePool } from 'types';
@@ -167,7 +167,24 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
   });
 
-  it.each([[{ privateCluster: false }, false], [{ privateCluster: true }, true]])('should show privateDnsZone, userAssignedIdentity, managedIdentity only when privateCluster is true', async(config, visibility) => {
+  it.each([
+    [{ managedIdentity: false, userAssignedIdentity: 'test' }, NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL],
+    [{ managedIdentity: true, userAssignedIdentity: '' }, NETWORKING_AUTH_MODES.MANAGED_IDENTITY]
+  ])('should select the correct networking auth mode option', async(config, expected) => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: {
+        value: {}, mode: 'edit', config
+      },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper, config);
+
+    expect(wrapper.vm.networkingAuthMode).toBe(expected);
+    expect(wrapper.vm.config.userAssignedIdentity).toBe(config.userAssignedIdentity);
+  });
+
+  it.each([[{ privateCluster: false }, false], [{ privateCluster: true }, true]])('should show privateDnsZone only when privateCluster is true', async(config, visibility) => {
     const wrapper = mount(CruAks, {
       propsData: {
         value: {}, mode: 'edit', config
@@ -179,15 +196,11 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper, config);
 
     const privateDnsZone = wrapper.find('[data-testid="cruaks-private-dns-zone"]');
-    const userAssignedIdentity = wrapper.findComponent('[data-testid="cruaks-user-assigned-identity"]');
-    const managedIdentity = wrapper.findComponent('[data-testid="cruaks-managed-identity"]');
 
     expect(privateDnsZone.exists()).toBe(visibility);
-    expect(userAssignedIdentity.exists()).toBe(visibility);
-    expect(managedIdentity.exists()).toBe(visibility);
   });
 
-  it('should clear privateDnsZone, userAssignedIdentity, and managedIdentity when privateCluster is set to false', async() => {
+  it('should clear privateDnsZone when privateCluster is set to false', async() => {
     const config = {
       privateDnsZone: 'abc', userAssignedIdentity: 'def', managedIdentity: true
     };
@@ -201,14 +214,10 @@ describe('aks provisioning form', () => {
     await setCredential(wrapper, config);
 
     expect(wrapper.vm.config.privateDnsZone).toBeDefined();
-    expect(wrapper.vm.config.userAssignedIdentity).toBeDefined();
-    expect(wrapper.vm.config.managedIdentity).toBeDefined();
 
     await wrapper.setData({ config: { ...config, privateCluster: false } });
 
     expect(wrapper.vm.config.privateDnsZone).toBeUndefined();
-    expect(wrapper.vm.config.userAssignedIdentity).toBeUndefined();
-    expect(wrapper.vm.config.managedIdentity).toBeUndefined();
   });
 
   it('should prevent saving if a node pool has an invalid name', async() => {

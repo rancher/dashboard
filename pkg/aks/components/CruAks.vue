@@ -105,7 +105,7 @@ const DEFAULT_REGION = 'eastus';
 
 const _NONE = 'none';
 
-const NETWORKING_AUTH_MODES = {
+export const NETWORKING_AUTH_MODES = {
   MANAGED_IDENTITY:  'managedIdentity',
   SERVICE_PRINCIPAL: 'servicePrincipal' // this is an arbitrary value that UI uses only to show a radio group, it won't be sent along with the config object
 };
