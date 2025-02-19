@@ -14,15 +14,18 @@ Cypress.Commands.add('login', (
   username = Cypress.env('username'),
   password = Cypress.env('password'),
   cacheSession = true,
+  skipNavigation = false,
 ) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-    LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    if (!skipNavigation) {
+      LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    }
     const loginPage = new LoginPagePo();
 
     loginPage
-      .checkIsCurrentPage();
+      .checkIsCurrentPage(!skipNavigation);
 
     loginPage.switchToLocal();
 

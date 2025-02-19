@@ -315,6 +315,10 @@ export function isLoggedIn(store, me) {
 export function notLoggedIn(store, redirect, route) {
   store.commit('auth/hasAuth', true);
 
+  if (!route.name.includes('auth')) {
+    store.commit('prefs/setAuthRedirect', route);
+  }
+
   if ( route.name === 'index' ) {
     return redirect('/auth/login');
   } else {

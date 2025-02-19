@@ -20,14 +20,12 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
 import { MANAGEMENT } from '@shell/config/types';
-import isEqual from 'lodash/isEqual';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -115,35 +113,6 @@ export default {
 
   },
 
-  watch: {
-    clusterId(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Store the last visited route when the cluster changes
-        this.setClusterAsLastRoute();
-      }
-    },
-
-    async currentProduct(a, b) {
-      if ( !isEqual(a, b) ) {
-        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
-          const route = {
-            name:   'c-cluster-product',
-            params: {
-              cluster: this.clusterId,
-              product: a.name,
-            }
-          };
-
-          await this.$store.dispatch('prefs/setLastVisited', route);
-        }
-      }
-    },
-  },
-
-  async created() {
-    await this.$store.dispatch('prefs/setLastVisited', this.$route);
-  },
-
   mounted() {
     this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
 
@@ -159,20 +128,6 @@ export default {
   },
 
   methods: {
-    async setClusterAsLastRoute() {
-      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
-        return;
-      }
-      const route = {
-        name:   this.$route.name,
-        params: {
-          ...this.$route.params,
-          cluster: this.clusterId,
-        }
-      };
-
-      await this.$store.dispatch('prefs/setLastVisited', route);
-    },
 
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
