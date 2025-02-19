@@ -65,25 +65,30 @@ defineExpose({ focus });
 </template>
 
 <style lang="scss" scoped>
-.role-link {
-   &:focus, &.focused {
-    outline: var(--outline-width) solid var(--border);
-    box-shadow: 0 0 0 var(--outline-width) var(--outline);
-   }
-}
-
 button {
+  &.role-link {
+    &:focus, &.focused {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
+
+    &:hover {
+      background-color: var(--accent-btn);
+      box-shadow: none;
+    }
+  }
+
   &.role-ghost {
     padding: 0;
     background-color: transparent;
 
     &:focus, &.focused {
-      outline: 2px solid var(--primary-keyboard-focus);
+      @include focus-outline;
       outline-offset: 0;
     }
 
     &:focus-visible {
-      outline: 2px solid var(--primary-keyboard-focus);
+      @include focus-outline;
       outline-offset: 0;
     }
   }

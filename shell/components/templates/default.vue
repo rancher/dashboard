@@ -85,8 +85,8 @@ export default {
 
       if (canSetAsHome) {
         pageActions.push({
-          labelKey: 'nav.header.setLoginPage',
-          action:   SET_LOGIN_ACTION
+          label:  this.t('nav.header.setLoginPage'),
+          action: SET_LOGIN_ACTION
         });
       }
 

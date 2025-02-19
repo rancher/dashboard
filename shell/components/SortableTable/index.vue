@@ -23,6 +23,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -58,6 +59,7 @@ export default {
     ActionDropdown,
     LabeledSelect,
     ButtonMultiAction,
+    ActionMenu,
   },
   mixins: [
     filtering,
@@ -1468,23 +1470,16 @@ export default {
                 </template>
                 <td
                   v-if="rowActions"
-                  align="middle"
                 >
                   <slot
                     name="row-actions"
                     :row="row.row"
+                    :index="i"
                   >
-                    <ButtonMultiAction
-                      :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
-                      :ref="`actionButton${i}`"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                    <ActionMenu
+                      :resource="row.row"
                       :data-testid="componentTestid + '-' + i + '-action-button'"
-                      :borderless="true"
-                      @click="handleActionButtonClick(i, $event)"
-                      @keyup.enter="handleActionButtonClick(i, $event)"
-                      @keyup.space="handleActionButtonClick(i, $event)"
+                      :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
                     />
                   </slot>
                 </td>
@@ -1782,7 +1777,6 @@ export default {
     min-width: 400px;
     border-radius: 5px 5px 0 0;
     outline: 1px solid var(--border);
-    overflow: hidden;
     background: var(--sortable-table-bg);
     border-radius: 4px;
 
