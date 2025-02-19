@@ -1369,6 +1369,7 @@ export default defineComponent({
             <div class="col span-6">
               <RadioGroup
                 class="mb-10"
+                :mode="mode"
                 :value="networkingAuthMode"
                 :options="[NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL, NETWORKING_AUTH_MODES.MANAGED_IDENTITY]"
                 :labels="[t('aks.servicePrincipal.label'), t('aks.managedIdentity.label')]"
