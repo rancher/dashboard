@@ -5,9 +5,12 @@ import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 export default {
-  components: { Banner, Loading },
+  components: {
+    Banner, Loading, ActionMenu
+  },
 
   async fetch() {
     const viewInApi = this.$store.getters['prefs/get'](VIEW_IN_API);
@@ -64,31 +67,8 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapGetters({
-      // Use either these Vuex getters
-      // OR the props to set the action menu state,
-      // but don't use both.
-      targetElem: 'action-menu/elem',
-      shouldShow: 'action-menu/showing',
-    }),
+    ...mapGetters({ options: 'action-menu/optionsArray' }),
   },
-
-  methods: {
-    toggleActionMenu(e, setting) {
-      const actionElement = e.srcElement;
-
-      if (!this.targetElem && !this.shouldShow) {
-        this.$store.commit(`action-menu/show`, {
-          resources: setting.data,
-          elem:      actionElement
-        });
-      } else if (this.targetElem === actionElement && this.shouldShow) {
-        // this condition is needed so that we can "toggle" the action menu with
-        // the keyboard for accessibility (row action menu)
-        this.$store.commit('action-menu/hide');
-      }
-    },
-  }
 };
 </script>
 
@@ -104,8 +84,8 @@ export default {
       </div>
     </Banner>
     <div
-      v-for="(setting, i) in settings"
-      :key="i"
+      v-for="(setting) in settings"
+      :key="setting.id"
       class="advanced-setting mb-20"
       :data-testid="`advanced-setting__option-${setting.id}`"
     >
@@ -128,17 +108,12 @@ export default {
           v-if="setting.hasActions"
           class="action"
         >
-          <button
-            aria-haspopup="true"
-            aria-expanded="false"
-            type="button"
-            class="btn btn-sm role-multi-action actions"
-            role="button"
-            :aria-label="t('advancedSettings.edit.label')"
-            @click="toggleActionMenu($event, setting)"
-          >
-            <i class="icon icon-actions" />
-          </button>
+          <action-menu
+            :resource="setting.data"
+            :button-aria-label="t('advancedSettings.edit.label')"
+            data-testid="action-button"
+            button-role="tertiary"
+          />
         </div>
       </div>
       <div value>

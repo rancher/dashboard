@@ -141,6 +141,8 @@ aks:
     label: User Assigned Identity
   managedIdentity:
     label: Managed Identity
+  servicePrincipal:
+    label: Service Principal
   errors:
     regions: 'An error occured while fetching the available regions: {e}'
     vmSizes: 

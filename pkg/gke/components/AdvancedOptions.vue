@@ -1,11 +1,12 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapGetters } from 'vuex';
 
 import { _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import Banner from '@components/Banner/Banner.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 
 const NONE_OPTION = 'none';
 
@@ -16,12 +17,13 @@ const LOGGING_OPTION = 'logging.googleapis.com/kubernetes';
 export default defineComponent({
   name: 'GKEAdvancedOptions',
 
-  emits: ['update:loggingService', 'update:monitoringService', 'update:httpLoadBalancing', 'update:horizontalPodAutoscaling', 'update:enableKubernetesAlpha', 'update:maintenanceWindow'],
+  emits: ['update:loggingService', 'update:monitoringService', 'update:httpLoadBalancing', 'update:horizontalPodAutoscaling', 'update:enableKubernetesAlpha', 'update:maintenanceWindow', 'update:labels'],
 
   components: {
     LabeledSelect,
     Checkbox,
     Banner,
+    KeyValue
   },
 
   props: {
@@ -63,7 +65,15 @@ export default defineComponent({
     enableKubernetesAlpha: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    // these are gkeconfig.labels NOT normancluster.labels (handled in another accordion)
+    labels: {
+      type:    Object as PropType<{[key:string]: string}>,
+      default: () => {
+        return {};
+      }
+    },
   },
 
   computed: {
@@ -214,6 +224,24 @@ export default defineComponent({
           label-key="gke.enableKubernetesAlpha.warning"
           icon="icon-warning"
         />
+      </div>
+    </div>
+    <div class="row mt-20 mb-10">
+      <div class="col span-12">
+        <KeyValue
+          :mode="mode"
+          :value="labels"
+          :as-map="true"
+          :title="t('gke.clusterLabels.label')"
+          :add-label="t('gke.clusterLabels.add')"
+          @update:value="$emit('update:labels', $event)"
+        >
+          <template #title>
+            <h4>
+              {{ t('gke.clusterLabels.label') }}
+            </h4>
+          </template>
+        </KeyValue>
       </div>
     </div>
   </div>

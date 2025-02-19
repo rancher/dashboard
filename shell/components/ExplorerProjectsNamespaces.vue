@@ -368,6 +368,12 @@ export default {
       return project?.description;
     },
 
+    projectResource(group) {
+      const row = group.rows[0];
+
+      return row.nameDisplay || row.id || '';
+    },
+
     clearSelection() {
       this.$refs.table.clearSelection();
     },
@@ -462,6 +468,7 @@ export default {
             <ButtonMultiAction
               class="project-action mr-10"
               :borderless="true"
+              :aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
               :invisible="!showProjectActionButton(group.group)"
               @click="showProjectAction($event, group.group)"
             />

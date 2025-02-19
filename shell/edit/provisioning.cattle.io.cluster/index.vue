@@ -173,7 +173,16 @@ export default {
   },
 
   data() {
-    const subType = this.$route.query[SUB_TYPE] || null;
+    let subType = null;
+
+    subType = this.$route.query[SUB_TYPE] || null;
+    if ( this.$route.query[SUB_TYPE]) {
+      subType = this.$route.query[SUB_TYPE];
+    } else if (this.value.isImported) {
+      subType = IMPORTED;
+    } else if (this.value.isLocal) {
+      subType = LOCAL;
+    }
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -213,14 +222,6 @@ export default {
 
     emberLink() {
       if (this.value) {
-        // for imported and local clusters, set subtype using properties from prov cluster model
-        //
-        if (this.value.isImported) {
-          this.selectType(IMPORTED, false);
-        } else if (this.value.isLocal) {
-          this.selectType(LOCAL, false);
-        }
-
         // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
         if (this.value.provisioner) {
           const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
@@ -239,6 +240,7 @@ export default {
 
           return '';
         }
+
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
@@ -383,23 +385,22 @@ export default {
 
           addType(this.$plugin, 'custom', 'custom2', false);
         }
-
-        // Add from extensions
-        this.extensions.forEach((ext) => {
+      }
+      // Add from extensions
+      this.extensions.forEach((ext) => {
         // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
         // default group is rke2
-          if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
-            return;
-          }
-          // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
-          if (isImport && !ext.showImport) {
-            return;
-          }
-          // Allow extensions to overwrite provisioners with the same id
-          out = out.filter((type) => type.id !== ext.id);
-          addExtensionType(ext, getters);
-        });
-      }
+        if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
+          return;
+        }
+        // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
+        if (isImport && !ext.showImport) {
+          return;
+        }
+        // Allow extensions to overwrite provisioners with the same id
+        out = out.filter((type) => type.id !== ext.id);
+        addExtensionType(ext, getters);
+      });
 
       return out;
 
@@ -680,7 +681,7 @@ export default {
     </template>
 
     <Import
-      v-if="isImport"
+      v-if="isImport && (selectedSubType && !selectedSubType.component)"
       v-model:value="localValue"
       :mode="mode"
       :provider="subType"

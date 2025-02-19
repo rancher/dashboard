@@ -88,7 +88,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
     cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
 
     // check list details
@@ -278,7 +278,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
     // close action menu
     repositoriesPage.list().closeActionMenu();
+
     // disable repo
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1500);
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
     repositoriesPage.list().details(this.repoName, 1).contains('Disabled', { timeout: 10000 }).scrollIntoView()
       .should('be.visible');
@@ -287,7 +290,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
     // close action menu
     repositoriesPage.list().closeActionMenu();
+
     // enable repo
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1500);
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).scrollIntoView()
       .should('be.visible');
