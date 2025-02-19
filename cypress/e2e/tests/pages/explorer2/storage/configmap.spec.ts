@@ -61,6 +61,9 @@ skipGeometric=true`;
     // Navigate back to the edit page
     configMapPage.list().actionMenu(configMapName).getMenuItem('Edit Config').click();
 
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000);
+
     // Assert the current value yaml dumps will append a newline at the end
     configMapPo.valueInput().value().should('eq', `${ expectedValue }\n`);
   });
