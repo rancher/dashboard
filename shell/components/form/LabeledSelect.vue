@@ -154,6 +154,10 @@ export default {
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
+      if (this.isView || this.disabled || this.loading) {
+        return;
+      }
+
       // we need this override as in a "closeOnSelect" type of component
       // if we don't have this override, it would open again
       if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
@@ -291,7 +295,8 @@ export default {
     ]"
     :tabindex="isView || disabled ? -1 : 0"
     @click="focusSearch"
-    @keydown.enter.space.down="focusSearch"
+    @keydown.enter.down="focusSearch"
+    @keydown.space.prevent="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"

@@ -320,7 +320,10 @@ export default {
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
       >
-        <i class="icon icon-code" />
+        <i
+          class="icon icon-code"
+          :alt="t('wm.containerShell.resizeShellWindow')"
+        />
       </div>
       <div
         v-for="(tab, i) in tabs"
@@ -333,11 +336,13 @@ export default {
           v-if="tab.icon"
           class="icon"
           :class="{['icon-'+ tab.icon]: true}"
+          :alt="t('wm.containerShell.tabIcon')"
         />
         <span class="tab-label"> {{ tab.label }}</span>
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-fw icon-x wm-closer-button"
+          :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
           @click.stop="close(tab.id)"
         />
       </div>
@@ -348,7 +353,10 @@ export default {
         @touchstart.prevent.stop="dragYStart($event)"
         @click="toggle"
       >
-        <i class="icon icon-sort" />
+        <i
+          class="icon icon-sort"
+          :alt="t('wm.containerShell.resizeShellWindow')"
+        />
       </div>
       <div
         v-if="userPin == 'left'"
@@ -356,7 +364,10 @@ export default {
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
       >
-        <i class="icon icon-code" />
+        <i
+          class="icon icon-code"
+          :alt="t('wm.containerShell.resizeShellWindow')"
+        />
       </div>
     </div>
     <div

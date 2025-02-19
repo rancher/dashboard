@@ -23,3 +23,16 @@ Cypress.Commands.add('isDisabled', { prevSubject: true }, (subject) => {
 Cypress.Commands.add('isEnabled', { prevSubject: true }, (subject) => {
   cy.wrap(subject).should('be.enabled');
 });
+
+function setupWebSocket(CATTLE_TEST_URL: string, NAMESPACE: string, POD_NAME: string, CONTAINER_NAME: string, commandSend: string, BEARER_TOKEN: string, folderName: string) {
+  return cy.task('setupWebSocket', {
+    CATTLE_TEST_URL,
+    NAMESPACE,
+    POD_NAME,
+    CONTAINER_NAME,
+    commandSend,
+    BEARER_TOKEN,
+  });
+}
+
+Cypress.Commands.add('setupWebSocket', setupWebSocket);

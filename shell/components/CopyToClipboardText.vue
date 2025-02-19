@@ -55,9 +55,11 @@ export default {
     @click="clicked"
     @keyup.space="clicked"
   >
-    {{ text }} <i
+    {{ text }}
+    <i
       class="icon"
       :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
+      :alt="!copied ? t('generic.copyToClipboard') : t('generic.copiedToClipboard')"
     />
   </a>
 </template>

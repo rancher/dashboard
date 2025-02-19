@@ -17,6 +17,7 @@ generic:
   comma: ', '
   copy: Copy
   copyToClipboard: Copy text to Clipboard
+  copiedToClipboard: Text copied to Clipboard
   create: Create
   created: Created
   customize: Customize
@@ -950,6 +951,7 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    iconAlt: Icon for {app} card/grid item
     refresh: refresh charts
     all: All
     categories:
@@ -1133,6 +1135,7 @@ catalog:
       label: Refresh Interval
       placeholder: 'default: {hours}'
   tools:
+    iconAlt: Icon for {app} Cluster Tool
     header: Cluster Tools
     noTools: "No Cluster Tools found"
     action:
@@ -4377,6 +4380,7 @@ inactivity:
 
 # Rancher Extensions
 plugins:
+  altIcon: Icon for {extension} extension card
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
   incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
@@ -4712,6 +4716,7 @@ projectMembers:
     workloadsView: View Workloads
 
 projectNamespaces:
+  tableActionsLabel: More actions for project { resource }
   createNamespace: Create Namespace
   createProject: Create Project
   label: Projects/Namespaces
@@ -5387,6 +5392,8 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  tableActionsLabel: More actions - { resource }
+  tableActionsImgAlt: More actions icon
   bulkActions:
     collapsed:
       label: Actions
@@ -6201,6 +6208,8 @@ wm:
     disconnected: Disconnected
     error: Error
   containerLogs:
+    options: Additional container logs options
+    expand: Expand additional container logs options
     clear: Clear
     containerName: "Container: {label}"
     download: Download
@@ -6227,6 +6236,9 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
+    resizeShellWindow: Resize Shell window
+    tabIcon: Shell tab icon
+    closeShellTab: Close Shell tab - {tab}
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
@@ -7499,6 +7511,7 @@ advancedSettings:
   none: None
   modified: Modified
   edit:
+    moreActions: More actions for setting - { setting }
     label: Edit Setting
     changeSetting: "Change Setting:"
     trueOption: "True"
