@@ -1383,6 +1383,7 @@ export default {
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
                     :value="selectedRows.includes(row.row)"
+                    :alternate-label="t('sortableTable.genericRowCheckbox', { item: row && row.row ? row.row.id : '' })"
                   />
                 </td>
                 <td
