@@ -39,7 +39,11 @@ skipGeometric=true`;
     // Enter ConfigMap description
     const configMapPo = new ConfigMapPo();
 
-    const configMapName = 'custom-config-map';
+    // we need to add a variable resource name otherwise future
+    // runs of the pipeline will fail because the resource already exists
+    const runTimestamp = +new Date();
+    const runPrefix = `e2e-test-${ runTimestamp }`;
+    const configMapName = `${ runPrefix }-custom-config-map`;
 
     configMapPo.nameInput().set(configMapName);
     configMapPo.keyInput().set('managerApiConfiguration.properties');
