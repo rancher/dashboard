@@ -139,7 +139,7 @@ export default defineComponent({
     return {
       updated:            false,
       validationErrors:   '',
-      labelForIdentifier: `labeled-input-for-id-${ generateRandomAlphaString(12) }`
+      inputId: `input-${ generateRandomAlphaString(12) }`
     };
   },
 
