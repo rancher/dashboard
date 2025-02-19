@@ -3200,9 +3200,9 @@
     fast-glob "^3.2.11"
     image-size "^1.0.0"
 
-"@percy/cli@^1.30.5":
+"@percy/cli@1.30.7":
   version "1.30.7"
-  resolved "https://registry.yarnpkg.com/@percy/cli/-/cli-1.30.7.tgz#9dd60f6ff0aa263581daad0648fb0963c4b215c2"
+  resolved "https://registry.npmjs.org/@percy/cli/-/cli-1.30.7.tgz#9dd60f6ff0aa263581daad0648fb0963c4b215c2"
   integrity sha512-0oX+dsiNkmk7PaERt500b/5WrVYRkG0AyLqVory4gRpeCCfgq5P+55o1cedqdSLQN5jIt9en/c+ZaQ1VaySbEA==
   dependencies:
     "@percy/cli-app" "1.30.7"
@@ -3258,9 +3258,9 @@
     ws "^8.17.1"
     yaml "^2.4.1"
 
-"@percy/cypress@^3.1.3":
+"@percy/cypress@3.1.3":
   version "3.1.3"
-  resolved "https://registry.yarnpkg.com/@percy/cypress/-/cypress-3.1.3.tgz#0f50b4e15335a6c0e4da617ef70b34d8adbe4bd3"
+  resolved "https://registry.npmjs.org/@percy/cypress/-/cypress-3.1.3.tgz#0f50b4e15335a6c0e4da617ef70b34d8adbe4bd3"
   integrity sha512-IboiK03dCvG+7Dy9rmuAuq7J+DAqZ0MaZxGF8u7VhVp9EeiXk3frKfTXH9EGH2vwalC1/r6yV54/y2IfdN1V2w==
   dependencies:
     "@percy/sdk-utils" "^1.3.1"
@@ -6916,9 +6916,9 @@ cypress-delete-downloads-folder@0.0.4:
   resolved "https://registry.npmjs.org/cypress-delete-downloads-folder/-/cypress-delete-downloads-folder-0.0.4.tgz#00693d4d7a36b552e7a11148e49d2c4c34ed3ec3"
   integrity sha512-0zix5YIROeMHCrCGQVmMP+jUL3KtKliAs1msSnHCPwkX8rNL4DioI8UHvbBVVghWA3vxWN6GCtV1qW+5DHi9Bg==
 
-cypress-mochawesome-reporter@^3.8.2:
+cypress-mochawesome-reporter@3.8.2:
   version "3.8.2"
-  resolved "https://registry.yarnpkg.com/cypress-mochawesome-reporter/-/cypress-mochawesome-reporter-3.8.2.tgz#44a5e640916ac9686b0cb0d6882b2d4baa33729d"
+  resolved "https://registry.npmjs.org/cypress-mochawesome-reporter/-/cypress-mochawesome-reporter-3.8.2.tgz#44a5e640916ac9686b0cb0d6882b2d4baa33729d"
   integrity sha512-oJZkNzhNmN9ZD+LmZyFuPb8aWaIijyHyqYh52YOBvR6B6ckfJNCHP3A98a+/nG0H4t46CKTNwo+wNpMa4d2kjA==
   dependencies:
     commander "^10.0.1"
@@ -8140,6 +8140,7 @@ eslint-plugin-jest@24.4.0:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
+  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
@@ -15959,15 +15960,15 @@ write-file-atomic@^3.0.0:
     signal-exit "^3.0.2"
     typedarray-to-buffer "^3.1.5"
 
+ws@8.18.0, ws@^8.13.0, ws@^8.17.1:
+  version "8.18.0"
+  resolved "https://registry.npmjs.org/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
+  integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
+
 ws@^7.3.1, ws@^7.4.6:
   version "7.5.10"
   resolved "https://registry.npmjs.org/ws/-/ws-7.5.10.tgz#58b5c20dc281633f6c19113f39b349bd8bd558d9"
   integrity sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==
-
-ws@^8.13.0, ws@^8.17.1:
-  version "8.18.0"
-  resolved "https://registry.npmjs.org/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
-  integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
 xml-name-validator@^3.0.0:
   version "3.0.0"

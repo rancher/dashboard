@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { defineComponent } from 'vue';
 
@@ -134,6 +135,42 @@ describe('component: LabeledSelect', () => {
         // Component is from a library and class is not going to be changed
         expect(wrapper.find('.vs__selected').text()).toBe(translation);
       });
+    });
+  });
+
+  describe(`given {'disabled', 'mode', 'loading'} options`, () => {
+    it.each([
+      ['open', false, _EDIT, false, true],
+      ['open', false, _CREATE, false, true],
+      ['not open', false, _VIEW, false, false],
+      ['not open', false, _EDIT, true, false],
+      ['not open', true, _EDIT, false, false],
+    ])('should %p dropdown element if options are { disabled: %p, mode: %p, loading: %p }', async(
+      _,
+      disabled,
+      mode,
+      loading,
+      isOpen
+    ) => {
+      const label = 'Foo';
+      const value = 'foo';
+      const wrapper = mount(LabeledSelect, {
+        props: {
+          value,
+          options: [
+            { label, value },
+          ],
+          disabled,
+          mode,
+          loading
+        }
+      });
+
+      await wrapper.trigger('click');
+
+      const dropdownOpen = wrapper.find('.vs--open');
+
+      expect(dropdownOpen.exists()).toBe(isOpen);
     });
   });
 
