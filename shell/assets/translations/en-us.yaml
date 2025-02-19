@@ -923,7 +923,7 @@ catalog:
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
     upgrade:
-      uncertainUpgradeWarningTooltip: Unable to identify source chart and repository for this application in order to determine if an upgrade is available
+      uncertainUpgradeWarningTooltip: Unable to determine if an upgrade is available (can not identify the repository and chart used to deploy this application)
   chart:
     registry:
       label: Container Registry
