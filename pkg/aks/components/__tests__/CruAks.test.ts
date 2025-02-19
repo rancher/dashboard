@@ -167,10 +167,8 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.props().options.map((opt: any) => opt.value)).toStrictEqual(validVersions);
   });
 
-  it.each([
-    [{ managedIdentity: false, userAssignedIdentity: 'test' }, NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL],
-    [{ managedIdentity: true, userAssignedIdentity: '' }, NETWORKING_AUTH_MODES.MANAGED_IDENTITY]
-  ])('should select the correct networking auth mode option', async(config, expected) => {
+  it('should select the correct networking auth mode option', async() => {
+    const config = { managedIdentity: false };
     const wrapper = shallowMount(CruAks, {
       propsData: {
         value: {}, mode: 'edit', config
@@ -180,8 +178,15 @@ describe('aks provisioning form', () => {
 
     await setCredential(wrapper, config);
 
-    expect(wrapper.vm.networkingAuthMode).toBe(expected);
-    expect(wrapper.vm.config.userAssignedIdentity).toBe(config.userAssignedIdentity);
+    expect(wrapper.vm.networkingAuthMode).toBe(NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL);
+    expect(wrapper.vm.config.managedIdentity).toBe(config.managedIdentity);
+
+    // choosing Managed Identity option
+    wrapper.vm.onNetworkingAuthModeChange(NETWORKING_AUTH_MODES.MANAGED_IDENTITY);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.vm.networkingAuthMode).toBe(NETWORKING_AUTH_MODES.MANAGED_IDENTITY);
+    expect(wrapper.vm.config.managedIdentity).toBe(true);
   });
 
   it.each([[{ privateCluster: false }, false], [{ privateCluster: true }, true]])('should show privateDnsZone only when privateCluster is true', async(config, visibility) => {
