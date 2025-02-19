@@ -14,7 +14,7 @@ export default defineComponent({
   name: 'GKEImport',
 
   components: {
-    LabeledSelect, Banner, Checkbox, LabeledInput
+    LabeledSelect, Checkbox, LabeledInput
   },
 
   emits: ['error', 'update:clusterName', 'update:enableNetworkPolicy'],
