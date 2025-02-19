@@ -188,7 +188,6 @@ export default defineComponent({
 
     &>.select-credential-container{
       flex-basis: 49.25%;
-      // margin: 0 1.75% 0 0;
 
       &.view{
         margin: 0;
@@ -203,7 +202,7 @@ export default defineComponent({
 
   .auth-button-container {
     align-content: center;
-    width:100%;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
