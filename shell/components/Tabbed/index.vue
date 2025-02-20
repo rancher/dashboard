@@ -367,11 +367,20 @@ export default {
   margin: 0;
   padding: 0;
 
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
+
   &.horizontal {
     border: solid thin var(--border);
     border-bottom: 0;
     display: flex;
     flex-direction: row;
+
+    &:focus-visible {
+      outline-offset: 2px;
+    }
 
     + .tab-container {
       border: solid thin var(--border);
@@ -380,11 +389,6 @@ export default {
     .tab.active {
       border-bottom: solid 2px var(--primary);
     }
-  }
-
-  &:focus-visible {
-    @include focus-outline;
-    outline-offset: -2px;
   }
 
   &:focus .tab.active a span {
