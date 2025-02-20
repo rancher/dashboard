@@ -22,7 +22,7 @@ export default {
 <template>
   <div>
     {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-      v-clean-html="resourceNames(names, plusMore, t)"
+      v-clean-html="resourceNames(names, t)"
     />
     <div
       v-if="info"
