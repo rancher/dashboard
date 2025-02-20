@@ -368,8 +368,12 @@ export default {
   padding: 0;
 
   &:focus-visible {
-    @include focus-outline;
-    outline-offset: -2px;
+    outline: none;
+
+    .tab.active {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
   }
 
   &.horizontal {
@@ -377,10 +381,6 @@ export default {
     border-bottom: 0;
     display: flex;
     flex-direction: row;
-
-    &:focus-visible {
-      outline-offset: 2px;
-    }
 
     + .tab-container {
       border: solid thin var(--border);
