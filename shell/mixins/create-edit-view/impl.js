@@ -159,6 +159,7 @@ export default {
 
         this.done();
       } catch (err) {
+        // This exception handles errors from the `request` action when it receives a failed http request. The `err` object could be from the action's error handler (raw http response object containing `status`) or thrown later on given the response of the action (a massaged object containing `_status`). TBD why one 409 triggers the error handler and another does not.
         const IS_ERR_409 = err.status === 409 || err._status === 409;
 
         // Conflict, the resource being edited has changed since starting editing
