@@ -3,9 +3,7 @@
  * @param {*} vueApp Vue instance
  */
 export const loadDebugger = (vueApp) => {
-  const debug = process.env.dev;
-
-  if (debug) {
+  
     const defaultErrorHandler = vueApp.config.errorHandler;
 
     vueApp.config.errorHandler = async(err, vm, info, ...rest) => {
@@ -35,6 +33,10 @@ export const loadDebugger = (vueApp) => {
         return handled;
       }
 
+      if (vm?._component?.methods?.handleError) {
+        vm._component.methods.handleError(err);
+      }
+
       // Log to console
       if (process.env.NODE_ENV !== 'production') {
         console.error(err); // eslint-disable-line no-console
@@ -42,7 +44,6 @@ export const loadDebugger = (vueApp) => {
         console.error(err.message || err); // eslint-disable-line no-console
       }
     };
-  }
 };
 
 /**
