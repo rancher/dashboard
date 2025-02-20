@@ -254,7 +254,7 @@ export default {
         >
           <UnitInput
             v-model:value="terminationGracePeriodSeconds"
-            :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+            :suffix="t('suffix.seconds', { count: terminationGracePeriodSeconds })"
             :label="t('workload.upgrading.activeDeadlineSeconds.label')"
             :mode="mode"
             @input="update"
@@ -316,7 +316,7 @@ export default {
       >
         <UnitInput
           v-model:value="terminationGracePeriodSeconds"
-          :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+          :suffix="t('suffix.seconds', { count: terminationGracePeriodSeconds })"
           :label="t('workload.upgrading.activeDeadlineSeconds.label')"
           :mode="mode"
         >

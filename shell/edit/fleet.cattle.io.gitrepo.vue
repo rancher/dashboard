@@ -797,7 +797,7 @@ export default {
               v-model:value="pollingInterval"
               data-testid="GitRepo-pollingInterval-input"
               min="1"
-              :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
+              :suffix="t('suffix.seconds', { count: pollingInterval })"
               :label="t('fleet.gitRepo.polling.pollingInterval.label')"
               :mode="mode"
               tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
