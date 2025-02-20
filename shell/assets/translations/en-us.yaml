@@ -2475,7 +2475,7 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        webhookWarning: Warning, a webhhok is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will be automatically adjusted to 1 hour.
+        webhookWarning: Warning, a webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
         minimumValuewarning: Warning, the recommended minimum value for Polling Interval is 15 seconds. Please consider to increase the interval value if the GitRepo has a large amount of resources, to avoid performance issues.
     add:
       steps:
