@@ -167,7 +167,7 @@ export default {
       if (show) {
         const selected = this.toRemove[0];
 
-        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' &&
+        if (this.currentRouter?.currentRoute?.value?.name === 'c-cluster-explorer-tools' &&
             selected.type === CATALOG.APP &&
             selected.spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
           this.chartsToRemoveIsApp = true;
@@ -407,22 +407,28 @@ export default {
           >
             {{ protip }}
           </div>
-          <Checkbox
-            v-if="chartsToRemoveIsApp"
-            v-model:value="chartsDeleteCrd"
-            label-key="promptRemoveApp.removeCrd"
-            class="mt-10 type"
-            @update:value="chartAddCrdToRemove"
-          />
         </LabeledInput>
         <div v-else-if="!hasCustomRemove">
-          <div class="text-warning mb-10 mt-10">
+          <div
+            v-if="warning"
+            class="text-warning mb-10 mt-10"
+          >
             {{ warning }}
           </div>
-          <div class="text-error mb-10 mt-10">
+          <div
+            v-if="error"
+            class="text-error mb-10 mt-10"
+          >
             {{ error }}
           </div>
         </div>
+        <Checkbox
+          v-if="chartsToRemoveIsApp"
+          v-model:value="chartsDeleteCrd"
+          label-key="promptRemoveApp.removeCrd"
+          class="mt-10 type"
+          @update:value="chartAddCrdToRemove"
+        />
       </template>
       <template #actions>
         <button
