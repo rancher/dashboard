@@ -383,10 +383,6 @@ export default {
           addType(this.$plugin, 'custom', 'custom2', false);
         }
       }
-<<<<<<< HEAD
-=======
-
->>>>>>> 79b01a0299 ([FEAT] Switched from creating provisioning cluster for cluster import)
       // Add from extensions
       this.extensions.forEach((ext) => {
         // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
@@ -398,13 +394,10 @@ export default {
         if (isImport && !ext.showImport) {
           return;
         }
-<<<<<<< HEAD
-=======
         // Do not show the extension provisioner on create if it is disabled
         if (!isImport && !!ext.hideCreate) {
           return;
         }
->>>>>>> 79b01a0299 ([FEAT] Switched from creating provisioning cluster for cluster import)
         // Allow extensions to overwrite provisioners with the same id
         out = out.filter((type) => type.id !== ext.id);
         addExtensionType(ext, getters);
