@@ -354,6 +354,16 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
+          v-model:value="model.userLoginFilter"
+          data-testid="user-login-filter"
+          :mode="mode"
+          :label="t('authConfig.ldap.userLoginFilter')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
           v-model:value="model.userSearchAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.searchAttribute')"

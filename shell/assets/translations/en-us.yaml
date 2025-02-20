@@ -548,6 +548,7 @@ authConfig:
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
+    userLoginFilter: User Login Filter
     userSearchBase:
       label: User Search Base
       placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
