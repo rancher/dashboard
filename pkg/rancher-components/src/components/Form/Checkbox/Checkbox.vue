@@ -160,6 +160,10 @@ export default defineComponent({
       }
 
       return undefined;
+    },
+
+    idForLabel():string {
+      return `${ this.id }-label`;
     }
   },
 
@@ -251,6 +255,7 @@ export default defineComponent({
       @click="clicked($event)"
     >
       <input
+        :id="id"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
@@ -264,7 +269,7 @@ export default defineComponent({
         :tabindex="isDisabled ? -1 : 0"
         :aria-label="replacementLabel"
         :aria-checked="!!value"
-        :aria-labelledby="labelKey || label ? id : undefined"
+        :aria-labelledby="labelKey || label ? idForLabel : undefined"
         role="checkbox"
       />
       <span
@@ -275,13 +280,13 @@ export default defineComponent({
         <slot name="label">
           <t
             v-if="labelKey"
-            :id="id"
+            :id="idForLabel"
             :k="labelKey"
             :raw="true"
           />
           <span
             v-else-if="label"
-            :id="id"
+            :id="idForLabel"
           >{{ label }}</span>
           <i
             v-if="tooltipKey"
