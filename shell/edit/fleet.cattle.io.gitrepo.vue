@@ -290,13 +290,7 @@ export default {
     },
 
     showPollingIntervalWarning() {
-      const isVisible = !this.isView && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
-
-      if (isVisible) {
-        this.scrollToBottom();
-      }
-
-      return isVisible;
+      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
     },
 
     stepOneRequires() {
