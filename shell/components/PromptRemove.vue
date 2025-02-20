@@ -1,4 +1,5 @@
 <script>
+import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
@@ -38,7 +39,7 @@ export default {
       error:               '',
       warning:             '',
       preventDelete:       false,
-      removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      removeComponent:     shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource)),
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false,
       showModal:           false,
@@ -183,7 +184,7 @@ export default {
 
         this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
 
-        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
+        this.removeComponent = shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource));
       } else {
         this.showModal = false;
       }
@@ -368,8 +369,7 @@ export default {
             v-if="hasCustomRemove"
             ref="customPrompt"
             v-model:value="toRemove"
-            v-bind="_data"
-            :close="close"
+                        :close="close"
             :needs-confirm="needsConfirm"
             :value="toRemove"
             :names="names"
