@@ -37,29 +37,49 @@ describe('action: redirectTo', () => {
     expect(url).toStrictEqual(expectation);
   });
 
-  it.each([
+  describe.each([
     'whatever',
     'github',
     'googleoauth',
     'azuread',
     'keycloakoidc',
     'genericoidc',
-  ])('should keep scope from options', async(provider) => {
-    const customScope = 'myScope';
-    const options = {
-      provider,
-      redirectUrl:    'anyURL',
-      scopes:         [customScope],
-      scopesJoinChar: ' ',
-      test:           true,
-      redirect:       false
-    };
-    const store = { dispatch: jest.fn() };
+  ])('given provider %p', (provider) => {
+    it('should keep scope from options', async() => {
+      const customScope = 'myScope';
+      const options = {
+        provider,
+        redirectUrl: 'anyURL',
+        scopes:      customScope,
+        // scopesJoinChar: ' ', // it's not used for genericoidc
+        test:        true,
+        redirect:    false
+      };
+      const store = { dispatch: jest.fn() };
 
-    jest.spyOn(window, 'window', 'get');
-    const url = await actions.redirectTo(store as any, options);
+      jest.spyOn(window, 'window', 'get');
+      const url = await actions.redirectTo(store as any, options);
 
-    expect(url).toContain(customScope);
+      expect(url).toContain(customScope);
+    });
+
+    it('should merge scopes into a single string and avoid duplication', async() => {
+      const defaultScopes = 'openid profile email';
+      const customScope = 'myScope';
+      const options = {
+        provider,
+        redirectUrl: 'anyURL',
+        scopes:      `${ defaultScopes } ${ customScope }`,
+        test:        true,
+        redirect:    false
+      };
+      const store = { dispatch: jest.fn() };
+
+      jest.spyOn(window, 'window', 'get');
+      const url = await actions.redirectTo(store as any, options);
+
+      expect(url).toContain('scope=openid%20profile%20email%2CmyScope&');
+    });
   });
 });
 
