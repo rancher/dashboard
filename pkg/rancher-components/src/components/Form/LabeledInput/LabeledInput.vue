@@ -361,7 +361,7 @@ export default defineComponent({
     <slot name="field">
       <TextAreaAutoGrow
         v-if="type === 'multiline' || type === 'multiline-password'"
-        :id="hasLabel ? inputId : undefined"
+        :id="inputId"
         ref="value"
         v-bind="$attrs"
         :maxlength="_maxlength"
@@ -376,7 +376,7 @@ export default defineComponent({
       />
       <input
         v-else
-        :id="hasLabel ? inputId : undefined"
+        :id="inputId"
         ref="value"
         role="textbox"
         :class="{ 'no-label': !hasLabel }"
