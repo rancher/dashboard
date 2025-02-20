@@ -293,6 +293,10 @@ export default defineComponent({
         this.normanCluster.k3sConfig.kubernetesVersion = val;
       }
     },
+    nameDescriptionChanged(val) {
+      this.normanCluster.name = val.name;
+      this.normanCluster.description = val.description;
+    },
     enableLocalClusterAuthEndpoint(neu) {
       this.normanCluster.localClusterAuthEndpoint.enabled = neu;
       if (!!neu) {
