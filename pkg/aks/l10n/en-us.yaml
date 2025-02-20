@@ -153,7 +153,7 @@ aks:
     kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
     clusterName: 
       chars: Name may only contain lowercase alphanumerics, underscores, and hyphens.
-      startEnd: Name must start and end with alphanumeric.
+      startEnd: Name must start and end with an alphanumeric.
       length: Name may not exceed 63 characters.
     resourceGroup:
       length: "{key} cannot exceed 80 characters."
