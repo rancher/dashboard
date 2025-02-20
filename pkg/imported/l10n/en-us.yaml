@@ -24,8 +24,8 @@ imported:
   errors:
     clusterName: 
       required: Name is required
-      chars: Name may only contain lowercase alphanumerics and hyphens.
-      startEnd: Name must start and end with an alphanumeric.
-      length: Name may not exceed 63 characters.
+      chars: Name may only contain lowercase alphanumerics and hyphens
+      startEnd: Name must start and end with a lowercase alphanumeric
+      length: Name may not exceed 63 characters
     concurrency: '{key} must be an integer greater than 0'
     kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
