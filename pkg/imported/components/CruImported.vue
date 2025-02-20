@@ -9,7 +9,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
@@ -24,12 +23,7 @@ import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/feature
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import {
-  clusterNameRequired,
-  clusterNameChars,
-  clusterNameStartEnd,
-  clusterNameLength
-} from '../util/validators';
+import GenericImportedClusterValidators from '../util/validators';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -114,26 +108,12 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
     fvExtraRules() {
       return {
-        clusterNameRequired:   clusterNameRequired(this),
-        clusterNameChars:      clusterNameChars(this),
-        clusterNameStartEnd:   clusterNameStartEnd(this),
-        clusterNameLength:     clusterNameLength(this),
-        workerConcurrencyRule: () => {
-          const val = this?.normanCluster?.k3sConfig?.k3supgradeStrategy?.workerConcurrency || this?.normanCluster?.rke2Config?.rke2upgradeStrategy?.workerConcurrency || '';
-          const exists = this?.normanCluster?.k3sConfig?.k3supgradeStrategy || this?.normanCluster?.rke2Config?.rke2upgradeStrategy;
-          // BE is only checking that the value is an integer >= 1
-          const valIsInvalid = Number(val) < 1 || !Number.isInteger(+val) || `${ val }`.match(/\.+/g);
-
-          return !!exists && valIsInvalid ? this.t('imported.errors.concurrency', { key: 'Worker Concurrency' }) : undefined ;
-        },
-        controlPlaneConcurrencyRule: () => {
-          const val = this?.normanCluster?.k3sConfig?.k3supgradeStrategy?.serverConcurrency || this?.normanCluster?.rke2Config?.rke2upgradeStrategy?.serverConcurrency || '';
-          const exists = this?.normanCluster?.k3sConfig?.k3supgradeStrategy || this?.normanCluster?.rke2Config?.rke2upgradeStrategy;
-          // BE is only checking that the value is an integer >= 1
-          const valIsInvalid = Number(val) < 1 || !Number.isInteger(+val) || `${ val }`.match(/\.+/g);
-
-          return !!exists && valIsInvalid ? this.t('imported.errors.concurrency', { key: 'Control Plane Concurrency' }) : undefined ;
-        },
+        clusterNameRequired:         GenericImportedClusterValidators.clusterNameRequired(this),
+        clusterNameChars:            GenericImportedClusterValidators.clusterNameChars(this),
+        clusterNameStartEnd:         GenericImportedClusterValidators.clusterNameStartEnd(this),
+        clusterNameLength:           GenericImportedClusterValidators.clusterNameLength(this),
+        workerConcurrencyRule:       GenericImportedClusterValidators.workerConcurrency(this),
+        controlPlaneConcurrencyRule: GenericImportedClusterValidators.controlPlaneConcurrency(this),
       };
     },
 
@@ -281,10 +261,6 @@ export default defineComponent({
         this.normanCluster.k3sConfig.kubernetesVersion = val;
       }
     },
-    nameDescriptionChanged(val) {
-      this.normanCluster.name = val.name;
-      this.normanCluster.description = val.description;
-    },
     enableLocalClusterAuthEndpoint(neu) {
       this.normanCluster.localClusterAuthEndpoint.enabled = neu;
       if (!!neu) {
@@ -360,7 +336,7 @@ export default defineComponent({
         </Banner>
         <NameNsDescription
           v-if="!isView"
-          :value="normanCluster"
+          v-model:value="normanCluster"
           :mode="mode"
           :namespaced="false"
           :nameEditable="!isEdit"
@@ -372,7 +348,6 @@ export default defineComponent({
           description-label="cluster.description.label"
           description-placeholder="cluster.description.placeholder"
           :rules="{name: fvGetAndReportPathRules('name')}"
-          @update:value="nameDescriptionChanged"
         />
       </div>
       <Accordion

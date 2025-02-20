@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { ImportProvisioner, ImportedProvisioner, LocalProvisioner } from './provisioner';
+import { EditImportedGenericCluster, ImportGenericCluster, EditLocalCluster } from './provisioner';
 
 // Init the package
 export default function(plugin: IPlugin): void {
@@ -11,7 +11,7 @@ export default function(plugin: IPlugin): void {
   plugin.metadata = require('./package.json');
 
   // Register custom provisioner object
-  plugin.register('provisioner', ImportedProvisioner.ID, ImportedProvisioner);
-  plugin.register('provisioner', ImportProvisioner.ID, ImportProvisioner);
-  plugin.register('provisioner', LocalProvisioner.ID, LocalProvisioner);
+  plugin.register('provisioner', EditImportedGenericCluster.ID, EditImportedGenericCluster);
+  plugin.register('provisioner', ImportGenericCluster.ID, ImportGenericCluster);
+  plugin.register('provisioner', EditLocalCluster.ID, EditLocalCluster);
 }

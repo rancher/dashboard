@@ -12,15 +12,13 @@ import { mapDriver } from '@shell/store/plugins';
  */
 
 /**
- * ImportedProvisioner handles editing already imported generic cluster.
- * We want to hide it from both create and import wizards, so hidden is set to true.
- * It is a part of the kontainer group, because we want edit to be available if either RKE2 or RKE1 is selected in create wizard.
+ * EditImportedGenericCluster handles editing already imported generic cluster.
  */
-export class ImportedProvisioner implements IClusterProvisioner {
+export class EditImportedGenericCluster implements IClusterProvisioner {
   static ID = 'imported'
 
   get id(): string {
-    return ImportedProvisioner.ID;
+    return EditImportedGenericCluster.ID;
   }
 
   get component(): Component {
@@ -31,29 +29,29 @@ export class ImportedProvisioner implements IClusterProvisioner {
     return {};
   }
 
+  // Since it is only used for edit, we want to hide it from both create and import wizards
   get hidden(): boolean {
     return true;
   }
 
+  // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
   get group(): string {
     return 'kontainer';
   }
 }
 
 /**
- * ImportProvisioner is used to import a new generic cluster.
- * We want to hide it from create wizards, but not from import wizard, so hideCreate is set to true.
- * It is a part of the kontainer group, because we want import to be available if either RKE2 or RKE1 is selected in create wizard.
+ * ImportGenericCluster is used to import a new generic cluster.
  */
-export class ImportProvisioner implements IClusterProvisioner {
-    static ID = 'generic-import'
+export class ImportGenericCluster implements IClusterProvisioner {
+    static ID = 'import'
 
     constructor(private context: ClusterProvisionerContext) {
       mapDriver(this.id, 'generic' );
     }
 
     get id(): string {
-      return ImportProvisioner.ID;
+      return ImportGenericCluster.ID;
     }
 
     get component(): Component {
@@ -68,10 +66,16 @@ export class ImportProvisioner implements IClusterProvisioner {
       return this.context.t('import.label');
     }
 
+    // We want to show it in the import wizard only and hide it on create
     get showImport(): boolean {
       return true;
     }
 
+    get hideCreate(): boolean {
+      return true;
+    }
+
+    // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
     get group(): string {
       return 'custom';
     }
@@ -79,22 +83,16 @@ export class ImportProvisioner implements IClusterProvisioner {
     get icon(): any {
       return require('./assets/generic.svg');
     }
-
-    get hideCreate(): boolean {
-      return true;
-    }
 }
 
 /**
- * LocalProvisioner edits a local cluster.
- * We want to hide it from both create and import wizards, so hidden is set to true.
- * it is a part of the kontainer group, because we want edit to be available if either RKE2 or RKE1 is selected in create wizard.
+ * EditLocalCluster edits a local cluster.
  */
-export class LocalProvisioner implements IClusterProvisioner {
+export class EditLocalCluster implements IClusterProvisioner {
     static ID = 'local'
 
     get id(): string {
-      return LocalProvisioner.ID;
+      return EditLocalCluster.ID;
     }
 
     get component(): Component {
@@ -105,10 +103,12 @@ export class LocalProvisioner implements IClusterProvisioner {
       return {};
     }
 
+    // Since it is only used for edit, we want to hide it from both create and import wizards
     get hidden(): boolean {
       return true;
     }
 
+    // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
     get group(): string {
       return 'kontainer';
     }
