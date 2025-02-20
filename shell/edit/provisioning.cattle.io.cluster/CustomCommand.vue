@@ -263,6 +263,12 @@ export default {
         <hr class="mt-20 mb-20">
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <Banner
+          v-if="readyForWindows"
+          color="info"
+          label-key="cluster.custom.registrationCommand.windowsWorkersOnly"
+          data-testid="ready-for-windows"
+        />
+        <Banner
           v-if="cluster.isRke1"
           color="warning"
           :label="t('cluster.custom.registrationCommand.windowsDeprecatedForRKE1')"
@@ -288,7 +294,8 @@ export default {
         <Banner
           v-else
           color="info"
-          :label="t('cluster.custom.registrationCommand.windowsNotReady')"
+          label-key="cluster.custom.registrationCommand.windowsNotReady"
+          data-testid="windows-not-ready"
         />
       </template>
     </InfoBox>
