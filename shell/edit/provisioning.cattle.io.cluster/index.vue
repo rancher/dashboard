@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
@@ -50,7 +51,8 @@ export default {
     Loading,
     Rke2Config,
     SelectIconGrid,
-    ToggleSwitch
+    ToggleSwitch,
+    Banner
   },
 
   mixins: [CreateEditView],
@@ -669,6 +671,11 @@ export default {
           </div>
           {{ obj.label }}
         </h4>
+        <Banner
+          v-if="provisioner === _RKE1 && i === 1"
+          color="warning"
+          label-key="cluster.banner.rke1DeprecationMessage"
+        />
         <SelectIconGrid
           :rows="obj.types"
           key-field="id"
