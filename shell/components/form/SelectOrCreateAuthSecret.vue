@@ -147,7 +147,7 @@ export default {
 
     showSshKnownHosts: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
   },
 
