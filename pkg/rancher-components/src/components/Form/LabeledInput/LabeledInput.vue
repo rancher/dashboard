@@ -241,6 +241,14 @@ export default defineComponent({
     }
   },
 
+  mounted() {
+    const id = this.$attrs?.id as string | undefined;
+
+    if (id) {
+      this.inputId = id;
+    }
+  },
+
   created() {
     /**
      * Determines if the Labeled Input @input event should be debounced.
@@ -333,7 +341,7 @@ export default defineComponent({
     <slot name="label">
       <label
         v-if="hasLabel"
-        :for="labelForIdentifier"
+        :for="inputId"
       >
         <t
           v-if="labelKey"
@@ -353,7 +361,7 @@ export default defineComponent({
     <slot name="field">
       <TextAreaAutoGrow
         v-if="type === 'multiline' || type === 'multiline-password'"
-        :id="hasLabel ? labelForIdentifier : ''"
+        :id="hasLabel ? inputId : undefined"
         ref="value"
         v-bind="$attrs"
         :maxlength="_maxlength"
@@ -368,7 +376,7 @@ export default defineComponent({
       />
       <input
         v-else
-        :id="hasLabel ? labelForIdentifier : ''"
+        :id="hasLabel ? inputId : undefined"
         ref="value"
         role="textbox"
         :class="{ 'no-label': !hasLabel }"
