@@ -549,18 +549,13 @@ export default {
     },
 
     updatePollingInterval(value) {
-      let interval = (value || DEFAULT_POLLING_INTERVAL).toString();
-
       if (!value) {
         this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-      }
-
-      if (value === MINIMUM_POLLING_INTERVAL) {
+        this.value.spec.pollingInterval = DEFAULT_POLLING_INTERVAL.toString();
+      } else if (value === MINIMUM_POLLING_INTERVAL) {
         delete this.value.spec.pollingInterval;
-
-        interval = MINIMUM_POLLING_INTERVAL.toString();
       } else {
-        this.value.spec.pollingInterval = interval;
+        this.value.spec.pollingInterval = value.toString();
       }
     },
 
