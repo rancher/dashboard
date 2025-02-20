@@ -23,6 +23,7 @@ import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import {
   clusterNameRequired,
   clusterNameChars,
@@ -42,7 +43,7 @@ export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, LabeledInput, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -187,6 +188,9 @@ export default defineComponent({
     showBasics() {
       return !!this.config;
     },
+    showInstanceDescription() {
+      return this.isLocal || !this.isEdit;
+    },
     hideDescriptions: mapPref(HIDE_DESC),
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
@@ -213,7 +217,13 @@ export default defineComponent({
       }
     },
     async actuallySave() {
-      return await this.normanCluster.save();
+      if (this.isEdit) {
+        return await this.normanCluster.save();
+      } else {
+        await this.normanCluster.save();
+
+        return await this.normanCluster.waitForProvisioning();
+      }
     },
 
     async getVersions() {
@@ -271,6 +281,10 @@ export default defineComponent({
         this.normanCluster.k3sConfig.kubernetesVersion = val;
       }
     },
+    nameDescriptionChanged(val) {
+      this.normanCluster.name = val.name;
+      this.normanCluster.description = val.description;
+    },
     enableLocalClusterAuthEndpoint(neu) {
       this.normanCluster.localClusterAuthEndpoint.enabled = neu;
       if (!!neu) {
@@ -283,8 +297,6 @@ export default defineComponent({
     },
     async done() {
       if (!this.isEdit) {
-        await this.normanCluster.waitForProvisioning();
-
         return this.$router.replace({
           name:   'c-cluster-product-resource-namespace-id',
           params: {
@@ -323,7 +335,7 @@ export default defineComponent({
     :mode="mode"
     :can-yaml="false"
     :done-route="doneRoute"
-    :errors="e=>errors=e"
+    :errors="errors"
     :validation-passed="fvFormIsValid"
     @error="e=>errors=e"
     @finish="save"
@@ -346,33 +358,22 @@ export default defineComponent({
             {{ t('product.harvesterManager') }}
           </router-link>
         </Banner>
-        <div class="mt-10">
-          <div class="row mb-20">
-            <div class="col span-3">
-              <LabeledInput
-                v-model:value="normanCluster.name"
-                :mode="mode"
-                required
-                :disabled="isEdit"
-                :rules="fvGetAndReportPathRules('name')"
-                label-key="generic.name"
-                data-testid="imported-name"
-                :placeholder="t('nameNsDescription.name.placeholder')"
-              />
-            </div>
-            <div
-              v-if="isLocal || !isEdit"
-              class="col span-9"
-            >
-              <LabeledInput
-                v-model:value="normanCluster.description"
-                :mode="mode"
-                label-key="nameNsDescription.description.label"
-                :placeholder="t('nameNsDescription.description.placeholder')"
-              />
-            </div>
-          </div>
-        </div>
+        <NameNsDescription
+          v-if="!isView"
+          :value="normanCluster"
+          :mode="mode"
+          :namespaced="false"
+          :nameEditable="!isEdit"
+          :descriptionDisabled="!showInstanceDescription"
+          nameKey="name"
+          descriptionKey="description"
+          name-label="cluster.name.label"
+          name-placeholder="cluster.name.placeholder"
+          description-label="cluster.description.label"
+          description-placeholder="cluster.description.placeholder"
+          :rules="{name: fvGetAndReportPathRules('name')}"
+          @update:value="nameDescriptionChanged"
+        />
       </div>
       <Accordion
         v-if="showBasics"

@@ -19,7 +19,7 @@ export const clusterNameChars = (ctx: any ) => {
 export const clusterNameStartEnd = (ctx: any) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
-    const nameIsValid = (!!name.match(/^([a-z]|[0-9])+.*(|[a-z]|[0-9])+$/) || !name.length);
+    const nameIsValid = !!name.match(/^[a-z0-9]$|^[a-z0-9].*[a-z0-9]$/) || !name.length;
 
     return nameIsValid ? undefined : ctx.t('imported.errors.clusterName.startEnd');
   };
