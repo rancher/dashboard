@@ -125,12 +125,21 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
     fvExtraRules() {
       return {
+<<<<<<< HEAD
         clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
         clusterNameChars:            genericImportedClusterValidators.clusterNameChars(this),
         clusterNameStartEnd:         genericImportedClusterValidators.clusterNameStartEnd(this),
         clusterNameLength:           genericImportedClusterValidators.clusterNameLength(this),
         workerConcurrencyRule:       genericImportedClusterValidators.workerConcurrency(this),
         controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
+=======
+        clusterNameRequired:         GenericImportedClusterValidators.clusterNameRequired(this),
+        clusterNameChars:            GenericImportedClusterValidators.clusterNameChars(this),
+        clusterNameStartEnd:         GenericImportedClusterValidators.clusterNameStartEnd(this),
+        clusterNameLength:           GenericImportedClusterValidators.clusterNameLength(this),
+        workerConcurrencyRule:       GenericImportedClusterValidators.workerConcurrency(this),
+        controlPlaneConcurrencyRule: GenericImportedClusterValidators.controlPlaneConcurrency(this),
+>>>>>>> fb3d4de15f (Fixed comments)
       };
     },
 
@@ -292,10 +301,6 @@ export default defineComponent({
       } else {
         this.normanCluster.k3sConfig.kubernetesVersion = val;
       }
-    },
-    nameDescriptionChanged(val) {
-      this.normanCluster.name = val.name;
-      this.normanCluster.description = val.description;
     },
     enableLocalClusterAuthEndpoint(neu) {
       this.normanCluster.localClusterAuthEndpoint.enabled = neu;
