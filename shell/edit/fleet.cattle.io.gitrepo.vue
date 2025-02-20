@@ -601,6 +601,7 @@ export default {
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
         :cache-secrets="true"
+        :show-ssh-known-hosts="true"
         @update:value="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
@@ -616,6 +617,7 @@ export default {
         label-key="fleet.gitRepo.auth.helm"
         :pre-select="tempCachedValues.helmSecretName"
         :cache-secrets="true"
+        :show-ssh-known-hosts="true"
         @update:value="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />

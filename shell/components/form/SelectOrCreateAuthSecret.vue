@@ -147,7 +147,7 @@ export default {
 
     showSshKnownHosts: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
   },
 
@@ -632,6 +632,7 @@ export default {
         >
           <SSHKnownHosts
             v-model:value="sshKnownHosts"
+            data-testid="auth-secret-known-ssh-hosts"
             :mode="mode"
           />
         </div>
