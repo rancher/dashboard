@@ -280,6 +280,7 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
             enabled: [
               { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
               { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+              { resource: CATALOG.APP, context: ['branding'] },
             ],
             generic: false,
           }
