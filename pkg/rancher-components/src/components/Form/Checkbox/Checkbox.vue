@@ -34,6 +34,14 @@ export default defineComponent({
     },
 
     /**
+     * Random ID generated for binding label to input.
+     */
+    id: {
+      type:    String,
+      default: generateRandomAlphaString(12)
+    },
+
+    /**
      * Disable the checkbox.
      */
     disabled: {
@@ -119,10 +127,6 @@ export default defineComponent({
   },
 
   emits: ['update:value'],
-
-  data() {
-    return { id: generateRandomAlphaString(12) };
-  },
 
   computed: {
     /**
@@ -242,7 +246,6 @@ export default defineComponent({
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
-      :for="id"
       @keydown.enter.prevent="clicked($event)"
       @keydown.space.prevent="clicked($event)"
       @click="clicked($event)"
