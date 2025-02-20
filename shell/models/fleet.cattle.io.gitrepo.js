@@ -85,7 +85,7 @@ export default class GitRepo extends SteveModel {
     insertAt(out, 2, {
       action:   'enablePolling',
       label:    'Enable Polling',
-      icon:     'icon icon-gear',
+      icon:     'icon icon-endpoints_connected',
       bulkable: true,
       enabled:  !!this.links.update && !!this.spec?.disablePolling
     });
@@ -93,7 +93,7 @@ export default class GitRepo extends SteveModel {
     insertAt(out, 3, {
       action:   'disablePolling',
       label:    'Disable Polling',
-      icon:     'icon icon-gear',
+      icon:     'icon icon-endpoints_disconnected',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.disablePolling
     });
