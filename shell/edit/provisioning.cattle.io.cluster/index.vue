@@ -686,14 +686,7 @@ export default {
       </div>
     </template>
 
-    <Import
-      v-if="isImport && (selectedSubType && !selectedSubType.component)"
-      v-model:value="localValue"
-      :mode="mode"
-      :provider="subType"
-      @update:value="$emit('input', $event)"
-    />
-    <template v-else-if="subType">
+    <template v-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
         :is="selectedSubType.component"
