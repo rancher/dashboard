@@ -729,7 +729,7 @@ export default {
         <Checkbox
           v-model:value="correctDriftEnabled"
           :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
-          data-testid="GitRepo-correctDrift-checkbox"
+          data-testid="gitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.correctDrift"
@@ -738,7 +738,7 @@ export default {
         <Checkbox
           v-model:value="value.spec.keepResources"
           :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
-          data-testid="GitRepo-keepResources-checkbox"
+          data-testid="gitRepo-keepResources-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.keepResources"
@@ -763,7 +763,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model:value="isPollingEnabled"
-            data-testid="GitRepo-enablePolling-checkbox"
+            data-testid="gitRepo-enablePolling-checkbox"
             class="check"
             type="checkbox"
             label-key="fleet.gitRepo.polling.enable"
@@ -777,19 +777,19 @@ export default {
               v-if="showPollingIntervalWarning"
               color="warning"
               label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
-              data-testid="GitRepo-pollingInterval-minimumValueWarning"
+              data-testid="gitRepo-pollingInterval-minimumValueWarning"
             />
             <Banner
               v-if="isWebhookConfigured"
               color="warning"
               label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
-              data-testid="GitRepo-pollingInterval-webhookWarning"
+              data-testid="gitRepo-pollingInterval-webhookWarning"
             />
           </div>
           <div class="col span-6">
             <UnitInput
               v-model:value="pollingInterval"
-              data-testid="GitRepo-pollingInterval-input"
+              data-testid="gitRepo-pollingInterval-input"
               min="1"
               :suffix="t('suffix.seconds', { count: pollingInterval })"
               :label="t('fleet.gitRepo.polling.pollingInterval.label')"

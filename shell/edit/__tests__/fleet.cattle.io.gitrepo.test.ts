@@ -44,8 +44,8 @@ describe.each([
   });
 
   it('have self-healing checkbox and tooltip', () => {
-    const correctDriftCheckbox = wrapper.find('[data-testid="GitRepo-correctDrift-checkbox"]');
-    const tooltip = wrapper.find('[data-testid="GitRepo-correctDrift-checkbox"]');
+    const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
+    const tooltip = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
 
     expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
@@ -53,8 +53,8 @@ describe.each([
   });
 
   it('have keep-resources checkbox and tooltip', () => {
-    const correctDriftCheckbox = wrapper.find('[data-testid="GitRepo-keepResources-checkbox"]');
-    const tooltip = wrapper.find('[data-testid="GitRepo-keepResources-checkbox"]');
+    const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
+    const tooltip = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
 
     expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
@@ -62,8 +62,8 @@ describe.each([
   });
 
   it('enable drift if self-healing is checked', async() => {
-    const correctDriftCheckbox = wrapper.findComponent('[data-testid="GitRepo-correctDrift-checkbox"]');
-    const correctDriftContainer = wrapper.find('[data-testid="GitRepo-correctDrift-checkbox"] .checkbox-container');
+    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]');
+    const correctDriftContainer = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"] .checkbox-container');
 
     expect(correctDriftContainer.exists()).toBeTruthy();
 
@@ -99,10 +99,10 @@ describe.each([
       global: { mocks },
     });
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="GitRepo-enablePolling-checkbox"]') as any;
-    const pollingIntervalInput = wrapper.find('[data-testid="GitRepo-pollingInterval-input"]');
-    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-minimumValueWarning"]');
-    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-webhookWarning"]');
+    const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
+    const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]');
+    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
+    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');
 
     expect(pollingIntervalMinimumValueWarning.exists()).toBe(enabled);
     expect(pollingIntervalWebhookWarning.exists()).toBe(enabled);
@@ -136,7 +136,7 @@ describe.each([
       global: { mocks },
     });
 
-    const pollingIntervalInput = wrapper.find('[data-testid="GitRepo-pollingInterval-input"]').element as any;
+    const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]').element as any;
 
     expect(pollingIntervalInput).toBeDefined();
     expect(pollingIntervalInput.value).toBe(unitValue);
@@ -166,7 +166,7 @@ describe.each([
       global: { mocks },
     });
 
-    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-minimumValueWarning"]');
+    const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
 
     expect(pollingIntervalMinimumValueWarning.exists()).toBe(visible);
   });
@@ -194,7 +194,7 @@ describe.each([
       global: { mocks },
     });
 
-    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="GitRepo-pollingInterval-webhookWarning"]');
+    const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');
 
     expect(pollingIntervalWebhookWarning.exists()).toBe(visible);
   });
