@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
-import websocketTasks from './cypress/support/utils/webSocket-utils';
+import websocketTasks from '../../cypress/support/utils/webSocket-utils';
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
