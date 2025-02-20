@@ -107,7 +107,7 @@ export default {
     <i
       v-if="!routeCombo && cluster.pinned"
       class="icon icon-pin cluster-pin-icon"
-      :alt="t('nav.ariaLabel.pinCluster', { cluster: 'Local' })"
+      :alt="t('nav.ariaLabel.pinCluster', { cluster: cluster.nameDisplay })"
     />
     <i
       v-else-if="routeCombo"
