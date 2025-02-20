@@ -25,9 +25,6 @@ const commands = {
   windows: ['cmd']
 };
 
-const XTERM_SHELL_CLASS = 'xterm-helper-textarea';
-const XTERM_CONTAINER_CLASS = 'shell-body';
-
 export default {
   components: { Window, Select },
 
@@ -114,11 +111,11 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     isXtermFocused() {
-      return !!this.currFocusedElem?.classList?.contains(XTERM_SHELL_CLASS);
+      return this.currFocusedElem === this.terminal?.textarea;
     },
 
     isXtermContainerFocused() {
-      return !!this.currFocusedElem?.classList?.contains(XTERM_CONTAINER_CLASS);
+      return this.currFocusedElem === this.$refs?.xterm;
     },
 
     xTermContainerTabIndex() {
@@ -141,7 +138,7 @@ export default {
 
     isXtermContainerFocused: {
       handler(neu) {
-        const shellEl = document.querySelector(`.${ XTERM_SHELL_CLASS }`);
+        const shellEl = this.terminal?.textarea;
 
         if (shellEl) {
           shellEl.tabIndex = neu ? -1 : 0;
@@ -153,7 +150,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handleKeyPress);
-    document.removeEventListener('focusin', this.focusChanged);
+    this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusChanged);
 
     clearInterval(this.keepAliveTimer);
     this.cleanup();
@@ -161,7 +158,7 @@ export default {
 
   async mounted() {
     document.addEventListener('keyup', this.handleKeyPress);
-    document.addEventListener('focusin', this.focusChanged);
+    this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusChanged);
 
     const nodeId = this.pod.spec?.nodeName;
 
@@ -198,7 +195,7 @@ export default {
 
       // if parent container is focused and we press a trigger, focus goes to the shell inside
       if (this.isXtermContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
-        document.querySelector(`.${ XTERM_SHELL_CLASS }`).focus();
+        this.terminal?.textarea?.focus();
       }
     },
 
@@ -441,6 +438,7 @@ export default {
 
 <template>
   <Window
+    ref="containerShell"
     :active="active"
     :before-close="cleanup"
     class="container-shell"
@@ -497,7 +495,7 @@ export default {
         <span
           v-show="isXtermFocused"
           class="escape-text"
-          role="comment"
+          role="alert"
           :aria-describedby="t('wm.containerShell.escapeText')"
         >{{ t('wm.containerShell.escapeText') }}</span>
       </div>

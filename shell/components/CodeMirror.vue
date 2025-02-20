@@ -2,8 +2,6 @@
 import { KEYMAP } from '@shell/store/prefs';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-export const CODEMIRROR_FOCUS_TRIGGER = '.CodeMirror.CodeMirror-wrap > div > textarea';
-
 export default {
   name: 'CodeMirror',
 
