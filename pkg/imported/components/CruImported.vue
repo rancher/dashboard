@@ -9,22 +9,35 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Basics from '@pkg/imported/components/Basics.vue';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
-import { MANAGEMENT } from '@shell/config/types';
+import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
 import KeyValue from '@shell/components/form/KeyValue';
 import { Checkbox } from '@components/Form/Checkbox';
+import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
+import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
+import { HIDE_DESC, mapPref } from '@shell/store/prefs';
+import { addObject } from '@shell/utils/array';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import GenericImportedClusterValidators from '../util/validators';
+
+const HARVESTER_HIDE_KEY = 'cm-harvester-import';
+const defaultCluster = {
+  agentEnvVars: [],
+  labels:       {},
+  annotations:  {},
+
+};
 
 export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, Loading, CruResource, KeyValue, LabeledInput, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
+    Basics, ACE, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -60,6 +73,8 @@ export default defineComponent({
         this.normanCluster.agentEnvVars = [];
       }
       this.getVersions();
+    } else {
+      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
   },
 
@@ -68,18 +83,19 @@ export default defineComponent({
       normanCluster:    { name: '' },
       loadingVersions:  false,
       membershipUpdate: {},
-      config:           {},
+      config:           null,
       allVersions:      [],
       defaultVer:       '',
       fvFormRuleSets:   [{
+        path:  'name',
+        rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
+      }, {
         path:  'workerConcurrency',
         rules: ['workerConcurrencyRule']
-      },
-      {
+      }, {
         path:  'controlPlaneConcurrency',
         rules: ['controlPlaneConcurrencyRule']
-      },
-
+      }
       ],
     };
   },
@@ -92,22 +108,12 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
     fvExtraRules() {
       return {
-        workerConcurrencyRule: () => {
-          const val = this?.normanCluster?.k3sConfig?.k3supgradeStrategy?.workerConcurrency || this?.normanCluster?.rke2Config?.rke2upgradeStrategy?.workerConcurrency || '';
-          const exists = this?.normanCluster?.k3sConfig?.k3supgradeStrategy || this?.normanCluster?.rke2Config?.rke2upgradeStrategy;
-          // BE is only checking that the value is an integer >= 1
-          const valIsInvalid = Number(val) < 1 || !Number.isInteger(+val) || `${ val }`.match(/\.+/g);
-
-          return !!exists && valIsInvalid ? this.t('imported.errors.concurrency', { key: 'Worker Concurrency' }) : undefined ;
-        },
-        controlPlaneConcurrencyRule: () => {
-          const val = this?.normanCluster?.k3sConfig?.k3supgradeStrategy?.serverConcurrency || this?.normanCluster?.rke2Config?.rke2upgradeStrategy?.serverConcurrency || '';
-          const exists = this?.normanCluster?.k3sConfig?.k3supgradeStrategy || this?.normanCluster?.rke2Config?.rke2upgradeStrategy;
-          // BE is only checking that the value is an integer >= 1
-          const valIsInvalid = Number(val) < 1 || !Number.isInteger(+val) || `${ val }`.match(/\.+/g);
-
-          return !!exists && valIsInvalid ? this.t('imported.errors.concurrency', { key: 'Control Plane Concurrency' }) : undefined ;
-        },
+        clusterNameRequired:         GenericImportedClusterValidators.clusterNameRequired(this),
+        clusterNameChars:            GenericImportedClusterValidators.clusterNameChars(this),
+        clusterNameStartEnd:         GenericImportedClusterValidators.clusterNameStartEnd(this),
+        clusterNameLength:           GenericImportedClusterValidators.clusterNameLength(this),
+        workerConcurrencyRule:       GenericImportedClusterValidators.workerConcurrency(this),
+        controlPlaneConcurrencyRule: GenericImportedClusterValidators.controlPlaneConcurrency(this),
       };
     },
 
@@ -130,7 +136,7 @@ export default defineComponent({
     },
 
     isEdit() {
-      return this.mode === _CREATE || this.mode === _EDIT;
+      return this.mode === _EDIT;
     },
     isK3s() {
       return !!this.value.isK3s;
@@ -161,6 +167,22 @@ export default defineComponent({
     // and Basics should be hidden
     showBasics() {
       return !!this.config;
+    },
+    showInstanceDescription() {
+      return this.isLocal || !this.isEdit;
+    },
+    hideDescriptions: mapPref(HIDE_DESC),
+
+    harvesterEnabled: mapFeature(HARVESTER_FEATURE),
+
+    harvesterLocation() {
+      return this.isCreate && !this.hideDescriptions.includes(HARVESTER_HIDE_KEY) && this.harvesterEnabled ? {
+        name:   `c-cluster-product-resource`,
+        params: {
+          product:  HARVESTER_MANAGER,
+          resource: HCI.CLUSTER,
+        }
+      } : null;
     }
   },
 
@@ -175,7 +197,13 @@ export default defineComponent({
       }
     },
     async actuallySave() {
-      return await this.normanCluster.save();
+      if (this.isEdit) {
+        return await this.normanCluster.save();
+      } else {
+        await this.normanCluster.save();
+
+        return await this.normanCluster.waitForProvisioning();
+      }
     },
 
     async getVersions() {
@@ -243,6 +271,35 @@ export default defineComponent({
         delete this.normanCluster.localClusterAuthEndpoint.fqdn;
       }
     },
+    async done() {
+      if (!this.isEdit) {
+        return this.$router.replace({
+          name:   'c-cluster-product-resource-namespace-id',
+          params: {
+            resource:  CAPI.RANCHER_CLUSTER,
+            namespace: this.value.metadata.namespace,
+            id:        this.normanCluster.id,
+          },
+        });
+      } else {
+        if ( !this.doneRoute ) {
+          return;
+        }
+
+        this.$router.replace({
+          name:   this.doneRoute,
+          params: this.doneParams || { resource: this.value.type }
+        });
+      }
+    },
+
+    hideHarvesterNotice() {
+      const neu = this.hideDescriptions.slice();
+
+      addObject(neu, HARVESTER_HIDE_KEY);
+
+      this.hideDescriptions = neu;
+    },
   },
 
 });
@@ -254,7 +311,7 @@ export default defineComponent({
     :mode="mode"
     :can-yaml="false"
     :done-route="doneRoute"
-    :errors="fvUnreportedValidationErrors"
+    :errors="errors"
     :validation-passed="fvFormIsValid"
     @error="e=>errors=e"
     @finish="save"
@@ -264,29 +321,34 @@ export default defineComponent({
       mode="relative"
     />
     <div v-else>
-      <div class="mt-10">
-        <div class="row mb-10">
-          <div class="col span-3">
-            <LabeledInput
-              v-model:value="normanCluster.name"
-              :mode="mode"
-              :disabled="true"
-              label-key="generic.name"
-              data-testid="imported-name"
-            />
-          </div>
-          <div
-            v-if="isLocal"
-            class="col span-3"
-          >
-            <LabeledInput
-              v-model:value="normanCluster.description"
-              :mode="mode"
-              label-key="nameNsDescription.description.label"
-              :placeholder="t('nameNsDescription.description.placeholder')"
-            />
-          </div>
-        </div>
+      <div>
+        <Banner
+          v-if="harvesterLocation"
+          color="info"
+          :closable="true"
+          class="mb-20"
+          @close="hideHarvesterNotice"
+        >
+          {{ t('cluster.harvester.importNotice') }}
+          <router-link :to="harvesterLocation">
+            {{ t('product.harvesterManager') }}
+          </router-link>
+        </Banner>
+        <NameNsDescription
+          v-if="!isView"
+          v-model:value="normanCluster"
+          :mode="mode"
+          :namespaced="false"
+          :nameEditable="!isEdit"
+          :descriptionDisabled="!showInstanceDescription"
+          nameKey="name"
+          descriptionKey="description"
+          name-label="cluster.name.label"
+          name-placeholder="cluster.name.placeholder"
+          description-label="cluster.description.label"
+          description-placeholder="cluster.description.placeholder"
+          :rules="{name: fvGetAndReportPathRules('name')}"
+        />
       </div>
       <Accordion
         v-if="showBasics"
@@ -331,7 +393,7 @@ export default defineComponent({
       <Accordion
         class="mb-20"
         title-key="imported.accordions.labels"
-        :open-initially="true"
+        :open-initially="false"
       >
         <Labels
           v-model:value="normanCluster"
@@ -339,9 +401,11 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
+        v-if="isEdit"
         class="mb-20"
         title-key="imported.accordions.networking"
-        :open-initially="true"
+        data-testid="network-accordion"
+        :open-initially="false"
       >
         <div
           v-if="enableNetworkPolicySupported"
