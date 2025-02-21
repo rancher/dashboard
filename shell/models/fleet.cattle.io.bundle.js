@@ -153,7 +153,7 @@ export default class FleetBundle extends SteveModel {
       location: !this.author ? null : {
         name:   'c-cluster-product-resource-id',
         params: {
-          cluster:  'local',
+          cluster:  '_',
           product:  'auth',
           resource: MANAGEMENT.USER,
           id:       this.author.id,

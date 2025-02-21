@@ -377,7 +377,12 @@ export default class GitRepo extends SteveModel {
 
   get allBundlesStatuses() {
     return this.bundles.reduce((acc, bundle) => {
+      if (isEmpty(bundle.status?.summary)) {
+        return acc;
+      }
+
       const { nonReadyResources, ...summary } = bundle.status?.summary;
+
       const bdCounts = normalizeStateCounts(summary);
       const state = primaryDisplayStatusFromCount(bdCounts.states);
 
@@ -520,7 +525,7 @@ export default class GitRepo extends SteveModel {
       location: !this.author ? null : {
         name:   'c-cluster-product-resource-id',
         params: {
-          cluster:  'local',
+          cluster:  '_',
           product:  'auth',
           resource: MANAGEMENT.USER,
           id:       this.author.id,
