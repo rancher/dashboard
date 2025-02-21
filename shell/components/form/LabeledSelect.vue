@@ -5,6 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
@@ -117,7 +118,7 @@ export default {
     return {
       selectedVisibility: 'visible',
       shouldOpen:         true,
-      uid:                this.generateRandomAlphaString(10)
+      uid:                generateRandomAlphaString(10)
     };
   },
 
@@ -153,9 +154,6 @@ export default {
   },
 
   methods: {
-    generateRandomAlphaString(length) {
-      return Array.from({ length }, () => String.fromCharCode(97 + Math.random() * 26 | 0)).join('');
-    },
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {

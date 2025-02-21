@@ -3109,6 +3109,7 @@ landing:
     title: You can change what you see when you login via preferences
     userPrefs: Preferences
     body: "You can change where you land when you login"
+    ariaLabelTakeMeToCluster: Select which cluster to take me to after login
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited
