@@ -109,6 +109,7 @@ export const CATALOG = {
 };
 
 export const FLEET = {
+  REPO_NAME:            'fleet.cattle.io/repo-name',
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
@@ -116,7 +117,9 @@ export const FLEET = {
   BUNDLE_NAMESPACE:     'fleet.cattle.io/bundle-namespace',
   MANAGED:              'fleet.cattle.io/managed',
   CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
-  CLUSTER:              'fleet.cattle.io/cluster'
+  CLUSTER:              'fleet.cattle.io/cluster',
+  CREATED_BY_USER_ID:   'fleet.cattle.io/created-by-user-id',
+  CREATED_BY_USER_NAME: 'fleet.cattle.io/created-by-display-name',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
