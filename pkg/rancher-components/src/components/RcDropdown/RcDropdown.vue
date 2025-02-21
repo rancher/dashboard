@@ -37,6 +37,7 @@ const {
   setFocus,
   provideDropdownContext,
   registerDropdownCollection,
+  handleKeydown,
 } = useDropdownContext(emit);
 
 provideDropdownContext();
