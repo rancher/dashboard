@@ -7,20 +7,28 @@ import { Card } from '@components/Card';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
+import FileSelector from '@shell/components/form/FileSelector';
+import { downloadFile } from '@shell/utils/download';
 
 const store = useStore();
 const { t } = useI18n(store);
 
 // Globals
 // const isRegistered = computed(() => false);
+const isRegistering = computed(() => false); // Generic operation to disable all the inputs
 const isRegisteredOnline = ref(false);
 const isRegisteredOffline = ref(false);
+const isRegisteringOffline = ref(false); // Required to toggle the async button view
 const isRegistered = computed(() => isRegisteredOnline.value || isRegisteredOffline.value);
 const errors = ref([] as string[]);
-const isRegistering = computed(() => false);
-const expirationDate = computed(() => 'XX/XX/XXXX');
+const expirationDate = computed(() => 'XX/XX/XXXX'); // Retrieved from CRD
 
-const patchRegistration = (type: 'online' | 'offline' | 'deregister', callback: () => void) => {
+/**
+ * Reset other inputs and errors, then patch the registration
+ * @param type 'online' | 'offline' | 'deregister'
+ * @param setButtonStatus Async button callback
+ */
+const patchRegistration = (type: 'online' | 'offline' | 'deregister', setButtonStatus: () => void) => {
   errors.value = [];
   setTimeout(() => {
     console.log('Patching registration', type);
@@ -40,7 +48,7 @@ const patchRegistration = (type: 'online' | 'offline' | 'deregister', callback: 
       offlineRegistrationCertificate.value = '';
       break;
     }
-    callback();
+    setButtonStatus();
   }, 2000);
 };
 const onError = () => {
@@ -49,25 +57,51 @@ const onError = () => {
 
 // Online
 const registrationCode = ref('');
-const registerOnline = (callback: () => void) => {
-  patchRegistration('online', callback);
+const registerOnline = (setButtonStatus: () => void) => {
+  patchRegistration('online', setButtonStatus);
 };
 
 // Offline
-const downloadOfflineRequest = () => { };
 const offlineRegistrationCertificate = ref('');
-const registerOffline = (callback: () => void) => {
-  // patchRegistration('offline', callback);
+
+/**
+ * Handle download offline registration request
+ * @param setButtonStatus
+ */
+const downloadOfflineRequest = (setButtonStatus: (status: boolean) => void) => {
+  const fileName = 'rancher-offline-registration-request.json';
+  const data = '';
+
+  setTimeout(() => {
+    downloadFile(fileName, JSON.stringify(data), 'application/json')
+      .then(() => setButtonStatus(true))
+      .catch(() => setButtonStatus(false));
+  }, 1000);
+};
+
+/**
+ * Set certificate from file, then patch the registration for offline
+ * @param certificate base64 encoded certificate from SCC
+ */
+const registerOffline = (certificate: string) => {
+  isRegisteringOffline.value = true;
+  offlineRegistrationCertificate.value = certificate;
+  patchRegistration('offline', () => {
+    isRegisteringOffline.value = false;
+  });
+};
+
+const registerWithError = (setButtonStatus: () => void) => {
   errors.value = [];
   setTimeout(() => {
     onError();
-    callback();
+    setButtonStatus();
   }, 1000);
 };
 
 // Deregistration
-const deregister = (callback: () => void) => {
-  patchRegistration('deregister', callback);
+const deregister = (setButtonStatus: () => void) => {
+  patchRegistration('deregister', setButtonStatus);
 };
 </script>
 
@@ -128,9 +162,9 @@ const deregister = (callback: () => void) => {
                 <AsyncButton
                   currentPhase="error"
                   :waitingLabel="t('registration.registered.button-cta.progress')"
+                  :error-label="t('registration.registered.button-cta.label')"
                   data-testid="registration-deregister-cta"
                   :disabled="isRegistering"
-                  :error-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.registered.button-cta.label')"
                   @click="deregister"
                 />
               </div>
@@ -139,9 +173,9 @@ const deregister = (callback: () => void) => {
               <AsyncButton
                 class="mt-20"
                 :waitingLabel="t('registration.online.button-cta.progress')"
+                :action-label="t('registration.online.button-cta.label')"
                 data-testid="registration-online-cta"
                 :disabled="isRegistered || isRegistering || !registrationCode"
-                :action-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.online.button-cta.label')"
                 @click="registerOnline"
               />
             </div>
@@ -166,23 +200,18 @@ const deregister = (callback: () => void) => {
             />
 
             <div>
-              <button
-                class="btn role-secondary mt-20"
+              <AsyncButton
+                class="mt-20"
+                actionColor="role-secondary"
+                successColor="role-secondary"
+                :waitingLabel="t('registration.offline.button-download.progress')"
+                :action-label="t('registration.offline.button-download.label')"
+                :success-label="t('registration.offline.button-download.label')"
+                data-testid="registration-offline-download"
                 :disabled="isRegistered"
-                @click="downloadOfflineRequest()"
-              >
-                {{ t('registration.offline.button-request.label') }}
-              </button>
+                @click="downloadOfflineRequest"
+              />
             </div>
-
-            <LabeledInput
-              v-model:value="offlineRegistrationCertificate"
-              class="mt-20"
-              label-key="registration.offline.input.label"
-              :disabled="isRegistered"
-              placeholder-key="registration.offline.input.placeholder"
-              data-testid="offline-registration-certificate"
-            />
 
             <div
               v-if="isRegisteredOffline"
@@ -196,22 +225,32 @@ const deregister = (callback: () => void) => {
                 <AsyncButton
                   currentPhase="error"
                   :waitingLabel="t('registration.registered.button-cta.progress')"
+                  :error-label="t('registration.registered.button-cta.label')"
                   data-testid="registration-deregister-cta"
                   :disabled="isRegistering"
-                  :error-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.registered.button-cta.label')"
                   @click="deregister"
                 />
               </div>
             </div>
 
-            <div v-else>
+            <div v-else-if="isRegisteringOffline">
               <AsyncButton
                 class="mt-20"
                 :waitingLabel="t('registration.offline.button-cta.progress')"
+                :action-label="t('registration.offline.button-cta.label')"
                 data-testid="registration-offline-cta"
-                :disabled="isRegistered || isRegistering || !offlineRegistrationCertificate"
-                :action-label="isRegistering ? t('registration.registered.button-cta.progress') : t('registration.offline.button-cta.label')"
-                @click="registerOffline"
+                :disabled="isRegistered || isRegistering"
+                :currentPhase="'waiting'"
+              />
+            </div>
+
+            <div v-else>
+              <FileSelector
+                class="role-primary mt-20"
+                :label="t('registration.offline.button-cta.label')"
+                :disabled="isRegistered || isRegistering"
+                data-testid="registration-offline-cta"
+                @selected="registerOffline"
               />
             </div>
           </template>
