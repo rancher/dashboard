@@ -8,6 +8,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import ComponentPo from '~/cypress/e2e/po/components/component.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -226,6 +227,14 @@ export default class ExtensionsPagePo extends PagePo {
 
   extensionTabAllClick(): Cypress.Chainable {
     return this.extensionTabs.clickNthTab(4);
+  }
+
+  extensionTabBuiltinClick(): Cypress.Chainable {
+    return this.self().get('[data-testid="btn-builtin"]').click();
+  }
+
+  extensionTabBuiltin() {
+    return new ComponentPo('[data-testid="builtin"]', this.self());
   }
 
   // ------------------ extension reload banner ------------------

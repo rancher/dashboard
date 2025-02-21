@@ -24,14 +24,34 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it('versions for built-in extensions should display as expected', () => {
-    const pluginVersion = '1.0.0';
+  it('should go to the available tab by default', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'available');
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+  });
+
+  it('should show built-in extensions only when configured', () => {
+    const extensionsPo = new ExtensionsPagePo();
+    const pluginVersion = '1.0.0';
+
+    cy.setUserPreference({ 'plugin-developer': false });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Should not be able to see the built-in tab
+    extensionsPo.extensionTabBuiltin().checkNotExists();
+
+    // Set the preference
+    cy.setUserPreference({ 'plugin-developer': true });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Reload
+    extensionsPo.extensionTabBuiltin().checkExists();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabBuiltinClick();
+    extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
     extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
@@ -60,6 +80,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
+
+    cy.setUserPreference({ 'plugin-developer': false });
   });
 
   it('add repository', () => {
