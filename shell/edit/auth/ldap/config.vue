@@ -354,11 +354,20 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
+          v-model:value="model.userLoginFilter"
+          :mode="mode"
+          :label="t('authConfig.ldap.userLoginFilter')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
           v-model:value="model.userSearchAttribute"
           :mode="mode"
           :label="t('authConfig.ldap.searchAttribute')"
         />
       </div>
+    </div>
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.groupSearchFilter"
@@ -366,8 +375,6 @@ export default {
           :label="t('authConfig.ldap.searchFilter')"
         />
       </div>
-    </div>
-    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.userSearchFilter"
@@ -375,6 +382,8 @@ export default {
           :label="t('authConfig.ldap.searchFilter')"
         />
       </div>
+    </div>
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.groupMemberMappingAttribute"
@@ -382,8 +391,6 @@ export default {
           :label="t('authConfig.ldap.groupMemberMappingAttribute')"
         />
       </div>
-    </div>
-    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.userEnabledAttribute"
@@ -391,6 +398,8 @@ export default {
           :label="t('authConfig.ldap.userEnabledAttribute')"
         />
       </div>
+    </div>
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.groupDNAttribute"
@@ -398,8 +407,6 @@ export default {
           :label="t('authConfig.ldap.groupDNAttribute')"
         />
       </div>
-    </div>
-    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model:value="model.disabledStatusBitmask"
@@ -407,6 +414,8 @@ export default {
           :label="t('authConfig.ldap.disabledStatusBitmask')"
         />
       </div>
+    </div>
+    <div class="row mb-20">
       <div
         v-if="!isSamlProvider"
         class=" col span-6"
