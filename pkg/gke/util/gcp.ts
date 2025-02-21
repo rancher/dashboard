@@ -81,14 +81,13 @@ export function getGKESharedSubnetworks(store: Store<any>, cloudCredentialId: st
   return getGKEOptions('gkeSharedSubnets', store, cloudCredentialId, projectId, location);
 }
 
-export function getGKEClusters(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId: string): Promise<getGKEClustersResponse> {
-  return getGKEOptions('gkeClusters', store, cloudCredentialId, projectId, location, clusterId);
+export function getGKEClusters(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}): Promise<getGKEClustersResponse> {
+  return getGKEOptions('gkeClusters', store, cloudCredentialId, projectId, location);
 }
 
 export function getGKEServiceAccounts(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}): Promise<getGKEServiceAccountsResponse> {
   return getGKEOptions('gkeServiceAccounts', store, cloudCredentialId, projectId, location);
 }
-
 /**
  * we fetch GKE zones and etrapolate available regions from that list. Zones include a url to the region they are in.
  * @param zone

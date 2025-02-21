@@ -82,6 +82,7 @@ export default {
       ctx:                    this,
       showImportModal:        false,
       showSearchModal:        false,
+      currYamlEditor:         undefined
     };
   },
 
@@ -390,6 +391,10 @@ export default {
       }
 
       return null;
+    },
+
+    onReadyYamlEditor(yamlEditor) {
+      this.currYamlEditor = yamlEditor;
     }
   }
 };
@@ -403,6 +408,7 @@ export default {
     <div>
       <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
+
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
@@ -410,20 +416,25 @@ export default {
       <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
+        role="link"
+        :alt="t('branding.logos.home')"
       >
         <BrandImage
           v-if="isSingleProduct.supportCustomLogo && isHarvester"
           class="side-menu-logo"
           file-name="harvester.svg"
           :support-custom-logo="true"
+          :alt="t('branding.logos.label')"
         />
         <img
           v-else
           class="side-menu-logo"
           :src="isSingleProduct.logo"
+          :alt="t('branding.logos.label')"
         >
       </router-link>
     </div>
+
     <div
       v-if="!simple"
       ref="product"
@@ -450,6 +461,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="mr-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="currentCluster"
@@ -462,6 +474,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="ml-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="!currentCluster"
@@ -470,6 +483,7 @@ export default {
             <BrandImage
               class="side-menu-logo-img"
               file-name="rancher-logo.svg"
+              :alt="t('branding.logos.label')"
             />
           </div>
         </template>
@@ -484,12 +498,14 @@ export default {
           :src="currentProduct.iconHeader"
           class="cluster-os-logo mr-10"
           style="width: 44px; height: 36px;"
+          :alt="t('branding.logos.label')"
         >
         <div class="product-name">
           {{ prod }}
         </div>
       </div>
     </div>
+
     <div
       v-else
       class="simple-title"
@@ -509,6 +525,7 @@ export default {
           class="side-menu-logo-img"
           data-testid="header-side-menu__brand-img"
           file-name="rancher-logo.svg"
+          :alt="t('branding.logos.label')"
         />
       </div>
     </div>
@@ -536,6 +553,9 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="header-action-import-yaml"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.import')"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
@@ -547,10 +567,12 @@ export default {
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
+            :yaml-editor="currYamlEditor"
             @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
+              @onReadyYamlEditor="onReadyYamlEditor"
               @close="closeImport"
             />
           </app-modal>
@@ -563,6 +585,9 @@ export default {
             :disabled="!shellEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.shellShortcut', {key:''})"
             @shortkey="currentCluster.openShell()"
             @click="currentCluster.openShell()"
           >
@@ -576,6 +601,9 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-download-kubeconfig"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.kubeconfig.download')"
             @click="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-file icon-lg" />
@@ -588,6 +616,9 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-copy-kubeconfig"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.kubeconfig.copy')"
             @click="copyKubeConfig($event)"
           >
             <i
@@ -603,11 +634,15 @@ export default {
 
         <button
           v-if="showSearch"
+          id="header-btn-search"
           v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
           data-testid="header-resource-search"
+          role="button"
+          tabindex="0"
+          :aria-label="t('nav.resourceSearch.toolTip', {key: ''})"
           @shortkey="openSearch()"
           @click="openSearch()"
         >
@@ -619,6 +654,8 @@ export default {
           name="searchModal"
           width="50%"
           height="auto"
+          :trigger-focus-trap="true"
+          return-focus-selector="#header-btn-search"
           @close="hideSearch()"
         >
           <Jump @closeSearch="hideSearch()" />
@@ -639,6 +676,9 @@ export default {
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+          role="button"
+          tabindex="0"
+          :aria-label="action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >

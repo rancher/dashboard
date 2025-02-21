@@ -132,19 +132,20 @@ export default {
 
   data() {
     return {
-      container:       this.initialContainer || this.pod?.defaultContainerName,
-      socket:          null,
-      isOpen:          false,
-      isFollowing:     true,
-      scrollThreshold: 80,
-      timestamps:      this.$store.getters['prefs/get'](LOGS_TIME),
-      wrap:            this.$store.getters['prefs/get'](LOGS_WRAP),
-      previous:        false,
-      search:          '',
-      backlog:         [],
-      lines:           [],
-      now:             new Date(),
-      logItem:         shallowRef(LogItem),
+      container:           this.initialContainer || this.pod?.defaultContainerName,
+      socket:              null,
+      isOpen:              false,
+      isFollowing:         true,
+      scrollThreshold:     80,
+      timestamps:          this.$store.getters['prefs/get'](LOGS_TIME),
+      wrap:                this.$store.getters['prefs/get'](LOGS_WRAP),
+      previous:            false,
+      search:              '',
+      backlog:             [],
+      lines:               [],
+      now:                 new Date(),
+      logItem:             shallowRef(LogItem),
+      isContainerMenuOpen: false
     };
   },
 
@@ -302,6 +303,14 @@ export default {
   },
 
   methods: {
+    openContainerMenu() {
+      this.isContainerMenuOpen = true;
+    },
+
+    closeContainerMenu() {
+      this.isContainerMenuOpen = false;
+    },
+
     async connect() {
       if ( this.socket ) {
         await this.socket.disconnect();
@@ -581,7 +590,10 @@ export default {
         </Select>
         <div class="log-action log-action-group ml-5">
           <button
-            class="btn bg-primary wm-btn"
+            class="btn role-primary wm-btn"
+            role="button"
+            :aria-label="t('wm.containerLogs.follow')"
+            :aria-disabled="isFollowing"
             :disabled="isFollowing"
             @click="follow"
           >
@@ -592,7 +604,9 @@ export default {
             <i class="wm-btn-small icon icon-chevron-end" />
           </button>
           <button
-            class="btn bg-primary wm-btn"
+            class="btn role-primary wm-btn"
+            role="button"
+            :aria-label="t('wm.containerLogs.clear')"
             @click="clear"
           >
             <t
@@ -603,6 +617,8 @@ export default {
           </button>
           <AsyncButton
             mode="download"
+            role="button"
+            :aria-label="t('asyncButton.download.action')"
             @click="download"
           />
         </div>
@@ -620,54 +636,72 @@ export default {
         </div>
 
         <div class="log-action log-action-group ml-5">
-          <v-dropdown
-            :triggers="['click']"
-            placement="top"
-            popperClass="containerLogsDropdown"
+          <div
+            role="menu"
+            tabindex="0"
+            :aria-label="t('wm.containerLogs.logActionMenu')"
+            @click="openContainerMenu"
+            @blur.capture="closeContainerMenu"
+            @keyup.enter="openContainerMenu"
+            @keyup.space="openContainerMenu"
           >
-            <button
-              class="btn bg-primary btn-cog"
-              role="button"
-              :aria-label="t('wm.containerLogs.options')"
+            <v-dropdown
+              :triggers="[]"
+              :shown="isContainerMenuOpen"
+              placement="top"
+              popperClass="containerLogsDropdown"
+              :autoHide="false"
+              :flip="false"
+              :container="false"
+              @focus.capture="openContainerMenu"
             >
-              <i
-                class="icon icon-gear"
-                :alt="t('wm.containerLogs.options')"
-              />
-              <i
-                class="icon icon-chevron-up"
-                :alt="t('wm.containerLogs.expand')"
-              />
-            </button>
-
-            <template #popper>
-              <div class="filter-popup">
-                <LabeledSelect
-                  v-model:value="range"
-                  class="range"
-                  :label="t('wm.containerLogs.range.label')"
-                  :options="rangeOptions"
-                  :clearable="false"
-                  placement="top"
-                  @update:value="toggleRange($event)"
+              <button
+                class="btn role-primary btn-cog"
+                role="button"
+                :aria-label="t('wm.containerLogs.options')"
+              >
+                <i
+                  class="icon icon-gear"
+                  :alt="t('wm.containerLogs.options')"
                 />
-                <div>
-                  <Checkbox
-                    :label="t('wm.containerLogs.wrap')"
-                    :value="wrap"
-                    @update:value="toggleWrap "
+                <i
+                  class="icon icon-chevron-up"
+                  :alt="t('wm.containerLogs.expand')"
+                />
+              </button>
+
+              <template #popper>
+                <div class="filter-popup">
+                  <LabeledSelect
+                    v-model:value="range"
+                    class="range"
+                    :label="t('wm.containerLogs.range.label')"
+                    :options="rangeOptions"
+                    :clearable="false"
+                    placement="top"
+                    role="menuitem"
+                    @update:value="toggleRange($event)"
                   />
+                  <div>
+                    <Checkbox
+                      :label="t('wm.containerLogs.wrap')"
+                      :value="wrap"
+                      role="menuitem"
+                      @update:value="toggleWrap"
+                    />
+                  </div>
+                  <div>
+                    <Checkbox
+                      :label="t('wm.containerLogs.timestamps')"
+                      :value="timestamps"
+                      role="menuitem"
+                      @update:value="toggleTimestamps"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Checkbox
-                    :label="t('wm.containerLogs.timestamps')"
-                    :value="timestamps"
-                    @update:value="toggleTimestamps"
-                  />
-                </div>
-              </div>
-            </template>
-          </v-dropdown>
+              </template>
+            </v-dropdown>
+          </div>
         </div>
 
         <div class="log-action log-action-group ml-5">
@@ -675,6 +709,8 @@ export default {
             v-model="search"
             class="input-sm"
             type="search"
+            role="textbox"
+            :aria-label="t('wm.containerLogs.searchLogs')"
             :placeholder="t('wm.containerLogs.search')"
           >
         </div>
@@ -768,6 +804,7 @@ export default {
       border: 0 !important;
       min-height: 30px;
       line-height: 30px;
+      margin: 0 2px;
     }
 
     > input {
@@ -799,6 +836,7 @@ export default {
     text-overflow : ellipsis;
     overflow      : hidden;
     white-space   : nowrap;
+    padding-left: 4px;
   }
 
   .status {

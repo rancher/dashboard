@@ -230,6 +230,7 @@ export default {
           data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
+          :alternate-label="t('sortableTable.genericGroupCheckbox')"
         />
       </th>
       <th
@@ -269,6 +270,7 @@ export default {
           <div
             v-if="col.sort"
             class="sort"
+            aria-hidden="true"
           >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"

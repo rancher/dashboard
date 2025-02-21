@@ -163,6 +163,11 @@ export default defineComponent({
 
       // ensure any fields editable through this UI that have been altered in azure portal are shown here - see syncUpstreamConfig jsdoc for details
       if (!this.isNewOrUnprovisioned) {
+        // to prevent syncUpstreamConfig from setting 'managedIdentity' to true when it's null
+        if (this.normanCluster?.aksConfig?.managedIdentity === null) {
+          this.normanCluster.aksConfig.managedIdentity = false;
+        }
+
         syncUpstreamConfig('aks', this.normanCluster);
       }
 

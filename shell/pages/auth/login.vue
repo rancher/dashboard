@@ -105,6 +105,8 @@ export default {
         return this.t('login.clientError');
       } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
         return this.t('login.error');
+      } else if (this.err === LOGIN_ERRORS.NONCE) {
+        return this.t('login.invalidResponseError');
       }
 
       return this.err?.length ? this.t('login.specificError', { msg: this.err }) : '';
@@ -433,7 +435,6 @@ export default {
               <div class="mb-20">
                 <LabeledInput
                   v-if="!firstLogin"
-                  id="username"
                   ref="username"
                   v-model:value.trim="username"
                   data-testid="local-login-username"
@@ -443,7 +444,6 @@ export default {
               </div>
               <div class="">
                 <Password
-                  id="password"
                   ref="password"
                   v-model:value="password"
                   data-testid="local-login-password"

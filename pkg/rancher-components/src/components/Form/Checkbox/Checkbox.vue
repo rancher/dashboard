@@ -3,6 +3,7 @@ import { PropType, defineComponent } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default defineComponent({
   name: 'Checkbox',
@@ -37,7 +38,7 @@ export default defineComponent({
      */
     id: {
       type:    String,
-      default: String(Math.random() * 1000)
+      default: generateRandomAlphaString(12)
     },
 
     /**
@@ -113,7 +114,16 @@ export default defineComponent({
     primary: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    /**
+     * Use this for usage of checkboxes that don't present a label.
+     * Used for cases such as table checkboxes (group or row)
+     */
+    alternateLabel: {
+      type:    String,
+      default: undefined
+    },
   },
 
   emits: ['update:value'],
@@ -143,6 +153,18 @@ export default defineComponent({
     hasTooltip(): boolean {
       return !!this.tooltip || !!this.tooltipKey;
     },
+
+    replacementLabel(): string | undefined {
+      if (!this.label && !this.labelKey && this.alternateLabel) {
+        return this.alternateLabel;
+      }
+
+      return undefined;
+    },
+
+    idForLabel():string {
+      return `${ this.id }-label`;
+    }
   },
 
   methods: {
@@ -228,17 +250,16 @@ export default defineComponent({
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
-      :for="id"
       @keydown.enter.prevent="clicked($event)"
       @keydown.space.prevent="clicked($event)"
       @click="clicked($event)"
     >
       <input
+        :id="id"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
         tabindex="-1"
-        :name="id"
         @click.stop.prevent
         @keyup.enter.stop.prevent
       >
@@ -246,8 +267,9 @@ export default defineComponent({
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
-        :aria-label="label"
+        :aria-label="replacementLabel"
         :aria-checked="!!value"
+        :aria-labelledby="labelKey || label ? idForLabel : undefined"
         role="checkbox"
       />
       <span
@@ -258,10 +280,14 @@ export default defineComponent({
         <slot name="label">
           <t
             v-if="labelKey"
+            :id="idForLabel"
             :k="labelKey"
             :raw="true"
           />
-          <template v-else-if="label">{{ label }}</template>
+          <span
+            v-else-if="label"
+            :id="idForLabel"
+          >{{ label }}</span>
           <i
             v-if="tooltipKey"
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"

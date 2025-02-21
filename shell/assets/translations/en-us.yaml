@@ -2,6 +2,15 @@
 # Special stuff
 ##############################
 generic:
+  unified: Unified
+  split: Split
+  userMenu: user menu
+  actionMenu: action menu
+  namespaceFilter: namespace filter menu
+  filterNamespaces: filter namespaces
+  clearSearch: clear search
+  clearFilters: clear filters
+  userAvatar: user avatar
   add: Add
   all: All
   ascending: ascending
@@ -58,6 +67,7 @@ generic:
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
+  readFromFileArea: Read from File - {area}
   readFromFolder: Read from Folder
   reload: Reload
   register: Register
@@ -118,10 +128,6 @@ generic:
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
   basic: Basic
-
-  ariaLabel:
-    key: Key {index}
-    value: Value {index}
 
 locale:
   menu: Locale selector menu
@@ -306,6 +312,8 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+windowmanager:
+  closeTab: Close tab {tabId}
 about:
   title: About
   versions:
@@ -1312,8 +1320,9 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
-      windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.
+      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. 
+      windowsWorkersOnly: <b>Windows nodes can only be workers.</b>
+      windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.<br /> <br /><b>Windows nodes can only be workers.</b>
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
       windowsDeprecatedForRKE1: Windows support is being deprecated for RKE1. We suggest migrating to RKE2.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
@@ -2294,6 +2303,7 @@ resource:
     update: "Error updating {name}"
 
 codeMirror:
+  escapeText: Press Escape key to blur from editor
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
@@ -3394,6 +3404,7 @@ login:
     invalidSamlAttrs: "Invalid saml attributes"
     noResponse: "No response received"
   error: An error occurred logging in. Please try again.
+  invalidResponseError: Invalid response received to login request. Please try again.
   clientError: Invalid username or password. Please try again.
   specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
@@ -5393,6 +5404,8 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  genericGroupCheckbox: Table group selection checkbox
+  genericRowCheckbox: Table row selection checkbox for item {item}
   tableActionsLabel: More actions - { resource }
   tableActionsImgAlt: More actions icon
   bulkActions:
@@ -6211,6 +6224,8 @@ wm:
   containerLogs:
     options: Additional container logs options
     expand: Expand additional container logs options
+    searchLogs: Search/filter logs
+    logActionMenu: Logs action menu
     clear: Clear
     containerName: "Container: {label}"
     download: Download
@@ -6240,6 +6255,7 @@ wm:
     resizeShellWindow: Resize Shell window
     tabIcon: Shell tab icon
     closeShellTab: Close Shell tab - {tab}
+    escapeText: Press Escape key to blur from terminal
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
@@ -7702,6 +7718,7 @@ branding:
   label: Branding
   directoryName: Brand Asset Directory Name
   logos:
+    home: Product main page
     label: Logo
     tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview

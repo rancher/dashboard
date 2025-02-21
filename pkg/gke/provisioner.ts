@@ -48,4 +48,8 @@ export class GKEProvisioner implements IClusterProvisioner {
       conditions:   false,
     };
   }
+
+  get showImport(): boolean {
+    return true;
+  }
 }
