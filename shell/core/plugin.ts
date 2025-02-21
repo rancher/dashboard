@@ -15,7 +15,8 @@ import {
   TabLocation,
   ModelExtensionConstructor,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
-  ExtensionEnvironment
+  ExtensionEnvironment,
+  SettingsPage,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
@@ -29,6 +30,8 @@ export const EXT_IDS = {
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
+export type ProductModule = { init: ProductFunction };
+
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
@@ -36,7 +39,7 @@ export class Plugin implements IPlugin {
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
-  public products: ProductFunction[] = [];
+  public products: Promise<ProductModule>[] = [];
   public productNames: string[] = [];
   public routes: { parent?: string, route: RouteRecordRaw }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
@@ -108,8 +111,14 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction): void {
-    this.products.push(product);
+  addProduct(product: ProductFunction | Promise<ProductModule>): void {
+    if (typeof product === 'function') {
+      this.products.push(new Promise<ProductModule>((resolve) => {
+        resolve({ init: product as ProductFunction });
+      }));
+    } else {
+      this.products.push(product as Promise<ProductModule>);
+    }
   }
 
   addLocale(locale: string, label: string): void {
@@ -257,6 +266,41 @@ export class Plugin implements IPlugin {
       path: '/home',
       component
     });
+  }
+
+  /**
+   * Add a settings page to Global Settings
+   */
+  addSettingsPage(settings: SettingsPage) {
+    if (settings.name && settings.labelKey && settings.component) {
+      const name = settings.name.replaceAll('-', '_');
+      const routeName = `c-cluster-settings-${ name }`;
+
+      this.addRoute({
+        name:      routeName,
+        path:      `/c/:cluster/settings/${ name }`,
+        component: settings.component,
+      });
+
+      const updateSettingProduct = function init($plugin: IPlugin, store: any) {
+        const {
+          virtualType,
+          basicType
+        } = $plugin.DSL(store, 'settings');
+
+        virtualType({
+          name:     settings.name,
+          labelKey: settings.labelKey,
+          route:    { name: routeName },
+        });
+
+        basicType([settings.name]);
+      };
+
+      this.addProduct(updateSettingProduct);
+    } else {
+      console.error('Incomplete settings page configuration', settings); // eslint-disable-line no-console
+    }
   }
 
   addUninstallHook(hook: Function) {
