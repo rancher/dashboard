@@ -570,12 +570,12 @@ export default {
       });
     },
 
-    updateBeforeSave(value) {
-      value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
+    updateBeforeSave() {
+      this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
-      if (this.realMode === _CREATE) {
-        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = value.currentUser.id;
-        value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = value.currentUser.username;
+      if (this.mode === _CREATE) {
+        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.value.currentUser.id;
+        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = this.value.currentUser.username;
       }
     },
   }
