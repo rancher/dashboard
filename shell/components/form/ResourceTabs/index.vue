@@ -75,23 +75,25 @@ export default {
     const inStore = this.$store.getters['currentStore'](EVENT);
     const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
 
+    const paginationHeaders = eventSchema ? [
+      STEVE_EVENT_LAST_SEEN,
+      STEVE_EVENT_TYPE,
+      REASON,
+      headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
+      MESSAGE,
+      headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
+      STEVE_NAME_COL,
+    ] : [];
+
     return {
       eventSchema,
       EVENT,
-      selectedTab:       this.defaultTab,
+      selectedTab:    this.defaultTab,
       inStore,
-      showConditions:    false,
-      paginationHeaders: [
-        STEVE_EVENT_LAST_SEEN,
-        STEVE_EVENT_TYPE,
-        REASON,
-        headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
-        headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
-        MESSAGE,
-        headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
-        headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
-        STEVE_NAME_COL,
-      ]
+      showConditions: false,
+      paginationHeaders
     };
   },
 

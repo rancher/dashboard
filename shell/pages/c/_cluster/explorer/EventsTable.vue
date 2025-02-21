@@ -43,13 +43,18 @@ export default {
         ...STEVE_NAME_COL,
         defaultSort: false,
       },
-      headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
-      {
-        ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
-        defaultSort: true,
-      },
-      headerFromSchemaColString('Count', schema, this.$store.getters, true),
     ];
+
+    if (schema) {
+      paginationHeaders.push(
+        headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
+        {
+          ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
+          defaultSort: true,
+        },
+        headerFromSchemaColString('Count', schema, this.$store.getters, true),
+      );
+    }
 
     return {
       schema,
