@@ -130,7 +130,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get authorId() {
-    return this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
 
   get author() {
