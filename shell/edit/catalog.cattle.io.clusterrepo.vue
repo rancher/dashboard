@@ -6,7 +6,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import InfoBox from '@shell/components/InfoBox';
+import Banner from '@components/Banner/Banner.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { MANAGEMENT, NAMESPACE, CLUSTER_REPO_TYPES } from '@shell/config/types';
 import UnitInput from '@shell/components/form/UnitInput.vue';
@@ -23,7 +23,7 @@ export default {
     NameNsDescription,
     Labels,
     SelectOrCreateAuthSecret,
-    InfoBox,
+    Banner,
     Checkbox,
     UnitInput
   },
@@ -153,12 +153,16 @@ export default {
       </div>
     </div>
 
-    <InfoBox
-      v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL"
-      class="p-10"
-    >
-      {{ t('catalog.repo.oci.info', null, true) }}
-    </InfoBox>
+    <template v-if="clusterRepoType === CLUSTER_REPO_TYPES.OCI_URL">
+      <Banner
+        label-key="catalog.repo.oci.warning"
+        color="warning"
+      />
+      <Banner
+        :label="t('catalog.repo.oci.info', null, true)"
+        color="info"
+      />
+    </template>
 
     <div class="row mb-10">
       <template v-if="clusterRepoType === CLUSTER_REPO_TYPES.GIT_REPO">
