@@ -19,13 +19,17 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import YamlEditor from '@shell/components/YamlEditor';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
+import UnitInput from '@shell/components/form/UnitInput';
+
+const MINIMUM_POLLING_INTERVAL = 15;
+const DEFAULT_POLLING_INTERVAL = 60;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -51,6 +55,7 @@ export default {
     NameNsDescription,
     YamlEditor,
     SelectOrCreateAuthSecret,
+    UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -92,6 +97,16 @@ export default {
   },
 
   data() {
+    let pollingInterval = this.value.spec.pollingInterval;
+
+    if (!pollingInterval) {
+      if (this.realMode === _CREATE) {
+        pollingInterval = DEFAULT_POLLING_INTERVAL;
+      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
+        pollingInterval = MINIMUM_POLLING_INTERVAL;
+      }
+    }
+
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
@@ -110,26 +125,6 @@ export default {
       targetMode = `group://${ targetClusterGroup }`;
     }
 
-    const stepRepoInfo = {
-      name:           'stepRepoInfo',
-      title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-      label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-      subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-      descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
-      ready:          false,
-      weight:         1
-    };
-
-    const stepTargetInfo = {
-      name:           'stepTargetInfo',
-      title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
-      label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
-      subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
-      descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
-      ready:          true,
-      weight:         1
-    };
-
     return {
       allClusters:             [],
       allClusterGroups:        [],
@@ -144,14 +139,13 @@ export default {
       correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
+      pollingInterval,
       ref,
       refValue,
       targetMode,
       targetCluster,
       targetClusterGroup,
       targetAdvanced,
-      stepRepoInfo,
-      stepTargetInfo,
       displayHelmRepoURLRegex: false,
       fvFormRuleSets:          [{
         path:  'spec.repo',
@@ -171,9 +165,44 @@ export default {
     },
 
     steps() {
+      console.log(this.fvFormIsValid)
       return [
-        this.stepRepoInfo,
-        this.stepTargetInfo
+        {
+          name:           'stepMetadata',
+          title:          this.t('fleet.gitRepo.add.steps.metadata.title'),
+          label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
+          ready:          this.isView || !!this.value.metadata.name,
+          weight:         1
+        },
+        {
+          name:           'stepRepo',
+          title:          this.t('fleet.gitRepo.add.steps.repo.title'),
+          label:          this.t('fleet.gitRepo.add.steps.repo.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.repo.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.repo.description',
+          ready:          this.isView || (!!this.refValue && !!this.fvFormIsValid),
+          weight:         1
+        },
+        {
+          name:           'stepAdvanced',
+          title:          this.t('fleet.gitRepo.add.steps.advanced.title'),
+          label:          this.t('fleet.gitRepo.add.steps.advanced.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.advanced.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.advanced.description',
+          ready:          true,
+          weight:         1,
+        },
+        {
+          name:           'stepTarget',
+          title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
+          label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
+          descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
+          ready:          this.isView || !!this.fvFormIsValid,
+          weight:         1
+        }
       ];
     },
 
@@ -183,6 +212,14 @@ export default {
 
     isTls() {
       return !(this.value?.spec?.repo || '').startsWith('http://');
+    },
+
+    isPollingEnabled() {
+      return !this.value.spec.disablePolling;
+    },
+
+    isWebhookConfigured() {
+      return !!this.value.status?.webhookCommit;
     },
 
     targetOptions() {
@@ -265,8 +302,14 @@ export default {
       ];
     },
 
-    stepOneRequires() {
-      return !!this.value.metadata.name && !!this.refValue && !!this.fvFormIsValid;
+    showPollingIntervalWarning() {
+      const isVisible = !this.isView && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+
+      if (isVisible) {
+        this.scrollToBottom();
+      }
+
+      return isVisible;
     },
   },
 
@@ -278,8 +321,6 @@ export default {
     targetAdvanced:             'updateTargets',
     tlsMode:                    'updateTls',
     caBundle:                   'updateTls',
-    'value.metadata.name':      'stepOneReady',
-    'value.spec.repo':          'stepOneReady',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -377,8 +418,6 @@ export default {
       } else {
         spec.targets = [];
       }
-
-      this.stepOneReady();
     },
 
     changeRef({ text, selected }) {
@@ -393,8 +432,6 @@ export default {
         delete spec.branch;
         spec.revision = text;
       }
-
-      this.stepOneReady();
     },
 
     async doCreateSecrets() {
@@ -481,10 +518,6 @@ export default {
       this.tlsMode = event;
     },
 
-    stepOneReady() {
-      this.stepRepoInfo['ready'] = this.stepOneRequires;
-    },
-
     updateTls() {
       const spec = this.value.spec;
 
@@ -510,6 +543,40 @@ export default {
           delete spec.caBundle;
         }
       }
+    },
+
+    enablePolling(value) {
+      if (value) {
+        delete this.value.spec.disablePolling;
+      } else {
+        this.value.spec.disablePolling = true;
+      }
+    },
+
+    updatePollingInterval(value) {
+      let interval = (value || DEFAULT_POLLING_INTERVAL).toString();
+
+      if (!value) {
+        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+      }
+
+      if (value === MINIMUM_POLLING_INTERVAL) {
+        delete this.value.spec.pollingInterval;
+
+        interval = MINIMUM_POLLING_INTERVAL.toString();
+      } else {
+        this.value.spec.pollingInterval = interval;
+      }
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const scrollable = document.getElementsByTagName('main')[0];
+
+        if (scrollable) {
+          scrollable.scrollTop = scrollable.scrollHeight;
+        }
+      });
     },
 
     onSave() {
@@ -539,15 +606,7 @@ export default {
     @error="e=>errors = e"
     @finish="onSave"
   >
-    <template #noticeBanner>
-      <Banner
-        v-if="isLocal && mode === 'create'"
-        color="info"
-      >
-        {{ t('fleet.gitRepo.createLocalBanner') }}
-      </Banner>
-    </template>
-    <template #stepRepoInfo>
+    <template #stepMetadata>
       <NameNsDescription
         v-if="!isView"
         :value="value"
@@ -555,10 +614,16 @@ export default {
         :mode="mode"
         @update:value="$emit('input', $event)"
       />
-
+      <Labels
+        :value="value"
+        :mode="mode"
+        :display-side-by-side="false"
+      />
+    </template>
+    <template #stepRepo>
       <h2 v-t="'fleet.gitRepo.repo.title'" />
       <div
-        class="row"
+        class="row mb-20"
         :class="{'mt-20': isView}"
       >
         <div class="col span-6">
@@ -587,7 +652,19 @@ export default {
         </div>
       </div>
 
-      <div class="spacer" />
+      <ArrayList
+        v-model:value="value.spec.paths"
+        data-testid="gitRepo-paths"
+        :title="t('fleet.gitRepo.paths.label')"
+        :mode="mode"
+        :initial-empty-row="false"
+        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+        :add-label="t('fleet.gitRepo.paths.addLabel')"
+        :protip="t('fleet.gitRepo.paths.empty')"
+      />
+    </template>
+
+    <template #stepAdvanced>
       <h2 v-t="'fleet.gitRepo.auth.title'" />
 
       <SelectOrCreateAuthSecret
@@ -685,19 +762,53 @@ export default {
           :mode="mode"
         />
       </div>
+
       <div class="spacer" />
-      <ArrayList
-        v-model:value="value.spec.paths"
-        data-testid="gitRepo-paths"
-        :title="t('fleet.gitRepo.paths.label')"
-        :mode="mode"
-        :initial-empty-row="false"
-        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-        :add-label="t('fleet.gitRepo.paths.addLabel')"
-        :protip="t('fleet.gitRepo.paths.empty')"
-      />
+      <h2 v-t="'fleet.gitRepo.polling.label'" />
+      <div class="row polling">
+        <div class="col span-6">
+          <Checkbox
+            v-model:value="isPollingEnabled"
+            data-testid="GitRepo-enablePolling-checkbox"
+            class="check"
+            type="checkbox"
+            label-key="fleet.gitRepo.polling.enable"
+            :mode="mode"
+            @update:value="enablePolling"
+          />
+        </div>
+        <template v-if="isPollingEnabled">
+          <div class="col">
+            <Banner
+              v-if="showPollingIntervalWarning"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              data-testid="GitRepo-pollingInterval-minimumValueWarning"
+            />
+            <Banner
+              v-if="isWebhookConfigured"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
+              data-testid="GitRepo-pollingInterval-webhookWarning"
+            />
+          </div>
+          <div class="col span-6">
+            <UnitInput
+              v-model:value="pollingInterval"
+              data-testid="GitRepo-pollingInterval-input"
+              min="1"
+              :suffix="pollingInterval == 1 ? 'Second' : 'Seconds'"
+              :label="t('fleet.gitRepo.polling.pollingInterval.label')"
+              :mode="mode"
+              tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
+              @update:value="updatePollingInterval"
+            />
+          </div>
+        </template>
+      </div>
     </template>
-    <template #stepTargetInfo>
+
+    <template #stepTarget>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
@@ -762,12 +873,6 @@ export default {
           />
         </div>
       </div>
-      <div class="spacer" />
-      <Labels
-        :value="value"
-        :mode="mode"
-        :display-side-by-side="false"
-      />
     </template>
   </CruResource>
 </template>
@@ -778,9 +883,18 @@ export default {
       margin-top: 10px !important;
     }
   }
+  :deep() .input-container .in-input.labeled-select {
+    min-width: 110px;
+    width: 20%;
+  }
   .resource-handling {
     display: flex;
     flex-direction: column;
-    gap: 5px
+    gap: 5px;
+  }
+  .polling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 </style>
