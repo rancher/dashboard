@@ -51,7 +51,7 @@ describe('component: Masthead', () => {
     });
 
     const container = wrapper.find('[data-testid="masthead-subheader-createdBy"]');
-    const link = wrapper.find('[data-testid="masthead-subheader-createdBy_link"]');
+    const link = wrapper.find('[data-testid="masthead-subheader-createdBy-link"]');
     const plainText = wrapper.find('[data-testid="masthead-subheader-createdBy_plain-text"]');
 
     expect(link.exists()).toBe(showLink);

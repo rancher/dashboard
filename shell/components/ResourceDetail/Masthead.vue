@@ -519,7 +519,7 @@ export default {
             <router-link
               v-if="value.createdBy.location"
               :to="value.createdBy.location"
-              data-testid="masthead-subheader-createdBy_link"
+              data-testid="masthead-subheader-createdBy-link"
             >
               {{ value.createdBy.displayName }}
             </router-link>
