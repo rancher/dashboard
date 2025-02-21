@@ -73,8 +73,12 @@ export default {
       return this.value.metadata.name;
     },
 
+    repoNamespace() {
+      return this.value.metadata.namespace;
+    },
+
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.repoName === this.repoName);
 
       if (!resources.length) {
         return [];
@@ -89,7 +93,7 @@ export default {
           return;
         }
 
-        const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
+        const k = status?.summary?.ready > 0 && status?.summary.desiredReady === status?.summary?.ready;
 
         if (k) {
           out.ready.count += 1;
