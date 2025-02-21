@@ -1,5 +1,5 @@
 import { ProductFunction } from './plugin';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteRecordRaw, RouteComponent } from 'vue-router';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -166,6 +166,14 @@ export type ExtensionEnvironment = {
   docsVersion: string; /** e.g. 'v2.10' */
 };
 
+/**
+ * Settings Page metadata to add a new page into Global Settings
+ */
+export type SettingsPage = {
+  name: string;
+  labelKey: string;
+  component: RouteComponent;
+};
 export interface ProductOptions {
   /**
    * The category this product belongs under. i.e. 'config'
@@ -587,6 +595,12 @@ export interface IPlugin {
    * @param component Home page component
    */
   setHomePage(component: any): void;
+
+  /**
+   * Add a settings page to Global Settings
+   * @param settings Settings configuration
+   */
+  addSettingsPage(settings: SettingsPage): void;
 
   /**
    * Add routes to the Vue Router
