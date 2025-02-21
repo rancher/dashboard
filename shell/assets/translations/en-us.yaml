@@ -4498,6 +4498,7 @@ plugins:
   tabs:
     all: All
     available: Available
+    builtin: Built-in
     images: Images
     installed: Installed
     updates: Updates
