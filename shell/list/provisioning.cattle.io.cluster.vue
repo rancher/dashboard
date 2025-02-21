@@ -77,13 +77,15 @@ export default {
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;
+    this.showRke1DeprecationWarning = this.rows.some((r) => r.isRke1);
   },
 
   data() {
     return {
-      resource:     CAPI.RANCHER_CLUSTER,
-      schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters: [],
+      resource:                   CAPI.RANCHER_CLUSTER,
+      schema:                     this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusters:               [],
+      showRke1DeprecationWarning: false
     };
   },
 
@@ -180,6 +182,12 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="showRke1DeprecationWarning"
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
+
     <Banner
       v-if="hiddenHarvesterCount"
       color="info"

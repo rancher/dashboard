@@ -745,6 +745,12 @@ export default {
       color="error"
       :label="$fetchState.error"
     />
+
+    <Banner
+      v-if="value.isRke1"
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
     <ResourceTabs
       :value="value"
       :default-tab="defaultTab"
