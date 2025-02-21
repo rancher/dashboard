@@ -136,8 +136,13 @@ export default class GitRepo extends SteveModel {
   }
 
   goToClone() {
-    delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
-    delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    }
+
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    }
 
     super.goToClone();
   }
@@ -492,7 +497,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get authorId() {
-    return this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
 
   get author() {
