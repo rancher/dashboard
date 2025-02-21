@@ -2450,6 +2450,24 @@ fleet:
       waitApplied: Wait Applied
   gitRepo:
     createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
+    actions:
+      forceUpdate:
+        label: Force Update
+        promptTitle: Warning
+        promptBody: |-
+          {
+            count, plural,
+            =1 {Force update could be a long running process, the repository will be cloned again.}
+            other {Force update could be a long running process, the repositories will be cloned again.}
+          }
+      enablePolling:
+        label: Enable Polling
+      disablePolling:
+        label: Disable Polling
+      unpause:
+        label: Unpause
+      pause:
+        label: Pause
     tabs:
       resources: Resources
       unready: Non-Ready
@@ -2479,6 +2497,14 @@ fleet:
       keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
+    polling:
+      label: Polling
+      enable: Enable Polling
+      pollingInterval:
+        label: Polling Interval
+        tooltip: Polling Interval is the time between a push to the Repository and Fleet reacting to it.
+        webhookWarning: Warning, a webhhok is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will be automatically adjusted to 1 hour.
+        minimumValuewarning: Warning, the recommended minimum value for Polling Interval is 15 seconds. Please consider to increase the interval value if the GitRepo has a large amount of resources, to avoid performance issues.
     add:
       steps:
         repoInfo:
