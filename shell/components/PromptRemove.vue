@@ -363,6 +363,7 @@ export default {
             v-if="hasCustomRemove"
             ref="customPrompt"
             v-model:value="toRemove"
+            v-bind="$data"
             :close="close"
             :needs-confirm="needsConfirm"
             :value="toRemove"
