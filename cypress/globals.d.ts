@@ -175,6 +175,16 @@ declare global {
        * Check if the vai FF is enabled
        */
       isVaiCacheEnabled(): Chainable<boolean>;
+
+      /**
+       * Run an accessibility check on the current page or the specified element
+       */
+      checkPageAccessibility(description?: string);
+
+      /**
+       * Run an accessibility check on the specified element
+       */
+      checkElementAccessibility(selector: any, description?: string);
     }
   }
 }
