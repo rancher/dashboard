@@ -674,7 +674,7 @@ export default {
         <Banner
           v-if="provisioner === _RKE1 && i === 1"
           color="warning"
-          label-key="cluster.banner.rke1DeprecationMessage"
+          label-key="cluster.banner.rke1DeprecationShortMessage"
         />
         <SelectIconGrid
           :rows="obj.types"
