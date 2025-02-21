@@ -37,7 +37,7 @@ export default {
     class="pin icon"
     :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
     aria-role="button"
-    :aria-label="`${t('nav.ariaLabel.pinCluster')} ${ cluster.label }`"
+    :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
     @keydown.space.prevent="toggle"
