@@ -1,7 +1,7 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { addObjects, findBy } from '@shell/utils/array';
+import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
@@ -230,18 +230,22 @@ export const actions = {
     const encodedNonce = await dispatch('encodeNonce', baseNonce);
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
-    const scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
+    let scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
 
     if (BASE_SCOPES[provider]) {
       addObjects(scopes, BASE_SCOPES[provider]);
     }
 
-    if ( opt.scopes ) {
-      addObjects(scopes, opt.scopes);
+    // Need to merge these 2 formats preventing duplicates between code and UI, e.g.
+    // [ 'openid profile email' ] from BASE_SCOPES
+    // 'openid profile email customScope' from the UI
+    if (opt.scopes) {
+      scopes = [joinStringList(scopes[0], opt.scopes)];
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
 
+    // TODO: #13457 - Verify use case of scopesJoinChar anywhere outside this repository
     const params = {
       [GITHUB_SCOPE]: scopes.join(opt.scopesJoinChar || ','), // Some providers won't accept comma separated scopes
       [GITHUB_NONCE]: encodedNonce
