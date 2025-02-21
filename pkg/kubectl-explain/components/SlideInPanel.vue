@@ -2,6 +2,7 @@
 import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
+import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 
 const HEADER_HEIGHT = 55;
 
@@ -32,6 +33,13 @@ export default {
       noResource:     false,
       notFound:       false,
     };
+  },
+
+  created() {
+    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '.slide-in', {
+      escapeDeactivates: false,
+      allowOutsideClick: true
+    });
   },
 
   computed: {
@@ -227,25 +235,42 @@ export default {
                 v-else
                 href="#"
                 class="breadcrumb-link"
+                role="button"
+                :aria-label="t('kubectl-explain.navigateToBreadcrumb', { breadcrumb: b.name })"
                 @click="navigate(breadcrumbs.slice(0, i + 1))"
+                @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
               >{{ b.name }}</a>
             </div>
           </div>
           <div
             v-else
-            @click="scrollTop()"
+            class="scroll-title"
           >
-            {{ t('kubectl-explain.title') }}
+            <span
+              role="button"
+              :aria-label="t('kubectl-explain.scrollToTop')"
+              tabindex="0"
+              @click="scrollTop()"
+              @keydown.space.enter.stop.prevent="scrollTop()"
+            >{{ t('kubectl-explain.title') }}</span>
           </div>
           <i
             v-if="!busy && !noResource && definition"
             class="icon icon-sort mr-10"
+            role="button"
+            :aria-label="t('kubectl-explain.expandAll')"
+            tabindex="0"
             @click="toggleAll()"
+            @keydown.space.enter.stop.prevent="toggleAll()"
           />
           <i
+            role="button"
+            :aria-label="t('kubectl-explain.scrollToTop')"
             class="icon icon-close"
             data-testid="slide-in-panel-close"
-            @click="close"
+            tabindex="0"
+            @click="close()"
+            @keydown.space.enter.stop.prevent="close()"
           />
         </div>
         <div
@@ -253,7 +278,10 @@ export default {
           class="loading panel-loading"
         >
           <div>
-            <i class="icon icon-lg icon-spinner icon-spin" />
+            <i
+              class="icon icon-lg icon-spinner icon-spin"
+              :alt="t('kubectl-explain.informationLoading')"
+            />
           </div>
         </div>
         <ExplainPanel
@@ -268,7 +296,10 @@ export default {
           v-if="error"
           class="select-resource"
         >
-          <i class="icon icon-error" />
+          <i
+            class="icon icon-error"
+            :alt="t('kubectl-explain.errorLoading')"
+          />
           <div>
             {{ t('kubectl-explain.errors.load') }}
           </div>
@@ -299,6 +330,11 @@ export default {
 
 <style lang="scss" scoped>
   $slidein-width: 33%;
+
+  .scroll-title span:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 
   .panel-resizer {
     position: absolute;
