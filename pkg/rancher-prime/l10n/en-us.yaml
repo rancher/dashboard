@@ -1,4 +1,6 @@
 registration:
+  navigation:
+    label: Registration
   title: Prime Suite Support and Registration
   description: Register to receive full product updates and support. Registration requires an active account with the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and a valid subscription with free capacity to the SUSE Rancher Manager Prime Suite..
   online:
