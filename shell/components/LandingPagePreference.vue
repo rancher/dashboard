@@ -124,6 +124,7 @@ export default {
           />
           <Select
             v-model:value="routeFromDropdown"
+            :aria-label="t('landing.landingPrefs.ariaLabelTakeMeToCluster')"
             :searchable="true"
             :disabled="afterLoginRoute === 'home' || afterLoginRoute === 'last-visited'"
             :clearable="false"
