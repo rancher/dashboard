@@ -5,11 +5,13 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import { convert, matching, simplify } from '@shell/utils/selector';
-import { POD } from '@shell/config/types';
+import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
+import { matching } from '@shell/utils/selector-typed';
+import { allHash } from '@shell/utils/promise';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -41,18 +43,18 @@ export default {
       type:    String,
       default: ''
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    // allPods: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
+    // allNamespaces: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
   },
   data() {
     if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
@@ -78,6 +80,9 @@ export default {
     };
   },
   computed: {
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     podSelectorExpressions: {
       get() {
         return convert(
@@ -89,6 +94,9 @@ export default {
         this.value[TARGET_OPTIONS.POD_SELECTOR] = simplify(podSelectorExpressions);
       }
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     namespaceSelectorExpressions: {
       get() {
         return convert(
@@ -148,10 +156,10 @@ export default {
       handler:   'updateMatches',
       immediate: true
     },
-    allNamespaces: {
-      handler:   'updateMatches',
-      immediate: true
-    },
+    // allNamespaces: {
+    //   handler:   'updateMatches',
+    //   immediate: true // TODO: RC
+    // },
     'value.podSelector': {
       handler:   'updateMatches',
       immediate: true
@@ -173,10 +181,15 @@ export default {
   },
   methods: {
     updateMatches() {
-      throttle(() => {
-        this.matchingNamespaces = this.getMatchingNamespaces();
-        this.matchingPods = this.getMatchingPods();
-      }, this.throttle, { leading: true })();
+      throttle(async() => {
+        const { ns, p } = await allHash({
+          ns: this.getMatchingNamespaces(),
+          p:  this.getMatchingPods()
+        });
+
+        this.matchingNamespaces = ns;
+        this.matchingPods = p;
+      }, this.throttle, { leading: true })(); // TODO: RC shouldn't there be a number? what's default?
     },
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
@@ -191,34 +204,54 @@ export default {
         this.invalidCidr = null;
       }
     },
-    getMatchingPods() {
-      const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
-      const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
-      const match = matching(allInNamespace, this.podSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    async getMatchingPods() {
+      return await matching({
+        labelSelector: { matchExpressions: this.podSelectorExpressions },
+        type:          POD,
+        $store:        this.$store,
+        inStore:       'cluster',
+        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace, // TODO: RC multiple?
+        transient:     true,
+      });
 
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allInNamespace.length,
-      };
+      // TODO: RC TEST
+
+      // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
+      // const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
+      // const match = matching(allInNamespace, this.podSelectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
+
+      // return {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   allInNamespace.length,
+      // };
     },
-    getMatchingNamespaces() {
-      const allNamespaces = this.allNamespaces;
-      const match = matching(allNamespaces, this.namespaceSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
+    async getMatchingNamespaces() {
+      // TODO: RC TEST
+      return await matching({
+        labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
+        type:          NAMESPACE,
+        $store:        this.$store,
+        inStore:       'cluster',
+        transient:     true,
+      });
 
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allNamespaces.length,
-      };
+      // const allNamespaces = this.allNamespaces;
+      // const match = matching(allNamespaces, this.namespaceSelectorExpressions);
+      // const matched = match.length || 0;
+      // const sample = match[0]?.nameDisplay;
+
+      // return {
+      //   matched,
+      //   matches: match,
+      //   none:    matched === 0,
+      //   sample,
+      //   total:   allNamespaces.length,
+      // };
     },
   }
 };

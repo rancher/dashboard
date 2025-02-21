@@ -3,9 +3,11 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
+import { convertSelectorObj, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { matching } from '@shell/utils/selector-typed';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -202,22 +204,35 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
-  get showPodRestarts() {
-    return true;
-  }
+  // When this added... it already existed somewhere else
+  // get restartCount() {
+  //   const pods = this.pods;
+
+  //   let sum = 0;
+
+  //   pods.forEach((pod) => {
+  //     if (pod.status.containerStatuses) {
+  //       sum += pod.status?.containerStatuses[0].restartCount || 0;
+  //     }
+  //   });
+
+  //   return sum;
+  // }
 
   get restartCount() {
-    const pods = this.pods;
+    return this.pods.reduce((total, pod) => {
+      const { status:{ containerStatuses = [] } } = pod;
 
-    let sum = 0;
+      if (containerStatuses.length) {
+        total += containerStatuses.reduce((tot, container) => {
+          tot += container.restartCount || 0;
 
-    pods.forEach((pod) => {
-      if (pod.status.containerStatuses) {
-        sum += pod.status?.containerStatuses[0].restartCount || 0;
+          return tot;
+        }, 0);
       }
-    });
 
-    return sum;
+      return total;
+    }, 0);
   }
 
   get hasSidecars() {
@@ -331,6 +346,10 @@ export default class Workload extends WorkloadService {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
+      restarts: {
+        label:   this.t('resourceDetail.masthead.restartCount'),
+        content: this.restartCount
+      },
       endpoint: {
         label:     'Endpoints',
         content:   this.endpoint,
@@ -547,30 +566,72 @@ export default class Workload extends WorkloadService {
     }
   }
 
-  get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
+  async fetchPods() {
+    // const podSelector = this.podSelector;
 
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+    // if (podSelector) {
+    return this.$dispatch('findLabelSelector', {
+      type:     POD,
+      matching: {
+        namespaced: this.metadata.namespace,
+        pagination: new FilterArgs({ labelSelector: this.podSelector }),
+      }
+    });
 
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      return pods.filter((obj) => {
-        return matches(obj, podRelationship.selector);
-      });
-    } else {
-      return [];
-    }
+    // const findPageArgs = { // Of type ActionFindPageArgs
+    //   namespaced: this.metadata.namespace,
+    //   pagination: new FilterArgs({ labelSelector: podSelector }),
+    // };
+
+    // return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
+    // }
+
+    // return Promise.resolve(undefined);
   }
 
-  get podGauges() {
+  get pods() {
+    console.warn('Anything using this must be updated to ????!!!');
+
+    return [];
+  }
+
+  // get pods() {
+  //   const relationships = this.metadata?.relationships || [];
+  //   const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
+
+  //   if (podRelationship) {
+  //     const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+
+  //     return pods.filter((obj) => {
+  //       return matches(obj, podRelationship.selector);
+  //     });
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+  /**
+   * TODO: RC what SHOULD this do? always return object (relationship selectors are strings)
+   */
+  get podSelector() {
+    const relationships = this.metadata?.relationships || [];
+    const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
+
+    if (typeof selector === 'string') {
+      return { matchExpressions: parse(selector) };
+    }
+
+    return selector;
+  }
+
+  calcPodGauges(pods) {
     const out = { };
 
-    if (!this.pods) {
+    if (!pods) {
       return out;
     }
 
-    this.pods.map((pod) => {
+    pods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -584,6 +645,10 @@ export default class Workload extends WorkloadService {
     });
 
     return out;
+  }
+
+  get podGauges() {
+    return this.calcPodGauges(this.pods);
   }
 
   // Job Specific
@@ -661,13 +726,27 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
+    // TODO: RC fetchPods (findLabelSelector) vs matchingPods (matching)
+
+    // TODO: RC where is this used, for shell? test
+    // TODO: RC TEST
+    const matchInfo = await matching({
+      labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
+      type:          POD,
+      $store:        this.$store,
+      inStore:       'cluster',
+      namespace:     this.metadata.namespace,
+    });
+
+    return matchInfo.matches;
+
     // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    const all = await this.$dispatch('findAll', { type: POD });
-    const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
+    // const all = await this.$dispatch('findAll', { type: POD });
+    // const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
 
-    const selector = convertSelectorObj(this.spec.selector);
+    // const selector = convertSelectorObj(this.spec.selector);
 
-    return matching(allInNamespace, selector);
+    // return matching(allInNamespace, selector);
   }
 
   cleanForSave(data) {
