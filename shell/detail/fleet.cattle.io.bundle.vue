@@ -16,10 +16,7 @@ export default {
 
   async fetch() {
     if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
-      this.$store.dispatch(`management/find`, {
-        type: MANAGEMENT.USER,
-        id:   this.value.authorId,
-      }, { root: true });
+      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }, { root: true });
     }
   },
 
