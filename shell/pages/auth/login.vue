@@ -433,7 +433,6 @@ export default {
               <div class="mb-20">
                 <LabeledInput
                   v-if="!firstLogin"
-                  id="username"
                   ref="username"
                   v-model:value.trim="username"
                   data-testid="local-login-username"
@@ -443,7 +442,6 @@ export default {
               </div>
               <div class="">
                 <Password
-                  id="password"
                   ref="password"
                   v-model:value="password"
                   data-testid="local-login-password"
