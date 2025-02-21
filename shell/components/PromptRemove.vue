@@ -1,4 +1,5 @@
 <script>
+import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
@@ -38,7 +39,7 @@ export default {
       error:               '',
       warning:             '',
       preventDelete:       false,
-      removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      removeComponent:     shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource)),
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false,
       showModal:           false,
@@ -46,7 +47,7 @@ export default {
   },
   computed: {
     names() {
-      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay);
     },
 
     nameToMatchPosition() {
@@ -90,12 +91,6 @@ export default {
       const first = this.toRemove[0];
 
       return first?.confirmRemove;
-    },
-
-    plusMore() {
-      const remaining = this.toRemove.length - this.names.length;
-
-      return this.t('promptRemove.andOthers', { count: remaining });
     },
 
     // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
@@ -183,7 +178,7 @@ export default {
 
         this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
 
-        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
+        this.removeComponent = shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource));
       } else {
         this.showModal = false;
       }
@@ -359,7 +354,7 @@ export default {
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-clean-html="resourceNames(names, plusMore, t)"
+              v-clean-html="resourceNames(names, t)"
             />
           </template>
 
@@ -368,7 +363,7 @@ export default {
             v-if="hasCustomRemove"
             ref="customPrompt"
             v-model:value="toRemove"
-            v-bind="_data"
+            v-bind="$data"
             :close="close"
             :needs-confirm="needsConfirm"
             :value="toRemove"
