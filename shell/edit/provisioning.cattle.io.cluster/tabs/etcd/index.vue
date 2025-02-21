@@ -91,6 +91,7 @@ export default {
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
           :suffix="t('cluster.rke2.snapshots.suffix')"
+          :tooltip="t('cluster.rke2.etcd.snapshotRetention.tooltip')"
         />
       </div>
     </div>
@@ -102,8 +103,8 @@ export default {
         :value="s3Backup"
         name="etcd-s3"
         :options="[false, true]"
-        label="Backup Snapshots to S3"
-        :labels="['Disable','Enable']"
+        :label="t('cluster.rke2.etcd.s3backups.label')"
+        :labels="[t('generic.disable'),t('generic.enable')]"
         :mode="mode"
         @update:value="$emit('s3-backup-changed', $event)"
       />
