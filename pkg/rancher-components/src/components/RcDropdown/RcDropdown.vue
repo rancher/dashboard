@@ -48,7 +48,7 @@ useClickOutside(dropdownTarget, () => showMenu(false));
 
 const applyShow = () => {
   registerDropdownCollection(dropdownTarget.value);
-  setFocus();
+  setFocus('down');
 };
 
 </script>
@@ -77,7 +77,8 @@ const applyShow = () => {
         dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
         @keydown="handleKeydown"
-        @keydown.down="setFocus()"
+        @keydown.down="setFocus('down')"
+        @keydown.up="setFocus('up')"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
