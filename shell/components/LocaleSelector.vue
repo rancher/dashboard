@@ -75,6 +75,7 @@ export default {
         <rc-dropdown-trigger
           data-testid="locale-selector"
           link
+          class="baseline"
           :aria-label="t('locale.menu')"
         >
           {{ selectedLocaleLabel }}
@@ -112,3 +113,9 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+  .baseline {
+    align-items: baseline;
+  }
+</style>
