@@ -185,15 +185,6 @@ export default {
           weight:         1
         },
         {
-          name:           'stepAdvanced',
-          title:          this.t('fleet.gitRepo.add.steps.advanced.title'),
-          label:          this.t('fleet.gitRepo.add.steps.advanced.label'),
-          subtext:        this.t('fleet.gitRepo.add.steps.advanced.subtext'),
-          descriptionKey: 'fleet.gitRepo.add.steps.advanced.description',
-          ready:          true,
-          weight:         1,
-        },
-        {
           name:           'stepTarget',
           title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
           label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
@@ -201,7 +192,16 @@ export default {
           descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
           ready:          this.isView || !!this.fvFormIsValid,
           weight:         1
-        }
+        },
+        {
+          name:           'stepAdvanced',
+          title:          this.t('fleet.gitRepo.add.steps.advanced.title'),
+          label:          this.t('fleet.gitRepo.add.steps.advanced.label'),
+          subtext:        this.t('fleet.gitRepo.add.steps.advanced.subtext'),
+          descriptionKey: 'fleet.gitRepo.add.steps.advanced.description',
+          ready:          !!this.fvFormIsValid,
+          weight:         1,
+        },
       ];
     },
 
@@ -659,6 +659,12 @@ export default {
     </template>
 
     <template #stepAdvanced>
+      <Banner
+        class="mb-20"
+        color="info"
+        label-key="fleet.gitRepo.add.steps.advanced.info"
+      />
+
       <h2 v-t="'fleet.gitRepo.auth.title'" />
 
       <SelectOrCreateAuthSecret
