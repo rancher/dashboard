@@ -17,6 +17,7 @@ export const gitRepoCreateRequest = {
     helmRepoURLRegex:      'https://charts.rancher.io/*',
     helmSecretName:        '',
     clientSecretName:      '',
+    pollingInterval:       '13'
   }
 };
 

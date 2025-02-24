@@ -91,6 +91,10 @@ export class GitRepoCreatePo extends PagePo {
     return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
   }
 
+  setPollingInterval(value: number) {
+    return LabeledInputPo.byLabel(this.self(), 'Polling Interval').set(value);
+  }
+
   title() {
     return this.self().get('.title .primaryheader  h1');
   }
