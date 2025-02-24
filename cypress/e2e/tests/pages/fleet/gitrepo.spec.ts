@@ -65,17 +65,24 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       } = gitRepoCreateRequest.spec;
 
       gitRepoCreatePage.setRepoName(name);
-      gitRepoCreatePage.setGitRepoUrl(repo);
       headerPo.selectWorkspace('fleet-default');
-      gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
-      gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
 
+      gitRepoCreatePage.goToNext();
+
+      gitRepoCreatePage.setGitRepoUrl(repo);
+      gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
+
       gitRepoCreatePage.goToNext();
 
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickOption(6);
+
+      gitRepoCreatePage.goToNext();
+
+      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
+      gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+
       gitRepoCreatePage.create().then(() => {
         reposToDelete.push(`fleet-default/${ name }`);
       });
