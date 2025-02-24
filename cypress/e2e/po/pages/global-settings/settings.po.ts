@@ -36,6 +36,10 @@ export class SettingsPagePo extends RootClusterPage {
     return this.advancedSettingRow(label).find('[data-testid*="action-button"]');
   }
 
+  editSettingsButton() {
+    return cy.get('[dropdown-menu-item]').contains('Edit Setting');
+  }
+
   /**
    * Click Edit Settings
    * @param label
@@ -44,7 +48,7 @@ export class SettingsPagePo extends RootClusterPage {
   editSettingsByLabel(label: string) {
     this.actionButtonByLabel(label).click();
 
-    return cy.contains('Edit Setting').click();
+    return this.editSettingsButton().click();
   }
 
   editSettings(clusterId: string, setting: string) {
