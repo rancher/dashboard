@@ -668,6 +668,7 @@ export default {
       <h2 v-t="'fleet.gitRepo.auth.title'" />
 
       <SelectOrCreateAuthSecret
+        data-testid="gitrepo-git-auth"
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
