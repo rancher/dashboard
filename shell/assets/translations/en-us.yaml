@@ -3445,6 +3445,7 @@ managementNode:
 
 members:
   clusterMembers: Cluster Members
+  memberRoles: Member Roles
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
   clusterMembership: Cluster Membership

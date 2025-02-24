@@ -23,14 +23,13 @@ import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/feature
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import GenericImportedClusterValidators from '../util/validators';
+import genericImportedClusterValidators from '../util/validators';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars: [],
   labels:       {},
-  annotations:  {},
-
+  annotations:  {}
 };
 
 export default defineComponent({
@@ -108,12 +107,12 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t' }),
     fvExtraRules() {
       return {
-        clusterNameRequired:         GenericImportedClusterValidators.clusterNameRequired(this),
-        clusterNameChars:            GenericImportedClusterValidators.clusterNameChars(this),
-        clusterNameStartEnd:         GenericImportedClusterValidators.clusterNameStartEnd(this),
-        clusterNameLength:           GenericImportedClusterValidators.clusterNameLength(this),
-        workerConcurrencyRule:       GenericImportedClusterValidators.workerConcurrency(this),
-        controlPlaneConcurrencyRule: GenericImportedClusterValidators.controlPlaneConcurrency(this),
+        clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
+        clusterNameChars:            genericImportedClusterValidators.clusterNameChars(this),
+        clusterNameStartEnd:         genericImportedClusterValidators.clusterNameStartEnd(this),
+        clusterNameLength:           genericImportedClusterValidators.clusterNameLength(this),
+        workerConcurrencyRule:       genericImportedClusterValidators.workerConcurrency(this),
+        controlPlaneConcurrencyRule: genericImportedClusterValidators.controlPlaneConcurrency(this),
       };
     },
 
@@ -354,7 +353,7 @@ export default defineComponent({
         v-if="showBasics"
         :title="providerTabKey"
         :open-initially="true"
-        class="mb-20"
+        class="mb-20 accordion"
       >
         <Basics
           :value="normanCluster"
@@ -373,8 +372,8 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        class="mb-20"
-        title-key="imported.accordions.clusterMembers"
+        class="mb-20 accordion"
+        title-key="members.memberRoles"
         :open-initially="true"
       >
         <Banner
@@ -391,7 +390,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        class="mb-20"
+        class="mb-20 accordion"
         title-key="imported.accordions.labels"
         :open-initially="false"
       >
@@ -402,7 +401,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         v-if="isEdit"
-        class="mb-20"
+        class="mb-20 accordion"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
         :open-initially="false"
@@ -432,7 +431,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        class="mb-20"
+        class="mb-20 accordion"
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
@@ -457,4 +456,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    .accordion {
+        border-radius: 16px;
+    }
 </style>

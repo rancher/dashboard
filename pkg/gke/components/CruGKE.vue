@@ -886,7 +886,7 @@ export default defineComponent({
 
         <Accordion
           class="mb-20"
-          :title="t('gke.accordion.members')"
+          :title="t('members.memberRoles')"
         >
           <Banner
             v-if="isEdit"

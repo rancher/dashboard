@@ -77,7 +77,6 @@ aks:
   accordions:
     basics: Basics
     networking: Networking
-    clusterMembers: Member Roles
     labels: Labels and Annotations
   containerMonitoring:
     label: Configure Container Monitoring

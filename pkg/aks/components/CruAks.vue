@@ -1465,7 +1465,7 @@ export default defineComponent({
         </Accordion>
         <Accordion
           class="mb-20"
-          title-key="aks.accordions.clusterMembers"
+          title-key="members.memberRoles"
         >
           <Banner
             v-if="isEdit"

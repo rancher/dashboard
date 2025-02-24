@@ -9,7 +9,6 @@ gke:
     config: Config
     labels: Labels and Annotations
     import: Choose Cluster
-    members: Member Roles
     networking: Networking
     nodePools: Node Pools
   authScopes:

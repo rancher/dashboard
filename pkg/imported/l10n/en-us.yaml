@@ -15,7 +15,6 @@ imported:
     basics: Basics
     upgrade: Upgrade Strategy
     networking: Networking
-    clusterMembers: Member Roles
     labels: Labels and Annotations
     k3sOptions: K3S Options
     rke2Options: RKE2 Options
