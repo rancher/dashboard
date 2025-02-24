@@ -40,6 +40,7 @@ export default {
   <app-modal
     v-if="showModal"
     custom-class="change-password-modal"
+    data-testid="change-password__modal"
     name="password-modal"
     :width="500"
     :height="465"

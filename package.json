@@ -162,8 +162,8 @@
     "@vue/test-utils": "2.4.6",
     "@vue/vue3-jest": "27.0.0",
     "add": "2.0.6",
-    "axe-core": "^4.10.2",
-    "axe-html-reporter": "^2.2.11",
+    "axe-core": "4.10.2",
+    "axe-html-reporter": "2.2.11",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
     "babel-jest": "27.5.1",
@@ -176,7 +176,7 @@
     "csv-loader": "3.0.3",
     "cy2": "4.0.9",
     "cypress": "11.1.0",
-    "cypress-axe": "^1.5.0",
+    "cypress-axe": "1.5.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "eslint": "7.32.0",
@@ -209,6 +209,6 @@
     "yarn": "1.22.18"
   },
   "resolutions": {
-    "html-webpack-plugin": "^5.0.0"
+    "html-webpack-plugin": "5.0.0"
   }
 }
