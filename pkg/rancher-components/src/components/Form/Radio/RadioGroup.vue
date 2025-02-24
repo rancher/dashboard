@@ -175,7 +175,7 @@ export default defineComponent({
      * Keyboard left/right event listener to select next/previous option. Emits
      * the input event.
      */
-    clickNext(ev: Event, direction: number): void {
+    clickNext(direction: number): void {
       // moving focus away from a custom group element and pressing arrow keys
       // should not have any effect on the group - custom UI for radiogroup option(s)
       if (this.currFocusedElem !== this.$refs?.radioGroup) {
@@ -236,8 +236,8 @@ export default defineComponent({
       class="radio-group"
       :class="{'row':row}"
       tabindex="0"
-      @keydown.down.prevent.stop="clickNext($event, 1)"
-      @keydown.up.prevent.stop="clickNext($event, -1)"
+      @keydown.down.prevent.stop="clickNext(1)"
+      @keydown.up.prevent.stop="clickNext(-1)"
       @keydown.space.enter.stop.prevent
     >
       <div
