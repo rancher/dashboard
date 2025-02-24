@@ -7665,6 +7665,8 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+  provisioning:
+    header: Cluster provisioning
 
 featureFlags:
   label: Feature Flags
