@@ -32,18 +32,58 @@ const EXPIRATION_STATUS = {
 const store = useStore();
 const { t } = useI18n(store);
 
-// Globals
-// const isRegistered = computed(() => false);
-const isRegistering = computed(() => false); // Generic operation to disable all the inputs
-const isRegisteredOnline = ref(false);
-const isRegisteredOffline = ref(false);
-const isRegisteringOffline = ref(false); // Required to toggle the async button view
-const isRegistered = computed(() => isRegisteredOnline.value || isRegisteredOffline.value);
-const errors = ref([] as string[]);
-const expirationDate = computed(() => 'XX/XX/XXXX'); // Retrieved from CRD
+type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
 
 /**
- * Reset other inputs and errors, then patch the registration
+ * Registration code for online registration; empty if none or offline
+ */
+const registrationCode = ref('');
+
+/**
+ * Certificate for offline registration; empty if none or online
+ */
+const offlineRegistrationCertificate = ref('');
+
+/**
+ * Single source for the registration status, used to define other computed properties
+ */
+const registrationStatus = ref(null as RegistrationStatus);
+
+/**
+ * Expiration status for the registration, both online and offline
+ */
+const expirationStatus = ref(null as 'success' | 'warning' | null);
+
+/**
+ * Track both registration types
+ */
+const isRegistered = computed(() => registrationStatus.value === 'registered-online' || registrationStatus.value === 'registered-offline');
+
+/**
+ * Track both registering progresses as generic operation to disable all the inputs
+ */
+const isRegistering = computed(() => registrationStatus.value === 'registering-online' || registrationStatus.value === 'registering-offline');
+
+const isRegisteredOnline = computed(() => registrationStatus.value === 'registered-online');
+const isRegisteredOffline = computed(() => registrationStatus.value === 'registered-offline');
+
+/**
+ * Track offline registration progress, to switch between file selector and async button
+ */
+const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
+
+/**
+ * Current error list, displayed in the banner
+ */
+const errors = ref([] as string[]);
+
+/**
+ * Stored expiration date, retrieved from CRD
+ */
+const expirationDate = computed(() => 'XX/XX/XXXX');
+
+/**
+ * Reset other inputs and errors, set current state then patch the registration
  * @param type 'online' | 'offline' | 'deregister'
  * @param setButtonStatus Async button callback
  */
@@ -54,15 +94,16 @@ const patchRegistration = (type: 'online' | 'offline' | 'deregister', setButtonS
     switch (type) {
     case 'online':
       offlineRegistrationCertificate.value = '';
-      isRegisteredOnline.value = true;
+      registrationStatus.value = 'registered-online';
+      expirationStatus.value = 'success';
       break;
     case 'offline':
       registrationCode.value = '';
-      isRegisteredOffline.value = true;
+      registrationStatus.value = 'registered-offline';
+      expirationStatus.value = 'warning';
       break;
     case 'deregister':
-      isRegisteredOnline.value = false;
-      isRegisteredOffline.value = false;
+      registrationStatus.value = null;
       registrationCode.value = '';
       offlineRegistrationCertificate.value = '';
       break;
@@ -70,22 +111,26 @@ const patchRegistration = (type: 'online' | 'offline' | 'deregister', setButtonS
     setButtonStatus();
   }, 2000);
 };
+
+/**
+ * Handle error
+ */
 const onError = () => {
   errors.value.push('An error occurred');
 };
 
-// Online
-const registrationCode = ref('');
+/**
+ * Patch CRD for online registration
+ * @param setButtonStatus Async button CD
+ */
 const registerOnline = (setButtonStatus: () => void) => {
+  registrationStatus.value = 'registering-online';
   patchRegistration('online', setButtonStatus);
 };
 
-// Offline
-const offlineRegistrationCertificate = ref('');
-
 /**
  * Handle download offline registration request
- * @param setButtonStatus
+ * @param setButtonStatus Async button CD
  */
 const downloadOfflineRequest = (setButtonStatus: (status: boolean) => void) => {
   const fileName = 'rancher-offline-registration-request.json';
@@ -103,13 +148,15 @@ const downloadOfflineRequest = (setButtonStatus: (status: boolean) => void) => {
  * @param certificate base64 encoded certificate from SCC
  */
 const registerOffline = (certificate: string) => {
-  isRegisteringOffline.value = true;
+  registrationStatus.value = 'registering-offline';
   offlineRegistrationCertificate.value = certificate;
-  patchRegistration('offline', () => {
-    isRegisteringOffline.value = false;
-  });
+  patchRegistration('offline', () => {});
 };
 
+/**
+ * TODO: Remove after implementing the real error handling
+ * @param setButtonStatus Async button CD
+ */
 const registerWithError = (setButtonStatus: () => void) => {
   errors.value = [];
   setTimeout(() => {
@@ -118,7 +165,10 @@ const registerWithError = (setButtonStatus: () => void) => {
   }, 1000);
 };
 
-// Deregistration
+/**
+ * De-register handler
+ * @param setButtonStatus Async button CD
+ */
 const deregister = (setButtonStatus: () => void) => {
   patchRegistration('deregister', setButtonStatus);
 };
