@@ -229,17 +229,17 @@ export default defineComponent({
           @update:value="updateLabels()"
         />
         <p v-else>
-          <t :k="`podSecurityAdmission.labels.${level}`" />
+          <t
+            :id="`psa-label-for-level-${ level }`"
+            :k="`podSecurityAdmission.labels.${level}`"
+          />
         </p>
       </span>
 
-      <span
-        class="
-          col
-          span-4"
-      >
+      <span class="col span-4">
         <LabeledSelect
           v-model:value="psaControl.level"
+          :aria-labelledby="`psa-label-for-level-${ level }`"
           :data-testid="componentTestid + '--psaControl-' + i + '-level'"
           :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"

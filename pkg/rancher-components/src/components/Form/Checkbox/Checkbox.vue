@@ -291,12 +291,14 @@ export default defineComponent({
           <i
             v-if="tooltipKey"
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
+            v-stripped-aria-label="t(tooltipKey)"
             class="checkbox-info icon icon-info icon-lg"
             :tabindex="isDisabled ? -1 : 0"
           />
           <i
             v-else-if="tooltip"
             v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
+            v-stripped-aria-label="tooltip"
             class="checkbox-info icon icon-info icon-lg"
             :tabindex="isDisabled ? -1 : 0"
           />
