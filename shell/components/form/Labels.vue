@@ -52,7 +52,12 @@ export default {
     showLabelTitle: {
       type:    Boolean,
       default: true,
-    }
+    },
+
+    addIcon: {
+      type:    String,
+      default: '',
+    },
   },
 
   data() {
@@ -103,6 +108,7 @@ export default {
               :protected-keys="value.systemLabels || []"
               :toggle-filter="toggler"
               :add-label="t('labels.addLabel')"
+              :add-icon="addIcon"
               :mode="mode"
               :read-allowed="false"
               :value-can-be-empty="true"
@@ -121,6 +127,7 @@ export default {
         key="annotations"
         :value="value.annotations"
         :add-label="t('labels.addAnnotation')"
+        :add-icon="addIcon"
         :mode="mode"
         :protected-keys="value.systemAnnotations || []"
         :toggle-filter="toggler"

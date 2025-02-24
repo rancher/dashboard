@@ -610,6 +610,7 @@ export default {
         :value="value"
         :mode="mode"
         :display-side-by-side="false"
+        :add-icon="'icon-plus'"
       />
     </template>
     <template #stepRepo>
@@ -652,6 +653,7 @@ export default {
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
         :add-label="t('fleet.gitRepo.paths.addLabel')"
+        :add-icon="'icon-plus'"
         :protip="t('fleet.gitRepo.paths.empty')"
       />
     </template>
