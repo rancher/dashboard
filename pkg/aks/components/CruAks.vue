@@ -1003,12 +1003,7 @@ export default defineComponent({
 
     onNetworkingAuthModeChange(authMode) {
       this.networkingAuthMode = authMode;
-
-      if (authMode === NETWORKING_AUTH_MODES.MANAGED_IDENTITY) {
-        this.config.managedIdentity = true;
-      } else {
-        delete this.config.managedIdentity;
-      }
+      this.config.managedIdentity = authMode === NETWORKING_AUTH_MODES.MANAGED_IDENTITY;
     }
   },
 
@@ -1385,7 +1380,6 @@ export default defineComponent({
                 :mode="mode"
                 label-key="aks.userAssignedIdentity.label"
                 :tooltip="t('aks.userAssignedIdentity.tooltip')"
-                :disabled="!isNewOrUnprovisioned"
                 data-testid="cruaks-user-assigned-identity"
               />
             </div>
