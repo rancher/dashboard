@@ -90,6 +90,8 @@ sw.*
 # Cypress e2e testing
 cypress/videos
 cypress/screenshots
+cypress/accessibility
+setupTestEnv.sh
 
 # Storybook
 storybook-static/

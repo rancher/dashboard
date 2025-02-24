@@ -137,6 +137,9 @@ locale:
 
 nav:
   ariaLabel:
+    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
+    localClusterIcon: Local Cluster icon
+    clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
@@ -146,7 +149,7 @@ nav:
     configurationApps: Main menu configuration app menu item
     support: Support page link
     about: About page link
-    pinCluster: Pin/Unpin cluster
+    pinCluster: Pin/Unpin {cluster} cluster
     collapseExpand: Collapse/Expand menu group
     productAboutPage: Product about page link
   alt:
@@ -2647,6 +2650,8 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  badgeAppearance: Cluster Badge Appearance
+  clusterComment: "Cluster comment - {text}"
   customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
@@ -3106,6 +3111,7 @@ landing:
     title: You can change what you see when you login via preferences
     userPrefs: Preferences
     body: "You can change where you land when you login"
+    ariaLabelTakeMeToCluster: Select which cluster to take me to after login
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited

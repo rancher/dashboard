@@ -37,7 +37,19 @@ export default {
       {{ cluster.badge.iconText }}
     </div>
     <!-- eslint-disable -->
-    <svg v-else-if="cluster.isLocal && !cluster.isHarvester" class="cluster-local-logo" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+    <svg 
+      v-else-if="cluster.isLocal && !cluster.isHarvester" 
+      class="cluster-local-logo" 
+      version="1.1" 
+      id="Layer_1" 
+      xmlns="http://www.w3.org/2000/svg" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" 
+      x="0px" 
+      y="0px" 
+      viewBox="0 0 100 100" 
+      style="enable-background:new 0 0 100 100;" 
+      xml:space="preserve">
+      <title>{{ t('nav.ariaLabel.clusterProvIcon', { cluster: 'local' }) }}</title>
       <g>
         <g>
           <path class="rancher-icon-fill" d="M26.0862026,44.4953918H8.6165142c-5.5818157,0-9.3979139-4.6252708-8.4802637-10.1311035l2.858391-17.210701
@@ -60,6 +72,7 @@ export default {
       v-else-if="cluster.providerNavLogo"
       class="cluster-os-logo"
       :src="cluster.providerNavLogo"
+      :alt="t('nav.ariaLabel.clusterProvIcon', { cluster: cluster.nameDisplay })"
     >
   </div>
 </template>
