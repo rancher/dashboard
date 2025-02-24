@@ -2459,7 +2459,6 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
-    createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
     actions:
       forceUpdate:
         label: Force Update
@@ -2518,11 +2517,21 @@ fleet:
         minimumValuewarning: Warning, the recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     add:
       steps:
-        repoInfo:
+        metadata:
+          label: Metadata
+          title: Placeholder title
+          subtext: Placeholder subtext
+          description: Placeholder description
+        repo:
           label: Repository Details
           title: Specify the Git Repository to add to fleet
           subtext: 'Define repository details'
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
+        advanced:
+          label: Advanced
+          title: Placeholder title
+          subtext: Placeholder subtext
+          description: Placeholder description
         targetInfo:
           label: Target Details
           title: Specify which target to synchronise this repository to
