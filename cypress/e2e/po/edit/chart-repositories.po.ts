@@ -6,6 +6,7 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
+import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
 
 export default class ChartRepositoriesCreateEditPo extends PagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager', repoName?: string ) {
@@ -52,6 +53,10 @@ export default class ChartRepositoriesCreateEditPo extends PagePo {
 
   repoRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="clusterrepo-radio-input"]');
+  }
+
+  lablesAnnotationsKeyValue() {
+    return new KeyValuePo(this.self());
   }
 
   saveCreateForm(): AsyncButtonPo {

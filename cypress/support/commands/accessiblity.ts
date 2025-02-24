@@ -16,12 +16,13 @@ const screenshotIndexes: {[key: string]: number} = {};
 
 // Log violations to the terminal
 function terminalLog(violations) {
-  cy.task(
-    'log',
-    `${ violations.length } accessibility violation${
-      violations.length === 1 ? '' : 's'
-    } ${ violations.length === 1 ? 'was' : 'were' } detected`
-  );
+  const suiteTitle = Cypress.currentTest.titlePath.slice(0, -1).join(' > ');
+  const testTitle = Cypress.currentTest.titlePath.slice(-1)[0];
+
+  cy.task('log', `\n📝 Test Suite: ${ suiteTitle }`);
+  cy.task('log', `📌 Test Case: ${ testTitle }`);
+  cy.task('log', `❌ ${ violations.length } accessibility violation(s) detected\n`);
+
   // pluck specific keys to keep the table readable
   const violationData = violations.map(
     ({
@@ -141,5 +142,9 @@ Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
+  cy.get(subject).then(($el) => {
+    cy.log(`✅ Found ${ $el.length } elements matching`);
+  });
+
   cy.checkA11y(subject, RULES, getAccessibilityViolationsCallback(description), true);
 });
