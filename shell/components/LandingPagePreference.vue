@@ -120,7 +120,8 @@ export default {
             :val="false"
             :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
             :v-bind="$attrs"
-            @update:value="afterLoginRoute = routeFromDropdown.value"
+            :prevent-focus-on-radio-groups="true"
+            @update:value="afterLoginRoute = false"
           />
           <Select
             v-model:value="routeFromDropdown"
