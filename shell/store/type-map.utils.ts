@@ -124,7 +124,7 @@ export function createHeaders(
  */
 export function headerFromSchemaColString(colName: string, schema: Schema, rootGetters: VuexStoreGetters, pagination: boolean, ageColumn: TableColumn): TableColumn {
   if (!schema) {
-    throw new Error(`Schema is null`);
+    throw new Error(`Unable to create header for column '${colName}' from schema: schema is missing`);
   }
   
   const col = schema.attributes.columns.find((c) => c.name === colName);
