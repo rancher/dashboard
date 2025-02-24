@@ -211,11 +211,12 @@ export default {
     },
 
     list() {
-      const all = this.available;
+      // If not an extension developer, then don't include built-in extensions
+      const all = this.pluginDeveloper ? this.available : this.available.filter((p) => !p.builtin);
 
       switch (this.view) {
       case TABS_VALUES.INSTALLED:
-        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
+        return all.filter((p) => !!p.installed || !!p.installing);
       case TABS_VALUES.UPDATES:
         return this.updates;
       case TABS_VALUES.AVAILABLE:
