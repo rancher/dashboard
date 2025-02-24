@@ -10,6 +10,25 @@ import Banner from '@components/Banner/Banner.vue';
 import FileSelector from '@shell/components/form/FileSelector';
 import { downloadFile } from '@shell/utils/download';
 
+const EXPIRATION_STATUS = {
+  success: {
+    color: 'success',
+    icon:  'icon-checkmark'
+  },
+  warning: {
+    color: 'warning',
+    icon:  'icon-warning'
+  },
+  info: {
+    color: 'info',
+    icon:  'icon-info'
+  },
+  error: {
+    color: 'error',
+    icon:  'icon-error'
+  }
+};
+
 const store = useStore();
 const { t } = useI18n(store);
 
@@ -152,12 +171,14 @@ const deregister = (setButtonStatus: () => void) => {
 
             <div
               v-if="isRegisteredOnline"
-              class="mt-20"
             >
-              <p>
-                <i class="icon icon-user-check" />
-                <span v-clean-html="t('registration.registered.description', { expirationDate }, true)" />
-              </p>
+              <Banner
+                v-if="expirationStatus"
+                :icon="EXPIRATION_STATUS[expirationStatus].icon"
+                :color="EXPIRATION_STATUS[expirationStatus].color"
+              >
+                {{ t('registration.registered.description', { expirationDate }, true) }}
+              </Banner>
               <div class="mt-20">
                 <AsyncButton
                   currentPhase="error"
@@ -215,12 +236,14 @@ const deregister = (setButtonStatus: () => void) => {
 
             <div
               v-if="isRegisteredOffline"
-              class="mt-20"
             >
-              <p>
-                <i class="icon icon-user-check" />
-                <span v-clean-html="t('registration.registered.description', { expirationDate }, true)" />
-              </p>
+              <Banner
+                v-if="expirationStatus"
+                :icon="EXPIRATION_STATUS[expirationStatus].icon"
+                :color="EXPIRATION_STATUS[expirationStatus].color"
+              >
+                {{ t('registration.registered.description', { expirationDate }, true) }}
+              </Banner>
               <div class="mt-20">
                 <AsyncButton
                   currentPhase="error"
