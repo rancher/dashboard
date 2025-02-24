@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -362,6 +363,9 @@ export default {
   },
 
   /**
+   * If result not already cached, make a http request to fetch a specific set of resources
+   *
+   * This accepts all the new sql-cache backed api features (sort, filter, etc)
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
@@ -444,6 +448,49 @@ export default {
       data: out.data,
       pagination
     } : findAllGetter(getters, type, opt);
+  },
+
+  /**
+   * If result not already cached, fetch filtered resource either via
+   * a) sql-cache backed api request (if pagination is supported for this type) - findPage
+   * b) legacy / native kube api request - findMatching
+   *
+   * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
+   */
+  async findLabelSelector(ctx, {
+    type,
+    matching: {
+      namespace,
+      labelSelector
+    },
+    opts
+  }) {
+    const { getters, dispatch } = ctx;
+
+    // TODO: RC return all if no / empty labelSelector.. or none?
+
+    const args = {
+      id: type,
+      context,
+    };
+
+    if (getters[`paginationEnabled`]?.(args)) {
+      return dispatch('findPage', {
+        type,
+        opts: {
+          ...(opts || {}),
+          namespaced: namespace,
+          pagination: new FilterArgs({ labelSelector }),
+        }
+      });
+    }
+
+    return dispatch('findMatching', {
+      type,
+      selector: labelSelector.matchLabels,
+      opts,
+      namespace,
+    });
   },
 
   async findMatching(ctx, {

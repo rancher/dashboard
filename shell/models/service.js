@@ -1,6 +1,9 @@
 import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { parse } from '@shell/utils/selector';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { isEmpty } from 'lodash';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -49,7 +52,7 @@ export const CLUSTERIP = (() => {
   return clusterIp.id;
 })();
 
-export default class extends SteveModel {
+export default class Service extends SteveModel {
   get customValidationRules() {
     return [
       {
@@ -136,20 +139,63 @@ export default class extends SteveModel {
     return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
-  async fetchPods() {
-    if (this.podRelationship) {
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      await this.$dispatch('cluster/findMatching', {
-        type:      POD,
-        selector:  this.podRelationship.selector,
-        namespace: this.namespace
-      }, { root: true });
+  /**
+   * TODO: RC docs. always return object (relationship selectors are strings)
+   */
+  get podSelector() {
+    const { spec: { selector = { } } } = this;
+
+    // const selector = this.podRelationship?.selector;
+    // if (typeof selector === 'string') {
+    //   return {
+    //     matchExpressions: parse(selector)
+    //   }
+    // }
+
+    if (isEmpty(selector)) {
+      return undefined;
     }
+
+    return { matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
+    };
+  }
+
+  // TODO: RC confirm with pagination off.... no findPage usage
+  // TODO: RC ARG??? podSelector vs  this.podRelationship.selector
+
+  async fetchPods() {
+    // TODO: RC TEST
+    if (!this.podRelationship?.selector) {
+      return;
+    }
+
+    return await this.$dispatch('findLabelSelector', {
+      type:     POD,
+      matching: {
+        namespace:     this.metadata.namespace,
+        labelSelector: { matchLabels: this.podRelationship.selector } // TODO: RC is this string or map
+      }
+      // findPageOpts: { // Of type ActionFindPageArgs
+      //   namespaced: this.metadata.namespace,
+      //   pagination: new FilterArgs({ labelSelector: { matchLabels: this.podRelationship.selector} }),
+      // },
+      // findMatchingOpts: {
+      //   type:      POD,
+      //   selector:  this.podRelationship.selector,
+      //   namespace: this.namespace
+      // }
+    });
   }
 
   get pods() {
-    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+    // TODO: RC What uses this??
+    console.warn('Anything using this must be updated to ????!!!');
+
+    return [];
   }
+  // get pods() {
+  //   return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+  // }
 
   get serviceType() {
     const serviceType = this.spec?.type;

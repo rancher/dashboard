@@ -28,18 +28,18 @@ export default {
       type:    String,
       default: ''
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    // allPods: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
+    // allNamespaces: {
+    //   type:    Array,
+    //   default: () => {
+    //     return [];
+    //   },
+    // },
   },
   data() {
     return { targetKey: this.type === 'ingress' ? 'from' : 'to' };
@@ -65,14 +65,16 @@ export default {
           :mode="mode"
         >
           <template #default="props">
+            <!--
+            :all-pods="allPods"
+            :all-namespaces="allNamespaces"-->
             <PolicyRuleTarget
               ref="lastTarget"
               v-model:value="props.row.value"
               :mode="mode"
               :type="type"
               :namespace="namespace"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+              
               :data-testid="`policy-rule-target-${props.i}`"
             />
           </template>
