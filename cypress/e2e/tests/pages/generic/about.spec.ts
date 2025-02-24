@@ -80,7 +80,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Image List', () => {
+  describe('Image List', { tags: ['@generic', '@adminUser', '@standardUser', '@jenkins'] }, () => {
     before(() => {
       aboutPage.goTo();
     });
