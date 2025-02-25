@@ -259,6 +259,7 @@ export default {
           <div class="col span-6">
             <Checkbox
               v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
               :label="t('authConfig.oidc.groupSearch.label')"
               :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
               :mode="mode"
