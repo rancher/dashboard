@@ -14,7 +14,7 @@ registration:
       progress: Registering
   offline:
     title: Offline Registration
-    description: Register offline in cases of limited or no internet access. \n Download a registration token, visit your account at the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
+    description: Register offline in cases of limited or no internet access. <br> Download a registration token, visit your account at the SUSE Customer Center (<a tabindex="0" target="_blank" href="http://scc.suse.com">http://scc.suse.com</a>) and upload it to a valid subscription for SUSE Rancher Manager Prime Suite. Copy the registration code provided in the input field below and click on Register offline.
     button-download: 
       label: Download offline registration request
       progress: Downloading
