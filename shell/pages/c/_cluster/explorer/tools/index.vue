@@ -60,7 +60,7 @@ export default {
       const out = {};
 
       for (const app of (this.installedApps || [])) {
-        const matching = app.matchingChart();
+        const matching = app.matchingCharts()[0];
 
         if ( !matching ) {
           continue;
@@ -328,8 +328,8 @@ export default {
             >{{ t('catalog.charts.deploysOnWindows') }}</label>
           </div>
           <div class="version">
-            <template v-if="opt.app && opt.app.upgradeAvailable">
-              v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
+            <template v-if="opt.app && opt.app.upgradeAvailableVersion">
+              v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailableVersion }}</b>
             </template>
             <template v-else-if="opt.app">
               v{{ opt.app.currentVersion }}
