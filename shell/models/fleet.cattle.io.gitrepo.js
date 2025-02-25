@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
@@ -42,6 +42,10 @@ function normalizeStateCounts(data) {
 }
 
 export default class GitRepo extends SteveModel {
+  get currentUser() {
+    return this.$rootGetters['auth/v3User'] || {};
+  }
+
   applyDefaults() {
     const spec = this.spec || {};
     const meta = this.metadata || {};
@@ -129,6 +133,18 @@ export default class GitRepo extends SteveModel {
   disablePolling() {
     this.spec.disablePolling = true;
     this.save();
+  }
+
+  goToClone() {
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    }
+
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    }
+
+    super.goToClone();
   }
 
   forceUpdate() {
@@ -352,16 +368,21 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
+    return this.$getters['matching'](FLEET.BUNDLE, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name }, this.namespace);
   }
 
   get bundleDeployments() {
-    return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { 'fleet.cattle.io/repo-name': this.name });
+    return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 
   get allBundlesStatuses() {
     return this.bundles.reduce((acc, bundle) => {
+      if (isEmpty(bundle.status?.summary)) {
+        return acc;
+      }
+
       const { nonReadyResources, ...summary } = bundle.status?.summary;
+
       const bdCounts = normalizeStateCounts(summary);
       const state = primaryDisplayStatusFromCount(bdCounts.states);
 
@@ -478,5 +499,42 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get authorId() {
+    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+  }
+
+  get author() {
+    if (this.authorId) {
+      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
+    }
+
+    return null;
+  }
+
+  get createdBy() {
+    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+
+    if (!displayName) {
+      return null;
+    }
+
+    return {
+      displayName,
+      location: !this.author ? null : {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  '_',
+          product:  'auth',
+          resource: MANAGEMENT.USER,
+          id:       this.author.id,
+        }
+      }
+    };
+  }
+
+  get showCreatedBy() {
+    return !!this.createdBy;
   }
 }
