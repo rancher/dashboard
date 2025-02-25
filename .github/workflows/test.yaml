@@ -82,7 +82,7 @@ jobs:
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@vai']
+          #TODO: #13317 Reenable vai ['@vai']
         ]
     runs-on: ubuntu-latest
     steps:

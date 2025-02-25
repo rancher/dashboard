@@ -2,6 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
+import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   emits: ['error', 'showInputs'],
@@ -30,6 +31,12 @@ export default {
             username: this.username,
             password: this.password
           }
+        });
+
+        await loadPlugins({
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
         });
 
         buttonCb(true);
