@@ -14,7 +14,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
-  emits: ['close', 'onReadyYamlEditor'],
+  emits: ['close', 'onFocus'],
 
   components: {
     AsyncButton,
@@ -112,8 +112,9 @@ export default {
       }
     },
 
-    onReadyYamlEditor(arg) {
-      this.$emit('onReadyYamlEditor', arg);
+    handleFocusDisableEscapeKey(arg) {
+      this.$emit('onFocus', arg);
+      console.error('handleFocusDisableEscapeKey FOCUS ON IMPORT MODAL!', arg);
     }
   },
 };
@@ -153,6 +154,7 @@ export default {
                 label-key="import.defaultNamespace.label"
                 mode="edit"
                 @update:value="newValue => defaultNamespace = newValue"
+                @onFocus="handleFocusDisableEscapeKey"
               />
             </div>
           </div>
@@ -182,6 +184,7 @@ export default {
         v-model:value="currentYaml"
         class="yaml-editor"
         @onReady="onReadyYamlEditor"
+        @onFocus="handleFocusDisableEscapeKey"
       />
       <Banner
         v-for="(err, i) in errors"

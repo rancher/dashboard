@@ -13,7 +13,7 @@ export const EDITOR_MODES = {
 };
 
 export default {
-  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged'],
+  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged', 'onFocus'],
 
   components: {
     CodeMirror,
@@ -199,6 +199,11 @@ export default {
     updateValue(value) {
       this.curValue = value;
       this.$refs.cm.updateValue(value);
+    },
+
+    handleCodeMirrorFocus(arg) {
+      this.$emit('onFocus', arg);
+      console.error('CODE MIRROR FOCUS ON YAML EDITOR!', arg);
     }
   }
 };
@@ -241,6 +246,7 @@ export default {
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
+      @onFocus="handleCodeMirrorFocus"
       @validationChanged="$emit('validationChanged', $event)"
     />
     <FileDiff

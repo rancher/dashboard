@@ -68,21 +68,21 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      authInfo:               {},
-      show:                   false,
-      showTooltip:            false,
-      isUserMenuOpen:         false,
-      isPageActionMenuOpen:   false,
-      kubeConfigCopying:      false,
+      authInfo:                {},
+      show:                    false,
+      showTooltip:             false,
+      isUserMenuOpen:          false,
+      isPageActionMenuOpen:    false,
+      kubeConfigCopying:       false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this,
-      showImportModal:        false,
-      showSearchModal:        false,
-      currYamlEditor:         undefined
+      navHeaderRight:          null,
+      extensionHeaderActions:  getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      ctx:                     this,
+      showImportModal:         false,
+      showSearchModal:         false,
+      preventEscapeCloseModal: undefined
     };
   },
 
@@ -393,8 +393,8 @@ export default {
       return null;
     },
 
-    onReadyYamlEditor(yamlEditor) {
-      this.currYamlEditor = yamlEditor;
+    handleFocusChangeImport(preventEscapeClosingModal) {
+      this.preventEscapeCloseModal = preventEscapeClosingModal;
     }
   }
 };
@@ -567,12 +567,12 @@ export default {
             width="75%"
             height="auto"
             styles="max-height: 90vh;"
-            :yaml-editor="currYamlEditor"
+            :prevent-escape-close-modal="preventEscapeCloseModal"
             @close="closeImport"
           >
             <Import
               :cluster="currentCluster"
-              @onReadyYamlEditor="onReadyYamlEditor"
+              @onFocus="handleFocusChangeImport"
               @close="closeImport"
             />
           </app-modal>

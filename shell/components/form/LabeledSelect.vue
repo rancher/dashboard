@@ -22,7 +22,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value', 'onFocus'],
 
   props: {
     appendToBody: {
@@ -151,6 +151,17 @@ export default {
     }
   },
 
+  watch: {
+    selectedVisibility(neu) {
+      console.warn('LABELED SELECT VIZ CHANGED', neu);
+      // neu === 'hidden' ? this.$emit('onFocus', true) : this.$emit('onFocus', false);
+
+      if (neu === 'hidden') {
+        this.$emit('onFocus', true);
+      }
+    }
+  },
+
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
@@ -185,13 +196,17 @@ export default {
     },
 
     onFocus() {
+      console.warn('LABELED SELECT OPEN!');
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
+      // this.$emit('onFocus', true);
     },
 
     onBlur() {
+      console.warn('LABELED SELECT CLOSED!');
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
+      // this.$emit('onFocus', false);
     },
 
     onOpen() {
