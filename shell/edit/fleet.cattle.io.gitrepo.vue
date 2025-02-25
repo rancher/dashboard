@@ -878,6 +878,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .spacer {
+    padding: 30px 0 0 0;
+  }
   :deep() .select-or-create-auth-secret {
     .row {
       margin-top: 10px !important;
