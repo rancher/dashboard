@@ -2455,6 +2455,25 @@ fleet:
       waitApplied: Wait Applied
   gitRepo:
     createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
+    actions:
+      forceUpdate:
+        label: Force Update
+        promptTitle: Force Update
+        promptNames: 'You are attempting to update: '
+        promptWarning: |-
+          {
+            count, plural,
+            =1 {Force update could be a long running process, the repository will be cloned again.}
+            other {Force update could be a long running process, the repositories will be cloned again.}
+          }
+      enablePolling:
+        label: Enable Polling
+      disablePolling:
+        label: Disable Polling
+      unpause:
+        label: Unpause
+      pause:
+        label: Pause
     tabs:
       resources: Resources
       unready: Non-Ready
