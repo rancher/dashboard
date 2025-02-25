@@ -2513,15 +2513,15 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        webhookWarning: Warning, a webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
-        minimumValuewarning: Warning, the recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     add:
       steps:
         metadata:
           label: Metadata
-          title: Placeholder title
-          subtext: Placeholder subtext
-          description: Placeholder description
+          title: Specify the Git Repository name and labels/annotations
+          subtext: 'Define metadata details'
+          description: Git repository basic info
         repo:
           label: Repository details
           title: Specify the Git Repository to add to fleet
@@ -2529,9 +2529,9 @@ fleet:
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
         advanced:
           label: Advanced
-          title: Placeholder title
-          subtext: Placeholder subtext
-          description: Placeholder description
+          title: Specify advanced settings like authenticaion credentials and polling
+          subtext: 'Define advanced settings'
+          description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
         targetInfo:
           label: Target details

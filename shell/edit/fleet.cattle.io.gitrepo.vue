@@ -660,7 +660,6 @@ export default {
 
     <template #stepAdvanced>
       <Banner
-        class="mb-20"
         color="info"
         label-key="fleet.gitRepo.add.steps.advanced.info"
       />
