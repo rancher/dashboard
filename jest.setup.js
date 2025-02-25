@@ -64,6 +64,7 @@ beforeAll(() => {
     }))
   });
 });
+jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
 
 /**
  * Common initialization for each test, required for resetting states
