@@ -115,6 +115,14 @@ export default defineComponent({
         ...this.stylesPropToObj,
       };
     },
+    preventEscapeModal: {
+      get(): Boolean {
+        return this.preventEscapeCloseModal ? true : this.preventEscape;
+      },
+      set(neu: Boolean) {
+        this.preventEscape = neu;
+      }
+    },
   },
   setup(props) {
     if (props.triggerFocusTrap) {
@@ -141,6 +149,9 @@ export default defineComponent({
       useBasicSetupFocusTrap('#modal-container-element', opts);
     }
   },
+  data() {
+    return { preventEscape: false as Boolean };
+  },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
   },
@@ -158,8 +169,9 @@ export default defineComponent({
       }
     },
     handleEscapeKey(event: KeyboardEvent) {
-      console.error('handleEscapeKey this.preventEscapeCloseModal', this.preventEscapeCloseModal);
-      if (this.clickToClose && !this.preventEscapeCloseModal && event.key === 'Escape') {
+      console.error('handleEscapeKey this.preventEscapeModal', this.preventEscapeModal);
+      if (this.clickToClose && !this.preventEscapeModal && event.key === 'Escape') {
+        this.preventEscapeModal = false;
         this.$emit('close');
       }
     },

@@ -393,7 +393,7 @@ export default {
       return null;
     },
 
-    handleFocusChangeImport(preventEscapeClosingModal) {
+    handlePreventEscapeCloseModal(preventEscapeClosingModal) {
       this.preventEscapeCloseModal = preventEscapeClosingModal;
     }
   }
@@ -572,7 +572,7 @@ export default {
           >
             <Import
               :cluster="currentCluster"
-              @onFocus="handleFocusChangeImport"
+              @preventEscapeCloseModal="handlePreventEscapeCloseModal"
               @close="closeImport"
             />
           </app-modal>

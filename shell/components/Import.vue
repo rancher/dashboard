@@ -14,7 +14,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
-  emits: ['close', 'onFocus'],
+  emits: ['close', 'preventEscapeCloseModal'],
 
   components: {
     AsyncButton,
@@ -113,8 +113,7 @@ export default {
     },
 
     handleFocusDisableEscapeKey(arg) {
-      this.$emit('onFocus', arg);
-      console.error('handleFocusDisableEscapeKey FOCUS ON IMPORT MODAL!', arg);
+      this.$emit('preventEscapeCloseModal', arg);
     }
   },
 };
