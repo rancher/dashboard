@@ -23,6 +23,7 @@ export const LOGIN_ERRORS = {
   CLIENT_UNAUTHORIZED: 'client_unauthorized',
   SERVER:              'server',
   NONCE:               'nonce',
+  USER_UNAUTHORIZED:   'user_unauthorized',
 };
 
 export const state = function() {

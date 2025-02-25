@@ -5,8 +5,11 @@ import {
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
+import { LOGIN_ERRORS } from '@shell/store/auth';
 
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
+
+const oauthProviders = ['github', 'googleoauth', 'azuread'];
 
 function reply(err, code) {
   try {
@@ -114,7 +117,14 @@ export default {
         this.$router.replace(`/auth/login?err=${ escape(res) }`);
       }
     } catch (err) {
-      this.$router.replace(`/auth/login?err=${ escape(err) }`);
+      let errCode = err;
+
+      // If the provider is OAUTH, then the client error is not that the credentials are wrong, but that the user is not authorized
+      if (oauthProviders.includes(provider) && err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
+        errCode = LOGIN_ERRORS.USER_UNAUTHORIZED;
+      }
+
+      this.$router.replace(`/auth/login?err=${ escape(errCode) }`);
     }
   },
 

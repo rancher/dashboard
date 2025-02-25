@@ -33,8 +33,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     // install harvester extension
     harvesterPo.updateOrInstallButton().click();
-    cy.wait('@createHarvesterChart').its('response.statusCode').should('eq', 201);
-    cy.wait('@updateHarvesterChart').its('response.statusCode').should('eq', 200);
+    cy.wait('@createHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
+    cy.wait('@updateHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
     harvesterPo.waitForPage();
     cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
