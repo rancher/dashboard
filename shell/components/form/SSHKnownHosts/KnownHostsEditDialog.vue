@@ -152,13 +152,12 @@ export default {
         display: flex;
         flex-direction: column;
         resize: none;
-        max-height: 350px;
-        height: 50vh;
+        max-height: 400px;
 
         .CodeMirror,
         .CodeMirror-gutters {
-          min-height: 350px;
-          max-height: 350px;
+          min-height: 400px;
+          max-height: 400px;
           background-color: var(--yaml-editor-bg);
         }
 
