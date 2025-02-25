@@ -115,7 +115,7 @@ export default defineComponent({
 
 <template>
   <div>
-    <div class="row mb-10 center">
+    <div class="row mb-10 align-center">
       <div class="col span-6">
         <LabeledSelect
           v-if="!loadClusterFailed"
@@ -144,10 +144,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-  .center {
-    display: flex;
-    align-items: center;
-  }
-</style>
