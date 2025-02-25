@@ -36,13 +36,13 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:       null,
-      loaded:              false,
-      removeKeyMapBox:     false,
-      hasLintErrors:       false,
-      currFocusedElem:     undefined,
-      isCodeMirrorFocused: false,
-      isMounted:           false
+      codeMirrorRef:          null,
+      loaded:                 false,
+      removeKeyMapBox:        false,
+      hasLintErrors:          false,
+      currFocusedElem:        undefined,
+      isCodeMirrorFocused:    false,
+      codeMirrorContainerRef: undefined
     };
   },
 
@@ -104,14 +104,7 @@ export default {
     },
 
     isCodeMirrorContainerFocused() {
-      // this is a gimmick so that vue only looks at this.$refs in this computed after it's mounted
-      // we do this because this.$refs is not reactive and is "undefined" at the time of the computed's
-      // first evaluation. Addresses https://github.com/rancher/dashboard/issues/13506
-      if (!this.isMounted) {
-        return false;
-      }
-
-      return this.currFocusedElem === this.$refs?.codeMirrorContainer;
+      return this.currFocusedElem === this.codeMirrorContainerRef;
     },
 
     codeMirrorContainerTabIndex() {
@@ -131,7 +124,7 @@ export default {
 
   async mounted() {
     document.addEventListener('keyup', this.handleKeyPress);
-    this.isMounted = true;
+    this.codeMirrorContainerRef = this.$refs.codeMirrorContainer;
   },
 
   beforeUnmount() {

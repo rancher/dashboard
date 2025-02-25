@@ -74,24 +74,24 @@ export default {
 
   data() {
     return {
-      container:       this.initialContainer || this.pod?.defaultContainerName,
-      socket:          null,
-      terminal:        null,
-      fitAddon:        null,
-      searchAddon:     null,
-      webglAddon:      null,
-      canvasAddon:     null,
-      isOpen:          false,
-      isOpening:       false,
-      backlog:         [],
-      node:            null,
-      keepAliveTimer:  null,
-      errorMsg:        '',
-      backupShells:    ['linux', 'windows'],
-      os:              undefined,
-      retries:         0,
-      currFocusedElem: undefined,
-      isMounted:       false
+      container:         this.initialContainer || this.pod?.defaultContainerName,
+      socket:            null,
+      terminal:          null,
+      fitAddon:          null,
+      searchAddon:       null,
+      webglAddon:        null,
+      canvasAddon:       null,
+      isOpen:            false,
+      isOpening:         false,
+      backlog:           [],
+      node:              null,
+      keepAliveTimer:    null,
+      errorMsg:          '',
+      backupShells:      ['linux', 'windows'],
+      os:                undefined,
+      retries:           0,
+      currFocusedElem:   undefined,
+      xtermContainerRef: undefined
     };
   },
 
@@ -116,14 +116,7 @@ export default {
     },
 
     isXtermContainerFocused() {
-      // this is a gimmick so that vue only looks at this.$refs in this computed after it's mounted
-      // we do this because this.$refs is not reactive and is "undefined" at the time of the computed's
-      // first evaluation. Addresses https://github.com/rancher/dashboard/issues/13506
-      if (!this.isMounted) {
-        return false;
-      }
-
-      return this.currFocusedElem === this.$refs?.xterm;
+      return this.currFocusedElem === this.xtermContainerRef;
     },
 
     xTermContainerTabIndex() {
@@ -186,7 +179,7 @@ export default {
       this.fit();
     }, 60 * 1000);
 
-    this.isMounted = true;
+    this.xtermContainerRef = this.$refs?.xterm;
   },
 
   methods: {
