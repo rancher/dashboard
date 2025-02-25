@@ -213,7 +213,7 @@ const deregister = (setButtonStatus: () => void) => {
             <LabeledInput
               v-model:value="registrationCode"
               class="mt-20"
-              :disabled="isRegistered"
+              :disabled="isRegistered || isRegistering"
               label-key="registration.online.input.label"
               placeholder-key="registration.online.input.placeholder"
               data-testid="registration-code"
