@@ -83,4 +83,8 @@ export default class Workspace extends HybridModel {
 
     await norman.remove();
   }
+
+  get confirmRemove() {
+    return true;
+  }
 }
