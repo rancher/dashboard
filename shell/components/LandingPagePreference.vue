@@ -94,7 +94,7 @@ export default {
       if (neu) {
         this.afterLoginRoute = neu;
       } else {
-        this.afterLoginRoute = this.routeFromDropdown?.value;
+        this.afterLoginRoute = this.routeFromDropdown?.value || this.routeDropdownOptions[0]?.value;
       }
     },
   }
@@ -120,7 +120,7 @@ export default {
             :val="false"
             :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
             :v-bind="$attrs"
-            @update:value="afterLoginRoute = false"
+            @update:value="afterLoginRoute = routeFromDropdown.value"
           />
           <Select
             v-model:value="routeFromDropdown"

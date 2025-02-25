@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
@@ -42,6 +42,10 @@ function normalizeStateCounts(data) {
 }
 
 export default class GitRepo extends SteveModel {
+  get currentUser() {
+    return this.$rootGetters['auth/v3User'] || {};
+  }
+
   applyDefaults() {
     const spec = this.spec || {};
     const meta = this.metadata || {};
@@ -68,7 +72,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 0, {
       action:   'pause',
-      label:    'Pause',
+      label:    this.t('fleet.gitRepo.actions.pause.label'),
       icon:     'icon icon-pause',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.paused
@@ -76,7 +80,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 1, {
       action:   'unpause',
-      label:    'Unpause',
+      label:    this.t('fleet.gitRepo.actions.unpause.label'),
       icon:     'icon icon-play',
       bulkable: true,
       enabled:  !!this.links.update && this.spec?.paused === true
@@ -84,7 +88,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 2, {
       action:   'enablePolling',
-      label:    'Enable Polling',
+      label:    this.t('fleet.gitRepo.actions.enablePolling.label'),
       icon:     'icon icon-endpoints_connected',
       bulkable: true,
       enabled:  !!this.links.update && !!this.spec?.disablePolling
@@ -92,18 +96,19 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 3, {
       action:   'disablePolling',
-      label:    'Disable Polling',
+      label:    this.t('fleet.gitRepo.actions.disablePolling.label'),
       icon:     'icon icon-endpoints_disconnected',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.disablePolling
     });
 
     insertAt(out, 4, {
-      action:   'forceUpdate',
-      label:    'Force Update',
-      icon:     'icon icon-refresh',
-      bulkable: true,
-      enabled:  !!this.links.update
+      action:     'forceUpdate',
+      label:      this.t('fleet.gitRepo.actions.forceUpdate.label'),
+      icon:       'icon icon-refresh',
+      bulkable:   true,
+      bulkAction: 'forceUpdateBulk',
+      enabled:    !!this.links.update
     });
 
     insertAt(out, 5, { divider: true });
@@ -131,11 +136,30 @@ export default class GitRepo extends SteveModel {
     this.save();
   }
 
-  forceUpdate() {
-    const now = this.spec.forceSyncGeneration || 1;
+  goToClone() {
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    }
 
-    this.spec.forceSyncGeneration = now + 1;
-    this.save();
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    }
+
+    super.goToClone();
+  }
+
+  forceUpdate(resources = [this]) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
+  }
+
+  forceUpdateBulk(resources) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
   }
 
   get state() {
@@ -352,16 +376,21 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
+    return this.$getters['matching'](FLEET.BUNDLE, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name }, this.namespace);
   }
 
   get bundleDeployments() {
-    return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { 'fleet.cattle.io/repo-name': this.name });
+    return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 
   get allBundlesStatuses() {
     return this.bundles.reduce((acc, bundle) => {
+      if (isEmpty(bundle.status?.summary)) {
+        return acc;
+      }
+
       const { nonReadyResources, ...summary } = bundle.status?.summary;
+
       const bdCounts = normalizeStateCounts(summary);
       const state = primaryDisplayStatusFromCount(bdCounts.states);
 
@@ -478,5 +507,42 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get authorId() {
+    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+  }
+
+  get author() {
+    if (this.authorId) {
+      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
+    }
+
+    return null;
+  }
+
+  get createdBy() {
+    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+
+    if (!displayName) {
+      return null;
+    }
+
+    return {
+      displayName,
+      location: !this.author ? null : {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  '_',
+          product:  'auth',
+          resource: MANAGEMENT.USER,
+          id:       this.author.id,
+        }
+      }
+    };
+  }
+
+  get showCreatedBy() {
+    return !!this.createdBy;
   }
 }
