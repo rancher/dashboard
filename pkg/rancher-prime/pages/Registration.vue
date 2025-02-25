@@ -216,7 +216,7 @@ const deregister = (setButtonStatus: () => void) => {
               :disabled="isRegistered || isRegistering"
               label-key="registration.online.input.label"
               placeholder-key="registration.online.input.placeholder"
-              data-testid="registration-code"
+              data-testid="registration-code-input"
             />
 
             <div
@@ -226,6 +226,7 @@ const deregister = (setButtonStatus: () => void) => {
                 v-if="expirationStatus"
                 :icon="EXPIRATION_STATUS[expirationStatus].icon"
                 :color="EXPIRATION_STATUS[expirationStatus].color"
+                data-testid="expiration-status-online"
               >
                 {{ t('registration.registered.description', { expirationDate }, true) }}
               </Banner>
@@ -234,7 +235,7 @@ const deregister = (setButtonStatus: () => void) => {
                   currentPhase="error"
                   :waitingLabel="t('registration.registered.button-cta.progress')"
                   :error-label="t('registration.registered.button-cta.label')"
-                  data-testid="registration-deregister-cta"
+                  data-testid="registration-online-deregister-cta"
                   :disabled="isRegistering"
                   @click="deregister"
                 />
@@ -291,6 +292,7 @@ const deregister = (setButtonStatus: () => void) => {
                 v-if="expirationStatus"
                 :icon="EXPIRATION_STATUS[expirationStatus].icon"
                 :color="EXPIRATION_STATUS[expirationStatus].color"
+                data-testid="expiration-status-offline"
               >
                 {{ t('registration.registered.description', { expirationDate }, true) }}
               </Banner>
@@ -299,7 +301,7 @@ const deregister = (setButtonStatus: () => void) => {
                   currentPhase="error"
                   :waitingLabel="t('registration.registered.button-cta.progress')"
                   :error-label="t('registration.registered.button-cta.label')"
-                  data-testid="registration-deregister-cta"
+                  data-testid="registration-offline-deregister-cta"
                   :disabled="isRegistering"
                   @click="deregister"
                 />
