@@ -618,8 +618,10 @@ export default {
               {{ _keyLabel }}
               <i
                 v-if="_protip && !isView && addAllowed"
-                v-clean-tooltip="_protip"
+                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="_protip"
                 class="icon icon-info"
+                tabindex="0"
               />
             </label>
             <label

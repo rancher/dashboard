@@ -22,7 +22,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   });
 
   it('can create a MachineSet', function() {
-    MachineSetsPagePo.navTo();
+    MachineSetsPagePo.goTo();
     machineSetsPage.waitForPage();
     machineSetsPage.create();
 
@@ -40,7 +40,6 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     machineSetsPage.createEditMachineSet().saveCreateForm().resourceYaml().saveOrCreate()
       .click();
     cy.wait('@createMachineSet').then((req) => {
-      resourceVersion = req.response?.body.metadata.resourceVersion;
       creationTimestamp = req.response?.body.metadata.creationTimestamp;
       time = req.response?.body.metadata.managedFields[0].time;
       uid = req.response?.body.metadata.uid;
@@ -54,6 +53,11 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     machineSetsPage.waitForPage();
     machineSetsPage.list().actionMenu(this.machineSetName).getMenuItem('Edit YAML').click();
     machineSetsPage.createEditMachineSet(nsName, this.machineSetName).waitForPage('mode=edit&as=yaml');
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ nsName }/${ this.machineSetName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      resourceVersion = resp.body.metadata.resourceVersion;
+    });
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machine-sets-edit.yml').then((machineSetDoc) => {
       // convert yaml into json to update values
@@ -89,7 +93,8 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
       // convert yaml into json to update name value
       const json: any = jsyaml.load(machineSetDoc);
 
-      json.metadata.name = `${ this.machineDeploymentsName }-clone`;
+      json.metadata.name = `${ this.machineSetName }-clone`;
+      json.metadata.namespace = nsName;
       machineSetsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
@@ -100,7 +105,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     machineSetsPage.waitForPage();
 
     // check list details
-    machineSetsPage.list().details(`${ this.machineDeploymentsName }-clone`, 2).should('be.visible');
+    machineSetsPage.list().details(`${ this.machineSetName }-clone`, 2).should('be.visible');
   });
 
   it('can download YAML', function() {
@@ -125,18 +130,27 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     machineSetsPage.waitForPage();
 
     // delete original cloned MachineSet
-    machineSetsPage.list().actionMenu(`${ this.machineDeploymentsName }-clone`).getMenuItem('Delete').click();
+    machineSetsPage.list().actionMenu(`${ this.machineSetName }-clone`).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
+    const name = `${ nsName }/${ this.machineSetName }-clone`;
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ nsName }/${ this.machineDeploymentsName }-clone`).as('deleteMachineSet');
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ name }`).as('deleteMachineSet');
 
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineSetsPage.waitForPage();
 
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      const resource = resp.body;
+
+      delete resource.metadata.finalizers;
+      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, resource);
+    });
+
     // check list details
-    cy.contains(`${ this.machineDeploymentsName }-clone`).should('not.exist');
+    cy.contains(`${ this.machineSetName }-clone`).should('not.exist');
   });
 
   it('can delete MachineSet via bulk actions', function() {
@@ -148,7 +162,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
       .set();
     machineSetsPage.list().openBulkActionDropdown();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ nsName }/${ this.machineSetName }`).as('deleteMachineSet');
+    const name = `${ nsName }/${ this.machineSetName }`;
+
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinesets/${ name }`).as('deleteMachineSet');
     machineSetsPage.list().bulkActionButton('Delete').click();
 
     const promptRemove = new PromptRemove();
@@ -156,6 +172,14 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineSetsPage.waitForPage();
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      const resource = resp.body;
+
+      delete resource.metadata.finalizers;
+      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinesets', `${ name }`, resource);
+    });
 
     // check list details
     cy.contains(this.machineSetName).should('not.exist');

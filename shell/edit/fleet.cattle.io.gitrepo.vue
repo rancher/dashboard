@@ -19,13 +19,17 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import YamlEditor from '@shell/components/YamlEditor';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
+import UnitInput from '@shell/components/form/UnitInput';
+
+const MINIMUM_POLLING_INTERVAL = 15;
+const DEFAULT_POLLING_INTERVAL = 60;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -51,6 +55,7 @@ export default {
     NameNsDescription,
     YamlEditor,
     SelectOrCreateAuthSecret,
+    UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -92,6 +97,16 @@ export default {
   },
 
   data() {
+    let pollingInterval = this.value.spec.pollingInterval;
+
+    if (!pollingInterval) {
+      if (this.realMode === _CREATE) {
+        pollingInterval = DEFAULT_POLLING_INTERVAL;
+      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
+        pollingInterval = MINIMUM_POLLING_INTERVAL;
+      }
+    }
+
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
@@ -144,6 +159,7 @@ export default {
       correctDriftEnabled:     false,
       targetAdvancedErrors:    null,
       matchingClusters:        null,
+      pollingInterval,
       ref,
       refValue,
       targetMode,
@@ -183,6 +199,14 @@ export default {
 
     isTls() {
       return !(this.value?.spec?.repo || '').startsWith('http://');
+    },
+
+    isPollingEnabled() {
+      return !this.value.spec.disablePolling;
+    },
+
+    isWebhookConfigured() {
+      return !!this.value.status?.webhookCommit;
     },
 
     targetOptions() {
@@ -263,6 +287,10 @@ export default {
         { label: this.t('fleet.gitRepo.tls.specify'), value: _SPECIFY },
         { label: this.t('fleet.gitRepo.tls.skip'), value: _SKIP },
       ];
+    },
+
+    showPollingIntervalWarning() {
+      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
     },
 
     stepOneRequires() {
@@ -512,6 +540,35 @@ export default {
       }
     },
 
+    enablePolling(value) {
+      if (value) {
+        delete this.value.spec.disablePolling;
+      } else {
+        this.value.spec.disablePolling = true;
+      }
+    },
+
+    updatePollingInterval(value) {
+      if (!value) {
+        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = DEFAULT_POLLING_INTERVAL.toString();
+      } else if (value === MINIMUM_POLLING_INTERVAL) {
+        delete this.value.spec.pollingInterval;
+      } else {
+        this.value.spec.pollingInterval = value.toString();
+      }
+    },
+
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const scrollable = document.getElementsByTagName('main')[0];
+
+        if (scrollable) {
+          scrollable.scrollTop = scrollable.scrollHeight;
+        }
+      });
+    },
+
     onSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
@@ -669,7 +726,7 @@ export default {
         <Checkbox
           v-model:value="correctDriftEnabled"
           :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
-          data-testid="GitRepo-correctDrift-checkbox"
+          data-testid="gitRepo-correctDrift-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.correctDrift"
@@ -678,7 +735,7 @@ export default {
         <Checkbox
           v-model:value="value.spec.keepResources"
           :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
-          data-testid="GitRepo-keepResources-checkbox"
+          data-testid="gitRepo-keepResources-checkbox"
           class="check"
           type="checkbox"
           label-key="fleet.gitRepo.resources.keepResources"
@@ -696,6 +753,50 @@ export default {
         :add-label="t('fleet.gitRepo.paths.addLabel')"
         :protip="t('fleet.gitRepo.paths.empty')"
       />
+
+      <div class="spacer" />
+      <h2 v-t="'fleet.gitRepo.polling.label'" />
+      <div class="row polling">
+        <div class="col span-6">
+          <Checkbox
+            v-model:value="isPollingEnabled"
+            data-testid="gitRepo-enablePolling-checkbox"
+            class="check"
+            type="checkbox"
+            label-key="fleet.gitRepo.polling.enable"
+            :mode="mode"
+            @update:value="enablePolling"
+          />
+        </div>
+        <template v-if="isPollingEnabled">
+          <div class="col">
+            <Banner
+              v-if="showPollingIntervalWarning"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              data-testid="gitRepo-pollingInterval-minimumValueWarning"
+            />
+            <Banner
+              v-if="isWebhookConfigured"
+              color="warning"
+              label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
+              data-testid="gitRepo-pollingInterval-webhookWarning"
+            />
+          </div>
+          <div class="col span-6">
+            <UnitInput
+              v-model:value="pollingInterval"
+              data-testid="gitRepo-pollingInterval-input"
+              min="1"
+              :suffix="t('suffix.seconds', { count: pollingInterval })"
+              :label="t('fleet.gitRepo.polling.pollingInterval.label')"
+              :mode="mode"
+              tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
+              @update:value="updatePollingInterval"
+            />
+          </div>
+        </template>
+      </div>
     </template>
     <template #stepTargetInfo>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
@@ -781,6 +882,11 @@ export default {
   .resource-handling {
     display: flex;
     flex-direction: column;
-    gap: 5px
+    gap: 5px;
+  }
+  .polling {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 </style>

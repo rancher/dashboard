@@ -137,6 +137,9 @@ locale:
 
 nav:
   ariaLabel:
+    clusterIconKeyCombo: Cluster keyboard shortcut combination icon
+    localClusterIcon: Local Cluster icon
+    clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
@@ -146,7 +149,7 @@ nav:
     configurationApps: Main menu configuration app menu item
     support: Support page link
     about: About page link
-    pinCluster: Pin/Unpin cluster
+    pinCluster: Pin/Unpin {cluster} cluster
     collapseExpand: Collapse/Expand menu group
     productAboutPage: Product about page link
   alt:
@@ -1883,6 +1886,8 @@ cluster:
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
+    rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) will reach end of life on July 31, 2025. Rancher 2.12.0 and later will no longer support provisioning or managing downstream RKE1 clusters. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
+    rke1DeprecationShortMessage: Rancher Kubernetes Engine (RKE / RKE1) will reach end of life on July 31, 2025. Rancher 2.12.0 and later will no longer support provisioning or managing downstream RKE1 clusters.
   rkeTemplateUpgrade: Template revision {name} available for upgrade
   cloudCredentials:
     renew: Renew Cloud Credentials
@@ -2479,6 +2484,14 @@ fleet:
       keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
+    polling:
+      label: Polling
+      enable: Enable Polling
+      pollingInterval:
+        label: Polling Interval
+        tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
+        webhookWarning: Warning, a webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
+        minimumValuewarning: Warning, the recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     add:
       steps:
         repoInfo:
@@ -2637,6 +2650,8 @@ glance:
   secretsTable: Full secrets list
 
 clusterBadge:
+  badgeAppearance: Cluster Badge Appearance
+  clusterComment: "Cluster comment - {text}"
   customizeAppearance: Customize Appearance
   addLabel: Add Cluster Badge
   setClusterAppearance: Cluster Appearance
@@ -3096,6 +3111,7 @@ landing:
     title: You can change what you see when you login via preferences
     userPrefs: Preferences
     body: "You can change where you land when you login"
+    ariaLabelTakeMeToCluster: Select which cluster to take me to after login
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited
