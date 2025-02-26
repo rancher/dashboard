@@ -56,6 +56,12 @@ export const CAPI = {
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io',
+  /**
+   * RKE2 - metadata.name is human name
+   * RKE1 and some others - metadata.name is v1 mgmt id --> v1mgmt cluster contains human name
+   * This label ensures something is in the v1 prov cluster that can be sorted/filtered on
+   */
+  HUMAN_NAME:           'provisioning.cattle.io/management-cluster-display-name',
   SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
   SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal',
   /**
