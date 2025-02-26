@@ -60,6 +60,7 @@ export default {
         <LabeledInput
           v-model:value="username"
           type="multiline"
+          data-testid="ssh-public-key"
           :label="t('secret.ssh.public')"
           :mode="mode"
           required
@@ -75,6 +76,7 @@ export default {
         <LabeledInput
           v-model:value="password"
           type="multiline"
+          data-testid="ssh-private-key"
           :label="t('secret.ssh.private')"
           :mode="mode"
           required
@@ -93,6 +95,7 @@ export default {
           v-if="showKnownHosts"
           v-model:value="knownHosts"
           type="multiline"
+          data-testid="ssh-known-hosts"
           :label="t('secret.ssh.knownHosts')"
           :mode="mode"
           :placeholder="t('secret.ssh.knownHostsPlaceholder')"
