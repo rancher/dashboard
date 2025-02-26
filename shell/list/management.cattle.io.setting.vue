@@ -1,7 +1,6 @@
 <script>
-import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { ALLOWED_SETTINGS } from '@shell/config/settings';
+import { ALLOWED_SETTINGS, PROVISIONING_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
@@ -24,6 +23,7 @@ export default {
     }, {});
 
     const settings = [];
+    const provisioningSettings = [];
 
     // Combine the allowed settings with the data from the API
     for ( const id in ALLOWED_SETTINGS ) {
@@ -55,20 +55,21 @@ export default {
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
       s.hasActions = (!s.readOnly || viewInApi) && setting.availableActions?.length;
-      settings.push(s);
+
+      if (PROVISIONING_SETTINGS.includes(s.id) ) {
+        provisioningSettings.push(s);
+      } else {
+        settings.push(s);
+      }
     }
 
     this.settings = settings;
+    this.provisioningSettings = provisioningSettings;
   },
 
   data() {
-    return { settings: null };
-  },
-
-//   computed: {
-//     ...mapGetters({ t: 'i18n/t' }),
-//     ...mapGetters({ options: 'action-menu/optionsArray' }),
-//   },
+    return { settings: null, provisioningSettings: null };
+  }
 };
 </script>
 
@@ -95,6 +96,14 @@ export default {
     <h2>
       {{ t('advancedSettings.provisioning.header') }}
     </h2>
+    <div
+      v-for="(setting) in provisioningSettings"
+      :key="setting.id"
+    >
+      <Setting
+        :value="setting"
+      />
+    </div>
   </div>
 </template>
 
@@ -102,18 +111,4 @@ export default {
 .settings-banner {
   margin-top: 0;
 }
-// .advanced-setting {
-//   border: 1px solid var(--border);
-//   padding: 20px;
-//   border-radius: var(--border-radius);
-
-//   h1 {
-//     font-size: 14px;
-//   }
-//   h2 {
-//     font-size: 12px;
-//     margin-bottom: 0;
-//     opacity: 0.8;
-//   }
-// }
 </style>

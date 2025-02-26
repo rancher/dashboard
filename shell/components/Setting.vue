@@ -6,7 +6,7 @@ export default {
   components: { ActionMenu },
   props:      {
     value: {
-      type:     String,
+      type:     Object,
       required: true,
     },
   },

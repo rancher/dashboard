@@ -174,7 +174,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 
 };
 
-export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management'];
+export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management', 'cluster-agent-default-priority-class', 'cluster-agent-default-pod-disruption-budget'];
 /**
  * Settings on how to handle warnings returning in api responses, specifically which to show as growls
  */
