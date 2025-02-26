@@ -150,6 +150,7 @@ export default defineComponent({
     } else {
       if (this.isImport) {
         this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(DEFAULT__IMPORT_CLUSTER) }, { root: true });
+        this.config = this.normanCluster.eksConfig as EKSConfig;
       } else {
         this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
       }
