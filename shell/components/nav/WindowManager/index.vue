@@ -261,15 +261,15 @@ export default {
       this.reportedWidth = this.width;
     },
 
-    setWmDimensions() {
+    setWmDimensions(forceValue) {
       switch (this.userPin) {
       case RIGHT:
       case LEFT:
         document.documentElement.style.setProperty('--wm-height', `${ window.innerHeight - 55 }px`);
-        document.documentElement.style.setProperty('--wm-width', `${ this.width }px`);
+        document.documentElement.style.setProperty('--wm-width', `${ forceValue || this.width }px`);
         break;
       case BOTTOM:
-        document.documentElement.style.setProperty('--wm-height', `${ this.height }px`);
+        document.documentElement.style.setProperty('--wm-height', `${ forceValue || this.height }px`);
         break;
       }
     },
@@ -293,6 +293,30 @@ export default {
 
     emitDraggable(event) {
       this.$emit('draggable', event);
+    },
+
+    resizeVertical(arrowUp) {
+      const resizeStep = 20;
+      const height = arrowUp ? this.height + resizeStep : this.height - resizeStep;
+
+      this.height = height;
+
+      this.setWmDimensions(height);
+    },
+
+    resizeHorizontal(arrowLeft) {
+      const resizeStep = 20;
+      let width;
+
+      if (this.userPin === 'left') {
+        width = arrowLeft ? this.width - resizeStep : this.width + resizeStep;
+      } else {
+        width = arrowLeft ? this.width + resizeStep : this.width - resizeStep;
+      }
+
+      this.width = width;
+
+      this.setWmDimensions(width);
     }
   }
 };
@@ -320,8 +344,14 @@ export default {
       <div
         v-if="userPin == 'right'"
         class="resizer resizer-x"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
+        @keyup.left.prevent.stop="resizeHorizontal(true)"
+        @keyup.right.prevent.stop="resizeHorizontal(false)"
       >
         <i
           class="icon icon-code"
@@ -361,9 +391,15 @@ export default {
       <div
         v-if="userPin == 'bottom'"
         class="resizer resizer-y"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
         @click="toggle"
+        @keyup.up.prevent.stop="resizeVertical(true)"
+        @keyup.down.prevent.stop="resizeVertical(false)"
       >
         <i
           class="icon icon-sort"
@@ -373,8 +409,14 @@ export default {
       <div
         v-if="userPin == 'left'"
         class="resizer resizer-x resizer-align-right"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
+        @keyup.left.prevent.stop="resizeHorizontal(true)"
+        @keyup.right.prevent.stop="resizeHorizontal(false)"
       >
         <i
           class="icon icon-code"

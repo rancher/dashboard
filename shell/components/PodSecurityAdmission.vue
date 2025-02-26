@@ -256,6 +256,7 @@ export default defineComponent({
           :options="options"
           :placeholder="t('podSecurityAdmission.version.placeholder', { psaControl: mode })"
           :mode="mode"
+          :accessibility-label="`${t(`podSecurityAdmission.labels.${level}`)} - ${t('podSecurityAdmission.version.placeholder', { psaControl: mode })}`"
           @update:value="updateLabels()"
         />
       </span>
@@ -295,6 +296,7 @@ export default defineComponent({
             :options="options"
             :placeholder="t('podSecurityAdmission.exemptions.placeholder', { psaExemptionsControl: dimension })"
             :mode="mode"
+            :accessibility-label="`${t(`podSecurityAdmission.labels.${ dimension }`)} - ${t('podSecurityAdmission.exemptions.placeholder', { psaExemptionsControl: dimension })}`"
             @update:value="updateExemptions()"
           />
         </span>

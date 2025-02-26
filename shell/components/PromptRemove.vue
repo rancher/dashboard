@@ -389,6 +389,7 @@ export default {
           v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
+          :accessibility-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
         >
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
