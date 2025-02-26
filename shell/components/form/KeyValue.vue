@@ -295,12 +295,6 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
-    },
-    /**
-     * Filter rows based on toggler, keeping to still emit all the values
-     */
-    filteredRows() {
-      return this.rows.filter((row) => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -665,11 +659,14 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in filteredRows"
+        v-for="(row,i) in rows"
         v-else
         :key="i"
       >
-        <div class="rowgroup">
+        <div
+          class="rowgroup"
+          :class="{'hidden': isProtected(row.key) && !toggleFilter}"
+        >
           <div class="row">
             <!-- Key -->
             <div
@@ -921,6 +918,10 @@ export default {
     grid-column-start: 1;
     grid-column-end: span end;
     grid-template-columns: subgrid;
+
+    &.hidden {
+      display: none;
+    }
   }
 
   .row {
