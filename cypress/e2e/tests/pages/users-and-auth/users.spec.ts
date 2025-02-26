@@ -126,12 +126,12 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('can Deactivate and Activate user', () => {
       // Deactivate user and check state is Inactive
       usersPo.goTo();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Disable');
-      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+      usersPo.list().clickRowActionMenuItem('-standard-user', 'Disable');
+      usersPo.list().details('-standard-user', 1).find('i').should('have.class', 'icon-user-xmark');
 
       // Activate user and check state is Active
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Enable');
-      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
+      usersPo.list().clickRowActionMenuItem('-standard-user', 'Enable');
+      usersPo.list().details('-standard-user', 1).find('i').should('have.class', 'icon-user-check');
     });
 
     it('can Refresh Group Memberships', () => {
