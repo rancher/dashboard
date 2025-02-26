@@ -26,7 +26,7 @@ $disabled  : $medium;
 $primary         : #3D98D3;
 $secondary       : $darker;
 $link            : #3D98D3;
-$keyboard-focus  : #3300ff;
+$keyboard-focus  : #{darken($primary, 10%)};
 
 // Status colors
 $success         : #5D995D;
