@@ -44,7 +44,10 @@ export default {
     update() {
       this.value.setData('ssh-publickey', this.username);
       this.value.setData('ssh-privatekey', this.password);
-      this.value.setData('known_hosts', this.knownHosts);
+
+      if (this.showKnownHosts) {
+        this.value.setData('known_hosts', this.knownHosts);
+      }
     }
   }
 };
