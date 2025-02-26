@@ -82,14 +82,14 @@ export default {
     </template>
 
     <template #body>
-      <div class="mb-30">
+      <div class="mb-20">
         {{ t('fleet.gitRepo.actions.forceUpdate.promptNames') }} <span
           v-clean-html="resourceNames(names, t)"
           class="body"
         />
       </div>
       <Banner
-        color="warning"
+        color="info"
         label-key="fleet.gitRepo.actions.forceUpdate.promptWarning"
       >
         <span v-clean-html="t('fleet.gitRepo.actions.forceUpdate.promptWarning', { count: names.length}, true)" />
