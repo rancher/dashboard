@@ -185,6 +185,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
+      { field: `metadata.labels."${ CAPI_LABELS.HUMAN_NAME }"` }
     ],
     [SERVICE]: [
       { field: 'spec.type' },
