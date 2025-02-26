@@ -433,9 +433,15 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               this.validateField(validateFields, schema, field.field);
 
               const value = encodeURIComponent(field.value);
-              const exactPartial = field.exact ? `'${ value }'` : value;
 
-              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
+              // = exact match (equals + exact)
+              // ~ partial match (equals + !exact)
+              // != not exact match (!equals + exact)
+              // !~ not partial match (!equals + !exact)
+
+              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
             }
 
             return field.value;
