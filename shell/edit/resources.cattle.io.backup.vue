@@ -11,7 +11,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';
 import S3 from '@shell/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
-import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';
+import { SECRET, BACKUP_RESTORE, CATALOG, COUNT } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { NAMESPACE, _VIEW, _CREATE } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
@@ -19,6 +19,10 @@ import { get } from '@shell/utils/object';
 import { formatEncryptionSecretNames } from '@shell/utils/formatter';
 import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { SECRET_TYPES } from '@shell/config/secret';
+
+const DEFAULT_RANCHER_BACKUP_RESOURCE_SET_ID = 'rancher-resource-set-basic';
+const FULL_RANCHER_BACKUP_RESOURCE_SET_ID = 'rancher-resource-set-full';
+const CUSTOM_RESOURCE_SET_ID = 'custom';
 
 export default {
 
@@ -50,17 +54,37 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      catalog:     this.$store.dispatch('catalog/load'),
-      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
-      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      catalog:         this.$store.dispatch('catalog/load'),
+      allResourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET }),
+      apps:            this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
     });
 
     this.apps = hash.apps;
-    this.resourceSet = hash.resourceSet;
+    this.allResourceSets = hash.allResourceSets;
 
     const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
 
     this.chartNamespace = BRORelease?.spec.namespace || '';
+
+    if (!this.value.spec.resourceSetName) {
+      this.value.spec.resourceSetName = this.defaultExistingResourceSetOptionIds[0] || this.allResourceSets[0].id;
+    }
+
+    const computeResourceSetSelection = () => {
+      if (!this.value?.spec?.resourceSetName) {
+        const defaults = this.defaultExistingResourceSetOptionIds;
+
+        if (defaults.length > 0) {
+          return defaults[0];
+        }
+
+        return this.allResourceSets[0].id;
+      }
+
+      return this.defaultResourceSetOptionIds.includes(this.value?.spec?.resourceSetName) ? this.value?.spec?.resourceSetName : CUSTOM_RESOURCE_SET_ID;
+    };
+
+    this.resourceSetSelection = computeResourceSetSelection();
 
     if (this.$store.getters[`cluster/paginationEnabled`](SECRET)) {
       const findPageArgs = { // Of type ActionFindPageArgs
@@ -105,17 +129,25 @@ export default {
       s3 = this.value.spec.storageLocation.s3;
     }
 
+    const counts = this.$store.getters[`cluster/all`](COUNT);
+    const defaultResourceSetOptionIds = [DEFAULT_RANCHER_BACKUP_RESOURCE_SET_ID, FULL_RANCHER_BACKUP_RESOURCE_SET_ID];
+
     return {
-      secrets:        [],
-      resourceSet:    null,
+      secrets:              [],
+      resourceSetCounts:    counts?.[0]?.counts?.[BACKUP_RESTORE.RESOURCE_SET]?.summary?.count,
+      defaultResourceSetOptionIds,
+      allResourceSets:      [],
+      resourceSetSelection: null,
       s3,
       storageSource,
       useEncryption,
-      apps:           [],
+      apps:                 [],
       setSchedule,
-      name:           this.value?.metadata?.name,
-      fvFormRuleSets: [{
-        path: 'metadata.name', rules: ['dnsLabel', 'noUpperCase'], translationKey: 'nameNsDescription.name.label'
+      name:                 this.value?.metadata?.name,
+      fvFormRuleSets:       [{
+        path:           'metadata.name',
+        rules:          ['dnsLabel', 'noUpperCase'],
+        translationKey: 'nameNsDescription.name.label'
       }],
       chartNamespace: null,
     };
@@ -142,6 +174,48 @@ export default {
       const labels = [this.t('backupRestoreOperator.encryptionConfigName.options.none'), this.t('backupRestoreOperator.encryptionConfigName.options.secret', {}, true)];
 
       return { options, labels };
+    },
+
+    defaultExistingResourceSetOptionIds() {
+      return this.defaultResourceSetOptionIds.filter((id) => {
+        return this.allResourceSetIds.includes(id);
+      });
+    },
+
+    resourceSetOptions() {
+      const optionIds = [...this.defaultExistingResourceSetOptionIds];
+      const addCustom = !optionIds.includes(this.value.spec?.resourceSetName) || this.allResourceSetIds.length > optionIds.length;
+
+      if (addCustom) {
+        optionIds.push(CUSTOM_RESOURCE_SET_ID);
+      }
+
+      return optionIds.map((id) => {
+        return {
+          label: this.t(`backupRestoreOperator.backup.resourceSetOptions.${ id }`),
+          value: id
+        };
+      });
+    },
+
+    allResourceSetIds() {
+      return this.allResourceSets.map((rs) => rs.id);
+    },
+
+    customResourceSetOptions() {
+      return this.allResourceSetIds.filter((id) => !this.defaultResourceSetOptionIds.includes(id));
+    },
+
+    showCustomResourceSetOptions() {
+      return this.resourceSetSelection === CUSTOM_RESOURCE_SET_ID;
+    },
+
+    showEncryptionWarningBanner() {
+      return this.resourceSetSelection === 'rancher-resource-set-full';
+    },
+
+    showMissingResourceSetWarningBanner() {
+      return !this.allResourceSetIds.includes(this.value.spec.resourceSetName);
     },
 
     namespaces() {
@@ -172,9 +246,16 @@ export default {
       }
     },
 
-    resourceSet(neu) {
-      if (neu?.metadata?.name) {
-        this.value.spec['resourceSetName'] = neu?.metadata?.name;
+    resourceSetSelection(neu, old) {
+      // We don't want to handle this when this gets triggered in fetch
+      if (!old) {
+        return;
+      }
+
+      if (neu === CUSTOM_RESOURCE_SET_ID) {
+        this.value.spec.resourceSetName = this.customResourceSetOptions[0];
+      } else {
+        this.value.spec.resourceSetName = neu;
       }
     },
 
@@ -212,7 +293,7 @@ export default {
       :rules="{name: fvGetAndReportPathRules('metadata.name')}"
       @change="name=value.metadata.name"
     />
-    <template v-if="!!resourceSet">
+    <template v-if="resourceSetCounts > 0">
       <div class="bordered-section">
         <RadioGroup
           v-model:value="setSchedule"
@@ -242,6 +323,60 @@ export default {
               :mode="mode"
               :label="t('backupRestoreOperator.retentionCount.label')"
             />
+          </div>
+        </div>
+      </div>
+      <div class="bordered-section">
+        <div class="row mb-10">
+          <div class="col span-12">
+            <h3>{{ t('backupRestoreOperator.backup.label') }}</h3>
+            <div>{{ t('backupRestoreOperator.backup.description') }}</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-12">
+            <RadioGroup
+              v-model:value="resourceSetSelection"
+              name="resourceSet"
+              :options="resourceSetOptions"
+              :mode="mode"
+            />
+          </div>
+        </div>
+        <div
+          v-if="showCustomResourceSetOptions"
+          class="row mt-10"
+        >
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="value.spec.resourceSetName"
+              :mode="mode"
+              :options="customResourceSetOptions"
+              :label="t('backupRestoreOperator.backup.resourceSetOptions.customResourceSetLabel')"
+            />
+          </div>
+        </div>
+        <div
+          v-if="showEncryptionWarningBanner"
+          class="row mt-10"
+        >
+          <div class="col span-12">
+            <Banner
+              color="warning"
+              role="alert"
+            >
+              <span v-clean-html="t('backupRestoreOperator.backup.enableEncryptionWarning')" />
+            </Banner>
+          </div>
+        </div>
+        <div
+          v-if="showMissingResourceSetWarningBanner"
+          class="row mt-10"
+        >
+          <div class="col span-12">
+            <Banner color="warning">
+              <span v-clean-html="t('backupRestoreOperator.backup.missingResourceSetWarning', {resourceSet: value.spec.resourceSetName})" />
+            </Banner>
           </div>
         </div>
       </div>
