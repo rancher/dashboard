@@ -1,4 +1,45 @@
 import Secret from '@shell/models/secret';
+import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+
+describe('model: Secret.js', () => {
+  it.each([
+    [
+      false,
+      'type is not SSH',
+      'generic',
+      { known_hosts: 'S05PV05fSE9TVFM=' },
+    ],
+    [
+      false,
+      'missing known_hosts',
+      TYPES.SSH,
+      {},
+    ],
+    [
+      false,
+      'data is null',
+      TYPES.SSH,
+      null,
+    ],
+    [
+      true,
+      'type is SSH key and known_hosts exists',
+      TYPES.SSH,
+      { known_hosts: 'S05PV05fSE9TVFM=' },
+    ],
+  ])('fn: supportsSshKnownHosts, returns %p if %p', (
+    supported,
+    descr,
+    _type,
+    data
+  ) => {
+    const secret = new Secret({ _type, data });
+
+    const result = secret.supportsSshKnownHosts;
+
+    expect(result).toBe(supported);
+  });
+});
 
 describe('class Secret', () => {
   it('should contains the type attribute if cleanForDownload', async() => {

@@ -53,11 +53,11 @@ describe('aks taint component', () => {
     }],
   ])('on edit, should populate each input field with parsed taint value', (taint, expected) => {
     const wrapper = shallowMount(Taint, {
+      ...requiredSetup(),
       propsData: {
         mode: _EDIT,
         taint
       },
-      ...requiredSetup()
     });
 
     const keyInput = wrapper.find('[data-testid="aks-taint-key-input"]');
