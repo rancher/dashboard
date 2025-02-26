@@ -661,6 +661,9 @@ authConfig:
     key:
       label: Private Key
       placeholder: Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
+    groupSearch:
+      label: Enable group search
+      tooltip: Allows users with appropriate permissions to search and view all groups within the OIDC provider's realm. This can be useful for administrators who need to assign global roles to groups that they are not currently a member of.
   stateBanner:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
@@ -934,6 +937,8 @@ catalog:
         label: Resources
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
+    upgrade:
+      uncertainUpgradeWarningTooltip: Unable to determine if an upgrade is available (can not identify the repository and chart used to deploy this application)
   chart:
     registry:
       label: Container Registry
@@ -2066,7 +2071,7 @@ cluster:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
     snapshots:
-      suffix: Snapshots per node
+      suffix: Snapshots
     systemService:
       rke2-coredns: 'CoreDNS'
       rke2-ingress-nginx: 'NGINX Ingress'
@@ -2158,15 +2163,18 @@ cluster:
         enable: Enable IPv6 support
     etcd:
       disableSnapshots:
-        label: Automatic Snapshots
+        label: Automatic Backups
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Keep the last
+        label: Snapshot retention count 
+        tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
         false: Only available inside the cluster
         true: Exposed to the public interface
+      s3backups:
+        label: Save Backups to S3
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -2456,6 +2464,25 @@ fleet:
       waitApplied: Wait Applied
   gitRepo:
     createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
+    actions:
+      forceUpdate:
+        label: Force Update
+        promptTitle: Force Update
+        promptNames: 'You are attempting to update: '
+        promptWarning: |-
+          {
+            count, plural,
+            =1 {Force update could be a long running process, the repository will be cloned again.}
+            other {Force update could be a long running process, the repositories will be cloned again.}
+          }
+      enablePolling:
+        label: Enable Polling
+      disablePolling:
+        label: Disable Polling
+      unpause:
+        label: Unpause
+      pause:
+        label: Pause
     tabs:
       resources: Resources
       unready: Non-Ready
@@ -3421,6 +3448,7 @@ login:
   error: An error occurred logging in. Please try again.
   invalidResponseError: Invalid response received to login request. Please try again.
   clientError: Invalid username or password. Please try again.
+  userUnauthorized: You are not authorized to use this system.
   specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
@@ -3446,6 +3474,7 @@ managementNode:
 
 members:
   clusterMembers: Cluster Members
+  memberRoles: Member Roles
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
   clusterMembership: Cluster Membership
@@ -5069,6 +5098,7 @@ resourceDetail:
     view: "{subtype} {name}"
   masthead:
     age: Age
+    createdBy: Created by
     restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.

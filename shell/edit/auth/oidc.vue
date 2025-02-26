@@ -11,6 +11,7 @@ import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import ArrayList from '@shell/components/form/ArrayList';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   components: {
@@ -23,7 +24,8 @@ export default {
     AdvancedSection,
     ArrayList,
     LabeledInput,
-    RadioGroup
+    RadioGroup,
+    Checkbox,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -249,6 +251,18 @@ export default {
               :label="t('generic.readFromFile')"
               :mode="mode"
               @selected="model.certificate = $event"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <Checkbox
+              v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
+              :label="t('authConfig.oidc.groupSearch.label')"
+              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
             />
           </div>
         </div>

@@ -17,13 +17,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     names() {
-      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
-    },
-
-    plusMore() {
-      const remaining = this.toRemove.length - this.names.length;
-
-      return this.t('promptRemove.andOthers', { count: remaining });
+      return this.toRemove.map((obj) => obj.nameDisplay);
     },
   },
   watch: {

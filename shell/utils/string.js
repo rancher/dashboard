@@ -151,16 +151,36 @@ export function pluralize(str) {
   }
 }
 
-export function resourceNames(names, plusMore, t) {
+export function resourceNames(names, t, options = {}) {
+  const MAX_NAMES_COUNT = 5;
+
+  let { plusMore, endString } = options;
+
+  // plusMore default value
+  if (!plusMore) {
+    plusMore = t('promptRemove.andOthers', { count: names.length > MAX_NAMES_COUNT ? names.length - MAX_NAMES_COUNT : 0 });
+  }
+
+  // endString default value
+  if (!endString) {
+    endString = endString === false ? ' ' : '.';
+  }
+
   return names.reduce((res, name, i) => {
-    if (i >= 5) {
-      return res;
+    if (i < MAX_NAMES_COUNT) {
+      res += `<b>${ escapeHtml( name ) }</b>`;
+
+      if (i === names.length - 1) {
+        res += endString;
+      } else if (i === names.length - 2) {
+        res += names.length <= 5 ? t('generic.and') : '';
+      } else {
+        res += i < MAX_NAMES_COUNT - 1 ? t('generic.comma') : '';
+      }
     }
-    res += `<b>${ escapeHtml( name ) }</b>`;
-    if (i === names.length - 1) {
+
+    if (i === MAX_NAMES_COUNT) {
       res += plusMore;
-    } else {
-      res += i === names.length - 2 ? t('generic.and') : t('generic.comma');
     }
 
     return res;

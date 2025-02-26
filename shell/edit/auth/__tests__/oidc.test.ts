@@ -19,15 +19,16 @@ const validAuthEndpoint = 'http://localhost:8080/realms/rancherrealm/protocol/op
 const validScope = 'openid profile email';
 
 const mockModel = {
-  enabled:      false,
-  id:           'genericoidc',
-  rancherUrl:   validRancherUrl,
-  issuer:       validIssuer,
-  authEndpoint: validAuthEndpoint,
-  scope:        validScope,
-  clientId:     validClientId,
-  clientSecret: validClientSecret,
-  type:         'genericOIDCConfig',
+  enabled:            false,
+  id:                 'genericoidc',
+  rancherUrl:         validRancherUrl,
+  issuer:             validIssuer,
+  authEndpoint:       validAuthEndpoint,
+  scope:              validScope,
+  clientId:           validClientId,
+  clientSecret:       validClientSecret,
+  type:               'genericOIDCConfig',
+  groupSearchEnabled: false,
 };
 
 describe('oidc.vue', () => {
@@ -130,5 +131,21 @@ describe('oidc.vue', () => {
     await nextTick();
 
     expect(wrapper.vm.model.issuer).toBe(`${ validUrl }/realms/${ validRealm }`);
+  });
+
+  it('`groupSearchEnabled` defaults to false', async() => {
+    const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+
+    expect(groupSearchCheckbox.isVisible()).toBe(true);
+    expect(wrapper.vm.model.groupSearchEnabled).toBe(false);
+  });
+
+  it('`groupSearchEnabled` updates when checkbox is clicked', async() => {
+    const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+
+    await groupSearchCheckbox.find('[role="checkbox"]').trigger('click');
+
+    expect(groupSearchCheckbox.isVisible()).toBe(true);
+    expect(wrapper.vm.model.groupSearchEnabled).toBe(true);
   });
 });

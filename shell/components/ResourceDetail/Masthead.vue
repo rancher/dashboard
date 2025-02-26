@@ -504,10 +504,32 @@ export default {
               {{ namespace }}
             </span>
           </span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
-            class="live-date"
-            :value="value.creationTimestamp"
-          /></span>
+          <span v-if="parent.showAge">
+            {{ t("resourceDetail.masthead.age") }}:
+            <LiveDate
+              class="live-date"
+              :value="value.creationTimestamp"
+            />
+          </span>
+          <span
+            v-if="value.showCreatedBy"
+            data-testid="masthead-subheader-createdBy"
+          >
+            {{ t("resourceDetail.masthead.createdBy") }}:
+            <router-link
+              v-if="value.createdBy.location"
+              :to="value.createdBy.location"
+              data-testid="masthead-subheader-createdBy-link"
+            >
+              {{ value.createdBy.displayName }}
+            </router-link>
+            <span
+              v-else
+              data-testid="masthead-subheader-createdBy_plain-text"
+            >
+              {{ value.createdBy.displayName }}
+            </span>
+          </span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>

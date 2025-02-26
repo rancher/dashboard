@@ -74,23 +74,24 @@ export default {
 
   data() {
     return {
-      container:       this.initialContainer || this.pod?.defaultContainerName,
-      socket:          null,
-      terminal:        null,
-      fitAddon:        null,
-      searchAddon:     null,
-      webglAddon:      null,
-      canvasAddon:     null,
-      isOpen:          false,
-      isOpening:       false,
-      backlog:         [],
-      node:            null,
-      keepAliveTimer:  null,
-      errorMsg:        '',
-      backupShells:    ['linux', 'windows'],
-      os:              undefined,
-      retries:         0,
-      currFocusedElem: undefined
+      container:         this.initialContainer || this.pod?.defaultContainerName,
+      socket:            null,
+      terminal:          null,
+      fitAddon:          null,
+      searchAddon:       null,
+      webglAddon:        null,
+      canvasAddon:       null,
+      isOpen:            false,
+      isOpening:         false,
+      backlog:           [],
+      node:              null,
+      keepAliveTimer:    null,
+      errorMsg:          '',
+      backupShells:      ['linux', 'windows'],
+      os:                undefined,
+      retries:           0,
+      currFocusedElem:   undefined,
+      xtermContainerRef: undefined
     };
   },
 
@@ -115,7 +116,7 @@ export default {
     },
 
     isXtermContainerFocused() {
-      return this.currFocusedElem === this.$refs?.xterm;
+      return this.currFocusedElem === this.xtermContainerRef;
     },
 
     xTermContainerTabIndex() {
@@ -177,6 +178,8 @@ export default {
     this.keepAliveTimer = setInterval(() => {
       this.fit();
     }, 60 * 1000);
+
+    this.xtermContainerRef = this.$refs?.xterm;
   },
 
   methods: {

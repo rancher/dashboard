@@ -238,8 +238,12 @@ export default {
     },
     zoomFit() {
       const rootNode = d3.select('.root-node');
-      const paddingBuffer = 30;
 
+      if (!rootNode?.node()) {
+        return;
+      }
+
+      const paddingBuffer = 30;
       const chartDimentions = rootNode.node().getBoundingClientRect();
       const chartCoordinates = rootNode.node().getBBox();
       const parent = rootNode.node().parentElement;

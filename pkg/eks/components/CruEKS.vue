@@ -765,7 +765,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         class="mb-20"
-        :title="t('members.clusterMembership')"
+        :title="t('members.memberRoles')"
       >
         <Banner
           v-if="isEdit"
