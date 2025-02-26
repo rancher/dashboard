@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
+import { isDetailsPage } from '@shell/utils/router';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
@@ -68,21 +69,22 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      authInfo:               {},
-      show:                   false,
-      showTooltip:            false,
-      isUserMenuOpen:         false,
-      isPageActionMenuOpen:   false,
-      kubeConfigCopying:      false,
+      authInfo:                  {},
+      show:                      false,
+      showTooltip:               false,
+      isUserMenuOpen:            false,
+      isPageActionMenuOpen:      false,
+      kubeConfigCopying:         false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this,
-      showImportModal:        false,
-      showSearchModal:        false,
-      currYamlEditor:         undefined
+      navHeaderRight:            null,
+      extensionHeaderActions:    getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      ctx:                       this,
+      showImportModal:           false,
+      showSearchModal:           false,
+      currYamlEditor:            undefined,
+      disabledWorkspaceSwitcher: false,
     };
   },
 
@@ -245,16 +247,18 @@ export default {
   },
 
   watch: {
-    currentCluster(nue, old) {
-      if (nue && old && nue.id !== old.id) {
+    currentCluster(neu, old) {
+      if (neu && old && neu.id !== old.id) {
         this.checkClusterName();
       }
     },
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
-      handler(nue) {
-        if (nue) {
-          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      handler(neu) {
+        this.disabledWorkspaceSwitcher = isDetailsPage(neu);
+
+        if (neu) {
+          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
 
           this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
         }
@@ -538,8 +542,13 @@ export default {
         v-if="showFilter"
         class="top"
       >
-        <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+        <NamespaceFilter
+          v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)"
+        />
+        <WorkspaceSwitcher
+          v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher"
+          :disabled="disabledWorkspaceSwitcher"
+        />
       </div>
       <div
         v-if="currentCluster && !simple"

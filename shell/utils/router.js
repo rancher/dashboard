@@ -117,3 +117,7 @@ export function findMeta(route, key) {
 
   return undefined;
 }
+
+export function isDetailsPage(route) {
+  return /^c-cluster-product-resource.*-id$/gm.test(route?.name);
+}
