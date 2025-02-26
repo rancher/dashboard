@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
-import { isDetailsPage } from '@shell/utils/router';
+import { isResourceDetails } from '@shell/utils/router';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
@@ -255,7 +255,7 @@ export default {
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
       handler(neu) {
-        this.disabledWorkspaceSwitcher = isDetailsPage(neu);
+        this.disabledWorkspaceSwitcher = isResourceDetails(neu);
 
         if (neu) {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
@@ -547,6 +547,7 @@ export default {
         />
         <WorkspaceSwitcher
           v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher"
+          data-testid="header-workspace-switcher"
           :disabled="disabledWorkspaceSwitcher"
         />
       </div>

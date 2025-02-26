@@ -30,7 +30,7 @@ export function getIndividualBanners(store) {
   const banners = {};
 
   // Go through all settings looking for the individual settings
-  const allSettings = store.getters['management/all'](MANAGEMENT.SETTING);
+  const allSettings = store.getters['management/all'](MANAGEMENT.SETTING) || [];
 
   allSettings.forEach((setting) => {
     if (setting.value && !!INDIVIDUAL_BANNERS[setting.id]) {

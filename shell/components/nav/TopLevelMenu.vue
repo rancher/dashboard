@@ -99,7 +99,7 @@ export default {
       const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
       const count = counts[MANAGEMENT.CLUSTER] || {};
 
-      return count?.summary.count;
+      return count?.summary?.count;
     },
 
     // New
