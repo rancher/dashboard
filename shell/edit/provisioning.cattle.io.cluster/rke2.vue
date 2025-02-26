@@ -47,7 +47,7 @@ import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
 import SelectCredential from './SelectCredential';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
@@ -62,7 +62,8 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
-
+import { mapGetters } from 'vuex';
+import { SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -146,6 +147,7 @@ export default {
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
+    await this.initSchedulingCustomization();
 
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
@@ -239,20 +241,26 @@ export default {
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
-      harvesterVersionRange: {},
-      cisOverride:           false,
+      harvesterVersionRange:                 {},
+      cisOverride:                           false,
       truncateLimit,
-      busy:                  false,
-      machinePoolValidation: {}, // map of validation states for each machine pool
-      machinePoolErrors:     {},
-      addonConfigValidation: {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      allNamespaces:         [],
-      extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      busy:                                  false,
+      machinePoolValidation:                 {}, // map of validation states for each machine pool
+      machinePoolErrors:                     {},
+      addonConfigValidation:                 {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      allNamespaces:                         [],
+      extensionTabs:                         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      clusterAgentDeploymentCustomization:   null,
+      schedulingCustomizationFeatureEnabled: false,
+      clusterAgentDefaultPC:                 null,
+      clusterAgentDefaultPDB:                null,
       labelForAddon
+
     };
   },
 
   computed: {
+    ...mapGetters({ features: 'features/get' }),
     clusterName() {
       return this.value.metadata?.name || '';
     },
@@ -1044,6 +1052,24 @@ export default {
         // Store default versions
         this.defaultRke2 = defaultRke2;
         this.defaultK3s = defaultK3s;
+      }
+    },
+
+    async initSchedulingCustomization() {
+      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
+      this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+      this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+
+      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
+        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      }
+    },
+
+    setSchedulingCustomization(val) {
+      if (val) {
+        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      } else {
+        delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
       }
     },
 
@@ -2400,6 +2426,10 @@ export default {
             data-testid="rke2-cluster-agent-config"
             type="cluster"
             :mode="mode"
+            :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+            :default-p-c="clusterAgentDefaultPC"
+            :default-p-d-b="clusterAgentDefaultPDB"
+            @scheduling-customization-changed="setSchedulingCustomization"
           />
         </Tab>
 

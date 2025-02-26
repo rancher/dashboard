@@ -317,6 +317,9 @@ export default defineComponent({
         {{ description }}
       </template>
     </div>
+    <div class="checkbox-outer-container-extra">
+      <slot name="extra" />
+    </div>
   </div>
 </template>
 
@@ -332,6 +335,11 @@ $fontColor: var(--input-label);
     margin-left: 19px;
     margin-top: 5px;
     opacity: 0.8;
+  }
+  &-extra {
+    font-size: 14px;
+    margin-left: 19px;
+    margin-top: 5px;
   }
 }
 
