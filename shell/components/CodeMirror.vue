@@ -36,12 +36,13 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:       null,
-      loaded:              false,
-      removeKeyMapBox:     false,
-      hasLintErrors:       false,
-      currFocusedElem:     undefined,
-      isCodeMirrorFocused: false
+      codeMirrorRef:          null,
+      loaded:                 false,
+      removeKeyMapBox:        false,
+      hasLintErrors:          false,
+      currFocusedElem:        undefined,
+      isCodeMirrorFocused:    false,
+      codeMirrorContainerRef: undefined
     };
   },
 
@@ -103,7 +104,7 @@ export default {
     },
 
     isCodeMirrorContainerFocused() {
-      return this.currFocusedElem === this.$refs?.codeMirrorContainer;
+      return this.currFocusedElem === this.codeMirrorContainerRef;
     },
 
     codeMirrorContainerTabIndex() {
@@ -123,6 +124,7 @@ export default {
 
   async mounted() {
     document.addEventListener('keyup', this.handleKeyPress);
+    this.codeMirrorContainerRef = this.$refs.codeMirrorContainer;
   },
 
   beforeUnmount() {
