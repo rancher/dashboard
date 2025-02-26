@@ -26,7 +26,7 @@ export default class TabbedPo extends ComponentPo {
   }
 
   getTab(name: string) {
-   return new ComponentPo(`[data-testid="${ name }"]`, this.self());
+    return new ComponentPo(`[data-testid="${ name }"]`, this.self());
   }
 
   /**
