@@ -1,7 +1,7 @@
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
-import Namespace from '@shell/models/namespace';
+import ModelNamespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
   CAPI,
@@ -18,6 +18,15 @@ import {
 import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
+
+/**
+ * This is a workaround for a ts build issue found in check-plugins-build.
+ *
+ * The build would error on <ns>.name, it somehow doesn't know about the steve model's properties (they are included in typegen)
+ */
+interface Namespace extends ModelNamespace {
+  name: string;
+}
 
 class NamespaceProjectFilters {
   /**
