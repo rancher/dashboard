@@ -45,7 +45,8 @@ const TABS_VALUES = {
   INSTALLED: 'installed',
   UPDATES:   'updates',
   AVAILABLE: 'available',
-  ALL:       'all'
+  BUILTIN:   'builtin',
+  ALL:       'all',
 };
 
 export default {
@@ -210,7 +211,8 @@ export default {
     },
 
     list() {
-      const all = this.available;
+      // If not an extension developer, then don't include built-in extensions
+      const all = this.pluginDeveloper ? this.available : this.available.filter((p) => !p.builtin);
 
       switch (this.view) {
       case TABS_VALUES.INSTALLED:
@@ -219,6 +221,8 @@ export default {
         return this.updates;
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
+      case TABS_VALUES.BUILTIN:
+        return all.filter((p) => p.builtin);
       default:
         return all;
       }
@@ -791,9 +795,15 @@ export default {
             :badge="updates.length"
           />
           <Tab
+            v-if="pluginDeveloper"
+            :name="TABS_VALUES.BUILTIN"
+            label-key="plugins.tabs.builtin"
+            :weight="17"
+          />
+          <Tab
             :name="TABS_VALUES.ALL"
             label-key="plugins.tabs.all"
-            :weight="17"
+            :weight="16"
           />
         </Tabbed>
         <div

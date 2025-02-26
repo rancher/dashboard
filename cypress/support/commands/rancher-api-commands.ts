@@ -1092,15 +1092,17 @@ Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, cluste
   });
 });
 
-// Update the user preferences by over-writing the given prefrence
+// Update the user preferences by over-writing the given preference
 Cypress.Commands.add('setUserPreference', (prefs: any) => {
-  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+  return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
     const update = resp.body.data[0];
 
     update.data = {
       ...update.data,
       ...prefs
     };
+
+    delete update.links;
 
     return cy.setRancherResource('v1', 'userpreferences', update.id, update);
   });
