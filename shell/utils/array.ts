@@ -241,3 +241,16 @@ export function getUniqueLabelKeys<T extends KubeResource>(aryResources: T[]): s
 
   return Object.keys(uniqueObj).sort();
 }
+
+/**
+ * Join list as string into a new string without duplicates
+ * @param {string} a 'a b c'
+ * @param {string} b 'b c d'
+ * @param {string} [separator=' ']
+ * @return {string} 'a b c d'
+ */
+export const joinStringList = (a: string, b: string, separator = ' '): string => {
+  const all = a.split(separator).concat(b.split(separator));
+
+  return [...new Set(all)].join(separator);
+};
