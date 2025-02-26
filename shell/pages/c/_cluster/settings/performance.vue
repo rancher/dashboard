@@ -242,18 +242,6 @@ export default {
             @update:value="compatibleWarning('serverPagination', $event)"
           />
 
-          <Collapse
-            :title="t('performance.serverPagination.applicable')"
-            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
-            :isDisabled="!steveCacheAndSSPEnabled"
-            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
-          >
-            <p
-              v-clean-html="sspApplicableResources"
-              :class="{ 'text-muted': !value.serverPagination.enabled }"
-            />
-          </Collapse>
-
           <div>
             <Checkbox
               :value="!value.serverPagination.useDefaultStores"
@@ -266,23 +254,27 @@ export default {
               @update:value="value.serverPagination.useDefaultStores = !value.serverPagination.useDefaultStores"
             />
           </div>
-
-          <!-- <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ t('performance.serverPagination.applicable') }}
-          </p>
-          <p
-            v-clean-html="sspApplicableResources"
-            :class="{ 'text-muted': !value.serverPagination.enabled }"
-          /> -->
-          <button
-            v-if="isDev"
-            class="btn btn-sm role-primary mt-10"
-            style="width: fit-content;"
-            :disabled="!steveCacheAndSSPEnabled"
-            @click.prevent="sspApplyDefaults(true)"
+          <Collapse
+            :title="t('performance.serverPagination.applicable')"
+            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheAndSSPEnabled"
+            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
           >
-            {{ t('performance.serverPagination.populateDefaults') }}
-          </button>
+            <p
+              v-clean-html="sspApplicableResources"
+              :class="{ 'text-muted': !value.serverPagination.enabled }"
+            />
+          </Collapse>
+          <div v-if="isDev">
+            <button
+              class="btn btn-sm role-primary mt-10"
+              style="width: fit-content;"
+              :disabled="!steveCacheAndSSPEnabled"
+              @click.prevent="sspApplyDefaults(true)"
+            >
+              {{ t('performance.serverPagination.populateDefaults') }}
+            </button>
+          </div>
         </div>
         <!-- Inactivity -->
         <div class="mt-20">
