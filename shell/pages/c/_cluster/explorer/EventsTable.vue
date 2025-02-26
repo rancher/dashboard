@@ -35,7 +35,7 @@ export default {
 
     const schema = this.$store.getters['cluster/schemaFor'](EVENT);
 
-    const paginationHeaders = [
+    const paginationHeaders = schema ? [
       reason,
       STEVE_EVENT_OBJECT,
       MESSAGE,
@@ -49,7 +49,7 @@ export default {
         defaultSort: true,
       },
       headerFromSchemaColString('Count', schema, this.$store.getters, true),
-    ];
+    ] : [];
 
     return {
       schema,
@@ -88,6 +88,7 @@ export default {
 
 <template>
   <PaginatedResourceTable
+    v-if="!!schema"
     :schema="schema"
     :headers="eventHeaders"
     :pagination-headers="paginationHeaders"
