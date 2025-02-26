@@ -142,7 +142,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
-
+      { field: `status.connected` },
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
@@ -433,9 +433,15 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               this.validateField(validateFields, schema, field.field);
 
               const value = encodeURIComponent(field.value);
-              const exactPartial = field.exact ? `'${ value }'` : value;
 
-              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
+              // = exact match
+              // ~ partial match
+              // != not exact match
+              // !~ not partial match
+
+              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
             }
 
             return field.value;
