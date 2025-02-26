@@ -51,7 +51,7 @@ export default class Secret extends SteveModel {
 
   // For Fleet SSH secrets - does the secret have the 'known_hosts' data key?
   get supportsSshKnownHosts() {
-    return this._type === TYPES.SSH && 'known_hosts' in this.data;
+    return this._type === TYPES.SSH && !!this.data && 'known_hosts' in this.data;
   }
 
   get issuer() {
