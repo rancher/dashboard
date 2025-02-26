@@ -2070,7 +2070,7 @@ cluster:
         title: Save Machine Configurations
         body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
     snapshots:
-      suffix: Snapshots per node
+      suffix: Snapshots
     systemService:
       rke2-coredns: 'CoreDNS'
       rke2-ingress-nginx: 'NGINX Ingress'
@@ -2162,15 +2162,18 @@ cluster:
         enable: Enable IPv6 support
     etcd:
       disableSnapshots:
-        label: Automatic Snapshots
+        label: Automatic Backups
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Keep the last
+        label: Snapshot retention count 
+        tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
         false: Only available inside the cluster
         true: Exposed to the public interface
+      s3backups:
+        label: Save Backups to S3
   k3s:
     systemService:
       coredns: 'CoreDNS'
