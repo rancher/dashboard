@@ -33,10 +33,6 @@ $z-indexes: (
   // This covers both relative and content modes of the loading indicator
   loading: 12,
 
-  // Users can click on shell in header and show shell even with most loading indicators showing,
-  // so add it above them
-  windowsManager: 13,
-
   mainHeader: 14,
 
   cruFooter: 19,
