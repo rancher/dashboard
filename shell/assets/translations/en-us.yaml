@@ -1134,7 +1134,8 @@ catalog:
     oci:
       urlLabel: OCI Repository Host URL
       placeholder: 'e.g. oci://<registry-host>/<namespace>/<chart-name>:<tag>'
-      info: Add OCI URLs that contain ONLY helm charts. For large repositories containing many charts consider targeting a specific namespace or chart to improve performance, for example with oci://<registry-host>/<namespace> or oci://<registry-host>/<namespace>/<chart-name>. The list of charts available from the repository is updated every 6 hours.
+      warning: OCI URLs must ONLY target helm chart/s.
+      info: For large repositories containing many charts consider targeting a specific namespace or chart to improve performance, for example with oci://<registry-host>/<namespace> or oci://<registry-host>/<namespace>/<chart-name>.
       skipTlsVerifications: Skip TLS Verifications
       insecurePlainHttp: Insecure Plain Http
       exponentialBackOff:
