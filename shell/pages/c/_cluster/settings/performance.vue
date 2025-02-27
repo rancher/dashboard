@@ -209,38 +209,6 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Server Side Pagination -->
-        <div class="mt-20">
-          <h2 id="ssp-setting">
-            {{ t('performance.serverPagination.label') }}
-          </h2>
-          <p>{{ t('performance.serverPagination.description') }}</p>
-          <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
-            color="warning"
-          />
-          <Checkbox
-            v-model:value="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-10"
-            :primary="true"
-            :disabled="!steveCacheEnabled"
-            @update:value="compatibleWarning('serverPagination', $event)"
-          />
-          <Collapse
-            :title="t('performance.serverPagination.applicable')"
-            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
-            :isDisabled="!steveCacheAndSSPEnabled"
-            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
-          >
-            <p
-              v-clean-html="sspApplicableResources"
-              :class="{ 'text-muted': !value.serverPagination.enabled }"
-            />
-          </Collapse>
-        </div>
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
@@ -281,6 +249,42 @@ export default {
             class="mt-10 mb-20"
             :primary="true"
           />
+        </div>
+        <!-- Server Side Pagination -->
+        <div class="mt-20">
+          <h2 id="ssp-setting">
+            {{ t('performance.serverPagination.label') }}
+          </h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            v-if="!steveCacheEnabled"
+            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
+            color="warning"
+          />
+          <Banner
+            color="error"
+            label-key="performance.serverPagination.experimental"
+          />
+          <Checkbox
+            v-model:value="value.serverPagination.enabled"
+            :mode="mode"
+            :label="t('performance.serverPagination.checkboxLabel')"
+            class="mt-10 mb-10"
+            :primary="true"
+            :disabled="!steveCacheEnabled"
+            @update:value="compatibleWarning('serverPagination', $event)"
+          />
+          <Collapse
+            :title="t('performance.serverPagination.applicable')"
+            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheAndSSPEnabled"
+            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
+          >
+            <p
+              v-clean-html="sspApplicableResources"
+              :class="{ 'text-muted': !value.serverPagination.enabled }"
+            />
+          </Collapse>
         </div>
         <!-- Incremental Loading -->
         <div class="mt-20">
