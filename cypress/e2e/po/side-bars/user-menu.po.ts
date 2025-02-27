@@ -92,6 +92,11 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   clickMenuItem(label: 'Preferences' | 'Account & API Keys' | 'Log Out') {
-    return this.getMenuItem(label).click();
+    this.getMenuItem(label).click();
+
+    if (label === 'Log Out') {
+      // This ensures that if cy.login runs again it doesn't use the stale session
+      Cypress.session.clearAllSavedSessions();
+    }
   }
 }
