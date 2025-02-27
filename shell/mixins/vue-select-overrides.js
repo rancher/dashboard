@@ -36,6 +36,13 @@ export default {
           return;
         }
 
+        // if the index of the option is -1
+        // it means are pressing enter on an invalid option
+        // we should exit
+        if (vm.typeAheadPointer === -1) {
+          return;
+        }
+
         let option = vm.filteredOptions[vm.typeAheadPointer];
 
         vm.$emit('option:selecting', option);
