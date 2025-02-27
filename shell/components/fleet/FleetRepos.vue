@@ -120,7 +120,7 @@ export default {
       <template #cell:repo="{ row }">
         <Link
           :row="row"
-          :value="row.spec.repo"
+          :value="row.spec.repo || ''"
           label-key="repoDisplay"
           before-icon-key="repoIcon"
           url-key="spec.repo"

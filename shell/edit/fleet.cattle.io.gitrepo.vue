@@ -660,8 +660,10 @@ export default {
 
     <template #stepAdvanced>
       <Banner
+        v-if="!isView"
         color="info"
         label-key="fleet.gitRepo.add.steps.advanced.info"
+        data-testid="gitrepo-advanced-info"
       />
 
       <h2 v-t="'fleet.gitRepo.auth.title'" />

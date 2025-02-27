@@ -1,6 +1,43 @@
 import { mount } from '@vue/test-utils';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import GitRepo from '@shell/edit/fleet.cattle.io.gitrepo.vue';
+
+const mockStore = {
+  dispatch: jest.fn(),
+  getters:  {
+    'i18n/t':                  (text: string) => text,
+    'i18n/exists':             jest.fn(),
+    t:                         (text: string) => text,
+    currentStore:              () => 'current_store',
+    'current_store/schemaFor': jest.fn(),
+    'current_store/all':       jest.fn(),
+    workspace:                 jest.fn(),
+  }
+};
+const mocks = {
+  $store:      mockStore,
+  $fetchState: { pending: false },
+  $route:      {
+    query: { AS: '' },
+    name:  {
+      endsWith: () => {
+        return false;
+      }
+    }
+  },
+};
+const mockComputed = {
+  ...GitRepo.computed,
+  steps: () => [{
+    name:           'stepAdvanced',
+    title:          'title',
+    label:          'label',
+    subtext:        'subtext',
+    descriptionKey: 'description',
+    ready:          true,
+    weight:         1,
+  }],
+};
 
 const values = {
   metadata: { namespace: 'test' },
@@ -11,50 +48,34 @@ const values = {
   targetInfo: { mode: 'all' },
 };
 
+describe('view: fleet.cattle.io.gitrepo, mode: view - should', () => {
+  it('hide advanced options banner', () => {
+    const wrapper = mount(GitRepo, {
+      props:    { value: values, mode: _VIEW },
+      computed: mockComputed,
+      global:   { mocks }
+    });
+
+    const advancedInfoBanner = wrapper.find('[data-testid="gitrepo-advanced-info"]');
+
+    expect(advancedInfoBanner.exists()).toBeFalsy();
+  });
+});
+
 describe.each([
   _CREATE,
-  _EDIT
+  _EDIT,
 ])('view: fleet.cattle.io.gitrepo, mode: %p - should', (mode) => {
-  const mockStore = {
-    dispatch: jest.fn(),
-    getters:  {
-      'i18n/t':                  (text: string) => text,
-      'i18n/exists':             jest.fn(),
-      t:                         (text: string) => text,
-      currentStore:              () => 'current_store',
-      'current_store/schemaFor': jest.fn(),
-      'current_store/all':       jest.fn(),
-      workspace:                 jest.fn(),
-    }
-  };
-  const mocks = {
-    $store:      mockStore,
-    $fetchState: { pending: false },
-    $route:      {
-      query: { AS: '' },
-      name:  {
-        endsWith: () => {
-          return false;
-        }
-      }
-    },
-  };
-  const mockComputed = {
-    ...GitRepo.computed,
-    steps: () => [{
-      name:           'stepAdvanced',
-      title:          'title',
-      label:          'label',
-      subtext:        'subtext',
-      descriptionKey: 'description',
-      ready:          true,
-      weight:         1,
-    }],
-  };
   const wrapper = mount(GitRepo, {
     props:    { value: values, mode },
     computed: mockComputed,
     global:   { mocks }
+  });
+
+  it('show advanced options banner', () => {
+    const advancedInfoBanner = wrapper.find('[data-testid="gitrepo-advanced-info"]');
+
+    expect(advancedInfoBanner.exists()).toBeTruthy();
   });
 
   it('have self-healing checkbox and tooltip', () => {
