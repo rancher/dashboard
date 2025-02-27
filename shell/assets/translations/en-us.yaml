@@ -7664,8 +7664,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
-  experimental: This setting is experimental and may be removed or updated in future versions.
-  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release. Please use the <a href="#ssp-setting" class="ml-5 mr-5">Server-side Pagination</a> setting instead.
+  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
   incrementalLoad:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
@@ -7735,6 +7734,7 @@ performance:
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
+    experimental: This setting is experimental and may be removed or updated in future versions. We do not recommend enabling this setting in production environments.
 banner:
   label: Fixed Banners
   settingName: Banners
