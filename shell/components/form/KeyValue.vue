@@ -665,7 +665,7 @@ export default {
       >
         <div
           class="rowgroup"
-          :class="{'hidden': isProtected(row.key) && !toggleFilter}"
+          :class="{'hide': isProtected(row.key) && !toggleFilter}"
         >
           <div class="row">
             <!-- Key -->
@@ -918,10 +918,6 @@ export default {
     grid-column-start: 1;
     grid-column-end: span end;
     grid-template-columns: subgrid;
-
-    &.hidden {
-      display: none;
-    }
   }
 
   .row {
