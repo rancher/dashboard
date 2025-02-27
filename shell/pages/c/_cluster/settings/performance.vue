@@ -78,7 +78,6 @@ export default {
           resource: MANAGEMENT.FEATURE
         }
       }).href,
-      isDev:                  process.env.NODE_ENV === 'dev',
       ssPApplicableTypesOpen: false,
     };
   },
@@ -198,17 +197,6 @@ export default {
         },
       });
     },
-
-    sspApplyDefaults(defaultStore) {
-      this.value = {
-        ...this.value,
-        serverPagination: { ...DEFAULT_PERF_SETTING.serverPagination }
-      };
-
-      if (defaultStore) {
-        this.value.serverPagination.stores = paginationUtils.getStoreDefault();
-      }
-    }
   },
 };
 </script>
@@ -222,7 +210,7 @@ export default {
     <div>
       <div class="ui-perf-setting">
         <!-- Server Side Pagination -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2 id="ssp-setting">
             {{ t('performance.serverPagination.label') }}
           </h2>
@@ -241,19 +229,6 @@ export default {
             :disabled="!steveCacheEnabled"
             @update:value="compatibleWarning('serverPagination', $event)"
           />
-
-          <div>
-            <Checkbox
-              :value="!value.serverPagination.useDefaultStores"
-              :mode="mode"
-              :label-key="'performance.serverPagination.checkboxUseDefault.label'"
-              :tooltip-key="'performance.serverPagination.checkboxUseDefault.placeholder'"
-              class="mt-10 mb-10"
-              :primary="true"
-              :disabled="!steveCacheAndSSPEnabled"
-              @update:value="value.serverPagination.useDefaultStores = !value.serverPagination.useDefaultStores"
-            />
-          </div>
           <Collapse
             :title="t('performance.serverPagination.applicable')"
             :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
@@ -265,16 +240,6 @@ export default {
               :class="{ 'text-muted': !value.serverPagination.enabled }"
             />
           </Collapse>
-          <div v-if="isDev">
-            <button
-              class="btn btn-sm role-primary mt-10"
-              style="width: fit-content;"
-              :disabled="!steveCacheAndSSPEnabled"
-              @click.prevent="sspApplyDefaults(true)"
-            >
-              {{ t('performance.serverPagination.populateDefaults') }}
-            </button>
-          </div>
         </div>
         <!-- Inactivity -->
         <div class="mt-20">
@@ -318,7 +283,7 @@ export default {
           />
         </div>
         <!-- Incremental Loading -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <Banner
             color="warning"
@@ -481,7 +446,7 @@ export default {
           />
         </div>
         <!-- Advanced Websocket Worker -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.advancedWorker.label') }}</h2>
           <Banner
             color="warning"
