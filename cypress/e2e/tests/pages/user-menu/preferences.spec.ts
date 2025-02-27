@@ -423,7 +423,8 @@ describe('User can update their preferences', () => {
   });
 
   // You want this to be last, there's some issues with logging in and logging out without sessions
-  it('Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
+
+  function testLandingPageOption(key: { index: string, value: string, page: string}) {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -431,54 +432,55 @@ describe('User can update their preferences', () => {
     Verify selection is preserved after logout/login
     */
 
-    const landingPageOptions = [
-      {
-        index: '0', value: '"home"', page: '/home'
-      },
-      {
-        index: '1', value: '"last-visited"', page: '/prefs'
-      },
-      { // This option only works when there is an existing local cluster
-        index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
-      },
-    ];
-
-    landingPageOptions.forEach((key) => {
-      prefPage.goTo();
-      prefPage.landingPageRadioBtn().checkVisible();
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
-      prefPage.landingPageRadioBtn().set(parseInt(key.index));
-      cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('after-login-route', key.value);
-        expect(response?.body.data).to.have.property('after-login-route', key.value);
-      });
-      prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
-
-      // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
-      if (key.index === '1') {
-        userMenu.clickMenuItem('Log Out');
-        cy.url().should('contain', 'auth/login?logged-out');
-
-        const redirectUrl = '/c/local/explorer/node';
-
-        cy.visit(redirectUrl);
-        cy.url().should('contain', 'auth/login?timed-out');
-
-        cy.login(undefined, undefined, false, true);
-        cy.url().should('contain', redirectUrl);
-        prefPage.goTo();
-        prefPage.landingPageRadioBtn().checkVisible();
-      }
-
-      // Verify the option functions after a login
-      userMenu.clickMenuItem('Log Out');
-      cy.url().should('contain', 'auth/login?logged-out');
-      cy.login(undefined, undefined, false);
-      cy.url().should('contain', key.page);
-    });
-
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
+    prefPage.landingPageRadioBtn().set(parseInt(key.index));
+    cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('after-login-route', key.value);
+      expect(response?.body.data).to.have.property('after-login-route', key.value);
+    });
+    prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
+
+    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
+    if (key.index === '1') {
+      userMenu.clickMenuItem('Log Out');
+      cy.url().should('contain', 'auth/login?logged-out');
+
+      const redirectUrl = '/c/local/explorer/node';
+
+      cy.visit(redirectUrl);
+      cy.url().should('contain', 'auth/login?timed-out');
+
+      cy.login(undefined, undefined, false, true);
+      cy.url().should('contain', redirectUrl);
+      prefPage.goTo();
+      prefPage.landingPageRadioBtn().checkVisible();
+    }
+
+    // Verify the option functions after a login
+    userMenu.clickMenuItem('Log Out');
+    cy.url().should('contain', 'auth/login?logged-out');
+    cy.login(undefined, undefined, false);
+    cy.url().should('contain', key.page);
+  }
+
+  it('Can select login landing page - home page', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption({
+      index: '0', value: '"home"', page: '/home'
+    });
+  });
+
+  it('Can select login landing page - last visited', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption( {
+      index: '1', value: '"last-visited"', page: '/prefs'
+    });
+  });
+
+  it('Can select login landing page - specific cluster', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption({ // This option only works when there is an existing local cluster
+      index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
+    });
   });
 });

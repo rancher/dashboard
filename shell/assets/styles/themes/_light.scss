@@ -91,6 +91,10 @@ BODY, .theme-light {
 
   .text-link {
     color: var(--link) !important;
+
+    &.disabled {
+      color: var(--disabled-text) !important;
+    }
   }
 
   .bg-link {
