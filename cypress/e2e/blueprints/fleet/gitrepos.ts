@@ -15,7 +15,9 @@ export const gitRepoCreateRequest = {
     ],
     insecureSkipTLSVerify: false,
     helmRepoURLRegex:      'https://charts.rancher.io/*',
-    helmSecretName:        'auth-95j88'
+    helmSecretName:        '',
+    clientSecretName:      '',
+    pollingInterval:       '13'
   }
 };
 

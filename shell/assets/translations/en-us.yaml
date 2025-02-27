@@ -548,6 +548,7 @@ authConfig:
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
+    userLoginFilter: User Login Filter
     userSearchBase:
       label: User Search Base
       placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
@@ -2462,7 +2463,6 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
-    createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
     actions:
       forceUpdate:
         label: Force Update
@@ -2507,9 +2507,9 @@ fleet:
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
     resources:
       label: 'Resource Handling'
-      keepResources: Always Keep Resources
+      keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
-      correctDrift: Enable Self-Healing
+      correctDrift: Enable self-healing
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     polling:
       label: Polling
@@ -2517,17 +2517,28 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        webhookWarning: Warning, a webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
-        minimumValuewarning: Warning, the recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     add:
       steps:
-        repoInfo:
-          label: Repository Details
+        metadata:
+          label: Metadata
+          title: Specify the Git Repository name and labels/annotations
+          subtext: 'Define metadata details'
+          description: Git repository basic info
+        repo:
+          label: Repository details
           title: Specify the Git Repository to add to fleet
           subtext: 'Define repository details'
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
+        advanced:
+          label: Advanced
+          title: Specify advanced settings like authenticaion credentials and polling
+          subtext: 'Define advanced settings'
+          description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
+          info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
         targetInfo:
-          label: Target Details
+          label: Target details
           title: Specify which target to synchronise this repository to
           subtext: 'Define target details'
           description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
@@ -7654,8 +7665,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
-  experimental: This setting is experimental and may be removed or updated in future versions.
-  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release. Please use the <a href="#ssp-setting" class="ml-5 mr-5">Server-side Pagination</a> setting instead.
+  deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
   incrementalLoad:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
@@ -7719,13 +7729,13 @@ performance:
     label: Server-side Pagination
     description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Change this setting to enable pagination server-side. This should help the responsiveness of the UI in systems with a lot of resources.
     checkboxLabel: Enable Server-side Pagination
-    applicable: "This applies to the following resource types"
+    applicable: "Server-side pagination applies to Resource Types"
     incompatibleDescription: "Server-side Pagination is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
     featureFlag: The&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache` must be enabled to use this feature
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
-    populateDefaults: Populate with latest pagination defaults
+    experimental: This setting is experimental and may be removed or updated in future versions. We do not recommend enabling this setting in production environments.
 banner:
   label: Fixed Banners
   settingName: Banners
