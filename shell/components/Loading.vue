@@ -20,7 +20,9 @@ export default {
   },
 
   data() {
-    return { timer: null, showMessage: this.noDelay, isTerminalOpen: false };
+    return {
+      timer: null, showMessage: this.noDelay, isTerminalOpen: false
+    };
   },
 
   mounted() {
