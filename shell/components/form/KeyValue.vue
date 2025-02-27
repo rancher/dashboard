@@ -182,7 +182,7 @@ export default {
     },
     addIcon: {
       type:    String,
-      default: 'icon-plus',
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
@@ -857,8 +857,8 @@ export default {
           @click="add()"
         >
           <i
-            v-if="loading"
-            class="mr-5 icon icon-spinner icon-spin icon-lg"
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
           /> {{ _addLabel }}
         </button>
         <FileSelector

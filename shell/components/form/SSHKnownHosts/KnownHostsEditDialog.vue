@@ -80,6 +80,7 @@ export default {
   <app-modal
     v-if="showModal"
     ref="sshKnownHostsDialog"
+    data-testid="sshKnownHostsDialog"
     height="auto"
     :scrollable="true"
     @close="closeDialog(false)"
@@ -152,7 +153,6 @@ export default {
         flex-direction: column;
         resize: none;
         max-height: 400px;
-        height: 50vh;
 
         .CodeMirror,
         .CodeMirror-gutters {

@@ -19,6 +19,7 @@ describe.each([
     dispatch: jest.fn(),
     getters:  {
       'i18n/t':                  (text: string) => text,
+      'i18n/exists':             jest.fn(),
       t:                         (text: string) => text,
       currentStore:              () => 'current_store',
       'current_store/schemaFor': jest.fn(),
@@ -38,9 +39,22 @@ describe.each([
       }
     },
   };
+  const mockComputed = {
+    ...GitRepo.computed,
+    steps: () => [{
+      name:           'stepAdvanced',
+      title:          'title',
+      label:          'label',
+      subtext:        'subtext',
+      descriptionKey: 'description',
+      ready:          true,
+      weight:         1,
+    }],
+  };
   const wrapper = mount(GitRepo, {
-    props:  { value: values, mode },
-    global: { mocks }
+    props:    { value: values, mode },
+    computed: mockComputed,
+    global:   { mocks }
   });
 
   it('have self-healing checkbox and tooltip', () => {
@@ -62,7 +76,7 @@ describe.each([
   });
 
   it('enable drift if self-healing is checked', async() => {
-    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]');
+    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]') as any;
     const correctDriftContainer = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"] .checkbox-container');
 
     expect(correctDriftContainer.exists()).toBeTruthy();
@@ -96,7 +110,8 @@ describe.each([
         },
         realMode: mode
       },
-      global: { mocks },
+      computed: mockComputed,
+      global:   { mocks },
     });
 
     const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
@@ -133,7 +148,8 @@ describe.each([
         },
         realMode: mode
       },
-      global: { mocks },
+      computed: mockComputed,
+      global:   { mocks },
     });
 
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]').element as any;
@@ -163,7 +179,8 @@ describe.each([
         },
         realMode: mode
       },
-      global: { mocks },
+      computed: mockComputed,
+      global:   { mocks },
     });
 
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
@@ -191,7 +208,8 @@ describe.each([
         },
         realMode: mode
       },
-      global: { mocks },
+      computed: mockComputed,
+      global:   { mocks },
     });
 
     const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');

@@ -48,6 +48,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    addIcon: {
+      type:    String,
+      default: '',
+    },
     addLabel: {
       type:    String,
       default: '',
@@ -367,8 +371,8 @@ export default {
           @click="add()"
         >
           <i
-            v-if="loading"
-            class="mr-5 icon icon-spinner icon-spin icon-lg"
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
           />
           {{ _addLabel }}
         </button>
