@@ -38,6 +38,8 @@ eks:
     minMaxDesired: The node group desired size may not be less than the minimum size nor greater than the maximum size.
     minLessThanMax: The node group minimum size may not be greater than the maximum size.
     nodeGroupsRequired: Clusters must have at least one node group.
+  import:
+    label: Cluster to Register
   label: Amazon EKS
   nodeGroups:
     desiredSize:

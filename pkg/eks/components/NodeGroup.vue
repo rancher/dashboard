@@ -100,7 +100,7 @@ export default defineComponent({
       default: ''
     },
     imageId: {
-      type:    String,
+      type:    [String, null],
       default: ''
     },
     desiredSize: {

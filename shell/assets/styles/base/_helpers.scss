@@ -229,6 +229,10 @@ $spacing-property-map: (
   vertical-align: top !important;
 }
 
+.align-center {
+  align-items: center !important;
+}
+
 .vertical-scroll {
   max-height: 150px;
   overflow: scroll;

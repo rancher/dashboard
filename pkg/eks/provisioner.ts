@@ -48,4 +48,8 @@ export class EKSProvisioner implements IClusterProvisioner {
       conditions:   false,
     };
   }
+
+  get showImport(): boolean {
+    return true;
+  }
 }

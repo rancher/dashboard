@@ -143,7 +143,6 @@ export default defineComponent({
 <style lang="scss">
   .credential-region {
     display: flex;
-    flex-grow:1;
 
     .region {
       flex-basis: 50%;
@@ -153,6 +152,7 @@ export default defineComponent({
 
     &.showing-form {
       flex-direction: column;
+      flex-grow: 1;
 
       &>.region {
         margin: 0;
