@@ -678,7 +678,7 @@ export default defineComponent({
     'config.azureCredentialSecret'(neu) {
       if (neu) {
         this.resetCredentialDependentProperties();
-        this.getLocations();
+        // this.getLocations();
       }
     },
 
@@ -1150,6 +1150,7 @@ export default defineComponent({
         <div class="row mb-10">
           <div class="col span-6">
             <RadioGroup
+              name="networking-auth-mode"
               class="mb-10"
               :mode="mode"
               :value="networkingAuthMode"

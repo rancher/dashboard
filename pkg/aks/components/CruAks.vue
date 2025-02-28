@@ -56,7 +56,7 @@ export const defaultNodePool = {
   _validation:           {}
 };
 
-const defaultAksConfig = {
+export const defaultAksConfig = {
   clusterName:        '',
   imported:           false,
   linuxAdminUsername: 'azureuser',

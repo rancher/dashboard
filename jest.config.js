@@ -1,4 +1,5 @@
 module.exports = {
+  silent:             true,
   preset:             'ts-jest',
   testEnvironment:    'jsdom',
   setupFilesAfterEnv: ['./jest.setup.js'],
