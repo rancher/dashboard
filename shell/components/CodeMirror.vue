@@ -239,6 +239,7 @@ export default {
 <template>
   <div
     ref="codeMirrorContainer"
+    :inert="isDisabled ? true : false"
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
     :class="{['as-text-area']: asTextArea}"
@@ -290,10 +291,6 @@ export default {
 
 <style lang="scss">
   $code-mirror-animation-time: 0.1s;
-
-  .escape-text {
-    font-size: 12px;
-  }
 
   .code-mirror {
     &.code-mirror-container:focus-visible {
@@ -395,6 +392,14 @@ export default {
 
   .code-mirror {
     position: relative;
+    margin-bottom: 20px;
+
+    .escape-text {
+      font-size: 12px;
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+    }
 
     .codemirror-container {
       z-index: 0;

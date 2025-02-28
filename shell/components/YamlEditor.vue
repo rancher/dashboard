@@ -28,6 +28,11 @@ export default {
       }
     },
 
+    mode: {
+      type:    String,
+      default: '',
+    },
+
     asObject: {
       type:    Boolean,
       default: false,
@@ -238,6 +243,7 @@ export default {
       :options="codeMirrorOptions"
       :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
+      :mode="mode"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
