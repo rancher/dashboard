@@ -8,6 +8,13 @@ export default {
   name:       'WorkspaceSwitcher',
   components: { Select },
 
+  props: {
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
+  },
+
   computed: {
     ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace', 'getActiveNamespaces']),
 
@@ -95,6 +102,7 @@ export default {
       :options="options"
       :clearable="false"
       :reduce="(opt) => opt.value"
+      :disabled="disabled"
     />
     <!--button v-shortkey.once="['w']" class="hide" @shortkey="focus()" /-->
   </div>
@@ -131,20 +139,14 @@ export default {
 
 .filter :deep() .unlabeled-select.has-more .v-select.vs--open .vs__dropdown-toggle {
   height: max-content;
-  background-color: var(--header-bg);
 }
 
 .filter :deep() .unlabeled-select {
-  background-color: transparent;
   border: 0;
 }
 
 .filter :deep() .unlabeled-select:not(.focused) {
   min-height: 0;
-}
-
-.filter :deep() .unlabeled-select:not(.view):hover .vs__dropdown-menu {
-  background: var(--dropdown-bg);
 }
 
 .filter :deep() .unlabeled-select .v-select.inline {
@@ -154,37 +156,21 @@ export default {
 .filter :deep() .unlabeled-select .v-select .vs__selected {
   margin: $input-padding-sm;
   user-select: none;
-  color: var(--header-btn-text);
-}
-
-.filter :deep() .unlabeled-select .vs__search::placeholder {
-  color: var(--header-btn-text);
-}
-
-.filter :deep() .unlabeled-select INPUT:hover {
-  background-color: transparent;
 }
 
 .filter :deep() .unlabeled-select .vs__dropdown-toggle {
-  background: rgba(0, 0, 0, 0.05);
   border-radius: var(--border-radius);
   border: 1px solid var(--header-btn-bg);
-  color: var(--header-btn-text);
   height: 40px;
   max-width: 100%;
   padding-top: 0;
 }
 
-.filter :deep() .unlabeled-select .vs__deselect:after {
-  color: var(--header-btn-text);
-}
-
-.filter :deep() .unlabeled-select .v-select .vs__actions:after {
-  fill: var(--header-btn-text) !important;
-  color: var(--header-btn-text) !important;
-}
-
 .filter :deep() .unlabeled-select INPUT[type='search'] {
   padding: 7px;
+}
+
+.filter :deep() .disabled .v-select .vs__dropdown-toggle .vs__actions:after {
+  color: var(--input-disabled-text) !important;
 }
 </style>
