@@ -48,7 +48,7 @@ export default {
       return this.value.spec.rkeConfig.etcd;
     },
     argsEtcdExposeMetrics() {
-      return !!this.selectedVersion?.serverArgs['etcd-expose-metrics'];
+      return !!this.selectedVersion?.serverArgs?.['etcd-expose-metrics'];
     },
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
