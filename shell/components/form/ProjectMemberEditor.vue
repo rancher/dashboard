@@ -194,7 +194,7 @@ export default {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
         const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.id === customPermissionsItem.key);
 
-        if (lockedExist.locked) {
+        if (lockedExist && lockedExist.locked) {
           customPermissionsItem['locked'] = true;
           customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
         }
@@ -261,6 +261,7 @@ export default {
     <div class="row mt-10">
       <div class="col span-12">
         <SelectPrincipal
+          data-testid="cluster-member-select"
           project
           class="mb-20"
           :mode="mode"
@@ -285,6 +286,7 @@ export default {
       <template v-slot:body>
         <RadioGroup
           v-model:value="value.permissionGroup"
+          data-testid="permission-options"
           :options="options"
           name="permission-group"
         />
@@ -299,6 +301,7 @@ export default {
           >
             <Checkbox
               v-model:value="permission.value"
+              :data-testid="`custom-permission-${i}`"
               :disabled="permission.locked"
               class="mb-5"
               :label="permission.label"

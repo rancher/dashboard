@@ -355,7 +355,8 @@ export default {
                 <button
                   v-if="canEditProjectMembers"
                   type="button"
-                  class="create-namespace btn btn-sm role-secondary mr-10 right"
+                  class="btn btn-sm role-secondary mr-10 right"
+                  :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
                   @click="addProjectMember(group)"
                 >
                   {{ t('members.createActionLabel') }}

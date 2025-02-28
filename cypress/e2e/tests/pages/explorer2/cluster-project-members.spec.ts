@@ -12,7 +12,8 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
   beforeEach(() => {
     cy.login();
   });
-  it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
+
+  it('Should create a new user', () => {
     const usersAdmin = new UsersPo('_');
     const userCreate = usersAdmin.createEdit();
 
@@ -25,6 +26,10 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     userCreate.confirmNewPass().set(standardPassword);
     userCreate.saveCreateWithErrorRetry();
     usersAdmin.waitForPageWithExactUrl();
+  });
+
+  it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
+    HomePagePo.goTo();
 
     // add user to Cluster membership
     const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
@@ -34,6 +39,7 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     clusterMembership.waitForPageWithSpecificUrl('/c/local/explorer');
     clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
     clusterMembership.triggerAddClusterOrProjectMemberAction();
+
     clusterMembership.selectClusterOrProjectMember(username);
     cy.intercept('POST', '/v3/clusterroletemplatebindings').as('createClusterMembership');
     clusterMembership.saveCreateForm().click();
@@ -66,5 +72,34 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     clusterMembership.triggerAddClusterOrProjectMemberAction();
     clusterMembership.cancelCreateForm().click();
     clusterMembership.waitForPageWithExactUrl();
+  });
+  it('Can create a member with custom permissions', () => {
+    // add user to Cluster membership
+    const projectMembership = new ClusterProjectMembersPo('local', 'project-membership');
+
+    projectMembership.goTo();
+    projectMembership.waitForPageWithSpecificUrl('/c/local/explorer/members#project-membership');
+    projectMembership.triggerAddProjectMemberAction('default');
+    projectMembership.selectProjectCustomPermission();
+    projectMembership.selectClusterOrProjectMember(username);
+    projectMembership.checkTheseProjectCustomPermissions([0, 1]);
+
+    cy.intercept('POST', '/v3/projectroletemplatebindings').as('createProjectMembership');
+    projectMembership.submitProjectCreateButton();
+    cy.wait('@createProjectMembership');
+    cy.get('.modal-overlay').should('not.exist');
+
+    cy.get('body tbody').then((el) => {
+      if (el.find('tr.no-rows').is(':visible')) {
+        cy.reload();
+      }
+
+      projectMembership.projectTable().rowElementWithName(username).find('td:nth-of-type(3)').first()
+        .invoke('text')
+        .then((t) => {
+          expect(t).to.include('Create Namespaces');
+          expect(t).to.include('Manage Config Maps');
+        });
+    });
   });
 });
