@@ -11,7 +11,7 @@ export default function(plugin: IPlugin): void {
   plugin.metadata = require('./package.json');
 
   // Built-in icon
-  plugin.metadata.icon = require('./assets/icon.svg');  
+  plugin.metadata.icon = require('./assets/icon.svg');
 
   // Register custom provisioner object
   plugin.register('provisioner', EditImportedGenericCluster.ID, EditImportedGenericCluster);
