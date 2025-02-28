@@ -97,6 +97,7 @@ export default {
     :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
     :tabindex="isDisabled ? -1 : 0"
+    @keydown.space.prevent
     @keyup.enter.space.stop="handleKeyup($event)"
   >
     <label class="text-label"><t
