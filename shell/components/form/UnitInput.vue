@@ -252,7 +252,6 @@ export default {
 
 <style lang="scss" scoped>
   .addon.with-tooltip {
-    position: relative;
-    right: 30px;
+    padding-right: 42px;
   }
 </style>

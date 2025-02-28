@@ -164,6 +164,9 @@ export default {
 
     .labeled-input {
       .addon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding-left: 12px;
         min-width: 65px;
 

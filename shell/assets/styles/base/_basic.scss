@@ -73,6 +73,7 @@ INPUT,
 .unlabeled-select {
   &:focus-visible, &.focused {
     @include focus-outline;
+    outline-offset: -1px;
   }
 }
 
