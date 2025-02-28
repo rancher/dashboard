@@ -14,7 +14,7 @@ const mockCtx = {
 
 describe('fx: requiredInCluster', () => {
   it('returns an error message containing the field label if field is not defined in cluster', () => {
-    const mockCtx = { normanCluster: {} };
+    const mockCtx = { };
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');
@@ -23,7 +23,7 @@ describe('fx: requiredInCluster', () => {
   });
 
   it('returns undefined if field is defined in cluster', () => {
-    const mockCtx = { normanCluster: { spec: 'abc' } };
+    const mockCtx = { spec: 'abc' } ;
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');
@@ -68,9 +68,9 @@ describe('fx: resourceGroupChars', () => {
     ['rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-ra!', MOCK_TRANSLATION],
     ['test-####-test', MOCK_TRANSLATION],
   ])('returns an error message if node resource group includes invalid characters', (nodeGroupName, validatorMsg) => {
-    const ctx = { ...mockCtx, normanCluster: { aksConfig: { nodeGroupName } } };
+    const ctx = { ...mockCtx, config: { nodeGroupName } };
 
-    const validator = validators.resourceGroupChars(ctx, '', 'aksConfig.nodeGroupName');
+    const validator = validators.resourceGroupChars(ctx, '', 'config.nodeGroupName');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
@@ -87,9 +87,9 @@ describe('fx: privateDnsZone', () => {
     ['privatelink.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION]
   ])('returns an error message if the private dns zone does not match privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io', (privateDnsZone, validatorMsg) => {
-    const ctx = { ...mockCtx, normanCluster: { aksConfig: { privateDnsZone } } };
+    const ctx = { ...mockCtx, config: { privateDnsZone } };
 
-    const validator = validators.privateDnsZone(ctx, '', 'aksConfig.privateDnsZone');
+    const validator = validators.privateDnsZone(ctx, '', 'config.privateDnsZone');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
