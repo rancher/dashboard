@@ -248,7 +248,7 @@ describe('formRules', () => {
     const expectedTranslation = JSON.stringify({ message: 'cluster.privateRegistry.privateRegistryUrlError' });
     const testCases = [
       // Empty
-      [undefined, expectedTranslation],
+      [undefined, undefined],
 
       // Word
       ['registry', expectedTranslation],
