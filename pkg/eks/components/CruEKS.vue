@@ -203,7 +203,13 @@ export default defineComponent({
       fvFormRuleSets:    isImport ? [{
         path:  'name',
         rules: ['nameRequired'],
-      }] : [{
+      },
+      // eks cluster name when choosing a cluster to register
+      {
+        path:  'displayName',
+        rules: ['displayNameRequired'],
+      }
+      ] : [{
         path:  'name',
         rules: ['nameRequired'],
       },
@@ -323,6 +329,7 @@ export default defineComponent({
 
       if (this.hasCredential) {
         out = {
+          displayNameRequired:    EKSValidators.displayNameRequired(this),
           nameRequired:           EKSValidators.clusterNameRequired(this),
           nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
           nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
@@ -678,6 +685,7 @@ export default defineComponent({
           :credential="config.amazonCredentialSecret"
           :mode="mode"
           :region="config.region"
+          :rules="{ displayName: fvGetAndReportPathRules('displayName') }"
           @error="e=>errors.push(e)"
         />
       </Accordion>

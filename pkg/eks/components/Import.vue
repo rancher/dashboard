@@ -40,6 +40,13 @@ export default {
     enableNetworkPolicy: {
       type:    Boolean,
       default: false
+    },
+
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -84,7 +91,7 @@ export default {
       }
 
       this.loadingClusters = false;
-    },
+    }
   }
 };
 </script>
@@ -99,13 +106,15 @@ export default {
         :value="clusterName"
         :options="clusters"
         label-key="eks.import.label"
+        :rules="rules.displayName"
         @selecting="$emit('update:clusterName', $event)"
       />
       <LabeledInput
         v-else
         label-key="eks.import.label"
         :value="clusterName"
-        @input="$emit('update:clusterName', $event)"
+        :rules="rules.displayName"
+        @update:value="$emit('update:clusterName', $event)"
       />
     </div>
     <div class="col span-6 ">

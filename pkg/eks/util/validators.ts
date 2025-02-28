@@ -8,9 +8,15 @@ export interface CruEKSContext {
   normanCluster: NormanCluster
 }
 
+const displayNameRequired = (ctx: CruEKSContext) => {
+  return (): string | null => {
+    return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
+  };
+};
+
 const clusterNameRequired = (ctx: CruEKSContext) => {
   return (): string | null => {
-    return !ctx.normanCluster.name ? ctx.t('validation.required', { key: ctx.t('nameNsDescription.name.label') }) : null;
+    return !ctx.normanCluster?.name ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
   };
 };
 
@@ -171,6 +177,7 @@ const nodeGroupsRequired = (ctx: CruEKSContext) => {
 };
 
 export default {
+  displayNameRequired,
   clusterNameRequired,
   nodeGroupNamesRequired,
   nodeGroupNamesUnique,
