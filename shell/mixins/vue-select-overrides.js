@@ -20,6 +20,9 @@ export default {
 
       // escape
       (out[27] = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         vm.open = false;
         vm.search = '';
 

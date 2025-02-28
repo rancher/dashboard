@@ -968,6 +968,10 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    browseBtn: Browse
+    featuredBtn: Featured
+    featuredAriaLabel: Show Featured Charts Carousel and charts grid
+    browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
     refresh: refresh charts
     all: All
@@ -6311,7 +6315,7 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
-    resizeShellWindow: Resize Shell window
+    resizeShellWindow: Resize Shell window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
     tabIcon: Shell tab icon
     closeShellTab: Close Shell tab - {tab}
     escapeText: Press Escape key to blur from terminal

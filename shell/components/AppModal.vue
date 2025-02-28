@@ -61,15 +61,6 @@ export default defineComponent({
       default: '',
     },
     /**
-     * pass codemirror yaml editor reference (optional)
-     * will be used to prevent "escape" from triggering modal closing
-     * IF there's an instance of codemirror focused on this modal
-     */
-    yamlEditor: {
-      type:    Object,
-      default: () => {},
-    },
-    /**
      * trigger focus trap
      */
     triggerFocusTrap: {
@@ -160,9 +151,7 @@ export default defineComponent({
       }
     },
     handleEscapeKey(event: KeyboardEvent) {
-      if (this.clickToClose &&
-        (!this.yamlEditor || !Object.keys(this.yamlEditor).length || (Object.keys(this.yamlEditor).length && !this.yamlEditor.hasFocus())) &&
-        event.key === 'Escape') {
+      if (this.clickToClose && event.key === 'Escape') {
         this.$emit('close');
       }
     },

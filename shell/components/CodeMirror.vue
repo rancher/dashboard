@@ -123,12 +123,16 @@ export default {
   },
 
   async mounted() {
-    document.addEventListener('keyup', this.handleKeyPress);
+    const el = this.$refs.codeMirrorContainer;
+
+    el.addEventListener('keydown', this.handleKeyPress);
     this.codeMirrorContainerRef = this.$refs.codeMirrorContainer;
   },
 
   beforeUnmount() {
-    document.removeEventListener('keyup', this.handleKeyPress);
+    const el = this.$refs.codeMirrorContainer;
+
+    el.removeEventListener('keydown', this.handleKeyPress);
   },
 
   watch: {
@@ -158,11 +162,10 @@ export default {
     },
 
     handleKeyPress(ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
-
       // make focus leave the editor for it's parent container so that we can tab
       if (this.isCodeMirrorFocused && ev.code === 'Escape') {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.$refs?.codeMirrorContainer?.focus();
       }
 

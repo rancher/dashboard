@@ -58,12 +58,14 @@ export default {
       showHidden:      null,
       chartOptions:    [
         {
-          label: 'Browse',
-          value: 'browse',
+          label:     this.t('catalog.charts.browseBtn'),
+          value:     'browse',
+          ariaLabel: this.t('catalog.charts.browseAriaLabel')
         },
         {
-          label: 'Featured',
-          value: 'featured'
+          label:     this.t('catalog.charts.featuredBtn'),
+          value:     'featured',
+          ariaLabel: this.t('catalog.charts.featuredAriaLabel')
         }
       ]
     };

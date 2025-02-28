@@ -70,6 +70,13 @@ export default {
       const label = opt.labelKey ? this.t(opt.labelKey) : opt.label;
 
       return tooltip || label || '';
+    },
+    actionAriaLabel(opt) {
+      const ariaLabel = opt.ariaLabel;
+      const label = opt.labelKey ? this.t(opt.labelKey) : opt.label;
+      const tooltip = opt.tooltipKey ? this.t(opt.tooltipKey) : opt.tooltip;
+
+      return ariaLabel || tooltip || label || undefined;
     }
   }
 };
@@ -89,7 +96,7 @@ export default {
       :class="opt.class"
       :disabled="disabled || opt.disabled"
       role="button"
-      :aria-label="actionDescription(opt)"
+      :aria-label="actionAriaLabel(opt)"
       @click="change(opt.value)"
     >
       <slot
@@ -100,7 +107,7 @@ export default {
         <i
           v-if="opt.icon"
           :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }"
-          :alt="actionDescription(opt)"
+          :alt="actionAriaLabel(opt)"
         />
         <t
           v-if="opt.labelKey"
