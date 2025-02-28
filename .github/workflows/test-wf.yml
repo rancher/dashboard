@@ -32,7 +32,9 @@ jobs:
       matrix:
         branch: [master, release-2.9, release-2.8]
     outputs:
-      status-${{ matrix.branch }}: ${{ job.status }}
+      status-master: ${{ job.status }}
+      status-release-2.9: ${{ job.status }}
+      status-release-2.8: ${{ job.status }}
     steps:
       - name: Checkout ${{ matrix.branch }}
         uses: actions/checkout@v4
