@@ -483,7 +483,7 @@ export default class GitRepo extends SteveModel {
         stateBackground: color,
         stateDisplay:    display,
         stateSort:       stateSort(color, display),
-        detailLocation,
+        detailLocation:  !state || state === STATES_ENUM.MISSING ? undefined : detailLocation,
       };
     });
   }
