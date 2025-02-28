@@ -9,7 +9,7 @@ import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
-import ActionMenu from '@shell/components/ActionMenu';
+import ActionMenu from '@shell/components/ActionMenuShell';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
@@ -693,25 +693,11 @@ export default {
         </div>
         <!-- extensions menu -->
         <div v-if="hasFeatureFlag && hasMenuActions">
-          <button
-            ref="actions"
-            aria-haspopup="true"
-            type="button"
-            class="btn role-multi-action actions"
-            data-testid="extensions-page-menu"
-            role="button"
-            :aria-label="t('plugins.labels.menu')"
-            @click="setMenu"
-          >
-            <i class="icon icon-actions" />
-          </button>
           <ActionMenu
+            data-testid="extensions-page-menu"
+            button-role="tertiary"
+            :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
-            :open="menuOpen"
-            :use-custom-target-element="true"
-            :custom-target-element="menuTargetElement"
-            :custom-target-event="menuTargetEvent"
-            @close="setMenu(false)"
             @devLoad="showDeveloperLoadDialog"
             @manageRepos="manageRepos"
             @addRancherRepos="showAddExtensionReposDialog"
