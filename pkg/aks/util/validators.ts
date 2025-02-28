@@ -18,7 +18,7 @@ export const requiredTranslation = (ctx: any, labelKey = 'Value'): String => {
 
 export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :String | undefined => {
-    return needsValidation(ctx) && clusterPath && !get(ctx.normanCluster, clusterPath) ? requiredTranslation(ctx, labelKey) : undefined;
+    return needsValidation(ctx) && clusterPath && !get(ctx, clusterPath) ? requiredTranslation(ctx, labelKey) : undefined;
   };
 };
 
@@ -54,7 +54,7 @@ export const clusterNameLength = (ctx: any) => {
 
 export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
-    const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
+    const resourceGroup = get(ctx, clusterPath) || '';
 
     const isValid = resourceGroup.length <= 80;
 
@@ -66,7 +66,7 @@ export const resourceGroupLength = (ctx: any, labelKey:string, clusterPath:strin
 // https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources
 export const resourceGroupChars = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
-    const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
+    const resourceGroup = get(ctx, clusterPath) || '';
     const isValid = resourceGroup.match(/^[A-Za-z0-9\p{Lu}\p{Ll}\p{Lt}\p{Lo}\p{Lm}\p{Nd}\.\-_(\)]*$/);
 
     return isValid || !resourceGroup.length ? undefined : ctx.t('aks.errors.resourceGroup.chars', { key: ctx.t(labelKey) });
@@ -75,7 +75,7 @@ export const resourceGroupChars = (ctx: any, labelKey:string, clusterPath:string
 
 export const resourceGroupEnd = (ctx: any, labelKey:string, clusterPath:string) => {
   return () :string | undefined => {
-    const resourceGroup = get(ctx.normanCluster, clusterPath) || '';
+    const resourceGroup = get(ctx, clusterPath) || '';
 
     const isValid = !resourceGroup.match(/^.*\.+$/u);
 
@@ -97,7 +97,7 @@ export const ipv4WithOrWithoutCidr = (ctx: any) => {
 
 export const ipv4WithoutCidr = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
-    const toValidate = get(ctx.normanCluster, clusterPath) || '';
+    const toValidate = get(ctx, clusterPath) || '';
 
     const isValid = toValidate.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$/);
 
@@ -107,7 +107,7 @@ export const ipv4WithoutCidr = (ctx: any, labelKey: string, clusterPath: string)
 
 export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
-    const toValidate = get(ctx.normanCluster, clusterPath) || '';
+    const toValidate = get(ctx, clusterPath) || '';
 
     const isValid = toValidate.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))$/);
 
@@ -117,8 +117,8 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
 
 export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
-    const outboundType = get(ctx.normanCluster, clusterPath) as OutboundType;
-    const loadBalancerSku = get(ctx.normanCluster, 'aksConfig.loadBalancerSku') as LoadBalancerSku;
+    const outboundType = get(ctx, clusterPath) as OutboundType;
+    const loadBalancerSku = get(ctx, 'aksConfig.loadBalancerSku') as LoadBalancerSku;
 
     if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefinedRouting') {
       return ctx.t('aks.errors.outboundType');
@@ -131,7 +131,7 @@ export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath:
 // https://learn.microsoft.com/en-us/azure/aks/private-clusters?tabs=azure-portal#configure-a-private-dns-zone
 export const privateDnsZone = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
-    const toValidate = (get(ctx.normanCluster, clusterPath) || '').toLowerCase();
+    const toValidate = (get(ctx, clusterPath) || '').toLowerCase();
     const subscriptionRegex = /^\/subscriptions\/.+\/resourcegroups\/.+\/providers\/microsoft\.network\/privatednszones\/([a-zA-Z0-9-]{1,32}\.){0,32}private(link){0,1}\.[a-zA-Z0-9]+\.azmk8s\.io$/;
     const isValid = toValidate.match(subscriptionRegex) || toValidate === 'system';
 
