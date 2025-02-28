@@ -47,7 +47,7 @@ export interface EKSConfig {
   kmsKey?: string,
   kubernetesVersion?: string,
   loggingTypes?: string[],
-  nodeGroups?: EKSNodeGroup[]
+  nodeGroups?: EKSNodeGroup[] | null,
   privateAccess?: boolean,
   publicAccess?: boolean,
   publicAccessSources?: string[],
@@ -67,6 +67,7 @@ export interface NormanCluster extends NormanModel {
   fleetAgentDeploymentCustomization?: any,
   clusterAgentDeploymentCustomization?: any,
   id?: string,
+  enableNetworkPolicy?: boolean,
   status? : {[key:string]: any},
   eksStatus?: {[key:string]:any},
   waitForCondition(name: any, withStatus?: string | undefined, timeoutMs?: number | undefined, intervalMs?: number | undefined): Promise<void>
