@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branch: [master, release-2.9, release-2.8]
+        branch: [master]
     outputs:
       status-master: ${{ job.status }}
       status-release-2.9: ${{ job.status }}
