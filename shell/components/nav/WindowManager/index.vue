@@ -348,7 +348,7 @@ export default {
         class="resizer resizer-x"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -357,7 +357,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow')"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
       <div
@@ -395,7 +395,7 @@ export default {
         class="resizer resizer-y"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
@@ -405,7 +405,7 @@ export default {
       >
         <i
           class="icon icon-sort"
-          :alt="t('wm.containerShell.resizeShellWindow')"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         />
       </div>
       <div
@@ -413,7 +413,7 @@ export default {
         class="resizer resizer-x resizer-align-right"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow')"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -422,7 +422,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow')"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
     </div>

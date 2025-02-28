@@ -6315,7 +6315,7 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
-    resizeShellWindow: Resize Shell window
+    resizeShellWindow: Resize Shell window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
     tabIcon: Shell tab icon
     closeShellTab: Close Shell tab - {tab}
     escapeText: Press Escape key to blur from terminal
