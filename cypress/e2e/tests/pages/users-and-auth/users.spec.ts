@@ -124,14 +124,23 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
-      // Deactivate user and check state is Inactive
       usersPo.goTo();
 
-      usersPo.list().actionMenu(standardUsername).getMenuItem('Disable').click();
+      let menu = usersPo.list().actionMenu(standardUsername);
+
+      // Deactivate user and check state is Inactive
+      menu.checkVisible();
+      menu.getMenuItem('Disable').click();
+      menu.checkNotExists();
+
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
       // Activate user and check state is Active
-      usersPo.list().actionMenu(standardUsername).getMenuItem('Enable').click();
+      menu = usersPo.list().actionMenu(standardUsername);
+      menu.checkVisible();
+      menu.getMenuItem('Enable').click();
+      menu.checkNotExists();
+
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
 

@@ -21,13 +21,13 @@ describe('component: Collapse.vue', () => {
   describe('collapsed', () => {
     const wrapper = mount(Collapse, { props: { open: true } });
 
-    it('is collapse', () => {
+    it('is collapsed', () => {
       const content = wrapper.find(`[data-testid="collapse-content"]`);
 
       expect(content.element).toBeDefined();
     });
 
-    it('icon should is chevron down', () => {
+    it('icon is chevron down', () => {
       const icon = wrapper.find(`[data-testid="collapse-icon-down"]`);
 
       expect(icon.element).toBeDefined();
