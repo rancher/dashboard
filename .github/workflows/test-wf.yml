@@ -26,7 +26,6 @@ jobs:
   #       shell: bash
 
   branch-checks:
-    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,10 +42,9 @@ jobs:
 
       - name: Validate workflows
         shell: bash
-        run: source ./.github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
   
   matching-creators-workflows:
-    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     needs: [branch-checks]
     outputs:
