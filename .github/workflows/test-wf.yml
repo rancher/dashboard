@@ -1,0 +1,43 @@
+name: Test Extension workflows - Master (3.x) - TEST!!!
+
+on:
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  test-extensions-creators-and-update-paths:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    outputs:
+      test-extensions-creators-and-update-paths-job-status: ${{ job.status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Retrieve Shell and Creators versions
+        run: .github/workflows/scripts/test-extensions-creators-build.sh
+        id: test-extensions-and-creators
+        shell: bash
+
+  branch-checks:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [master, release-2.9, release-2.8]
+    outputs:
+      status-${{ matrix.branch }}: ${{ job.status }}
+    steps:
+      - name: Checkout ${{ matrix.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Validate workflows
+        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
