@@ -4,7 +4,7 @@ set -eo pipefail
 echo "inside script!!!"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 CREATOR_WORKFLOWS_DIR="$BASE_DIR/creators/extension/app/files/.github/workflows"
 WORKFLOW_BRANCH="$1"
 
