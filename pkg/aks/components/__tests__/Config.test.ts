@@ -1,6 +1,6 @@
 import semver from 'semver';
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper, mount } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import Config from '@pkg/aks/components/Config.vue';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockVersionsSorted } from '../../util/__mocks__/aks';
