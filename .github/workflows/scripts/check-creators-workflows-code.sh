@@ -22,7 +22,7 @@ defaults:
 
 jobs:
   build-extension-charts:
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@$WORKFLOW_BRANCH
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
     permissions:
       actions: write
       contents: write
@@ -50,7 +50,7 @@ defaults:
 
 jobs:
   build-extension-catalog:
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@$WORKFLOW_BRANCH
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
     permissions:
       actions: write
       contents: read
