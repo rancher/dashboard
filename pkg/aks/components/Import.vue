@@ -9,7 +9,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 export default defineComponent({
   name: 'AKSImport',
 
-  emits: ['update:clusterName', 'update:resourceGroup', 'update:resourceLocation', 'update:enableNetworkPolicy'],
+  emits: ['update:clusterName', 'update:resourceGroup', 'update:resourceLocation', 'update:enableNetworkPolicy', 'error'],
 
   components: {
     LabeledSelect, Banner, Checkbox
@@ -74,7 +74,12 @@ export default defineComponent({
   methods: {
     async getClusters() {
       this.loadingClusters = true;
-      this.allClusters = await getAKSClusters(this.$store, this.azureCredentialSecret);
+
+      try {
+        this.allClusters = await getAKSClusters(this.$store, this.azureCredentialSecret);
+      } catch (err) {
+        this.$emit('error', err);
+      }
       this.loadingClusters = false;
     },
 

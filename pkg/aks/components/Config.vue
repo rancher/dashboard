@@ -160,7 +160,7 @@ export default defineComponent({
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      setAuthorizedIpRanges:  false,
+      setAuthorizedIPRanges:  false,
       networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
       fvFormRuleSets:         [
 

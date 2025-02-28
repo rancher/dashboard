@@ -466,12 +466,14 @@ export default defineComponent({
       <Import
         v-if="isImport"
         v-model:cluster-name="config.clusterName"
+
         v-model:resource-group="config.resourceGroup"
         v-model:resource-location="config.resourceLocation"
         v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
         :azure-credential-secret="config.azureCredentialSecret"
         :rules="{clusterName: fvGetAndReportPathRules('clusterName')}"
         :mode="mode"
+        @error="e=>errors.push(e)"
       />
       <Config
         v-else
