@@ -216,7 +216,8 @@ export default {
 
       switch (this.view) {
       case TABS_VALUES.INSTALLED:
-        return all.filter((p) => !!p.installed || !!p.installing);
+        // We never show built-in extensions as installed - installed are just the ones the user has installed
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
       case TABS_VALUES.UPDATES:
         return this.updates;
       case TABS_VALUES.AVAILABLE:
