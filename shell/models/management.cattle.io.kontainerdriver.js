@@ -29,6 +29,13 @@ export const KONTAINER_TO_DRIVER = {
   opentelekomcloudcontainerengine:  'otccce',
 };
 
+// Legacy KEV1 Hosted cluster drivers
+export const KEV1 = [
+  'amazonelasticcontainerservice',
+  'azurekubernetesservice',
+  'googlekubernetesengine',
+];
+
 // And the Import page has even shorter ones that don't match kontainer or create...
 export const DRIVER_TO_IMPORT = {
   googlegke: 'gke',
