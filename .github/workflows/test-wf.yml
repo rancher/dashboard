@@ -42,4 +42,22 @@ jobs:
           ref: ${{ matrix.branch }}
 
       - name: Validate workflows
-        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+        shell: bash
+        run: source ./.github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+  
+  matching-creators-workflows:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    needs: [branch-checks]
+    outputs:
+      matching-creators-workflows-job-status: ${{ steps.aggregate.outputs.result }}
+    steps:
+      - name: Aggregate results
+        id: aggregate
+        run: |
+          # Check all branch check outcomes
+          if [[ '${{ needs.branch-checks.result }}' == 'failure' ]]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          else
+            echo "result=success" >> $GITHUB_OUTPUT
+          fi
