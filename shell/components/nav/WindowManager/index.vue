@@ -302,6 +302,7 @@ export default {
       this.height = height;
 
       this.setWmDimensions(height);
+      this.setReportedHeight(height);
     },
 
     resizeHorizontal(arrowLeft) {
@@ -317,6 +318,7 @@ export default {
       this.width = width;
 
       this.setWmDimensions(width);
+      this.setReportedWidth(width);
     }
   }
 };
