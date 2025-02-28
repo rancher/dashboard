@@ -124,6 +124,14 @@ export default defineComponent({
     },
   },
 
+  fetch() {
+    this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
+
+    if (this.config.managedIdentity) {
+      this.networkingAuthMode = NETWORKING_AUTH_MODES.MANAGED_IDENTITY;
+    }
+  },
+
   data() {
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
@@ -152,7 +160,7 @@ export default defineComponent({
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      setAuthorizedIPRanges:  false,
+      setAuthorizedIpRanges:  false,
       networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
       fvFormRuleSets:         [
 

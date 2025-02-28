@@ -45,8 +45,8 @@ export const clusterNameStartEnd = (ctx: any) => {
 
 export const clusterNameLength = (ctx: any) => {
   return () : string | undefined => {
-    const { name = '' } = get(ctx, 'normanCluster');
-    const isValid = name.length <= 63;
+    const { clusterName = '' } = get(ctx, 'config');
+    const isValid = clusterName.length <= 63;
 
     return isValid ? undefined : ctx.t('aks.errors.clusterName.length');
   };

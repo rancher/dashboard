@@ -54,6 +54,7 @@ export interface AKSConfig {
   loadBalancerSku?: LoadBalancerSku,
   logAnalyticsWorkspaceGroup?: string,
   logAnalyticsWorkspaceName?: string,
+  managedIdentity?:string,
   monitoring?: boolean,
   networkPlugin?: string,
   networkPolicy?: string,
