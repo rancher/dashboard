@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Retrieve Shell and Creators versions
-        run: .github/workflows/scripts/test-extensions-creators-build.sh
+        run: ./.github/workflows/scripts/test-extensions-creators-build.sh
         id: test-extensions-and-creators
         shell: bash
 
@@ -42,4 +42,4 @@ jobs:
           ref: ${{ matrix.branch }}
 
       - name: Validate workflows
-        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+        run: ./.github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
