@@ -252,14 +252,6 @@ export default defineComponent({
     };
   },
 
-  //   created() {
-  //     const registerBeforeHook = this.registerBeforeHook as Function;
-  //     const registerAfterHook = this.registerAfterHook as Function;
-
-  //     registerBeforeHook(this.removeUnchangedConfigFields);
-  //     registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
-  //   },
-
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
