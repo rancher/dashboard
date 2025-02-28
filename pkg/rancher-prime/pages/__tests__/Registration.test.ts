@@ -1,6 +1,7 @@
 import Registration from '../Registration.vue';
 import { DOMWrapper, shallowMount, VueWrapper } from '@vue/test-utils';
 
+// Mock for useI18n
 jest.mock('vuex', () => ({
   useStore: () => {
     jest.fn();
@@ -8,7 +9,7 @@ jest.mock('vuex', () => ({
 }));
 
 describe('page: Registration', () => {
-  let wrapper: VueWrapper<any >;
+  let wrapper: VueWrapper<any>;
   let registerOnlineButton: DOMWrapper<Element>;
   let registerOnlineInput: DOMWrapper<Element>;
   let registerOfflineButton: DOMWrapper<Element>;
@@ -35,11 +36,13 @@ describe('page: Registration', () => {
   });
 
   describe('given no data', () => {
-    it('should prevent new online request given no registration code', () => {
+    it('should prevent new online request', () => {
       expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
     });
 
-    it('should allow new online request', () => {
+    it('should allow new online request given a registration code', async() => {
+      wrapper.vm.registrationCode = 'whatever';
+      await wrapper.vm.$nextTick();
       expect(registerOnlineButton.attributes().disabled).toStrictEqual('false');
     });
 
@@ -56,17 +59,20 @@ describe('page: Registration', () => {
     });
 
     it('should not display deregistration button online', () => {
-      expect(deregisterButtonOnline).not.toBeDefined();
+      expect(deregisterButtonOnline.exists()).toBe(false);
     });
 
     it('should not display deregistration button offline', () => {
-      expect(deregisterButtonOffline).not.toBeDefined();
+      expect(deregisterButtonOffline.exists()).toBe(false);
     });
   });
 
   describe('given registration online', () => {
+    beforeEach(() => {
+      wrapper.vm.registrationStatus = 'registered-online';
+    });
     it('should not display registration button', () => {
-      expect(registerOnlineButton).not.toBeDefined();
+      expect(registerOnlineButton.exists()).toBe(false);
     });
 
     it('should prevent to type the registration code', () => {
@@ -84,11 +90,15 @@ describe('page: Registration', () => {
     it('should display the expiration status', () => {
       expect(expirationOnline.element).toBeDefined();
     });
+
+    it('should display deregistration button online', () => {
+      expect(deregisterButtonOnline.exists()).toBe(true);
+    });
   });
 
   describe('given registration offline', () => {
     it('should not display registration button', () => {
-      expect(registerOfflineButton).not.toBeDefined();
+      expect(registerOfflineButton.exists()).toBe(false);
     });
 
     it('should prevent to type the registration code', () => {
@@ -110,6 +120,10 @@ describe('page: Registration', () => {
     it('should display the expiration status', () => {
       expect(expirationOffline.element).toBeDefined();
     });
+
+    it('should display deregistration button offline', () => {
+      expect(deregisterButtonOffline.exists()).toBe(true);
+    });
   });
 
   describe('while registering online', () => {
@@ -122,11 +136,11 @@ describe('page: Registration', () => {
     });
 
     it('should not display deregistration button online', () => {
-      expect(deregisterButtonOnline).not.toBeDefined();
+      expect(deregisterButtonOnline.exists()).toBe(false);
     });
 
     it('should not display deregistration button offline', () => {
-      expect(deregisterButtonOffline).not.toBeDefined();
+      expect(deregisterButtonOffline.exists()).toBe(false);
     });
   });
 
@@ -140,11 +154,11 @@ describe('page: Registration', () => {
     });
 
     it('should not display deregistration button online', () => {
-      expect(deregisterButtonOnline).not.toBeDefined();
+      expect(deregisterButtonOnline.exists()).toBe(false);
     });
 
     it('should not display deregistration button offline', () => {
-      expect(deregisterButtonOffline).not.toBeDefined();
+      expect(deregisterButtonOffline.exists()).toBe(false);
     });
   });
 
