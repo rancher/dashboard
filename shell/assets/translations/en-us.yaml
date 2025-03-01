@@ -2625,6 +2625,8 @@ fleet:
     tabs:
       restrictions: Allowed Target Namespaces
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
+    remove:
+      warning: 'Clusters will be un-provisioned from Rancher and all other Fleet resources included in selected {count, plural, =1 { workspace } other { workspaces } } will be removed.'
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
