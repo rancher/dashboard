@@ -2,7 +2,7 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 CREATOR_WORKFLOWS_DIR="$BASE_DIR/creators/extension/app/files/.github/workflows"
 WORKFLOW_BRANCH="$1"
 
@@ -22,7 +22,7 @@ defaults:
 
 jobs:
   build-extension-charts:
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@$WORKFLOW_BRANCH
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
     permissions:
       actions: write
       contents: write
@@ -50,7 +50,7 @@ defaults:
 
 jobs:
   build-extension-catalog:
-    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@$WORKFLOW_BRANCH
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
     permissions:
       actions: write
       contents: read
@@ -78,6 +78,10 @@ compare_files() {
 main() {
   charts_expected=$(generate_proper_charts)
   catalog_expected=$(generate_proper_catalog)
+
+  echo "SCRIPT_DIR: $SCRIPT_DIR"
+  echo "BASE_DIR: $BASE_DIR"
+  echo "CREATOR_WORKFLOWS_DIR: $CREATOR_WORKFLOWS_DIR"
 
   compare_files "$charts_expected" \
     "$CREATOR_WORKFLOWS_DIR/build-extension-charts.yml" \
