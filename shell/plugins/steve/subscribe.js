@@ -410,7 +410,8 @@ const sharedActions = {
     // That revision is probably too old and results in a watch error
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+    // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+    if (typeof revision === 'undefined') { // TODO: RC
       revision = getters.nextResourceVersion(type, id);
     }
 
@@ -596,7 +597,7 @@ const defaultActions = {
 
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
-    const opt = { force: true, forceWatch: true };
+    const opt = { force: true, forceWatch: true }; // TODO: RC forceWatch?
 
     if ( id ) {
       await dispatch('find', {
@@ -623,17 +624,33 @@ const defaultActions = {
         opt,
       });
     } else {
-      have = getters['all'](resourceType).slice();
+      const storePagination = getters['havePage'](resourceType);
 
-      if ( namespace ) {
-        have = have.filter((x) => x.metadata?.namespace === namespace);
+      if (!!storePagination) {
+        have = []; // TODO: RC ensure we don't supplement store / leave stale entries
+
+        const pageOpts = {
+          type: resourceType,
+          opt:  {
+            ...opt,
+            ...storePagination.request
+          }
+        };
+
+        want = await dispatch('findPage', pageOpts);
+      } else {
+        have = getters['all'](resourceType).slice();
+
+        if ( namespace ) {
+          have = have.filter((x) => x.metadata?.namespace === namespace);
+        }
+
+        want = await dispatch('findAll', {
+          type:           resourceType,
+          watchNamespace: namespace,
+          opt
+        });
       }
-
-      want = await dispatch('findAll', {
-        type:           resourceType,
-        watchNamespace: namespace,
-        opt
-      });
     }
 
     const wantMap = {};
@@ -920,6 +937,10 @@ const defaultActions = {
         });
       });
     }
+  },
+
+  'ws.resource.changes'({ dispatch }, msg) {
+    dispatch('resyncWatch', { ...msg });
   },
 
   'ws.resource.remove'(ctx, msg) {
