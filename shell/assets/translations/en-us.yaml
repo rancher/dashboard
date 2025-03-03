@@ -128,6 +128,9 @@ generic:
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
   basic: Basic
+  ariaLabel:
+    key: Key {index}
+    value: Value {index}
 
 locale:
   menu: Locale selector menu
