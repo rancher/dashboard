@@ -107,7 +107,8 @@ export const SETTING = {
   USER_LAST_LOGIN_DEFAULT:              'user-last-login-default',
   DISABLE_INACTIVE_USER_AFTER:          'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:           'delete-inactive-user-after',
-  K3S_UPGRADER_UNINSTALL_CONCURRENCY:   'k3s-based-upgrader-uninstall-concurrency'
+  K3S_UPGRADER_UNINSTALL_CONCURRENCY:   'k3s-based-upgrader-uninstall-concurrency',
+  IMPORTED_CLUSTER_VERSION_MANAGEMENT:  'imported-cluster-version-management'
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -164,9 +165,11 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
     kind:    'integer',
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
-  }
+  },
+  [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]: { kind: 'boolean' }
 };
 
+export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management'];
 /**
  * Settings on how to handle warnings returning in api responses, specifically which to show as growls
  */
