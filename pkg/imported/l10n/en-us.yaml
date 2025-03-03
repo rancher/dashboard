@@ -4,6 +4,30 @@ imported:
   label: Imported
   agentEnv:
     header: Agent Environment Variables
+  basics:
+    versionMismatch: The selected version is lower than the actual version of this cluster.
+    versionManagement:
+      title: K8s version management
+      globalEnabled: Global default (enabled)
+      globalDisabled: Global default (disabled)
+      enabled: Enabled
+      disabled: Disabled
+      banner:
+        create:
+          nonDefault:
+            Future changes to this setting may result in redeployment of the cluster agent.
+          default:
+            Future changes to the system default setting will result in redeployment of the cluster agent.
+        edit:
+          different: This change will trigger cluster agent redeployment.
+          defaultToNonDefault: Future changes to the global setting will not affect the cluster.
+          nonDefaultToDefault: Future changes to the global setting will affect the cluster.
+      summary:
+        globallyEnabled: 'Version management for imported clusters is globally <b>enabled</b>.'
+        globallyDisabled: Version management for imported clusters is globally <b>disabled</b>.
+        canEnable: You can enable it at a cluster level.
+        willEnable: It will be manually <b>ENABLED</b> for this cluster.
+        willDisable: it will be manually <b>DISABLED</b> for this cluster.
   drainWorkerNodes:
     label: Drain Worker Nodes
   drainControlPlaneNodes:
