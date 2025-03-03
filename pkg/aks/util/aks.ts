@@ -48,7 +48,7 @@ export const regionsWithAvailabilityZones = {
  * @param clusterId (optional) norman cluster id
  * @param resource AKS resource to be fetched - one of aksLocations, aksVersions, aksVMSizes, aksVirtualNetworks
  */
-async function getAKSOptions(store: any, azureCredentialSecret: string, resourceLocation: string, resource: string, clusterId?: string) :Promise<any> {
+async function getAKSOptions(store: any, azureCredentialSecret: string, resourceLocation: string | null, resource: string, clusterId?: string) :Promise<any> {
   if (!azureCredentialSecret) {
     return null;
   }
@@ -113,4 +113,14 @@ export async function getAKSKubernetesVersions(store: Store<any>, azureCredentia
  */
 export async function getAKSVirtualNetworks(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVirtualNetworks', clusterId );
+}
+
+/**
+ * Fetch available AKS clusters.
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @returns {[AKSVirtualNetwork]}
+ */
+export async function getAKSClusters(store: Store<any>, azureCredentialSecret: string) :Promise<any> {
+  return getAKSOptions(store, azureCredentialSecret, null, 'aksClusters' );
 }

@@ -850,7 +850,17 @@ asyncButton:
     success: Generated
     waiting: Generating&hellip;
 
-backupRestoreOperator:
+backupRestoreOperator: 
+  backup:
+    label: Resource Set
+    description: The Resource Set determines which resources the backup-restore-operator collects in a backup
+    enableEncryptionWarning: 'Enabling encryption is highly recommended when using <b><i>Full Rancher backup resource set</i></b>, otherwise sensitive information will be backed up as plain-text. <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/reference-guides/backup-restore-configuration/backup-configuration#resourcesets">Read more</a>.'
+    missingResourceSetWarning: The <b><i>{resourceSet}</i></b> resource set doesn't exist, it's possible it has been deleted. Please select a different option.
+    resourceSetOptions: 
+      'rancher-resource-set-basic': 'Basic Rancher backup restore set'
+      'rancher-resource-set-full': 'Full Rancher backup resource set'
+      custom: Custom
+      customResourceSetLabel: Custom Resource Set
   backupFilename: Backup Filename
   deleteTimeout:
     label: Delete Timeout
@@ -968,6 +978,10 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
+    browseBtn: Browse
+    featuredBtn: Featured
+    featuredAriaLabel: Show Featured Charts Carousel and charts grid
+    browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
     refresh: refresh charts
     all: All
@@ -1990,19 +2004,22 @@ cluster:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
     description: "If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
+    importedDescription: "By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
     docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/private_registry\" target=\"_blank\">documentation.</a>"
     docsLinkK3s: "For help configuring private registry mirrors, see the K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">documentation.</a>"
+    privateRegistryUrlError: A registry must be a valid url. Scheme is optional.
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
     aliyun:  Alibaba ACK
     amazonec2: Amazon EC2
     amazoneks: Amazon EKS
+    amazonelasticcontainerservice: Amazon EKS (Unsupported Kev1)
     aws: Amazon
     azure: Azure
     azureaks: Azure AKS
     aks: Azure AKS
-    azurekubernetesservice: Azure AKS
+    azurekubernetesservice: Azure AKS (Unsupported Kev1)
     baiducloudcontainerengine: Baidu CCE
     baidu: Baidu CCE
     cloudca: Cloud.ca
@@ -2016,6 +2033,7 @@ cluster:
     google: Google GCE
     googlegke: Google GKE
     gke: Google GKE
+    googlekubernetesengine: Google GKE (Unsupported Kev1)
     harvester: Harvester
     huaweicce: Huawei CCE
     import: Generic
@@ -6309,7 +6327,7 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
-    resizeShellWindow: Resize Shell window
+    resizeShellWindow: Resize Shell window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
     tabIcon: Shell tab icon
     closeShellTab: Close Shell tab - {tab}
     escapeText: Press Escape key to blur from terminal

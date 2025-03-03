@@ -44,7 +44,10 @@ export default {
     update() {
       this.value.setData('ssh-publickey', this.username);
       this.value.setData('ssh-privatekey', this.password);
-      this.value.setData('known_hosts', this.knownHosts);
+
+      if (this.showKnownHosts) {
+        this.value.setData('known_hosts', this.knownHosts);
+      }
     }
   }
 };
@@ -57,6 +60,7 @@ export default {
         <LabeledInput
           v-model:value="username"
           type="multiline"
+          data-testid="ssh-public-key"
           :label="t('secret.ssh.public')"
           :mode="mode"
           required
@@ -72,6 +76,7 @@ export default {
         <LabeledInput
           v-model:value="password"
           type="multiline"
+          data-testid="ssh-private-key"
           :label="t('secret.ssh.private')"
           :mode="mode"
           required
@@ -90,6 +95,7 @@ export default {
           v-if="showKnownHosts"
           v-model:value="knownHosts"
           type="multiline"
+          data-testid="ssh-known-hosts"
           :label="t('secret.ssh.knownHosts')"
           :mode="mode"
           :placeholder="t('secret.ssh.knownHostsPlaceholder')"

@@ -244,6 +244,33 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  describe('"registryUrl": has the expected output for each input', () => {
+    const expectedTranslation = JSON.stringify({ message: 'cluster.privateRegistry.privateRegistryUrlError' });
+    const testCases = [
+      // Empty
+      [undefined, undefined],
+
+      // Word
+      ['registry', expectedTranslation],
+
+      // Without schema
+      ['registry.io', undefined],
+
+      // With schemas
+      ['http://registry.io', undefined],
+      ['https://registry.io', undefined],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.registryUrl(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   it('"ruleGroups" : returns undefined when rulegroups are supplied', () => {
     const testValue = { groups: ['group1'] };
     const formRuleResult = formRules.ruleGroups(testValue);

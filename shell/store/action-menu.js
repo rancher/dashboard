@@ -41,7 +41,7 @@ export const getters = {
     const map = {};
 
     for ( const node of selected ) {
-      if (node.availableActions) {
+      if (node?.availableActions) {
         for ( const act of node.availableActions ) {
           _add(map, act);
         }

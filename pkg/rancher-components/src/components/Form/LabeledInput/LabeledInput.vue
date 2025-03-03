@@ -105,6 +105,15 @@ export default defineComponent({
     class: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * Optionally use this to comply with a11y IF there's no label
+     * associated with the input
+     */
+    ariaLabel: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -364,6 +373,7 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-bind="$attrs"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :value="value || ''"
@@ -378,6 +388,7 @@ export default defineComponent({
         v-else
         :id="inputId"
         ref="value"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         role="textbox"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
