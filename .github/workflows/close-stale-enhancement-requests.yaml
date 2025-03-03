@@ -1,0 +1,24 @@
+name: Close Stale `kind/enhancement` issues
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Every 4 hours until we go through all the issues (The action is rate limited). After we go through all the issues we should probably run this once a day or maybe week.
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          debug-only: true # Dry-run
+          exempt-issue-labels: "JIRA" # We don't want to close jira issues as these came from customers
+          stale-issue-label: "kind/enhancement"
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          days-before-issue-stale: 548
+          days-before-issue-close: 0
+          close-issue-label: "auto-close"
+          close-issue-message: "We're closing this enhancement because it hasn't been active nor has been prioritized in over 1.5 years. If this enhancement is still needed in the latest version of Rancher, please re-open and let us know why you think this should be prioritized. Upon this enhancement being re-opened we'll review it and provide an update."
