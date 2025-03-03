@@ -13,41 +13,41 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
   });
 
-  //   it('can toggle harvester feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-  //     // Check Current State: should be active by default
-  //     FeatureFlagsPagePo.navTo();
-  //     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
+  it('can toggle harvester feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Check Current State: should be active by default
+    FeatureFlagsPagePo.navTo();
+    featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
 
-  //     // Deactivate
-  //     featureFlagsPage.list().clickRowActionMenuItem('harvester', 'Deactivate');
-  //     featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'harvester', false);
+    // Deactivate
+    featureFlagsPage.list().clickRowActionMenuItem('harvester', 'Deactivate');
+    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'harvester', false);
 
-  //     // Check Updated State: should be disabled
-  //     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Disabled');
+    // Check Updated State: should be disabled
+    featureFlagsPage.list().details('harvester', 0).should('include.text', 'Disabled');
 
-  //     // Check side nav
-  //     BurgerMenuPo.toggle();
-  //     const virtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
+    // Check side nav
+    BurgerMenuPo.toggle();
+    const virtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
 
-  //     virtualizationMgmtNavItem.should('not.exist');
+    virtualizationMgmtNavItem.should('not.exist');
 
-  //     // Activate
-  //     BurgerMenuPo.toggle();
-  //     featureFlagsPage.list().clickRowActionMenuItem('harvester', 'Activate');
-  //     featureFlagsPage.clickCardActionButtonAndWait('Activate', 'harvester', true);
+    // Activate
+    BurgerMenuPo.toggle();
+    featureFlagsPage.list().clickRowActionMenuItem('harvester', 'Activate');
+    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'harvester', true);
 
-  //     // Check Updated State: should be active
-  //     featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
+    // Check Updated State: should be active
+    featureFlagsPage.list().details('harvester', 0).should('include.text', 'Active');
 
-  //     // we now need to reload the page in order to catch the update of the product on the side-nav
-  //     cy.reload();
+    // we now need to reload the page in order to catch the update of the product on the side-nav
+    cy.reload();
 
-  //     // Check side nav
-  //     BurgerMenuPo.toggle();
-  //     const newVirtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
+    // Check side nav
+    BurgerMenuPo.toggle();
+    const newVirtualizationMgmtNavItem = burgerMenu.links().contains('Virtualization Management');
 
-  //     newVirtualizationMgmtNavItem.should('be.visible');
-  //   });
+    newVirtualizationMgmtNavItem.should('be.visible');
+  });
 
   it('can toggle harvester-baremetal-container-workload feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
