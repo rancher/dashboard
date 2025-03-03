@@ -5,10 +5,11 @@ import PodAffinity from '@shell/components/form/PodAffinity';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import Tolerations from '@shell/components/form/Tolerations';
+import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 import { cleanUp } from '@shell/utils/object';
 import { fetchSetting } from '@shell/utils/settings';
 import { RadioGroup } from '@components/Form/Radio';
-
+import { _EDIT } from '@shell/config/query-params';
 // Affinity radio button choices
 const DEFAULT = 'default';
 const CUSTOM = 'custom';
@@ -16,7 +17,7 @@ const CUSTOM = 'custom';
 // This is the form for Agent Configuration
 // Used for both Cluster Agent and Fleet Agent configuration
 export default {
-  emits: ['input'],
+  emits: ['input', 'scheduling-customization-changed'],
 
   components: {
     Banner,
@@ -26,6 +27,7 @@ export default {
     NodeAffinity,
     RadioGroup,
     Tolerations,
+    SchedulingCustomization
   },
   props: {
     value: {
@@ -41,6 +43,18 @@ export default {
     type: {
       type:     String,
       required: true,
+    },
+    schedulingCustomizationFeatureEnabled: {
+      type:     Boolean,
+      required: false
+    },
+    defaultPC: {
+      type:    Object,
+      default: () => {},
+    },
+    defaultPDB: {
+      type:    Object,
+      default: () => {},
     }
   },
 
@@ -129,6 +143,13 @@ export default {
 
         this.value['overrideResourceRequirements'] = cleanUp(out);
       },
+    },
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
+    schedulingCustomizationVisible() {
+      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.value.schedulingCustomization );
     },
 
     affinityOptions() {
@@ -287,6 +308,20 @@ export default {
         class="mt-0"
         data-testid="node-affinity"
         @update:value="updateNodeAffinity"
+      />
+    </GroupPanel>
+    <GroupPanel
+      v-if="schedulingCustomizationVisible"
+      label-key="cluster.agentConfig.groups.schedulingCustomization"
+      class="mt-20"
+    >
+      <SchedulingCustomization
+        :value="value.schedulingCustomization"
+        :mode="mode"
+        :feature="schedulingCustomizationFeatureEnabled"
+        :default-p-c="defaultPC"
+        :default-p-d-b="defaultPDB"
+        @scheduling-customization-changed="$emit('scheduling-customization-changed', $event)"
       />
     </GroupPanel>
   </div>

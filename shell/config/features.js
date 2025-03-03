@@ -3,3 +3,4 @@ export const ONE_WAY = [
 ];
 
 export const HARVESTER_NAME = 'harvester';
+export const SCHEDULING_CUSTOMIZATION = 'cluster-agent-scheduling-customization';
