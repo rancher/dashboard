@@ -151,7 +151,8 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handleKeyPress);
-    this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusChanged);
+    this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusInHandler);
+    this.$refs?.xterm.removeEventListener('focusout', this.focusOutHandler);
 
     clearInterval(this.keepAliveTimer);
     this.cleanup();
@@ -159,7 +160,8 @@ export default {
 
   async mounted() {
     document.addEventListener('keyup', this.handleKeyPress);
-    this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusChanged);
+    this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusInHandler);
+    this.$refs?.xterm.addEventListener('focusout', this.focusOutHandler);
 
     const nodeId = this.pod.spec?.nodeName;
 
@@ -183,8 +185,12 @@ export default {
   },
 
   methods: {
-    focusChanged(ev) {
+    focusInHandler(ev) {
       this.currFocusedElem = ev.target;
+    },
+
+    focusOutHandler(ev) {
+      this.currFocusedElem = undefined;
     },
 
     handleKeyPress(ev) {
