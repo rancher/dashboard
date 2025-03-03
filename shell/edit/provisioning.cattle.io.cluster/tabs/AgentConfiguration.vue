@@ -147,9 +147,6 @@ export default {
     isEdit() {
       return this.mode === _EDIT;
     },
-    // schedulingCustomizationEnabled() {
-    //   return !!this.value.schedulingCustomization;
-    // },
 
     schedulingCustomizationVisible() {
       return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.value.schedulingCustomization );

@@ -222,10 +222,10 @@ export default defineComponent({
       } : null;
     },
     clusterAgentDeploymentCustomization() {
-      return this.value?.spec?.clusterAgentDeploymentCustomization || {};
+      return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
-      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.value.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization );
+      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization );
     },
   },
 
@@ -356,15 +356,14 @@ export default defineComponent({
       this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
 
       if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
-        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
       }
     },
     setSchedulingCustomization(val) {
-      console.log(val);
       if (val) {
-        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
       } else {
-        delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
+        delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
       }
     },
   },
