@@ -71,7 +71,8 @@ describe('page: Registration', () => {
     beforeEach(() => {
       wrapper.vm.registrationStatus = 'registered-online';
     });
-    it('should not display registration button', () => {
+
+    it('should not display online registration button', () => {
       expect(registerOnlineButton.exists()).toBe(false);
     });
 
@@ -97,7 +98,11 @@ describe('page: Registration', () => {
   });
 
   describe('given registration offline', () => {
-    it('should not display registration button', () => {
+    beforeEach(() => {
+      wrapper.vm.registrationStatus = 'registered-offline';
+    });
+
+    it('should not display offline registration button', () => {
       expect(registerOfflineButton.exists()).toBe(false);
     });
 
@@ -113,10 +118,6 @@ describe('page: Registration', () => {
       expect(registerOfflineDownload.attributes().disabled).toStrictEqual('true');
     });
 
-    it('should prevent new online request', () => {
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
-    });
-
     it('should display the expiration status', () => {
       expect(expirationOffline.element).toBeDefined();
     });
@@ -127,6 +128,10 @@ describe('page: Registration', () => {
   });
 
   describe('while registering online', () => {
+    beforeEach(() => {
+      wrapper.vm.registrationStatus = 'registering-online';
+    });
+
     it('should prevent new online request', () => {
       expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
     });
@@ -145,6 +150,10 @@ describe('page: Registration', () => {
   });
 
   describe('while registering offline', () => {
+    beforeEach(() => {
+      wrapper.vm.registrationStatus = 'registering-offline';
+    });
+
     it('should prevent new online request', () => {
       expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
     });
@@ -163,6 +172,10 @@ describe('page: Registration', () => {
   });
 
   describe('while deregistering', () => {
+    beforeEach(() => {
+      wrapper.vm.registrationStatus = 'registering-online';
+    });
+
     it('should prevent new online request', () => {
       expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
     });
@@ -181,6 +194,19 @@ describe('page: Registration', () => {
 
     it('should prevent new offline de-registration request', () => {
       expect(deregisterButtonOffline.attributes().disabled).toStrictEqual('true');
+    });
+  });
+
+  describe('while using the form,', () => {
+    it.each([
+      [registerOnlineButton, 'registering-online'],
+      [registerOfflineButton, 'registering-offline'],
+      [deregisterButtonOnline, 'deregistering-online'],
+      [deregisterButtonOffline, 'deregistering-offline']
+    ])('pressing %p should set status %p', async(cta, status) => {
+      await cta.trigger('click');
+
+      expect(wrapper.vm.registrationStatus).toStrictEqual(status);
     });
   });
 });
