@@ -112,7 +112,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // Set up intercept for the network request triggered by $fetch
     cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterSelect');
 
-    chartPage.selectVersion('103.1.1+up4.4.0');
+    chartPage.selectVersion('105.1.0+up4.10.0');
 
     cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
   });
