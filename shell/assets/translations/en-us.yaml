@@ -1865,7 +1865,7 @@ cluster:
       schedulingCustomization: 
         label: Prevent Rancher cluster agent pod eviction
         description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
-        banner: The setting of this feature in this cluster are different from the global settings.
+        banner: This feature has been enabled with settings that are different from the global default settings.
         innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget  
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
