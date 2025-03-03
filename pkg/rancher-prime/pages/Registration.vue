@@ -85,9 +85,9 @@ const expirationDate = computed(() => 'XX/XX/XXXX');
 /**
  * Reset other inputs and errors, set current state then patch the registration
  * @param type 'online' | 'offline' | 'deregister'
- * @param setButtonStatus Async button callback
+ * @param asyncButtonResolution Async button callback
  */
-const patchRegistration = (type: 'online' | 'offline' | 'deregister', setButtonStatus: () => void) => {
+const patchRegistration = (type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
   errors.value = [];
   setTimeout(() => {
     console.log('Patching registration', type);
@@ -108,7 +108,7 @@ const patchRegistration = (type: 'online' | 'offline' | 'deregister', setButtonS
       offlineRegistrationCertificate.value = '';
       break;
     }
-    setButtonStatus();
+    asyncButtonResolution();
   }, 2000);
 };
 
@@ -121,25 +121,25 @@ const onError = () => {
 
 /**
  * Patch CRD for online registration
- * @param setButtonStatus Async button CD
+ * @param asyncButtonResolution Async button callback
  */
-const registerOnline = (setButtonStatus: () => void) => {
+const registerOnline = (asyncButtonResolution: () => void) => {
   registrationStatus.value = 'registering-online';
-  patchRegistration('online', setButtonStatus);
+  patchRegistration('online', asyncButtonResolution);
 };
 
 /**
  * Handle download offline registration request
- * @param setButtonStatus Async button CD
+ * @param asyncButtonResolution Async button callback
  */
-const downloadOfflineRequest = (setButtonStatus: (status: boolean) => void) => {
+const downloadOfflineRequest = (asyncButtonResolution: (status: boolean) => void) => {
   const fileName = 'rancher-offline-registration-request.json';
   const data = '';
 
   setTimeout(() => {
     downloadFile(fileName, JSON.stringify(data), 'application/json')
-      .then(() => setButtonStatus(true))
-      .catch(() => setButtonStatus(false));
+      .then(() => asyncButtonResolution(true))
+      .catch(() => asyncButtonResolution(false));
   }, 1000);
 };
 
@@ -155,23 +155,23 @@ const registerOffline = (certificate: string) => {
 
 /**
  * TODO: Remove after implementing the real error handling
- * @param setButtonStatus Async button CD
+ * @param asyncButtonResolution Async button callback
  */
-const registerWithError = (setButtonStatus: () => void) => {
+const registerWithError = (asyncButtonResolution: () => void) => {
   errors.value = [];
   setTimeout(() => {
     onError();
-    setButtonStatus();
+    asyncButtonResolution();
   }, 1000);
 };
 
 /**
  * De-register handler
- * @param setButtonStatus Async button CD
+ * @param asyncButtonResolution Async button callback
  */
-const deregister = (setButtonStatus: () => void) => {
+const deregister = (asyncButtonResolution: () => void) => {
   registrationStatus.value = 'de-registering';
-  patchRegistration('deregister', setButtonStatus);
+  patchRegistration('deregister', asyncButtonResolution);
 };
 </script>
 
@@ -182,6 +182,7 @@ const deregister = (setButtonStatus: () => void) => {
       v-clean-html="t('registration.description', {}, true)"
     />
 
+    <!-- Errors banner -->
     <Banner
       v-if="errors.length"
       :label="errors"
@@ -220,6 +221,7 @@ const deregister = (setButtonStatus: () => void) => {
               data-testid="registration-code-input"
             />
 
+            <!-- Show online Certificate expiration and status -->
             <div
               v-if="isRegisteredOnline"
             >
@@ -242,6 +244,8 @@ const deregister = (setButtonStatus: () => void) => {
                 />
               </div>
             </div>
+
+            <!-- Show button to register online -->
             <div v-else>
               <AsyncButton
                 class="mt-20"
@@ -272,6 +276,7 @@ const deregister = (setButtonStatus: () => void) => {
               class="mt-20"
             />
 
+            <!-- Download offline registration request -->
             <div>
               <AsyncButton
                 class="mt-20"
@@ -286,6 +291,7 @@ const deregister = (setButtonStatus: () => void) => {
               />
             </div>
 
+            <!-- Show Offline Certificate expiration and status -->
             <div
               v-if="isRegisteredOffline"
             >
@@ -309,6 +315,7 @@ const deregister = (setButtonStatus: () => void) => {
               </div>
             </div>
 
+            <!-- Show async button while submitting file -->
             <div v-else-if="isRegisteringOffline">
               <AsyncButton
                 class="mt-20"
@@ -320,6 +327,7 @@ const deregister = (setButtonStatus: () => void) => {
               />
             </div>
 
+            <!-- Show file selector for offline registration -->
             <div v-else>
               <FileSelector
                 class="role-primary mt-20"
