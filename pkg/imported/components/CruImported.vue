@@ -28,8 +28,8 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { SETTING } from '@shell/config/settings';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
+import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 
-const VERSION_MANAGEMENT_DEFAULT = 'system-default';
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
   agentEnvVars:   [],

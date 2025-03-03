@@ -12,8 +12,7 @@ import { mapGetters } from 'vuex';
 import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
 import Banner from '@components/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
-
-const VERSION_MANAGEMENT_DEFAULT = 'system-default';
+import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({
   name:       'Basics',

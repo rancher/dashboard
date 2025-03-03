@@ -4,7 +4,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { mapGetters } from 'vuex';
 import { _EDIT } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
-const VERSION_MANAGEMENT_DEFAULT = 'system-default';
+import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({
   emits: ['version-management-changed'],
@@ -66,7 +66,7 @@ export default defineComponent({
     },
 
     globalConfigurationText() {
-      return this.globalSetting ? this.t('imported.basics.versionManagement.summary.globallyEnabled', {}, true) : this.t('imported.basics.versionManagement.summary.globalDisabled', {}, true);
+      return this.globalSetting ? this.t('imported.basics.versionManagement.summary.globallyEnabled', {}, true) : this.t('imported.basics.versionManagement.summary.globallyDisabled', {}, true);
     },
     clusterConfigurationText() {
       if ( this.value === 'true') {
