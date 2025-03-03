@@ -32,7 +32,7 @@ const EXPIRATION_STATUS = {
 const store = useStore();
 const { t } = useI18n(store);
 
-type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
+type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | 'de-registering' | null;
 
 /**
  * Registration code for online registration; empty if none or offline
@@ -62,7 +62,7 @@ const isRegistered = computed(() => registrationStatus.value === 'registered-onl
 /**
  * Track both registering progresses as generic operation to disable all the inputs
  */
-const isRegistering = computed(() => registrationStatus.value === 'registering-online' || registrationStatus.value === 'registering-offline');
+const isRegistering = computed(() => registrationStatus.value === 'registering-online' || registrationStatus.value === 'registering-offline' || registrationStatus.value === 'de-registering');
 
 const isRegisteredOnline = computed(() => registrationStatus.value === 'registered-online');
 const isRegisteredOffline = computed(() => registrationStatus.value === 'registered-offline');
@@ -170,6 +170,7 @@ const registerWithError = (setButtonStatus: () => void) => {
  * @param setButtonStatus Async button CD
  */
 const deregister = (setButtonStatus: () => void) => {
+  registrationStatus.value = 'de-registering';
   patchRegistration('deregister', setButtonStatus);
 };
 </script>
