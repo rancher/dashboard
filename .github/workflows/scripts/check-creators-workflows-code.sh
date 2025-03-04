@@ -77,12 +77,14 @@ compare_files() {
   echo "actual_file ::: "
   echo "$actual_file"
   echo ""
-  diff <(printf '%s' "$expected") <(printf '%s' "$actual_file")
+  echo "diff output ::: "
+  echo ""
+  diff --ignore-all-space <(printf '%s' "$expected") <(printf '%s' "$actual_file")
   
 
-  if ! diff <(echo "$expected") "$actual_file" >/dev/null; then
+  if ! diff --ignore-all-space <(echo "$expected") "$actual_file" >/dev/null; then
     echo "::error::$description validation failed for branch $WORKFLOW_BRANCH"
-    exit 0
+    exit 1
   fi
 }
 
