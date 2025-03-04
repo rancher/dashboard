@@ -7,7 +7,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const featureFlagsPage = new FeatureFlagsPagePo();
 const burgerMenu = new BurgerMenuPo();
 
-describe.skip('Feature Flags', { testIsolation: 'off' }, () => {
+describe('Feature Flags', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
