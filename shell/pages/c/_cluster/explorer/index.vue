@@ -197,11 +197,7 @@ export default {
     },
 
     fleetAgentNamespace() {
-      if (this.currentCluster.isLocal) {
-        return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
-      }
-
-      return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
+      return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
     },
 
     cattleAgentNamespace() {
@@ -492,23 +488,23 @@ export default {
     loadAgents() {
       if (this.fleetAgentNamespace) {
         if (this.currentCluster.isLocal) {
-          this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
-          this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
+          this.setAgentResource('fleetDeployment', 'cattle-fleet-system/fleet-controller');
+          this.setAgentResource('fleetStatefulSet', 'cattle-fleet-local-system/fleet-agent');
         } else {
-          this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
+          this.setAgentResource('fleetStatefulSet', 'cattle-fleet-system/fleet-agent');
         }
       }
       if (this.cattleAgentNamespace) {
-        this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
+        this.setAgentResource('cattleDeployment', 'cattle-system/cattle-cluster-agent');
         this.interval = setInterval(() => {
           this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
         }, 1000);
       }
     },
 
-    async setAgentResource(agent, type, id) {
+    async setAgentResource(agent, id) {
       try {
-        this[agent] = await this.$store.dispatch('cluster/find', { type, id });
+        this[agent] = await this.$store.dispatch('cluster/find', { type: WORKLOAD_TYPES.DEPLOYMENT, id });
       } catch (err) {
         this[agent] = null;
       }
