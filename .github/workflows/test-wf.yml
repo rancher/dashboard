@@ -54,6 +54,8 @@ jobs:
       - name: Aggregate results
         id: aggregate
         run: |
+          echo "RESULT::: ${{ needs.branch-checks.result }}"
+          
           # Check all branch check outcomes
           if [[ '${{ needs.branch-checks.result }}' == 'failure' ]]; then
             echo "result=failure" >> $GITHUB_OUTPUT
