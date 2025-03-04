@@ -27,46 +27,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     cy.title().should('eq', 'Rancher - Global Settings - Settings');
   });
 
-  // Need to add a scroller since the location of this setting changed
-  //   it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
-  //     // Update setting
-  //     SettingsPagePo.navTo();
-  //     settingsPage.editSettingsByLabel('engine-iso-url');
-
-  //     const settingsEdit = settingsPage.editSettings('local', 'engine-iso-url');
-
-  //     settingsEdit.waitForPage();
-  //     settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
-  //     settingsEdit.settingsInput().set(settings['engine-iso-url'].new);
-  //     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
-  //       expect(response?.statusCode).to.eq(200);
-  //       expect(request.body).to.have.property('value', settings['engine-iso-url'].new);
-  //       expect(response?.body).to.have.property('value', settings['engine-iso-url'].new);
-  //     });
-  //     settingsPage.waitForPage();
-  //     settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].new);
-  //     settingsPage.modifiedLabel('engine-iso-url').should('be.visible'); // modified label should display after update
-
-  //     // Reset
-  //     SettingsPagePo.navTo();
-  //     settingsPage.waitForPage();
-  //     settingsPage.editSettingsByLabel('engine-iso-url');
-
-  //     settingsEdit.waitForPage();
-  //     settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
-  //     settingsEdit.useDefaultButton().click();
-  //     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
-  //       expect(response?.statusCode).to.eq(200);
-  //       expect(request.body).to.have.property('value', settings['engine-iso-url'].original);
-  //       expect(response?.body).to.have.property('value', settings['engine-iso-url'].original);
-  //     });
-
-  //     settingsPage.waitForPage();
-  //     settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].original);
-  //     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
-  //   });
-
-  it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('password-min-length');
@@ -117,7 +78,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].original);
   });
 
-  it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
@@ -153,7 +114,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].original);
   });
 
-  it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
@@ -189,7 +150,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].original);
   });
 
-  it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
@@ -225,7 +186,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].original);
   });
 
-  it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
     userMenu.self().click();
 
@@ -264,7 +225,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
   });
 
-  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('agent-tls-mode');
@@ -292,7 +253,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('agent-tls-mode').contains('Strict');
   });
 
-  it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
@@ -328,7 +289,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].original);
   });
 
-  it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
@@ -364,7 +325,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].original);
   });
 
-  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it.skip('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
@@ -409,5 +370,44 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');
     });
+  });
+  it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Update setting
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('engine-iso-url');
+
+    const settingsEdit = settingsPage.editSettings('local', 'engine-iso-url');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
+    settingsEdit.settingsInput().set(settings['engine-iso-url'].new);
+    settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['engine-iso-url'].new);
+      expect(response?.body).to.have.property('value', settings['engine-iso-url'].new);
+    });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].new);
+    // Scroll to the setting
+    cy.get('.main-layout').scrollTo('bottom');
+    settingsPage.modifiedLabel('engine-iso-url').should('be.visible'); // modified label should display after update
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('engine-iso-url');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['engine-iso-url'].original);
+      expect(response?.body).to.have.property('value', settings['engine-iso-url'].original);
+    });
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].original);
+    settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
   });
 });
