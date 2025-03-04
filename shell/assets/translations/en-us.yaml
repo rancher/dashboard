@@ -2610,8 +2610,7 @@ fleet:
       restrictions: Allowed Target Namespaces
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
     remove:
-      warning1: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters."
-      warning2: "Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be taken down."
+      warning: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters.<br><br>Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be deleted."
   restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
