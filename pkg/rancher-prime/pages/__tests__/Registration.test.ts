@@ -1,5 +1,5 @@
 import Registration from '../Registration.vue';
-import { DOMWrapper, shallowMount, VueWrapper } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 
 // Mock for useI18n
 jest.mock('vuex', () => ({
@@ -236,7 +236,7 @@ describe('page: Registration', () => {
       expect(registerOfflineButton.attributes().disabled).toStrictEqual('true');
     });
 
-    // This is component specific
+    // TODO - #13387: This is component specific, update after implementation
     // it('should prevent new online de-registration request', () => {
     //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
 
@@ -273,7 +273,7 @@ describe('page: Registration', () => {
       expect(registerOfflineButton.exists()).toBe(false);
     });
 
-    // This is component specific
+    // TODO - #13387: This is component specific, update after implementation
     // it('should prevent new online de-registration request', () => {
     //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
 
@@ -287,6 +287,7 @@ describe('page: Registration', () => {
     // });
   });
 
+  // TODO - #13387: Update cases after implementation to identify button outcomes
   describe('while using the form,', () => {
     it.each([
       ['registration-online-cta', 'registering-online'],

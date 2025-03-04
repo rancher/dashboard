@@ -136,7 +136,7 @@ const registerOffline = (certificate: string) => {
 };
 
 /**
- * TODO: Remove after implementing the real error handling
+ * TODO - #13387: Remove after implementing the real error handling
  * @param asyncButtonResolution Async button callback
  */
 const registerWithError = (asyncButtonResolution: () => void) => {
