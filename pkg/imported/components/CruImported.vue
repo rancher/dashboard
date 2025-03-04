@@ -19,12 +19,17 @@ import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
 import KeyValue from '@shell/components/form/KeyValue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
-import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
+import { HARVESTER as HARVESTER_FEATURE, mapFeature, SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { SETTING } from '@shell/config/settings';
+import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
+import cloneDeep from 'lodash/cloneDeep';
+import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
+import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -38,7 +43,7 @@ export default defineComponent({
   name: 'CruImported',
 
   components: {
-    Basics, ACE, LabeledInput, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox
+    Basics, ACE, LabeledInput, Loading, CruResource, KeyValue, NameNsDescription, Accordion, Banner, ClusterMembershipEditor, Labels, Checkbox, SchedulingCustomization
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -80,20 +85,27 @@ export default defineComponent({
       this.showPrivateRegistryInput = !!this.normanCluster?.importedConfig?.privateRegistryURL;
       this.getVersions();
     } else {
-      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
     }
+    await this.initVersionManagement();
+    await this.initSchedulingCustomization();
   },
 
   data() {
     return {
-      showPrivateRegistryInput: false,
-      normanCluster:            { name: '', importedConfig: { privateRegistryURL: null } },
-      loadingVersions:          false,
-      membershipUpdate:         {},
-      config:                   null,
-      allVersions:              [],
-      defaultVer:               '',
-      fvFormRuleSets:           [{
+      showPrivateRegistryInput:              false,
+      normanCluster:                         { name: '', importedConfig: { privateRegistryURL: null } },
+      loadingVersions:                       false,
+      membershipUpdate:                      {},
+      config:                                null,
+      allVersions:                           [],
+      defaultVersion:                        '',
+      versionManagementGlobalSetting:        false,
+      versionManagementOld:                  VERSION_MANAGEMENT_DEFAULT,
+      schedulingCustomizationFeatureEnabled: false,
+      clusterAgentDefaultPC:                 null,
+      clusterAgentDefaultPDB:                null,
+      fvFormRuleSets:                        [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       }, {
@@ -115,7 +127,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
     fvExtraRules() {
       return {
         clusterNameRequired:         genericImportedClusterValidators.clusterNameRequired(this),
@@ -141,6 +153,15 @@ export default defineComponent({
         }
 
         this.normanCluster.k3sConfig.k3supgradeStrategy = newValue;
+      }
+
+    },
+    versionManagement: {
+      get() {
+        return this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+      },
+      set(newValue) {
+        this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT] = newValue;
       }
 
     },
@@ -171,12 +192,18 @@ export default defineComponent({
     },
 
     providerTabKey() {
-      return this.isK3s ? this.t('imported.accordions.k3sOptions') : this.t('imported.accordions.rke2Options');
+      if (this.isK3s) {
+        return this.t('imported.accordions.k3sOptions');
+      } else if (this.isRke2) {
+        return this.t('imported.accordions.rke2Options');
+      } else {
+        return this.t('imported.accordions.basics');
+      }
     },
     // If the cluster hasn't been fully imported yet, we won't have this information yet
     // and Basics should be hidden
     showBasics() {
-      return !!this.config;
+      return !this.isEdit || !!this.config ;
     },
     showInstanceDescription() {
       return this.isLocal || !this.isEdit;
@@ -193,7 +220,13 @@ export default defineComponent({
           resource: HCI.CLUSTER,
         }
       } : null;
-    }
+    },
+    clusterAgentDeploymentCustomization() {
+      return this.normanCluster.clusterAgentDeploymentCustomization || {};
+    },
+    schedulingCustomizationVisible() {
+      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization );
+    },
   },
 
   methods: {
@@ -310,6 +343,29 @@ export default defineComponent({
 
       this.hideDescriptions = neu;
     },
+    async initVersionManagement() {
+      this.versionManagementGlobalSetting = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT })).value === 'true' || false;
+      if (!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT]) {
+        this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT] = VERSION_MANAGEMENT_DEFAULT;
+      }
+      this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+    },
+    async initSchedulingCustomization() {
+      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
+      this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+      this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+
+      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
+        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      }
+    },
+    setSchedulingCustomization(val) {
+      if (val) {
+        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      } else {
+        delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
+      }
+    },
   },
 
   watch: {
@@ -382,12 +438,16 @@ export default defineComponent({
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
+          :version-management-global-setting="versionManagementGlobalSetting"
+          :version-management="versionManagement"
+          :version-management-old="versionManagementOld"
           :rules="{workerConcurrency: fvGetAndReportPathRules('workerConcurrency'), controlPlaneConcurrency: fvGetAndReportPathRules('controlPlaneConcurrency') }"
           @kubernetes-version-changed="kubernetesVersionChanged"
           @drain-server-nodes-changed="(val)=>upgradeStrategy.drainServerNodes = val"
           @drain-worker-nodes-changed="(val)=>upgradeStrategy.drainWorkerNodes = val"
           @server-concurrency-changed="(val)=>upgradeStrategy.serverConcurrency = val"
           @worker-concurrency-changed="(val)=>upgradeStrategy.workerConcurrency = val"
+          @version-management-changed="(val)=>versionManagement=val"
         />
       </Accordion>
       <Accordion
@@ -406,6 +466,24 @@ export default defineComponent({
           :mode="mode"
           :parent-id="normanCluster.id ? normanCluster.id : null"
           @membership-update="onMembershipUpdate"
+        />
+      </Accordion>
+      <Accordion
+        v-if="schedulingCustomizationVisible"
+        class="mb-20 accordion"
+        title-key="cluster.agentConfig.tabs.cluster"
+        :open-initially="false"
+      >
+        <h3>
+          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
+        </h3>
+        <SchedulingCustomization
+          :value="clusterAgentDeploymentCustomization.schedulingCustomization"
+          :mode="mode"
+          :feature="schedulingCustomizationFeatureEnabled"
+          :default-p-c="clusterAgentDefaultPC"
+          :default-p-d-b="clusterAgentDefaultPDB"
+          @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
       <Accordion
