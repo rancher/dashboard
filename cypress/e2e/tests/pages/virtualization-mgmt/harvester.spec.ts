@@ -86,7 +86,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   it('missing repo message should display when repo does NOT exist', () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=install`).as('installHarvesterExtension');
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }`).as('updateHarvesterChart');
-    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?link=index`).as('getHarvester');
 
     // add harvester repo
     cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
@@ -98,7 +97,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     });
 
     extensionsPo.goTo();
-    cy.wait('@getHarvester', MEDIUM_TIMEOUT_OPT);
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.loading().should('not.exist');
 
@@ -117,7 +115,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.loading().should('not.exist');
 
     harvesterPo.goTo();
-    cy.wait('@getHarvester', MEDIUM_TIMEOUT_OPT);
     harvesterPo.waitForPage();
     cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
     harvesterPo.extensionWarning().should('not.exist');
@@ -126,7 +123,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
 
     harvesterPo.goTo();
-    cy.wait('@getHarvester', MEDIUM_TIMEOUT_OPT);
     harvesterPo.waitForPage();
     // verify missing repo message displays
     harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension repository is missing');
@@ -137,8 +133,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // reload extensions
     extensionsPo.goTo();
     extensionsPo.waitForPage();
-    extensionsPo.waitForPage(null, 'installed');
-    extensionsPo.waitForPage(null, 'available');
     extensionsPo.loading().should('not.exist');
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
