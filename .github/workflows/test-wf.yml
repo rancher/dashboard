@@ -11,20 +11,6 @@ defaults:
     working-directory: ./
 
 jobs:
-  # test-extensions-creators-and-update-paths:
-  #   if: ${{ github.repository_owner == 'rancher' }}
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     test-extensions-creators-and-update-paths-job-status: ${{ job.status }}
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Retrieve Shell and Creators versions
-  #       run: ./.github/workflows/scripts/test-extensions-creators-build.sh
-  #       id: test-extensions-and-creators
-  #       shell: bash
-
   branch-checks:
     runs-on: ubuntu-latest
     strategy:

@@ -10,7 +10,7 @@ WORKFLOW_BRANCH="$1"
 
 generate_proper_charts() {
   cat <<EOF
-name: Build and Release Extension Charts1
+name: Build and Release Extension Charts
 
 on:
   workflow_dispatch:
@@ -71,18 +71,7 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
-  # echo "******* expected ********"
-  # echo ""
-  # echo <(printf '%s' "$expected")
-  # echo "******* actual_file ********"
-  # echo ""
-  # echo <(printf '%s' "$actual_file")
-
-  # echo "diff output ::: "
-  # echo ""
-  # diff --ignore-all-space <(printf '%s' "$expected") <(printf '%s' "$actual_file")
-
-  echo "diff output2 ::: "
+  echo "diff output for ""$description ::: "
   echo ""
   diff --ignore-all-space <(echo "$expected") <(cat "$actual_file")
   
