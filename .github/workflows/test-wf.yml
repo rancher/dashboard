@@ -29,17 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        branch: [fix-wf-master]
-    outputs:
-      status-master: ${{ job.status }}
-      status-release-2.9: ${{ job.status }}
-      status-release-2.8: ${{ job.status }}
+        branch: [master, release-2.9, release-2.8]
     steps:
-      - name: Checkout ${{ matrix.branch }}
+      - name: Checkout master branch
         uses: actions/checkout@v4
         with:
           repository: aalves08/dashboard
-          ref: ${{ matrix.branch }}
+          ref: fix-wf-master
 
       - name: Validate workflows
         shell: bash
