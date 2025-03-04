@@ -71,6 +71,9 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
+  echo "expected for $description ::: $expected"
+  echo "actual_file for $description ::: $actual_file"
+
   if ! diff <(echo "$expected") "$actual_file" >/dev/null; then
     echo "::error::$description validation failed for branch $WORKFLOW_BRANCH"
     exit 0
