@@ -2,8 +2,10 @@
 set -eo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-BASE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-CREATOR_WORKFLOWS_DIR="$BASE_DIR/creators/extension/app/files/.github/workflows"
+BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+DASHBOARD_REPO=https://github.com/rancher/dashboard.git
+DASHBOARD_REPO_DIR=dashboard-repo
+CREATOR_WORKFLOWS_DIR="$BASE_DIR/$DASHBOARD_REPO_DIR/creators/extension/app/files/.github/workflows"
 WORKFLOW_BRANCH="$1"
 
 generate_proper_charts() {
@@ -69,7 +71,12 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
-  if ! diff <(echo "$expected") "$actual_file" >/dev/null; then
+  echo "diff output for ""$description ::: "
+  echo ""
+  diff --ignore-all-space <(echo "$expected") <(cat "$actual_file")
+  
+
+  if ! diff --ignore-all-space <(echo "$expected") <(cat "$actual_file") >/dev/null; then
     echo "::error::$description validation failed for branch $WORKFLOW_BRANCH"
     exit 1
   fi
@@ -78,6 +85,12 @@ compare_files() {
 main() {
   charts_expected=$(generate_proper_charts)
   catalog_expected=$(generate_proper_catalog)
+
+  git clone -b "$WORKFLOW_BRANCH" "$DASHBOARD_REPO" "$DASHBOARD_REPO_DIR"
+
+  echo "SCRIPT_DIR: $SCRIPT_DIR"
+  echo "BASE_DIR: $BASE_DIR"
+  echo "CREATOR_WORKFLOWS_DIR: $CREATOR_WORKFLOWS_DIR"
 
   compare_files "$charts_expected" \
     "$CREATOR_WORKFLOWS_DIR/build-extension-charts.yml" \
