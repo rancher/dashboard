@@ -63,4 +63,8 @@ export class LoginPagePo extends PagePo {
   loginBackgroundImage() {
     return cy.getId('login-landscape__img');
   }
+
+  localSelector() {
+    return cy.getId('locale-selector');
+  }
 }
