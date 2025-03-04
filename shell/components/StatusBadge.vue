@@ -60,6 +60,7 @@ const { status = 'success', label } = defineProps<{
   &__label {
     border-left: 1px solid var(--border);
     padding: 5px 20px;
+    color: var(--body-text);
   }
 
   &__icon {
