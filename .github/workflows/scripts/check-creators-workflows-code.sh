@@ -71,23 +71,23 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
-  echo "******* expected ********"
-  echo ""
-  echo <(printf '%s' "$expected")
-  echo "******* actual_file ********"
-  echo ""
-  echo <(printf '%s' "$actual_file")
+  # echo "******* expected ********"
+  # echo ""
+  # echo <(printf '%s' "$expected")
+  # echo "******* actual_file ********"
+  # echo ""
+  # echo <(printf '%s' "$actual_file")
 
-  echo "diff output ::: "
-  echo ""
-  diff --ignore-all-space <(printf '%s' "$expected") <(printf '%s' "$actual_file")
+  # echo "diff output ::: "
+  # echo ""
+  # diff --ignore-all-space <(printf '%s' "$expected") <(printf '%s' "$actual_file")
 
   echo "diff output2 ::: "
   echo ""
-  diff --ignore-all-space <(echo "$expected") "$actual_file" >/dev/null
+  diff --ignore-all-space <(echo "$expected") <(cat "$actual_file")
   
 
-  if ! diff --ignore-all-space <(echo "$expected") "$actual_file" >/dev/null; then
+  if ! diff --ignore-all-space <(echo "$expected") <(cat "$actual_file") >/dev/null; then
     echo "::error::$description validation failed for branch $WORKFLOW_BRANCH"
     exit 1
   fi
