@@ -72,7 +72,6 @@ const expirationDate = computed(() => 'XX/XX/XXXX');
 const patchRegistration = (type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
   errors.value = [];
   setTimeout(() => {
-    console.log('Patching registration', type);
     switch (type) {
     case 'online':
       offlineRegistrationCertificate.value = '';
@@ -139,6 +138,7 @@ const registerOffline = (certificate: string) => {
  * TODO - #13387: Remove after implementing the real error handling
  * @param asyncButtonResolution Async button callback
  */
+// eslint-disable-next-line no-unused-vars
 const registerWithError = (asyncButtonResolution: () => void) => {
   errors.value = [];
   setTimeout(() => {
