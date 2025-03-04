@@ -10,7 +10,7 @@ WORKFLOW_BRANCH="$1"
 
 generate_proper_charts() {
   cat <<EOF
-name: Build and Release Extension Charts
+name: Build and Release Extension Charts1
 
 on:
   workflow_dispatch:
