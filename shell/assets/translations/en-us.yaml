@@ -1858,9 +1858,15 @@ cluster:
       podAffinity: Affinity
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
+      schedulingCustomization: Scheduling Customization
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
+      schedulingCustomization: 
+        label: Prevent Rancher cluster agent pod eviction
+        description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
+        banner: This feature has been enabled with settings that are different from the global default settings.
+        innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget  
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
       tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
@@ -7666,6 +7672,8 @@ advancedSettings:
     'agent-tls-mode':
       strict: 'Strict'
       system-store: 'System Store'
+  provisioning:
+    header: Cluster provisioning
 
 featureFlags:
   label: Feature Flags
