@@ -33,6 +33,7 @@ jobs:
     with:
       target_branch: gh-pages
       tagged_release: \${{ github.ref_name }}
+
 EOF
 }
 
@@ -63,6 +64,7 @@ jobs:
       tagged_release: \${{ github.ref_name }}
     secrets: 
       registry_token: \${{ secrets.GITHUB_TOKEN }}
+
 EOF
 }
 
