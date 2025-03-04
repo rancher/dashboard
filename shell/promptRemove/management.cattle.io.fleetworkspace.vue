@@ -69,26 +69,18 @@ export default {
 
 <template>
   <div class="mt-10">
-    <div class="mb-20">
+    <div class="mb-10">
       {{ t('promptRemove.attemptingToRemove', { type }) }} <span
         v-clean-html="resourceNames(names, t)"
         class="description"
       />
     </div>
-    <div class="body">
-      <Banner
-        color="warning"
-        class="warning"
-      >
-        <span v-clean-html="t('fleet.workspaces.remove.warning1', {}, true)" />
-      </Banner>
-      <Banner
-        color="warning"
-        class="warning"
-      >
-        <span v-clean-html="t('fleet.workspaces.remove.warning2', { vendor }, true)" />
-      </Banner>
-    </div>
+    <Banner
+      color="warning"
+      class="warning"
+    >
+      <span v-clean-html="t('fleet.workspaces.remove.warning', {}, true)" />
+    </Banner>
     <Banner
       v-for="(error, i) in errors"
       :key="i"
@@ -102,14 +94,5 @@ export default {
 <style lang='scss' scoped>
   .description {
     font-weight: 600;
-  }
-
-  .body {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .banner {
-    margin: 5px;
   }
 </style>
