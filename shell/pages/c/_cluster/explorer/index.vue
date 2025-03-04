@@ -134,17 +134,17 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:        [],
-      cattleDeployment:   'loading',
-      fleetDeployment:    'loading',
-      fleetStatefulSet:   'loading',
-      disconnected:       false,
-      events:             [],
-      nodeMetrics:        [],
-      showClusterMetrics: false,
-      showK8sMetrics:     false,
-      showEtcdMetrics:    false,
-      canViewMetrics:     false,
+      constraints:             [],
+      cattleAgentResource:     'loading',
+      fleetControllerResource: 'loading',
+      fleetAgentResource:      'loading',
+      disconnected:            false,
+      events:                  [],
+      nodeMetrics:             [],
+      showClusterMetrics:      false,
+      showK8sMetrics:          false,
+      showEtcdMetrics:         false,
+      canViewMetrics:          false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -153,9 +153,9 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       STATES_ENUM,
       clusterCounts,
-      selectedTab:        'cluster-events',
-      extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
-      canViewEvents:      !!this.$store.getters['cluster/schemaFor'](EVENT),
+      selectedTab:             'cluster-events',
+      extensionCards:          getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+      canViewEvents:           !!this.$store.getters['cluster/schemaFor'](EVENT),
       clusterServiceIcons,
     };
   },
@@ -327,7 +327,7 @@ export default {
     },
 
     cattleAgent() {
-      const resources = [this.cattleDeployment];
+      const resources = [this.cattleAgentResource];
 
       return this.getAgentStatus(resources, { checkDisconnected: true });
     },
@@ -335,12 +335,12 @@ export default {
     fleetAgent() {
       const resources = this.currentCluster.isLocal ? [
         /**
-         * 'fleetStatefulSet' could take a while to be created by rancher.
-         * During that startup period, only 'fleetDeployment' will be used to calculate the fleet agent status.
+         * 'fleetAgentResource' could take a while to be created by rancher.
+         * During that startup period, only 'fleetControllerResource' will be used to calculate the fleet agent status.
          */
-        ...(this.fleetStatefulSet ? [this.fleetStatefulSet, this.fleetDeployment] : [this.fleetDeployment]),
+        ...(this.fleetAgentResource ? [this.fleetAgentResource, this.fleetControllerResource] : [this.fleetControllerResource]),
       ] : [
-        this.fleetStatefulSet
+        this.fleetAgentResource
       ];
 
       return this.getAgentStatus(resources);
@@ -488,14 +488,14 @@ export default {
     loadAgents() {
       if (this.fleetAgentNamespace) {
         if (this.currentCluster.isLocal) {
-          this.setAgentResource('fleetDeployment', 'cattle-fleet-system/fleet-controller');
-          this.setAgentResource('fleetStatefulSet', 'cattle-fleet-local-system/fleet-agent');
+          this.setAgentResource('fleetControllerResource', 'cattle-fleet-system/fleet-controller');
+          this.setAgentResource('fleetAgentResource', 'cattle-fleet-local-system/fleet-agent');
         } else {
-          this.setAgentResource('fleetStatefulSet', 'cattle-fleet-system/fleet-agent');
+          this.setAgentResource('fleetAgentResource', 'cattle-fleet-system/fleet-agent');
         }
       }
       if (this.cattleAgentNamespace) {
-        this.setAgentResource('cattleDeployment', 'cattle-system/cattle-cluster-agent');
+        this.setAgentResource('cattleAgentResource', 'cattle-system/cattle-cluster-agent');
         this.interval = setInterval(() => {
           this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
         }, 1000);
