@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, defineEmits } from 'vue';
 
 defineEmits(['click']);
 
