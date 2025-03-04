@@ -71,11 +71,13 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
-  echo "actual_file for $description :::"
-  cat "$actual_file"
-
-  echo "expected for $description :::"
+  echo "expected ::: "
   echo "$expected"
+  echo ""
+  echo "actual_file ::: "
+  echo "$actual_file"
+  echo ""
+  diff <(printf '%s' "$expected") <(printf '%s' "$actual_file")
   
 
   if ! diff <(echo "$expected") "$actual_file" >/dev/null; then
