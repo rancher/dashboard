@@ -449,7 +449,7 @@ export default class GitRepo extends SteveModel {
       const color = colorForState(state).replace('text-', 'bg-');
       const display = stateDisplay(state);
 
-      const detailLocation = {
+      const detailLocation = state !== STATES_ENUM.MISSING ? {
         name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
         params: {
           product:  NAME,
@@ -458,7 +458,7 @@ export default class GitRepo extends SteveModel {
           namespace,
           id:       name,
         }
-      };
+      } : undefined;
 
       const key = `${ clusterId }-${ type }-${ namespace }-${ name }`;
 
