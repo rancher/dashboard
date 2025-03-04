@@ -26,7 +26,9 @@ registration:
       progress: Registering
   registered:
     title: System registered
-    description: This registration will automatically expire on {expirationDate}.
+    description: 
+      success: Registration successful. Automatic expiration on {expirationDate}.
+      warning: Registration expired on on {expirationDate}.
     button-cta:
       label: Deregister
       progress: Deregistering

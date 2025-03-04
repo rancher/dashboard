@@ -6,28 +6,10 @@ import { useI18n } from '@shell/composables/useI18n';
 import { Card } from '@components/Card';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import AsyncButton from '@shell/components/AsyncButton';
+import StatusBadge from '@shell/components/StatusBadge';
 import Banner from '@components/Banner/Banner.vue';
 import FileSelector from '@shell/components/form/FileSelector';
 import { downloadFile } from '@shell/utils/download';
-
-const EXPIRATION_STATUS = {
-  success: {
-    color: 'success',
-    icon:  'icon-checkmark'
-  },
-  warning: {
-    color: 'warning',
-    icon:  'icon-warning'
-  },
-  info: {
-    color: 'info',
-    icon:  'icon-info'
-  },
-  error: {
-    color: 'error',
-    icon:  'icon-error'
-  }
-};
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -224,14 +206,12 @@ const deregister = (asyncButtonResolution: () => void) => {
             <div
               v-if="isRegisteredOnline"
             >
-              <Banner
+              <StatusBadge
                 v-if="expirationStatus"
-                :icon="EXPIRATION_STATUS[expirationStatus].icon"
-                :color="EXPIRATION_STATUS[expirationStatus].color"
+                :status="expirationStatus"
+                :label="t(`registration.registered.description.${expirationStatus}`, { expirationDate }, true)"
                 data-testid="expiration-status-online"
-              >
-                {{ t('registration.registered.description', { expirationDate }, true) }}
-              </Banner>
+              />
               <div class="mt-20">
                 <AsyncButton
                   currentPhase="error"
@@ -294,14 +274,12 @@ const deregister = (asyncButtonResolution: () => void) => {
             <div
               v-if="isRegisteredOffline"
             >
-              <Banner
+              <StatusBadge
                 v-if="expirationStatus"
-                :icon="EXPIRATION_STATUS[expirationStatus].icon"
-                :color="EXPIRATION_STATUS[expirationStatus].color"
+                :status="expirationStatus"
+                :label="t(`registration.registered.description.${expirationStatus}`, { expirationDate }, true)"
                 data-testid="expiration-status-offline"
-              >
-                {{ t('registration.registered.description', { expirationDate }, true) }}
-              </Banner>
+              />
               <div class="mt-20">
                 <AsyncButton
                   currentPhase="error"
