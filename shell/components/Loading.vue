@@ -20,17 +20,13 @@ export default {
   },
 
   data() {
-    return {
-      timer: null, showMessage: this.noDelay, isTerminalOpen: false
-    };
+    return { timer: null, showMessage: this.noDelay };
   },
 
   mounted() {
     this.timer = setTimeout(() => {
       this.showMessage = true;
     }, 250);
-
-    this.isTerminalOpen = this.$store.getters['wm/allTabs']?.length;
   },
 
   beforeUnmount() {
@@ -47,11 +43,7 @@ export default {
     <div
       v-if="showMessage"
       class="overlay"
-      :class="{
-        'overlay-content-mode' : mode === 'content',
-        'overlay-main-mode' : mode === 'main',
-        'behind-terminal': isTerminalOpen
-      }"
+      :class="{ 'overlay-content-mode' : mode === 'content', 'overlay-main-mode' : mode === 'main' }"
     >
       <t
         k="generic.loading"
@@ -79,10 +71,6 @@ export default {
 
     // Covers both default `content` mode, an often used `relative` mode and any other value of mode
     z-index: z-index('loading');
-
-    &.behind-terminal {
-      z-index: -1;
-    }
 
     &-main-mode {
       top: var(--header-height);

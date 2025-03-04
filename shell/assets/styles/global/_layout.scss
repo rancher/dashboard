@@ -115,6 +115,8 @@ HEADER {
 .wm {
   grid-area: wm;
   overflow-y: hidden;
+  z-index: z-index('windowsManager');
+  position: relative;
 }
 
 .localeSelector {
