@@ -6,9 +6,9 @@ import routing from './routing/index';
 
 // Init the package
 export default function(plugin: IPlugin) {
-  // if (!plugin.environment.isPrime) {
-  //   return false;
-  // }
+  if (!plugin.environment.isPrime) {
+    return false;
+  }
 
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
