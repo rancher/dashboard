@@ -33,7 +33,6 @@ jobs:
     with:
       target_branch: gh-pages
       tagged_release: \${{ github.ref_name }}
-
 EOF
 }
 
@@ -64,7 +63,6 @@ jobs:
       tagged_release: \${{ github.ref_name }}
     secrets: 
       registry_token: \${{ secrets.GITHUB_TOKEN }}
-
 EOF
 }
 
@@ -73,15 +71,20 @@ compare_files() {
   local actual_file="$2"
   local description="$3"
 
-  echo "expected ::: "
-  echo "$expected"
+  echo "******* expected ********"
   echo ""
-  echo "actual_file ::: "
-  echo "$actual_file"
+  echo <(printf '%s' "$expected")
+  echo "******* actual_file ********"
   echo ""
+  echo <(printf '%s' "$actual_file")
+
   echo "diff output ::: "
   echo ""
   diff --ignore-all-space <(printf '%s' "$expected") <(printf '%s' "$actual_file")
+
+  echo "diff output2 ::: "
+  echo ""
+  diff --ignore-all-space <(echo "$expected") "$actual_file" >/dev/null
   
 
   if ! diff --ignore-all-space <(echo "$expected") "$actual_file" >/dev/null; then
