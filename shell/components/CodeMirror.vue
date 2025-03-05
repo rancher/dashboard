@@ -162,10 +162,16 @@ export default {
     },
 
     handleKeyPress(ev) {
-      // make focus leave the editor for it's parent container so that we can tab
+      // allows pressing escape in the editor, useful for modal editing with vim
       if (this.isCodeMirrorFocused && ev.code === 'Escape') {
         ev.preventDefault();
         ev.stopPropagation();
+      }
+
+      // make focus leave the editor for it's parent container so that we can tab
+      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
+
+      if (this.isCodeMirrorFocused && didPressEscapeSequence) {
         this.$refs?.codeMirrorContainer?.focus();
       }
 
