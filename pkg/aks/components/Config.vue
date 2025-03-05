@@ -1017,6 +1017,7 @@ export default defineComponent({
               :mode="mode"
               :title="t('aks.tags.label')"
               :add-label="t('aks.tags.addLabel')"
+              :value-can-be-empty="true"
             >
               <template #title>
                 <div class="text-label">
