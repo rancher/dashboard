@@ -56,7 +56,7 @@ const extendAxiosInstance = (axios) => {
   }
 };
 
-const createAxiosInstance = (axiosOptions) => {
+const createAxiosInstance = (axiosOptions, ctx) => {
   // Create new axios instance
   const axios = Axios.create(axiosOptions);
 
@@ -70,12 +70,38 @@ const createAxiosInstance = (axiosOptions) => {
 
   setupProgress(axios);
   axiosRetry(axios, { retries: 0 });
+  interceptApiRequest(axios, ctx.$config);
 
   return axios;
 };
 
+/**
+ * Intercepts requests to rewrite URLs. This is useful intercepting any direct
+ * API calls when running dashboard with a proxy server.
+ *
+ * NOTE: This is currently used for running Dashboard in Rancher Desktop.
+ * @param {*} axios The axios instance to modify
+ */
+const interceptApiRequest = (axios, config) => {
+  if (config.rancherEnv !== 'desktop') {
+    return;
+  }
+
+  axios.interceptors.request.use((config) => {
+    if (config.url.includes(':9443')) {
+      config.url = config.url
+        .replace('https://', 'http://')
+        .replace(':9443', ':6120');
+    }
+
+    return config;
+  }, (error) => {
+    return Promise.reject(error);
+  });
+};
+
 const setupProgress = (axios) => {
-  // A noop loading inteterface for when $loading is not yet ready
+  // A noop loading interface for when $loading is not yet ready
   const noopLoading = {
     finish: () => { },
     start:  () => { },
@@ -163,7 +189,7 @@ export default (ctx, inject) => {
     headers
   };
 
-  const axios = createAxiosInstance(axiosOptions);
+  const axios = createAxiosInstance(axiosOptions, ctx);
 
   // Inject axios to the context as $axios
   ctx.$axios = axios;
