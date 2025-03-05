@@ -2343,7 +2343,7 @@ resource:
     update: "Error updating {name}"
 
 codeMirror:
-  escapeText: Press Escape key to blur from editor
+  escapeText: Press Shift+Escape to blur from editor
   keymap:
     tooltip: Key mapping preference.
     indicatorToolip: "Key mapping: {name}"
@@ -6341,7 +6341,7 @@ wm:
     resizeShellWindow: Resize Shell window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
     tabIcon: Shell tab icon
     closeShellTab: Close Shell tab - {tab}
-    escapeText: Press Escape key to blur from terminal
+    escapeText: Press Shift+Escape to blur from terminal
     clear: Clear
     containerName: "Container: {label}"
     failed: "Unable to open a shell to the container (none of the shell commands succeeded)\n\r"
