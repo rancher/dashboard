@@ -283,7 +283,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields)
+        sort:   'spec.rules[0].host', // TODO: RC TEST
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -294,7 +294,7 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+        search: 'spec.ingressClassName', // TODO: RC TEST
       },
       STEVE_AGE_COL
     ]
@@ -315,8 +315,8 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   false, // ['spec.type', 'spec.clusterIP'] Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
-        search: 'spec.type',
+        sort:   ['spec.type', 'spec.clusterIP'], // TODO: RC TEST
+        search: 'spec.type', // TODO: RC add search on clusterIp?
       },
       STEVE_AGE_COL
     ]

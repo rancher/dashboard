@@ -195,7 +195,7 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`; // Pending API Support - https://github.com/rancher/rancher/issues/48603
+      const field = `involvedObject.uid`; // TODO: RC TEST
 
       // of type PaginationParamFilter
       let existing = null;
