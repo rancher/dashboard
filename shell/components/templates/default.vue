@@ -198,6 +198,7 @@ export default {
       <main
         v-if="clusterAndRouteReady"
         class="main-layout"
+        :aria-label="t('layouts.default')"
       >
         <router-view
           :key="$route.path"
@@ -235,6 +236,7 @@ export default {
       <main
         v-else-if="unmatchedRoute"
         class="main-layout"
+        :aria-label="t('layouts.default')"
       >
         <router-view
           :key="$route.path"

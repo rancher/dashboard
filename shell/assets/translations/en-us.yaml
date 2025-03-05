@@ -158,6 +158,7 @@ nav:
   alt:
     mainMenuIcon: Main menu icon
     mainMenuRancherLogo: Main menu Rancher logo
+    userAvatar: User avatar image
   expandCollapseAppBar: Expand/Collapse the Application Bar
   harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
@@ -318,6 +319,15 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+layouts:
+  home: home layout
+  plain: plain layout
+  default: default layout
+  blank: blank layout
+  unauthenticated: unauthenticated layout
+  logout: logout layout
+  verify: verify layout
+  
 windowmanager:
   closeTab: Close tab {tabId}
 about:
@@ -3151,6 +3161,7 @@ labeledSelect:
   pressEnter: Press enter to add "{input}"
 
 landing:
+  bannerImage: Homepage banner image
   clusters:
     title: Clusters
     provider: Provider
@@ -3476,6 +3487,7 @@ neuvector:
 login:
   howdy: Howdy!
   welcome: Welcome to {vendor}
+  landscapeAlt: Landscape image
   loggedOut: You have been logged out.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
   loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
@@ -7929,12 +7941,12 @@ customLinks:
     commercialSupport: Commercial Support
     appCo: SUSE Application Collection
 
-
 ##############################
 ### Support Page
 ##############################
 
 support:
+  bannerImage: Support page banner image
   community:
     title: SUSE Rancher provides world-class support
     linksTitle: Community Support

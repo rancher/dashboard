@@ -255,6 +255,7 @@ export default {
       [$attrs.class]: $attrs.class
     }"
     :tabindex="disabled || isView ? -1 : 0"
+    role="listbox"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -282,7 +283,7 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-      role="listbox"
+      role="listitem"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
