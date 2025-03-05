@@ -196,6 +196,16 @@ export default {
           :label="t('authConfig.ldap.serviceAccountDN')"
         />
       </div>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <Checkbox
+            v-model="model.searchUsingServiceAccount"
+            :mode="mode"
+            class="full-height"
+            :label="t('authConfig.ldap.searchUsingServiceAccount')"
+          />
+        </div>
+      </div>
 
       <div
         v-else
