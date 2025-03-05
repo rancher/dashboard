@@ -860,7 +860,7 @@ backupRestoreOperator:
     enableEncryptionWarning: 'Enabling encryption is highly recommended when using <b><i>Full Rancher backup resource set</i></b>, otherwise sensitive information will be backed up as plain-text. <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/reference-guides/backup-restore-configuration/backup-configuration#resourcesets">Read more</a>.'
     missingResourceSetWarning: The <b><i>{resourceSet}</i></b> resource set doesn't exist, it's possible it has been deleted. Please select a different option.
     resourceSetOptions: 
-      'rancher-resource-set-basic': 'Basic Rancher backup restore set'
+      'rancher-resource-set-basic': 'Basic Rancher backup resource set'
       'rancher-resource-set-full': 'Full Rancher backup resource set'
       custom: Custom
       customResourceSetLabel: Custom Resource Set
