@@ -445,11 +445,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
               const value = encodeURIComponent(field.value);
 
-              // = exact match
-              // ~ partial match
-              // != not exact match
-              // !~ not partial match
-
+              // = exact match (equals + exact)
+              // ~ partial match (equals + !exact)
+              // != not exact match (!equals + exact)
+              // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
 
               return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
