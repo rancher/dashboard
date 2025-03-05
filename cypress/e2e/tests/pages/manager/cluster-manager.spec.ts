@@ -840,41 +840,43 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   describe('Credential Step', () => {
-    describe('should always show credentials', () => {
-      const driver = 'nutanix';
+    const drivers = ['nutanix', 'oci'];
 
-      it('should show credential step when `addCloudCredential` is true', () => {
-        cy.intercept({
-          method: 'GET',
-          path:   `/v1/management.cattle.io.nodedrivers*`,
-        }, (req) => {
-          req.continue((res) => {
-            res.body.data = nodeDriveResponse(true, driver).data;
+    Cypress._.each(drivers, (driver) => {
+      describe(`should always show credentials for ${ driver } driver`, () => {
+        it('should show credential step when `addCloudCredential` is true', () => {
+          cy.intercept({
+            method: 'GET',
+            path:   `/v1/management.cattle.io.nodedrivers*`,
+          }, (req) => {
+            req.continue((res) => {
+              res.body.data = nodeDriveResponse(true, driver).data;
+            });
           });
+          const clusterCreate = new ClusterManagerCreatePagePo();
+
+          clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
+          clusterCreate.waitForPage();
+
+          clusterCreate.credentialsBanner().checkExists();
         });
-        const clusterCreate = new ClusterManagerCreatePagePo();
 
-        clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
-        clusterCreate.waitForPage();
-
-        clusterCreate.credentialsBanner().checkExists();
-      });
-
-      it('should show credential step when `addCloudCredential` is false', () => {
-        cy.intercept({
-          method: 'GET',
-          path:   `/v1/management.cattle.io.nodedrivers*`,
-        }, (req) => {
-          req.continue((res) => {
-            res.body.data = nodeDriveResponse(false, driver).data;
+        it('should show credential step when `addCloudCredential` is false', () => {
+          cy.intercept({
+            method: 'GET',
+            path:   `/v1/management.cattle.io.nodedrivers*`,
+          }, (req) => {
+            req.continue((res) => {
+              res.body.data = nodeDriveResponse(false, driver).data;
+            });
           });
+          const clusterCreate = new ClusterManagerCreatePagePo();
+
+          clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
+          clusterCreate.waitForPage();
+
+          clusterCreate.credentialsBanner().checkExists();
         });
-        const clusterCreate = new ClusterManagerCreatePagePo();
-
-        clusterCreate.goTo(`type=${ driver }&rkeType=rke2`);
-        clusterCreate.waitForPage();
-
-        clusterCreate.credentialsBanner().checkExists();
       });
     });
 
