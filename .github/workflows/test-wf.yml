@@ -1,0 +1,46 @@
+name: Test Extension workflows - Master (3.x) - TEST!!!
+
+on:
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  branch-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [master, release-2.9, release-2.8]
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          repository: aalves08/dashboard
+          ref: fix-wf-master
+
+      - name: Validate workflows
+        shell: bash
+        run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
+  
+  matching-creators-workflows:
+    runs-on: ubuntu-latest
+    needs: [branch-checks]
+    outputs:
+      matching-creators-workflows-job-status: ${{ steps.aggregate.outputs.result }}
+    steps:
+      - name: Aggregate results
+        id: aggregate
+        run: |
+          echo "RESULT::: ${{ needs.branch-checks.result }}"
+          
+          # Check all branch check outcomes
+          if [[ '${{ needs.branch-checks.result }}' == 'failure' ]]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+          else
+            echo "result=success" >> $GITHUB_OUTPUT
+          fi
