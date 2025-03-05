@@ -14,6 +14,7 @@ const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
+const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -27,7 +28,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
     cy.title().should('eq', 'Rancher - Global Settings - Settings');
   });
 
-  it.skip('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
+
+    settingsPage.settingBanner().banner().contains(BANNER_TEXT);
+  });
+
+  it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('password-min-length');
@@ -78,7 +85,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].original);
   });
 
-  it.skip('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
@@ -114,7 +121,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].original);
   });
 
-  it.skip('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
@@ -150,7 +157,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].original);
   });
 
-  it.skip('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
@@ -186,7 +193,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].original);
   });
 
-  it.skip('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
     userMenu.self().click();
 
@@ -225,7 +232,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
   });
 
-  it.skip('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('agent-tls-mode');
@@ -253,7 +260,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('agent-tls-mode').contains('Strict');
   });
 
-  it.skip('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
@@ -289,7 +296,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].original);
   });
 
-  it.skip('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
@@ -325,7 +332,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].original);
   });
 
-  it.skip('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');

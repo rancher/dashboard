@@ -1,6 +1,7 @@
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import SettingsEditPo from '@/cypress/e2e/po/edit/settings.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 export class SettingsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/settings/management.cattle.io.setting`;
@@ -16,6 +17,10 @@ export class SettingsPagePo extends RootClusterPage {
 
   static navTo() {
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
+  }
+
+  settingBanner() {
+    return new BannersPo('[data-testid="global-settings-banner"]', this.self());
   }
 
   /**
