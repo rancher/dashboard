@@ -196,6 +196,7 @@ export default {
       <button
         type="button"
         class="btn role-primary mt-10"
+        data-testid="add-item"
         @click="addMember"
       >
         {{ t('generic.add') }}
@@ -208,6 +209,7 @@ export default {
         type="button"
         :disabled="isView"
         class="btn role-link"
+        data-testid="remove-item-{{ i }}"
         @click="remove"
       >
         {{ t('generic.remove') }}
