@@ -88,6 +88,8 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
+const REGISTRIES_TAB_NAME = 'registry';
+
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
@@ -254,6 +256,8 @@ export default {
       schedulingCustomizationFeatureEnabled: false,
       clusterAgentDefaultPC:                 null,
       clusterAgentDefaultPDB:                null,
+      activeTab:                             null,
+      REGISTRIES_TAB_NAME,
       labelForAddon
 
     };
@@ -261,6 +265,9 @@ export default {
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+    isActiveTabRegistries() {
+      return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
+    },
     clusterName() {
       return this.value.metadata?.name || '';
     },
@@ -2077,6 +2084,10 @@ export default {
     addonConfigValidationChanged(configName, isValid) {
       this.addonConfigValidation[configName] = isValid;
     },
+
+    handleTabChange(data) {
+      this.activeTab = data;
+    }
   }
 };
 </script>
@@ -2244,6 +2255,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         class="min-height"
+        @changed="handleTabChange"
       >
         <Tab
           name="basic"
@@ -2354,10 +2366,11 @@ export default {
 
         <!-- Registries -->
         <Tab
-          name="registry"
+          :name="REGISTRIES_TAB_NAME"
           label-key="cluster.tabs.registry"
         >
           <Registries
+            v-if="isActiveTabRegistries"
             v-model:value="localValue"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
