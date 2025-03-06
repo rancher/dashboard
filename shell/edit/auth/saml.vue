@@ -113,10 +113,10 @@ export default {
   watch: {
     showLdap(neu, old) {
       // eslint-disable-next-line no-console
-      console.log('MUTATE SHOW LDAP');
+      console.warn('MUTATE SHOW LDAP');
       if (neu && !this.model.openLdapConfig) {
         // eslint-disable-next-line no-console
-        console.log('WILL SET DEFAULT');
+        console.warn('WILL SET DEFAULT');
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
         this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
