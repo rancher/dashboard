@@ -113,6 +113,7 @@ export default {
       }
       this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
       if (this.model.openLdapConfig) {
+        console.log('WILL SHOW LDAP');
         this.showLdap = true;
       }
       if (this.value.configType === 'saml') {
@@ -174,6 +175,7 @@ export default {
               this.model.accessMode = 'unrestricted';
             }
             if (this.model.openLdapConfig && !this.showLdap) {
+              console.log('WILL NULL LDAP CONFIG');
               this.model.openLdapConfig = null;
             }
             await this.model.save();

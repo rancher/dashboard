@@ -112,7 +112,9 @@ export default {
   },
   watch: {
     showLdap(neu, old) {
+      console.log('MUTATE SHOW LDAP');
       if (neu && !this.model.openLdapConfig) {
+        console.log('WILL SET DEFAULT');
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
         this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
@@ -391,6 +393,7 @@ export default {
               :label="t('authConfig.saml.showLdap')"
             />
           </div>
+          OPEN LDAP CONFIG: {{ model.openLdapConfig }}
           <div class="row mt-20 mb-20">
             <config
               v-if="showLdap && model.openLdapConfig"
