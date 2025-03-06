@@ -148,11 +148,13 @@ export default {
      * @param {*} btnCb
      */
     async save(btnCb) {
+      // eslint-disable-next-line no-console
       console.warn('WILL SAVE');
       await this.applyHooks(BEFORE_SAVE_HOOKS);
 
       const configType = this.value.configType;
 
+      // eslint-disable-next-line no-console
       console.warn('WILL SAVE', { configType, model: this.model });
 
       this.errors = [];
