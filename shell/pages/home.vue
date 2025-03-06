@@ -29,7 +29,7 @@ import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArg
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 
 export default defineComponent({
   name:       'Home',
@@ -159,9 +159,9 @@ export default defineComponent({
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          value:         `metadata.labels."${ CAPI_LABELS.HUMAN_NAME }"`,
-          sort:          [`metadata.labels."${ CAPI_LABELS.HUMAN_NAME }"`],
-          search:        `metadata.labels."${ CAPI_LABELS.HUMAN_NAME }"`,
+          value:         `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
+          sort:          [`metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`],
+          search:        `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
         },
         {
           label:     this.t('landing.clusters.provider'),

@@ -15,7 +15,7 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
 
@@ -152,7 +152,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.connected` },
     ],
     [CONFIG_MAP]: [
@@ -182,10 +182,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
-      { field: `metadata.labels."${ CAPI_LABELS.HUMAN_NAME }"` }
+      { field: `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]` }
     ],
     [SERVICE]: [
       { field: 'spec.type' },
