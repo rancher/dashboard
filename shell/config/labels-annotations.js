@@ -58,7 +58,7 @@ export const CAPI = {
   PROVIDER:             'provider.cattle.io',
   /**
    * RKE2 - metadata.name is human name
-   * RKE1 and some others - metadata.name is v1 mgmt id --> v1mgmt cluster contains human name
+   * RKE1 and some others - metadata.name is v1 mgmt id and it's the v1 mgmt cluster that contains human name
    * This label ensures something is in the v1 prov cluster that can be sorted/filtered on
    */
   HUMAN_NAME:           'provisioning.cattle.io/management-cluster-display-name',
