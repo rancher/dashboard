@@ -157,6 +157,10 @@ export default {
       // eslint-disable-next-line no-console
       console.warn('WILL SAVE', { configType, model: this.model });
 
+      if (!this.model?.openLdapConfig) {
+        this.model.openLdapConfig = null;
+      }
+
       this.errors = [];
       const wasEnabled = this.model.enabled;
 
