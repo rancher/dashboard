@@ -118,7 +118,7 @@ export default {
         // eslint-disable-next-line no-console
         console.warn('WILL SET DEFAULT');
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
-        this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
+        // this.model['openLdapConfig'] = { ...LDAP_DEFAULTS };
       }
     },
     // sloType is defined on shell/mixins/auth-config.js
