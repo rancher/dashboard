@@ -5,6 +5,7 @@ import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
 import Setting from '@shell/components/Setting';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -69,7 +70,8 @@ export default {
 
   data() {
     return { settings: null, provisioningSettings: null };
-  }
+  },
+  computed: { ...mapGetters({ t: 'i18n/t' }) }
 };
 </script>
 
@@ -79,6 +81,7 @@ export default {
     <Banner
       color="warning"
       class="settings-banner"
+      data-testid="global-settings-banner"
     >
       <div>
         {{ t('advancedSettings.subtext') }}
