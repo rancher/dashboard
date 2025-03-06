@@ -14,26 +14,26 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 
 // Standard LDAP defaults
-const LDAP_DEFAULTS = {
-  connectionTimeout:            5000,
-  groupDNAttribute:             'entryDN',
-  groupMemberMappingAttribute:  'member',
-  groupMemberUserAttribute:     'entryDN',
-  groupNameAttribute:           'cn',
-  groupObjectClass:             'groupOfNames',
-  groupSearchAttribute:         'cn',
-  nestedGroupMembershipEnabled: false,
-  port:                         389,
-  servers:                      [],
-  starttls:                     false,
-  tls:                          false,
-  disabledStatusBitmask:        0,
-  userLoginAttribute:           'uid',
-  userMemberAttribute:          'memberOf',
-  userNameAttribute:            'cn',
-  userObjectClass:              'inetOrgPerson',
-  userSearchAttribute:          'uid|sn|givenName'
-};
+// const LDAP_DEFAULTS = {
+//   connectionTimeout:            5000,
+//   groupDNAttribute:             'entryDN',
+//   groupMemberMappingAttribute:  'member',
+//   groupMemberUserAttribute:     'entryDN',
+//   groupNameAttribute:           'cn',
+//   groupObjectClass:             'groupOfNames',
+//   groupSearchAttribute:         'cn',
+//   nestedGroupMembershipEnabled: false,
+//   port:                         389,
+//   servers:                      [],
+//   starttls:                     false,
+//   tls:                          false,
+//   disabledStatusBitmask:        0,
+//   userLoginAttribute:           'uid',
+//   userMemberAttribute:          'memberOf',
+//   userNameAttribute:            'cn',
+//   userObjectClass:              'inetOrgPerson',
+//   userSearchAttribute:          'uid|sn|givenName'
+// };
 
 export default {
   components: {
@@ -395,7 +395,7 @@ export default {
               :label="t('authConfig.saml.showLdap')"
             />
           </div>
-          OPEN LDAP CONFIG: {{ model.openLdapConfig }}
+          OPEN LDAP CONFIG PLUS: {{ model.openLdapConfig }}
           <div class="row mt-20 mb-20">
             <config
               v-if="showLdap && model.openLdapConfig"
