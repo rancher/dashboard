@@ -148,9 +148,12 @@ export default {
      * @param {*} btnCb
      */
     async save(btnCb) {
+      console.warn('WILL SAVE');
       await this.applyHooks(BEFORE_SAVE_HOOKS);
 
       const configType = this.value.configType;
+
+      console.warn('WILL SAVE', { configType, model: this.model });
 
       this.errors = [];
       const wasEnabled = this.model.enabled;
