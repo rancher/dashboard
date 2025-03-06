@@ -1,6 +1,7 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
+import Principal from '@shell/components/auth/Principal';
 import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
@@ -18,7 +19,9 @@ export function canViewMembershipEditor(store, needsProject = false) {
 export default {
   emits: ['membership-update'],
 
-  components: { ArrayList, Loading },
+  components: {
+    ArrayList, Loading, Principal
+  },
 
   props: {
     addMemberDialogName: {
