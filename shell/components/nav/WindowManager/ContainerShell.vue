@@ -198,7 +198,9 @@ export default {
       ev.stopPropagation();
 
       // make focus leave the shell for it's parent container so that we can tab
-      if (this.isXtermFocused && ev.code === 'Escape') {
+      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
+
+      if (this.isXtermFocused && didPressEscapeSequence) {
         this.$refs.xterm.focus();
       }
 
