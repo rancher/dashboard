@@ -88,7 +88,10 @@ export default defineComponent({
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
     }
     await this.initVersionManagement();
-    await this.initSchedulingCustomization();
+    if (!this.isLocal) {
+      // The rancher agent that runs on the local cluster is embedded in the rancher pods that are run in the local cluster, so this is not needed.
+      await this.initSchedulingCustomization();
+    }
   },
 
   data() {
@@ -225,7 +228,7 @@ export default defineComponent({
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
-      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization );
+      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization ));
     },
   },
 

@@ -42,7 +42,7 @@ export default {
       const pdbMismatch = !!this.value?.podDisruptionBudget && (this.value?.podDisruptionBudget.maxUnavailable !== this.defaultPDB.maxUnavailable || this.value?.podDisruptionBudget.minAvailable !== this.defaultPDB.minAvailable);
       const pcMismatch = !!this.value?.priorityClass && (this.value?.priorityClass.value !== this.defaultPC.value || this.value?.priorityClass.preemptionPolicy !== this.defaultPC.preemptionPolicy);
 
-      return this.isEdit && (pdbMismatch || pcMismatch);
+      return this.feature && this.isEdit && (pdbMismatch || pcMismatch);
     },
   }
 };
