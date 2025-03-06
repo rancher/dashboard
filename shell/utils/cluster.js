@@ -81,7 +81,7 @@ export function paginationFilterOnlyKubernetesClusters(store) {
 
   return PaginationParamFilter.createMultipleFields([
     new PaginationFilterField({
-      field:  `metadata.labels."${ CAPI.PROVIDER }"`,
+      field:  `metadata.labels[${ CAPI.PROVIDER }]`,
       equals: false,
       value:  VIRTUAL_HARVESTER_PROVIDER,
       exact:  true
