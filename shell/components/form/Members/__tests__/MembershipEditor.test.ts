@@ -11,6 +11,7 @@ describe('component: MembershipEditor', () => {
         parentKey:           'parentKey',
         mode:                'edit',
         type:                'no idea',
+        value:               [], // This value is not listed in the props but required
       },
       global: {
         mocks: {
