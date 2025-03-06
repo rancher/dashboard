@@ -3,7 +3,10 @@ import Driver from '@shell/models/driver';
 /**
  * Overrides for spec.addCloudCredential
  */
-export const CLOUD_CREDENTIAL_OVERRIDE = { nutanix: true };
+export const CLOUD_CREDENTIAL_OVERRIDE = {
+  nutanix: true,
+  oci:     true
+};
 
 export default class NodeDriver extends Driver {
   get doneRoute() {
