@@ -383,6 +383,7 @@ export default defineComponent({
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
+        @keyup="$emit('keyup', $event)"
       />
       <input
         v-else
@@ -404,6 +405,7 @@ export default defineComponent({
         @focus="onFocus"
         @blur="onBlur"
         @change="onChange"
+        @keyup="$emit('keyup', $event)"
       >
     </slot>
 
