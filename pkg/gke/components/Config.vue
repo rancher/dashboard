@@ -458,7 +458,7 @@ export default defineComponent({
           :loading="loadingVersions"
           data-testid="gke-version-select"
           :mode="mode"
-          @selecting="$emit('update:kubernetesVersion', $event.value)"
+          @selecting="$emit('update:kubernetesVersion', $event)"
         />
       </div>
     </div>
