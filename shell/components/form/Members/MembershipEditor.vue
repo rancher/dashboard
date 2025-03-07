@@ -59,7 +59,7 @@ export default {
     const roleBindingRequestParams = { type: this.type, opt: { force: true } };
 
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
-      Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') } } });
+      Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') }, force: true } });
     }
     const userHydration = [
       this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : [],
