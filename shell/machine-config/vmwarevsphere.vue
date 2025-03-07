@@ -149,7 +149,6 @@ export default {
       const datacenterAlreadySet = !!this.value.datacenter;
 
       await this.loadDataCenters();
-
       if (datacenterAlreadySet) {
         this.loadAllDatacenterResources();
       }
@@ -382,12 +381,14 @@ export default {
 
       set(this.value, 'boot2dockerUrl', boot2dockerUrl);
     },
-    vappMode(value) {
+    vappMode(value, oldValue) {
       if (value === VAPP_MODE.AUTO) {
         const defaultVappOptions = getDefaultVappOptions(this.networkNames || []);
 
         return this.updateVappOptions(defaultVappOptions);
-      } else {
+      } else if (value === VAPP_MODE.DISABLED) {
+        this.updateVappOptions(INITIAL_VAPP_OPTIONS);
+      } else if (value === VAPP_MODE.MANUAL && oldValue === VAPP_MODE.AUTO) {
         this.updateVappOptions(INITIAL_VAPP_OPTIONS);
       }
     },
@@ -417,12 +418,18 @@ export default {
 
       const url = `/meta/vsphere/${ resource }?${ queryParams }`;
 
-      const result = await this.$store.dispatch('management/request', {
-        url,
-        redirectUnauthorized: false,
-      }, { root: true });
+      try {
+        const result = await this.$store.dispatch('management/request', {
+          url,
+          redirectUnauthorized: false,
+        }, { root: true });
 
-      return result.data;
+        return result.data;
+      } catch (ex) {
+        console.warn(`There was a problem requesting the resource: "${ resource }"" for datacenter: "${ dataCenter }"" and library: "${ library }"`, ex); // eslint-disable-line no-console
+
+        return [];
+      }
     },
 
     async loadDataCenters() {
