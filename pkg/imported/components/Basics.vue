@@ -62,6 +62,10 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+    showVersionManagement: {
+      type:    Boolean,
+      default: true
+    },
     versionManagementGlobalSetting: {
       type:     Boolean,
       required: true,
@@ -163,6 +167,7 @@ export default defineComponent({
     </div>
   </div>
   <VersionManagement
+    v-if="showVersionManagement"
     :value="versionManagement"
     :global-setting="versionManagementGlobalSetting"
     :mode="mode"

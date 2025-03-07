@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { mapGetters } from 'vuex';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _CREATE } from '@shell/config/query-params';
 import Banner from '@components/Banner/Banner.vue';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 
@@ -35,6 +35,9 @@ export default defineComponent({
     ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
     isEdit() {
       return this.mode === _EDIT;
+    },
+    isCreate() {
+      return this.mode === _CREATE;
     },
     versionManagementOptions() {
       const defaultLabel = this.globalSetting ? this.t('imported.basics.versionManagement.globalEnabled') : this.t('imported.basics.versionManagement.globalDisabled');
