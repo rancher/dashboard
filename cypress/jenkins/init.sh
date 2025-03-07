@@ -94,6 +94,7 @@ corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
 corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
 corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
 corral config vars set gke_service_account "${GKE_SERVICE_ACCOUNT}"
+corral config vars set percy_token "${PERCY_TOKEN}"
 
 create_initial_clusters() {
   shopt -u nocasematch
