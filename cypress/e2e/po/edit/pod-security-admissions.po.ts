@@ -5,6 +5,7 @@ import InputPo from '@/cypress/e2e/po/components/input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
 export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
@@ -19,6 +20,10 @@ export default class PodSecurityAdmissionsCreateEditPo extends PagePo {
 
   constructor(clusterId = '_', id?: string) {
     super(PodSecurityAdmissionsCreateEditPo.createPath(clusterId, id));
+  }
+
+  resourceDetail() {
+    return new ResourceDetailPo(this.self());
   }
 
   nameNsDescription() {

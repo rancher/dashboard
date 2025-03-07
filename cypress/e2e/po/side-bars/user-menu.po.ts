@@ -16,8 +16,8 @@ export default class UserMenuPo extends ComponentPo {
    * When added to the dom it may not yet be visible
    *
    */
-  private userMenuContainer() {
-    return cy.get('body').find('[dropdown-menu-collection]');
+  userMenuContainer() {
+    return cy.get('[dropdown-menu-collection]');
   }
 
   /**
