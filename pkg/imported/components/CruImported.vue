@@ -87,7 +87,9 @@ export default defineComponent({
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultCluster) }, { root: true });
     }
-    await this.initVersionManagement();
+    if (!this.isRKE1) {
+      await this.initVersionManagement();
+    }
     await this.initSchedulingCustomization();
   },
 
@@ -169,8 +171,14 @@ export default defineComponent({
     isEdit() {
       return this.mode === _EDIT;
     },
+    isCreate() {
+      return this.mode === _CREATE;
+    },
     isK3s() {
       return !!this.value.isK3s;
+    },
+    isRKE1() {
+      return !!this.value.isRke1;
     },
     isRke2() {
       return !!this.value.isRke2;
@@ -200,13 +208,12 @@ export default defineComponent({
         return this.t('imported.accordions.basics');
       }
     },
-    // If the cluster hasn't been fully imported yet, we won't have this information yet
-    // and Basics should be hidden
+
     showBasics() {
-      return !this.isEdit || !!this.config ;
+      return this.isCreate || !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
-    showInstanceDescription() {
-      return this.isLocal || !this.isEdit;
+    enableInstanceDescription() {
+      return this.isLocal || this.isCreate;
     },
     hideDescriptions: mapPref(HIDE_DESC),
 
@@ -315,7 +322,7 @@ export default defineComponent({
       }
     },
     async done() {
-      if (!this.isEdit) {
+      if (this.isCreate) {
         return this.$router.replace({
           name:   'c-cluster-product-resource-namespace-id',
           params: {
@@ -414,7 +421,7 @@ export default defineComponent({
           :mode="mode"
           :namespaced="false"
           :nameEditable="!isEdit"
-          :descriptionDisabled="!showInstanceDescription"
+          :descriptionDisabled="!enableInstanceDescription"
           nameKey="name"
           descriptionKey="description"
           name-label="cluster.name.label"
@@ -438,6 +445,7 @@ export default defineComponent({
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
+          :show-version-management="!isRKE1"
           :version-management-global-setting="versionManagementGlobalSetting"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
@@ -528,7 +536,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isEdit"
+        v-if="isEdit && !isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
