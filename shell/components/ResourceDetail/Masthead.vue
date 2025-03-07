@@ -609,11 +609,8 @@ export default {
   }
 
   HEADER {
-    margin: 0 0 0 -5px;
-
-    .title {
-      overflow-x: hidden;
-    }
+    margin: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .primaryheader {
@@ -622,14 +619,13 @@ export default {
     align-items: center;
 
     h1 {
-      margin: 0;
+      margin: 0 0 0 -5px;
       overflow-x: hidden;
       display: flex;
       flex-direction: row;
       align-items: center;
 
       .masthead-resource-title {
-        padding: 0 8px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
@@ -660,6 +656,7 @@ export default {
   }
 
   .masthead-state {
+    margin-left: 8px;
     font-size: initial;
   }
 

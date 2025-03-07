@@ -89,6 +89,9 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     cy.wait('@createProjectMembership');
     cy.get('.modal-overlay').should('not.exist');
 
+    projectMembership.goTo();
+    projectMembership.waitForPageWithSpecificUrl('/c/local/explorer/members#project-membership');
+
     cy.get('body tbody').then((el) => {
       if (el.find('tr.no-rows').is(':visible')) {
         cy.reload();
