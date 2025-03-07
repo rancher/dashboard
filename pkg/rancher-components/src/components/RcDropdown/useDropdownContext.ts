@@ -17,6 +17,7 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
   const {
     dropdownItems,
     firstDropdownItem,
+    lastDropdownItem,
     dropdownContainer,
     registerDropdownCollection,
   } = useDropdownCollection();
@@ -70,7 +71,7 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
   /**
    * Sets focus to the first dropdown item if a keydown event has occurred.
    */
-  const setFocus = () => {
+  const setFocus = (direction: 'down' | 'up') => {
     nextTick(() => {
       if (!didKeydown.value) {
         dropdownContainer.value?.focus();
@@ -78,7 +79,12 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
         return;
       }
 
-      firstDropdownItem.value?.focus();
+      if (direction === 'down') {
+        firstDropdownItem.value?.focus();
+      } else if (direction === 'up') {
+        lastDropdownItem.value?.focus();
+      }
+
       didKeydown.value = false;
     });
   };
@@ -95,7 +101,7 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
       dropdownItems,
       close:             () => returnFocus(),
       focusFirstElement: () => {
-        setFocus();
+        setFocus('down');
       },
       handleKeydown,
     });
