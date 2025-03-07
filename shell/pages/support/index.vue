@@ -118,7 +118,10 @@ export default {
 </script>
 <template>
   <div>
-    <BannerGraphic :title="t(title, {}, true)" />
+    <BannerGraphic
+      :title="t(title, {}, true)"
+      :alt="t('support.bannerImage')"
+    />
 
     <IndentedPanel>
       <div class="content mt-20">
