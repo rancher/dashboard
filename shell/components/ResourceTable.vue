@@ -188,6 +188,11 @@ export default {
       type:    Number,
       default: null, // Default comes from the user preference
     },
+
+    hideGroupingControls: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -591,7 +596,7 @@ export default {
     @enter="handleEnterKeyPress"
   >
     <template
-      v-if="showGrouping"
+      v-if="!hideGroupingControls && showGrouping"
       #header-middle
     >
       <slot name="more-header-middle" />
