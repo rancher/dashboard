@@ -24,39 +24,19 @@ jobs:
         id: test-extensions-and-creators
         shell: bash
 
-  branch-checks:
+  creators-shipped-worflows-checks:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         branch: [master, release-2.9, release-2.8]
-    outputs:
-      status-${{ matrix.branch }}: ${{ job.status }}
     steps:
-      - name: Checkout ${{ matrix.branch }}
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.branch }}
 
-      - name: Validate workflows
+      - name: Validate shipped workflows with creator for branch ${{ matrix.branch }}
+        shell: bash
         run: .github/workflows/scripts/check-creators-workflows-code.sh "${{ matrix.branch }}"
-
-  matching-creators-workflows:
-    if: ${{ github.repository_owner == 'rancher' }}
-    runs-on: ubuntu-latest
-    needs: [branch-checks]
-    outputs:
-      matching-creators-workflows-job-status: ${{ steps.aggregate.outputs.result }}
-    steps:
-      - name: Aggregate results
-        id: aggregate
-        run: |
-          # Check all branch check outcomes
-          if [[ '${{ needs.branch-checks.result }}' == 'failure' ]]; then
-            echo "result=failure" >> $GITHUB_OUTPUT
-          else
-            echo "result=success" >> $GITHUB_OUTPUT
-          fi
 
   retrieve-tags-master:
     if: ${{ github.repository_owner == 'rancher' }}
@@ -130,7 +110,7 @@ jobs:
   slack-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [matching-creators-workflows, test-extensions-creators-and-update-paths, retrieve-tags-master, test-build-extension-charts-master, test-build-extension-catalog-master, test-release-shell-pkg-master, test-release-creators-pkg-master]
+    needs: [creators-shipped-worflows-checks, test-extensions-creators-and-update-paths, retrieve-tags-master, test-build-extension-charts-master, test-build-extension-catalog-master, test-release-shell-pkg-master, test-release-creators-pkg-master]
     steps: 
       - name: Slack message for workflow
         if: always()
@@ -138,8 +118,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
         run: |
-          OUTPUT_ARRAY=("${{ needs.matching-creators-workflows.outputs.matching-creators-workflows-job-status }}" "${{ needs.test-extensions-creators-and-update-paths.outputs.test-extensions-creators-and-update-paths-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
-          JOB_NAME_ARRAY=("matching-creators-workflows" "test-extensions-creators-and-update-paths" "retrieve-tags-master" "test-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
+          OUTPUT_ARRAY=("${{ needs.creators-shipped-worflows-checks.result }}" "${{ needs.test-extensions-creators-and-update-paths.outputs.test-extensions-creators-and-update-paths-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
+          JOB_NAME_ARRAY=("creators-shipped-worflows-checks" "test-extensions-creators-and-update-paths" "retrieve-tags-master" "test-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
