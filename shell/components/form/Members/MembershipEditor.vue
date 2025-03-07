@@ -180,14 +180,17 @@ export default {
         </div>
       </div>
     </template>
-    <template #columns="{row}">
+    <template #columns="{row, i}">
       <div class="columns row">
         <div class="col span-6">
           <Principal
             :value="row.value.principalId"
           />
         </div>
-        <div class="col span-6 role">
+        <div
+          :data-testid="`role-item-${i}`"
+          class="col span-6 role"
+        >
           {{ row.value.roleDisplay }}
         </div>
       </div>
@@ -209,7 +212,7 @@ export default {
         type="button"
         :disabled="isView"
         class="btn role-link"
-        data-testid="remove-item-{{ i }}"
+        :data-testid="`remove-item-${i}`"
         @click="remove"
       >
         {{ t('generic.remove') }}
