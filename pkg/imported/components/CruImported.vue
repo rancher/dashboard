@@ -108,6 +108,8 @@ export default defineComponent({
       schedulingCustomizationFeatureEnabled: false,
       clusterAgentDefaultPC:                 null,
       clusterAgentDefaultPDB:                null,
+      // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
+      needsReplace:                          false,
       fvFormRuleSets:                        [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -244,7 +246,11 @@ export default defineComponent({
     },
     async actuallySave() {
       if (this.isEdit) {
-        return await this.normanCluster.save();
+        if (this.needsReplace) {
+          return await this.normanCluster._save({ replace: true });
+        } else {
+          return await this.normanCluster.save();
+        }
       } else {
         await this.normanCluster.save();
 
@@ -364,8 +370,10 @@ export default defineComponent({
     },
     setSchedulingCustomization(val) {
       if (val) {
+        this.needsReplace = false;
         set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
       } else {
+        this.needsReplace = true;
         delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
       }
     },
