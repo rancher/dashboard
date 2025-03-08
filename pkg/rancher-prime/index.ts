@@ -1,6 +1,8 @@
-// import { importTypes } from '@rancher/auto-import';
+import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import { installDocHandler } from './docs';
+
+import routing from './routing/index';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -9,7 +11,7 @@ export default function(plugin: IPlugin) {
   }
 
   // Auto-import model, detail, edit from the folders
-  // importTypes(plugin);
+  importTypes(plugin);
 
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
@@ -19,4 +21,10 @@ export default function(plugin: IPlugin) {
 
   // Add the handler that will intercept and replace doc links with their Prime doc counterpart
   installDocHandler(plugin);
+
+  // Load the navigation page
+  plugin.addProduct(require('./config/navigation'));
+
+  // Add routes
+  plugin.addRoutes(routing);
 }

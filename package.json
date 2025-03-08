@@ -188,7 +188,7 @@
     "eslint-plugin-jest": "24.4.0",
     "eslint-plugin-local-rules": "link:./eslint-plugin-local-rules",
     "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-vue": "9.10.0",
+    "eslint-plugin-vue": "9.32.0",
     "flush-promises": "1.0.2",
     "frontmatter-markdown-loader": "3.7.0",
     "jest": "27.5.1",
