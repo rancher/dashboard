@@ -14,6 +14,7 @@ export const ANNOTATIONS_CONTAINS_PROTECTED = [
   'k3s.io',
   'kubernetes.io',
   'k3s.io',
+  'rancher.io'
 ];
 export default class NormanCluster extends NormanModel {
   get systemLabels() {

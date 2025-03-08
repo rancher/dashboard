@@ -39,10 +39,14 @@ export default {
       return !!this.value;
     },
     settingMissmatch() {
-      const pdbMismatch = !!this.value?.podDisruptionBudget && (this.value?.podDisruptionBudget.maxUnavailable !== this.defaultPDB.maxUnavailable || this.value?.podDisruptionBudget.minAvailable !== this.defaultPDB.minAvailable);
-      const pcMismatch = !!this.value?.priorityClass && (this.value?.priorityClass.value !== this.defaultPC.value || this.value?.priorityClass.preemptionPolicy !== this.defaultPC.preemptionPolicy);
+      const pdbMaxUnavailableMismatch = this.value?.podDisruptionBudget.maxUnavailable !== this.defaultPDB.maxUnavailable;
+      const pdbMinAvailableMismatch = this.value?.podDisruptionBudget.minAvailable !== this.defaultPDB.minAvailable;
+      const pcValueMismatch = this.value?.priorityClass.value !== this.defaultPC.value;
+      const pcPreemptionMismatch = this.value?.priorityClass.preemptionPolicy !== this.defaultPC.preemptionPolicy;
+      const pdbMismatch = !!this.value?.podDisruptionBudget && ( pdbMaxUnavailableMismatch || pdbMinAvailableMismatch);
+      const pcMismatch = !!this.value?.priorityClass && ( pcValueMismatch || pcPreemptionMismatch);
 
-      return this.isEdit && (pdbMismatch || pcMismatch);
+      return pdbMismatch || pcMismatch;
     },
   }
 };
@@ -50,7 +54,6 @@ export default {
 
 <template>
   <div
-
     class="mt-20"
   >
     <Checkbox
@@ -62,7 +65,7 @@ export default {
       @update:value="$emit('scheduling-customization-changed', $event)"
     >
       <template
-        v-if="settingMissmatch"
+        v-if="feature && isEdit && settingMissmatch"
         #extra
       >
         <Banner
