@@ -88,4 +88,41 @@ describe('aks provisioning form', () => {
     expect(regionDropdown.exists()).toBe(true);
     expect(regionDropdown.props().value).toBe(mockRegions[0].name);
   });
+
+  it('should show an input with clusters to register when the mode is import', async() => {
+    const setup = {
+      global: {
+        mocks: {
+          $store:      mockedStore({ value: '<=1.27.x' }),
+          $route:      { query: { mode: 'import' } },
+          $fetchState: {},
+        },
+        stubs: { CruResource: false, Accordion: false }
+      }
+    };
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: _CREATE },
+      ...setup
+    });
+
+    await setCredential(wrapper);
+    const clusterDropdown = wrapper.find('[data-testid="cruaks-import"]');
+
+    expect(clusterDropdown.exists()).toBe(true);
+  });
+
+  // https://github.com/rancher/dashboard/issues/13647
+  it('should not render the import cluster dropdown nor run its validation when the mode is not import', async() => {
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: {}, mode: _CREATE },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+    const clusterDropdown = wrapper.find('[data-testid="cruaks-import"]');
+
+    expect(clusterDropdown.exists()).toBe(false);
+
+    expect(wrapper.vm.fvUnreportedValidationErrors).toHaveLength(0);
+  });
 });

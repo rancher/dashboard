@@ -76,7 +76,13 @@ export default defineComponent({
       this.loadingClusters = true;
 
       try {
-        this.allClusters = await getAKSClusters(this.$store, this.azureCredentialSecret);
+        const clusters = await getAKSClusters(this.$store, this.azureCredentialSecret);
+
+        if (clusters?.length) {
+          this.allClusters = clusters;
+        } else {
+          this.allClusters = [];
+        }
       } catch (err) {
         this.$emit('error', err);
       }
