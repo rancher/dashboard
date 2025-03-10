@@ -8,9 +8,7 @@ const UNIT_TO_MS =
     w:  7 * 24 * 60 * 60 * 1000,
     y:  365 * 24 * 60 * 60 * 1000
   };
-// see:
-// https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule
-// https://prometheus.io/docs/prometheus/latest/configuration/configuration/#duration
+
 const DURATION_REGEX = /^(?:([0-9]+)y)?(?:([0-9]+)w)?(?:([0-9]+)d)?(?:([0-9]+)h)?(?:([0-9]+)m)?(?:([0-9]+)s)?(?:([0-9]+)ms)?$/;
 
 export function toMilliseconds(input) {
@@ -38,4 +36,8 @@ export function toMilliseconds(input) {
   }
 
   return 0;
+}
+
+export function toSeconds(input) {
+  return Math.floor(toMilliseconds(input) / 1000);
 }
