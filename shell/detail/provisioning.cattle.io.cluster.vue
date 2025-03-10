@@ -863,6 +863,7 @@ export default {
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
           :sort-generation-fn="nodeSortGenerationFn"
+          :hide-grouping-controls="true"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">
