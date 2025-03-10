@@ -20,23 +20,7 @@ export default {
   },
 
   async fetch() {
-    this.principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value);
-
-    if ( this.principal ) {
-      return;
-    }
-
-    const principalId = escape(this.value).replace(/\//g, '%2F');
-
-    try {
-      this.principal = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.PRINCIPAL,
-        id:   this.value,
-        opt:  { url: `/v3/principals/${ principalId }` }
-      });
-    } catch (e) {
-      console.error('Failed to fetch principal', this.value, principalId); // eslint-disable-line no-console
-    }
+    this.loadData();
   },
 
   data() {
@@ -49,6 +33,34 @@ export default {
       const p = this.principal;
 
       return p.name && p.loginName && p.name.trim().toLowerCase() !== p.loginName.trim().toLowerCase();
+    }
+  },
+
+  methods: {
+    async loadData() {
+      this.principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value);
+
+      if ( this.principal ) {
+        return;
+      }
+
+      const principalId = escape(this.value).replace(/\//g, '%2F');
+
+      try {
+        this.principal = await this.$store.dispatch('rancher/find', {
+          type: NORMAN.PRINCIPAL,
+          id:   this.value,
+          opt:  { url: `/v3/principals/${ principalId }` }
+        });
+      } catch (e) {
+        console.error('Failed to fetch principal', this.value, principalId); // eslint-disable-line no-console
+      }
+    }
+  },
+
+  watch: {
+    value() {
+      this.loadData();
     }
   },
 };
