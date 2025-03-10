@@ -205,7 +205,7 @@ export default defineComponent({
 
       loadingLocations: false,
 
-      fvFormRuleSets: [{
+      fvFormRuleSets: this.isImport ? [{
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       },
@@ -213,7 +213,10 @@ export default defineComponent({
         path:  'clusterName',
         rules: ['importedName']
       }
-      ],
+      ] : [{
+        path:  'name',
+        rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
+      }],
     };
   },
 
@@ -466,10 +469,11 @@ export default defineComponent({
       <Import
         v-if="isImport"
         v-model:cluster-name="config.clusterName"
-
         v-model:resource-group="config.resourceGroup"
+
         v-model:resource-location="config.resourceLocation"
         v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
+        data-testid="cruaks-import"
         :azure-credential-secret="config.azureCredentialSecret"
         :rules="{clusterName: fvGetAndReportPathRules('clusterName')}"
         :mode="mode"
