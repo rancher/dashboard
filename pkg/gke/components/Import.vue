@@ -10,6 +10,12 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import debounce from 'lodash/debounce';
 
+export const GKE_STATES_ENUM = {
+  RUNNING:      'RUNNING',
+  PROVISIONING: 'PROVISIONING',
+  ERROR:        'ERROR'
+};
+
 export default defineComponent({
   name: 'GKEImport',
 
@@ -86,9 +92,7 @@ export default defineComponent({
 
   computed: {
     clusterOptions() {
-      return (this.clustersResponse?.clusters || []).map((c) => {
-        return c.name;
-      });
+      return (this.clustersResponse?.clusters || []).filter((c) => c.status === GKE_STATES_ENUM.RUNNING).map((c) => c.name);
     }
   },
 
