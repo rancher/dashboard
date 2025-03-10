@@ -2425,11 +2425,11 @@ export default {
 
         <!-- Cluster Agent Configuration -->
         <Tab
+          v-if="value.spec.clusterAgentDeploymentCustomization"
           name="clusteragentconfig"
           label-key="cluster.agentConfig.tabs.cluster"
         >
           <AgentConfiguration
-            v-if="value.spec.clusterAgentDeploymentCustomization"
             v-model:value="value.spec.clusterAgentDeploymentCustomization"
             data-testid="rke2-cluster-agent-config"
             type="cluster"

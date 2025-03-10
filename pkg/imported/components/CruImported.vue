@@ -253,11 +253,7 @@ export default defineComponent({
     },
     async actuallySave() {
       if (this.isEdit) {
-        if (this.needsReplace) {
-          return await this.normanCluster._save({ replace: true });
-        } else {
-          return await this.normanCluster.save();
-        }
+        return await this.normanCluster.save({ replace: this.needsReplace });
       } else {
         await this.normanCluster.save();
 
