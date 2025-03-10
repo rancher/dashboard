@@ -29,6 +29,7 @@ import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArg
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
 
 export default defineComponent({
   name:       'Home',
@@ -203,6 +204,8 @@ export default defineComponent({
       ],
 
       clusterCount: 0,
+
+      CURRENT_RANCHER_VERSION
     };
   },
 
@@ -527,7 +530,7 @@ export default defineComponent({
             color="info whats-new"
           >
             <div>
-              {{ t('landing.seeWhatsNew') }}
+              {{ t('landing.seeWhatsNew', { version: CURRENT_RANCHER_VERSION }) }}
             </div>
             <a
               class="hand banner-link"
@@ -535,10 +538,10 @@ export default defineComponent({
               role="link"
               target="_blank"
               rel="noopener noreferrer nofollow"
-              :aria-label="t('landing.whatsNewLink')"
+              :aria-label="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })"
               @click.stop="showWhatsNew"
               @keyup.stop.enter="showWhatsNew"
-            ><span v-clean-html="t('landing.whatsNewLink')" /></a>
+            ><span v-clean-html="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })" /></a>
           </Banner>
         </div>
       </div>
