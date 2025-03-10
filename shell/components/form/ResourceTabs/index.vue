@@ -21,6 +21,8 @@ export default {
 
   name: 'ResourceTabs',
 
+  emits: ['changed'],
+
   components: {
     Tabbed,
     Tab,
@@ -158,6 +160,7 @@ export default {
     // Ensures we only fetch events and show the table when the events tab has been activated
     tabChange(neu) {
       this.selectedTab = neu?.selectedName;
+      this.$emit('changed', neu);
     },
 
     /**

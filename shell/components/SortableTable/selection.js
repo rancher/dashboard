@@ -127,6 +127,8 @@ export default {
   },
 
   watch: {
+    selectedRowClick: 'highlightRow',
+
     // On page change
     pagedRows() {
       // When the table contents changes:
@@ -146,6 +148,24 @@ export default {
   },
 
   methods: {
+    highlightRow(row) {
+      const table = this.$el.querySelector('TABLE');
+
+      const elems = table.querySelectorAll('TR');
+
+      [].forEach.call(elems, (el) => {
+        el.classList.remove('highlight');
+      });
+
+      if (row) {
+        const id = get(row, this.keyField);
+
+        const input = table.querySelector(`[data-node-id="${ id }"]`);
+
+        input?.classList.add('highlight');
+      }
+    },
+
     onToggleAll(value) {
       if ( value ) {
         this.update(this.pagedRows, []);
@@ -245,7 +265,7 @@ export default {
       const isExpand = td?.classList.contains('row-expand');
       const content = this.pagedRows;
 
-      this.$emit('rowClick', e);
+      this.$emit('rowClick', { row: node || {}, event: e });
 
       if ( !node ) {
         return;

@@ -41,6 +41,10 @@ export default defineComponent({
       type:    Boolean,
       default: true
     },
+    showBodySeparator: {
+      type:    Boolean,
+      default: true
+    },
     /**
      * Toggles the card's Actions section.
      */
@@ -89,7 +93,7 @@ export default defineComponent({
           {{ title }}
         </slot>
       </div>
-      <hr>
+      <hr v-if="showBodySeparator">
       <div
         class="card-body"
         data-testid="card-body-slot"
