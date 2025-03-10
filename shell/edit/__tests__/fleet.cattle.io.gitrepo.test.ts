@@ -155,6 +155,12 @@ describe.each([
     ['1', 'custom 1 second', 1, '1'],
     ['60', 'custom 60 seconds', 60, '60'],
     ['15', 'custom 15 seconds', 15, '15'],
+    ['0s', `default ${ defaultPollingInterval } seconds`, 0, defaultPollingInterval],
+    ['1s', 'custom 1 second', '1s', '1'],
+    ['60s', 'custom 60 seconds', '1m', '60'],
+    ['1m3s', 'custom 63 seconds', '1m3s', '63'],
+    ['1h2m3s', 'custom 3723 seconds', '1h2m3s', '3723'],
+    ['15', 'custom 15 seconds', '15s', '15'],
   ])('show Polling Interval input with source: %p, value: %p', async(
     descr1,
     descr2,

@@ -123,6 +123,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-user-id'] = adminUserId;
         gitRepoCreateRequest.spec.helmSecretName = helmSecretName;
         gitRepoCreateRequest.spec.clientSecretName = gitSecretName; // Git SSH credentials
+        gitRepoCreateRequest.spec.pollingInterval = '13s';
 
         expect(response.statusCode).to.eq(201);
         expect(request.body).to.deep.eq(gitRepoCreateRequest);
