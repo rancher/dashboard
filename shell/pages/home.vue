@@ -30,6 +30,7 @@ import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 
 export default defineComponent({
   name:       'Home',
@@ -156,11 +157,12 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_STATE_COL,
-        // https://github.com/rancher/dashboard/issues/12890 BUG - rke1 cluster's prov cluster metadata.name is the mgmt cluster id rather than true name
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          getValue:      (row: ProvCluster) => row.metadata?.name
+          value:         `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
+          sort:          [`metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`],
+          search:        `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
         },
         {
           label:     this.t('landing.clusters.provider'),
