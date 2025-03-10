@@ -61,7 +61,7 @@ export default {
           const parsed = parseAzureError(e.error);
 
           if (parsed) {
-            return { errors: [parsed] };
+            throw ( new Error(parsed));
           }
         }
 

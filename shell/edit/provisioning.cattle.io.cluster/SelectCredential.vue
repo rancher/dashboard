@@ -194,6 +194,8 @@ export default {
         } catch (e) {
           this.errors = [e];
           btnCb(false);
+
+          return;
         }
       }
 
