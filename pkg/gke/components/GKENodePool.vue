@@ -254,7 +254,7 @@ export default defineComponent({
         return this.imageTypeOptions.find((opt) => opt.value === this.imageType) || { value: this.imageType, label: this.t(`gke.imageType.${ this.imageType }`, null, this.imageType) };
       },
       set(neu: {label: string, kind?: string, value?: string, disabled?: boolean}) {
-        this.$emit('update:imageType', neu.value);
+        this.$emit('update:imageType', neu);
       }
     },
 
@@ -263,7 +263,7 @@ export default defineComponent({
         return this.machineTypeOptions.find((opt) => opt?.value === this.machineType);
       },
       set(neu: GKEMachineTypeOption) {
-        this.$emit('update:machineType', neu.value);
+        this.$emit('update:machineType', neu);
       }
     },
 
@@ -272,7 +272,7 @@ export default defineComponent({
         return this.diskTypeOptions.find((opt) => opt.value === this.diskType);
       },
       set(neu: {label:string, value: string}) {
-        this.$emit('update:diskType', neu.value);
+        this.$emit('update:diskType', neu);
       }
     },
 
@@ -281,7 +281,7 @@ export default defineComponent({
         return this.serviceAccountOptions.find((opt) => opt.value === this.serviceAccount) || { label: this.serviceAccount, value: this.serviceAccount };
       },
       set(neu: {label: string, value: string}) {
-        this.$emit('update:serviceAccount', neu.value);
+        this.$emit('update:serviceAccount', neu);
       }
     }
   },

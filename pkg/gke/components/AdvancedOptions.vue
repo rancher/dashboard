@@ -212,7 +212,7 @@ export default defineComponent({
           :options="maintenanceWindowOpts"
           label-key="gke.maintenanceWindow.label"
           :value="maintenanceWindow"
-          @selecting="$emit('update:maintenanceWindow', $event.value)"
+          @selecting="$emit('update:maintenanceWindow', $event)"
         />
       </div>
     </div>
