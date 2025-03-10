@@ -42,6 +42,44 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     cy.createE2EResourceName('azurecloudcredential').as('azureCloudCredentialName');
   });
 
+  it('can not create an Azure RKE2 cluster if invalid Azure credentials are provided', function() {
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
+    const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
+
+    cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+
+    // create cluster
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.createCluster();
+    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
+    createRKE2ClusterPage.selectCreate(1);
+    createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
+    createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
+
+    // create Azure cloud credential
+    cloudCredForm.saveButton().expectToBeDisabled();
+    cloudCredForm.nameNsDescription().name().set(this.azureCloudCredentialName);
+    cloudCredForm.environment().toggle();
+    cloudCredForm.environment().clickOptionWithLabel('AzurePublicCloud');
+    cloudCredForm.subscriptionId().set('bad');
+    cloudCredForm.clientId().set('bad', true);
+    cloudCredForm.clientSecret().set('bad', true);
+    cloudCredForm.saveButton().expectToBeEnabled();
+
+    // wait for the api call to test credentials
+    // verify it returns an error
+    cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/meta/aksCheckCredentials').then((req) => {
+      expect(req.response?.statusCode).to.equal(400);
+    });
+
+    // verify that the error is shown
+    createRKE2ClusterPage.errorsBanner().checkExists();
+
+    // verify that the rke2 provisioning form is not shown
+    createRKE2ClusterPage.nameNsDescription().description().checkNotVisible();
+  });
+
   it('can create a RKE2 cluster using Azure cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AzurePagePo();
     const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
