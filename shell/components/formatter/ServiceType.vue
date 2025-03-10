@@ -16,13 +16,13 @@ export default {
       default: () => {}
     },
   },
-  data() {
-    const cloned = this.getLabel(this.value.toLowerCase());
-
-    return { translated: cloned };
-  },
 
   computed: {
+    translated() {
+      const value = this.value;
+
+      return this.getLabel(value.toLocaleLowerCase());
+    },
     clusterIp() {
       return this.row?.spec?.clusterIP;
     },
