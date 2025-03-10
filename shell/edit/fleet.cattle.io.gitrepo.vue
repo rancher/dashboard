@@ -27,6 +27,7 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
+import { toSeconds } from '@shell/utils/duration';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 const DEFAULT_POLLING_INTERVAL = 60;
@@ -97,7 +98,7 @@ export default {
   },
 
   data() {
-    let pollingInterval = this.value.spec.pollingInterval;
+    let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
 
     if (!pollingInterval) {
       if (this.realMode === _CREATE) {
@@ -550,11 +551,11 @@ export default {
     updatePollingInterval(value) {
       if (!value) {
         this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.value.spec.pollingInterval = DEFAULT_POLLING_INTERVAL.toString();
+        this.value.spec.pollingInterval = this.durationSeconds(DEFAULT_POLLING_INTERVAL);
       } else if (value === MINIMUM_POLLING_INTERVAL) {
         delete this.value.spec.pollingInterval;
       } else {
-        this.value.spec.pollingInterval = value.toString();
+        this.value.spec.pollingInterval = this.durationSeconds(value);
       }
     },
 
@@ -576,6 +577,10 @@ export default {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = this.value.currentUser.username;
       }
     },
+
+    durationSeconds(value) {
+      return `${ value }s`;
+    }
   }
 };
 </script>
