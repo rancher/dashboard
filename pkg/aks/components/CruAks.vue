@@ -278,7 +278,7 @@ export default defineComponent({
     },
 
     finishButtonMode() {
-      return this.isImport ? 'import' : this.mode === _CREATE ? 'create' : 'edit';
+      return this.isImport ? 'import' : this.mode === _EDIT ? 'edit' : 'create';
     },
 
     CREATE(): string {
