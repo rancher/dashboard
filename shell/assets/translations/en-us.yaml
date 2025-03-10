@@ -3164,7 +3164,7 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in this version and read about the UI framework migration in {version}
+  seeWhatsNew: Learn more about the improvements and new capabilities in {version}
   whatsNewLink: "What's new in {version}"
   learnMore: Learn More
   support: Support
