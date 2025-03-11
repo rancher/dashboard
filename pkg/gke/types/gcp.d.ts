@@ -111,7 +111,8 @@ export interface getGKEClustersResponse {
     name: string,
     releaseChannel?: {
         channel?:string
-      }
+      },
+    status?: string
   }[]
 }
 
