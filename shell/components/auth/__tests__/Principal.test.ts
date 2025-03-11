@@ -5,12 +5,7 @@ describe('component: Principal', () => {
   it('should render the component', () => {
     const wrapper = mount(Principal, {
       props:  { value: 'whatever' },
-      global: {
-        mocks: {
-          $fetchState: { pending: false },
-          $store:      { getters: { 'rancher/byId': () => ({ name: 'name' }) } },
-        }
-      },
+      global: { mocks: { $fetchState: { pending: false } } },
     });
 
     expect(wrapper.exists()).toBe(true);
