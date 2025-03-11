@@ -473,6 +473,7 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value ? value.doneOverride : null"
+:show-errors="false"
       @update:value="$emit('input', $event)"
       @error="e=>errors.push(e)"
     />
