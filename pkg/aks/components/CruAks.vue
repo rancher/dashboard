@@ -403,7 +403,6 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="[...fvUnreportedValidationErrors, ...configUnreportedErrors]"
     :validation-passed="fvFormIsValid && ( configIsValid || isImport)"
-    :finish-button-mode="isImport ? 'import' : 'create'"
     @error="e=>errors=e"
     @finish="save"
   >
