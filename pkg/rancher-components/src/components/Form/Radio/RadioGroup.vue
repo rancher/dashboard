@@ -258,6 +258,7 @@ export default defineComponent({
             :description="option.description"
             :val="option.value"
             :disabled="isDisabled"
+            :data-testid="`radio-button-${i}`"
             :mode="mode"
             :prevent-focus-on-radio-groups="true"
             @update:value="$emit('update:value', $event)"

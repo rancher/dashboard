@@ -158,6 +158,7 @@ export default defineComponent({
       :disabled="isDisabled"
       :name="name"
       :value="''+val"
+      :data-testid="label"
       :checked="isChecked"
       type="radio"
       :tabindex="-1"

@@ -192,7 +192,19 @@ export default {
         if (!schedule) {
           return false;
         } else {
-          return isValidCron(schedule) && !!this.value.spec.scanProfileName;
+          // TODO - #13202: This is required due use of 2 libraries and 3 different libraries through the code.
+          const predefined = [
+            '@yearly',
+            '@annually',
+            '@monthly',
+            '@weekly',
+            '@daily',
+            '@midnight',
+            '@hourly'
+          ];
+          const isPredefined = predefined.includes(schedule);
+
+          return (isPredefined || isValidCron(schedule)) && !!this.value.spec.scanProfileName;
         }
       }
 
