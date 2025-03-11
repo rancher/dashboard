@@ -411,6 +411,17 @@ export default {
         m[act]();
       }
     },
+
+    onYamlError(err) {
+      const errors = Array.isArray(err) ? err : [err];
+
+      errors.forEach((e) => {
+        if (this.errors.indexOf(e) === -1) {
+          this.errors.push(e);
+        }
+      });
+    },
+
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
     },
@@ -475,7 +486,7 @@ export default {
       :done-override="value ? value.doneOverride : null"
 :show-errors="false"
       @update:value="$emit('input', $event)"
-      @error="e=>errors.push(e)"
+      @error="onYamlError"
     />
 
     <component
