@@ -90,7 +90,10 @@ export default defineComponent({
     if (!this.isRKE1) {
       await this.initVersionManagement();
     }
-    await this.initSchedulingCustomization();
+    if (!this.isLocal) {
+      // The rancher agent that runs on the local cluster is embedded in the rancher pods that are run in the local cluster, so this is not needed.
+      await this.initSchedulingCustomization();
+    }
   },
 
   data() {
@@ -107,6 +110,8 @@ export default defineComponent({
       schedulingCustomizationFeatureEnabled: false,
       clusterAgentDefaultPC:                 null,
       clusterAgentDefaultPDB:                null,
+      // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
+      needsReplace:                          false,
       fvFormRuleSets:                        [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -232,7 +237,7 @@ export default defineComponent({
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
-      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization );
+      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization ));
     },
   },
 
@@ -248,7 +253,7 @@ export default defineComponent({
     },
     async actuallySave() {
       if (this.isEdit) {
-        return await this.normanCluster.save();
+        return await this.normanCluster.save({ replace: this.needsReplace });
       } else {
         await this.normanCluster.save();
 
@@ -368,8 +373,10 @@ export default defineComponent({
     },
     setSchedulingCustomization(val) {
       if (val) {
+        this.needsReplace = false;
         set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
       } else {
+        this.needsReplace = true;
         delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
       }
     },
