@@ -518,7 +518,7 @@ export default {
       >
         <BrandImage
           class="side-menu-logo-img"
-          data-testid="header-side-menu__brand-img"
+          data-testid="header__brand-img"
           file-name="rancher-logo.svg"
           :alt="t('branding.logos.label')"
         />
