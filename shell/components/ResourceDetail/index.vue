@@ -484,7 +484,7 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value ? value.doneOverride : null"
-:show-errors="false"
+      :show-errors="false"
       @update:value="$emit('input', $event)"
       @error="onYamlError"
     />
@@ -538,6 +538,12 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+.cru__errors {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--header-bg);
+}
 .flex-content {
   display: flex;
   flex-direction: column;
