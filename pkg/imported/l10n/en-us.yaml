@@ -32,6 +32,8 @@ imported:
     label: Drain Worker Nodes
   drainControlPlaneNodes:
     label: Drain Control Plane Nodes
+  memberRoles:
+    localBanner: 'Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. <br> Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation.' 
   network:
     banner: The imported cluster must support Kubernetes NetworkPolicy resources for Project Network Isolation to be enforced
   accordions:
