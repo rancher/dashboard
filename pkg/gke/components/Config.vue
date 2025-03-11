@@ -490,7 +490,7 @@ export default defineComponent({
         />
       </div>
       <div
-        v-if="!loadingZones"
+        v-if="!loadingZones && !isImport"
         class="col span-2 extra-zones"
         data-testid="gke-extra-zones-container"
       >
