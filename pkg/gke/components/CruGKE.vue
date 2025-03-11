@@ -222,21 +222,21 @@ export default defineComponent({
       if (!this.normanCluster.gkeConfig.privateClusterConfig) {
         this.normanCluster.gkeConfig['privateClusterConfig'] = cloneDeep(defaultGkeConfig.privateClusterConfig);
       }
+      this.nodePools = this.normanCluster.gkeConfig.nodePools;
+
+      this.nodePools.forEach((pool) => {
+        pool['_id'] = randomStr();
+        pool['_isNewOrUnprovisioned'] = this.isNewOrUnprovisioned;
+        if (!pool.management) {
+          pool['management'] = {};
+        }
+        if (!pool.autoscaling) {
+          pool['autoscaling'] = {};
+        }
+      });
     }
 
     this.config = this.normanCluster.gkeConfig;
-    this.nodePools = this.normanCluster.gkeConfig.nodePools;
-
-    this.nodePools.forEach((pool) => {
-      pool['_id'] = randomStr();
-      pool['_isNewOrUnprovisioned'] = this.isNewOrUnprovisioned;
-      if (!pool.management) {
-        pool['management'] = {};
-      }
-      if (!pool.autoscaling) {
-        pool['autoscaling'] = {};
-      }
-    });
   },
 
   data() {
