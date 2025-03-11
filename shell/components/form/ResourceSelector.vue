@@ -45,16 +45,14 @@ export default {
   },
 
   data() {
-    const matchingResources = {
-      matched: 0,
-      matches: [],
-      none:    true,
-      sample:  null,
-      total:   0,
-    };
-
     return {
-      matchingResources,
+      matchingResources: {
+        matched: 0,
+        matches: [],
+        none:    true,
+        sample:  null,
+        total:   0,
+      },
       allResources:        [],
       allResourcesInScope: [],
       tableHeaders:        this.$store.getters['type-map/headersFor'](

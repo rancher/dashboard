@@ -28,23 +28,18 @@ export default {
   },
 
   data() {
-    const selectHook = null;
-
-    const defaultExec = { exec: { command: [] } };
-    const defaultHttpGet = {
-      httpGet: {
-        host:        '',
-        path:        '',
-        port:        null,
-        scheme:      '',
-        httpHeaders: null
-      }
-    };
-
     return {
-      selectHook,
-      defaultExec,
-      defaultHttpGet,
+      selectHook:     null,
+      defaultExec:    { exec: { command: [] } },
+      defaultHttpGet: {
+        httpGet: {
+          host:        '',
+          path:        '',
+          port:        null,
+          scheme:      '',
+          httpHeaders: null
+        }
+      },
       schemeOptions: ['HTTP', 'HTTPS']
     };
   },
