@@ -44,17 +44,30 @@ export default {
   },
 
   data() {
-    const typeOpts = [
-      { value: 'simple', label: 'Key/Value Pair' },
-      { value: 'resourceFieldRef', label: 'Resource' },
-      { value: 'configMapKeyRef', label: 'ConfigMap Key' },
-      { value: 'secretKeyRef', label: 'Secret key' },
-      { value: 'fieldRef', label: 'Pod Field' },
-      { value: 'secretRef', label: 'Secret' },
-      { value: 'configMapRef', label: 'ConfigMap' },
-    ];
+    return {
+      typeOpts: [
+        { value: 'simple', label: 'Key/Value Pair' },
+        { value: 'resourceFieldRef', label: 'Resource' },
+        { value: 'configMapKeyRef', label: 'ConfigMap Key' },
+        { value: 'secretKeyRef', label: 'Secret key' },
+        { value: 'fieldRef', label: 'Pod Field' },
+        { value: 'secretRef', label: 'Secret' },
+        { value: 'configMapRef', label: 'ConfigMap' },
+      ],
+      type:            null,
+      refName:         null,
+      referenced:      null,
+      secrets:         this.allSecrets,
+      keys:            [],
+      key:             null,
+      fieldPath:       null,
+      name:            null,
+      resourceKeyOpts: ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'],
+      valStr:          '',
+    };
+  },
 
-    const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
+  created() {
     let type;
 
     if (this.value.secretRef) {
@@ -118,10 +131,16 @@ export default {
       break;
     }
 
-    return {
-      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys, key, fieldPath, name, resourceKeyOpts, valStr
-    };
+    this.type = type;
+    this.refName = refName;
+    this.referenced = refName;
+    this.keys = keys;
+    this.key = key;
+    this.fieldPath = fieldPath;
+    this.name = name;
+    this.valStr = valStr;
   },
+
   computed: {
     isView() {
       return this.mode === _VIEW;

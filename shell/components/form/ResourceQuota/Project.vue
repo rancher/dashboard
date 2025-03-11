@@ -28,11 +28,15 @@ export default {
   },
 
   data() {
+    return { typeValues: null };
+  },
+
+  created() {
     this.value['spec'] = this.value.spec || {};
     this.value.spec['namespaceDefaultResourceQuota'] = this.value.spec.namespaceDefaultResourceQuota || { limit: {} };
     this.value.spec['resourceQuota'] = this.value.spec.resourceQuota || { limit: {} };
 
-    return { typeValues: Object.keys(this.value.spec.resourceQuota.limit) };
+    this.typeValues = Object.keys(this.value.spec.resourceQuota.limit);
   },
 
   computed: { ...QUOTA_COMPUTED },

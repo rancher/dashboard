@@ -44,6 +44,16 @@ export default {
   },
 
   data() {
+    return {
+      probe:     null,
+      kind:      'none',
+      exec:      null,
+      httpGet:   null,
+      tcpSocket: null,
+    };
+  },
+
+  created() {
     let kind = 'none';
     let probe = null;
     let exec = null;
@@ -81,9 +91,11 @@ export default {
     httpGet = probe.httpGet || {};
     tcpSocket = probe.tcpSocket || {};
 
-    return {
-      probe, kind, exec, httpGet, tcpSocket
-    };
+    this.probe = probe;
+    this.kind = kind;
+    this.exec = exec;
+    this.httpGet = httpGet;
+    this.tcpSocket = tcpSocket;
   },
 
   computed: {
