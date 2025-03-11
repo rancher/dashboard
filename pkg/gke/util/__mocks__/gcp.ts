@@ -403,7 +403,13 @@ const mockedGKESharedSubnetworksResponse = {
   ]
 };
 
-const mockedGKEClustersResponse = { items: [] };
+const mockedGKEClustersResponse = {
+  clusters: [
+    { name: 'test1', status: 'RUNNING' },
+    { name: 'test2', status: 'ERROR' },
+    { name: 'test3', status: 'PROVISIONING' }
+  ]
+};
 
 export function getGKEZones() {
   return new Promise((resolve) => {
@@ -441,8 +447,11 @@ export function getGKESharedSubnetworks() {
   });
 }
 
-export function getGKEClusters() {
+export function getGKEClusters(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}) {
   return new Promise((resolve) => {
+    if (location.zone === 'mocked-empty-response') {
+      resolve(null);
+    }
     resolve(mockedGKEClustersResponse);
   });
 }
