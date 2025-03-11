@@ -1,5 +1,5 @@
 import {
-  addObject, addObjects, clear, filterBy, findBy, getUniqueLabelKeys, insertAt, isArray, removeAt, removeObject, removeObjects, replaceWith, sameContents, uniq
+  addObject, addObjects, clear, filterBy, findBy, getUniqueLabelKeys, insertAt, isArray, joinStringList, removeAt, removeObject, removeObjects, replaceWith, sameContents, uniq
 } from '@shell/utils/array';
 
 interface Obj {
@@ -498,5 +498,17 @@ describe('fx: getUniqueLabelKeys', () => {
     const result = getUniqueLabelKeys(resources);
 
     expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: joinStringList', () => {
+  it('should join two lists of strings', () => {
+    const a = 'a b c';
+    const b = 'b c d';
+    const separator = ' ';
+
+    const result = joinStringList(a, b, separator);
+
+    expect(result).toBe('a b c d');
   });
 });
