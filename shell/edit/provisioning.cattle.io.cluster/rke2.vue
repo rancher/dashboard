@@ -88,6 +88,8 @@ const NODE_TOTAL = {
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
+const REGISTRIES_TAB_NAME = 'registry';
+
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
@@ -254,6 +256,8 @@ export default {
       schedulingCustomizationFeatureEnabled: false,
       clusterAgentDefaultPC:                 null,
       clusterAgentDefaultPDB:                null,
+      activeTab:                             null,
+      REGISTRIES_TAB_NAME,
       labelForAddon
 
     };
@@ -261,6 +265,9 @@ export default {
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+    isActiveTabRegistries() {
+      return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
+    },
     clusterName() {
       return this.value.metadata?.name || '';
     },
@@ -1057,8 +1064,16 @@ export default {
 
     async initSchedulingCustomization() {
       this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+      try {
+        this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+      } catch (e) {
+        this.errors.push(e);
+      }
+      try {
+        this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+      } catch (e) {
+        this.errors.push(e);
+      }
 
       if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
         set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
@@ -2077,6 +2092,10 @@ export default {
     addonConfigValidationChanged(configName, isValid) {
       this.addonConfigValidation[configName] = isValid;
     },
+
+    handleTabChange(data) {
+      this.activeTab = data;
+    }
   }
 };
 </script>
@@ -2244,6 +2263,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         class="min-height"
+        @changed="handleTabChange"
       >
         <Tab
           name="basic"
@@ -2354,10 +2374,11 @@ export default {
 
         <!-- Registries -->
         <Tab
-          name="registry"
+          :name="REGISTRIES_TAB_NAME"
           label-key="cluster.tabs.registry"
         >
           <Registries
+            v-if="isActiveTabRegistries"
             v-model:value="localValue"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
@@ -2417,11 +2438,11 @@ export default {
 
         <!-- Cluster Agent Configuration -->
         <Tab
+          v-if="value.spec.clusterAgentDeploymentCustomization"
           name="clusteragentconfig"
           label-key="cluster.agentConfig.tabs.cluster"
         >
           <AgentConfiguration
-            v-if="value.spec.clusterAgentDeploymentCustomization"
             v-model:value="value.spec.clusterAgentDeploymentCustomization"
             data-testid="rke2-cluster-agent-config"
             type="cluster"
