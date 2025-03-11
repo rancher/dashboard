@@ -1,3 +1,5 @@
+import { Store } from 'vuex';
+
 const MOCK_ZONE = 'us-central1-c';
 
 const mockedGKEZonesResponse = {
