@@ -86,6 +86,10 @@ export default {
         out.lint = { onUpdateLinting: this.handleLintErrors };
       }
 
+      // fixes https://github.com/rancher/dashboard/issues/13653
+      // we can't use the inert HTML prop on the parent because it disables all interaction
+      out.readOnly = this.isDisabled ? 'nocursor' : false;
+
       return out;
     },
 
@@ -248,7 +252,6 @@ export default {
 <template>
   <div
     ref="codeMirrorContainer"
-    :inert="isDisabled ? true : false"
     :tabindex="codeMirrorContainerTabIndex"
     class="code-mirror code-mirror-container"
     :class="{['as-text-area']: asTextArea}"
