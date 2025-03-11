@@ -471,6 +471,11 @@ export default defineComponent({
         :open-initially="true"
       >
         <Banner
+          v-if="isLocal"
+          color="warning"
+          label-key="imported.memberRoles.localBanner"
+        />
+        <Banner
           v-if="isEdit"
           color="info"
         >
