@@ -47,19 +47,22 @@ describe('the ArrayList', () => {
     expect(arrayListBoxes).toHaveLength(2);
   });
 
-  it('contracts when a delete button is clicked', async() => {
+  it('should remove the correct item, emit the removed item and the updated values', async() => {
     const wrapper = mount(ArrayList, {
       props: {
-        value: ['string 1', 'string 2'],
+        value: ['string 0', 'string 1', 'string 2'],
         mode:  _EDIT,
       },
     });
-    const deleteButton = wrapper.get('[data-testid^="remove-item"]').element as HTMLElement;
 
-    await deleteButton.click();
-    const arrayListBoxes = wrapper.findAll('[data-testid^="array-list-box"]');
+    jest.useFakeTimers();
+    await (wrapper.get('[data-testid="remove-item-1"]').element as HTMLElement).click();
+    jest.advanceTimersByTime(50);
+    jest.useRealTimers();
 
-    expect(arrayListBoxes).toHaveLength(1);
+    expect(wrapper.find('[data-testid="remove-item-2"]').exists()).toBe(false);
+    expect((wrapper.emitted('remove')![0][0] as any).row.value).toStrictEqual('string 1');
+    expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(['string 0', 'string 2']);
   });
 
   it('add button is hidden in read-only mode', () => {
