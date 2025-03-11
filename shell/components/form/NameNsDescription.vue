@@ -169,6 +169,15 @@ export default {
   },
 
   data() {
+    return {
+      namespace:       '',
+      name:            '',
+      description:     '',
+      createNamespace: false,
+    };
+  },
+
+  created() {
     const v = this.value;
     const metadata = v.metadata;
     let namespace, name, description;
@@ -203,16 +212,9 @@ export default {
       description = metadata?.annotations?.[DESCRIPTION];
     }
 
-    const inStore = this.$store.getters['currentStore']();
-    const nsSchema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
-
-    return {
-      namespace,
-      name,
-      description,
-      createNamespace: false,
-      nsSchema
-    };
+    this.namespace = namespace;
+    this.name = name;
+    this.description = description;
   },
 
   computed: {
@@ -307,6 +309,14 @@ export default {
       const span = 12 / cols; // If there's 5, 7, or more columns this will break; don't do that.
 
       return `span-${ span }`;
+    },
+
+    inStore() {
+      return this.$store.getters['currentStore']();
+    },
+
+    nsSchema() {
+      return this.$store.getters[`${ this.inStore }/schemaFor`](NAMESPACE);
     },
 
     canCreateNamespace() {

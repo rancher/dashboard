@@ -84,53 +84,14 @@ export default {
   },
 
   data() {
-    if (!this.value[this.field]) {
-      this.value[this.field] = {};
-    }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
-    const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      let out = clone(term);
-
-      out._id = randomStr(4);
-      out._anti = false;
-      if (term.podAffinityTerm) {
-        Object.assign(out, term.podAffinityTerm);
-        out = this.parsePodAffinityTerm(out);
-
-        delete out.podAffinityTerm;
-      } else {
-        out = this.parsePodAffinityTerm(out);
-      }
-
-      return out;
-    });
-    const allAntiTerms = [...(podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      let out = clone(term);
-
-      out._id = randomStr(4);
-      out._anti = true;
-      if (term.podAffinityTerm) {
-        Object.assign(out, term.podAffinityTerm);
-        out = this.parsePodAffinityTerm(out);
-
-        delete out.podAffinityTerm;
-      } else {
-        out = this.parsePodAffinityTerm(out);
-      }
-
-      return out;
-    });
-
-    const allSelectorTerms = [...allAffinityTerms, ...allAntiTerms];
-
     return {
-      allSelectorTerms,
-      defaultWeight:   1,
+      allSelectorTerms: [],
+      defaultWeight:    1,
       // rules in MatchExpressions.vue can not catch changes what happens on parent component
       // we need re-render it via key changing
-      rerenderNums:    randomStr(4),
+      rerenderNums:     randomStr(4),
       NAMESPACE_SELECTION_OPTION_VALUES,
-      defaultAddValue: {
+      defaultAddValue:  {
         _namespaceOption: NAMESPACE_SELECTION_OPTION_VALUES.POD,
         matchExpressions: [],
         namespaces:       null,
@@ -138,6 +99,7 @@ export default {
       }
     };
   },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     isView() {
@@ -226,6 +188,44 @@ export default {
   },
 
   created() {
+    if (!this.value[this.field]) {
+      this.value[this.field] = {};
+    }
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
+    const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
+      let out = clone(term);
+
+      out._id = randomStr(4);
+      out._anti = false;
+      if (term.podAffinityTerm) {
+        Object.assign(out, term.podAffinityTerm);
+        out = this.parsePodAffinityTerm(out);
+
+        delete out.podAffinityTerm;
+      } else {
+        out = this.parsePodAffinityTerm(out);
+      }
+
+      return out;
+    });
+    const allAntiTerms = [...(podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
+      let out = clone(term);
+
+      out._id = randomStr(4);
+      out._anti = true;
+      if (term.podAffinityTerm) {
+        Object.assign(out, term.podAffinityTerm);
+        out = this.parsePodAffinityTerm(out);
+
+        delete out.podAffinityTerm;
+      } else {
+        out = this.parsePodAffinityTerm(out);
+      }
+
+      return out;
+    });
+
+    this.allSelectorTerms = [...allAffinityTerms, ...allAntiTerms];
     this.queueUpdate = debounce(this.update, 500);
   },
 

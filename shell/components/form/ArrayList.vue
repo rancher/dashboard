@@ -96,20 +96,12 @@ export default {
     },
   },
   data() {
-    const input = (Array.isArray(this.value) ? this.value : []).slice();
-    const rows = [];
-
-    for ( const value of input ) {
-      rows.push({ value });
-    }
-    if ( !rows.length && this.initialEmptyRow ) {
-      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
-
-      rows.push({ value });
-    }
-
-    return { rows, lastUpdateWasFromValue: false };
+    return {
+      rows:                   [],
+      lastUpdateWasFromValue: false
+    };
   },
+
   computed: {
     _addLabel() {
       return this.addLabel || this.t('generic.add');
@@ -163,6 +155,19 @@ export default {
     }
   },
   created() {
+    const input = (Array.isArray(this.value) ? this.value : []).slice();
+    const rows = [];
+
+    for ( const value of input ) {
+      rows.push({ value });
+    }
+    if ( !rows.length && this.initialEmptyRow ) {
+      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
+
+      rows.push({ value });
+    }
+
+    this.rows = rows;
     this.queueUpdate = debounce(this.update, 50);
   },
   methods: {
