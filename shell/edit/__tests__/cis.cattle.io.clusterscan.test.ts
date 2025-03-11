@@ -2,11 +2,13 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import cisEditor from '@shell/edit/cis.cattle.io.clusterscan.vue';
 
 describe('view: cisEditor', () => {
-  it('renders the component', () => {
-    const wrapper: VueWrapper<any, any> = mount(cisEditor, {
+  let wrapper: VueWrapper<any, any>;
+
+  beforeEach(() => {
+    wrapper = mount(cisEditor, {
       props: {
         value: {
-          spec:           { scanProfileName: 'whatever' },
+          spec:           { scanProfileName: null, canBeScheduled: () => true },
           canBeScheduled: () => true,
         }
       },
@@ -29,7 +31,31 @@ describe('view: cisEditor', () => {
         stubs: { AsyncButton: true }
       }
     });
+  });
 
+  it('renders the component', () => {
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it('should prevent to save', () => {
+    const saveButton = wrapper.find('[data-testid="form-save"]');
+
+    expect(saveButton.attributes().disabled).toStrictEqual('true');
+  });
+
+  describe('should allow to save', () => {
+    it('given a scanProfileName', async() => {
+      wrapper.setProps({
+        value: {
+          spec:           { scanProfileName: 'this is valid', canBeScheduled: () => true },
+          canBeScheduled: () => true,
+        }
+      });
+      await wrapper.vm.$nextTick();
+
+      const saveButton = wrapper.find('[data-testid="form-save"]');
+
+      expect(saveButton.attributes().disabled).toStrictEqual('false');
+    });
   });
 });
