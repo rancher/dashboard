@@ -61,6 +61,13 @@ export default defineComponent({
     enableNetworkPolicy: {
       type:    Boolean,
       default: false
+    },
+
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -118,6 +125,7 @@ export default defineComponent({
       }
       this.loadingClusters = false;
     },
+
   },
 
 });
@@ -134,6 +142,7 @@ export default defineComponent({
           :mode="mode"
           :label="t('gke.import.cluster.label')"
           :options="clusterOptions"
+          :rules="rules.importName"
           @selecting="$emit('update:clusterName', $event)"
         />
         <LabeledInput
@@ -141,7 +150,9 @@ export default defineComponent({
           :value="clusterName"
           :mode="mode"
           :label="t('gke.import.cluster.label')"
-          @input="$emit('update:clusterName', $event)"
+          :rules="rules.importName"
+          data-testid="gke-import-cluster-name-text"
+          @input="$emit('update:clusterName', $event.target.value)"
         />
       </div>
       <div class="col span-6 ">

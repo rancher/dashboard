@@ -262,6 +262,9 @@ export default defineComponent({
       fvFormRuleSets: isImport ? [{
         path:  'clusterName',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd']
+      }, {
+        path:  'importName',
+        rules: ['importNameRequired']
       }] : [
         {
           path:  'diskSizeGb',
@@ -345,6 +348,7 @@ export default defineComponent({
         clusterNameChars:    clusterNameChars(this),
         clusterNameStartEnd: clusterNameStartEnd(this),
         nameRequired:        requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        importNameRequired:  requiredInCluster(this, 'nameNsDescription.name.label', 'gkeConfig.clusterName'),
 
         masterIpv4CidrBlockRequired: () => {
           if (!this.isAuthenticated) {
@@ -765,6 +769,9 @@ export default defineComponent({
             :region="config.region"
             :mode="mode"
             :cluster-name="config.clusterName"
+            :rules="{
+              importName: fvGetAndReportPathRules('importName')
+            }"
             @error="e=>errors.push(e)"
             @update:clusterName="e=>config.clusterName=e"
           />
