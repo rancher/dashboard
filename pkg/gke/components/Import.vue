@@ -111,6 +111,7 @@ export default defineComponent({
     async loadGKEClusters() {
       this.loadingClusters = true;
       this.loadClusterFailed = false;
+      this.$emit('update:clusterName', '');
       try {
         const res = await getGKEClusters(this.$store, this.credential, this.project, { zone: this.zone, region: this.region });
 
