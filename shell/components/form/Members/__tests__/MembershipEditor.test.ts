@@ -41,6 +41,7 @@ describe('component: MembershipEditor', () => {
           $store:      { getters: { 'rancher/schemaFor': () => ({ type: 'object' }) } },
           $fetchState: { pending: false },
         },
+        stubs: { Principal: true },
       }
     });
   });
