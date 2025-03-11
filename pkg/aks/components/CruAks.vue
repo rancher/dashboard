@@ -277,10 +277,6 @@ export default defineComponent({
       return canViewClusterMembershipEditor(this.$store);
     },
 
-    finishButtonMode() {
-      return this.isImport ? 'import' : this.mode === _EDIT ? 'edit' : 'create';
-    },
-
     CREATE(): string {
       return _CREATE;
     },
@@ -407,7 +403,6 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="[...fvUnreportedValidationErrors, ...configUnreportedErrors]"
     :validation-passed="fvFormIsValid && ( configIsValid || isImport)"
-    :finish-button-mode="finishButtonMode"
     @error="e=>errors=e"
     @finish="save"
   >
