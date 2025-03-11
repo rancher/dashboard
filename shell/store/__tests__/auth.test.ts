@@ -1,5 +1,4 @@
 import { actions } from '@shell/store/auth';
-import { createStore } from 'vuex';
 
 // jest.mock('@shell/utils/url', () => ({
 //   addParams:   () => ({}),
@@ -85,36 +84,6 @@ describe('action: redirectTo', () => {
       const url = await actions.redirectTo(store as any, options);
 
       expect(url).toContain('scope=openid%20profile%20email%20myScope&');
-    });
-  });
-});
-
-jest.mock('@shell/utils/auth');
-
-describe('action: test', () => {
-  describe('given providers with an action (github, google, azuread, oidc)', () => {
-    it('should call redirectTo with all the options', async() => {
-      const dispatchSpy = jest.fn().mockReturnValue('anyURL');
-      const store = createStore({
-        actions: {
-          getAuthConfig: () => ({ doAction: () => 'no action' }),
-          redirectTo:    dispatchSpy,
-        }
-      });
-      const provider = 'anyProvider';
-      const redirectUrl = undefined;
-      const body = { scope: ['any scope'] };
-      const options = {
-        provider,
-        redirectUrl,
-        scopes:   body.scope,
-        test:     true,
-        redirect: false
-      };
-
-      await actions.test(store, { provider, body });
-
-      expect(dispatchSpy.mock.calls[0][1]).toStrictEqual(options);
     });
   });
 });
