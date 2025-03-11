@@ -71,7 +71,10 @@ export default defineComponent({
 
   data() {
     return {
-      clustersResponse: {} as getGKEClustersResponse, debouncedloadGKEClusters: () => {}, loadClusterFailed: false
+      clustersResponse:         {} as getGKEClustersResponse,
+      debouncedloadGKEClusters: () => {},
+      loadingClusters:          false,
+      loadClusterFailed:        false
     };
   },
 
@@ -99,6 +102,8 @@ export default defineComponent({
   methods: {
     // query for GKE clusters every time credentials or region change
     async loadGKEClusters() {
+      this.loadingClusters = true;
+      this.loadClusterFailed = false;
       try {
         const res = await getGKEClusters(this.$store, this.credential, this.project, { zone: this.zone, region: this.region });
 
@@ -111,6 +116,7 @@ export default defineComponent({
       } catch (err:any) {
         this.$emit('error', err);
       }
+      this.loadingClusters = false;
     },
   },
 
@@ -123,6 +129,7 @@ export default defineComponent({
       <div class="col span-6">
         <LabeledSelect
           v-if="!loadClusterFailed"
+          :loading="loadingClusters"
           :value="clusterName"
           :mode="mode"
           :label="t('gke.import.cluster.label')"
