@@ -1,5 +1,6 @@
 import CatalogApp from '@shell/models/catalog.cattle.io.app';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const latestVersion = '1.16.2';
 const secondLatestVersion = '1.16.1';
@@ -88,9 +89,10 @@ const certManagerOfficialMatchingChart2 = {
 
 const installedCertManagerAppCoFromRancherUI = {
   metadata: {
-    name:    chartName,
-    home:    appCo.home,
-    version: secondLatestVersion
+    annotations: { [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: appCo.repoName },
+    name:        chartName,
+    home:        appCo.home,
+    version:     secondLatestVersion
   }
 };
 
@@ -104,9 +106,10 @@ const installedCertManagerOfficialFromCli = {
 
 const installedCertManagerOfficialFromRancherUI = {
   metadata: {
-    name:    chartName,
-    home:    certManagerOfficial.oldHome,
-    version: secondLatestVersion
+    annotations: { [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: certManagerOfficial.repoName },
+    name:        chartName,
+    home:        certManagerOfficial.oldHome,
+    version:     secondLatestVersion
   }
 };
 
