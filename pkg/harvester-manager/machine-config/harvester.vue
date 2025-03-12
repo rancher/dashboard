@@ -744,11 +744,12 @@ export default {
       if (clusterId) {
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        const vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
-
         let deviceCapacity = null;
+        let vGpus = null ;
 
         try {
+          vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
+
           const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
 
           if (harvesterCluster?.links?.deviceCapacity) {
