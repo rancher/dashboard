@@ -90,8 +90,8 @@ export default class CatalogApp extends SteveModel {
         const { version, home } = versions[i];
 
         // Finding the exact version, if the version is not there, then most likely it's not a match
-        // if the exact version is found, then we can compare the home values when they exist
-        if (version === this.currentVersion && (!home || !thisHome || home === thisHome)) {
+        // if the exact version is found, then we can compare the home value
+        if (version === this.currentVersion && (home === thisHome)) {
           return true;
         }
       }
