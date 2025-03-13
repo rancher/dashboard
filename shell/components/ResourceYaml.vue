@@ -73,6 +73,11 @@ export default {
       default: true
     },
 
+    showErrors: {
+      type:    Boolean,
+      default: true
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -318,7 +323,7 @@ export default {
         class="footer"
         :class="{ 'edit': !isView }"
         :mode="mode"
-        :errors="errors"
+        :errors="showErrors ? errors : []"
         @save="save"
         @done="done"
       >
