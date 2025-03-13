@@ -148,4 +148,35 @@ describe('oidc.vue', () => {
     expect(groupSearchCheckbox.isVisible()).toBe(true);
     expect(wrapper.vm.model.groupSearchEnabled).toBe(true);
   });
+
+  it('changing URL should update issuer and auth-endpoint if Keycloak', async() => {
+    wrapper.vm.model.id = 'keycloakoidc';
+    const newUrl = 'whatever';
+
+    await wrapper.find(`[data-testid="oidc-url"]`).setValue(newUrl);
+    await wrapper.vm.$nextTick();
+
+    const issuer = (wrapper.find('[data-testid="oidc-issuer"]').element as HTMLInputElement).value;
+    const endpoint = (wrapper.find('[data-testid="oidc-auth-endpoint"]').element as HTMLInputElement).value;
+
+    expect(issuer).toBe(`${ newUrl }/realms/`);
+    expect(endpoint).toBe(`${ newUrl }/realms//protocol/openid-connect/auth`);
+  });
+
+  it('changing realm should update issuer and auth-endpoint if Keycloak', async() => {
+    const newRealm = 'newRealm';
+    const oldUrl = 'oldUrl';
+
+    wrapper.vm.model.id = 'keycloakoidc';
+    wrapper.vm.oidcUrls.url = oldUrl;
+
+    await wrapper.find(`[data-testid="oidc-realm"]`).setValue(newRealm);
+    await wrapper.vm.$nextTick();
+
+    const issuer = (wrapper.find('[data-testid="oidc-issuer"]').element as HTMLInputElement).value;
+    const endpoint = (wrapper.find('[data-testid="oidc-auth-endpoint"]').element as HTMLInputElement).value;
+
+    expect(issuer).toBe(`${ oldUrl }/realms/${ newRealm }`);
+    expect(endpoint).toBe(`${ oldUrl }/realms/${ newRealm }/protocol/openid-connect/auth`);
+  });
 });
