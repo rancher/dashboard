@@ -40,7 +40,7 @@ describe('component: FixedBanner', () => {
     expect(wrapper.vm.showHeader).toStrictEqual(true);
 
     const bannerElem = wrapper.find('.banner');
-    const noArrayTextElem = wrapper.find('.banner > p');
+    const noArrayTextElem = wrapper.find('.banner .single-row');
 
     expect(bannerElem.exists()).toBe(true);
     expect(bannerElem.classes()).not.toContain('banner-consent');
@@ -60,7 +60,7 @@ describe('component: FixedBanner', () => {
     expect(wrapper.vm.showFooter).toStrictEqual(true);
 
     const bannerElem = wrapper.find('.banner');
-    const noArrayTextElem = wrapper.find('.banner > p');
+    const noArrayTextElem = wrapper.find('.banner .single-row');
 
     expect(bannerElem.exists()).toBe(true);
     expect(bannerElem.classes()).not.toContain('banner-consent');
@@ -84,7 +84,7 @@ describe('component: FixedBanner', () => {
     const bannerDialogElem = wrapper.find('.banner-dialog');
     const bannerDialogFrameElem = wrapper.find('.banner-dialog-frame');
     const buttonDialog = wrapper.find('.banner-dialog button');
-    const noArrayTextElem = wrapper.find('.banner > p');
+    const noArrayTextElem = wrapper.find('.banner .single-row');
 
     expect(bannerElem.exists()).toBe(true);
     expect(bannerDialogGlassElem.exists()).toBe(true);

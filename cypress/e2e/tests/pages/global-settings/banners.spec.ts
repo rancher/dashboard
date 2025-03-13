@@ -12,8 +12,9 @@ const loginPage = new LoginPagePo();
 const bannersSettingsOriginal = [];
 
 const settings = {
-  bannerLabel:   'Rancher e2e',
-  textAlignment: {
+  bannerLabel:          'Rancher e2e',
+  bannerLabelMultiline: 'Rancher e2e\nTwo',
+  textAlignment:        {
     original: 'Center',
     new:      'Right'
   },
@@ -21,7 +22,13 @@ const settings = {
     original: '14px',
     new:      '20px'
   },
-  textDecoration:  'Underline',
+  fontWeight:     '700',
+  fontStyle:      'italic',
+  textDecoration: 'Underline',
+  height:         {
+    single:    '40px',
+    multiline: '80px'
+  },
   bannerTextColor: {
     original: '#141419',
     new:      '#f80dd8',
@@ -96,8 +103,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // https://github.com/rancher/dashboard/issues/10000
       bannersPage.headerBannerCheckbox().hasAppropriateWidth();
       bannersPage.headerBannerCheckbox().hasAppropriateHeight();
-      bannersPage.headerInput().set(settings.bannerLabel);
+      bannersPage.headerInput().set(settings.bannerLabelMultiline);
       bannersPage.textAlignmentRadioGroup('bannerHeader').set(2);
+      bannersPage.textDecorationCheckboxes('bannerHeader', 'Bold').set();
+      bannersPage.textDecorationCheckboxes('bannerHeader', 'Italic').set();
       bannersPage.textDecorationCheckboxes('bannerHeader', 'Underline').set();
       bannersPage.selectFontSizeByValue('bannerHeader', settings.fontSize.new);
       bannersPage.textColorPicker(0).value().should('not.eq', settings.bannerTextColor.new);
@@ -111,12 +120,23 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
       // Check in session
       bannersPage.banner().should('be.visible').then((el) => {
-        expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+        expect(el).to.have.attr('style').contains(`text-decoration: ${ settings.textDecoration.toLowerCase() }`);
       });
+      bannersPage.banner().find('div').then((el) => {
+        const win = cy.state('window');
+        const styles = win.getComputedStyle(el[0]);
+
+        expect(styles.getPropertyValue('color')).to.equal(settings.bannerTextColor.newRGB);
+        expect(styles.getPropertyValue('font-weight')).to.equal(settings.fontWeight);
+        expect(styles.getPropertyValue('font-style')).to.equal(settings.fontStyle);
+        expect(styles.getPropertyValue('font-size')).to.equal(settings.fontSize.new);
+
+        // Verify that multiline text affects the height of the banner
+        expect(styles.getPropertyValue('height')).to.equal(settings.height.multiline);
+      });
+
       bannersPage.headerBannerCheckbox().isChecked();
       bannersPage.textAlignmentRadioGroup('bannerHeader').isChecked(2);
       bannersPage.textColorPicker(0).previewColor().should('eq', settings.bannerTextColor.newRGB);
@@ -125,12 +145,24 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Check over reload
       cy.reload();
       bannersPage.banner().should('be.visible').then((el) => {
-        expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+        expect(el).to.have.attr('style').contains(`text-decoration: ${ settings.textDecoration.toLowerCase() }`);
       });
+
+      bannersPage.banner().find('div').then((el) => {
+        const win = cy.state('window');
+        const styles = win.getComputedStyle(el[0]);
+
+        expect(styles.getPropertyValue('color')).to.equal(settings.bannerTextColor.newRGB);
+        expect(styles.getPropertyValue('font-weight')).to.equal(settings.fontWeight);
+        expect(styles.getPropertyValue('font-style')).to.equal(settings.fontStyle);
+        expect(styles.getPropertyValue('font-size')).to.equal(settings.fontSize.new);
+
+        // Verify that multiline text affects the height of the banner
+        expect(styles.getPropertyValue('height')).to.equal(settings.height.multiline);
+      });
+
       bannersPage.headerBannerCheckbox().isChecked();
       bannersPage.textAlignmentRadioGroup('bannerHeader').isChecked(2);
       bannersPage.textColorPicker(0).previewColor().should('eq', settings.bannerTextColor.newRGB);
@@ -149,6 +181,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.footerBannerCheckbox().set();
       bannersPage.footerInput().set(settings.bannerLabel);
       bannersPage.textAlignmentRadioGroup('bannerFooter').set(2);
+      bannersPage.textDecorationCheckboxes('bannerFooter', 'Bold').set();
+      bannersPage.textDecorationCheckboxes('bannerFooter', 'Italic').set();
       bannersPage.textDecorationCheckboxes('bannerFooter', 'Underline').set();
       bannersPage.selectFontSizeByValue('bannerFooter', settings.fontSize.new);
       bannersPage.textColorPicker(2).value().should('not.eq', settings.bannerTextColor.new);
@@ -162,11 +196,21 @@ describe('Banners', { testIsolation: 'off' }, () => {
 
       // Check in session
       bannersPage.banner().should('be.visible').then((el) => {
-        expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+        expect(el).to.have.attr('style').contains(`text-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      });
+      bannersPage.banner().find('div').then((el) => {
+        const win = cy.state('window');
+        const styles = win.getComputedStyle(el[0]);
+
+        expect(styles.getPropertyValue('color')).to.equal(settings.bannerTextColor.newRGB);
+        expect(styles.getPropertyValue('font-weight')).to.equal(settings.fontWeight);
+        expect(styles.getPropertyValue('font-style')).to.equal(settings.fontStyle);
+        expect(styles.getPropertyValue('font-size')).to.equal(settings.fontSize.new);
+
+        // Verify that single line text affects the height of the banner
+        expect(styles.getPropertyValue('height')).to.equal(settings.height.single);
       });
       bannersPage.footerBannerCheckbox().isChecked();
       bannersPage.textAlignmentRadioGroup('bannerFooter').isChecked(2);
@@ -176,11 +220,21 @@ describe('Banners', { testIsolation: 'off' }, () => {
       // Check over reload
       cy.reload();
       bannersPage.banner().should('be.visible').then((el) => {
-        expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+        expect(el).to.have.attr('style').contains(`text-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      });
+      bannersPage.banner().find('div').then((el) => {
+        const win = cy.state('window');
+        const styles = win.getComputedStyle(el[0]);
+
+        expect(styles.getPropertyValue('color')).to.equal(settings.bannerTextColor.newRGB);
+        expect(styles.getPropertyValue('font-weight')).to.equal(settings.fontWeight);
+        expect(styles.getPropertyValue('font-style')).to.equal(settings.fontStyle);
+        expect(styles.getPropertyValue('font-size')).to.equal(settings.fontSize.new);
+
+        // Verify that single line text affects the height of the banner
+        expect(styles.getPropertyValue('height')).to.equal(settings.height.single);
       });
       bannersPage.footerBannerCheckbox().isChecked();
       bannersPage.textAlignmentRadioGroup('bannerFooter').isChecked(2);
@@ -202,6 +256,8 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.loginScreenBannerCheckbox().set();
       bannersPage.loginScreenInput().set(settings.bannerLabel);
       bannersPage.textAlignmentRadioGroup('bannerConsent').set(2);
+      bannersPage.textDecorationCheckboxes('bannerConsent', 'Bold').set();
+      bannersPage.textDecorationCheckboxes('bannerConsent', 'Italic').set();
       bannersPage.textDecorationCheckboxes('bannerConsent', 'Underline').set();
       bannersPage.selectFontSizeByValue('bannerConsent', settings.fontSize.new);
       bannersPage.textColorPicker(4).value().should('not.eq', settings.bannerTextColor.new);
@@ -218,11 +274,21 @@ describe('Banners', { testIsolation: 'off' }, () => {
       loginPage.waitForPage();
       loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
       bannersPage.banner().should('be.visible').then((el) => {
-        expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
         expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
-        expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+        expect(el).to.have.attr('style').contains(`text-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      });
+      bannersPage.banner().find('div').then((el) => {
+        const win = cy.state('window');
+        const styles = win.getComputedStyle(el[0]);
+
+        expect(styles.getPropertyValue('color')).to.equal(settings.bannerTextColor.newRGB);
+        expect(styles.getPropertyValue('font-weight')).to.equal(settings.fontWeight);
+        expect(styles.getPropertyValue('font-style')).to.equal(settings.fontStyle);
+        expect(styles.getPropertyValue('font-size')).to.equal(settings.fontSize.new);
+
+        // Verify that single line text affects the height of the banner
+        expect(styles.getPropertyValue('height')).to.equal(settings.height.single);
       });
 
       // Check after login
