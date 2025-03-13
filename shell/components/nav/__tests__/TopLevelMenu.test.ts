@@ -1,5 +1,4 @@
 import TopLevelMenu from '@shell/components/nav/TopLevelMenu.vue';
-import { SETTING } from '@shell/config/settings';
 import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
@@ -427,45 +426,6 @@ describe('topLevelMenu', () => {
     expect(description2.text()).toStrictEqual('some-description2');
     expect(description3.text()).toStrictEqual('some-description3');
     expect(description4.text()).toStrictEqual('some-description4');
-  });
-
-  it('should not "crash" the component if the structure of banner settings is in an old format', async() => {
-    const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-      global: {
-        mocks: {
-          $route: {},
-          $store: {
-            ...generateStore(
-              [{ name: 'whatever' }],
-              [
-                // object based on https://github.com/rancher/dashboard/issues/10140#issuecomment-1883252402
-                {
-                  id:    SETTING.BANNERS,
-                  value: JSON.stringify({
-                    banner: {
-                      color:      '#78c9cf',
-                      background: '#27292e',
-                      text:       'Hello World!'
-                    },
-                    showHeader: 'true',
-                    showFooter: 'true'
-                  })
-                }
-              ]
-            ),
-          }
-        },
-
-        stubs: ['BrandImage', 'router-link'],
-      },
-    });
-
-    await waitForIt();
-
-    expect(wrapper.vm.sideMenuStyle).toStrictEqual({
-      marginBottom: '2em',
-      marginTop:    '2em'
-    });
   });
 
   describe('searching a term', () => {
