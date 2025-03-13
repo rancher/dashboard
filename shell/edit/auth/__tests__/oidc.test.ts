@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
@@ -32,7 +32,7 @@ const mockModel = {
 };
 
 describe('oidc.vue', () => {
-  let wrapper: any;
+  let wrapper: VueWrapper<any, any>;
   const requiredSetup = () => ({
     data() {
       return {
@@ -44,7 +44,7 @@ describe('oidc.vue', () => {
         originalModel:  null,
         principals:     [],
         authConfigName: 'oidc',
-      };
+      } as any; // any is necessary as in pre-existing tests we are including inherited mixins values
     },
     global: {
       mocks: {
