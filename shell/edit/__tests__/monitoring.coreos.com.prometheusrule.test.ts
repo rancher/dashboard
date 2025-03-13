@@ -35,8 +35,12 @@ describe('edit: management.cattle.io.setting should', () => {
         canYaml:  false,
         mode:     _EDIT,
         resource: {},
-        value:    { value: 'anything' },
-        name:     ''
+        value:    {
+          setAnnotation: jest.fn(),
+          value:         'anything',
+          metadata:      {},
+        },
+        name: ''
       },
       ...requiredSetup()
     });

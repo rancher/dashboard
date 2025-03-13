@@ -6,18 +6,20 @@ import { DefaultProps } from 'vue/types/options';
 
 describe('component: Probe', () => {
   describe.each([
-    ['HTTPS', ['port', 'path']],
-    ['tcp', ['socket']],
-    ['exec', ['command']],
-  ])('given kind %p', (kind, extraFields) => {
+    [{ httpGet: { scheme: 'https' } }, ['port', 'path']],
+    [{ tcpSocket: {} }, ['socket']],
+    [{ exec: {} }, ['command']],
+  ])('given kind %p', (value, extraFields) => {
     it.each([
       ...extraFields,
       'successThreshold',
       'failureThreshold',
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        props: { mode: _EDIT },
-        data:  () => ({ kind })
+        props: {
+          mode: _EDIT,
+          value,
+        },
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
@@ -33,8 +35,10 @@ describe('component: Probe', () => {
       'timeoutSeconds',
     ])('should emit an update on %p input and blur', (field) => {
       const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
-        props: { mode: _EDIT },
-        data:  () => ({ kind })
+        props: {
+          mode: _EDIT,
+          value
+        },
       });
       const input = wrapper.find(`[data-testid="input-probe-${ field }"]`).find('input');
       const newValue = 123;
