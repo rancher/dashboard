@@ -1057,6 +1057,28 @@ export default class ProvCluster extends SteveModel {
     return null;
   }
 
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
+    }
+
+    return null;
+  }
+
   // JSON Paths that should be folded in the YAML editor by default
   get yamlFolding() {
     return [
