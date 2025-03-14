@@ -2779,6 +2779,7 @@ hpa:
       label: Metric Name
       placeholder: e.g. packets-per-second
     selector:
+      header: Metric Selector
       label: Add Selector
   metricTarget:
     averageVal:
