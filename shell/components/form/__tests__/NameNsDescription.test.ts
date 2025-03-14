@@ -13,7 +13,10 @@ describe('component: NameNsDescription', () => {
     ];
     const wrapper = mount(NameNsDescription, {
       props: {
-        value:   {},
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      {}
+        },
         mode:    'create',
         cluster: {},
       },
@@ -41,8 +44,11 @@ describe('component: NameNsDescription', () => {
     const newNamespaceName = 'bananas';
     const wrapper = mount(NameNsDescription, {
       props: {
-        value: { metadata: {} },
-        mode:  'create',
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      {}
+        },
+        mode: 'create',
       },
       global: {
         mocks: {

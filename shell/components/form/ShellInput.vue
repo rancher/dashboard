@@ -21,6 +21,10 @@ export default {
       causes $emit 'input' of ["-c", "sleep 600"]
   */
   data() {
+    return { userValue: '' };
+  },
+
+  created() {
     let userValue = '';
 
     if ( this.value ) {
@@ -36,7 +40,7 @@ export default {
       }, '').trim();
     }
 
-    return { userValue };
+    this.userValue = userValue;
   },
 
   methods: {

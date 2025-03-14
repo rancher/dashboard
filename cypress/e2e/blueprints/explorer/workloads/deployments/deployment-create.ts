@@ -96,7 +96,14 @@ export const deploymentCreateRequest = {
         initContainers:   [],
         imagePullSecrets: [],
         volumes:          [],
-        affinity:         {}
+        affinity:         {},
+        dnsConfig:        {
+          nameservers: [],
+          searches:    []
+        },
+        dnsPolicy:   'ClusterFirst',
+        hostAliases: [],
+        hostNetwork: false
       },
       metadata: {
         labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },

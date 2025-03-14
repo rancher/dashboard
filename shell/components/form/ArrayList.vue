@@ -1,4 +1,5 @@
 <script>
+import { ref } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
@@ -95,21 +96,28 @@ export default {
       validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     },
   },
-  data() {
-    const input = (Array.isArray(this.value) ? this.value : []).slice();
-    const rows = [];
+
+  setup(props) {
+    const input = (Array.isArray(props.value) ? props.value : []).slice();
+    const rows = ref([]);
 
     for ( const value of input ) {
-      rows.push({ value });
+      rows.value.push({ value });
     }
-    if ( !rows.length && this.initialEmptyRow ) {
-      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
+    if ( !rows.value.length && props.initialEmptyRow ) {
+      const value = props.defaultAddValue ? clone(props.defaultAddValue) : '';
 
-      rows.push({ value });
+      rows.value.push({ value });
     }
 
-    return { rows, lastUpdateWasFromValue: false };
+    const lastUpdateWasFromValue = ref(false);
+
+    return {
+      rows,
+      lastUpdateWasFromValue,
+    };
   },
+
   computed: {
     _addLabel() {
       return this.addLabel || this.t('generic.add');

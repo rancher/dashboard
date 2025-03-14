@@ -29,6 +29,20 @@ export default {
 
   data() {
     const t = this.$store.getters['i18n/t'];
+
+    return {
+      dnsPolicy:   this.value.dnsPolicy || 'ClusterFirst',
+      networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.hostNetwork'), value: true } : { label: t('workload.networking.networkMode.options.normal'), value: false },
+      hostAliases: [],
+      nameservers: null,
+      searches:    null,
+      hostname:    null,
+      subdomain:   null,
+      options:     null,
+    };
+  },
+
+  created() {
     const hostAliases = (this.value.hostAliases || []).map((entry) => {
       return {
         ip:        entry.ip,
@@ -38,18 +52,12 @@ export default {
     const { dnsConfig = {}, hostname, subdomain } = this.value;
     const { nameservers, searches, options } = dnsConfig;
 
-    const out = {
-      dnsPolicy:   this.value.dnsPolicy || 'ClusterFirst',
-      networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.hostNetwork'), value: true } : { label: t('workload.networking.networkMode.options.normal'), value: false },
-      hostAliases,
-      nameservers,
-      searches,
-      hostname,
-      subdomain,
-      options
-    };
-
-    return out;
+    this.hostAliases = hostAliases;
+    this.nameservers = nameservers;
+    this.searches = searches;
+    this.hostname = hostname;
+    this.subdomain = subdomain;
+    this.options = options;
   },
 
   computed: {

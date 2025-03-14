@@ -113,8 +113,10 @@ describe('view: logging.banzaicloud.io.output', () => {
       data:  () => ({ selectedProvider: 'loki' }),
       props: {
         value: {
-          save: jest.fn(),
-          spec: { loki: { url } }
+          save:          jest.fn(),
+          setAnnotation: jest.fn(),
+          spec:          { loki: { url } },
+          metadata:      {},
         }
       },
       global: {
@@ -153,8 +155,10 @@ describe('view: logging.banzaicloud.io.output', () => {
       data:  () => ({ selectedProvider: 'awsElasticsearch' }),
       props: {
         value: {
-          save: jest.fn(),
-          spec: {}
+          save:          jest.fn(),
+          setAnnotation: jest.fn(),
+          spec:          {},
+          metadata:      {},
         }
       },
       global: {
@@ -234,8 +238,10 @@ describe('view: logging.banzaicloud.io.output', () => {
       data:  () => ({ selectedProvider: 'awsElasticsearch' }),
       props: {
         value: {
-          save: jest.fn(),
-          spec: { awsElasticsearch: { buffer: '#chunk_limit_records: int' } }
+          save:          jest.fn(),
+          setAnnotation: jest.fn(),
+          spec:          { awsElasticsearch: { buffer: '#chunk_limit_records: int' } },
+          metadata:      {}
         }
       },
       global: {
