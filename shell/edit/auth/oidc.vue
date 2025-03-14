@@ -136,7 +136,7 @@ export default {
       const isKeycloak = this.model.id === 'keycloakoidc';
 
       const url = this.oidcUrls.url.replaceAll(' ', '');
-      const realmsPath = isKeycloak ? 'auth/realms' : 'realms';
+      const realmsPath = 'realms';
 
       this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
 
