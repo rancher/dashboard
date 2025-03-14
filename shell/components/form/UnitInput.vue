@@ -237,6 +237,7 @@ export default {
     :hide-arrows="hideArrows"
     @change="update($event.target.value)"
     @blur="update($event.target.value)"
+    @keyup="update($event.target.value)"
   >
     <template #suffix>
       <div
