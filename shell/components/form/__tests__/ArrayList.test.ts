@@ -92,7 +92,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should emit value with multiple rows', () => {
@@ -104,7 +104,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
 
     it('should allow emit multiline pasted values if enabled', () => {
@@ -121,7 +121,7 @@ describe('the ArrayList', () => {
 
       wrapper.vm.onPaste(0, event);
 
-      expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual(expectation);
+      expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual(expectation);
     });
   });
 });
