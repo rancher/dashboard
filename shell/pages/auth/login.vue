@@ -319,7 +319,7 @@ export default {
     v-if="$fetchState.pending"
     mode="relative"
   />
-  <main
+  <div
     v-else
     class="main-layout login"
   >
@@ -518,9 +518,10 @@ export default {
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
+        :alt="t('login.landscapeAlt')"
       />
     </div>
-  </main>
+  </div>
 </template>
 
 <style lang="scss" scoped>
