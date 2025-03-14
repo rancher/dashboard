@@ -128,7 +128,7 @@ describe('eKS Networking', () => {
     });
 
     const fetchVpcsSpy = jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
-      wrapper.setData({ subnetInfo: SubnetData, vpcInfo: VpcData });
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
@@ -160,7 +160,7 @@ describe('eKS Networking', () => {
     });
 
     jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
-      wrapper.setData({ subnetInfo: SubnetData, vpcInfo: VpcData });
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
@@ -197,7 +197,7 @@ describe('eKS Networking', () => {
     });
 
     jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
-      wrapper.setData({ subnetInfo: SubnetData, vpcInfo: VpcData });
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {
@@ -230,7 +230,7 @@ describe('eKS Networking', () => {
     });
 
     jest.spyOn(Networking.methods, 'fetchVpcs').mockImplementation(() => {
-      wrapper.setData({ subnetInfo: SubnetData, vpcInfo: VpcData });
+      wrapper.setData({ subnetInfo: SubnetData.Subnets, vpcInfo: VpcData.Vpcs });
     });
 
     wrapper = shallowMount(Networking, {

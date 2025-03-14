@@ -22,18 +22,20 @@ const mockedStore = (versionSetting: any) => {
         return {};
       }
     },
-    dispatch: () => {
-      return {
-        describeKeyPairs: () => {
-          return describeKeyPairs;
-        },
-        describeLaunchTemplates: () => {
-          return describeLaunchTemplates;
-        },
-        listRoles: () => {
-          return { Roles: [] };
-        }
-      };
+
+    dispatch: (ctx: any, { cmd }:{cmd?:string}) => {
+      switch (cmd) {
+      case 'describeLaunchTemplates':
+        return describeLaunchTemplates.LaunchTemplates;
+      case 'listRoles':
+        return [];
+      default:
+        return {
+          describeKeyPairs: () => {
+            return describeKeyPairs;
+          }
+        };
+      }
     }
   };
 };
