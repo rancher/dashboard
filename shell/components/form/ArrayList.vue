@@ -1,4 +1,5 @@
 <script>
+import { ref } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
@@ -95,10 +96,25 @@ export default {
       validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     },
   },
-  data() {
+
+  setup(props) {
+    const input = (Array.isArray(props.value) ? props.value : []).slice();
+    const rows = ref([]);
+
+    for ( const value of input ) {
+      rows.value.push({ value });
+    }
+    if ( !rows.value.length && props.initialEmptyRow ) {
+      const value = props.defaultAddValue ? clone(props.defaultAddValue) : '';
+
+      rows.value.push({ value });
+    }
+
+    const lastUpdateWasFromValue = ref(false);
+
     return {
-      rows:                   [],
-      lastUpdateWasFromValue: false
+      rows,
+      lastUpdateWasFromValue,
     };
   },
 
@@ -155,19 +171,6 @@ export default {
     }
   },
   created() {
-    const input = (Array.isArray(this.value) ? this.value : []).slice();
-    const rows = [];
-
-    for ( const value of input ) {
-      rows.push({ value });
-    }
-    if ( !rows.length && this.initialEmptyRow ) {
-      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
-
-      rows.push({ value });
-    }
-
-    this.rows = rows;
     this.queueUpdate = debounce(this.update, 50);
   },
   methods: {
