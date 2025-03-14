@@ -80,6 +80,7 @@ const sidebars = {
           ]
         },
         'publishing',
+        'catalog',
         {
           type:  'category',
           label: 'Use cases/Examples',

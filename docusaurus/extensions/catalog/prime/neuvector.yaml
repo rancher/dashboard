@@ -1,0 +1,6 @@
+name: NeuVector
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: NeuVector extension for Rancher Manager
+url: https://www.suse.com/products/rancher/security
+icon: https://raw.githubusercontent.com/rancher/ui-plugin-charts/refs/heads/main/icons/neuvector-ui-ext/2.1.2-nv-icon.svg
