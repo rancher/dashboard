@@ -306,7 +306,7 @@ export default {
         namespace.value = metadata?.namespace;
       }
 
-      if (!namespace.value && !this.noDefaultNamespace) {
+      if (!namespace.value && !props.noDefaultNamespace) {
         namespace.value = store.getters['defaultNamespace'];
         if (metadata) {
           metadata.namespace = namespace;

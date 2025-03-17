@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Banzai from '@shell/edit/logging.banzaicloud.io.output/index.vue';
+import { createStore } from 'vuex';
 
 const outputSchema = {
   id:    'logging.banzaicloud.io.output',
@@ -109,6 +110,13 @@ describe('view: logging.banzaicloud.io.output', () => {
     ['http://localhost:3100', []],
     ['not a proper URL', ['logging.loki.urlInvalid']],
   ])('should validate Loki URL on save', (url, expectation) => {
+    const store = createStore({
+      getters: {
+        namespaces:          () => () => ({}),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
     const wrapper = mount(Banzai, {
       data:  () => ({ selectedProvider: 'loki' }),
       props: {
@@ -120,7 +128,8 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       global: {
-        mocks: {
+        provide: { store },
+        mocks:   {
           $fetchState: { pending: false },
           $store:      {
             dispatch: jest.fn(),
@@ -151,6 +160,13 @@ describe('view: logging.banzaicloud.io.output', () => {
   });
 
   it('should load the default YAML data for output buffer config (from schema) in a CREATE scenario', async() => {
+    const store = createStore({
+      getters: {
+        namespaces:          () => () => ({}),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
     const wrapper = mount(Banzai, {
       data:  () => ({ selectedProvider: 'awsElasticsearch' }),
       props: {
@@ -162,7 +178,8 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       global: {
-        mocks: {
+        provide: { store },
+        mocks:   {
           $fetchState: { pending: false },
           $store:      {
             dispatch(arg: any) {
@@ -234,6 +251,13 @@ describe('view: logging.banzaicloud.io.output', () => {
   });
 
   it('should load current output buffer config in an EDIT scenario', async() => {
+    const store = createStore({
+      getters: {
+        namespaces:          () => () => ({}),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
     const wrapper = mount(Banzai, {
       data:  () => ({ selectedProvider: 'awsElasticsearch' }),
       props: {
@@ -245,7 +269,8 @@ describe('view: logging.banzaicloud.io.output', () => {
         }
       },
       global: {
-        mocks: {
+        provide: { store },
+        mocks:   {
           $fetchState: { pending: false },
           $store:      {
             dispatch(arg: any) {

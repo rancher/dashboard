@@ -1,10 +1,18 @@
 import { mount } from '@vue/test-utils';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
+import { createStore } from 'vuex';
 
 describe('component: NameNsDescription', () => {
   // Accessing to computed value due code complexity
   it('should map namespaces to options', () => {
     const namespaceName = 'test';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
     const result = [
       {
         label: namespaceName,
@@ -21,15 +29,13 @@ describe('component: NameNsDescription', () => {
         cluster: {},
       },
       global: {
-        mocks: {
+        provide: { store },
+        mocks:   {
           $store: {
             dispatch: jest.fn(),
             getters:  {
-              namespaces:          jest.fn(),
-              allowedNamespaces:   () => ({ [namespaceName]: true }),
-              currentStore:        () => 'cluster',
-              'cluster/schemaFor': jest.fn(),
-              'i18n/t':            jest.fn(),
+              namespaces: jest.fn(),
+              'i18n/t':   jest.fn(),
             },
           },
         },
@@ -41,6 +47,13 @@ describe('component: NameNsDescription', () => {
 
   it('should emit in case of new namespace', () => {
     const namespaceName = 'test';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
     const newNamespaceName = 'bananas';
     const wrapper = mount(NameNsDescription, {
       props: {
@@ -51,20 +64,18 @@ describe('component: NameNsDescription', () => {
         mode: 'create',
       },
       global: {
-        mocks: {
+        provide: { store },
+        mocks:   {
           $store: {
             dispatch: jest.fn(),
             getters:  {
               namespaces:                         jest.fn(),
-              allowedNamespaces:                  () => ({ [namespaceName]: true }),
               'customizations/getPreviewCluster': {
                 ready:   true,
                 isLocal: false,
                 badge:   {},
               },
-              currentStore:        () => 'cluster',
-              'cluster/schemaFor': jest.fn(),
-              'i18n/t':            jest.fn(),
+              'i18n/t': jest.fn(),
             },
           },
         },
