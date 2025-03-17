@@ -1,8 +1,6 @@
 // Catalog card for a single extension
 
 const CatalogCard = (props) => {
-  console.log(props);
-
   const item = props.item;
 
   return (
