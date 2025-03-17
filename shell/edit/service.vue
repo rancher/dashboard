@@ -243,9 +243,6 @@ export default {
       } else {
         this.fvFormRuleSets = [{ path: 'spec.ports', rules: ['servicePort'] }];
       }
-    },
-    'value.spec.sessionAffinityConfig.clientIP.timeoutSeconds'(val) {
-      console.error('WATCHING!!!!', val);
     }
   },
 

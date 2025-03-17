@@ -199,7 +199,6 @@ export default {
     },
 
     update(inputValue) {
-      console.warn(`UPDATE VAL ON UNIT INPUT raw`, inputValue);
       let out = inputValue === '' ? null : inputValue;
 
       if (this.positive && inputValue < 0) {
@@ -207,7 +206,7 @@ export default {
       }
 
       if (this.outputModifier) {
-        out = out === null ? null : `${ inputValue }${ this.unit }`;
+        out = out === null ? null : `${ parseInt(inputValue) }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ inputValue }`;
       } else if (out) {
