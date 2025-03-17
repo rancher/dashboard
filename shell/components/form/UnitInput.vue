@@ -199,6 +199,7 @@ export default {
     },
 
     update(inputValue) {
+      console.warn(`UPDATE VAL ON UNIT INPUT raw`, inputValue);
       let out = inputValue === '' ? null : inputValue;
 
       if (this.positive && inputValue < 0) {
@@ -235,7 +236,7 @@ export default {
     :required="required"
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
-    @change="update($event.target.value)"
+    @update:value="update"
     @blur="update($event.target.value)"
   >
     <template #suffix>

@@ -306,6 +306,8 @@ export default defineComponent({
     delayInput(val: string | Event): void {
       const value = typeof val === 'string' ? val : (val?.target as HTMLInputElement)?.value;
 
+      console.error('@INPUT EVENT on labeledInput', value);
+
       this.$emit('update:value', value);
     },
 
