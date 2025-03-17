@@ -64,7 +64,8 @@ export default class LogFlow extends SteveModel {
   get outputs() {
     const localOutputRefs = this.spec?.localOutputRefs || [];
 
-    return this.allOutputs.filter((output) => localOutputRefs.includes(output.name));
+    return this.allOutputs.filter((output) => localOutputRefs.includes(output.name) &&
+    output.metadata?.namespace === this.metadata?.namespace);
   }
 
   get outputsSortable() {
