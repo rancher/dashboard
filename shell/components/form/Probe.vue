@@ -6,6 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ShellInput from '@shell/components/form/ShellInput';
 import KeyValue from '@shell/components/form/KeyValue';
+import { computed, ref, watch } from 'vue';
 
 const KINDS = [
   'none',
@@ -43,39 +44,29 @@ export default {
     },
   },
 
-  data() {
-    return {
-      probe:     null,
-      kind:      'none',
-      exec:      null,
-      httpGet:   null,
-      tcpSocket: null,
-    };
-  },
+  setup(props, { emit }) {
+    const kind = ref('none');
+    const probe = ref(null);
+    const exec = ref(null);
+    const httpGet = ref(null);
+    const tcpSocket = ref(null);
 
-  created() {
-    let kind = 'none';
-    let probe = null;
-    let exec = null;
-    let httpGet = null;
-    let tcpSocket = null;
+    if ( props.value ) {
+      probe.value = clone(props.value);
 
-    if ( this.value ) {
-      probe = clone(this.value);
-
-      if ( probe.exec ) {
-        kind = 'exec';
-      } else if ( probe.httpGet ) {
-        if ( (probe.httpGet.scheme || '').toLowerCase() === 'https' ) {
-          kind = 'HTTPS';
+      if ( probe.value.exec ) {
+        kind.value = 'exec';
+      } else if ( probe.value.httpGet ) {
+        if ( (probe.value.httpGet.scheme || '').toLowerCase() === 'https' ) {
+          kind.value = 'HTTPS';
         } else {
-          kind = 'HTTP';
+          kind.value = 'HTTP';
         }
-      } else if ( probe.tcpSocket ) {
-        kind = 'tcp';
+      } else if ( probe.value.tcpSocket ) {
+        kind.value = 'tcp';
       }
     } else {
-      probe = {
+      probe.value = {
         failureThreshold:    3,
         successThreshold:    1,
         initialDelaySeconds: 0,
@@ -87,15 +78,57 @@ export default {
       };
     }
 
-    exec = probe.exec || {};
-    httpGet = probe.httpGet || {};
-    tcpSocket = probe.tcpSocket || {};
+    exec.value = probe.value.exec || {};
+    httpGet.value = probe.value.httpGet || {};
+    tcpSocket.value = probe.value.tcpSocket || {};
 
-    this.probe = probe;
-    this.kind = kind;
-    this.exec = exec;
-    this.httpGet = httpGet;
-    this.tcpSocket = tcpSocket;
+    const isNone = computed(() => {
+      return kind.value === 'none';
+    });
+
+    const update = () => {
+      if ( isNone.value ) {
+        emit('update:value', null);
+
+        return;
+      }
+
+      switch ( kind.value ) {
+      case 'HTTP':
+      case 'HTTPS':
+        httpGet.value.scheme = kind.value;
+        probe.value.httpGet = httpGet.value;
+        probe.value.tcpSocket = null;
+        probe.value.exec = null;
+        break;
+      case 'tcp':
+        probe.value.httpGet = null;
+        probe.value.tcpSocket = tcpSocket.value;
+        probe.value.exec = null;
+        break;
+      case 'exec':
+        probe.value.httpGet = null;
+        probe.value.tcpSocket = null;
+        probe.value.exec = exec.value;
+        break;
+      }
+
+      emit('update:value', probe.value);
+    };
+
+    watch(kind, () => {
+      update();
+    });
+
+    return {
+      probe,
+      kind,
+      exec,
+      httpGet,
+      tcpSocket,
+      update,
+      isNone,
+    };
   },
 
   computed: {
@@ -103,54 +136,10 @@ export default {
       return this.mode === _VIEW;
     },
 
-    isNone() {
-      return this.kind === 'none';
-    },
-
     kindOptions() {
       return KINDS.map((k) => {
         return { label: this.t(`workload.container.healthCheck.kind.${ k }`), value: k };
       });
-    }
-  },
-
-  watch: {
-    kind() {
-      this.update();
-    }
-  },
-
-  methods: {
-    update() {
-      const probe = this.probe;
-
-      if ( this.isNone ) {
-        this.$emit('update:value', null);
-
-        return;
-      }
-
-      switch ( this.kind ) {
-      case 'HTTP':
-      case 'HTTPS':
-        this.httpGet.scheme = this.kind;
-        probe.httpGet = this.httpGet;
-        probe.tcpSocket = null;
-        probe.exec = null;
-        break;
-      case 'tcp':
-        probe.httpGet = null;
-        probe.tcpSocket = this.tcpSocket;
-        probe.exec = null;
-        break;
-      case 'exec':
-        probe.httpGet = null;
-        probe.tcpSocket = null;
-        probe.exec = this.exec;
-        break;
-      }
-
-      this.$emit('update:value', probe);
     }
   },
 };
