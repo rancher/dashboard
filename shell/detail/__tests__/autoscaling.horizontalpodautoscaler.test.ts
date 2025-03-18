@@ -116,28 +116,15 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
       ],
     },
     spec: {
-      maxReplicas: 10,
-      metrics:     [
+      metrics: [
         {
           external: {
-            metric: {
-              name:     's1-prometheus',
-              selector: { matchLabels: { 'scaledobject.keda.sh/name': 'test' } }
-            },
-            target: {
-              averageValue: 50,
-              type:         'AverageValue'
-            }
+            metric: { name: 's1-prometheus' },
+            target: { averageValue: 50, type: 'AverageValue' }
           },
           type: 'External'
         }
-      ],
-      minReplicas:    1,
-      scaleTargetRef: {
-        apiVersion: 'apps/v1',
-        kind:       'Deployment',
-        name:       'php-apache'
-      }
+      ]
     }
   }
 ;
