@@ -30,7 +30,6 @@ import {
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
-import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 export default {
@@ -133,13 +132,6 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
-
-    // Apply bottom margin so that the locale secletor control lifts up to avoid the footer fixed banner, if it is shown
-    localeSelectorStyle() {
-      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
-
-      return { marginBottom: globalBannerSettings?.footerFont };
-    }
   },
 
   async fetch() {
@@ -509,7 +501,6 @@ export default {
           class="locale-selector"
         >
           <LocaleSelector
-            :style="localeSelectorStyle"
             mode="login"
           />
         </div>
@@ -526,6 +517,7 @@ export default {
 <style lang="scss" scoped>
   .login {
     overflow: hidden;
+    position: relative;  // Used to keep the locale selector positioned correctly
 
     .row {
       align-items: center;

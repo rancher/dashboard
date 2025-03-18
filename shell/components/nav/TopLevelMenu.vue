@@ -14,7 +14,6 @@ import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
@@ -80,15 +79,6 @@ export default {
 
     pinnedIds() {
       return this.$store.getters['prefs/get'](PINNED_CLUSTERS);
-    },
-
-    sideMenuStyle() {
-      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
-
-      return {
-        marginBottom: globalBannerSettings?.footerFont,
-        marginTop:    globalBannerSettings?.headerFont
-      };
     },
 
     showClusterSearch() {
@@ -483,7 +473,6 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="sideMenuStyle"
         tabindex="-1"
         role="navigation"
         :aria-label="t('nav.ariaLabel.topLevelMenu')"
@@ -1002,7 +991,7 @@ export default {
       }
     }
 
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0px;
     bottom: 0;
