@@ -149,14 +149,16 @@ export default {
       :namespace-type="FLEET_WORKSPACE"
       @update:value="$emit('input', $event)"
     />
-
-    <h2 v-t="'fleet.clusterGroup.selector.label'" />
     <MatchExpressions
       :mode="mode"
       :value="expressions"
       :show-remove="false"
       @update:value="matchChanged($event)"
-    />
+    >
+      <template #header>
+        <h2 v-t="'fleet.clusterGroup.selector.label'" />
+      </template>
+    </MatchExpressions>
     <Banner
       v-if="matchingClusters"
       :color="(matchingClusters.isNone || matchingClusters.isAll ? 'warning' : 'success')"

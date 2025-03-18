@@ -341,22 +341,25 @@ export default {
         </div>
         <div class="row">
           <div class="col span-12">
-            <div class="mb-5 mt-5">
-              <h4 class=" mb-10">
-                {{ t('monitoring.prometheus.storage.selector') }}
-              </h4>
-            </div>
-            <Banner
-              color="warning"
-              :label="t('monitoring.prometheus.storage.selectorWarning', {}, true)"
-            />
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"
               :value="matchExpressions"
               :show-remove="false"
               @update:value="matchChanged($event)"
-            />
+            >
+              <template #header>
+                <div class="mb-5 mt-5">
+                  <h4 class=" mb-10">
+                    {{ t('monitoring.prometheus.storage.selector') }}
+                  </h4>
+                </div>
+                <Banner
+                  color="warning"
+                  :label="t('monitoring.prometheus.storage.selectorWarning', {}, true)"
+                />
+              </template>
+            </MatchExpressions>
           </div>
         </div>
       </template>

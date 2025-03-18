@@ -119,14 +119,17 @@ export default {
       >
         <template #default="{row, i}">
           <template v-if="row.value.machineLabelSelector">
-            <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
             <MatchExpressions
               v-model:value="row.value.machineLabelSelector"
               class="mb-20"
               :mode="mode"
               :show-remove="false"
               :initial-empty-row="true"
-            />
+            >
+              <template #header>
+                <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
+              </template>
+            </MatchExpressions>
             <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
           </template>
           <h3 v-else>
