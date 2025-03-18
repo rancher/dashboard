@@ -403,6 +403,10 @@ export default {
           padding: 10px 7px 9px 7px !important;
         }
       }
+
+      &:deep() .type-link > .label {
+        padding-left: 10px;
+      }
     }
 
     &:not(.depth-0) {
