@@ -5493,6 +5493,9 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  alt:
+    sortingIconDesc: Table header descending sort icon
+    sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
   tableActionsLabel: More actions - { resource }
