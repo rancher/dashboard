@@ -1,4 +1,4 @@
-import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { FLEET_DASHBOARD_STATES, STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET } from '@shell/config/types';
 
 // some default values
@@ -92,7 +92,7 @@ export const gitRepoGraphConfig = {
     });
 
     const repoLowercaseState = data.state ? data.state.toLowerCase() : 'unknown';
-    const repoStateColor = STATES[repoLowercaseState].color;
+    const repoStateColor = FLEET_DASHBOARD_STATES[repoLowercaseState].color;
 
     const finalData = {
       id:             data.id,

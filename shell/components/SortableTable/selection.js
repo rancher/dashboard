@@ -10,23 +10,21 @@ export const NONE = 'none';
 
 export default {
   mounted() {
-    const table = this.$el.querySelector('TABLE');
+    this.table = this.$el.querySelector('TABLE');
 
     this._onRowClickBound = this.onRowClick.bind(this);
     this._onRowMousedownBound = this.onRowMousedown.bind(this);
     this._onRowContextBound = this.onRowContext.bind(this);
 
-    table.addEventListener('click', this._onRowClickBound);
-    table.addEventListener('mousedown', this._onRowMousedownBound);
-    table.addEventListener('contextmenu', this._onRowContextBound);
+    this.table.addEventListener('click', this._onRowClickBound);
+    this.table.addEventListener('mousedown', this._onRowMousedownBound);
+    this.table.addEventListener('contextmenu', this._onRowContextBound);
   },
 
   beforeUnmount() {
-    const table = this.$el.querySelector('TABLE');
-
-    table.removeEventListener('click', this._onRowClickBound);
-    table.removeEventListener('mousedown', this._onRowMousedownBound);
-    table.removeEventListener('contextmenu', this._onRowContextBound);
+    this.table.removeEventListener('click', this._onRowClickBound);
+    this.table.removeEventListener('mousedown', this._onRowMousedownBound);
+    this.table.removeEventListener('contextmenu', this._onRowContextBound);
   },
 
   computed: {
@@ -120,6 +118,7 @@ export default {
 
   data() {
     return {
+      table:        null,
       // List of selected items in the table
       selectedRows: [],
       prevNode:     null,
@@ -127,6 +126,8 @@ export default {
   },
 
   watch: {
+    selectedRowClick: 'highlightRow',
+
     // On page change
     pagedRows() {
       // When the table contents changes:
@@ -146,6 +147,22 @@ export default {
   },
 
   methods: {
+    highlightRow(row) {
+      const elems = this.table.querySelectorAll('TR');
+
+      [].forEach.call(elems, (el) => {
+        el.classList.remove('highlight');
+      });
+
+      if (row) {
+        const id = get(row, this.keyField);
+
+        const input = this.table.querySelector(`[data-node-id="${ id }"]`);
+
+        input?.classList.add('highlight');
+      }
+    },
+
     onToggleAll(value) {
       if ( value ) {
         this.update(this.pagedRows, []);
@@ -245,7 +262,7 @@ export default {
       const isExpand = td?.classList.contains('row-expand');
       const content = this.pagedRows;
 
-      this.$emit('rowClick', e);
+      this.$emit('rowClick', { row: node || {}, event: e });
 
       if ( !node ) {
         return;
