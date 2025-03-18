@@ -64,7 +64,6 @@ describe('component: Job', () => {
       const newValue = 123;
 
       input.setValue(newValue);
-      input.trigger('blur');
 
       expect(wrapper.emitted('update:value')).toHaveLength(1);
     });
