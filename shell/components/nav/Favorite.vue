@@ -10,6 +10,9 @@ export default {
   computed: {
     isFavorite() {
       return this.$store.getters['type-map/isFavorite'](this.resource);
+    },
+    ariaLabel() {
+      return this.t(`resourceDetail.masthead.ariaLabel.${ this.isFavorite ? 'unfavoriteAction' : 'favoriteAction' }`, { resource: this.resource });
     }
   },
 
@@ -32,6 +35,7 @@ export default {
     class="favorite icon"
     :class="{'icon-star-open': !isFavorite, 'icon-star': isFavorite}"
     aria-role="button"
+    :aria-label="ariaLabel"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
     @keydown.space.prevent="toggle"
