@@ -98,9 +98,9 @@ export default {
       >
         <table>
           <tbody>
-            <tr><td>{{ t('principal.name') }}: </td><td>{{ principal.name || principal.loginName }}</td></tr>
-            <tr><td>{{ t('principal.loginName') }}: </td><td>{{ principal.loginName }}</td></tr>
-            <tr><td>{{ t('principal.type') }}: </td><td>{{ principal.displayType }}</td></tr>
+            <tr><th>{{ t('principal.name') }}: </th><td>{{ principal.name || principal.loginName }}</td></tr>
+            <tr><th>{{ t('principal.loginName') }}: </th><td>{{ principal.loginName }}</td></tr>
+            <tr><th>{{ t('principal.type') }}: </th><td>{{ principal.displayType }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -163,6 +163,12 @@ export default {
     grid-template-columns: $size auto;
     grid-template-rows: auto math.div($size, 2);
     column-gap: 10px;
+
+    th {
+      text-align: left;
+      font-weight: normal;
+      padding-right: 10px;
+    }
 
     &.showLabels {
       grid-template-areas:
