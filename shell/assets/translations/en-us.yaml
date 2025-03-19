@@ -5138,6 +5138,9 @@ resourceDetail:
     stage: "Stage from {subtype} {name}"
     view: "{subtype} {name}"
   masthead:
+    ariaLabel:
+      favoriteAction: Add {resource} to your starred/favorites list
+      unfavoriteAction: Remove {resource} from your starred/favorites list
     age: Age
     createdBy: Created by
     restartCount: Pod Restarts
