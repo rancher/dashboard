@@ -191,7 +191,9 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   about(): Cypress.Chainable {
-    return this.self().contains('About');
+    const aboutRegex = /^(About|v\d+\.\d+\.\d+(-.+)?)$/;
+
+    return this.self().contains(aboutRegex);
   }
 
   /**
