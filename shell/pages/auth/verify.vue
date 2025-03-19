@@ -129,6 +129,13 @@ export default {
   },
 
   data() {
+    return {
+      testing: null,
+      isSlo:   null,
+    };
+  },
+
+  created() {
     const stateJSON = this.$route.query[GITHUB_NONCE] || '';
 
     let parsed = {};
@@ -140,13 +147,8 @@ export default {
 
     const { test } = parsed;
 
-    // Is Single Log Out
-    const isSlo = this.$route.query[IS_SLO] === _FLAGGED;
-
-    return {
-      testing: test,
-      isSlo
-    };
+    this.testing = test;
+    this.isSlo = this.$route.query[IS_SLO] === _FLAGGED;
   },
 
   mounted() {
