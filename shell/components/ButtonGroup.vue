@@ -77,6 +77,9 @@ export default {
       const tooltip = opt.tooltipKey ? this.t(opt.tooltipKey) : opt.tooltip;
 
       return ariaLabel || tooltip || label || undefined;
+    },
+    isPressed(opt) {
+      return this.value === opt.value;
     }
   }
 };
@@ -97,6 +100,7 @@ export default {
       :disabled="disabled || opt.disabled"
       role="button"
       :aria-label="actionAriaLabel(opt)"
+      :aria-pressed="isPressed(opt)"
       @click="change(opt.value)"
     >
       <slot
