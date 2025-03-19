@@ -36,7 +36,7 @@ export default {
     :aria-checked="!!pinned"
     class="pin icon"
     :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
-    aria-role="button"
+    role="button"
     :aria-label="t('nav.ariaLabel.pinCluster', { cluster: cluster.label })"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
