@@ -103,6 +103,7 @@ export default {
     if (!pollingInterval) {
       if (this.realMode === _CREATE) {
         pollingInterval = DEFAULT_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.durationSeconds(pollingInterval);
       } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
         pollingInterval = MINIMUM_POLLING_INTERVAL;
       }
