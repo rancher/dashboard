@@ -25,7 +25,23 @@ const sidebars = {
       type:  'category',
       label: 'How the Code Base Works',
       items: [
-        'code-base-works/api-resources-and-schemas',
+        {
+          type:  'category',
+          label: 'API',
+          items: [
+            'code-base-works/rancher-api/api-resources-and-schemas',
+            {
+              type:  'category',
+              label: 'Topics',
+              items: [
+                'code-base-works/rancher-api/sub-pages/api-resource-definitions',
+                'code-base-works/rancher-api/sub-pages/api-vuex-and-resources',
+                'code-base-works/rancher-api/sub-pages/api-models',
+                'code-base-works/rancher-api/sub-pages/api-creating-and-fetching-resources',
+              ],
+            },
+          ],
+        },
         'code-base-works/auth-sessions-and-tokens',
         'code-base-works/cluster-management-resources',
         'code-base-works/customising-how-k8s-resources-are-presented',
