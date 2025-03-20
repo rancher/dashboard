@@ -90,6 +90,7 @@ const config = {
         },
       },
     ],
+    ['./plugins/catalog', {}]
   ],
 
   themeConfig:
@@ -115,6 +116,13 @@ const config = {
             docsPluginId: 'extensions',
             position:     'right',
             label:        'Docs',
+          },
+          {
+            type:         'doc',
+            docId:        'catalog',
+            docsPluginId: 'extensions',
+            position:     'right',
+            label:        'Catalog',
           },
           {
             to: '/blog', label: 'Blog', position: 'right'
