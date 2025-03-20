@@ -102,10 +102,12 @@ export default {
 </script>
 
 <template>
-  <div>
-    <p class="set-landing-leadin">
-      {{ t('landing.landingPrefs.body') }}
-    </p>
+  <fieldset>
+    <legend>
+      <p class="set-landing-leadin">
+        {{ t('landing.landingPrefs.body') }}
+      </p>
+    </legend>
     <RadioGroup
       id="login-route"
       :value="afterLoginRoute"
@@ -135,7 +137,7 @@ export default {
         </div>
       </template>
     </RadioGroup>
-  </div>
+  </fieldset>
 </template>
 
 <style lang="scss" scoped>
