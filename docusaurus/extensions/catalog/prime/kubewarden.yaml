@@ -1,0 +1,6 @@
+name: Kubewarden
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: Kubewarden extension for Rancher Manager
+url: https://www.kubewarden.io
+icon: https://raw.githubusercontent.com/rancher/kubewarden-ui/refs/heads/main/pkg/kubewarden/assets/icon-kubewarden.svg

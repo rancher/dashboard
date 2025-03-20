@@ -1,0 +1,40 @@
+:root {
+  --border: #ccc;
+}
+
+.catalog-card-container {
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+
+.catalog-card-container .catalog-card {
+  display: flex;
+  border: 1px solid var(--border);
+  margin: 10px;
+  padding: 10px;
+}
+
+.catalog-card-icon > img {
+  width: 48px;
+  height: 48px;
+  margin-right: 10px;
+}
+
+.catalog-card-metadata {
+  flex: 1;
+}
+
+.catalog-card-metadata > :not(:first-child) {
+  font-size: 14px;
+}
+
+.catalog-more-info {
+  text-align: right;
+  margin-top: 5px;
+}
+
+.catalog-card-none {
+  border: 1px solid var(--border);
+  padding: 2px;
+  text-align: center;
+}
