@@ -94,6 +94,10 @@ export default {
       // we only want functions in the rules array
       validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     },
+    a11yLabel: {
+      type:    String,
+      default: '',
+    },
   },
   data() {
     const input = (Array.isArray(this.value) ? this.value : []).slice();
@@ -316,6 +320,7 @@ export default {
                 :data-testid="`input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
+                :aria-label="a11yLabel ? a11yLabel : undefined"
                 @paste="onPaste(idx, $event)"
               >
             </slot>
@@ -336,6 +341,8 @@ export default {
               :disabled="isView"
               class="btn role-link"
               :data-testid="`remove-item-${idx}`"
+              :aria-label="`${_removeLabel} ${idx + 1}`"
+              role="button"
               @click="remove(row, idx)"
             >
               {{ _removeLabel }}
@@ -368,6 +375,8 @@ export default {
           class="btn role-tertiary add"
           :disabled="loading || disableAdd"
           data-testid="array-list-button"
+          :aria-label="_addLabel"
+          role="button"
           @click="add()"
         >
           <i
