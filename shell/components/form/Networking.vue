@@ -29,24 +29,19 @@ export default {
 
   data() {
     const t = this.$store.getters['i18n/t'];
-    const hostAliases = (this.value.hostAliases || []).map((entry) => {
-      return {
-        ip:        entry.ip,
-        hostnames: entry.hostnames.join(', ')
-      };
-    });
+    const tmpHostAliases = this.value.hostAliases || [];
     const { dnsConfig = {}, hostname, subdomain } = this.value;
     const { nameservers, searches, options } = dnsConfig;
 
     const out = {
       dnsPolicy:   this.value.dnsPolicy || 'ClusterFirst',
       networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.hostNetwork'), value: true } : { label: t('workload.networking.networkMode.options.normal'), value: false },
-      hostAliases,
       nameservers,
       searches,
       hostname,
       subdomain,
-      options
+      options,
+      tmpHostAliases
     };
 
     return out;
@@ -81,6 +76,15 @@ export default {
       ];
     },
 
+    hostAliases() {
+      return (this.value.hostAliases || []).map((entry) => {
+        return {
+          ip:        entry.ip,
+          hostnames: entry.hostnames?.join(', ') ?? ''
+        };
+      });
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -113,12 +117,12 @@ export default {
 
   methods: {
     updateHostAliases(neu) {
-      this.hostAliases = neu.map((entry) => {
+      this.tmpHostAliases = neu.map((entry) => {
         const ip = entry.ip.trim();
         const hostnames = entry.hostnames.trim().split(/[\s,]+/).filter((x) => !!x);
 
         return { ip, hostnames };
-      }).filter((entry) => entry.ip && entry.hostnames.length);
+      });
       this.update();
     },
 
@@ -134,7 +138,7 @@ export default {
         dnsConfig,
         dnsPolicy:   this.dnsPolicy,
         hostname:    this.hostname,
-        hostAliases: this.hostAliases,
+        hostAliases: this.tmpHostAliases,
         subdomain:   this.subdomain,
         hostNetwork: this.networkMode.value
       };
@@ -248,7 +252,8 @@ export default {
       <div class="col span-12">
         <KeyValue
           key="hostAliases"
-          v-model:value="hostAliases"
+          data-test="hostAliases"
+          :value="hostAliases"
           :mode="mode"
           :title="t('workload.networking.hostAliases.label')"
           :protip="t('workload.networking.hostAliases.tip')"
