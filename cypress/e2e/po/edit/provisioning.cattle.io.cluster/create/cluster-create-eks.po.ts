@@ -27,4 +27,8 @@ export default class ClusterManagerCreateEKSPagePo extends ClusterManagerCreateR
   getClusterName() {
     return new LabeledInputPo('[data-testid="eks-name-input"]');
   }
+
+  getClusterDescription() {
+    return new LabeledInputPo('[placeholder*="better describes this resource"]');
+}
 }
