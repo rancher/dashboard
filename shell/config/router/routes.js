@@ -23,6 +23,7 @@ const interopDefault = (promise) => promise.then((page) => page.default || page)
  */
 export default [
   {
+    name:      'root',
     path:      '/',
     component: () => interopDefault(import('@shell/pages/index.vue')),
     meta:      { requiresAuthentication: true },
