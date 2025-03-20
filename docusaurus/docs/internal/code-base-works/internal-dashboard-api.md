@@ -95,13 +95,15 @@ onMounted(() => {
 
 To get TypeScript IntelliSense for `this.$myApi`, you can manually augment the `vue` module. In `shell/types/vue-shim.d.ts`, you can import your API class and add a property to `ComponentCustomProperties`:
 
-    import type MyApi from '@shell/plugins/internal-api/my-api.api';
+```ts
+import type MyApi from "@shell/plugins/internal-api/my-api.api";
 
-    declare module 'vue' {
-      interface ComponentCustomProperties {
-        $myApi: MyApi;
-      }
-    }
+declare module "vue" {
+  interface ComponentCustomProperties {
+    $myApi: MyApi;
+  }
+}
+```
 
 Now, TypeScript will recognize `this.$myApi` in your Vue components.
 
@@ -111,13 +113,15 @@ Now, TypeScript will recognize `this.$myApi` in your Vue components.
 
 Below is an example file structure showing multiple APIs in subdirectories:
 
-    shell/plugins/internal-api/
-      ├── my-api.api.ts
-      ├── cluster/
-      │    ├── cluster-tools.api.ts
-      │    └── some-helper.ts  <-- not injected
-      └── rancher/
-           └── rancher.api.ts
+```
+shell/plugins/internal-api/
+  ├── my-api.api.ts
+  ├── cluster/
+  │    ├── cluster-tools.api.ts
+  │    └── some-helper.ts  <-- not injected
+  └── rancher/
+        └── rancher.api.ts
+```
 
 Each `.api.ts` file is automatically discovered and instantiated. Helpers or partial modules that do not follow the `.api.ts` naming scheme (like `some-helper.ts`) won’t be injected.
 
