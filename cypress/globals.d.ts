@@ -23,6 +23,7 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
+      setupWebSocket: any;
 
       state(state: any): any;
 
@@ -40,6 +41,9 @@ declare global {
       createNamespace(nsName: string, projId: string): Chainable;
       createPod(nsName: string, podName: string, image: string): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
+      createToken(description: string, ttl: number, failOnStatusCode?: boolean, clusterId?: string): Chainable;
+      createNamespaceInProject(nsName: string, projId: string): Chainable;
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
@@ -82,6 +86,15 @@ declare global {
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
       iFrame(): Chainable<Element>;
+
+      // Check if an element is visible to the user on the screen.
+      isVisible(): Chainable<Element>;
+
+      // Check if an element is disabled
+      isDisabled(): Chainable<Element>;
+
+      // Check if an element is disabled
+      isEnabled(): Chainable<Element>;
     }
   }
 }
