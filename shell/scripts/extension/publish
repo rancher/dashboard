@@ -57,7 +57,7 @@ while getopts "hvr:o:pi:fcb:t:s:lne" opt; do
       REGISTRY_ORG="${OPTARG}"
       ;;
     i)
-      IMAGE_PREFIX="${OPTARG}"
+      IMAGE_PREFIX="${OPTARG-}"
       ;;
     f)
       FORCE="true"
