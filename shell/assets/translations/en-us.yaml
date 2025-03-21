@@ -3151,6 +3151,7 @@ labeledSelect:
   pressEnter: Press enter to add "{input}"
 
 landing:
+  homepage: Homepage
   clusters:
     title: Clusters
     provider: Provider
@@ -3474,6 +3475,7 @@ neuvector:
         na: Resource Unavailable
 
 login:
+  login: Login
   howdy: Howdy!
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
