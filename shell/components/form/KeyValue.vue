@@ -823,7 +823,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || isProtected(row.key) || disabled"
-                  :aria-label="removeLabel || t('generic.remove')"
+                  :aria-label="`${removeLabel || t('generic.remove')} ${ i+1 }`"
                   class="btn role-link"
                   @click="remove(i)"
                 >
