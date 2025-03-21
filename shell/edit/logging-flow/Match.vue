@@ -124,7 +124,7 @@ export default {
         <div class="row">
           <div class="col span-12">
             <Select
-              v-model="value.namespaces"
+              v-model:value="value.namespaces"
               class="lg"
               :options="namespaces"
               :placeholder="t('logging.flow.matches.namespaces.placeholder')"
