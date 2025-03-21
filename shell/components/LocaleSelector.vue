@@ -119,6 +119,7 @@ export default {
                 tabindex="0"
                 role="menuitem"
                 class="hand"
+                :lang="name"
                 @click.stop="switchLocale(name)"
                 @keyup.enter.stop="switchLocale(name)"
                 @keyup.space.stop="switchLocale(name)"
@@ -134,6 +135,7 @@ export default {
       <Select
         :value="selectedOption"
         :options="localesOptions"
+        :is-lang-select="true"
         @update:value="switchLocale($event)"
       />
     </div>
