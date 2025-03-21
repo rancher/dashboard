@@ -239,6 +239,7 @@ nav:
     label: Resource Search
     toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
+    filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
@@ -5525,6 +5526,7 @@ sortableTable:
   searchLabel: Filter table results
   in: in
   addFilter: Add Filter
+  filteringDescription: Using this input will immediately filter the results in the table below
   filterFor: Filter for...
   selectCol: Select a column
   resetFilters: Reset
