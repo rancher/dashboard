@@ -9,7 +9,10 @@ export default {
 </script>
 
 <template>
-  <main class="main-layout">
+  <main
+    class="main-layout"
+    :aria-label="t('layouts.blank')"
+  >
     <router-view :key="$route.path" />
 
     <Inactivity />
