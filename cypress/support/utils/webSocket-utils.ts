@@ -22,6 +22,7 @@ function buildPodExecUrl(baseUrl: string, namespace: string, podName: string, co
   return `${ urlBase }?${ params.toString() }`;
 }
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export default function websocketTasks(on: any, config: any) {
   on('task', {
     setupWebSocket(options: any) {

@@ -456,3 +456,96 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       expect(resp.status).to.eq(201);
     });
 });
+
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+    })
+      .then((resp) => {
+        if (!testFn(resp)) {
+          retries = retries - 1;
+          if (retries === 0) {
+            cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
+
+            return false;
+          }
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          return retry();
+        }
+
+        return true;
+      });
+  };
+
+  return retry();
+});
+
+/**
+ * create a namespace in project
+ */
+Cypress.Commands.add('createNamespaceInProject', (nsName, projId) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      metadata: {
+        annotations: {
+          'field.cattle.io/containerDefaultResourceLimit': '{}',
+          'field.cattle.io/projectId':                     projId
+        },
+        labels: {
+          'field.cattle.io/projectId':                  projId.split(':')[1],
+          'pod-security.kubernetes.io/enforce':         'privileged',
+          'pod-security.kubernetes.io/enforce-version': 'latest'
+        },
+        name: nsName
+      },
+      disableOpenApiValidation: false
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Create token (API Keys)
+ */
+Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnStatusCode = true, clusterId?: string) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/tokens`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode,
+    body: {
+      type:     'token',
+      metadata: {},
+      description,
+      clusterId,
+      ttl
+    }
+  })
+    .then((resp) => {
+      if (failOnStatusCode) {
+        expect(resp.status).to.eq(201);
+      }
+
+      return resp;
+    });
+});

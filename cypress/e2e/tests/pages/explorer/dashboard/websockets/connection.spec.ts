@@ -86,6 +86,6 @@ describe('Pod management and WebSocket interaction', { tags: ['@jenkins', '@admi
     // restoring session
     cy.login();
     // delete token
-    cy.deleteRancherResource('v3', 'tokens', tokenId, false);
+    cy.deleteRancherResource('v3', 'tokens', tokenId);
   });
 });
