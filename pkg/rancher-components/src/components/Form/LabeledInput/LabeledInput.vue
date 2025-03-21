@@ -148,7 +148,8 @@ export default defineComponent({
     return {
       updated:          false,
       validationErrors: '',
-      inputId:          `input-${ generateRandomAlphaString(12) }`
+      inputId:          `input-${ generateRandomAlphaString(12) }`,
+      describedById:    `described-by-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -380,6 +381,7 @@ export default defineComponent({
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
+        :aria-describedby="cronHint || subLabel ? describedById : undefined"
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -400,6 +402,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
+        :aria-describedby="cronHint || subLabel ? describedById : undefined"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -428,13 +431,15 @@ export default defineComponent({
     >
       <div
         v-if="cronHint"
+        :id="describedById"
         role="alert"
         :aria-label="cronHint"
       >
         {{ cronHint }}
       </div>
       <div
-        v-if="subLabel"
+        v-else-if="subLabel"
+        :id="describedById"
         v-clean-html="subLabel"
       />
     </div>
