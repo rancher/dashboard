@@ -2,14 +2,23 @@ import { mount } from '@vue/test-utils';
 import FormValidation from '@shell/mixins/form-validation';
 import Monitoring from '@shell/edit/monitoring.coreos.com.prometheusrule/index.vue';
 import { _EDIT } from '@shell/config/query-params';
+import { createStore } from 'vuex';
 
 describe('edit: management.cattle.io.setting should', () => {
   const MOCKED_ERRORS = ['error1', 'error2', 'error3', 'error4', 'error5'];
   const ERROR_BANNER_SELECTOR = '[data-testid="banner-close"]';
+  const store = createStore({
+    getters: {
+      namespaces:                () => () => ({}),
+      currentStore:              () => () => 'current_store',
+      'current_store/schemaFor': () => jest.fn()
+    }
+  });
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
     global: {
-      mocks: {
+      provide: { store },
+      mocks:   {
         $store: {
           dispatch: jest.fn(),
           getters:  {
@@ -35,8 +44,12 @@ describe('edit: management.cattle.io.setting should', () => {
         canYaml:  false,
         mode:     _EDIT,
         resource: {},
-        value:    { value: 'anything' },
-        name:     ''
+        value:    {
+          setAnnotation: jest.fn(),
+          value:         'anything',
+          metadata:      {},
+        },
+        name: ''
       },
       ...requiredSetup()
     });
