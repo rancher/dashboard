@@ -31,11 +31,12 @@ import {
 import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import TabTitle from '@shell/components/TabTitle.vue';
 
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
@@ -315,6 +316,12 @@ export default {
     v-else
     class="main-layout login"
   >
+    <TabTitle
+      :show-child="false"
+      :breadcrumb="false"
+    >
+      {{ `${vendor} - ${t('login.login')}` }}
+    </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
