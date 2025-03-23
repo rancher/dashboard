@@ -1234,13 +1234,21 @@ export default {
               </div>
             </div>
           </div>
-          <input
+          <p
             v-else-if="search"
+            id="describe-filter-sortable-table"
+            hidden
+          >
+            {{ t('sortableTable.filteringDescription') }}
+          </p>
+          <input
+            v-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
             :aria-label="t('sortableTable.searchLabel')"
+            aria-describedby="describe-filter-sortable-table"
             :placeholder="t('sortableTable.search')"
           >
           <slot name="header-button" />
