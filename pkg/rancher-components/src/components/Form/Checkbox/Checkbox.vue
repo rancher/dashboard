@@ -128,6 +128,10 @@ export default defineComponent({
 
   emits: ['update:value'],
 
+  data() {
+    return { describedById: `described-by-${ generateRandomAlphaString(12) }` };
+  },
+
   computed: {
     /**
      * Determines if the checkbox is disabled.
@@ -270,6 +274,7 @@ export default defineComponent({
         :aria-label="replacementLabel"
         :aria-checked="!!value"
         :aria-labelledby="labelKey || label ? idForLabel : undefined"
+        :aria-describedby="descriptionKey || description ? describedById : undefined"
         role="checkbox"
       />
       <span
@@ -311,10 +316,13 @@ export default defineComponent({
     >
       <t
         v-if="descriptionKey"
+        :id="describedById"
         :k="descriptionKey"
       />
       <template v-else-if="description">
-        {{ description }}
+        <p :id="describedById">
+          {{ description }}
+        </p>
       </template>
     </div>
     <div class="checkbox-outer-container-extra">
