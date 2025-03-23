@@ -5495,7 +5495,16 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  ariaLabel:
+    firstPageBtn: First page of results
+    prevPageBtn: Previous page of results
+    nextPageBtn: Next page of results
+    lastPageBtn: Last page of results
   alt:
+    firstPageBtn: First page of results icon
+    prevPageBtn: Previous page of results icon
+    nextPageBtn: Next page of results icon
+    lastPageBtn: Last page of results icon
     sortingIconDesc: Table header descending sort icon
     sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
