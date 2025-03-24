@@ -25,6 +25,8 @@ export default {
 
   name: 'MastheadResourceDetail',
 
+  emits: ['viewChange'],
+
   components: {
     BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
   },
@@ -89,6 +91,11 @@ export default {
     canViewYaml: {
       type:    Boolean,
       default: false,
+    },
+
+    showActionsButton: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -319,32 +326,33 @@ export default {
       },
 
       set(val) {
-        switch ( val ) {
-        case _DETAIL:
-          this.$router.applyQuery({
-            [MODE]: _UNFLAG,
-            [AS]:   _UNFLAG,
-          });
-          break;
-        case _CONFIG:
-          this.$router.applyQuery({
-            [MODE]: _UNFLAG,
-            [AS]:   _CONFIG,
-          });
-          break;
-        case _GRAPH:
-          this.$router.applyQuery({
-            [MODE]: _UNFLAG,
-            [AS]:   _GRAPH,
-          });
-          break;
-        case _YAML:
-          this.$router.applyQuery({
-            [MODE]: _UNFLAG,
-            [AS]:   _YAML,
-          });
-          break;
-        }
+        this.$emit('viewChange', val);
+        // switch ( val ) {
+        // case _DETAIL:
+        //   this.$router.applyQuery({
+        //     [MODE]: _UNFLAG,
+        //     [AS]:   _UNFLAG,
+        //   });
+        //   break;
+        // case _CONFIG:
+        //   this.$router.applyQuery({
+        //     [MODE]: _UNFLAG,
+        //     [AS]:   _CONFIG,
+        //   });
+        //   break;
+        // case _GRAPH:
+        //   this.$router.applyQuery({
+        //     [MODE]: _UNFLAG,
+        //     [AS]:   _GRAPH,
+        //   });
+        //   break;
+        // case _YAML:
+        //   this.$router.applyQuery({
+        //     [MODE]: _UNFLAG,
+        //     [AS]:   _YAML,
+        //   });
+        //   break;
+        // }
       },
     },
 
@@ -562,7 +570,7 @@ export default {
             />
 
             <button
-              v-if="isView"
+              v-if="isView && showActionsButton"
               ref="actions"
               data-testid="masthead-action-menu"
               aria-haspopup="true"

@@ -439,6 +439,16 @@ export const STATES = {
   },
 };
 
+export const FLEET_DASHBOARD_STATES = {
+  ...STATES,
+  gitupdating: {
+    color: 'error', icon: 'error', label: 'Git Updating', compoundIcon: 'error'
+  },
+  [STATES_ENUM.NOT_READY]: {
+    color: 'error', icon: 'error', label: 'Not Ready', compoundIcon: 'error'
+  },
+};
+
 export function getStatesByType(type = 'info') {
   const out = {
     info:    [],

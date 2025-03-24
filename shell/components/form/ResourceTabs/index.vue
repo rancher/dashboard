@@ -68,7 +68,12 @@ export default {
     extensionParams: {
       type:    Object,
       default: null
-    }
+    },
+
+    namespaced: {
+      type:     Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -275,6 +280,7 @@ export default {
       <RelatedResources
         :ignore-types="[value.type]"
         :value="value"
+        :namespaced="namespaced"
         direction="from"
       />
 
@@ -285,6 +291,7 @@ export default {
       <RelatedResources
         :ignore-types="[value.type]"
         :value="value"
+        :namespaced="namespaced"
         direction="to"
       />
     </Tab>

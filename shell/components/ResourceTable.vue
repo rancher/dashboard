@@ -41,7 +41,7 @@ export default {
 
   name: 'ResourceTable',
 
-  emits: ['clickedActionButton'],
+  emits: ['clickedActionButton', 'rowClick'],
 
   components: { ButtonGroup, SortableTable },
 
@@ -192,7 +192,17 @@ export default {
     hideGroupingControls: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    selectedRowClick: {
+      type:    Object,
+      default: null
+    },
+
+    subRowsDescription: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -590,10 +600,13 @@ export default {
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     :external-pagination-enabled="externalPaginationEnabled"
     :external-pagination-result="externalPaginationResult"
+    :sub-rows-description="subRowsDescription"
     :mandatory-sort="_mandatorySort"
+    :selected-row-click="selectedRowClick"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     @enter="handleEnterKeyPress"
+    @rowClick="$emit('rowClick', $event)"
   >
     <template
       v-if="!hideGroupingControls && showGrouping"

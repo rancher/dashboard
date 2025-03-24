@@ -88,11 +88,26 @@ export default {
       type:    Object,
       default: null
     },
+
+    namespacedProp: {
+      type:    Boolean,
+      default: true,
+    },
+
+    liveModelProp: {
+      type:    Object,
+      default: null
+    },
+
+    onRouteChange: {
+      type:    Function,
+      default: () => {}
+    }
   },
 
   async fetch() {
     const store = this.$store;
-    const route = this.$route;
+    const route = this.$router.currentRoute.value;
     const params = route.params;
     let resourceType = this.resourceOverride || params.resource;
 
@@ -113,6 +128,8 @@ export default {
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, id);
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
+
+    const namespaced = this.namespacedProp;
 
     // As determines what component will be rendered
     const requested = route.query[AS];
@@ -200,18 +217,22 @@ export default {
         fqid = `${ namespace }/${ fqid }`;
       }
 
-      try {
-        liveModel = await store.dispatch(`${ inStore }/find`, {
-          type: resourceType,
-          id:   fqid,
-          opt:  { watch: true }
-        });
-      } catch (e) {
-        if (e.status === 404 || e.status === 403) {
-          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
+      if (this.liveModelProp) {
+        liveModel = this.liveModelProp;
+      } else {
+        try {
+          liveModel = await store.dispatch(`${ inStore }/find`, {
+            type: resourceType,
+            id:   fqid,
+            opt:  { watch: true }
+          });
+        } catch (e) {
+          if (e.status === 404 || e.status === 403) {
+            store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
+          }
+          liveModel = {};
+          notFound = fqid;
         }
-        liveModel = {};
-        notFound = fqid;
       }
 
       try {
@@ -254,6 +275,7 @@ export default {
     }
 
     const out = {
+      namespaced,
       hasGraph,
       getGraphConfig,
       hasCustomDetail,
@@ -268,6 +290,8 @@ export default {
       value: model,
       notFound,
     };
+
+    console.log('MODEL', liveModel)
 
     for ( const key in out ) {
       this[key] = out[key];
@@ -305,7 +329,7 @@ export default {
   computed: {
     realMode() {
       // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
-      const realMode = modeFor(this.$route);
+      const realMode = modeFor(this.$router.currentRoute.value);
 
       return realMode;
     },
@@ -350,10 +374,18 @@ export default {
         }
       }), {});
     },
+    showActionsButton() {
+      if (this.params) {
+        return this.params.showActionsButton;
+      }
+
+      return true;
+    }
   },
 
   watch: {
     '$route'(current, prev) {
+      this.onRouteChange(current, prev);
       if (current.name !== prev.name) {
         return;
       }
@@ -384,9 +416,9 @@ export default {
   },
 
   created() {
-    // eslint-disable-next-line prefer-const
-    const id = this.$route.params.id;
-    const resource = this.resourceOverride || this.$route.params.resource;
+    const id = this.$router.currentRoute.value.params.id;
+    const resource = this.resourceOverride || this.$router.currentRoute.value.params.resource;
+
     const options = this.$store.getters[`type-map/optionsFor`](resource);
 
     const detailResource = options.resourceDetail || options.resource || resource;
@@ -399,6 +431,10 @@ export default {
   },
 
   methods: {
+    async onViewChange(value) {
+      this.yaml = await getYaml(this.$store, this.liveModel);
+      this.as = value;
+    },
     stringify,
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
@@ -435,6 +471,8 @@ export default {
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
       :store-override="storeOverride"
+      :show-actions-button="showActionsButton"
+      @viewChange="onViewChange"
     >
       <DetailTop
         v-if="isView && isDetail"
@@ -489,6 +527,7 @@ export default {
       :initial-value="initialModel"
       :live-value="liveModel"
       :real-mode="realMode"
+      :namespaced="namespaced"
       :class="{'flex-content': flexContent}"
       @update:value="$emit('input', $event)"
       @set-subtype="setSubtype"

@@ -106,8 +106,8 @@ export default {
       }
     },
 
-    rowClick(e) {
-      if ( e.target.tagName === 'A' ) {
+    rowClick(value) {
+      if ( value.event.target.tagName === 'A' ) {
         this.close();
       }
     },
