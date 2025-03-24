@@ -43,11 +43,21 @@ export default {
       } = this.value;
 
       return metrics.map((metric) => {
+        const currentMetricsKVs = [];
+        let currentMatch;
+        const metricType = camelCase(metric.type);
         const metricValue = get(metric, camelCase(metric.type));
         const targetType = metricValue?.target?.type;
-        const currentMatch = findBy(currentMetrics, 'resource.name', metric.resource.name);
+
+        // The format is different between 'Resource' metrics and others.
+        // See for examples: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#appendix-horizontal-pod-autoscaler-status-conditions
+        if (metricType !== 'resource') {
+          currentMatch = findBy(currentMetrics, `${ metricType }.metric.name`, metricValue.metric.name);
+        } else {
+          currentMatch = findBy(currentMetrics, 'resource.name', metric.resource.name);
+        }
+
         const current = currentMatch ? get(currentMatch, `${ camelCase(metric.type) }.current`) : null;
-        const currentMetricsKVs = [];
 
         if (current) {
           keys(current).forEach((k) => {
@@ -67,7 +77,7 @@ export default {
             objectApiVersion: metricValue?.describedObject?.apiVersion ?? null,
             objectKind:       metricValue?.describedObject?.kind ?? null,
             objectName:       metricValue?.describedObject?.name ?? null,
-            resourceName:     metricValue?.name ?? null,
+            resourceName:     metricValue?.name || metricValue?.metric?.name || null,
             currentMetrics:   currentMetricsKVs,
           },
         };
