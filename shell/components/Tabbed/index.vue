@@ -93,7 +93,6 @@ export default {
 
   data() {
     const extensionTabs = getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [];
-
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
         ...item,

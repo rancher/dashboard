@@ -93,8 +93,8 @@ export default {
 
     rows: {
       // The array of objects to show
-      type:     Array,
-      required: true
+      type:    Array,
+      default: () => []
     },
 
     keyField: {
