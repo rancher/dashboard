@@ -51,6 +51,7 @@ export default {
         tokenEndpoint:    null,
         userInfoEndpoint: null,
       },
+      // TODO #13457: this is duplicated due wrong format
       oidcScope: []
     };
   },
@@ -80,7 +81,7 @@ export default {
       const isMissingAuthEndpoint = (this.requiresAuthEndpoint && !this.model.authEndpoint);
       const isMissingScopes = !this.requiredScopes.every((scope) => this.oidcScope.includes(scope));
 
-      if ( isMissingAuthEndpoint || isMissingScopes ) {
+      if (isMissingAuthEndpoint || isMissingScopes) {
         return false;
       }
 
@@ -119,6 +120,7 @@ export default {
     },
 
     'model.enabled'(neu) {
+      // TODO #13457: Refactor scopes to be an array of terms
       // Cover case where oidc gets disabled and we return to the edit screen with a reset model
       if (!neu) {
         this.oidcUrls = {
@@ -129,8 +131,10 @@ export default {
           userInfoEndpoint: null,
         };
         this.customEndpoint.value = false;
+        // TODO #13457: Refactor scopes to be an array of terms
         this.oidcScope = this.model?.scope?.split(' ');
       } else {
+        // TODO #13457: Refactor scopes to be an array of terms
         this.oidcScope = this.model?.scope?.split(' ');
       }
     },
