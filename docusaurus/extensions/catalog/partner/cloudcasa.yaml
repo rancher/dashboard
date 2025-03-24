@@ -1,0 +1,6 @@
+name: CloudCasa
+author: CloudCasa
+authorUrl: https://cloudcasa.io
+description: CloudCasa One-Click Installation and Monitoring for Rancher Clusters
+url: https://github.com/catalogicsoftware/cloudcasa-rancher-extension
+icon: https://raw.githubusercontent.com/catalogicsoftware/cloudcasa-rancher-extension/refs/heads/main/pkg/cloud-casa-extension/assets/icon.svg

@@ -282,10 +282,12 @@ export default {
               <i
                 v-if="isCurrent(col) && !descending"
                 class="icon icon-sort-down icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconDesc')"
               />
               <i
                 v-if="isCurrent(col) && descending"
                 class="icon icon-sort-up icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconAsc')"
               />
             </span>
           </div>

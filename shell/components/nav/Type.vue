@@ -122,6 +122,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
+        :aria-current="isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"

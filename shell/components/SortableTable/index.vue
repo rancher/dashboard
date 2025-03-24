@@ -1081,6 +1081,8 @@ export default {
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
+                role="button"
+                :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
                 @mouseover="setBulkActionOfInterest(act)"
@@ -1234,13 +1236,21 @@ export default {
               </div>
             </div>
           </div>
-          <input
+          <p
             v-else-if="search"
+            id="describe-filter-sortable-table"
+            hidden
+          >
+            {{ t('sortableTable.filteringDescription') }}
+          </p>
+          <input
+            v-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
             :aria-label="t('sortableTable.searchLabel')"
+            aria-describedby="describe-filter-sortable-table"
             :placeholder="t('sortableTable.search')"
           >
           <slot name="header-button" />
@@ -1532,18 +1542,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-first"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.firstPageBtn')"
         @click="goToPage('first')"
       >
-        <i class="icon icon-chevron-beginning" />
+        <i
+          class="icon icon-chevron-beginning"
+          :alt="t('sortableTable.alt.firstPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-prev"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.prevPageBtn')"
         @click="goToPage('prev')"
       >
-        <i class="icon icon-chevron-left" />
+        <i
+          class="icon icon-chevron-left"
+          :alt="t('sortableTable.alt.prevPageBtn')"
+        />
       </button>
       <span>
         {{ pagingDisplay }}
@@ -1553,18 +1573,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-next"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.nextPageBtn')"
         @click="goToPage('next')"
       >
-        <i class="icon icon-chevron-right" />
+        <i
+          class="icon icon-chevron-right"
+          :alt="t('sortableTable.alt.nextPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-last"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.lastPageBtn')"
         @click="goToPage('last')"
       >
-        <i class="icon icon-chevron-end" />
+        <i
+          class="icon icon-chevron-end"
+          :alt="t('sortableTable.alt.lastPageBtn')"
+        />
       </button>
     </div>
     <button

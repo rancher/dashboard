@@ -5,7 +5,6 @@
  */
 
 import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
 
 const BANNER_HEADER = 'bannerHeader';
 const BANNER_FOOTER = 'bannerFooter';
@@ -56,48 +55,4 @@ export function overlayIndividualBanners(parsedBanner, banners) {
       parsedBanner[shownID] = 'true'; // If there is an individual banner setting, then banner is shown
     } catch {}
   });
-}
-
-/**
- * Converts a pixel value to an em value based on the default font size.
- * @param {number} elementFontSize - The font size of the element in pixels.
- * @param {number} [defaultFontSize=14] - The default font size in pixels.
- * @returns {string} The converted value in em units.
- */
-function pxToEm(elementFontSize, defaultFontSize = 14) {
-  const lineHeightInPx = 2 * parseInt(elementFontSize);
-  const lineHeightInEm = lineHeightInPx / defaultFontSize;
-
-  return `${ lineHeightInEm }em`;
-}
-
-/**
- * Get banner font sizes - used to add margins when header and footer banners are present
- **/
-export function getGlobalBannerFontSizes(store) {
-  const settings = store.getters['management/all'](MANAGEMENT.SETTING);
-  const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
-  const individualBannerSettings = getIndividualBanners(store);
-
-  if (bannerSettings) {
-    const parsed = JSON.parse(bannerSettings.value);
-
-    overlayIndividualBanners(parsed, individualBannerSettings);
-
-    const {
-      showFooter, showHeader, bannerFooter, bannerHeader, banner
-    } = parsed;
-
-    // add defaults to accommodate older JSON structures for banner definitions without breaking the UI
-    // https://github.com/rancher/dashboard/issues/10140
-    const bannerHeaderFontSize = bannerHeader?.fontSize || banner?.fontSize || '14px';
-    const bannerFooterFontSize = bannerFooter?.fontSize || banner?.fontSize || '14px';
-
-    return {
-      headerFont: showHeader === 'true' ? pxToEm(bannerHeaderFontSize) : '0px',
-      footerFont: showFooter === 'true' ? pxToEm(bannerFooterFontSize) : '0px'
-    };
-  }
-
-  return undefined;
 }

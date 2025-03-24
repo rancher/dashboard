@@ -239,6 +239,7 @@ nav:
     label: Resource Search
     toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
+    filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
@@ -545,9 +546,6 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
-    searchUsingServiceAccount: 
-      label: Enable Service Account Search
-      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
@@ -2779,6 +2777,7 @@ hpa:
       label: Metric Name
       placeholder: e.g. packets-per-second
     selector:
+      header: Metric Selector
       label: Add Selector
   metricTarget:
     averageVal:
@@ -5138,6 +5137,9 @@ resourceDetail:
     stage: "Stage from {subtype} {name}"
     view: "{subtype} {name}"
   masthead:
+    ariaLabel:
+      favoriteAction: Add {resource} to your starred/favorites list
+      unfavoriteAction: Remove {resource} from your starred/favorites list
     age: Age
     createdBy: Created by
     restartCount: Pod Restarts
@@ -5490,6 +5492,18 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  ariaLabel:
+    firstPageBtn: First page of results
+    prevPageBtn: Previous page of results
+    nextPageBtn: Next page of results
+    lastPageBtn: Last page of results
+  alt:
+    firstPageBtn: First page of results icon
+    prevPageBtn: Previous page of results icon
+    nextPageBtn: Next page of results icon
+    lastPageBtn: Last page of results icon
+    sortingIconDesc: Table header descending sort icon
+    sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
   tableActionsLabel: More actions - { resource }
@@ -5518,6 +5532,7 @@ sortableTable:
   searchLabel: Filter table results
   in: in
   addFilter: Add Filter
+  filteringDescription: Using this input will immediately filter the results in the table below
   filterFor: Filter for...
   selectCol: Select a column
   resetFilters: Reset

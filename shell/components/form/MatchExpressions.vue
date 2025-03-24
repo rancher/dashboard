@@ -242,6 +242,10 @@ export default {
 
 <template>
   <div>
+    <slot
+      v-if="rules.length"
+      name="header"
+    />
     <button
       v-if="showRemove && !isView"
       type="button"

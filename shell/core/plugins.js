@@ -344,7 +344,7 @@ export default function(context, inject, vueApp) {
         });
 
         // Routes
-        pluginRoutes.addRoutes(plugin, plugin.routes);
+        pluginRoutes.addRoutes(plugin.routes);
 
         // Validators
         Object.keys(plugin.validators).forEach((key) => {
