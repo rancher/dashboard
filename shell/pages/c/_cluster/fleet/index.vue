@@ -295,6 +295,109 @@ export default {
     },
   },
   methods: {
+    async fillResourceDetail(value, valueObj) {
+
+      this.restoreRoute = this.$route;
+
+      let slideInPanel;
+
+      let route = this.$router.resolve(value.detailLocation);
+
+      const { cluster, id, namespace, resource } = route.params;
+
+      let pathCustom = `/fleet/c/${ cluster }/${ resource }/${ namespace }/${ id }`;
+
+      route.fullPath = pathCustom;
+      route.href = pathCustom;
+      route.path = pathCustom;
+      route.params.product = 'fleet';
+      route.name = 'c-cluster-fleet-slide';
+
+      history.pushState({},"", route.path)
+
+      console.log('route---', route)
+
+
+      const router = createRouter({
+        routes: Routes,
+        history:  createWebHistory(),
+        base:     pathCustom,
+        fallback: false,
+      });
+
+      router.applyQuery = function(qp, defaults = {}) {
+          const query = queryParamsFor(router.currentRoute.value.query, qp, defaults);
+          const hash = router.currentRoute.value.hash || '';
+
+          if (isEqual(query, router.currentRoute.value.query)) {
+            return;
+          }
+
+          return router.replace({ query, hash }).catch((err) => {
+            if (err && err.name === 'NavigationDuplicated') {
+              // Do nothing, this is fine...
+              // https://github.com/vuejs/vue-router/issues/2872
+            } else {
+              throw err;
+            }
+          });
+        };
+
+      route = router.resolve(value.detailLocation);
+
+      // const pathCustom = `/fleet/c/${ cluster }/${ resource }/${ namespace }/${ id }`;
+      pathCustom = `/fleet/c/${ cluster }/${ resource }/${ namespace }/${ id }`;
+      route.fullPath = pathCustom;
+      route.href = pathCustom;
+      route.path = pathCustom;
+      route.params.product = 'fleet';
+      route.name = 'c-cluster-fleet-slide';
+
+      router.replace(route);
+
+      // Create a DIV that we can mount the slide-in panel component into
+      const div = document.createElement('div');
+
+      const PANEL_ID = 'fleetslidein';
+      div.id = PANEL_ID;
+
+      const parentDiv = document.getElementById('fleetslideinparent');
+
+      parentDiv.appendChild(div);
+
+      const slideInPanelApp = createApp(ResourceDetail, {
+        liveModelProp: valueObj,
+        namespacedProp: false,
+        onRouteChange: (prev, curr) => console.log(curr),
+      });
+
+      const store = this.$store;
+
+      // await this.$store.dispatch('management/findAll', { type: POD });
+
+      setTimeout(() => {
+        slideInPanelApp.directive('clean-html', cleanHtmlDirective);
+        slideInPanelApp.use(store);
+        slideInPanelApp.use(router)
+        slideInPanelApp.use(i18n, { store });
+
+        // Fetch mixin
+        slideInPanelApp.mixin(fetchMixin);
+        
+        // Bulk install components
+        installComponents(slideInPanelApp);
+        
+        // Bulk install directives
+        installDirectives(slideInPanelApp);
+        
+        // Bulk install Plugins. Note: Some are added within the App itself
+        installPlugins(slideInPanelApp);
+
+        slideInPanel = slideInPanelApp.mount(`#${ PANEL_ID }`);
+
+        this.slideInPanelApp = slideInPanelApp;
+      }, 0);
+    },
 
     onPanelClose() {
       console.log('panel Close')
@@ -352,7 +455,7 @@ export default {
 
         this.resourceComponent = shallowRef(this.$store.getters['type-map/importDetail'](type, id));
 
-        // await this.fillResourceDetail(value.row, res);
+        await this.fillResourceDetail(value.row, res);
 
         this.selectedResource = value.row;
 
