@@ -76,9 +76,10 @@ export default {
       }
 
       const { clientId, clientSecret } = this.model;
-      const isValidScope = this.model.id === 'keycloakoidc' || this.oidcScope?.includes('openid');
+      const isMissingAuthEndpoint = (this.requiresAuthEndpoint && !this.model.authEndpoint);
+      const isMissingScopes = !this.oidcScope?.includes('openid');
 
-      if ( !isValidScope ) {
+      if ( isMissingAuthEndpoint || isMissingScopes ) {
         return false;
       }
 
@@ -91,7 +92,11 @@ export default {
 
         return !!(clientId && clientSecret && rancherUrl && issuer);
       }
-    }
+    },
+
+    requiresAuthEndpoint() {
+      return ['genericoidc', 'keycloakoidc'].includes(this.model.id);
+    },
   },
 
   watch: {
@@ -350,7 +355,7 @@ export default {
               :label="t(`authConfig.oidc.authEndpoint`)"
               :mode="mode"
               :disabled="!customEndpoint.value"
-              :required="model.id === 'keycloakoidc'"
+              :required="requiresAuthEndpoint"
               data-testid="oidc-auth-endpoint"
             />
           </div>
