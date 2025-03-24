@@ -472,6 +472,24 @@ export interface DSLReturnType {
   virtualType: (options: ConfigureVirtualTypeOptions) => void;
 
   /**
+   * Side menu ordering for grouping of pages
+   * @param input Name of the group
+   * @param weight Ordering to be applied for the specified group
+   * @param forBasic Apply to basic type instead of regular type tree
+   * @returns {@link void}
+   */
+  weightGroup: (input: string, weight: number, forBasic: boolean) => void;
+
+  /**
+   * Side menu ordering for simple pages
+   * @param input Name of the page/resource
+   * @param weight Ordering to be applied for the specified page/resource
+   * @param forBasic Apply to basic type instead of regular type tree
+   * @returns {@link void}
+   */
+  weightType: (input: string, weight: number, forBasic: boolean) => void;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // componentForType: (type: string, replacementType: string)
@@ -484,8 +502,6 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
-  // weightGroup: (input, weight, forBasic)
-  // weightType: (input, weight, forBasic)
 }
 
 /**
