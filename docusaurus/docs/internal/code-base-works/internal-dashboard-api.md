@@ -8,7 +8,7 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
 
 1. **Naming Convention**: Your primary API classes should end in `.api.ts` (e.g., `my-api.api.ts`).
 2. **Location**: Place these files in the `shell/plugins/internal-api/` directory (subdirectories are supported).
-3. **Static `apiName`**: Inside your class, define a static property named `apiName` (e.g., `static apiName = '$myNewApi'`), which determines the key by which your class is injected into Vue.
+3. **Static `apiName()`**: Inside your class, define a static method named `apiName` (e.g., `static apiName() { return 'myNewApi'; }`), which determines the key by which your class is injected into Vue.
 4. **Instantiation**: A Vue plugin (`internalApiPlugin`) automatically scans `shell/plugins/internal-api/`, imports each `.api.ts` file, creates a new instance of its default export, and injects it onto the Vue prototype as `$myNewApi`.
 
 ---
@@ -24,7 +24,7 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
    Your class should extend the provided `BaseApi` class. This ensures that your API has access to common functionality (like the Vuex store) without reimplementing it for every API. The class must have:
 
    - A constructor that calls the `BaseApi` constructor with the Vuex.Store instance.
-   - A static `apiName` property defining how it will be injected.
+   - A static `apiName` method defining how it will be injected.
    - Custom methods or logic you need to expose to components.
 
    Example:
@@ -36,7 +36,9 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
    export default class MyApi extends BaseApi {
      // Name under which this API is injected => this.$myApi
      // The `$` prefix will be automatically added when the API is injected
-     static apiName = "myApi";
+     static apiName() {
+       return "myApi";
+     }
 
      public doSomething() {
        console.log("Hello from MyApi");
@@ -134,7 +136,7 @@ Each `.api.ts` file is automatically discovered and instantiated. Helpers or par
 - For each file matching `*.api.ts`, it:
   1. Imports the file.
   2. Reads the default export (your class).
-  3. Checks for a static `apiName` property; if not found, it falls back to the file name.
+  3. Checks for a static `apiName` method; if not found, it falls back to the file name (An error will be thrown if extending the `BaseApi` class).
   4. Instantiates the class, passing in the Vuex store.
   5. Calls `inject(key, instance)`, which attaches your API to `Vue.prototype.$key`.
 
@@ -145,7 +147,7 @@ Each `.api.ts` file is automatically discovered and instantiated. Helpers or par
 With this setup:
 
 1. **Create** a `.api.ts` class in `shell/plugins/internal-api/`.
-2. **Define** `static apiName = '$something'`.
+2. **Define** `static apiName() { return 'something'; }`.
 3. **Use** it in Vue components via `this.$something`.
 
 Everything else—from discovery to injection—happens automatically. This approach keeps your code organized, fosters easy extension, and saves you from having to manually edit the main injection logic each time you add a new API.

@@ -21,7 +21,7 @@ export default function(context: PluginContext, inject: (key: string, value: any
 
     if (typeof ApiClass === 'function') {
       // Check for a static `apiName` property, or fallback to filename
-      let apiName: string = ApiClass.apiName;
+      let apiName: string = ApiClass.apiName();
 
       if (!apiName) {
         // fallback to filename (strip leading ‘./’ and extension)

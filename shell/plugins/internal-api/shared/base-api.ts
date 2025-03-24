@@ -3,7 +3,9 @@ export abstract class BaseApi {
   protected $store: any;
 
   // Documented requirement: each API should define its static apiName.
-  static apiName: string;
+  static apiName(): string {
+    throw new Error('apiName() static method has not been implemented');
+  }
 
   constructor(store: any) {
     this.$store = store;
