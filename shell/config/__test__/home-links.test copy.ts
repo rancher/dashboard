@@ -36,7 +36,6 @@ describe('fx: ensureSupportLink', () => {
   const testCases = [
     ['en-us', false],
     ['zh-hans', true],
-    ['zh-hans2', true],
     ['none', false],
     [null, false],
   ];

@@ -97,11 +97,9 @@ export default {
         class="name"
       >
         <table>
-          <tbody>
-            <tr><td>{{ t('principal.name') }}: </td><td>{{ principal.name || principal.loginName }}</td></tr>
-            <tr><td>{{ t('principal.loginName') }}: </td><td>{{ principal.loginName }}</td></tr>
-            <tr><td>{{ t('principal.type') }}: </td><td>{{ principal.displayType }}</td></tr>
-          </tbody>
+          <tr><td>{{ t('principal.name') }}: </td><td>{{ principal.name || principal.loginName }}</td></tr>
+          <tr><td>{{ t('principal.loginName') }}: </td><td>{{ principal.loginName }}</td></tr>
+          <tr><td>{{ t('principal.type') }}: </td><td>{{ principal.displayType }}</td></tr>
         </table>
       </div>
       <template v-else>
