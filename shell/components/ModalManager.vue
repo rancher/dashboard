@@ -32,30 +32,22 @@ function registerBackgroundClosing(fn: Function) {
 </script>
 
 <template>
-  <app-modal
-    v-if="isOpen && component"
-    :click-to-close="closeOnClickOutside"
-    :width="modalWidth"
-    :style="{ '--prompt-modal-width': modalWidth }"
-    @close="close"
-  >
-    <component
-      :is="component"
-      v-bind="componentProps || {}"
-      :resources="resources"
-      :register-background-closing="registerBackgroundClosing"
+  <Teleport to="#modals">
+    <app-modal
+      v-if="isOpen && component"
+      :click-to-close="closeOnClickOutside"
+      :width="modalWidth"
+      :style="{ '--prompt-modal-width': modalWidth }"
       @close="close"
-    />
-  </app-modal>
+    >
+      <component
+        :is="component"
+        v-bind="componentProps || {}"
+        data-testid="modal-manager-component"
+        :resources="resources"
+        :register-background-closing="registerBackgroundClosing"
+        @close="close"
+      />
+    </app-modal>
+  </Teleport>
 </template>
-
-<style lang='scss'>
-.promptModal-modal {
-  border-radius: var(--border-radius);
-  overflow: scroll;
-  max-height: 100vh;
-  & ::-webkit-scrollbar-corner {
-    background: rgba(0,0,0,0);
-  }
-}
-</style>

@@ -32,37 +32,42 @@ function closePanel() {
 </script>
 
 <template>
-  <div id="slide-in-panel">
-    <div
-      v-show="isOpen"
-      class="slide-in-glass"
-      :class="{ 'slide-in-glass-open': isOpen }"
-      @click="closePanel"
-    />
-    <div
-      class="slide-in"
-      :class="{ 'slide-in-open': isOpen }"
-      :style="{ width: panelWidth, right: panelRight, top: panelTop, height: panelHeight }"
-    >
-      <div class="header">
-        <div class="title">
-          {{ panelTitle }}
+  <Teleport to="#slides">
+    <div id="slide-in-panel-manager">
+      <div
+        v-show="isOpen"
+        data-testid="slide-in-glass"
+        class="slide-in-glass"
+        :class="{ 'slide-in-glass-open': isOpen }"
+        @click="closePanel"
+      />
+      <div
+        class="slide-in"
+        :class="{ 'slide-in-open': isOpen }"
+        :style="{ width: panelWidth, right: panelRight, top: panelTop, height: panelHeight }"
+      >
+        <div class="header">
+          <div class="title">
+            {{ panelTitle }}
+          </div>
+          <i
+            class="icon icon-close"
+            data-testid="slide-in-close"
+            @click="closePanel"
+          />
         </div>
-        <i
-          class="icon icon-close"
-          @click="closePanel"
-        />
-      </div>
-      <div class="main-panel">
-        <component
-          :is="currentComponent"
-          v-if="isOpen || currentComponent"
-          v-bind="currentProps"
-          class="dynamic-panel-content"
-        />
+        <div class="main-panel">
+          <component
+            :is="currentComponent"
+            v-if="isOpen || currentComponent"
+            v-bind="currentProps"
+            data-testid="slide-in-panel-component"
+            class="dynamic-panel-content"
+          />
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>

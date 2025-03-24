@@ -5,7 +5,9 @@ import { SlideInConfig } from '@shell/types/internal-api/shell/slideIn';
 import { BaseApi } from '@shell/plugins/internal-api/shared/base-api';
 
 export default class ShellApi extends BaseApi {
-  static apiName = 'shell';
+  static apiName() {
+    return 'shell';
+  }
 
   /**
    * Dispatches a growl notification.
