@@ -1,0 +1,29 @@
+// Text indent, margins, and paddings from 5-50px in 5px increments
+// e.g. p-10 - {padding: 10px}
+// e.g. mt-20 - {margin-top: 20px}
+$spacing-property-map: (
+    mm: margin,
+    mmt: margin-top,
+    mmr: margin-right,
+    mml: margin-left,
+    mmb: margin-bottom,
+    pp: padding,
+    ppt: padding-top,
+    ppb: padding-bottom,
+    ppl: padding-left,
+    ppr: padding-right,
+);
+
+@each $keyword, $property in $spacing-property-map {
+    .#{$keyword}-0 {
+        #{$property}: 0 !important;
+    }
+
+    @for $size from 1 through 10 {
+        $val: $size * 4;
+
+        .#{$keyword}-#{$size} {
+            #{$property}: $val * 1px !important;
+        }
+    }
+}

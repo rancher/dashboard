@@ -552,4 +552,6 @@ BODY, .theme-light {
   --badge-state-disabled-text  : #{$darker};
   --badge-state-disabled-bg    : #{$lighter};
   --badge-state-disabled-border: #{$medium};
+
+  --bubble-bg                  : #{$lighter};
 }

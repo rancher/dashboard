@@ -473,7 +473,13 @@ export default [
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id'
-      }, {
+      },
+      {
+        path:      '/c/:cluster/:product/batch.cronjob/:namespace/:id/detail',
+        component: () => interopDefault(import('@shell/pages/explorer/resource/detail/batch.cronjob.vue')),
+        name:      'batch.cronjob-detail'
+      },
+      {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         name:      'c-cluster-product-resource-namespace-id'
