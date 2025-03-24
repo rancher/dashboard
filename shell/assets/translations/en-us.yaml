@@ -545,9 +545,6 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
-    searchUsingServiceAccount: 
-      label: Enable Service Account Search
-      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
