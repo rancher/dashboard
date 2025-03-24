@@ -38,6 +38,8 @@ function registerBackgroundClosing(fn: Function) {
       :click-to-close="closeOnClickOutside"
       :width="modalWidth"
       :style="{ '--prompt-modal-width': modalWidth }"
+      :trigger-focus-trap="true"
+      tabindex="0"
       @close="close"
     >
       <component
