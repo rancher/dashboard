@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
-import { getSpecPattern } from '@/scripts/cypress';
 import websocketTasks from './cypress/support/utils/webSocket-utils';
 
 // Required for env vars to be available in cypress
@@ -10,8 +9,17 @@ require('dotenv').config();
 /**
  * VARIABLES
  */
-const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-const testDirs = ['setup', 'pages', 'navigation', 'global-ui'];
+
+const testDirs = [
+  'cypress/e2e/tests/priority/**/*.spec.ts',
+  'cypress/e2e/tests/components/**/*.spec.ts',
+  'cypress/e2e/tests/setup/**/*.spec.ts',
+  'cypress/e2e/tests/pages/**/*.spec.ts',
+  'cypress/e2e/tests/navigation/**/*.spec.ts',
+  'cypress/e2e/tests/global-ui/**/*.spec.ts',
+  'cypress/e2e/tests/features/**/*.spec.ts',
+  'cypress/e2e/tests/extensions/**/*.spec.ts'
+];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
@@ -44,12 +52,20 @@ console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
 
+// Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
+// as the login cookie will be for the base url and any API requests will fail as not authenticated
+if (apiUrl && !baseUrl.startsWith(apiUrl)) {
+  console.log('\n ❗ API variable is different to TEST_BASE_URL - tests may fail due to authentication issues');
+}
+
+console.log('');
+
 /**
  * CONFIGURATION
  */
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
-  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
+  defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 10000,
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   retries:               {
@@ -57,29 +73,11 @@ export default defineConfig({
     openMode: 0
   },
   env: {
-    grepFilterSpecs:  true,
-    grepOmitFiltered: true,
+    grepFilterSpecs:     true,
+    grepOmitFiltered:    true,
     baseUrl,
-    coverage:         hasCoverage,
-    codeCoverage:     {
-      exclude: [
-        'cypress/**/*.*',
-        '**/__tests__/**/*.*',
-        '**/__mocks__/**/*.*',
-        '**/shell/scripts/**/*.*',
-        'docusaurus/**/*.*',
-        'stories/**/*.*',
-        'drone/**/*.*',
-        '.nuxt/**/*.*',
-        '.nuxt-prod/**/*.*',
-      ],
-      include: [
-        'shell/**/*.{vue,ts,js}',
-        'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
-      ]
-    },
     api:                 apiUrl,
-    username:            process.env.TEST_USERNAME || DEFAULT_USERNAME,
+    username,
     password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:            process.env.GREP_TAGS,
@@ -88,24 +86,40 @@ export default defineConfig({
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
     azureSubscriptionId: process.env.AZURE_AKS_SUBSCRIPTION_ID,
     azureClientId:       process.env.AZURE_CLIENT_ID,
-    azureClientSecret:   process.env.AZURE_CLIENT_SECRET
+    azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
+    customNodeIp:        process.env.CUSTOM_NODE_IP,
+    customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
+    customNodeIpRke1:    process.env.CUSTOM_NODE_IP_RKE1,
+    customNodeKeyRke1:   process.env.CUSTOM_NODE_KEY_RKE1
+  },
+  // Jenkins reporters configuration jUnit and HTML
+  reporter:        'cypress-multi-reporters',
+  reporterOptions: {
+    reporterEnabled:                   'cypress-mochawesome-reporter, mocha-junit-reporter',
+    mochaJunitReporterReporterOptions: {
+      mochaFile:      'cypress/jenkins/reports/junit/junit-[hash].xml',
+      toConsole:      true,
+      jenkinsMode:    true,
+      includePending: true
+    },
+    cypressMochawesomeReporterReporterOptions: { charts: false },
   },
   e2e: {
-    fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
-      // For more info: https://docs.cypress.io/guides/tooling/code-coverage
-      require('@cypress/code-coverage/task')(on, config);
+      require('cypress-mochawesome-reporter/plugin')(on);
       require('@cypress/grep/src/plugin')(config);
-      // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
       on('task', { removeDirectory });
       websocketTasks(on, config);
 
       return config;
     },
+    fixturesFolder:               'cypress/e2e/blueprints',
     experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(testDirs, process.env),
+    specPattern:                  testDirs,
     baseUrl
   },
-  videoCompression:    15,
+  video:               false,
+  videoCompression:    25,
   videoUploadOnPasses: false,
 });
