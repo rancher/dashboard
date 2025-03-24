@@ -19,11 +19,13 @@ const STATUS = {
   }
 };
 
+export interface Props {
+  status?: 'success' | 'warning' | 'info' | 'error',
+  label?: string
+}
+
 withDefaults(
-  defineProps<{
-    status?: 'success' | 'warning' | 'info' | 'error',
-    label?: string
-  }>(),
+  defineProps<Props>(),
   {
     status: 'success',
     label:  '',

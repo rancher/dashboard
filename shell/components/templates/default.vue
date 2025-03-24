@@ -206,8 +206,13 @@ export default {
       >
         <router-view
           :key="$route.path"
+          v-slot="{ Component }"
           class="outlet"
-        />
+        >
+          <Suspense>
+            <component :is="Component" />
+          </Suspense>
+        </router-view>
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
@@ -245,8 +250,13 @@ export default {
       >
         <router-view
           :key="$route.path"
+          v-slot="{ Component }"
           class="outlet"
-        />
+        >
+          <Suspense>
+            <component :is="Component" />
+          </Suspense>
+        </router-view>
       </main>
       <div
         v-if="$refs.draggableZone"

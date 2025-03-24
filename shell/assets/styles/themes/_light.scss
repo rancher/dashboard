@@ -351,6 +351,8 @@ BODY, .theme-light {
   --border-width               : 1px;
   --border-radius              : 4px;
   --border-radius-lg           : 8px;
+  --border-radius-small        : 4px;
+  --border-radius-medium       : 6px;
   --outline                    : var(--primary);
   --outline-width              : 1px;
 
@@ -552,4 +554,6 @@ BODY, .theme-light {
   --badge-state-disabled-text  : #{$darker};
   --badge-state-disabled-bg    : #{$lighter};
   --badge-state-disabled-border: #{$medium};
+
+  --bubble-bg                  : #{$lighter};
 }
