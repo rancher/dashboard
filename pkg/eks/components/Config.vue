@@ -106,7 +106,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      kmsInfo:               {} as {Keys:AWS.KmsKey[]},
+      kmsKeys:               [] as AWS.KmsKey[],
       canReadKms:            false,
       supportedVersionRange,
       customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
@@ -213,7 +213,7 @@ export default defineComponent({
     },
 
     kmsOptions(): string[] {
-      return (this.kmsInfo?.Keys || []).map((k) => k.KeyArn);
+      return (this.kmsKeys || []).map((k) => k.KeyArn);
     }
   },
 
@@ -228,9 +228,7 @@ export default defineComponent({
       this.loadingVersions = true;
       try {
         const eksClient = await this.$store.dispatch('aws/eks', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
-
-        const res = await eksClient.describeAddonVersions({});
-        const addons = res?.addons;
+        const addons = await this.$store.dispatch('aws/depaginateList', { client: eksClient, cmd: 'describeAddonVersions' });
 
         if (!addons) {
           return;
@@ -264,7 +262,8 @@ export default defineComponent({
       const kmsClient = await store.dispatch('aws/kms', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.kmsInfo = await kmsClient.listKeys({});
+        this.kmsKeys = await this.$store.dispatch('aws/depaginateList', { client: kmsClient, cmd: 'listKeys' });
+
         this.canReadKms = true;
       } catch (e) {
         this.canReadKms = false;

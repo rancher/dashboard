@@ -241,8 +241,15 @@ export const actions = {
       }
 
       addObjects(out, res[key]);
-      opt.NextToken = res.NextToken;
-      hasNext = !!res.NextToken;
+      if (res.NextToken) {
+        opt.NextToken = res.NextToken;
+        hasNext = true;
+      } else if (res.Marker) {
+        opt.Marker = res.Marker;
+        hasNext = true;
+      } else {
+        hasNext = false;
+      }
     }
 
     return out;

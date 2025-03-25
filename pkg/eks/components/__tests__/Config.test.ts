@@ -29,16 +29,15 @@ const mockedStore = (versionSetting: any) => {
         return versionSetting;
       },
     },
-    dispatch: () => {
-      return {
-        listKeys: () => {
-          return listKeysResponseData;
-        },
-        describeAddonVersions: () => {
-          return describeAddonVersionsResponseData;
-        }
-
-      };
+    dispatch: (ctx: any, { cmd }:{cmd?:string}) => {
+      switch (cmd) {
+      case 'listKeys':
+        return listKeysResponseData.Keys;
+      case 'describeAddonVersions':
+        return describeAddonVersionsResponseData.addons;
+      default:
+        return {};
+      }
     }
   };
 };
@@ -107,11 +106,11 @@ describe('eKS K8s configuration', () => {
     expect(wrapper.exists()).toBe(true);
     expect(spy).toHaveBeenCalledTimes(0);
     await setCredential(wrapper);
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect(spy).toHaveBeenCalledTimes(8);
 
     wrapper.setProps({ config: { amazonCredentialSecret: 'foo', region: 'rab' } });
     await flushPromises();
-    expect(spy).toHaveBeenCalledTimes(6);
+    expect(spy).toHaveBeenCalledTimes(12);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'foo', region: 'rab' });
     expect(spy).toHaveBeenCalledWith('aws/kms', { cloudCredentialId: 'foo', region: 'rab' });
   });
@@ -134,11 +133,11 @@ describe('eKS K8s configuration', () => {
 
     expect(spy).toHaveBeenCalledTimes(0);
     await setCredential(wrapper);
-    expect(spy).toHaveBeenCalledTimes(4);
+    expect(spy).toHaveBeenCalledTimes(8);
 
     wrapper.setProps({ config: { amazonCredentialSecret: 'oof', region: 'bar' } });
     await flushPromises();
-    expect(spy).toHaveBeenCalledTimes(6);
+    expect(spy).toHaveBeenCalledTimes(12);
     expect(spy).toHaveBeenCalledWith('aws/eks', { cloudCredentialId: 'oof', region: 'bar' });
     expect(spy).toHaveBeenCalledWith('aws/kms', { cloudCredentialId: 'oof', region: 'bar' });
   });
@@ -310,16 +309,15 @@ describe('eKS K8s configuration', () => {
   it('should show a text input for kms key arns if no data if the api call throws an error', async() => {
     const failingStoreMock = {
       ...mockedStore({ value: '<=1.27.x' }),
-      dispatch: () => {
-        return {
-          listKeys: () => {
-            throw new Error('failed to load keys blah blah');
-          },
-          describeAddonVersions: () => {
-            return describeAddonVersionsResponseData;
-          }
-
-        };
+      dispatch: (ctx: any, { cmd }:{cmd?:string}) => {
+        switch (cmd) {
+        case 'listKeys':
+          throw new Error('failed to load keys');
+        case 'describeAddonVersions':
+          return describeAddonVersionsResponseData.addons;
+        default:
+          return {};
+        }
       }
     };
 
