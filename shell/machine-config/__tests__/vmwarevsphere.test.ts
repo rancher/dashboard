@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import vmwarevsphere from '@shell/machine-config/vmwarevsphere.vue';
 import { DEFAULT_VALUES, SENTINEL } from '@shell/machine-config/vmwarevsphere-config';
 
@@ -172,12 +172,12 @@ describe('component: vmwarevsphere', () => {
         name:     'tag_name',
         category: 'tag_category',
       };
-      const expectedReslut = [{
+      const expectedResult = [{
         ...tag, label: `${ tag.category } / ${ tag.name }`, value: tag.id
       }];
       const wrapper = mount(vmwarevsphere, defaultCreateSetup);
 
-      expect(wrapper.vm.mapTagsToContent([tag])).toStrictEqual(expectedReslut);
+      expect(wrapper.vm.mapTagsToContent([tag])).toStrictEqual(expectedResult);
     });
   });
 
@@ -252,6 +252,51 @@ describe('component: vmwarevsphere', () => {
 
         expect(wrapper.vm.$data.validationErrors[poolId]).toBeUndefined();
       });
+    });
+  });
+
+  describe('syncNetworkValueForLegacyLabels', () => {
+    it('should update the current network value properly', () => {
+      const legacyName = 'legacy_name';
+      const legacyValue = 'legacy_value';
+      const networkLabel = 'network_label';
+
+      const wrapper = shallowMount(vmwarevsphere, {
+        ...defaultEditSetup,
+        propsData: {
+          ...defaultEditSetup.propsData,
+          value: {
+            ...defaultEditSetup.propsData.value,
+            network: [legacyName]
+          }
+        },
+        computed: {
+          networks: () => [
+            {
+              name: legacyName, label: networkLabel, value: legacyValue
+            },
+            {
+              name: 'name1', label: 'label1', value: 'value1'
+            },
+            {
+              name: 'name2', label: 'label2', value: 'value2'
+            },
+            {
+              name: 'name3', label: 'label3', value: 'value3'
+            },
+            {
+              name: 'name4', label: 'label4', value: 'value4'
+            },
+          ]
+        }
+      });
+
+      // check the current network before updating
+      expect(wrapper.vm.value.network).toStrictEqual([legacyName]);
+
+      wrapper.vm.syncNetworkValueForLegacyLabels();
+
+      expect(wrapper.vm.value.network).toStrictEqual([legacyValue]);
     });
   });
 });
