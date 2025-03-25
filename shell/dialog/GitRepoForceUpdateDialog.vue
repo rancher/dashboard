@@ -84,7 +84,7 @@ export default {
     <template #body>
       <div class="mb-20">
         {{ t('fleet.gitRepo.actions.forceUpdate.promptNames') }} <span
-          v-clean-html="resourceNames(names, t)"
+          v-clean-html="resourceNames(names, null, t)"
           class="body"
         />
       </div>

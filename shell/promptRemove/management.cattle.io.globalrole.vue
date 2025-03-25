@@ -21,7 +21,7 @@ export default {
 
 <template>
   <div>
-    {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-clean-html="resourceNames(names, t)" />
+    {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-clean-html="resourceNames(names, null, t)" />
     <div
       v-if="info"
       class="text info mb-10 mt-20"

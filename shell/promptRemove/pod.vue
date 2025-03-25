@@ -98,7 +98,7 @@ export default {
   <div class="mt-10">
     <div class="mb-30">
       {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-        v-clean-html="resourceNames(names, t)"
+        v-clean-html="resourceNames(names, null, t)"
         class="body"
       />
     </div>
