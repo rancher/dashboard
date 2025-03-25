@@ -1,16 +1,16 @@
 const FIELDS = {
-  NAME:     'poolName',
-  QUANTITY: 'poolQuantity'
+  NAME:     'pool.name',
+  QUANTITY: 'pool.quantity'
 };
 
 const RULESETS = [
   {
     path:  FIELDS.QUANTITY,
-    rules: [FIELDS.QUANTITY, 'requiredInt'],
+    rules: ['requiredInt', 'isPositive'],
   },
   {
     path:  FIELDS.NAME,
-    rules: [FIELDS.NAME],
+    rules: ['required'],
   }
 ];
 

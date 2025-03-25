@@ -148,12 +148,12 @@ export default {
       return this.value?.config?.os === 'windows';
     },
 
-    fvExtraRules() {
-      return {
-        [MACHINE_POOL_VALIDATION.FIELDS.NAME]:     poolName(this),
-        [MACHINE_POOL_VALIDATION.FIELDS.QUANTITY]: poolQuantity(this, 0)
-      };
-    },
+    // fvExtraRules() {
+    //   return {
+    //     [MACHINE_POOL_VALIDATION.FIELDS.NAME]:     poolName(this),
+    //     [MACHINE_POOL_VALIDATION.FIELDS.QUANTITY]: poolQuantity(this, 0)
+    //   };
+    // },
   },
 
   watch: {
@@ -230,24 +230,32 @@ export default {
       this.$emit('validationChanged', val);
     },
 
-    updateValidation(field, isInvalid) {
-      const hasError = this.validationErrors.includes(field);
+    // updateValidation(field, isInvalid) {
+    //   const hasError = this.validationErrors.includes(field);
 
-      if (isInvalid && !hasError) {
-        this.validationErrors.push(field);
-      } else if (!isInvalid && hasError) {
-        this.validationErrors.splice(this.validationErrors.indexOf(field), 1);
-      }
-    },
+    //   if (isInvalid && !hasError) {
+    //     this.validationErrors.push(field);
+    //   } else if (!isInvalid && hasError) {
+    //     this.validationErrors.splice(this.validationErrors.indexOf(field), 1);
+    //   }
+    // },
 
-    handlePoolName(val) {
-      this.updateValidation(MACHINE_POOL_VALIDATION.FIELDS.NAME, val === '');
-      this.$emit('valueChanged', 'pool.name', val);
-    },
+    // handlePoolName(val) {
+    //   this.updateValidation(MACHINE_POOL_VALIDATION.FIELDS.NAME, val === '');
+    //   this.$emit('valueChanged', 'pool.name', val);
+    // },
 
-    handlePoolQuantity(val) {
-      this.updateValidation(MACHINE_POOL_VALIDATION.FIELDS.QUANTITY, val === '' || val < 0);
-      this.$emit('valueChanged', 'pool.quantity', val);
+    // handlePoolQuantity(val) {
+    //   this.updateValidation(MACHINE_POOL_VALIDATION.FIELDS.QUANTITY, val === '' || val < 0);
+    //   this.$emit('valueChanged', 'pool.quantity', val);
+    // }
+
+    fvFormIsValid: {
+      handler(newValue) {
+        console.log({newValue})
+        this.$emit('validationChanged', newValue);
+      },
+      deep: true
     }
   }
 };
@@ -272,8 +280,8 @@ export default {
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
-          @update:value="handlePoolName"
-        />
+          />
+          <!-- @update:value="handlePoolName" -->
       </div>
       <div class="col span-4">
         <LabeledInput
@@ -285,8 +293,8 @@ export default {
           min="0"
           :required="true"
           :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.QUANTITY)"
-          @update:value="handlePoolQuantity"
-        />
+          />
+          <!-- @update:value="handlePoolQuantity" -->
       </div>
       <div class="col span-4 pt-5">
         <h3>
