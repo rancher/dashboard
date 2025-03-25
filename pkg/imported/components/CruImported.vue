@@ -383,7 +383,7 @@ export default defineComponent({
   },
 
   watch: {
-    showCustomRegistryInput(value) {
+    showPrivateRegistryInput(value) {
       if (!value) {
         this.normanCluster.importedConfig.privateRegistryURL = null;
       }
