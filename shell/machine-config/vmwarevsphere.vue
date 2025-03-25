@@ -558,6 +558,7 @@ export default {
       this.resetValueIfNecessary('network', content, options, true);
 
       set(this, 'networksResults', content);
+      this.syncNetworkValueForLegacyLabels();
       this.vappMode = this.getInitialVappMode(this.value);
     },
 
@@ -666,6 +667,21 @@ export default {
         }
       } else {
         this.manageErrors(errorActions.DELETE, key);
+      }
+    },
+
+    // Network labels have been updated to include the MOID.
+    // To ensure previously selected networks remain consistent with this change,
+    // we update the current network value to allow correct selection from the network list.
+    syncNetworkValueForLegacyLabels() {
+      const currentNetwork = this.value.network[0];
+
+      if (this.mode !== _CREATE && currentNetwork) {
+        const networkMatch = this.networks.find((network) => currentNetwork === network.name && currentNetwork !== network.label);
+
+        if (networkMatch) {
+          this.value.network = [networkMatch.value];
+        }
       }
     },
 
