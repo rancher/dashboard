@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount, useTemplateRef } from 'vue';
+import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue';
 
 type StateType = boolean | 'true' | 'false' | undefined;
 
@@ -34,7 +34,7 @@ export default defineComponent({
   emits: ['update:value'],
 
   setup() {
-    const switchChrome = useTemplateRef<HTMLElement>('switchChrome');
+    const switchChrome = ref<HTMLElement | null>(null);
     const focus = () => {
       switchChrome.value?.classList.add('focus');
     };
@@ -43,7 +43,7 @@ export default defineComponent({
       switchChrome.value?.classList.remove('focus');
     };
 
-    const switchInput = useTemplateRef<HTMLInputElement>('switchInput');
+    const switchInput = ref<HTMLInputElement | null>(null);
 
     onMounted(() => {
       switchInput.value?.addEventListener('focus', focus);

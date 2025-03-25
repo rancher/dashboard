@@ -20,7 +20,7 @@
  *    </template>
  *  </rc-dropdown>
  */
-import { useTemplateRef } from 'vue';
+import { ref } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
@@ -42,8 +42,8 @@ const {
 
 provideDropdownContext();
 
-const popperContainer = useTemplateRef<HTMLElement>('popperContainer');
-const dropdownTarget = useTemplateRef<HTMLElement>('dropdownTarget');
+const popperContainer = ref(null);
+const dropdownTarget = ref(null);
 
 useClickOutside(dropdownTarget, () => showMenu(false));
 

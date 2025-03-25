@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { defineAsyncComponent, useTemplateRef, onMounted, onBeforeUnmount } from 'vue';
+import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
@@ -528,7 +528,7 @@ export default {
     },
   },
   setup(_props, { emit }) {
-    const table = useTemplateRef('table');
+    const table = ref(null);
 
     const handleEnterKey = (event) => {
       if (event.key === 'Enter' && !event.target?.classList?.contains('checkbox-custom')) {
@@ -543,6 +543,8 @@ export default {
     onBeforeUnmount(() => {
       table.value.removeEventListener('keyup', handleEnterKey);
     });
+
+    return { table };
   },
 
   created() {
