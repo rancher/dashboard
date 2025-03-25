@@ -659,6 +659,7 @@ export default {
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
         :add-label="t('fleet.gitRepo.paths.addLabel')"
+        :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
         :add-icon="'icon-plus'"
         :protip="t('fleet.gitRepo.paths.empty')"
       />
