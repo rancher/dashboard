@@ -51,13 +51,15 @@ const event = require(process.env.GITHUB_EVENT_PATH);
 
 function getReferencedIssues(body) {
   // https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword
-  const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
+  // Handle both Fixes #NNNN and Fixes https://github.com/rancher/dashboard/issuues/NNNN
+  const regexp = /[Ff]ix(es|ed)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Cc]lose(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Rr]esolve(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)/g;
   var v;
   const issues = [];
   do {
     v = regexp.exec(body);
     if (v) {
-      const vNumber = parseInt(v[2], 10);
+      // Matches - 0 = Full string, 1 = es or ed, 2 = # or https://github.com/rancher/dashboard/issuues/, 3 = Issue number
+      const vNumber = parseInt(v[3], 10);
 
       if (!isNaN(vNumber)) {
         issues.push(vNumber);
