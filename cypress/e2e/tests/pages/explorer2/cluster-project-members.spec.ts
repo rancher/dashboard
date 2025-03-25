@@ -61,6 +61,7 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
       });
     });
   });
+
   it('Clicking cancel should return to Cluster and Project members ', () => {
     HomePagePo.goTo();
     const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
@@ -73,6 +74,7 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     clusterMembership.cancelCreateForm().click();
     clusterMembership.waitForPageWithExactUrl();
   });
+
   it('Can create a member with custom permissions', () => {
     // add user to Cluster membership
     const projectMembership = new ClusterProjectMembersPo('local', 'project-membership');
@@ -82,12 +84,28 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     projectMembership.triggerAddProjectMemberAction('default');
     projectMembership.selectProjectCustomPermission();
     projectMembership.selectClusterOrProjectMember(username);
-    projectMembership.checkTheseProjectCustomPermissions([0, 1]);
+
+    // testing https://github.com/rancher/dashboard/issues/13764
+    // select all project roles
+    projectMembership.customPermissionsCheckboxes().then(($checkboxes) => {
+      const indexes = Array.from({ length: $checkboxes.length }, (_, i) => i);
+
+      projectMembership.checkTheseProjectCustomPermissions(indexes);
+    });
+
+    // store checkbox labels in an alias
+    projectMembership.customPermissionsCheckboxes().find('span.checkbox-label').then(($labels) => {
+      const labels = $labels.toArray().map((label) => Cypress.$(label).text().trim());
+
+      cy.wrap(labels).as('checkboxLabels');
+    });
 
     cy.intercept('POST', '/v3/projectroletemplatebindings').as('createProjectMembership');
     projectMembership.submitProjectCreateButton();
-    cy.wait('@createProjectMembership');
+    cy.wait('@createProjectMembership').its('response.statusCode').should('eq', 201);
+    projectMembership.createFormErrorBanner().checkNotExists();
     cy.get('.modal-overlay').should('not.exist');
+    projectMembership.waitForPage();
 
     projectMembership.goTo();
     projectMembership.waitForPageWithSpecificUrl('/c/local/explorer/members#project-membership');
@@ -96,12 +114,16 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
       if (el.find('tr.no-rows').is(':visible')) {
         cy.reload();
       }
+    });
 
+    // retrieve the labels and assert UI contains each label
+    cy.get('@checkboxLabels').then((labels: any) => {
       projectMembership.projectTable().rowElementWithName(username).find('td:nth-of-type(3)').first()
         .invoke('text')
         .then((t) => {
-          expect(t).to.include('Create Namespaces');
-          expect(t).to.include('Manage Config Maps');
+          labels.forEach((label) => {
+            expect(t).to.include(label);
+          });
         });
     });
   });

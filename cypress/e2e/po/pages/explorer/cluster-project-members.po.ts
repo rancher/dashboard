@@ -5,7 +5,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
-
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 export default class ClusterProjectMembersPo extends PagePo {
   private static createPath(clusterId: string, tabId: string) {
     return `/c/${ clusterId }/explorer/members#${ tabId }`;
@@ -45,6 +45,10 @@ export default class ClusterProjectMembersPo extends PagePo {
     permissionOptions.set(3);
   }
 
+  customPermissionsCheckboxes() {
+    return cy.get('.custom-permissions').find('.checkbox-container');
+  }
+
   checkTheseProjectCustomPermissions(permissionIndices: number[]) {
     permissionIndices.forEach((permissionIndex) => {
       const checkbox = new CheckboxInputPo(`[data-testid="custom-permission-${ permissionIndex }"]`);
@@ -64,6 +68,10 @@ export default class ClusterProjectMembersPo extends PagePo {
 
   cancelCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-cancel"]', this.self());
+  }
+
+  createFormErrorBanner(): BannersPo {
+    return new BannersPo('.card-body [data-testid="banner-content"]');
   }
 
   resourcesList() {
