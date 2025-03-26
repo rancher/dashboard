@@ -1,17 +1,27 @@
 import { FleetWorkspaceListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.fleetworkspace.po';
 import FleetWorkspaceDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.fleetworkspace.po';
 import { generateFleetWorkspacesDataSmall } from '@/cypress/e2e/blueprints/fleet/workspaces-get';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
+let customWorkspace = '';
+const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesPage = new FleetWorkspaceListPagePo();
+  const headerPo = new HeaderPo();
 
   before(() => {
     cy.login();
+    cy.createE2EResourceName('fleet-workspace').then((name) => {
+      customWorkspace = name;
+    });
   });
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
@@ -110,7 +120,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       const count = initialCount + 26;
 
       // check fleet workspace count
-      cy.waitForRancherResources('v1', 'management.cattle.io.fleetworkspaces', count).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'management.cattle.io.fleetworkspaces', count, false).then((resp: Cypress.Response<any>) => {
         const count = resp.body.count;
 
         FleetWorkspaceListPagePo.navTo();
@@ -238,6 +248,114 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
       workspaceNameList.forEach((r) => cy.deleteRancherResource('v3', 'fleetWorkspaces', r, false));
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
+    it('can create a fleet workspace', () => {
+      cy.intercept('POST', '/v3/fleetworkspaces').as('createWorkspace');
+
+      fleetWorkspacesPage.goTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.baseResourceList().masthead().title().should('contain', 'Workspaces');
+      fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
+      fleetWorkspacesPage.clickCreate();
+      fleetWorkspacesPage.createWorkloadForm().waitForPage(null, 'allowedtargetnamespaces');
+      fleetWorkspacesPage.createWorkloadForm().title().invoke('text').then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain('Workspace: Create');
+      });
+      fleetWorkspacesPage.createWorkloadForm().nameNsDescription().name().set(customWorkspace);
+      fleetWorkspacesPage.createWorkloadForm().nameNsDescription().description().set(`${ customWorkspace }-desc`);
+      fleetWorkspacesPage.createWorkloadForm().tabs().allTabs().should('have.length.at.least', 2);
+
+      const tabs = ['Allowed Target Namespaces', 'Labels & Annotations'];
+
+      fleetWorkspacesPage.createWorkloadForm().tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      fleetWorkspacesPage.createWorkloadForm().tabs().assertTabIsActive('[data-testid="allowedtargetnamespaces"]');
+      fleetWorkspacesPage.createWorkloadForm().allowTargetNsTabList().setValueAtIndex('test', 0);
+      fleetWorkspacesPage.createWorkloadForm().lablesAnnotationsTab();
+      fleetWorkspacesPage.createWorkloadForm().waitForPage(null, 'labels');
+      fleetWorkspacesPage.createWorkloadForm().lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Label', 'label-key1', 'label-value1', 0, 'div.row:nth-of-type(2)');
+
+      // Adding Annotations doesn't work via test automation
+      // See https://github.com/rancher/dashboard/issues/13191
+      // fleetWorkspacesPage.createWorkloadForm().lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Annotation', 'ann-key1', 'ann-value1', 0, 'div.row:nth-of-type(3)');
+      fleetWorkspacesPage.createWorkloadForm().resourceDetail().createEditView().create();
+      cy.wait('@createWorkspace').then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+      });
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.workspacesList().resourceTable().sortableTable().rowWithName(customWorkspace)
+        .checkVisible();
+    });
+
+    it('user sees custom workspace as an option in workspace selector', () => {
+      fleetWorkspacesPage.goTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
+      headerPo.checkCurrentWorkspace(customWorkspace);
+    });
+
+    it('can Edit Config', () => {
+      fleetWorkspacesPage.goTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
+      fleetWorkspacesPage.workspacesList().actionMenu(customWorkspace).getMenuItem('Edit Config').click();
+      fleetWorkspacesPage.createWorkloadForm(customWorkspace).waitForPage('mode=edit', 'allowedtargetnamespaces');
+      fleetWorkspacesPage.createWorkloadForm().title().invoke('text').then((title) => {
+        expect(title.replace(/\s+/g, ' ')).to.contain(`Workspace: ${ customWorkspace }`);
+      });
+      fleetWorkspacesPage.createWorkloadForm().nameNsDescription().description().set(`${ customWorkspace }-desc-edit`);
+      fleetWorkspacesPage.createWorkloadForm().saveCreateForm().cruResource().saveAndWaitForRequests('PUT', `/v3/fleetWorkspaces/${ customWorkspace }`)
+        .then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(response?.body.id).to.equal(customWorkspace);
+          expect(response?.body.annotations).to.have.property('field.cattle.io/description', `${ customWorkspace }-desc-edit`);
+        });
+      fleetWorkspacesPage.waitForPage();
+    });
+
+    it('can Download YAML', () => {
+      cy.deleteDownloadsFolder();
+
+      fleetWorkspacesPage.goTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
+      fleetWorkspacesPage.workspacesList().actionMenu(customWorkspace).getMenuItem('Download YAML').click();
+
+      const downloadedFilename = path.join(downloadsFolder, `${ customWorkspace }.yaml`);
+
+      cy.readFile(downloadedFilename).then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
+
+        // Basic checks on the downloaded YAML
+        expect(obj.kind).to.equal('FleetWorkspace');
+        expect(obj.metadata['name']).to.equal(customWorkspace);
+      });
+    });
+
+    it('can delete workspace', () => {
+      fleetWorkspacesPage.goTo();
+      fleetWorkspacesPage.waitForPage();
+      fleetWorkspacesPage.sortableTable().noRowsShouldNotExist();
+      fleetWorkspacesPage.workspacesList().actionMenu(customWorkspace).getMenuItem('Delete').click();
+      fleetWorkspacesPage.workspacesList().resourceTable().sortableTable().rowNames('.col-link-detail')
+        .then((rows: any) => {
+          const promptRemove = new PromptRemove();
+
+          cy.intercept('DELETE', `/v3/fleetWorkspaces/${ customWorkspace }`).as('deleteWorkspace');
+
+          promptRemove.confirmField().set(customWorkspace);
+          promptRemove.remove();
+          cy.wait('@deleteWorkspace');
+          fleetWorkspacesPage.waitForPage();
+          fleetWorkspacesPage.workspacesList().resourceTable().sortableTable().checkRowCount(false, rows.length - 1);
+          fleetWorkspacesPage.workspacesList().resourceTable().sortableTable().rowNames('.col-link-detail')
+            .should('not.contain', customWorkspace);
+        });
     });
   });
 });
