@@ -20,7 +20,7 @@
   $lighter: #b6b6c2;
 
   // dark main text
-  $lightest: #ffffff;
+  $grey-0: #ffffff;
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
@@ -29,19 +29,26 @@
   $disabled: $light;
 
   //Contrast colors
-  $contrasted-dark: $lightest !default;
+  $contrasted-dark: $grey-0 !default;
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+
+  /*********************/
+  --primary: #{$primary};
+  --on-primary: #{$grey-0};
+
+  --link: #81AEFC;
+
+  /*********************/
 
   $slate: #4B4F6B;
 
   --slate: #{$slate};
 
   --default                    : #{$dark};
-  --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
-  --default-hover-text         : #{saturate($lightest, 20%)};
+  --default-hover-text         : #{saturate($grey-0, 20%)};
   --default-active-bg          : #{darken($dark, 25%)};
   --default-active-text        : #{contrast-color(darken($dark, 25%))};
   --default-border             : #{$dark};
@@ -54,7 +61,7 @@
   --deemphasized               : #{$disabled};
 
   --body-bg                    : #{$darker};
-  --body-text                  : #{$lightest};
+  --body-text                  : #{$grey-0};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
@@ -63,12 +70,12 @@
   --header-bg                  : #{$darker};
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
-  --header-btn-text            : #{$lightest};
-  --header-btn-text-hover      : #{$lightest};
-  --header-input-text          : #{$lightest};
+  --header-btn-text            : #{$grey-0};
+  --header-btn-text-hover      : #{$grey-0};
+  --header-input-text          : #{$grey-0};
 
   // Header, Footer and Consent banner defaults
-  --banner-text-color          : #{$lightest};
+  --banner-text-color          : #{$grey-0};
 
   --nav-bg                     : #{$darkest};
   --nav-active                 : #333;
@@ -84,14 +91,14 @@
   --border                     : #{$medium};
 
   --topmenu-bg                 : #{$darkest};
-  --topmenu-text               : #{$lightest};
+  --topmenu-text               : #{$grey-0};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
   --topmost-light-hover        : #{$medium};
 
   --accent-btn                 : var(--primary-banner-bg);
   --accent-btn-hover           : var(--primary);
-  --accent-btn-hover-text      : #{$lightest};
+  --accent-btn-hover-text      : #{$grey-0};
 
   --modal-bg                   : #{$dark};
   --modal-border               : #{$medium};
@@ -99,7 +106,7 @@
   --overlay-bg                 : #{rgba($darkest, 0.75)};
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$lightest};
+  --checkbox-tick              : #{$grey-0};
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
@@ -111,10 +118,10 @@
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
   --dropdown-border            : #{$light};
   --dropdown-divider           : #{$light};
-  --dropdown-text              : #{$lightest};
-  --dropdown-active-text       : #{$lightest};
+  --dropdown-text              : #{$grey-0};
+  --dropdown-active-text       : #{$grey-0};
   --dropdown-active-bg         : #{$light};
-  --dropdown-hover-text        : #{$lightest};
+  --dropdown-hover-text        : #{$grey-0};
   --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
@@ -131,7 +138,7 @@
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
-  --input-disabled-text        : #{darken($lightest, 50%)};
+  --input-disabled-text        : #{darken($grey-0, 50%)};
   --input-disabled-label       : #{darken($lighter, 30%)};
   --input-disabled-bg          : #{darken($disabled, 30%)};
   --input-disabled-border      : #{darken($medium, 30%)};
@@ -141,7 +148,7 @@
   --label-secondary           : #{$lighter};
 
   --progress-bg                : #{$medium};
-  --progress-divider           : #{$lightest};
+  --progress-divider           : #{$grey-0};
 
   --sortable-table-bg          : #{lighten($darkest, 10%)};
   --sortable-table-row-bg      : #{$darker};;
@@ -151,7 +158,7 @@
   --sortable-table-selected-bg : var(--primary-light-bg);
   --sortable-table-group-label : #{$lighter};
 
-  --tag-primary                : #{$lightest};
+  --tag-primary                : #{$grey-0};
   --tag-bg                     : #{$medium};
 
   --popover-bg                 : #{$darker};
@@ -227,7 +234,7 @@
   --gauge-error-secondary      : 120, 45, 42;
 
   --product-icon               : #{$lighter};
-  --product-icon-active        : #{$lightest};
+  --product-icon-active        : #{$grey-0};
 
   --badge-state-disabled-text  : #{$desc-light};
   --badge-state-disabled-bg    : #{$medium};

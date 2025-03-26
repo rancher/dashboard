@@ -2,9 +2,9 @@
 Primary color classes from _light.scss
 
   --primary                    : #{$primary};
-  --primary-text               : #{contrast-color($primary)};
+  --on-primary               : #{contrast-color($primary)};
   --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-hover-text         : #{saturate($grey-0, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
   --primary-border             : #($primary);
@@ -47,10 +47,10 @@ function opacity(color, val) {
 /*
 light theme
 $contrasted-dark: $darkest !default;   #141419;
-$contrasted-light: $lightest !default;  #FFFFFF
+$contrasted-light: $grey-0 !default;  #FFFFFF
 
 dark theme
-$contrasted-dark: $lightest !default;  #ffffff;
+$contrasted-dark: $grey-0 !default;  #ffffff;
 $contrasted-light: $darkest !default; #141419
 */
 const LIGHT_CONTRAST_COLORS = {

@@ -381,17 +381,17 @@ export default {
       }
 
       &.active {
-        color: var(--primary-hover-text);
-        background-color: var(--primary-hover-bg);
+        color: var(--body-text);
+        background-color: var(--category--active);
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--primary-hover-text);
+          color: var(--body-text);
         }
 
         &:hover {
-          background-color: var(--primary-hover-bg);
+          background-color: var(--category--active--hover);
         }
 
         ~ I {
@@ -434,7 +434,7 @@ export default {
       }
 
       &.group-highlight {
-        background: var(--nav-active);
+        background: var(--category--active);
       }
     }
 
@@ -480,12 +480,12 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--primary-hover-text);
+      color: var(--on-active);
     }
 
     A {
-      color: var(--primary-hover-text);
-      background-color: var(--primary-hover-bg);
+      color: var(--on-active);
+      background-color: var(--active);
       font-weight: bold;
     }
   }
