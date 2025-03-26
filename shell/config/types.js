@@ -238,7 +238,8 @@ export const FLEET = {
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
-  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction',
+  HELM_APP:                 'fleet.cattle.io.helmapp',
 };
 
 export const GATEKEEPER = {
