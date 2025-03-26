@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
+import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -24,6 +25,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { getVersionInfo } from '@shell/utils/version';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -765,6 +767,12 @@ export default {
       });
 
       return rows;
+    },
+
+    featureDropdownMenu() {
+      const { fullVersion } = getVersionInfo(this.$store);
+
+      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
     }
   },
 
@@ -1489,11 +1497,27 @@ export default {
                     :row="row.row"
                     :index="i"
                   >
-                    <ActionMenu
-                      :resource="row.row"
-                      :data-testid="componentTestid + '-' + i + '-action-button'"
-                      :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
-                    />
+                    <template v-if="featureDropdownMenu">
+                      <ActionMenu
+                        :resource="row.row"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                      />
+                    </template>
+                    <template v-else>
+                      <ButtonMultiAction
+                        :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                        :ref="`actionButton${i}`"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :borderless="true"
+                        @click="handleActionButtonClick(i, $event)"
+                        @keyup.enter="handleActionButtonClick(i, $event)"
+                        @keyup.space="handleActionButtonClick(i, $event)"
+                      />
+                    </template>
                   </slot>
                 </td>
               </tr>
