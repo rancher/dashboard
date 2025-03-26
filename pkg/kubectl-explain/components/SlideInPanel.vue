@@ -415,7 +415,7 @@ export default {
 
       &:hover {
         background-color: var(--primary);
-        color: var(--primary-text);
+        color: var(--on-primary);
         cursor: pointer;
         opacity: 1;
       }

@@ -913,39 +913,31 @@ export default {
         }
 
         > .header-btn {
-          &.header-btn-active, &.header-btn-active:hover {
-            background-color: var(--success);
-            color: var(--success-text);
-          }
-
           img {
             height: 20px;
             width: 20px;
+            fill: var(--on-tertiary);
+          }
+
+          &:hover {
+            img {
+              fill: var(--on-tertiary);
+            }
           }
         }
       }
 
       .header-btn {
-        width: 40px;
+        width: 32px;
       }
 
       :deep() div .btn.role-tertiary {
-        border: 1px solid var(--header-btn-bg);
-        border: none;
-        background: var(--header-btn-bg);
-        color: var(--header-btn-text);
-        padding: 0 10px;
-        line-height: 32px;
-        min-height: 32px;
+        display: flex;
+        justify-content: center;
 
         i {
           // Ideally same height as the parent button, but this means tooltip needs adjusting (which is it's own can of worms)
           line-height: 20px;
-        }
-
-        &:hover {
-          background: var(--primary);
-          color: #fff;
         }
 
         &[disabled=disabled] {
