@@ -1178,19 +1178,19 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
+          background: var(--active);
+          color: var(--on-active);
 
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-active);
           }
 
           i {
-            color: var(--primary-hover-text);
+            color: var(--on-active);
           }
 
           div .description {
-            color: var(--default);
+            color: var(--on-active);
           }
         }
 
