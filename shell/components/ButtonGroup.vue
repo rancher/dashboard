@@ -10,12 +10,12 @@ export default {
 
     inactiveClass: {
       type:    String,
-      default: 'bg-disabled',
+      default: 'toggle-off',
     },
 
     activeClass: {
       type:    String,
-      default: 'bg-primary',
+      default: 'toggle-on',
     },
 
     options: {

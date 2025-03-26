@@ -4,9 +4,9 @@
   $selected: rgba($primary, .5);
 
   --primary                    : #{$primary};
-  --primary-text               : #fff;
+  --on-primary               : #fff;
   --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-hover-text         : #{saturate($grey-0, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
   --primary-border             : #{$primary};
@@ -17,7 +17,7 @@
   --info                    : #{$info};
   --info-text               : #{contrast-color($info)};
   --info-hover-bg           : #{darken($info, 10%)};
-  --info-hover-text         : #{saturate($lightest, 20%)};
+  --info-hover-text         : #{saturate($grey-0, 20%)};
   --info-active-bg          : #{darken($info, 25%)};
   --info-active-text        : #{contrast-color(darken($info, 25%))};
   --info-border             : #{$info};
