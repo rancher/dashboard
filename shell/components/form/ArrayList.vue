@@ -1,5 +1,5 @@
 <script>
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
@@ -97,7 +97,7 @@ export default {
     },
   },
 
-  setup(props) {
+  setup(props, { emit }) {
     const input = (Array.isArray(props.value) ? props.value : []).slice();
     const rows = ref([]);
 
@@ -110,11 +110,61 @@ export default {
       rows.value.push({ value });
     }
 
+    const isView = computed(() => {
+      return props.mode === _VIEW;
+    });
+
+    /**
+     * Cleanup rows and emit input
+     */
+    const update = () => {
+      if ( isView.value ) {
+        return;
+      }
+      const out = [];
+
+      for ( const row of rows.value ) {
+        const trim = !props.valueMultiline && (typeof row.value === 'string');
+        const value = trim ? row.value.trim() : row.value;
+
+        if ( typeof value !== 'undefined' ) {
+          out.push(value);
+        }
+      }
+      emit('update:value', out);
+    };
+
     const lastUpdateWasFromValue = ref(false);
+    const queueUpdate = debounce(update, 50);
+
+    watch(
+      rows,
+      () => {
+        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
+        // this was called which then forced rows to updated again
+        if (!lastUpdateWasFromValue.value) {
+          queueUpdate();
+        }
+        lastUpdateWasFromValue.value = false;
+      },
+      { deep: true }
+    );
+
+    watch(
+      () => props.value,
+      () => {
+        lastUpdateWasFromValue.value = true;
+        rows.value = (props.value || []).map((v) => ({ value: v }));
+      },
+      { deep: true }
+    );
 
     return {
       rows,
       lastUpdateWasFromValue,
+      queueUpdate,
+      isView,
+      update,
     };
   },
 
@@ -124,10 +174,6 @@ export default {
     },
     _removeLabel() {
       return this.removeLabel || this.t('generic.remove');
-    },
-
-    isView() {
-      return this.mode === _VIEW;
     },
     showAdd() {
       return this.addAllowed;
@@ -149,29 +195,7 @@ export default {
       return !this.valueMultiline && this.protip;
     }
   },
-  watch: {
-    value: {
-      deep: true,
-      handler() {
-        this.lastUpdateWasFromValue = true;
-        this.rows = (this.value || []).map((v) => ({ value: v }));
-      }
-    },
-
-    rows: {
-      deep: true,
-      handler(newValue, oldValue) {
-        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
-        // this was called which then forced rows to updated again
-        if (!this.lastUpdateWasFromValue) {
-          this.queueUpdate();
-        }
-        this.lastUpdateWasFromValue = false;
-      }
-    }
-  },
   created() {
-    this.queueUpdate = debounce(this.update, 50);
   },
   methods: {
     add() {
@@ -195,26 +219,6 @@ export default {
       this.$emit('remove', { row, index });
       removeAt(this.rows, index);
       this.queueUpdate();
-    },
-
-    /**
-     * Cleanup rows and emit input
-     */
-    update() {
-      if ( this.isView ) {
-        return;
-      }
-      const out = [];
-
-      for ( const row of this.rows ) {
-        const trim = !this.valueMultiline && (typeof row.value === 'string');
-        const value = trim ? row.value.trim() : row.value;
-
-        if ( typeof value !== 'undefined' ) {
-          out.push(value);
-        }
-      }
-      this.$emit('update:value', out);
     },
 
     /**

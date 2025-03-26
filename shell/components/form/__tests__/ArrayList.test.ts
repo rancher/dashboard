@@ -65,7 +65,7 @@ describe('the ArrayList', () => {
     expect(wrapper.find('[data-testid="remove-item-2"]').exists()).toBe(false);
     expect((wrapper.emitted('remove')![0][0] as any).row.value).toStrictEqual('string 1');
     expect(wrapper.vm.rows).toStrictEqual([{ value: 'string 0' }, { value: 'string 2' }]);
-    expect(wrapper.emitted('update:value')![1][0]).toStrictEqual(['string 0', 'string 2']);
+    expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(['string 0', 'string 2']);
   });
 
   it('add button is hidden in read-only mode', () => {
