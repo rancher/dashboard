@@ -519,7 +519,8 @@ export default {
 
       &.router-link-active:not(:hover) {
         A {
-          background-color: var(--nav-active);
+          background-color: var(--active);
+          color: var(--on-active)
         }
       }
     }
