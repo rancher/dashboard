@@ -15,11 +15,15 @@ $grey-0     : #FFFFFF;
 $disabled  : $grey-20;
 
 $primary        : #2F68DF;
+$primary-150    : #1A2A4D;
 $primary-140    : #304778; // Active light
 $primary-120    : #3459A8;
+$primary-110    : #265FD9;
 $primary-80     : #4871C7;
 $primary-75     : #454968; // Category active dark
-$primary-60     : #B3CBFF; // Active dark
+$primary-60     : #75A1FF;
+$primary-55     : #81AEFC;
+$primary-50     : #B3CBFF; // Active dark
 $primary-20     : #EDF2FC;
 $primary-15     : #EEF1F6; // Category active light
 $secondary      : $grey-50;
@@ -45,17 +49,22 @@ BODY, .theme-light {
   /*********************/
   --body__bg: #{$grey-0};
   --body__border: #{$grey-20};
+  --link: #{$primary-80};
   
   --primary: #{$primary};
   --on-primary: #{$grey-0};
   --primary--hover: #{$primary-120};
-  --secondary: #{$grey-0};
+
+  --non-primary-hover: #{$primary-20};
+
+  --secondary: var(--body__bg);
   --secondary__border: #{$primary};
   --on-secondary: #{$primary};
-  --secondary--hover: #{$primary-20};
+  --secondary--hover: var(--non-primary-hover);
+
   --tertiary: transparent;
-  --on-tertiary: #{$primary};
-  --tertiary--hover: #{$primary-20};
+  --on-tertiary: var(--link);
+  --tertiary--hover: var(--non-primary-hover);
   
   --active: #{$primary-140};
   --on-active: #{$grey-0};
@@ -67,7 +76,6 @@ BODY, .theme-light {
   --toggle-ON__bg: var(--active);
   --toggle-ON__color: var(--on-active);
 
-  --link: #{$primary-80};
 
   --vertical-tabs__bg: #{$grey-5};
 
