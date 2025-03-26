@@ -1,7 +1,12 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
 export default class CreateEditViewPo extends ComponentPo {
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
+
   create() {
     return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary')).click();
   }
