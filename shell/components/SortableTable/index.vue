@@ -1098,7 +1098,7 @@ export default {
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                class="btn role-secondary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
@@ -2049,6 +2049,7 @@ export default {
     display: grid;
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
     grid-column-gap: 10px;
+    align-items: center;
 
     &.advanced-filtering {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
@@ -2135,11 +2136,11 @@ export default {
         }
 
         > *, .icon-chevron-down {
-          color: var(--primary-text);
+          color: var(--on-primary);
         }
 
         .button-divider {
-          border-color: var(--primary-text);
+          border-color: var(--on-primary);
         }
 
         &.disabled {
