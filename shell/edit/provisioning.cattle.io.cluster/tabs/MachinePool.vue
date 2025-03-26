@@ -15,7 +15,7 @@ export default {
 
   name: 'MachinePool',
 
-  emits: ['validationChanged', 'error', 'valueChanged'],
+  emits: ['validationChanged', 'error'],
 
   components: {
     LabeledInput,
