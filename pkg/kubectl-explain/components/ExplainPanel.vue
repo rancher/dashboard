@@ -226,7 +226,7 @@ export default {
 
   .sub-name {
     background-color: var(--primary);
-    color: var(--primary-text);
+    color: var(--on-primary);
     padding: 4px;
     margin-top: 10px;
     display: flex;
@@ -236,7 +236,7 @@ export default {
     }
 
     .sub-type-link {
-      color: var(--primary-text);
+      color: var(--on-primary);
       display: flex;
     }
 
