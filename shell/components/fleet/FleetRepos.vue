@@ -106,7 +106,11 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows && !loading" />
+    <FleetIntro
+      v-if="noRows && !loading"
+      :schema="schema"
+      :labelKey="'gitRepo'"
+    />
     <ResourceTable
       v-if="!noRows"
       v-bind="$attrs"
