@@ -35,10 +35,38 @@
   $drag-over: #DCDEE7;
 
   /*********************/
+  
+  --body__bg: #{$grey-80};
+  --body__border: #{$grey-60};
+  --link: #{$primary-55};
+  
   --primary: #{$primary};
   --on-primary: #{$grey-0};
+  --primary--hover: #{$primary-110};
 
-  --link: #81AEFC;
+  --non-primary-hover: #{$primary-150};
+
+  --secondary: var(--body__bg);
+  --secondary__border: #{$primary-60};
+  --on-secondary: #{$primary-60};
+  --secondary--hover: var(--non-primary-hover);
+
+  --tertiary: transparent;
+  --on-tertiary: var(--link);
+  --tertiary--hover: var(--non-primary-hover);
+  
+  --active: #{$primary-50};
+  --on-active: #{$grey-90};
+  --category--active: #{$primary-75};
+  --category--active--hover: #{$grey-70};
+
+  --toggle-OFF__bg: #{$grey-100};
+  --toggle-OFF__color: #{$grey-40};
+  --toggle-ON__bg: var(--active);
+  --toggle-ON__color: var(--on-active);
+
+
+  --vertical-tabs__bg: #{$grey-90};
 
   /*********************/
 

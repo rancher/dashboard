@@ -35,9 +35,9 @@ describe('component: ButtonGroup', () => {
     expect(firstBtn.exists()).toBe(true);
     expect(firstBtn.attributes().type).toBe('button');
     expect(firstBtn.classes()).toContain('btn');
-    expect(firstBtn.classes()).toContain('bg-primary');
-    expect(secondBtn.classes()).toContain('bg-disabled');
-    expect(thirdBtn.classes()).toContain('bg-disabled');
+    expect(firstBtn.classes()).toContain('toggle-on');
+    expect(secondBtn.classes()).toContain('toggle-off');
+    expect(thirdBtn.classes()).toContain('toggle-off');
 
     expect(firstBtnLabel.text()).toBe('label1');
     expect(secondBtnLabel.text()).toBe('label2');
