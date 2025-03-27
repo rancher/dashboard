@@ -94,7 +94,7 @@ export default {
         <template v-if="!canSeeProjectlessNamespaces">
           <span class="delete-warning"> {{ t('promptRemove.willDeleteAssociatedNamespaces') }}</span> <br>
           <div
-            v-clean-html="resourceNames(names, t)"
+            v-clean-html="resourceNames(names, null, t)"
             class="mt-10"
           />
         </template>
@@ -108,7 +108,7 @@ export default {
           :label="t('promptRemove.deleteAssociatedNamespaces')"
         />
         <div class="mt-10 ml-20">
-          <span v-clean-html="resourceNames(names, t)" />
+          <span v-clean-html="resourceNames(names, null, t)" />
         </div>
       </div>
     </div>

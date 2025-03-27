@@ -31,12 +31,12 @@ export default {
   },
   computed: {
     formattedText() {
-      const namesSliced = this.drivers.map((obj) => obj.nameDisplay);
-      const count = namesSliced.length;
-      const remaining = namesSliced.length > 5 ? namesSliced.length - 5 : 0;
+      const driverNames = this.drivers.map((obj) => obj.nameDisplay);
+      const count = driverNames.length;
+      const remaining = driverNames.length > 5 ? driverNames.length - 5 : 0;
 
       const plusMore = this.t('drivers.deactivate.andOthers', { count: remaining });
-      const names = resourceNames(namesSliced, this.t, { plusMore, endString: false });
+      const names = resourceNames(driverNames, plusMore, this.t, false);
       const warningDrivers = this.t('drivers.deactivate.warningDrivers', { names, count });
 
       return this.t('drivers.deactivate.warning', { warningDrivers, count });

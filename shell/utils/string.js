@@ -151,10 +151,8 @@ export function pluralize(str) {
   }
 }
 
-export function resourceNames(names, t, options = {}) {
+export function resourceNames(names, plusMore, t, endString) {
   const MAX_NAMES_COUNT = 5;
-
-  let { plusMore, endString } = options;
 
   // plusMore default value
   if (!plusMore) {
