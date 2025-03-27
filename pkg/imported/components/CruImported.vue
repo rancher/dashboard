@@ -71,6 +71,7 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+      console.log(this.normanCluster)
       this.config = this.normanCluster.rke2Config || this.normanCluster.k3sConfig;
       if ( this.normanCluster && isEmpty(this.normanCluster.localClusterAuthEndpoint) ) {
         set(this.normanCluster, 'localClusterAuthEndpoint', { enabled: false });
@@ -517,7 +518,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isCreate"
+        v-if="!isCreate & !isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
@@ -579,6 +580,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
+      v-if="!isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.advanced"
         :open-initially="false"
