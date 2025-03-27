@@ -145,7 +145,13 @@ async function processClosedAction() {
   // If not, then the issue has been completed, so we can process it
   r.forEach(openPR => {
     const fixed = getReferencedIssues(openPR.body);
-    fixed.forEach(issue => issueMap[issue] = false);
+    fixed.forEach(issue => {
+      // If the other PR fixes one of the issues that is fixed by this PR, then we need to update our map
+      // so that we ignore it, as there is still an open PR linked to the issue
+      if (issueMap[issue]) {
+        issueMap[issue] = false;
+      }
+    });
   });
 
   // Filter down the list of issues that should be closed because this PR was merged
