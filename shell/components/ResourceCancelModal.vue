@@ -56,6 +56,7 @@ export default {
     name="cancel-modal"
     :width="440"
     height="auto"
+    :trigger-focus-trap="true"
     @close="cancelCancel"
   >
     <div class="header">
