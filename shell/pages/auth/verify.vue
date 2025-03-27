@@ -103,6 +103,7 @@ export default {
       });
 
       if ( res._status === 200) {
+        // TODO #13939: Redirection should be handled by route guards
         const backTo = this.$route.query[BACK_TO] || '/';
 
         // Load plugins

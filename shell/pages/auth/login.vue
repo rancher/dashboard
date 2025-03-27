@@ -249,6 +249,7 @@ export default {
     },
 
     async loginLocal(buttonCb) {
+      // Try just the authentication process, the redirection is handled in the index page
       try {
         await this.$store.dispatch('auth/login', {
           provider: 'local',
@@ -292,6 +293,7 @@ export default {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
+          // Redirection logic is handled in the index page, e.g. last page, new version, page validation, etc.
           this.$router.push({ name: 'index' });
         }
       } catch (err) {

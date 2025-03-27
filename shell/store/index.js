@@ -1150,6 +1150,12 @@ export const actions = {
     }
   },
 
+  /**
+   * Deregister WS subscriptions
+   * Save current page in localStorage
+   * Store auth provider queries before reloading app with login page
+   * @param {*} store
+   */
   async onLogout(store) {
     const { dispatch, commit, state } = store;
 

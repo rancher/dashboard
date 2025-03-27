@@ -327,6 +327,7 @@ export const actions = {
   },
 
   async login({ dispatch }, { provider, body }) {
+    // This includes local authentication without a provider
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
