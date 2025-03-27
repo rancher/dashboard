@@ -210,11 +210,19 @@ export default [
         path: '/c/:cluster/cis',
         name: 'c-cluster-cis',
         meta: { ...installRedirectRouteMeta(CIS_NAME, CIS_CHART_NAME, CIS.CLUSTER_SCAN) }
-      }, {
-        path:      '/c/:cluster/fleet',
+      },
+      {
+        path:      '/fleet/c/:cluster',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
         name:      'c-cluster-fleet',
-      }, {
+        children:  [
+          {
+            path:      '/fleet/c/:cluster/:resource/:namespace/:id',
+            name:      'c-cluster-fleet-slide',
+          },
+        ],
+      },
+      {
         path:      '/c/:cluster/gatekeeper',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/index.vue')),
         name:      'c-cluster-gatekeeper',
@@ -473,11 +481,18 @@ export default [
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id'
-      }, {
+      },
+      {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         name:      'c-cluster-product-resource-namespace-id'
-      }]
+      },
+      // {
+      //   path:      '/c/:cluster/:product/:resource/:namespace/:id',
+      //   component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
+      //   name:      'c-cluster-product-resource-namespace-id'
+      // }
+    ]
   },
   {
     path:      '/:catchAll(.*)*',

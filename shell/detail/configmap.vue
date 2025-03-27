@@ -19,7 +19,12 @@ export default {
       default: () => {
         return {};
       }
-    }
+    },
+
+    namespaced: {
+      type:     Boolean,
+      default: true,
+    },
   },
 
   computed: {
@@ -53,6 +58,7 @@ export default {
 <template>
   <ResourceTabs
     :value="value"
+    :namespaced="namespaced"
     @update:value="$emit('input', $event)"
   >
     <Tab

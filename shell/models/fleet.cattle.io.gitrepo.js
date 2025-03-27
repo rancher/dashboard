@@ -8,7 +8,7 @@ import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import {
-  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, STATES_ENUM, stateSort,
+  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, FLEET_DASHBOARD_STATES, STATES_ENUM, stateSort,
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 import FleetUtils from '@shell/utils/fleet';
@@ -168,6 +168,10 @@ export default class GitRepo extends SteveModel {
     }
 
     return this.metadata?.state?.name || 'unknown';
+  }
+
+  get dashboardState() {
+    return FLEET_DASHBOARD_STATES[this.state]?.color;
   }
 
   get targetClusters() {
