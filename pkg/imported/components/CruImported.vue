@@ -579,7 +579,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-      v-if="!isRKE1"
+        v-if="!isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.advanced"
         :open-initially="false"
