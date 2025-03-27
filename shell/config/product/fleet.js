@@ -52,14 +52,17 @@ export function init(store) {
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
     FLEET.GIT_REPO,
+    FLEET.HELM_APP,
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
   configureType(FLEET.GIT_REPO, {
     showListMasthead: false, hasGraph: true, graphConfig: gitRepoGraphConfig
   });
+  configureType(FLEET.HELM_APP, { showListMasthead: false, hasGraph: false });
 
-  weightType(FLEET.GIT_REPO, 109, true);
+  weightType(FLEET.GIT_REPO, 110, true);
+  weightType(FLEET.HELM_APP, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);
 

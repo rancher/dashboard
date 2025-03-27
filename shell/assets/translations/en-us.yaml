@@ -2489,6 +2489,9 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
+    intro:
+      add: Add Repository
+      empty: No repositories have been added
     actions:
       forceUpdate:
         label: Force Update
@@ -2609,6 +2612,14 @@ fleet:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+
+  helmApp:
+    intro:
+      add: Add Helm Application
+      empty: No applications have been added
+    actions:
+      add: Add Helm Application
+
   clusterGroup:
     selector:
       label: Cluster Selectors
