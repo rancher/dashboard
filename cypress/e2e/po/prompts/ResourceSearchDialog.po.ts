@@ -47,6 +47,6 @@ export default class ResourceSearchDialog extends ComponentPo {
     dialog.searchBox().type(name);
     dialog.results().should('have.length', 1);
     dialog.results().first().should('have.text', name);
-    dialog.results().first().click();    
+    dialog.results().first().click();
   }
 }
