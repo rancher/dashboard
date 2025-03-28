@@ -19,17 +19,19 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   let clusterId = '';
   let clusterDescription = '';
   const base64EncodedServiceAccount = Cypress.env('gkeServiceAccount');
+  let serviceAccount: any;
   let gkeProjectId = '';
 
   // Check if the base64 string is defined and valid
   if (base64EncodedServiceAccount) {
     try {
       // Decode the base64 string into a JSON string
-      const decodedServiceAccountJson = atob(base64EncodedServiceAccount);
+      const decodedServiceAccountJson = Buffer.from(base64EncodedServiceAccount, 'base64').toString('utf-8');
 
       // Parse the decoded JSON string
-      const serviceAccount = JSON.parse(decodedServiceAccountJson);
-
+      serviceAccount = JSON.parse(decodedServiceAccountJson);
+      /* eslint-disable no-console */
+      console.log(serviceAccount);
       // Now you can access the project_id
       gkeProjectId = serviceAccount.project_id;
       /* eslint-disable no-console */
@@ -85,7 +87,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.gkeCloudCredentialName);
-    cloudCredForm.serviceAccount().set(Cypress.env('gkeServiceAccount'));
+    cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.saveButton().expectToBeEnabled();
     cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
