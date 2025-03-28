@@ -5,6 +5,45 @@ import { _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
+const allCapabilities = ['ALL',
+  'AUDIT_CONTROL',
+  'AUDIT_WRITE',
+  'BLOCK_SUSPEND',
+  'CHOWN',
+  'DAC_OVERRIDE',
+  'DAC_READ_SEARCH',
+  'FOWNER',
+  'FSETID',
+  'IPC_LOCK',
+  'IPC_OWNER',
+  'KILL',
+  'LEASE',
+  'LINUX_IMMUTABLE',
+  'MAC_ADMIN',
+  'MAC_OVERRIDE',
+  'MKNOD',
+  'NET_ADMIN',
+  'NET_BIND_SERVICE',
+  'NET_BROADCAST',
+  'NET_RAW',
+  'SETFCAP',
+  'SETGID',
+  'SETPCAP',
+  'SETUID',
+  'SYSLOG',
+  'SYS_ADMIN',
+  'SYS_BOOT',
+  'SYS_CHROOT',
+  'SYS_MODULE',
+  'SYS_NICE',
+  'SYS_PACCT',
+  'SYS_PTRACE',
+  'SYS_RAWIO',
+  'SYS_RESOURCE',
+  'SYS_TIME',
+  'SYS_TTY_CONFIG',
+  'WAKE_ALARM'];
+
 export default {
   emits: ['update:value'],
 
@@ -25,68 +64,27 @@ export default {
   },
 
   data() {
-    const allCapabilities = ['ALL',
-      'AUDIT_CONTROL',
-      'AUDIT_WRITE',
-      'BLOCK_SUSPEND',
-      'CHOWN',
-      'DAC_OVERRIDE',
-      'DAC_READ_SEARCH',
-      'FOWNER',
-      'FSETID',
-      'IPC_LOCK',
-      'IPC_OWNER',
-      'KILL',
-      'LEASE',
-      'LINUX_IMMUTABLE',
-      'MAC_ADMIN',
-      'MAC_OVERRIDE',
-      'MKNOD',
-      'NET_ADMIN',
-      'NET_BIND_SERVICE',
-      'NET_BROADCAST',
-      'NET_RAW',
-      'SETFCAP',
-      'SETGID',
-      'SETPCAP',
-      'SETUID',
-      'SYSLOG',
-      'SYS_ADMIN',
-      'SYS_BOOT',
-      'SYS_CHROOT',
-      'SYS_MODULE',
-      'SYS_NICE',
-      'SYS_PACCT',
-      'SYS_PTRACE',
-      'SYS_RAWIO',
-      'SYS_RESOURCE',
-      'SYS_TIME',
-      'SYS_TTY_CONFIG',
-      'WAKE_ALARM'];
+    return {
+      privileged:               this.value.privileged || false,
+      allowPrivilegeEscalation: this.value.allowPrivilegeEscalation || false,
+      allCapabilities,
+      runAsNonRoot:             this.value.runAsNonRoot || false,
+      readOnlyRootFilesystem:   this.value.readOnlyRootFilesystem || false,
+      add:                      [],
+      drop:                     [],
+      runAsUser:                this.value.runAsUser
+    };
+  },
 
-    const {
-      capabilities = {},
-      runAsNonRoot = false,
-      readOnlyRootFilesystem = false,
-      privileged = false,
-      allowPrivilegeEscalation = false,
-      runAsUser
-    } = this.value;
+  created() {
+    const { capabilities = {} } = this.value;
     const {
       add = [],
       drop = []
     } = capabilities;
 
-    return {
-      privileged,
-      allowPrivilegeEscalation,
-      allCapabilities,
-      runAsNonRoot,
-      readOnlyRootFilesystem,
-      add,
-      drop,
-      runAsUser
-    };
+    this.add = add;
+    this.drop = drop;
   },
 
   computed: {

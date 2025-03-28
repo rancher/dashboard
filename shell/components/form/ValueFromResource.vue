@@ -4,6 +4,7 @@ import { get } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { ref, toRef, watch } from 'vue';
 
 export default {
   emits: ['update:value', 'remove'],
@@ -44,84 +45,164 @@ export default {
   },
 
   data() {
-    const typeOpts = [
-      { value: 'simple', label: 'Key/Value Pair' },
-      { value: 'resourceFieldRef', label: 'Resource' },
-      { value: 'configMapKeyRef', label: 'ConfigMap Key' },
-      { value: 'secretKeyRef', label: 'Secret key' },
-      { value: 'fieldRef', label: 'Pod Field' },
-      { value: 'secretRef', label: 'Secret' },
-      { value: 'configMapRef', label: 'ConfigMap' },
-    ];
+    return {
+      typeOpts: [
+        { value: 'simple', label: 'Key/Value Pair' },
+        { value: 'resourceFieldRef', label: 'Resource' },
+        { value: 'configMapKeyRef', label: 'ConfigMap Key' },
+        { value: 'secretKeyRef', label: 'Secret key' },
+        { value: 'fieldRef', label: 'Pod Field' },
+        { value: 'secretRef', label: 'Secret' },
+        { value: 'configMapRef', label: 'ConfigMap' },
+      ],
+      secrets:         this.allSecrets,
+      resourceKeyOpts: ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'],
+    };
+  },
 
-    const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
-    let type;
+  setup(props, { emit }) {
+    const type = ref(null);
 
-    if (this.value.secretRef) {
-      type = 'secretRef';
-    } else if (this.value.configMapRef) {
-      type = 'configMapRef';
-    } else if (this.value.value) {
-      type = 'simple';
-    } else if (this.value.valueFrom) {
-      type = Object.keys((this.value.valueFrom))[0] || 'simple';
+    if (props.value.secretRef) {
+      type.value = 'secretRef';
+    } else if (props.value.configMapRef) {
+      type.value = 'configMapRef';
+    } else if (props.value.value) {
+      type.value = 'simple';
+    } else if (props.value.valueFrom) {
+      type.value = Object.keys((props.value.valueFrom))[0] || 'simple';
     }
 
-    let refName;
-    let name;
-    let fieldPath;
-    let referenced;
-    let key;
-    let valStr;
-    const keys = [];
+    const refName = ref('');
+    const name = ref('');
+    const fieldPath = ref('');
+    const referenced = ref(null);
+    const key = ref(null);
+    const valStr = ref('');
+    const keys = ref([]);
 
-    switch (type) {
+    switch (type.value) {
     case 'resourceFieldRef':
-      name = this.value.name;
-      refName = this.value.valueFrom[type].containerName;
-      key = this.value.valueFrom[type].resource || '';
+      name.value = toRef(props.value.name);
+      refName.value = toRef(props.value.valueFrom[type.value].containerName);
+      key.value = props.value.valueFrom[type.value].resource || '';
       break;
     case 'configMapKeyRef':
-      name = this.value.name;
-      key = this.value.valueFrom[type].key || '';
-      refName = this.value.valueFrom[type].name;
-      referenced = this.allConfigMaps.filter((resource) => {
-        return resource.metadata.name === refName;
+      name.value = toRef(props.value.name);
+      key.value = props.value.valueFrom[type.value].key || '';
+      refName.value = toRef(props.value.valueFrom[type.value].name);
+      referenced.value = props.allConfigMaps.filter((resource) => {
+        return resource.metadata.name === refName.value;
       })[0];
-      if (referenced && referenced.data) {
-        keys.push(...Object.keys(referenced.data));
+      if (referenced.value && referenced.value.data) {
+        keys.value.push(...Object.keys(referenced.value.data));
       }
       break;
     case 'secretRef':
     case 'configMapRef':
-      name = this.value.prefix;
-      refName = this.value[type].name;
+      name.value = toRef(props.value.prefix);
+      refName.value = toRef(props.value[type.value].name);
       break;
     case 'secretKeyRef':
-      name = this.value.name;
-      key = this.value.valueFrom[type].key || '';
-      refName = this.value.valueFrom[type].name;
-      referenced = this.allSecrets.filter((resource) => {
-        return resource.metadata.name === refName;
+      name.value = toRef(props.value.name);
+      key.value = props.value.valueFrom[type.value].key || '';
+      refName.value = toRef(props.value.valueFrom[type.value].name);
+      referenced.value = props.allSecrets.filter((resource) => {
+        return resource.metadata.name === refName.value;
       })[0];
-      if (referenced && referenced.data) {
-        keys.push(...Object.keys(referenced.data));
+      if (referenced.value && referenced.value.data) {
+        keys.value.push(...Object.keys(referenced.value.data));
       }
       break;
     case 'fieldRef':
-      fieldPath = get(this.value.valueFrom, `${ type }.fieldPath`) || '';
-      name = this.value.name;
+      fieldPath.value = get(props.value.valueFrom, `${ type.value }.fieldPath`) || '';
+      name.value = toRef(props.value.name);
       break;
     default:
-      name = this.value.name;
-      valStr = this.value.value;
+      name.value = toRef(props.value.name);
+      valStr.value = toRef(props.value.value);
       break;
     }
 
+    referenced.value = refName.value;
+
+    const updateRow = () => {
+      if (!name.value?.length && !refName.value?.length) {
+        if (type.value !== 'fieldRef') {
+          emit('update:value', null);
+
+          return;
+        }
+      }
+      let out = { name: name.value || refName.value };
+
+      switch (type.value) {
+      case 'configMapKeyRef':
+      case 'secretKeyRef':
+        out.valueFrom = {
+          [type.value]: {
+            key: key.value, name: refName.value, optional: false
+          }
+        };
+        break;
+      case 'resourceFieldRef':
+        out.valueFrom = {
+          [type.value]: {
+            containerName: refName.value, divisor: 1, resource: key.value
+          }
+        };
+        break;
+      case 'fieldRef':
+        if (!fieldPath.value || !fieldPath.value.length) {
+          out = null; break;
+        }
+        out.valueFrom = { [type.value]: { apiVersion: 'v1', fieldPath: fieldPath.value } };
+        break;
+      case 'simple':
+        out.value = valStr.value;
+        break;
+      default:
+        delete out.name;
+        out.prefix = name.value;
+        out[type.value] = { name: refName.value, optional: false };
+      }
+      emit('update:value', out);
+    };
+
+    watch(type, () => {
+      referenced.value = null;
+      key.value = '';
+      refName.value = '';
+      keys.value = [];
+      key.value = '';
+      valStr.value = '';
+      fieldPath.value = '';
+    });
+
+    watch(referenced, (neu, old) => {
+      if (neu) {
+        if ((neu.type === SECRET || neu.type === CONFIG_MAP) && neu.data) {
+          keys.value = Object.keys(neu.data);
+        }
+        refName.value = neu?.metadata?.name;
+      }
+      updateRow();
+    });
+
     return {
-      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys, key, fieldPath, name, resourceKeyOpts, valStr
+      type,
+      refName,
+      referenced,
+      keys,
+      key,
+      fieldPath,
+      name,
+      valStr,
+      updateRow,
+      get,
     };
   },
+
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -189,74 +270,6 @@ export default {
       return ['resourceFieldRef', 'configMapKeyRef', 'secretKeyRef'].includes(this.type);
     },
   },
-
-  watch: {
-    type() {
-      this.referenced = null;
-      this.key = '';
-      this.refName = '';
-      this.keys = [];
-      this.key = '';
-      this.valStr = '';
-      this.fieldPath = '';
-    },
-
-    referenced(neu, old) {
-      if (neu) {
-        if ((neu.type === SECRET || neu.type === CONFIG_MAP) && neu.data) {
-          this.keys = Object.keys(neu.data);
-        }
-        this.refName = neu?.metadata?.name;
-      }
-      this.updateRow();
-    },
-  },
-
-  methods: {
-    updateRow() {
-      if (!this.name?.length && !this.refName?.length) {
-        if (this.type !== 'fieldRef') {
-          this.$emit('update:value', null);
-
-          return;
-        }
-      }
-      let out = { name: this.name || this.refName };
-
-      switch (this.type) {
-      case 'configMapKeyRef':
-      case 'secretKeyRef':
-        out.valueFrom = {
-          [this.type]: {
-            key: this.key, name: this.refName, optional: false
-          }
-        };
-        break;
-      case 'resourceFieldRef':
-        out.valueFrom = {
-          [this.type]: {
-            containerName: this.refName, divisor: 1, resource: this.key
-          }
-        };
-        break;
-      case 'fieldRef':
-        if (!this.fieldPath || !this.fieldPath.length) {
-          out = null; break;
-        }
-        out.valueFrom = { [this.type]: { apiVersion: 'v1', fieldPath: this.fieldPath } };
-        break;
-      case 'simple':
-        out.value = this.valStr;
-        break;
-      default:
-        delete out.name;
-        out.prefix = this.name;
-        out[this.type] = { name: this.refName, optional: false };
-      }
-      this.$emit('update:value', out);
-    },
-    get
-  }
 };
 </script>
 
