@@ -140,7 +140,7 @@ export default {
           :aria-label="t('footer.wechat.title')"
           role="link"
           @click="show"
-          @keyup.enter="show"
+          @keydown.enter="show"
         >
           {{ t('footer.wechat.title') }}
         </a>
@@ -151,6 +151,7 @@ export default {
       name="wechat-modal"
       height="auto"
       :width="640"
+      :trigger-focus-trap="true"
       @close="close"
     >
       <div class="wechat-modal">
@@ -164,8 +165,7 @@ export default {
             :aria-label="t('generic.close')"
             role="button"
             @click="close"
-            @keyup.enter="close"
-            @keyup.space="close"
+            @keydown.enter.stop
           >
             {{ t('generic.close') }}
           </button>
