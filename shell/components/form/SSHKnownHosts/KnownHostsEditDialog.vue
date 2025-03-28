@@ -40,8 +40,9 @@ export default {
 
     return {
       codeMirrorOptions,
-      text:      this.value,
-      showModal: false,
+      text:                this.value,
+      showModal:           false,
+      returnFocusSelector: '#known-ssh-hosts-trigger'
     };
   },
 
@@ -83,6 +84,8 @@ export default {
     data-testid="sshKnownHostsDialog"
     height="auto"
     :scrollable="true"
+    :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
     @close="closeDialog(false)"
   >
     <div

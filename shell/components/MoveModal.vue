@@ -93,6 +93,7 @@ export default {
     :name="modalName"
     :width="440"
     height="auto"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Loading v-if="$fetchState.pending" />
