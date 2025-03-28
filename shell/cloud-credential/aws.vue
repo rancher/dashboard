@@ -78,6 +78,7 @@ export default {
       :rules="fvGetAndReportPathRules('decodedData.accessKey')"
       :mode="mode"
       :required="true"
+      data-testid="access-key"
       @update:value="$emit('valueChanged', 'accessKey', $event)"
     />
     <LabeledInput
@@ -89,6 +90,7 @@ export default {
       :rules="fvGetAndReportPathRules('decodedData.secretKey')"
       :mode="mode"
       :required="true"
+      data-testid="secret-key"
       @update:value="$emit('valueChanged', 'secretKey', $event)"
     />
     <LabeledSelect
