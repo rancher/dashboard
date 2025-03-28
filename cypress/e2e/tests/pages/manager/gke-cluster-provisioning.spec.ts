@@ -30,12 +30,9 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
 
       // Parse the decoded JSON string
       serviceAccount = JSON.parse(decodedServiceAccountJson);
-      /* eslint-disable no-console */
-      console.log(serviceAccount);
       // Now you can access the project_id
       gkeProjectId = serviceAccount.project_id;
       /* eslint-disable no-console */
-      console.log(gkeProjectId); // Check if the value is correct
     } catch (error) {
       // Handle any error that occurs during decoding or parsing
       console.error('Error decoding or parsing service account JSON:', error);
