@@ -7,7 +7,7 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
 
   describe('Workloads', () => {
     describe('Replicasets', () => {
-      const replicasetName = 'replicaset-test';
+      const replicasetName = '0000-replicaset-test';
 
       it('should not be able to rollback a replicaset', () => {
         // list view for replicasets
@@ -27,7 +27,6 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
         workloadsDaemonsetsListPage.goTo();
         workloadsDaemonsetsListPage.waitForPage();
 
-        workloadsDaemonsetsListPage.sortableTable().filter(replicasetName);
         workloadsDaemonsetsListPage.listElementWithName(replicasetName).should('be.visible');
         workloadsDaemonsetsListPage.baseResourceList().actionMenu(replicasetName).menuItemNames().should('not.contain', 'Rollback');
 
