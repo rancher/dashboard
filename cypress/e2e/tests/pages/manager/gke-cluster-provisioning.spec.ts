@@ -87,6 +87,8 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.gkeCloudCredentialName);
+    // while issue #1717 in qa-tasks is open, line 91 is duplicated as a workaround. The duplicate line needs to be removed after issue is fixed
+    cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.saveButton().expectToBeEnabled();
     cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
