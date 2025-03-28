@@ -213,6 +213,7 @@ export default {
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
     height="auto"
     :scrollable="true"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Card
