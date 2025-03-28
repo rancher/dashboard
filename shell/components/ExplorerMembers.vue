@@ -63,7 +63,7 @@ export default {
     }
 
     if (projectRoleTemplateBindingSchema) {
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true } }, { root: true })
         .then((bindings) => {
           this['projectRoleTemplateBindings'] = bindings;
           this.loadingProjectBindings = false;
