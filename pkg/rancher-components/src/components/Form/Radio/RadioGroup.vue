@@ -199,7 +199,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <fieldset>
     <!-- Label -->
     <div
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
@@ -207,13 +207,15 @@ export default defineComponent({
     >
       <slot name="label">
         <h3>
-          <t
-            v-if="labelKey"
-            :k="labelKey"
-          />
-          <template v-else-if="label">
-            {{ label }}
-          </template>
+          <legend>
+            <t
+              v-if="labelKey"
+              :k="labelKey"
+            />
+            <template v-else-if="label">
+              {{ label }}
+            </template>
+          </legend>
           <i
             v-if="tooltipKey"
             v-clean-tooltip="t(tooltipKey)"
@@ -266,7 +268,7 @@ export default defineComponent({
         </slot>
       </div>
     </div>
-  </div>
+  </fieldset>
 </template>
 
 <style lang='scss'>
