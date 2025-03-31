@@ -9,7 +9,7 @@ const RESET_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-p
 const EXCLUDE_QS = 'exclude';
 
 const LEGACY_UI_PLUGIN_INDEX = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json';
-const NEW_UI_PLUGIN_INDEX = '/v1/uiplugins'
+const NEW_UI_PLUGIN_INDEX = '/v1/uiplugins';
 
 /**
  * Load the network requests/responses from the har file
