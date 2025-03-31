@@ -17,7 +17,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { useFeatureFlag } from '@shell/composables/useFeatureFlag';
+import { useRuntimeFlag, FEATURE } from '@shell/composables/useRuntimeFlag';
 
 export default {
   name:       'ListProjectNamespace',
@@ -63,9 +63,12 @@ export default {
 
   setup() {
     const store = useStore();
-    const { featureDropdownMenu } = useFeatureFlag(store);
+    const { isFeatureEnabled } = useRuntimeFlag(store);
 
-    return { featureDropdownMenu };
+    return {
+      isFeatureEnabled,
+      FEATURE,
+    };
   },
 
   data() {
@@ -479,7 +482,7 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </router-link>
-            <template v-if="featureDropdownMenu">
+            <template v-if="isFeatureEnabled(FEATURE.ACTION_MENU)">
               <ActionMenu
                 v-if="showProjectActionButton(group.group)"
                 :resource="getProjectActions(group.group)"
