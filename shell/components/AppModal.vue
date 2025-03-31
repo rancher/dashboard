@@ -165,6 +165,9 @@ export default defineComponent({
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.focusTrapWatcherBasedVariable, '#modal-container-element', opts, true);
     }
   },
+  mounted() {
+    document.addEventListener('keydown', this.handleEscapeKey);
+  },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscapeKey);
   },
