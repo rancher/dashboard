@@ -115,6 +115,7 @@ export default {
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
     height="auto"
     :scrollable="true"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Card
@@ -157,17 +158,20 @@ export default {
       </template>
 
       <template #actions>
-        <button
-          class="btn role-secondary"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
+        <div class="actions-container">
+          <button
+            class="btn role-secondary"
+            @click="close"
+          >
+            {{ t('generic.cancel') }}
+          </button>
 
-        <AsyncButton
-          mode="apply"
-          @click="apply"
-        />
+          <AsyncButton
+            class="apply-btn"
+            mode="apply"
+            @click="apply"
+          />
+        </div>
       </template>
     </Card>
   </app-modal>
@@ -180,6 +184,16 @@ export default {
     max-height: 100vh;
     & ::-webkit-scrollbar-corner {
       background: rgba(0,0,0,0);
+    }
+
+    .actions-container {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+
+      .apply-btn {
+        margin-left: 20px;
+      }
     }
   }
 </style>
