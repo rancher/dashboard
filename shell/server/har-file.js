@@ -1,11 +1,15 @@
 const fs = require('fs');
 const path = require('path');
+const querystring = require('querystring');
 
 // When we receive a request to this URL we will reset the session to replay again from the HAR file
 // This allows the user to refresh the browser and replay the HAR file again
 const RESET_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json';
 
-const EXCLUDES_QS = '?exclude=metadata.managedFields';
+const EXCLUDE_QS = 'exclude';
+
+const LEGACY_UI_PLUGIN_INDEX = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json';
+const NEW_UI_PLUGIN_INDEX = '/v1/uiplugins'
 
 /**
  * Load the network requests/responses from the har file
@@ -113,10 +117,28 @@ function harProxy(responses, folder) {
     const url = decodeURIComponent(req.originalUrl);
     let playback = session[req.originalUrl];
 
+    // Handle case where HAR file was created with older UI Extension API that used the operator
+    if (!playback && req.originalUrl.includes(NEW_UI_PLUGIN_INDEX)) {
+      // Look for new URl for UI plugins
+      playback = session[LEGACY_UI_PLUGIN_INDEX];
+    }
+
     // If it did not match, try without the metadata excludes query string that was adding in 2.8.0
     // This might allow HAR captures with Rancher < 2.8.0 to be replayed on >= 2.8.0
-    if (!playback && req.originalUrl.endsWith(EXCLUDES_QS)) {
-      playback = session[req.originalUrl.slice(0, -EXCLUDES_QS.length)];
+    if (!playback && req.originalUrl.includes('?')) {
+      const urlParts = req.originalUrl.split('?');
+
+      if (urlParts.length > 1) {
+        const queryString = urlParts[1];
+        const qs = querystring.parse(queryString);
+
+        delete qs[EXCLUDE_QS];
+
+        const newQs = querystring.stringify(qs);
+        const newUrl = newQs.length ? `${ urlParts[0] }?${ newQs }` : urlParts[0];
+
+        playback = session[newUrl];
+      }
     }
 
     if (playback && playback[req.method] && playback[req.method].length) {
