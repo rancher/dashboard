@@ -25,7 +25,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - Global Settings - Settings');
+    cy.title().should('eq', 'Rancher e2e - Global Settings - Settings');
   });
 
   it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
