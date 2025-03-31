@@ -1,8 +1,7 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
-import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -25,7 +24,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { getVersionInfo } from '@shell/utils/version';
+import { useFeatureFlag } from '@shell/composables/useFeatureFlag';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -546,7 +545,13 @@ export default {
       table.value.removeEventListener('keyup', handleEnterKey);
     });
 
-    return { table };
+    const store = useStore();
+    const { featureDropdownMenu } = useFeatureFlag(store);
+
+    return {
+      table,
+      featureDropdownMenu,
+    };
   },
 
   created() {
@@ -768,12 +773,6 @@ export default {
 
       return rows;
     },
-
-    featureDropdownMenu() {
-      const { fullVersion } = getVersionInfo(this.$store);
-
-      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
-    }
   },
 
   methods: {
