@@ -20,8 +20,9 @@ describe('component: KnownHostsEditDialog', () => {
     wrapper = mount(KnownHostsEditDialog, {
       attachTo: document.body,
       props:    {
-        mode:  _EDIT,
-        value: 'line1\nline2\n',
+        mode:                         _EDIT,
+        value:                        'line1\nline2\n',
+        disableFocusTrapForUnitTests: true
       },
       ...requiredSetup(),
     });

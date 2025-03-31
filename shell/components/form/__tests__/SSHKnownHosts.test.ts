@@ -15,7 +15,10 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode: _VIEW,
         value,
-      }
+      },
+      data() {
+        return { disableFocusTrapForUnitTests: true };
+      },
     });
 
     const knownSshHostsSummary = wrapper.find('[data-testid="input-known-ssh-hosts_summary"]');
@@ -31,7 +34,10 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode:  _EDIT,
         value: 'line1\nline2\n',
-      }
+      },
+      data() {
+        return { disableFocusTrapForUnitTests: true };
+      },
     });
 
     const knownSshHostsSummary = wrapper.find('[data-testid="input-known-ssh-hosts_summary"]');
@@ -46,7 +52,10 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode:  _EDIT,
         value: '',
-      }
+      },
+      data() {
+        return { disableFocusTrapForUnitTests: true };
+      },
     });
 
     const knownSshHostsOpenDialog = wrapper.find('[data-testid="input-known-ssh-hosts_open-dialog"]');
