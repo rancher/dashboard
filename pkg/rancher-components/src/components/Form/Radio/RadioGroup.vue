@@ -205,9 +205,9 @@ export default defineComponent({
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
       class="radio-group label"
     >
-      <slot name="label">
-        <h3>
-          <legend>
+      <legend>
+        <slot name="label">
+          <h3>
             <t
               v-if="labelKey"
               :k="labelKey"
@@ -215,19 +215,19 @@ export default defineComponent({
             <template v-else-if="label">
               {{ label }}
             </template>
-          </legend>
-          <i
-            v-if="tooltipKey"
-            v-clean-tooltip="t(tooltipKey)"
-            class="icon icon-info icon-lg"
-          />
-          <i
-            v-else-if="tooltip"
-            v-clean-tooltip="tooltip"
-            class="icon icon-info icon-lg"
-          />
-        </h3>
-      </slot>
+            <i
+              v-if="tooltipKey"
+              v-clean-tooltip="t(tooltipKey)"
+              class="icon icon-info icon-lg"
+            />
+            <i
+              v-else-if="tooltip"
+              v-clean-tooltip="tooltip"
+              class="icon icon-info icon-lg"
+            />
+          </h3>
+        </slot>
+      </legend>
     </div>
 
     <!-- Group -->
