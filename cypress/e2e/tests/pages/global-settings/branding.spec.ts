@@ -14,7 +14,7 @@ const burgerMenu = new BurgerMenuPo();
 const settings = {
   privateLabel: {
     original: 'Rancher',
-    new:      'Rancher e2e'
+    new:      'Rancher e2e - Homepage'
   },
   primaryColor: {
     original: '#3d98d3', // 3D98D3
