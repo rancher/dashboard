@@ -23,6 +23,11 @@ export default {
       type:    String,
       default: _EDIT
     },
+
+    disableFocusTrapForUnitTests: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -84,7 +89,7 @@ export default {
     data-testid="sshKnownHostsDialog"
     height="auto"
     :scrollable="true"
-    :trigger-focus-trap="true"
+    :trigger-focus-trap="disableFocusTrapForUnitTests ? false : true"
     :return-focus-selector="returnFocusSelector"
     @close="closeDialog(false)"
   >
