@@ -196,7 +196,7 @@ export default {
     });
 
     if (props.nameKey) {
-      name.value = get(v, props.nameKey);
+      name.value = get(v.value, props.nameKey);
     } else {
       name.value = metadata?.name || '';
     }
