@@ -19,10 +19,16 @@ const STATUS = {
   }
 };
 
-const { status = 'success', label } = defineProps<{
-  status?: 'success' | 'warning' | 'info' | 'error',
-  label?: string
-}>();
+withDefaults(
+  defineProps<{
+    status?: 'success' | 'warning' | 'info' | 'error',
+    label?: string
+  }>(),
+  {
+    status: 'success',
+    label:  '',
+  }
+);
 
 </script>
 <template>

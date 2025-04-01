@@ -71,6 +71,12 @@ export default {
 
 <template>
   <div>
+    <p
+      id="describe-filter-resource-search"
+      hidden
+    >
+      {{ t('nav.resourceSearch.filteringDescription') }}
+    </p>
     <input
       ref="input"
       v-model="value"
@@ -78,6 +84,7 @@ export default {
       class="search"
       role="textbox"
       :aria-label="t('nav.resourceSearch.label')"
+      aria-describedby="describe-filter-resource-search"
       @keyup.esc="$emit('closeSearch')"
     >
     <div class="results">

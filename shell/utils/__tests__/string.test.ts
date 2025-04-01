@@ -81,9 +81,9 @@ describe('fx: resourceNames', () => {
     it.each(args)(`having: %p`, (
       names,
       expectation,
-      options,
+      options: any,
     ) => {
-      const result = resourceNames(names, t, options);
+      const result = resourceNames(names, options.plusMore, t, options.endString);
 
       expect(result).toStrictEqual(expectation);
     });

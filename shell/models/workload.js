@@ -34,7 +34,10 @@ export default class Workload extends WorkloadService {
       enabled: !!this.links.update,
     });
 
-    if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
+    if (type !== WORKLOAD_TYPES.JOB &&
+      type !== WORKLOAD_TYPES.CRON_JOB &&
+      type !== WORKLOAD_TYPES.REPLICA_SET
+    ) {
       insertAt(out, 0, {
         action:  'toggleRollbackModal',
         label:   this.t('action.rollback'),

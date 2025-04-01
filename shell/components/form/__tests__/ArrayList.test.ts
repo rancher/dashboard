@@ -4,6 +4,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 
+jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
+
 describe('the ArrayList', () => {
   it('is empty', () => {
     const wrapper = mount(ArrayList, {
@@ -62,6 +64,7 @@ describe('the ArrayList', () => {
 
     expect(wrapper.find('[data-testid="remove-item-2"]').exists()).toBe(false);
     expect((wrapper.emitted('remove')![0][0] as any).row.value).toStrictEqual('string 1');
+    expect(wrapper.vm.rows).toStrictEqual([{ value: 'string 0' }, { value: 'string 2' }]);
     expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(['string 0', 'string 2']);
   });
 

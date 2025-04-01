@@ -43,23 +43,14 @@ export default {
   },
 
   data() {
-    const {
-      command,
-      args,
-      workingDir,
-      stdin = false,
-      stdinOnce = false,
-      tty = false,
-    } = this.value;
-
     return {
-      args,
-      command,
+      args:           this.value.args,
+      command:        this.value.command,
       commandOptions: ['No', 'Once', 'Yes'],
-      stdin,
-      stdinOnce,
-      tty,
-      workingDir,
+      stdin:          this.value.stdin || false,
+      stdinOnce:      this.value.stdin || false,
+      tty:            this.value.tty || false,
+      workingDir:     this.value.workingDir,
     };
   },
 

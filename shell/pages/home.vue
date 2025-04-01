@@ -512,7 +512,7 @@ export default defineComponent({
       :show-child="false"
       :breadcrumb="false"
     >
-      {{ vendor }}
+      {{ `${vendor} - ${t('landing.homepage')}` }}
     </TabTitle>
     <BannerGraphic
       :small="true"

@@ -87,6 +87,10 @@ export default {
       type:    Boolean,
       default: null
     },
+    isLangSelect: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   methods: {
@@ -290,8 +294,13 @@ export default {
       @open="resizeHandler"
       @option:created="(e) => $emit('createdListItem', e)"
     >
-      <template #option="option">
-        <div @mousedown="(e) => onClickOption(option, e)">
+      <template
+        #option="option"
+      >
+        <div
+          :lang="isLangSelect ? option.value : undefined"
+          @mousedown="(e) => onClickOption(option, e)"
+        >
           {{ getOptionLabel(option.label) }}
         </div>
       </template>

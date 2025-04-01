@@ -8,8 +8,10 @@ import {
 import { RcDropdownMenuComponentProps, DropdownOption } from './types';
 import IconOrSvg from '@shell/components/IconOrSvg';
 
-// eslint-disable-next-line vue/no-setup-props-destructure
-const { buttonRole = 'primary', buttonSize = '' } = defineProps<RcDropdownMenuComponentProps>();
+withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
+  buttonRole: 'primary',
+  buttonSize: undefined,
+});
 
 const emit = defineEmits(['update:open', 'select']);
 

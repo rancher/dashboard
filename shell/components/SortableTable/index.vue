@@ -1,7 +1,8 @@
 <script>
 import { mapGetters } from 'vuex';
-import { defineAsyncComponent, useTemplateRef, onMounted, onBeforeUnmount } from 'vue';
+import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
+import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -24,6 +25,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { getVersionInfo } from '@shell/utils/version';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -528,7 +530,7 @@ export default {
     },
   },
   setup(_props, { emit }) {
-    const table = useTemplateRef('table');
+    const table = ref(null);
 
     const handleEnterKey = (event) => {
       if (event.key === 'Enter' && !event.target?.classList?.contains('checkbox-custom')) {
@@ -543,6 +545,8 @@ export default {
     onBeforeUnmount(() => {
       table.value.removeEventListener('keyup', handleEnterKey);
     });
+
+    return { table };
   },
 
   created() {
@@ -763,6 +767,12 @@ export default {
       });
 
       return rows;
+    },
+
+    featureDropdownMenu() {
+      const { fullVersion } = getVersionInfo(this.$store);
+
+      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
     }
   },
 
@@ -1081,6 +1091,8 @@ export default {
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
+                role="button"
+                :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
                 @keydown.enter.stop
                 @mouseover="setBulkActionOfInterest(act)"
@@ -1234,13 +1246,21 @@ export default {
               </div>
             </div>
           </div>
-          <input
+          <p
             v-else-if="search"
+            id="describe-filter-sortable-table"
+            hidden
+          >
+            {{ t('sortableTable.filteringDescription') }}
+          </p>
+          <input
+            v-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
             :aria-label="t('sortableTable.searchLabel')"
+            aria-describedby="describe-filter-sortable-table"
             :placeholder="t('sortableTable.search')"
           >
           <slot name="header-button" />
@@ -1477,11 +1497,27 @@ export default {
                     :row="row.row"
                     :index="i"
                   >
-                    <ActionMenu
-                      :resource="row.row"
-                      :data-testid="componentTestid + '-' + i + '-action-button'"
-                      :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
-                    />
+                    <template v-if="featureDropdownMenu">
+                      <ActionMenu
+                        :resource="row.row"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                      />
+                    </template>
+                    <template v-else>
+                      <ButtonMultiAction
+                        :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                        :ref="`actionButton${i}`"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :borderless="true"
+                        @click="handleActionButtonClick(i, $event)"
+                        @keyup.enter="handleActionButtonClick(i, $event)"
+                        @keyup.space="handleActionButtonClick(i, $event)"
+                      />
+                    </template>
                   </slot>
                 </td>
               </tr>
@@ -1532,18 +1568,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-first"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.firstPageBtn')"
         @click="goToPage('first')"
       >
-        <i class="icon icon-chevron-beginning" />
+        <i
+          class="icon icon-chevron-beginning"
+          :alt="t('sortableTable.alt.firstPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-prev"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.prevPageBtn')"
         @click="goToPage('prev')"
       >
-        <i class="icon icon-chevron-left" />
+        <i
+          class="icon icon-chevron-left"
+          :alt="t('sortableTable.alt.prevPageBtn')"
+        />
       </button>
       <span>
         {{ pagingDisplay }}
@@ -1553,18 +1599,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-next"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.nextPageBtn')"
         @click="goToPage('next')"
       >
-        <i class="icon icon-chevron-right" />
+        <i
+          class="icon icon-chevron-right"
+          :alt="t('sortableTable.alt.nextPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-last"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.lastPageBtn')"
         @click="goToPage('last')"
       >
-        <i class="icon icon-chevron-end" />
+        <i
+          class="icon icon-chevron-end"
+          :alt="t('sortableTable.alt.lastPageBtn')"
+        />
       </button>
     </div>
     <button

@@ -383,7 +383,7 @@ export default defineComponent({
   },
 
   watch: {
-    showCustomRegistryInput(value) {
+    showPrivateRegistryInput(value) {
       if (!value) {
         this.normanCluster.importedConfig.privateRegistryURL = null;
       }
@@ -517,7 +517,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isEdit"
+        v-if="!isCreate & !isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
@@ -548,7 +548,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="isEdit && !isRKE1"
+        v-if="!isCreate && !isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
@@ -563,6 +563,7 @@ export default defineComponent({
         <Checkbox
           v-model:value="showPrivateRegistryInput"
           class="mb-20"
+          :mode="mode"
           :label="t('cluster.privateRegistry.label')"
           data-testid="private-registry-enable-checkbox"
         />
@@ -578,6 +579,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
+        v-if="!isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.advanced"
         :open-initially="false"

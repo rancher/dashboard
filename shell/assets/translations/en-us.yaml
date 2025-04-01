@@ -240,6 +240,7 @@ nav:
     label: Resource Search
     toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
+    filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
@@ -555,9 +556,6 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
-    searchUsingServiceAccount: 
-      label: Enable Service Account Search
-      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
@@ -2533,6 +2531,7 @@ fleet:
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
       label: Paths
+      ariaLabel: Enter path for Git Repo
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
       empty: The root of the repo is used by default. Multiple different directories can be provided.
@@ -3162,6 +3161,7 @@ labeledSelect:
 
 landing:
   bannerImage: Homepage banner image
+  homepage: Homepage
   clusters:
     title: Clusters
     provider: Provider
@@ -3485,6 +3485,7 @@ neuvector:
         na: Resource Unavailable
 
 login:
+  login: Login
   howdy: Howdy!
   welcome: Welcome to {vendor}
   landscapeAlt: Landscape image
@@ -5506,6 +5507,18 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  ariaLabel:
+    firstPageBtn: First page of results
+    prevPageBtn: Previous page of results
+    nextPageBtn: Next page of results
+    lastPageBtn: Last page of results
+  alt:
+    firstPageBtn: First page of results icon
+    prevPageBtn: Previous page of results icon
+    nextPageBtn: Next page of results icon
+    lastPageBtn: Last page of results icon
+    sortingIconDesc: Table header descending sort icon
+    sortingIconAsc: Table header ascending sort icon
   genericGroupCheckbox: Table group selection checkbox
   genericRowCheckbox: Table row selection checkbox for item {item}
   tableActionsLabel: More actions - { resource }
@@ -5534,6 +5547,7 @@ sortableTable:
   searchLabel: Filter table results
   in: in
   addFilter: Add Filter
+  filteringDescription: Using this input will immediately filter the results in the table below
   filterFor: Filter for...
   selectCol: Select a column
   resetFilters: Reset
