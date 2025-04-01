@@ -2,6 +2,7 @@
 import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
@@ -91,8 +92,18 @@ export default {
       type:    Boolean,
       default: false
     },
+    // at the time of this code update there is no option
+    // in the vue-select component to add a custom aria-label
+    // the next best thing is to render a screen-reader
+    // hidden element and connect it via ID
+    hiddenLabel: {
+      type:    String,
+      default: null,
+    },
   },
-
+  data() {
+    return { uid: generateRandomAlphaString(10) };
+  },
   methods: {
     // resizeHandler = in mixin
     getOptionLabel(option) {
@@ -287,7 +298,8 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-      role="listitem"
+      role="listbox"
+      :input-id="uid"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -327,6 +339,10 @@ export default {
       :hover="hoverTooltip"
       :value="validationMessage"
     />
+    <label
+      class="sr-only"
+      :for="uid"
+    >{{ hiddenLabel }}</label>
   </div>
 </template>
 
