@@ -482,6 +482,7 @@ export default {
         ref="nameInput"
         key="name"
         v-model:value="name"
+        data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"
         :disabled="nameReallyDisabled"
