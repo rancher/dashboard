@@ -599,7 +599,7 @@ export default {
             :aria-label="t('nav.kubeconfig.download')"
             @click="currentCluster.downloadKubeConfig()"
           >
-            <i class="icon icon-file icon-lg" />
+            <i class="icon icon-download icon-lg" />
           </button>
 
           <button
