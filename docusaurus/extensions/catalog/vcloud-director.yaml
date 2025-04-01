@@ -1,6 +1,0 @@
-name: vCloud Director UI
-author: Negashev
-authorUrl: https://negash.ru
-description: vCloud Director Rancher Node Driver UI
-url: https://github.com/Negashev/rancher-vcloud-director-node-driver-ui-plugin
-icon: https://raw.githubusercontent.com/Negashev/rancher-vcloud-director-node-driver-ui-plugin/refs/heads/main/pkg/vcd-node-driver/vcd.svg
