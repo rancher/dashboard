@@ -81,11 +81,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
     homePage.title().should('eq', `Welcome to ${ settings.privateLabel.new }`);
 
     // Check in session
-    cy.title().should('eq', settings.privateLabel.new);
+    cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     // Check over reload
     cy.reload();
-    cy.title().should('eq', settings.privateLabel.new);
+    cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     BrandingPagePo.navTo();
 
@@ -94,7 +94,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
-    cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
+    cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
   });
 
   it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
