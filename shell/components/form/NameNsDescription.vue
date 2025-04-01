@@ -196,7 +196,7 @@ export default {
     });
 
     if (props.nameKey) {
-      name.value = get(v, props.nameKey);
+      name.value = get(v.value, props.nameKey);
     } else {
       name.value = metadata?.name || '';
     }
@@ -482,6 +482,7 @@ export default {
         ref="nameInput"
         key="name"
         v-model:value="name"
+        data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"
         :disabled="nameReallyDisabled"
