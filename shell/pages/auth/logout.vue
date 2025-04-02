@@ -28,7 +28,10 @@ export default {
 </script>
 
 <template>
-  <main class="main-layout">
+  <main
+    class="main-layout"
+    :aria-label="t('layouts.logout')"
+  >
     <div>
       <h1 v-t="'logout.message'" />
     </div>

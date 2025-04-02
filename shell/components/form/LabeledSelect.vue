@@ -296,6 +296,7 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
+    role="listbox"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -344,7 +345,7 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
-      role="listbox"
+      role="listitem"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"

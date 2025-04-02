@@ -199,33 +199,35 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <fieldset>
     <!-- Label -->
     <div
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
       class="radio-group label"
     >
-      <slot name="label">
-        <h3>
-          <t
-            v-if="labelKey"
-            :k="labelKey"
-          />
-          <template v-else-if="label">
-            {{ label }}
-          </template>
-          <i
-            v-if="tooltipKey"
-            v-clean-tooltip="t(tooltipKey)"
-            class="icon icon-info icon-lg"
-          />
-          <i
-            v-else-if="tooltip"
-            v-clean-tooltip="tooltip"
-            class="icon icon-info icon-lg"
-          />
-        </h3>
-      </slot>
+      <legend>
+        <slot name="label">
+          <h3>
+            <t
+              v-if="labelKey"
+              :k="labelKey"
+            />
+            <template v-else-if="label">
+              {{ label }}
+            </template>
+            <i
+              v-if="tooltipKey"
+              v-clean-tooltip="t(tooltipKey)"
+              class="icon icon-info icon-lg"
+            />
+            <i
+              v-else-if="tooltip"
+              v-clean-tooltip="tooltip"
+              class="icon icon-info icon-lg"
+            />
+          </h3>
+        </slot>
+      </legend>
     </div>
 
     <!-- Group -->
@@ -266,7 +268,7 @@ export default defineComponent({
         </slot>
       </div>
     </div>
-  </div>
+  </fieldset>
 </template>
 
 <style lang='scss'>

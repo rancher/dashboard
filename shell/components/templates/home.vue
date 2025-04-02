@@ -67,7 +67,10 @@ export default {
         :simple="true"
       />
 
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        :aria-label="t('layouts.home')"
+      >
         <router-view
           :key="$route.path"
           class="outlet"
