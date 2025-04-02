@@ -243,20 +243,21 @@ export default {
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
-      harvesterVersionRange:                 {},
-      cisOverride:                           false,
+      harvesterVersionRange:                    {},
+      cisOverride:                              false,
       truncateLimit,
-      busy:                                  false,
-      machinePoolValidation:                 {}, // map of validation states for each machine pool
-      machinePoolErrors:                     {},
-      addonConfigValidation:                 {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      allNamespaces:                         [],
-      extensionTabs:                         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
-      clusterAgentDeploymentCustomization:   null,
-      schedulingCustomizationFeatureEnabled: false,
-      clusterAgentDefaultPC:                 null,
-      clusterAgentDefaultPDB:                null,
-      activeTab:                             null,
+      busy:                                     false,
+      machinePoolValidation:                    {}, // map of validation states for each machine pool
+      machinePoolErrors:                        {},
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      allNamespaces:                            [],
+      extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      clusterAgentDeploymentCustomization:      null,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
+      activeTab:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon
 
@@ -1061,7 +1062,7 @@ export default {
         this.defaultK3s = defaultK3s;
       }
     },
-
+    // This method is duplicated in pkg/imported/components/CruImported. If you are making changes to this function, you might need to change it there too
     async initSchedulingCustomization() {
       this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
       try {
@@ -1077,6 +1078,10 @@ export default {
 
       if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
         set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      }
+
+      if (this.mode === _EDIT && !!this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
+        this.schedulingCustomizationOriginallyEnabled = true;
       }
     },
 
@@ -2450,6 +2455,7 @@ export default {
             :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
             :default-p-c="clusterAgentDefaultPC"
             :default-p-d-b="clusterAgentDefaultPDB"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
             @scheduling-customization-changed="setSchedulingCustomization"
           />
         </Tab>
