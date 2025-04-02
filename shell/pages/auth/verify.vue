@@ -182,7 +182,10 @@ export default {
 </script>
 
 <template>
-  <main class="main-layout">
+  <main
+    class="main-layout"
+    :aria-label="t('layouts.verify')"
+  >
     <h1 class="text-center mt-50">
       <span v-if="testing">
         Testing Configuration&hellip;
