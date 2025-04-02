@@ -236,6 +236,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <CruResource
     v-else
+    :done-params="$attrs['done-params'] /* Without this, changes to the validationPassed prop end up propagating all the way to the root of the app and force a re-render when the input becomes valid. I haven't found a reasonable explanation for why this happens. */"
     :mode="mode"
     :validation-passed="validationPassed"
     :resource="newCredential"

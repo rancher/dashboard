@@ -4,7 +4,9 @@ import { machinePoolConfigResponse } from '@/cypress/e2e/blueprints/manager/mach
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-azure.po';
-import CloudCredentialsCreatePagePo from '~/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
+import CloudCredentialsCreatePagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
+import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
+import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
 
 describe('Cloud Credential', { testIsolation: 'off' }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -243,6 +245,33 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
     const createCredentialsAwsPo = createCredentialsPo.selectAws();
 
     createCredentialsAwsPo.waitForPageWithExactUrl();
+
+    createCredentialsAwsPo.accessKeyInput().set(access);
+    createCredentialsAwsPo.secretKeyInput().set(secret);
+    createCredentialsAwsPo.credentialNameInput().set(name);
+
+    createCredentialsAwsPo.credentialNameInput().value().should('eq', name);
+
+    createCredentialsAwsPo.clickCreate();
+    // In the previous bug this text would get truncated to the first letter
+    createCredentialsAwsPo.errorBanner().should('contain.text', errorMessage);
+  });
+
+  it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', { tags: ['@manager', '@adminUser'] }, () => {
+    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
+    const name = 'name';
+    const access = 'access';
+    const secret = 'secret';
+    const errorMessage = 'Authentication test failed, please check your credentials';
+
+    const clusterCreate = new ClusterManagerCreatePagePo();
+
+    clusterCreate.goTo();
+    clusterCreate.waitForPage();
+    clusterCreate.selectCreate(0);
+    clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
+
+    const createCredentialsAwsPo = new CloudCredentialsCreateAWSPagePo();
 
     createCredentialsAwsPo.accessKeyInput().set(access);
     createCredentialsAwsPo.secretKeyInput().set(secret);
