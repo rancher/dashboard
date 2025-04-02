@@ -33,6 +33,7 @@ const sidebars = {
         'code-base-works/products-and-navigation',
         'code-base-works/forms-and-validation',
         'code-base-works/helm-chart-apps',
+        'code-base-works/internal-dashboard-api',
         'code-base-works/keyboard-shortcuts',
         'code-base-works/kubernetes-resources-data-load',
         'code-base-works/routes',
