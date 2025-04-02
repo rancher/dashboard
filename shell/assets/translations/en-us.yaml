@@ -5218,6 +5218,7 @@ resourceYaml:
     unified: Unified
     split: Split
 
+
 secret:
   authentication: Authentication
   certificate:
@@ -5320,6 +5321,11 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+    projectScoped:
+      label: Project Scoped
 
 selectOrCreateAuthSecret:
   label: Authentication
