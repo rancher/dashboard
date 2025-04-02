@@ -1,6 +1,7 @@
 <script>
 import { SEEN_WHATS_NEW } from '@shell/store/prefs';
 import { getVersionInfo } from '@shell/utils/version';
+import { BACK_TO } from '@shell/config/local-storage';
 
 const resolveRoute = (route, router) => {
   try {
@@ -15,6 +16,7 @@ const validRoute = (route, router) => {
 };
 
 export default {
+  // TODO #13939: Redirection should be handled by route guards
   beforeMount() {
     const seenWhatsNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW);
     const versionInfo = getVersionInfo(this.$store);
@@ -24,6 +26,16 @@ export default {
     // If this is a new version, then take the user to the home page to view the release notes
     if (versionInfo.fullVersion !== seenWhatsNew && !isSingleProduct) {
       return this.$router.replace(dashboardHome);
+    }
+
+    // Return to last page after logout if any
+    const backTo = window.localStorage.getItem(BACK_TO, window.location.href);
+    const resolvedBackTo = resolveRoute(backTo, this.$router);
+
+    if (resolvedBackTo) {
+      window.localStorage.removeItem(BACK_TO); // Reset value to prevent loops or other issues
+
+      return this.$router.push(resolvedBackTo);
     }
 
     const afterLoginRouteObject = this.$store.getters['prefs/afterLoginRoute'];
