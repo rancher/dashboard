@@ -163,6 +163,12 @@ export default defineComponent({
         out[DISABLED_CLASS_STYLE] = true;
       }
 
+      // used to assist e2e testing mostly when waiting for button to return
+      // to it's normal state/phase
+      if (this.phase === ASYNC_BUTTON_STATES.ACTION) {
+        out['ready-for-action'] = true;
+      }
+
       return out;
     },
 

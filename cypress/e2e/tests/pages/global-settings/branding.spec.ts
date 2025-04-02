@@ -357,6 +357,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorPicker().value().should('not.eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().set(settings.primaryColor.new);
     brandingPage.applyAndWait('**/ui-primary-color', 200);
+    brandingPage.applyButton().waitForDisabledAppearanceToDisappear();
 
     // Check in session
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
