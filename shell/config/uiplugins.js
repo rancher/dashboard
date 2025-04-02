@@ -148,7 +148,11 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
  * @returns String | Boolean
  */
 export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVersion }, loadedPlugins) {
-  if (!UIPluginResource.name || !UIPluginResource.version || !UIPluginResource.endpoint) {
+  const {
+    name, version, endpoint, compressedEndpoint
+  } = UIPluginResource;
+
+  if (!name || !version || (!endpoint && !compressedEndpoint)) {
     return 'plugins.error.generic';
   }
 
