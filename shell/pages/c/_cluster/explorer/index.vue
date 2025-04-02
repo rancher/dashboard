@@ -63,6 +63,19 @@ const CLUSTER_COMPONENTS = [
   'controller-manager',
 ];
 
+const nodeHeaders = [
+  STATE,
+  NAME,
+  ROLES,
+];
+
+const clusterServiceIcons = {
+  [STATES_ENUM.IN_PROGRESS]: 'icon-spinner icon-spin',
+  [STATES_ENUM.HEALTHY]:     'icon-checkmark',
+  [STATES_ENUM.WARNING]:     'icon-warning',
+  [STATES_ENUM.UNHEALTHY]:   'icon-warning',
+};
+
 export default {
   name: 'ClusterExplorerIndexPage',
 
@@ -118,20 +131,6 @@ export default {
   },
 
   data() {
-    const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
-    const nodeHeaders = [
-      STATE,
-      NAME,
-      ROLES,
-    ];
-
-    const clusterServiceIcons = {
-      [STATES_ENUM.IN_PROGRESS]: 'icon-spinner icon-spin',
-      [STATES_ENUM.HEALTHY]:     'icon-checkmark',
-      [STATES_ENUM.WARNING]:     'icon-warning',
-      [STATES_ENUM.UNHEALTHY]:   'icon-warning',
-    };
-
     return {
       nodeHeaders,
       constraints:             [],
@@ -152,7 +151,6 @@ export default {
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
       STATES_ENUM,
-      clusterCounts,
       selectedTab:             'cluster-events',
       extensionCards:          getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
       canViewEvents:           !!this.$store.getters['cluster/schemaFor'](EVENT),
@@ -187,6 +185,10 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    clusterCounts() {
+      return this.$store.getters[`cluster/all`](COUNT);
+    },
 
     nodes() {
       return this.$store.getters['cluster/all'](NODE);
