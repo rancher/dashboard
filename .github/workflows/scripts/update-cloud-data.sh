@@ -26,9 +26,12 @@ BODY_FILE=$(mktemp)
 # This script returns a non-zero error code if there are changes
 set +e
 ${BASE_DIR}/scripts/aws/update-data > ${BODY_FILE}
+echo "\n" >> ${BODY_FILE}
+${BASE_DIR}/scripts/azure/update-data >> ${BODY_FILE}
 
 cat ${BODY_FILE}
 
+# Check to see if either script caused any files to be updated
 git diff-index --quiet HEAD
 
 CHANGED=$?
@@ -56,8 +59,8 @@ echo "Cloud data has been updated and there is no existing open PR"
 git config --global user.email "rancherdashboardbot@suse.com"
 git config --global user.name "Rancher Dashboard Cloud Data Bot"
 
-# Add the cloud data file that was updated
-git add shell/assets/data/aws-regions.json
+# Add the cloud data file(s) that were updated
+git add .
 
 DATE_STAMP=$(date '+%Y-%m-%d')
 
