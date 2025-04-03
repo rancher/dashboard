@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -25,7 +24,7 @@ echo "Checking if cloud data is up to date ..."
 
 SUMMARY=$(${BASE_DIR}/scripts/aws/update-data)
 
-echo ${SUMMARY}
+echo -e ${SUMMARY}
 
 git diff-index --quiet HEAD
 
