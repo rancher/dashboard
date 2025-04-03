@@ -64,7 +64,7 @@ DATE_STAMP=$(date '+%Y-%m-%d')
 git commit -m "Update cloud data (${DATE_STAMP})"
 git checkout -b ${BRANCH}
 git rebase origin/${TARGET_BRANCH}
-git push origin ${BRANCH}
+git push origin ${BRANCH} --force
 
 echo "Creating PR with latest changes ..."
 
