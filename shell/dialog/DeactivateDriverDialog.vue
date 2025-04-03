@@ -91,6 +91,7 @@ export default {
           :key="i"
           color="error"
           :label="err"
+          data-testid="deactivate-driver-error-banner"
         />
       </div>
     </template>
