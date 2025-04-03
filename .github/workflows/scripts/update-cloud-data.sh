@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BRANCH=gha-update-cloud-data
+TARGET_BRANCH=master
 
 echo "Checking for updates to cloud data"
 echo "Repository: ${REPO_NAME}"

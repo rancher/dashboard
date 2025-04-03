@@ -1,5 +1,10 @@
 name: Update Cloud Data
-on: workflow_dispatch
+on:
+  # Runs every 3 days
+  schedule:
+    - cron: "0 0 */3 * *"
+  # Can be trigger manually if needed
+  workflow_dispatch:
 jobs:
   update-cloud-data:
     runs-on: ubuntu-latest
@@ -21,5 +26,4 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO_NAME: ${{ github.repository }}
-        TARGET_BRANCH: ${{ env.target_branch }}
       run: .github/workflows/scripts/update-cloud-data.sh
