@@ -23,7 +23,6 @@ echo "Checking if cloud data is up to date ..."
 # This script returns a non-zero error code if there are changes
 set +e
 SUMMARY=$(${BASE_DIR}/scripts/aws/update-data)
-set -e
 
 echo -e "${SUMMARY}"
 
@@ -35,6 +34,8 @@ if [ ${CHANGED} -eq 0 ]; then
   echo "No changes to cloud data"
   exit 0
 fi
+
+set -e
 
 # The cloud data has been updated
 
