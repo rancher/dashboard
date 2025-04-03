@@ -61,8 +61,8 @@ git add shell/assets/data/aws-regions.json
 DATE_STAMP=$(date '+%Y-%m-%d')
 
 git commit -m "Update cloud data (${DATE_STAMP})"
-git branch -d ${BRANCH} &>/dev/null || true
 git checkout -b ${BRANCH}
+git rebase origin/${TARGET_BRANCH}
 git push origin ${BRANCH}
 
 echo "Creating PR with latest changes ..."
