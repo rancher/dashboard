@@ -1,8 +1,7 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
-import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -25,7 +24,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { getVersionInfo } from '@shell/utils/version';
+import { useRuntimeFlag, FEATURE } from '@shell/composables/useRuntimeFlag';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -546,7 +545,14 @@ export default {
       table.value.removeEventListener('keyup', handleEnterKey);
     });
 
-    return { table };
+    const store = useStore();
+    const { isFeatureEnabled } = useRuntimeFlag(store);
+
+    return {
+      table,
+      isFeatureEnabled,
+      FEATURE,
+    };
   },
 
   created() {
@@ -768,12 +774,6 @@ export default {
 
       return rows;
     },
-
-    featureDropdownMenu() {
-      const { fullVersion } = getVersionInfo(this.$store);
-
-      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
-    }
   },
 
   methods: {
@@ -1497,7 +1497,7 @@ export default {
                     :row="row.row"
                     :index="i"
                   >
-                    <template v-if="featureDropdownMenu">
+                    <template v-if="isFeatureEnabled(FEATURE.ACTION_MENU)">
                       <ActionMenu
                         :resource="row.row"
                         :data-testid="componentTestid + '-' + i + '-action-button'"
