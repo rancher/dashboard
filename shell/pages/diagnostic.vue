@@ -379,9 +379,17 @@ export default {
           <tbody v-show="cluster.isTableVisible">
             <tr>
               <td colspan="3">
-                <div class="schema-title"><b>Custom Schemas</b></div>
+                <div class="schema-title">
+                  Custom Schemas
+                </div>
                 <div class="custom-schemas">
-                  <div v-for="name in cluster.customSchemas" :key="s" class="schema-name">{{ name }}</div>
+                  <div
+                    v-for="name in cluster.customSchemas"
+                    :key="name"
+                    class="schema-name"
+                  >
+                    {{ name }}
+                  </div>
                 </div>
               </td>
             </tr>
@@ -467,6 +475,7 @@ table {
     text-align: left;
 
     .schema-title {
+      font-weight: bold;
       margin-bottom: 4px;
     }
 
