@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -e
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -61,7 +61,7 @@ git add shell/assets/data/aws-regions.json
 DATE_STAMP=$(date '+%Y-%m-%d')
 
 git commit -m "Update cloud data (${DATE_STAMP})"
-git branch -d ${BRANCH}
+git branch -d ${BRANCH} &>/dev/null || true
 git checkout -b ${BRANCH}
 git push origin ${BRANCH}
 
