@@ -5,7 +5,6 @@ import {
 import { ISTIO, MANAGEMENT } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
@@ -125,10 +124,10 @@ export default class Namespace extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.project?.nameDisplay;
+    const projectId = this.project?.id;
 
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.project', { name: escapeHtml(name) });
+    if ( projectId ) {
+      return projectId;
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAProject');
     }

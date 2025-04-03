@@ -11,7 +11,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
-
+import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
@@ -359,7 +359,13 @@ export default {
         );
       }
 
-      return row.groupByLabel;
+      if ( row.groupByLabel === this.notInProjectKey) {
+        return this.t('resourceTable.groupLabel.notInAProject');
+      }
+
+      const project = row.project?.nameDisplay || row.project?.id || '';
+
+      return this.t('resourceTable.groupLabel.project', { name: escapeHtml(project) }, true);
     },
 
     projectDescription(group) {
