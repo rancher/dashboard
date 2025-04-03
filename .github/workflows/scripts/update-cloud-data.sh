@@ -61,7 +61,7 @@ git add shell/assets/data/aws-regions.json
 DATE_STAMP=$(date '+%Y-%m-%d')
 
 git commit -m "Update cloud data (${DATE_STAMP})"
-git delete -d ${BRANCH}
+git branch -d ${BRANCH}
 git checkout -b ${BRANCH}
 git push origin ${BRANCH}
 
