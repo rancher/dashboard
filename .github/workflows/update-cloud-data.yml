@@ -1,0 +1,19 @@
+name: Update Cloud Data
+on: workflow_dispatch
+jobs:
+  update-cloud-data:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+    - name: script
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO_NAME: ${{ github.event.repository.name }}
+      run: node .github/workflows/scripts/update-cloud-data.sh
+
