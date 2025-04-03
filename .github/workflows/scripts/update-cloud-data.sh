@@ -71,9 +71,7 @@ if [[ $EXIT_CODE == '0' ]]; then
   echo "Git branch '$BRANCH' exists in the remote repository - removing"
 
   # Delete the branch
-  git branch -d ${BRANCH}
-  git push origin ${BRANCH}
-
+  git push origin --delete ${BRANCH}
 fi
 
 set -e
