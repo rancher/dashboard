@@ -17,4 +17,5 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO_NAME: ${{ github.repository }}
+        TARGET_BRANCH: ${{ env.target_branch }}
       run: .github/workflows/scripts/update-cloud-data.sh

@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 BASE_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-BRANCH=gh-workflow-update-cloud-data
+BRANCH=gha-update-cloud-data
 
 echo "Checking for updates to cloud data"
 echo "Repository: ${REPO_NAME}"
@@ -48,13 +48,15 @@ echo "Cloud data has been updated and there is no existing open PR"
 git config --global user.email "rancherdashboardbot@suse.com"
 git config --global user.name "Rancher Dashboard Cloud Data Bot"
 
-git checkout -b ${BRANCH}
-git add --all
+# Add the cloud data file that was updated
+git add shell/assets/data/aws-regions.json
+
 git commit -m "Update cloud data"
+git checkout -b ${BRANCH}
 git push origin ${BRANCH}
 
 echo "Creating PR with latest changes ..."
 
-gh pr create -R ${REPO_NAME} --title "Update cloud data to latest" --body "Automated update of cloud data\n\n${SUMMARY}" --label "QA/None" --label "area/dependencies" -b master -H ${BRANCH}
+gh pr create -R ${REPO_NAME} --title "Update cloud data to latest" --body "Automated update of cloud data\n\n${SUMMARY}" --label "QA/None" --label "area/dependencies" -base ${TARGET_BRANCH} --head ${BRANCH}
 
 echo "Completed"
