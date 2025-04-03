@@ -2,13 +2,12 @@ name: Validate Pull Request
 
 on:
   pull_request:
-    types: [opened, edited, synchronize]
+    types: [opened, edited, synchronize, milestoned, demilestoned]
 
 jobs:
   validate-description:
-    name: Validate Pull Request
+    name: Description
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,8 +19,16 @@ jobs:
           PR_URL: ${{ github.event.pull_request.url }}
         run: ./.github/workflows/scripts/pr-check-checklist.sh
 
+  validate-milestone:
+    name: Milestone
+    runs-on: ubuntu-latest
+    steps:
       - name: Validate milestone
         if: github.event.pull_request.milestone == null
         run: |
-          echo "::error::PR does not have a milestone"
+          echo "PR does not have a milestone"
           exit 1
+
+      - name: Milestone Found
+        if: github.event.pull_request.milestone != null
+        run: echo "PR has a milestone"
