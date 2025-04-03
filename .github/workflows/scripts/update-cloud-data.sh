@@ -56,7 +56,9 @@ git config --global user.name "Rancher Dashboard Cloud Data Bot"
 # Add the cloud data file that was updated
 git add shell/assets/data/aws-regions.json
 
-git commit -m "Update cloud data"
+DATE_STAMP=$(date '+%Y-%m-%d')
+
+git commit -m "Update cloud data (${DATE_STAMP})"
 git checkout -b ${BRANCH}
 git push origin ${BRANCH}
 
@@ -65,7 +67,7 @@ echo "Creating PR with latest changes ..."
 gh pr create -R ${REPO_NAME} \
   --title "Update cloud data to latest" \
   --body "Automated update of cloud data\n\n${SUMMARY}" \
-  --label "QA/None" --label "area/dependencies" \
+  --label "area/dependencies" \
   --base ${TARGET_BRANCH} \
   --head ${BRANCH}
 
