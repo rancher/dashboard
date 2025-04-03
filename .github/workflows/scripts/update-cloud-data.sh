@@ -8,12 +8,12 @@ BRANCH=gh-workflow-update-cloud-data
 echo "Checking for updates to cloud data"
 echo "Repository: ${REPO_NAME}"
 
-if [ -z "${GH_TOKEN}" ]; then
+if [ -z "${GH_TOKEN}" ]; then
   echo "GH_TOKEN environment variable not set"
   exit 1
 fi
 
-if [ -z "${REPO_NAME}" ]; then
+if [ -z "${REPO_NAME}" ]; then
   echo "REPO_NAME environment variable not set"
   exit 1
 fi
