@@ -281,6 +281,27 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
+  describe('When creating a pod using the web Form', () => {
+    const singlePodName = Cypress._.uniqueId(Date.now().toString());
+
+    it(`should properly add container tabs to the tablist`, () => {
+      workloadsPodPage.goTo();
+      workloadsPodPage.createPod();
+
+      const podDetails = new PodPo();
+
+      podDetails.nameNsDescription().name().set(singlePodName);
+      podDetails.addButton().click();
+
+      podDetails.tabsPrimary().within(() => {
+        cy.get('[data-testid="btn-pod"]').should('contain.text', 'Pod');
+        cy.get('[data-testid="btn-container-0"]').should('contain.text', 'container-0');
+        cy.get('[data-testid="btn-container-1"]').should('contain.text', 'container-1');
+        cy.get('[data-testid="workload-button-add-container"]').should('contain.text', 'Add Container');
+      });
+    });
+  });
+
   // describe.skip('[Vue3 Skip]: should delete pod', () => {
   //   const podName = `pod-${ Date.now() }`;
 

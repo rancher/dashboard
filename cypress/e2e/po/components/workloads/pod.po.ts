@@ -26,4 +26,12 @@ export default class PodPo extends CreateEditViewPo {
 
     shell.openTerminal();
   }
+
+  addButton() {
+    return this.self().find('[data-testid="workload-button-add-container"]');
+  }
+
+  tabsPrimary() {
+    return this.self().find('[data-testid="workload-horizontal-tabs"]');
+  }
 }
