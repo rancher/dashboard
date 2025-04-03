@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import CloudCredentialsCreateAWSPagePo from '~/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
+import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
 
 export default class CloudCredentialsCreatePagePo extends PagePo {
   private static createPath(clusterId: string) {
