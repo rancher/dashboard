@@ -45,6 +45,9 @@ fi
 
 echo "Cloud data has been updated and there is no existing open PR"
 
+git config --global user.email "rancherdashboardbot@suse.com"
+git config --global user.name "Rancher Dashboard Cloud Data Bot"
+
 git checkout -b ${BRANCH}
 git add --all
 git commit -m "Update cloud data"
