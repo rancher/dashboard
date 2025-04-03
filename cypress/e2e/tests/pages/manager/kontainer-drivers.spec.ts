@@ -83,21 +83,21 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
   it('will show error if could not deactivate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/googlekubernetesengine?action=deactivate', {
-        statusCode: 500,
-        body:       { message: `Could not deactivate driver` }
+      statusCode: 500,
+      body:       { message: `Could not deactivate driver` }
     }).as('deactivationError');
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.list().details(googleDriver, 1).should('contain', 'Active');
-  
+
     driversPage.list().actionMenu(googleDriver).getMenuItem('Deactivate').click();
     const deactivateDialog = new DeactivateDriverDialogPo();
 
     deactivateDialog.deactivate();
-  
+
     cy.wait('@deactivationError').then(() => {
-        deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
+      deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
     });
     deactivateDialog.cancel();
   });
@@ -153,20 +153,19 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
   it('will show error if could not activate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/tencentkubernetesengine?action=activate', {
-        statusCode: 500,
-        body:       { message: `Could not activate driver` }
-      }).as('activationError');
+      statusCode: 500,
+      body:       { message: `Could not activate driver` }
+    }).as('activationError');
 
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().details(tencentDriver, 1).should('contain', 'Inactive');
 
-      KontainerDriversPagePo.navTo();
-      driversPage.waitForPage();
-      driversPage.list().details(tencentDriver, 1).should('contain', 'Inactive');
-  
-      driversPage.list().actionMenu(tencentDriver).getMenuItem('Activate').click();
-  
-      cy.wait('@activationError').then(() => {
-        cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
-      });
+    driversPage.list().actionMenu(tencentDriver).getMenuItem('Activate').click();
+
+    cy.wait('@activationError').then(() => {
+      cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
+    });
   });
 
   it('can edit a cluster driver', () => {
