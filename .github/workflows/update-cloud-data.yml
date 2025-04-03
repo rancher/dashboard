@@ -14,5 +14,5 @@ jobs:
     - name: script
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REPO_NAME: ${{ github.event.repository.name }}
+        REPO_NAME: ${{ github.event.repository }}
       run: .github/workflows/scripts/update-cloud-data.sh
