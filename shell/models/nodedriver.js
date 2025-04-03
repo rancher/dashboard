@@ -80,14 +80,17 @@ export default class NodeDriver extends Driver {
     return this.$dispatch('rancher/request', {
       url:    `v3/nodeDrivers/${ escape(this.id) }?action=activate`,
       method: 'post',
-    }, { root: true });
+    }, { root: true }).catch((err) => {
+        this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', {name: this.nameDisplay}), err }, { root: true });
+    });
   }
 
   async activateBulk(resources) {
     await Promise.all(resources.map((resource) => this.$dispatch('rancher/request', {
       url:    `v3/nodeDrivers/${ escape(resource.id) }?action=activate`,
       method: 'post',
-    }, { root: true }
-    )));
+    }, { root: true }).catch((err) => {
+        this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', {name: resource.nameDisplay}), err }, { root: true });
+    })));
   }
 }
