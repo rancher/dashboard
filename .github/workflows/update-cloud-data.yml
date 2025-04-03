@@ -10,8 +10,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
-    - name: Install Node Modules
-      run: yarn install
+    # Just install axios, since that is all that is needed, so this speeds up the action
+    - name: Install Node Module
+      run: npm install -g axios
     - name: Update Cloud Data
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
