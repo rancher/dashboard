@@ -47,7 +47,7 @@ echo "Cloud data has been updated and there is no existing open PR"
 
 git checkout -b ${BRANCH}
 git add --all
-git commit "Update cloud data"
+git commit -m "Update cloud data"
 git push origin ${BRANCH}
 
 echo "Creating PR with latest changes ..."
