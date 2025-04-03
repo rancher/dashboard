@@ -62,9 +62,24 @@ git add shell/assets/data/aws-regions.json
 DATE_STAMP=$(date '+%Y-%m-%d')
 
 git commit -m "Update cloud data (${DATE_STAMP})"
+
+set +e
+git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1
+EXIT_CODE=$?
+
+if [[ $EXIT_CODE == '0' ]]; then
+  echo "Git branch '$BRANCH' exists in the remote repository - removing"
+
+  # Delete the branch
+  git branch -d ${BRANCH}
+  git push origin ${BRANCH}
+
+fi
+
+set -e
+
 git checkout -b ${BRANCH}
-git rebase origin/${TARGET_BRANCH}
-git push origin ${BRANCH} --force
+git push origin ${BRANCH}
 
 echo "Creating PR with latest changes ..."
 
