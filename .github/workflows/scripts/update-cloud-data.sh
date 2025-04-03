@@ -17,9 +17,6 @@ if [ -z "${REPO_NAME}" ]; then
   exit 1
 fi
 
-echo "Installing node modules ..."
-yarn install
-
 echo "Checking if cloud data is up to date ..."
 
 SUMMARY=$(${BASE_DIR}/scripts/aws/update-data)

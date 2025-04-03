@@ -4,14 +4,16 @@ jobs:
   update-cloud-data:
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
-    - name: script
+    - name: Install Node Modules
+      run: yarn install
+    - name: Update Cloud Data
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO_NAME: ${{ github.repository }}
