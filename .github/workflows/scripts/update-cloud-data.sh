@@ -52,6 +52,6 @@ git push origin ${BRANCH}
 
 echo "Creating PR with latest changes ..."
 
-gh pr create -R ${REPO_NAME} --title "Update cloud data to latest" --body "Automated update of cloud data\n\n${SUMMARY}" --label "QA/None" -b master -H ${BRANCH}
+gh pr create -R ${REPO_NAME} --title "Update cloud data to latest" --body "Automated update of cloud data\n\n${SUMMARY}" --label "QA/None" --label "area/dependencies" -b master -H ${BRANCH}
 
 echo "Completed"
