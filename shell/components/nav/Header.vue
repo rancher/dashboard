@@ -15,6 +15,7 @@ import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
+import { BACK_TO } from '@shell/config/local-storage';
 
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
@@ -135,10 +136,6 @@ export default {
 
     isAuthLocalProvider() {
       return this.principal && this.principal.provider === 'local';
-    },
-
-    generateLogoutRoute() {
-      return this.isAuthLocalProvider ? { name: 'auth-logout', query: { [LOGGED_OUT]: true } } : { name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } };
     },
 
     principal() {
@@ -390,6 +387,31 @@ export default {
       }
 
       return null;
+    },
+
+    /**
+     * Store current path before redirect to logout page
+     */
+    storeCurrentPath() {
+      const isLogin = this.$route.name === 'auth-login' || this.$route.path === '/login'; // Cover dashboard and case of log out from ember;
+      const isLogout = this.$route.name === 'auth-logout';
+
+      // Prevent loop to login/logout pages
+      if (!isLogin && !isLogout) {
+        window.localStorage.setItem(BACK_TO, window.location.href);
+      }
+    },
+
+    /**
+     * Redirect to logout page
+     * TODO #13939: Verify if query logic in action onLogout is still needed
+     * TODO #13939: Move this logic from pages back to store or router guards
+     */
+    handleLogout() {
+      this.storeCurrentPath();
+      const logoutRoute = this.isAuthLocalProvider ? { name: 'auth-logout', query: { [LOGGED_OUT]: true } } : { name: 'auth-logout', query: { [LOGGED_OUT]: true, [IS_SSO]: true } };
+
+      this.$router.push(logoutRoute);
     }
   }
 };
@@ -742,7 +764,7 @@ export default {
             </rc-dropdown-item>
             <rc-dropdown-item
               v-else-if="authEnabled"
-              @click="$router.push(generateLogoutRoute)"
+              @click="handleLogout"
             >
               {{ t('nav.userMenu.logOut') }}
             </rc-dropdown-item>

@@ -1,4 +1,3 @@
-import { BACK_TO } from '@shell/config/local-storage';
 import { setBrand, setVendor } from '@shell/config/private-label';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import {
@@ -1152,7 +1151,6 @@ export const actions = {
 
   /**
    * Deregister WS subscriptions
-   * Save current page in localStorage
    * Store auth provider queries before reloading app with login page
    * @param {*} store
    */
@@ -1187,15 +1185,6 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      const backTo = window.localStorage.getItem(BACK_TO);
-
-      const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
-      const isLogout = route.name === 'auth-logout';
-
-      if (!backTo && !isLogin && !isLogout) {
-        window.localStorage.setItem(BACK_TO, window.location.href);
-      }
-
       let QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
       // adds IS_SSO query param to login route if logout came with an auth provider enabled
