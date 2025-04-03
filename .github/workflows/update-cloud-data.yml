@@ -3,9 +3,7 @@ on: workflow_dispatch
 jobs:
   update-cloud-data:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: write
+    permissions: write-all
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js
