@@ -260,7 +260,7 @@ export default defineComponent({
       loadingLaunchTemplates: false,
       loadingSshKeyPairs:     false,
       loadingIam:             false,
-      iamInfo:                {} as {Roles: AWS.IamRole[]},
+      iamInfo:                [] as AWS.IamRole[],
       ec2Roles:               [] as AWS.IamRole[],
       eksRoles:               [] as AWS.IamRole[],
       sshKeyPairs:            [] as string[],
@@ -276,12 +276,12 @@ export default defineComponent({
   },
 
   watch: {
-    'iamInfo'(neu: {Roles: AWS.IamRole[]}) {
+    'iamInfo'(neu: AWS.IamRole[]) {
       const ec2Roles = [] as AWS.IamRole[];
       const eksRoles = [] as AWS.IamRole[];
-      const allRoles = neu?.Roles;
+      const allRoles = neu;
 
-      allRoles.forEach((role: AWS.IamRole) => {
+      (allRoles || []).forEach((role: AWS.IamRole) => {
         const policy = JSON.parse(decodeURIComponent(role.AssumeRolePolicyDocument));
         const statement = policy.Statement;
 
@@ -556,9 +556,9 @@ export default defineComponent({
       try {
         const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
 
-        const launchTemplateInfo = await ec2Client.describeLaunchTemplates({ DryRun: false });
-
-        this.launchTemplates = launchTemplateInfo.LaunchTemplates;
+        this.launchTemplates = await store.dispatch('aws/depaginateList', {
+          client: ec2Client, cmd: 'describeLaunchTemplates', opt: { DryRun: false }
+        });
       } catch (err: any) {
         const errors = this.errors as any[];
 
@@ -578,7 +578,9 @@ export default defineComponent({
       const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.iamInfo = await iamClient.listRoles({});
+        const res = await store.dispatch('aws/depaginateList', { client: iamClient, cmd: 'listRoles' });
+
+        this.iamInfo = res;
       } catch (err: any) {
         const errors = this.errors as any[];
 
