@@ -20,11 +20,13 @@ fi
 
 echo "Checking if cloud data is up to date ..."
 
+BODY_FILE=$(mktemp)
+
 # This script returns a non-zero error code if there are changes
 set +e
-SUMMARY=$(${BASE_DIR}/scripts/aws/update-data)
+${BASE_DIR}/scripts/aws/update-data > ${BODY_FILE}
 
-echo -e "${SUMMARY}"
+cat ${BODY_FILE}
 
 git diff-index --quiet HEAD
 
@@ -65,10 +67,10 @@ git push origin ${BRANCH}
 echo "Creating PR with latest changes ..."
 
 gh pr create -R ${REPO_NAME} \
-  --title "Update cloud data to latest" \
-  --body "Automated update of cloud data\n\n${SUMMARY}" \
+  --title "Update cloud data to latest (${DATE_STAMP})" \
+  --body-file ${BODY_FILE} \
   --label "area/dependencies" \
-  --base ${TARGET_BRANCH} \
-  --head ${BRANCH}
+  --base "${TARGET_BRANCH}" \
+  --head "${BRANCH}"
 
 echo "Completed"
