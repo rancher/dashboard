@@ -805,6 +805,12 @@ export default defineComponent({
     .cluster-name {
       display: flex;
       align-items: center;
+
+      // Ensure long cluster names truncate with ellipsis
+      > A {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     .cluster-description {
