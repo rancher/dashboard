@@ -296,6 +296,7 @@ export default {
               v-model:value="badgeBgColor"
               :disabled="!badgeColorPicker"
               :default-value="badgeBgColor"
+              :aria-label="t('clusterBadge.modal.badgeBgColorInput')"
             />
           </div>
         </div>
