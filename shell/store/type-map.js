@@ -524,6 +524,7 @@ export const getters = {
       depaginate:             false,
       customRoute:            undefined,
       resourceEditMasthead:   true,
+      subTypes:               [],
     };
 
     return (schemaOrType, pagination) => {

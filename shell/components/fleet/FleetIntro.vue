@@ -1,45 +1,68 @@
 <script>
-import { FLEET } from '@shell/config/types';
 import { NAME } from '@shell/config/product/fleet';
 
 export default {
 
   name: 'FleetIntro',
 
+  props: {
+    schema: {
+      type:     Object,
+      required: true,
+    },
+
+    labelKey: {
+      type:     String,
+      required: true,
+    },
+
+    icon: {
+      type:    String,
+      default: 'icon-repository'
+    },
+
+    isCreatable: {
+      type:    Boolean,
+      default: false,
+    }
+  },
+
   data() {
-    const gitRepoRoute = {
+    const route = {
       name:   'c-cluster-product-resource-create',
       params: {
         product:  NAME,
-        resource: FLEET.GIT_REPO
+        resource: this.schema?.id,
       },
     };
 
-    const gitRepoSchema = this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
-    const canCreateRepos = gitRepoSchema && gitRepoSchema.resourceMethods.includes('PUT');
+    const canCreate = this.isCreatable || this.schema?.resourceMethods.includes('PUT');
 
     return {
-      gitRepoRoute,
-      canCreateRepos
+      route,
+      canCreate,
     };
   },
 };
 </script>
 <template>
   <div class="intro-box">
-    <i class="icon icon-repository" />
+    <i
+      class="icon"
+      :icon="icon"
+    />
     <div class="title">
-      {{ t('fleet.gitRepo.repo.noRepos') }}
+      {{ t(`fleet.${ labelKey }.intro.empty`) }}
     </div>
     <div
-      v-if="canCreateRepos"
+      v-if="canCreate"
       class="actions"
     >
       <router-link
-        :to="gitRepoRoute"
+        :to="route"
         class="btn role-secondary"
       >
-        {{ t('fleet.gitRepo.repo.addRepo') }}
+        {{ t(`fleet.${ labelKey }.intro.add`) }}
       </router-link>
     </div>
   </div>

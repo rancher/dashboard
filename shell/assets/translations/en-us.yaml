@@ -215,6 +215,7 @@ nav:
     Scheduling: Scheduling
     Storage: Storage
     Project: Project
+    resources: Resources
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -2448,6 +2449,12 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  tableHeaders:
+    applicationType: Type
+    applicationSource: Source
+    applicationTarget: Target
+    applicationClustersReady: Clusters Ready
+    applicationResourcesSummary: Resources
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
@@ -2499,7 +2506,25 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+
+  application:
+    pageTitle: App Bundles
+    menuLabel: App Bundles
+    intro:
+      add: Create App Bundle
+      empty: No App Bundles have been created
+    actions:
+      create: Create App Bundle
+    groupBy: Group By Type
+    subTypes:
+      fleet.cattle.io.gitrepo:
+        description: GitRepos text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+      fleet.cattle.io.helmapp:
+        description: HelmApps text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
   gitRepo:
+    intro:
+      add: Add Repository
+      empty: No repositories have been added
     actions:
       forceUpdate:
         label: Force Update
@@ -2620,6 +2645,14 @@ fleet:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+
+  helmApp:
+    intro:
+      add: Add Helm Application
+      empty: No applications have been added
+    actions:
+      add: Add Helm Application
+
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -7079,10 +7112,20 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
+  fleet.cattle.io.application: |-
+    {count, plural,
+      one { App Bundle }
+      other { App Bundles }
+    }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
       other {Git Repos }
+    }
+  fleet.cattle.io.helmapp: |-
+    {count, plural,
+      one { Helm App }
+      other { Helm Apps }
     }
   management.cattle.io.authconfig: |-
     {count, plural,
