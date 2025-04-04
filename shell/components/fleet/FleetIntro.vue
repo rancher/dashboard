@@ -15,6 +15,16 @@ export default {
       type:     String,
       required: true,
     },
+
+    icon: {
+      type:    String,
+      default: 'icon-repository'
+    },
+
+    isCreatable: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -26,7 +36,7 @@ export default {
       },
     };
 
-    const canCreate = this.schema?.resourceMethods.includes('PUT');
+    const canCreate = this.isCreatable || this.schema?.resourceMethods.includes('PUT');
 
     return {
       route,
@@ -37,7 +47,10 @@ export default {
 </script>
 <template>
   <div class="intro-box">
-    <i class="icon icon-repository" />
+    <i
+      class="icon"
+      :icon="icon"
+    />
     <div class="title">
       {{ t(`fleet.${ labelKey }.intro.empty`) }}
     </div>

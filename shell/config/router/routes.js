@@ -215,6 +215,18 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
         name:      'c-cluster-fleet',
       }, {
+        path:      '/c/:cluster/fleet/application',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/index.vue')),
+        name:      'c-cluster-fleet-application',
+      }, {
+        path:      '/c/:cluster/fleet/application/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
+        name:      'c-cluster-fleet-application-create',
+      }, {
+        path:      '/c/:cluster/fleet/application/:namespace/:id?',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_id.vue')),
+        name:      'c-cluster-fleet-application-namespace-id'
+      }, {
         path:      '/c/:cluster/gatekeeper',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/index.vue')),
         name:      'c-cluster-gatekeeper',

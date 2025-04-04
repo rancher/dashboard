@@ -170,6 +170,21 @@ export default class GitRepo extends SteveModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
+  get source() {
+    return {
+      value:   this.spec.repo || '',
+      display: this.repoDisplay,
+      icon:    this.repoIcon,
+    };
+  }
+
+  get sourceSub() {
+    return {
+      value:   this.status.commit,
+      display: this.commitDisplay
+    };
+  }
+
   get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
