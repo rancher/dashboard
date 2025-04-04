@@ -98,21 +98,22 @@ export default defineComponent({
 
   data() {
     return {
-      showPrivateRegistryInput:              false,
-      normanCluster:                         { name: '', importedConfig: { privateRegistryURL: null } },
-      loadingVersions:                       false,
-      membershipUpdate:                      {},
-      config:                                null,
-      allVersions:                           [],
-      defaultVersion:                        '',
-      versionManagementGlobalSetting:        false,
-      versionManagementOld:                  VERSION_MANAGEMENT_DEFAULT,
-      schedulingCustomizationFeatureEnabled: false,
-      clusterAgentDefaultPC:                 null,
-      clusterAgentDefaultPDB:                null,
+      showPrivateRegistryInput:                 false,
+      normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
+      loadingVersions:                          false,
+      membershipUpdate:                         {},
+      config:                                   null,
+      allVersions:                              [],
+      defaultVersion:                           '',
+      versionManagementGlobalSetting:           false,
+      versionManagementOld:                     VERSION_MANAGEMENT_DEFAULT,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
-      needsReplace:                          false,
-      fvFormRuleSets:                        [{
+      needsReplace:                             false,
+      fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       }, {
@@ -237,7 +238,7 @@ export default defineComponent({
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
-      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization ));
+      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
   },
 
@@ -362,13 +363,24 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
+    // This method is duplicated in shell/edit/provisioning.cattle.io.cluster/rke2.vue. If you are making changes to this function, you might need to change it there too
     async initSchedulingCustomization() {
       this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
-
+      try {
+        this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+      } catch (e) {
+        this.errors.push(e);
+      }
+      try {
+        this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+      } catch (e) {
+        this.errors.push(e);
+      }
       if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
         set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      }
+      if (this.mode === _EDIT && !!this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
+        this.schedulingCustomizationOriginallyEnabled = true;
       }
     },
     setSchedulingCustomization(val) {

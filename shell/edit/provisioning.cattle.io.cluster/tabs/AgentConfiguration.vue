@@ -48,6 +48,11 @@ export default {
       type:     Boolean,
       required: false
     },
+    schedulingCustomizationOriginallyEnabled: {
+      type:    Boolean,
+      default: false
+    },
+
     defaultPC: {
       type:    Object,
       default: () => {},
@@ -149,7 +154,7 @@ export default {
     },
 
     schedulingCustomizationVisible() {
-      return this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.value.schedulingCustomization );
+      return this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled;
     },
 
     affinityOptions() {
