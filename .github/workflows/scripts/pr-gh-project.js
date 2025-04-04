@@ -142,7 +142,7 @@ async function processClosedAction() {
       console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label')
     }
 
-    console.log('Allowing PR to proceed with being linked to an issue because of the labels on the PR');
+    console.log('Allowing PR to proceed without being linked to an issue because of the labels on the PR');
 
     return;
   }
