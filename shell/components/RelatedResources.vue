@@ -28,7 +28,12 @@ export default {
     ignoreTypes: {
       type:    Array,
       default: () => []
-    }
+    },
+
+    namespaced: {
+      type:     Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -168,7 +173,7 @@ export default {
     :headers="headers"
     :search="false"
     :table-actions="false"
-    :namespaced="true"
+    :namespaced="namespaced"
     :mangle-action-resources="getRealResources"
     paging-label="sortableTable.paging.generic"
     :groupable="false"

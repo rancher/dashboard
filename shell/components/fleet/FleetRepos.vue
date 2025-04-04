@@ -21,6 +21,8 @@ export default {
 
   name: 'FleetRepos',
 
+  emits: ['rowClick'],
+
   components: {
     ResourceTable, Link, Shortened, FleetIntro
   },
@@ -116,6 +118,7 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
+      @rowClick="$emit('rowClick', $event)"
     >
       <template #cell:repo="{ row }">
         <Link

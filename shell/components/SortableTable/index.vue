@@ -377,7 +377,12 @@ export default {
     manualRefreshButtonSize: {
       type:    String,
       default: ''
-    }
+    },
+
+    selectedRowClick: {
+      type:    Object,
+      default: null
+    },
 
   },
 
@@ -1887,6 +1892,10 @@ export default {
           font-size: 13px;
           padding-top: 0;
           overflow-wrap: anywhere;
+        }
+
+        &.highlight {
+          border: 2px solid var(--primary);
         }
       }
 

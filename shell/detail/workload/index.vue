@@ -34,6 +34,13 @@ export default {
 
   mixins: [CreateEditView],
 
+  props: {
+    namespaced: {
+      type:     Boolean,
+      default: true,
+    },
+  },
+
   async fetch() {
     let hasNodes = false;
 
@@ -370,6 +377,7 @@ export default {
     </div>
     <ResourceTabs
       :value="value"
+      :namespaced="namespaced"
     >
       <Tab
         v-if="isCronJob"
@@ -400,6 +408,7 @@ export default {
           :schema="podSchema"
           :groupable="false"
           :search="false"
+          :namespaced="namespaced"
         />
       </Tab>
       <Tab
@@ -508,6 +517,7 @@ export default {
           :groupable="false"
           :search="false"
           :table-actions="false"
+          :namespaced="namespaced"
         />
       </Tab>
     </ResourceTabs>
