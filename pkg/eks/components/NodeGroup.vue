@@ -333,7 +333,10 @@ export default defineComponent({
     selectedLaunchTemplate: {
       get(): AWS.LaunchTemplate {
         if (this.hasRancherLaunchTemplate) {
-          return { LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
+          return {
+            LaunchTemplateId:   this.rancherTemplate,
+            LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate })
+          };
         }
         const id = this.launchTemplate?.id;
 
@@ -366,7 +369,7 @@ export default defineComponent({
     },
 
     selectedVersionInfo(): AWS.LaunchTemplateVersion | null {
-      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate.version) || null;
+      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate?.version) || null;
     },
 
     selectedVersionData(): AWS.LaunchTemplateVersionData | undefined {
@@ -455,7 +458,13 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [...this.launchTemplateVersionOptions] });
+        if (launchTemplate.LaunchTemplateName !== this.defaultTemplateOption.LaunchTemplateName) {
+          if (launchTemplate.LaunchTemplateId) {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [...this.launchTemplateVersionOptions] });
+          } else {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateName: launchTemplate.LaunchTemplateName, Versions: [...this.launchTemplateVersionOptions] });
+          }
+        }
       } catch (err) {
         this.$emit('error', err);
       }
