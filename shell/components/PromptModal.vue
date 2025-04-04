@@ -13,7 +13,11 @@ export default {
   components: { AppModal },
 
   data() {
-    return { opened: false, backgroundClosing: null };
+    return {
+      opened:            false,
+      backgroundClosing: null,
+      componentRendered: false
+    };
   },
 
   computed: {
@@ -54,10 +58,15 @@ export default {
   watch: {
     showModal(show) {
       this.opened = show;
-    },
+    }
   },
 
   methods: {
+    onSlotComponentMounted() {
+      // variable for the watcher based focus-trap
+      // so that we know when the component is rendered
+      this.componentRendered = true;
+    },
     close() {
       if (!this.opened) {
         return;
@@ -69,6 +78,7 @@ export default {
         this.backgroundClosing();
       }
 
+      this.componentRendered = false;
       this.opened = false;
     },
 
@@ -85,6 +95,8 @@ export default {
     v-if="opened && component"
     :click-to-close="closeOnClickOutside"
     :width="modalWidth"
+    :trigger-focus-trap-watcher-based="true"
+    :focus-trap-watcher-based-variable="componentRendered"
     @close="close()"
   >
     <component
@@ -92,6 +104,7 @@ export default {
       :is="component"
       :resources="resources"
       :register-background-closing="registerBackgroundClosing"
+      @vue:mounted="onSlotComponentMounted"
       @close="close()"
     />
   </app-modal>

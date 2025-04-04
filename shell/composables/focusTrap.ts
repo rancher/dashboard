@@ -46,12 +46,12 @@ export function useBasicSetupFocusTrap(focusElement: string | HTMLElement, opts:
   });
 }
 
-export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS) {
+export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, focusElement: string | HTMLElement, opts:any = DEFAULT_FOCUS_TRAP_OPTS, useUnmountHook = false) {
   let focusTrapInstance: FocusTrap;
   let focusEl;
 
   watch(watchVar, (neu) => {
-    if (neu) {
+    if (neu && !focusTrapInstance) {
       nextTick(() => {
         focusEl = typeof focusElement === 'string' ? document.querySelector(focusElement) as HTMLElement : focusElement;
 
@@ -61,8 +61,16 @@ export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, f
           focusTrapInstance.activate();
         });
       });
-    } else if (!neu && Object.keys(focusTrapInstance).length) {
+    } else if (!neu && Object.keys(focusTrapInstance).length && !useUnmountHook) {
       focusTrapInstance.deactivate();
     }
   });
+
+  if (useUnmountHook) {
+    onBeforeUnmount(() => {
+      if (Object.keys(focusTrapInstance).length) {
+        focusTrapInstance.deactivate();
+      }
+    });
+  }
 }
