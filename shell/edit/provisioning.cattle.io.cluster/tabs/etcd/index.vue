@@ -90,8 +90,8 @@ export default {
           v-model:value="etcd.snapshotRetention"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
-          :suffix="t('cluster.rke2.snapshots.suffix')"
-          :tooltip="t('cluster.rke2.etcd.snapshotRetention.tooltip')"
+          :suffix="s3Backup ? t('cluster.rke2.snapshots.s3Suffix') : t('cluster.rke2.snapshots.suffix')"
+          :tooltip="s3Backup ? t('cluster.rke2.etcd.snapshotRetention.tooltip') : undefined"
         />
       </div>
     </div>

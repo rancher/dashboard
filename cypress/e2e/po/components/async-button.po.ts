@@ -13,6 +13,10 @@ export default class AsyncButtonPo extends ComponentPo {
     return this.self().should('not.have.attr', 'disabled');
   }
 
+  waitForDisabledAppearanceToDisappear(): Cypress.Chainable {
+    return this.self().should('have.class', 'ready-for-action');
+  }
+
   label(name: string): Cypress.Chainable {
     return this.self().contains(name);
   }

@@ -103,9 +103,6 @@ export default {
 
 <template>
   <div>
-    <p class="set-landing-leadin">
-      {{ t('landing.landingPrefs.body') }}
-    </p>
     <RadioGroup
       id="login-route"
       :value="afterLoginRoute"
@@ -113,6 +110,11 @@ export default {
       :options="routeRadioOptions"
       @update:value="updateLoginRoute"
     >
+      <template #label>
+        <p class="set-landing-leadin">
+          {{ t('landing.landingPrefs.body') }}
+        </p>
+      </template>
       <template #2="{option}">
         <div class="custom-page">
           <RadioButton

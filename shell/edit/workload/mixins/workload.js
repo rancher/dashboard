@@ -618,8 +618,6 @@ export default {
     this.registerBeforeHook(this.getPorts, 'getPorts');
 
     this.registerAfterHook(this.saveService, 'saveService');
-
-    this.selectContainer(this.container);
   },
 
   methods: {

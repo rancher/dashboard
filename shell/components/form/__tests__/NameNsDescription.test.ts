@@ -86,4 +86,88 @@ describe('component: NameNsDescription', () => {
 
     expect(wrapper.emitted().isNamespaceNew?.[0][0]).toBe(true);
   });
+
+  it('renders the name input with the expected value', () => {
+    const namespaceName = 'test';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
+    const wrapper = mount(NameNsDescription, {
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      { name: 'Default' }
+        },
+        mode: 'create',
+      },
+      global: {
+        provide: { store },
+        mocks:   {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces:                         jest.fn(),
+              'customizations/getPreviewCluster': {
+                ready:   true,
+                isLocal: false,
+                badge:   {},
+              },
+              'i18n/t': jest.fn(),
+            },
+          },
+        },
+      },
+    });
+
+    const nameInput = wrapper.find('[data-testid="NameNsDescriptionNameInput"]');
+
+    expect(nameInput.element.value).toBe('Default');
+  });
+
+  it('sets the name using the nameKey prop', () => {
+    const namespaceName = 'test';
+    const store = createStore({
+      getters: {
+        allowedNamespaces:   () => () => ({ [namespaceName]: true }),
+        currentStore:        () => () => 'cluster',
+        'cluster/schemaFor': () => jest.fn()
+      }
+    });
+    const wrapper = mount(NameNsDescription, {
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          metadata:      {},
+          spec:          { displayName: 'Default' }
+        },
+        mode:    'create',
+        nameKey: 'spec.displayName'
+      },
+      global: {
+        provide: { store },
+        mocks:   {
+          $store: {
+            dispatch: jest.fn(),
+            getters:  {
+              namespaces:                         jest.fn(),
+              'customizations/getPreviewCluster': {
+                ready:   true,
+                isLocal: false,
+                badge:   {},
+              },
+              'i18n/t': jest.fn(),
+            },
+          },
+        },
+      },
+    });
+
+    const nameInput = wrapper.find('[data-testid="NameNsDescriptionNameInput"]');
+
+    expect(nameInput.element.value).toBe('Default');
+  });
 });

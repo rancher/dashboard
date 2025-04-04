@@ -17,6 +17,7 @@ export default {
     const finalCounts = [];
     const promises = [];
     const topFifteenForResponseTime = [];
+    const schemaPromises = [];
 
     clusterForCounts.forEach((cluster, i) => {
       // Necessary to retrieve the proper display name of the cluster
@@ -31,9 +32,11 @@ export default {
         isTableVisible: !!(i === 0 && clusterForCounts.length === 1)
       });
       promises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/counts` }));
+      schemaPromises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/schemas?exclude=metadata.managedFields` }));
     });
 
     const countsPerCluster = await Promise.all(promises);
+    const schemasPerCluster = await Promise.all(schemaPromises);
 
     countsPerCluster.forEach((clusterCount, index) => {
       const counts = clusterCount.data?.[0]?.counts;
@@ -69,6 +72,14 @@ export default {
 
     this.topFifteenForResponseTime = topFifteenForResponseTime;
     this.finalCounts = finalCounts;
+
+    // Schemas
+    schemasPerCluster.forEach((schemas, index) => {
+      finalCounts[index].schemaCount = schemas?.data?.length || 0;
+      finalCounts[index].customSchemas = (schemas?.data?.filter((schema) => {
+        return schema.attributes?.group.includes('.') && !schema.attributes?.group.includes('.cattle.io') && !schema.attributes?.group.includes('.k8s.io');
+      }).map((schema) => schema.id) || []).sort();
+    });
   },
 
   data() {
@@ -148,7 +159,7 @@ export default {
         systemInformation: this.systemInformation,
         storeMapping:      this.parseStoreData(this.storeMapping),
         resourceCounts:    this.finalCounts,
-        responseTimes:     this.responseTimes
+        responseTimes:     this.responseTimes,
       };
 
       downloadFile(fileName, JSON.stringify(data), 'application/json')
@@ -352,6 +363,7 @@ export default {
                   <span>Cluster: <b>{{ cluster.name }}</b></span>
                   <span>Namespace: <b>{{ cluster.namespace }}</b></span>
                   <span>Total Resources: <b>{{ sumResourceCount(cluster.counts) }}</b></span>
+                  <span>Total Schemas: <b>{{ cluster.schemaCount }}</b></span>
                   <span>Nodes: <b>{{ nodeCount(cluster.counts) }}</b></span>
                   <i
                     class="icon"
@@ -365,6 +377,22 @@ export default {
             </tr>
           </thead>
           <tbody v-show="cluster.isTableVisible">
+            <tr>
+              <td colspan="3">
+                <div class="schema-title">
+                  Custom Schemas
+                </div>
+                <div class="custom-schemas">
+                  <div
+                    v-for="name in cluster.customSchemas"
+                    :key="name"
+                    class="schema-name"
+                  >
+                    {{ name }}
+                  </div>
+                </div>
+              </td>
+            </tr>
             <tr>
               <th>
                 Resource
@@ -445,6 +473,23 @@ table {
     padding: 8px 5px;
     min-width: 150px;
     text-align: left;
+
+    .schema-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .custom-schemas {
+      display: flex;
+      flex-wrap: wrap;
+
+      > .schema-name {
+        margin-right: 5px;
+        margin-bottom: 2px;
+        border: 1px solid var(--border);
+        padding: 2px 5px;
+      }
+    }
   }
 
   th {
@@ -511,7 +556,7 @@ table {
 .resources-count-container {
   .cluster-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr) 20px;
+    grid-template-columns: repeat(5, 1fr) 20px;
     grid-template-rows: 1fr;
     align-content: center;
     font-weight: normal;
