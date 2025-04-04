@@ -58,6 +58,10 @@ export default {
   },
 
   computed: {
+    itemLabel() {
+      return this.labelKey ? this.t(this.labelKey) : this.label ? this.label : this.t('labels.annotations.singular');
+    },
+
     isBinary() {
       if ( this.binary === null ) {
         return typeof this.value === 'string' && !asciiLike(this.value);
@@ -186,6 +190,7 @@ export default {
       :text="value"
       class="role-tertiary"
       action-color=""
+      :aria-label="t('detailText.copyAriaLabel', {item: itemLabel })"
     />
   </div>
 </template>
