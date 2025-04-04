@@ -22,6 +22,10 @@ export default defineComponent({
 
   components: { KnownHostsEditDialog },
 
+  data() {
+    return { disableFocusTrapForUnitTests: false };
+  },
+
   computed: {
     isViewMode() {
       return this.mode === _VIEW;
@@ -65,18 +69,25 @@ export default defineComponent({
     </div>
     <template v-if="!isViewMode">
       <button
+        id="known-ssh-hosts-trigger"
         ref="button"
+        role="button"
+        :aria-label="t('secret.ssh.editKnownHosts.title')"
         data-testid="input-known-ssh-hosts_open-dialog"
         class="show-dialog-btn btn"
         @click="openDialog"
       >
-        <i class="icon icon-edit" />
+        <i
+          class="icon icon-edit"
+          :alt="t('secret.ssh.editKnownHosts.title')"
+        />
       </button>
 
       <KnownHostsEditDialog
         ref="editDialog"
         :value="value"
         :mode="mode"
+        :disable-focus-trap-for-unit-tests="disableFocusTrapForUnitTests"
         @closed="dialogClosed"
       />
     </template>
@@ -94,8 +105,16 @@ export default defineComponent({
     }
 
     .show-dialog-btn {
-      display: contents;
       background-color: transparent;
+      padding: 4px;
+      height: 22px;
+      margin: -3px -3px 0 0;
+      min-height: unset;
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: 1px;
+      }
     }
   }
 </style>
