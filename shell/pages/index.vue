@@ -11,6 +11,7 @@ const resolveRoute = (route, router) => {
   }
 };
 
+// TODO #13939: This function has always a match using "/:catchAll(.*)*"
 const validRoute = (route, router) => {
   return !!route && !!resolveRoute(route, router)?.matched?.length;
 };
@@ -29,13 +30,13 @@ export default {
     }
 
     // Return to last page after logout if any
-    const backTo = window.localStorage.getItem(BACK_TO, window.location.href);
+    const backTo = window.localStorage.getItem(BACK_TO);
     const resolvedBackTo = resolveRoute(backTo, this.$router);
 
     if (resolvedBackTo) {
       window.localStorage.removeItem(BACK_TO); // Reset value to prevent loops or other issues
 
-      return this.$router.push(resolvedBackTo);
+      return this.$router.replace(resolvedBackTo);
     }
 
     const afterLoginRouteObject = this.$store.getters['prefs/afterLoginRoute'];

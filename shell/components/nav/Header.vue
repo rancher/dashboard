@@ -398,7 +398,7 @@ export default {
 
       // Prevent loop to login/logout pages
       if (!isLogin && !isLogout) {
-        window.localStorage.setItem(BACK_TO, window.location.href);
+        window.localStorage.setItem(BACK_TO, window.location.pathname);
       }
     },
 
