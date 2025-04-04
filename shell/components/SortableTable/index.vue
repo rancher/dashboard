@@ -1457,9 +1457,9 @@ export default {
                           :value="col.value"
                           :row="row.row"
                           :col="col.col"
+                          :get-custom-detail-link="getCustomDetailLink"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
-                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"
