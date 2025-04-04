@@ -42,7 +42,7 @@ describe('component: AsyncButton', () => {
     expect(span.text()).toBe('some-string');
   });
 
-  it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', () => {
+  it('click on async button should emit click with a proper state of waiting, appear disabled and spinning ::: CB true', () => {
     jest.useFakeTimers();
 
     const wrapper: VueWrapper<InstanceType<typeof AsyncButton>> = mount(AsyncButton, {
@@ -65,7 +65,7 @@ describe('component: AsyncButton', () => {
     expect(wrapper.emitted('click')).toHaveLength(1);
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.WAITING);
     expect(wrapper.vm.isSpinning).toBe(true);
-    expect(wrapper.vm.isDisabled).toBe(true);
+    expect(wrapper.vm.appearsDisabled).toBe(true);
     // testing cb function has been emitted
     expect(typeof wrapper.emitted('click')![0][0]).toBe('function');
 
