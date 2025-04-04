@@ -339,6 +339,7 @@ export default {
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Card
