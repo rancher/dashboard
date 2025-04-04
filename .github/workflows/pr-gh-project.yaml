@@ -10,6 +10,7 @@ jobs:
       pull-requests: write
       repository-projects: write
       id-token: write
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
