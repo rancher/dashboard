@@ -69,7 +69,7 @@ export default {
         return {
           id:   m.name,
           text: m.name,
-          url:  `mailto:${ m.email }`
+          url:  m.email ? `mailto:${ m.email }` : m.url
         };
       });
     },
