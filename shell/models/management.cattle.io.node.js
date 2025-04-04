@@ -168,11 +168,11 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canScaleDown() {
-    if (!this.isEtcd && !this.isControlPlane) {
+    const hasAction = this.norman?.actions?.scaledown;
+
+    if (!this.isEtcd && !this.isControlPlane && hasAction) {
       return true;
     }
-
-    const hasAction = this.norman?.actions?.scaledown;
 
     return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
   }
