@@ -15,6 +15,9 @@ const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
 const GH_PRJ_IN_REVIEW = 'Review';
 
+// This label is used so that PRs from dependabot don't fail the check for 'fixes' notation
+const GH_DEPENDENCIES_LABEL = 'area/dependencies';
+
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
 
@@ -133,6 +136,14 @@ async function processClosedAction() {
     console.log('  This PR fixes issues: ' + issues.join(', '));
   } else {
     console.log("  This PR does not fix any issues");
+
+    // PRs must fix an issue or have the label 'QA/None'
+    if (!hasLabel(pr, QA_NONE_LABEL) && !hasLabel(pr, GH_DEPENDENCIES_LABEL)) {
+      console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label')
+    }
+
+    console.log('Allowing PR to proceed with being linked to an issue because of the labels on the PR');
+
     return;
   }
 
