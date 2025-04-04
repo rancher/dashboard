@@ -88,7 +88,10 @@ export default {
           {{ t('promptForceRemove.confirmName') }}
         </div>
         <div class="mb-10">
-          <CopyToClipboardText :text="nameToMatch" />
+          <CopyToClipboardText
+            :aria-label="t('promptForceRemove.ariaLabel')"
+            :text="nameToMatch"
+          />
         </div>
         <input
           id="confirm"

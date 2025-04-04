@@ -331,6 +331,7 @@ export default {
                     style="padding: 0 0 0 12px;"
                   >
                     <CopyToClipboard
+                      :aria-label="t('setup.copyRandom')"
                       :text="password"
                       class="btn-sm"
                     />

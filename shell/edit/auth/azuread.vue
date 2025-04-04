@@ -388,6 +388,7 @@ export default {
           <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
           <CopyToClipboardText
             :plain="true"
+            :aria-label="t('authConfig.azuread.reply.ariaLabel')"
             :text="replyUrl"
           />
         </InfoBox>
