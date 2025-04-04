@@ -139,7 +139,8 @@ async function processClosedAction() {
 
     // PRs must fix an issue or have the label 'QA/None'
     if (!hasLabel(pr, QA_NONE_LABEL) && !hasLabel(pr, GH_DEPENDENCIES_LABEL)) {
-      console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label')
+      console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label');
+      process.exit(1);
     }
 
     console.log('Allowing PR to proceed without being linked to an issue because of the labels on the PR');
