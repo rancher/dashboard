@@ -1,0 +1,194 @@
+#!/usr/bin/env node
+
+/**
+ * This script reads the Azure website and updates our hard-coded file it needed
+ */
+
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+console.log('Updating Azure regions in Availability Zones');
+console.log('============================================');
+console.log('');
+
+const SCRIPT = process.argv[1];
+const DIR = path.resolve(SCRIPT, '../../..');
+const ENDPOINTS_URL = 'https://learn.microsoft.com/en-us/azure/reliability/regions-list';
+const TS_FILE = path.resolve(DIR, 'pkg/aks/util/aks-regions.ts');
+const COLUMN_REGEX = /<td>(.*)<\/td>/;
+
+function findRegions(body) {
+  const regions = [];
+  let inTable = false;
+  let inRow = false;
+  let inColumn = false;
+  let row = [];
+  let column = ''
+
+  body.split('\n').forEach((line) => {
+    line = line.trim();
+
+    if (line.indexOf('<table') >= 0) {
+      inTable = true;
+    } else if (inTable) {
+      if (line.indexOf('</table>') >= 0) {
+        inTable = false;
+      } else if (inRow) {
+        if (!inColumn && line.indexOf('<td>') === 0) {
+          inColumn = true;
+          column = line;
+
+          if (line.endsWith('</td>')) {
+            row.push(column);
+            inColumn = false;
+          }
+        } else if (inColumn && line.endsWith('</td>')) {
+          column += line;
+          row.push(column);
+          inColumn = false;
+        } else if (line.indexOf('</tr>') === 0) {
+          inRow = false;
+
+          if (row.length === 5) {
+            if (!row[0].startsWith('<td><img') && !row[1].startsWith('<td></td>')) {
+              const m = row[0].match(COLUMN_REGEX);
+
+              if (m && m.length === 2) {
+                let region = m[1].toLowerCase();
+                region = region.replaceAll(' ', '');            
+                regions.push(region);
+              }
+            }
+          }
+        }
+      } else if (!inRow && line.indexOf('<tr>') == 0) {
+        inRow = true;
+        row = [];
+      }
+    }
+  });
+
+  return regions.sort();
+}
+
+function cleanItem(item) {
+  const p = item.split(':');
+
+  if (p.length === 2) {
+    return p[0];
+  }
+
+  return undefined;
+}
+
+function readExisting() {
+  const data = fs.readFileSync(TS_FILE).toString();
+  const items = [];
+
+  let processing = false;
+  let done = false;
+
+  data.split(/\r?\n/).forEach(line =>  {
+    line = line.trim();
+
+    if (!done) {
+      if (!processing) {
+        if (line.startsWith('export const ')) {
+          processing = true;
+        }
+      } else {
+        if (line === '} as any;') {
+          processing = false;
+          done = true;
+        } else {
+          const r = cleanItem(line);
+
+          if (r) {
+            items.push(r);
+          }
+        }
+      }
+    }
+  });
+
+  return items.sort();
+}
+
+function writeNewFile(regions) {
+  let lines = ['export const regionsWithAvailabilityZones = {'];
+
+  let maxLength = 1;
+
+  regions.forEach((r) => {
+    if (r.length > maxLength) {
+      maxLength = r.length + 1; // Add room for :
+    }
+  });
+
+  regions.forEach((r) => {
+    const key = `${r}:`.padEnd(maxLength);
+
+    lines.push(`  ${ key } true,`)
+  });
+
+  lines.push('} as any;');
+  lines.push('');
+
+  fs.writeFileSync(TS_FILE, lines.join('\n'));
+}
+
+const existing = readExisting();
+
+axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
+  if (res.status !== 200 || !res.data) {
+    console.error(`Could not fetch Azure data - status ${ res.statusCode } ${ res.statusMessage }`);
+
+    process.exit(1);
+  }
+
+  const regions = findRegions(res.data);
+
+  if (regions.length === 0) {
+    console.error('Could not fetch data from Azure - no regions found');
+    process.exit(2);
+  }
+
+  console.log(`Existing regions in our codebase: ${ existing.length }`);
+  console.log(existing);
+  console.log('');
+
+  console.log(`Regions from Azure: ${ regions.length }`);
+  console.log(regions);
+  console.log('');
+
+  const removed = [];
+
+  existing.forEach((r) => {
+    if (!regions.includes(r)) {
+      removed.push(r);
+    }
+  });
+
+  if (removed.length) {
+    console.log(`These region(s) have been removed: ${ removed.join(', ') }`);
+  }
+
+  const added = [];
+
+  regions.forEach((r) => {
+    if (!existing.includes(r)) {
+      added.push(r);
+    }
+  });
+
+  if (added.length) {
+    console.log(`These region(s) have been added: ${ added.join(', ') }`);
+  }
+
+  if (added.length || removed.length) {
+    writeNewFile(regions);
+  } else {
+    console.log('No changes to the Azure region data');
+  }
+});
