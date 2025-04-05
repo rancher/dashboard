@@ -3,6 +3,9 @@ import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboa
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import FleetClusterRegistrationTokensList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+import FleetTokensCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 
 export class FleetClusterRegistrationTokenListPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`
@@ -39,5 +42,21 @@ export class FleetClusterRegistrationTokenListPagePo extends PagePo {
 
   resourceTable() {
     return new ResourceTablePo(this.self());
+  }
+
+  baseResourceList() {
+    return new BaseResourceList(this.self());
+  }
+
+  resourceDetail() {
+    return new ResourceDetailPo(this.self());
+  }
+
+  createYaml() {
+    return this.self().find('[data-testid="masthead-create-yaml"]').click();
+  }
+
+  createTokenForm(fleetWorkspace?: string, id?: string): FleetTokensCreateEditPo {
+    return new FleetTokensCreateEditPo(fleetWorkspace, id);
   }
 }
