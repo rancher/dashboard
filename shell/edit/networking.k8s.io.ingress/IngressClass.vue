@@ -5,6 +5,7 @@ import { get, set, remove } from '@shell/utils/object';
 
 export default {
   components: { LabeledSelect },
+  emits:      ['update:value'],
   props:      {
     value: {
       type:    Object,
@@ -37,13 +38,15 @@ export default {
   },
   methods: {
     update(e) {
-      if (!e || e.label === this.t('generic.none')) {
+      if (!e || e === '' || e.label === this.t('generic.none')) {
         remove(this.value, 'spec.ingressClassName');
         this.ingressClassName = '';
       } else {
         // when a user manually types an ingress class name, the event emitted has a 'label' but no 'value'
-        this.ingressClassName = e.value ? e.value : e.label;
+        this.ingressClassName = e.label || e;
         set(this.value, 'spec.ingressClassName', this.ingressClassName);
+
+        this.$emit('update:value', this.value);
       }
     }
   }
@@ -59,7 +62,7 @@ export default {
       :label="t('ingress.ingressClass.label')"
       :options="ingressClassOptions"
       option-label="label"
-      @selecting="update"
+      @update:value="update"
     />
   </div>
 </template>
