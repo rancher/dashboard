@@ -55,7 +55,7 @@ export default {
       try {
         await Promise.all(this.drivers.map(
           (driver) => this.$store.dispatch('rancher/request', {
-            url:    `v3/${ this.driverType }11/${ escape(driver.id) }?action=deactivate`,
+            url:    `v3/${ this.driverType }/${ escape(driver.id) }?action=deactivate`,
             method: 'POST'
           })
         ));
