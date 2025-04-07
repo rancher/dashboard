@@ -558,6 +558,8 @@ export default {
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
         <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
       </div>
+
+      <!-- Product menu -->
       <div
         v-if="currentCluster && !simple"
         class="header-buttons"
@@ -706,8 +708,12 @@ export default {
         </button>
       </div>
 
+      <!-- Dropdowns -->
       <div class="center-self">
+        <!-- Page actions -->
         <header-page-action-menu v-if="showPageActions" />
+
+        <!-- User Menu -->
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"
@@ -762,6 +768,8 @@ export default {
             >
               {{ t('nav.userMenu.logOut') }}
             </rc-dropdown-item>
+
+            <!-- Logout Button -->
             <rc-dropdown-item
               v-else-if="authEnabled"
               @click="handleLogout"
