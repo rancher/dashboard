@@ -772,6 +772,7 @@ export default {
             <!-- Logout Button -->
             <rc-dropdown-item
               v-else-if="authEnabled"
+              data-testid="nav_header_logout"
               @click="handleLogout"
             >
               {{ t('nav.userMenu.logOut') }}

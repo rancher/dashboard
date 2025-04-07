@@ -11,12 +11,11 @@ describe('component: Header', () => {
         directives: { shortkey: jest.fn() },
         mocks:      {
           $config: { rancherEnv: 'whatever' },
+          $route:  {}, // Used on logout
+          $router: { push: jest.fn() }, // Used on logout
           $store:  {
             getters: {
-              currentCluster: jest.fn(() => ({
-                name: 'test-cluster',
-                type: 'rancher',
-              })),
+              currentCluster:                 jest.fn(),
               'management/byId':              jest.fn(),
               'management/schemaFor':         jest.fn(),
               'rancher/schemaFor':            jest.fn(),
@@ -50,5 +49,18 @@ describe('component: Header', () => {
 
   it('should be rendered', () => {
     expect(wrapper.exists()).toBe(true);
+  });
+
+  it('pressing logout should store current path', async() => {
+    const pathname = '/whatever';
+    const localStorageSpy = jest.spyOn(Object.getPrototypeOf(localStorage), 'setItem');
+
+    Object.defineProperty(window, 'location', { value: new URL(`http://whatever${ pathname }`) } );
+
+    // await wrapper.find('[data-testid="nav_header_showUserMenu"]').trigger('click');
+    // await wrapper.find('[data-testid="nav_header_logout"]').trigger('click');
+    wrapper.vm.handleLogout();
+
+    expect(localStorageSpy).toHaveBeenLastCalledWith('backTo', pathname);
   });
 });
