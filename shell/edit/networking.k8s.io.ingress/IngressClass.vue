@@ -41,6 +41,7 @@ export default {
       if (!e || e === '' || e.label === this.t('generic.none')) {
         remove(this.value, 'spec.ingressClassName');
         this.ingressClassName = '';
+        this.$emit('update:value', this.value);
       } else {
         // when a user manually types an ingress class name, the event emitted has a 'label' but no 'value'
         this.ingressClassName = e.label || e;
