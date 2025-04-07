@@ -356,17 +356,15 @@ export default defineComponent({
     },
 
     launchTemplateVersionOptions(): number[] {
-      if (this.selectedLaunchTemplate && this.selectedLaunchTemplate.LatestVersionNumber) {
-        const { LatestVersionNumber } = this.selectedLaunchTemplate;
-
-        return [...Array(LatestVersionNumber).keys()].map((version) => version + 1);
+      if (this.selectedLaunchTemplateInfo && this.selectedLaunchTemplateInfo?.LaunchTemplateVersions) {
+        return this.selectedLaunchTemplateInfo.LaunchTemplateVersions.map((version) => version.VersionNumber).sort();
       }
 
       return [];
     },
 
     selectedVersionInfo(): AWS.LaunchTemplateVersion | null {
-      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate.version) || null;
+      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate?.version) || null;
     },
 
     selectedVersionData(): AWS.LaunchTemplateVersionData | undefined {
@@ -455,7 +453,13 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [...this.launchTemplateVersionOptions] });
+        if (launchTemplate.LaunchTemplateName !== this.defaultTemplateOption.LaunchTemplateName) {
+          if (launchTemplate.LaunchTemplateId) {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId });
+          } else {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateName: launchTemplate.LaunchTemplateName });
+          }
+        }
       } catch (err) {
         this.$emit('error', err);
       }
