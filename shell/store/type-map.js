@@ -107,6 +107,7 @@
 //                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                               localOnly: False -- Hide this type from the nav/search bar on downstream clusters
+//                               custom: any - Custom options for a given type
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -524,6 +525,7 @@ export const getters = {
       depaginate:             false,
       customRoute:            undefined,
       resourceEditMasthead:   true,
+      custom:                 {},
     };
 
     return (schemaOrType, pagination) => {
@@ -1729,6 +1731,8 @@ export const mutations = {
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
+      // Merge the custom data object - multiple configures will update existing rather than overwrite
+      obj.custom = Object.assign(state.typeOptions[idx].custom || {}, obj.custom || {});
       obj = Object.assign(state.typeOptions[idx], obj);
       state.typeOptions.splice(idx, 1, obj);
     } else {
