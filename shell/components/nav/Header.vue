@@ -115,7 +115,7 @@ export default {
         return false;
       }
 
-      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.samlAuthProviderEnabled;
+      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.samlAuthProviderEnabled || {};
 
       return logoutAllSupported && logoutAllEnabled && !logoutAllForced;
     },
