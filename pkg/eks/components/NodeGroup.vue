@@ -333,7 +333,7 @@ export default defineComponent({
     selectedLaunchTemplate: {
       get(): AWS.LaunchTemplate {
         if (this.hasRancherLaunchTemplate) {
-          return { LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
+          return { LaunchTemplateId: this.rancherTemplate, LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
         }
         const id = this.launchTemplate?.id;
 
@@ -453,6 +453,7 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
+        console.log(launchTemplate);
         if (launchTemplate.LaunchTemplateName !== this.defaultTemplateOption.LaunchTemplateName) {
           if (launchTemplate.LaunchTemplateId) {
             this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId });
