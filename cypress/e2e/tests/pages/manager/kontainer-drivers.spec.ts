@@ -210,7 +210,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@deactivateAmazonDriver').its('response.statusCode').should('eq', 200);
     cy.wait('@deactivateAzureDriver').its('response.statusCode').should('eq', 200);
     driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
+    driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
@@ -218,7 +218,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName(amazonDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(amazonDriver, 'not.exist');
+    createCluster.gridElementExistanceByName(azureDriver, 'not.exist');
   });
 
   it('can activate drivers in bulk', () => {
