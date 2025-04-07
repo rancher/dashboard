@@ -22,6 +22,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   const linodeDriver = 'Linode LKE';
   const tencentDriver = 'Tencent TKE';
   const exampleDriver = 'Example';
+  const baiduDriver = 'Baidu CCE';
+  const huaweiDriver = 'Huawei CCE';
 
   before(() => {
     cy.login();
@@ -189,19 +191,19 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can activate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+    driversPage.list().details(baiduDriver, 1).should('contain', 'Inactive');
+    driversPage.list().details(huaweiDriver, 1).should('contain', 'Inactive');
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(baiduDriver)
       .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(huaweiDriver)
       .set();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=activate').as('activateOracleDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate').as('activateLinodeDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/baiducloudcontainerengine?action=activate').as('activateBaiduDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/huaweicontainercloudengine?action=activate').as('activateHuaweiDriver');
 
     driversPage.list().activate().click();
-    cy.wait('@activateLinodeDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@activateBaiduDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@activateHuaweiDriver').its('response.statusCode').should('eq', 200);
     driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
     driversPage.list().details(linodeDriver, 1).should('contain', 'Active');
 
@@ -217,24 +219,24 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().details(linodeDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+    driversPage.list().details(baiduDriver, 1).scrollIntoView().should('contain', 'Active');
+    driversPage.list().details(huaweiDriver, 1).scrollIntoView().should('contain', 'Active');
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(baiduDriver)
       .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(huaweiDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
       .click();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracleDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=deactivate').as('deactivateLinodeDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/baiducloudcontainerengine?action=deactivate').as('deactivateBaiduDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/huaweicontainercloudengine?action=deactivate').as('deactivateHuaweiDriver');
 
     const deactivateDialog = new DeactivateDriverDialogPo();
 
     deactivateDialog.deactivate();
-    cy.wait('@deactivateLinodeDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@deactivateBaiduDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@deactivateHuaweiDriver').its('response.statusCode').should('eq', 200);
     driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
     driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
 
