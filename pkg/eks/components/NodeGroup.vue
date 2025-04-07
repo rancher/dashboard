@@ -453,7 +453,6 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        console.log(launchTemplate);
         if (launchTemplate.LaunchTemplateName !== this.defaultTemplateOption.LaunchTemplateName) {
           if (launchTemplate.LaunchTemplateId) {
             this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId });
