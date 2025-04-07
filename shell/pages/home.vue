@@ -102,9 +102,9 @@ export default defineComponent({
         },
       },
 
-      createLocation: options.createLocation ? options.createLocation(params) : defaultCreateLocation(params),
+      createLocation: options.createLocation ? options.createLocation(params) : defaultCreateLocation,
 
-      importLocation: options.importLocation ? options.importLocation(params) : defaultImportLocation(params),
+      importLocation: options.importLocation ? options.importLocation(params) : defaultImportLocation,
 
       headers: [
         STATE,
