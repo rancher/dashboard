@@ -143,12 +143,14 @@ export default {
               <b>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }}</b> {{ t('authConfig.googleoauth.steps.1.topPrivateDomain', {}, true) }} <CopyToClipboardText
                 :plain="true"
                 :text="tArgs.hostname"
+                :aria-label="t('authConfig.googleoauth.steps.1.ariaLabel.hostname')"
               />
             </li>
             <li>
               <b>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }}</b> <CopyToClipboardText
                 :plain="true"
                 :text="serverUrl"
+                :aria-label="t('authConfig.googleoauth.steps.1.ariaLabel.serverUrl')"
               />
             </li>
             <li>{{ t('authConfig.googleoauth.steps.1.body.4', {}, true) }} </li>
@@ -170,12 +172,14 @@ export default {
                   <b>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }}</b> <CopyToClipboardText
                     :plain="true"
                     :text="serverUrl"
+                    :aria-label="t('authConfig.googleoauth.steps.1.ariaLabel.serverUrl')"
                   />
                 </li>
                 <li>
                   <b>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }}</b> <CopyToClipboardText
                     :plain="true"
                     :text="serverUrl+'/verify-auth'"
+                    :aria-label="t('authConfig.googleoauth.steps.2.ariaLabel.serverUrlVerify')"
                   />
                 </li>
                 <li>{{ t('authConfig.googleoauth.steps.2.body.4', {}, true) }} </li>

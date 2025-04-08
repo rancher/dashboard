@@ -389,6 +389,7 @@ accountAndKeys:
     title: API Keys
     notAllowed: You do not have permission to manage API Keys
     apiEndpoint: "API Endpoint:"
+    copyApiEnpoint: Copy API Endpoint to clipboard
     add:
       description:
         label: Description
@@ -493,6 +494,9 @@ authConfig:
          4: 'Under Scopes for Google APIs, enable "email", "profile", and "openid".'
          5: 'Click on "Save".'
         topPrivateDomain: 'Top private domain of:'
+        ariaLabel: 
+          hostname: Copy Hostname to clipboard
+          serverUrl: Copy Server URL to clipboard
       2:
         title: 'Navigate to the "Credentials" tab to create your OAuth client ID'
         body:
@@ -501,6 +505,8 @@ authConfig:
           3: 'Authorized redirect URIs:'
           4: 'Click "Create", and then click on the "Download JSON" button.'
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
+        ariaLabel: 
+          serverUrlVerify: Copy Server Auth Verfication URL to clipboard
       3:
         title: 'Create Service Account credentials'
         introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
@@ -634,6 +640,7 @@ authConfig:
     reply:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
+      ariaLabel: Copy Reply URL to clipboard
     updateEndpoint:
       button: Update Endpoint
       banner:
@@ -2413,6 +2420,7 @@ drivers:
     activate: Failed to activate { name } driver
 
 detailText:
+  copyAriaLabel: Copy {item} value to clipboard
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
@@ -2943,6 +2951,8 @@ ingress:
 
 internalExternalIP:
   none: None
+  copyInternalIp: Copy internal IP address to clipboard
+  copyExternalIp: Copy external IP address to clipboard
 
 istio:
   links:
@@ -3150,6 +3160,7 @@ labels:
     hide: Hide System Labels and Annotations
   annotations:
     title: Annotations
+    singular: Annotation
 
 labelSelect:
   noOptions:
@@ -4896,6 +4907,7 @@ promptForceRemove:
   modalTitle: Are you sure?
   removeWarning: "There was an issue with deleting underlying infrastructure. If you proceed with this action, the Machine <b>{nameToMatch}</b> will be deleted from Rancher only. It's highly recommended to manually delete any referenced infrastructure."
   forceDelete: Force Delete
+  ariaLabel: Copy Machine name to clipboard
   confirmName: "Enter in the pool name below to confirm:"
   podRemoveWarning: "Force deleting pods does not wait for confirmation that the pod's processes have been terminated. This may result in <strong>data corruption or inconsistencies</strong>"
 
@@ -5507,6 +5519,7 @@ setup:
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
+  copyRandom: Copy random password to clipboard
   welcome: Welcome to {vendor}!
 
 sortableTable:
