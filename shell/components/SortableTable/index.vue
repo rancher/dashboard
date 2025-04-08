@@ -52,6 +52,7 @@ export default {
     LabeledSelect,
     ButtonMultiAction,
   },
+
   mixins: [
     filtering,
     sorting,
@@ -1148,6 +1149,7 @@ export default {
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
+            class="refresh-button"
             mode="manual-refresh"
             :size="manualRefreshButtonSize"
             :current-phase="refreshButtonPhase"
@@ -1728,6 +1730,12 @@ export default {
     height: 40px;
     margin-left: 10px;
     min-width: 180px;
+  }
+
+  .sortable-table-header {
+    .refresh-button {
+      height: $btn-height;
+    }
   }
 </style>
 

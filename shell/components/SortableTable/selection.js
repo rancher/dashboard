@@ -3,6 +3,7 @@ import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
 import { getParent } from '@shell/utils/dom';
+import myLogger from '@shell/utils/my-logger';
 
 export const ALL = 'all';
 export const SOME = 'some';
@@ -127,25 +128,42 @@ export default {
   },
 
   watch: {
-    // On page change
-    pagedRows() {
-      // When the table contents changes:
-      // - Remove items that are in the selection but no longer in the table.
+    /**
+     * Handle changes to the page (SSP enabled)
+     * TODO: RC why isn't pagedRows made from rows triggering pageRows watch
+     */
+    externalPaginationResult() {
+      // myLogger.warn('ss', 'selection', 'watch', 'externalPaginationResult', this.pagedRows);
+      // Handle changes to the page (SSP enabled)
+      this.pageChanged(this.pagedRows);
+    },
 
-      const content = this.pagedRows;
+    /**
+     * Handle changes to the page (SSP disabled)
+     */
+    pagedRows() {
+      // myLogger.warn('ss', 'selection', 'watch', 'pagedRows', this.pagedRows);
+
+      this.pageChanged(this.pagedRows);
+    }
+  },
+
+  methods: {
+    /**
+     * Remove items that are in the selection but no longer in the table.
+     */
+    pageChanged(page) {
       const toRemove = [];
 
       for (const node of this.selectedRows) {
-        if (!content.includes(node) ) {
+        if (!page.includes(node) ) {
           toRemove.push(node);
         }
       }
 
       this.update([], toRemove);
-    }
-  },
+    },
 
-  methods: {
     onToggleAll(value) {
       if ( value ) {
         this.update(this.pagedRows, []);

@@ -272,7 +272,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
       .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
 
-    debugger;
+    // debugger;
     // console.warn('TLM:H', 'update', '_clustersPinned', JSON.parse(JSON.stringify(_clustersPinned))[0]);
 
     this.clustersPinned.length = 0;

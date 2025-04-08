@@ -9,7 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
-import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -397,7 +397,7 @@ export default {
 
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
-      // TODO: RC watch
+      // TODO: RC watch?
 
       return findAllGetter(getters, type, opt);
     }
@@ -422,9 +422,8 @@ export default {
       return Promise.reject(e);
     }
 
-    // TODO: RC Confirm multiple watches (id, different modes, etc) work together
-
     // TODO: RC this should be done to catch watch all --> watch some
+    // if ( !opt.transient
     // await dispatch('unwatch', { type });
 
     // Of type @StorePagination
@@ -450,8 +449,6 @@ export default {
       });
     }
 
-    // TODO: RC
-    //
     if ( !opt.transient && opt.watch !== false ) {
       // of type @STEVE_WATCH_PARAMS
       const args = {
@@ -600,7 +597,7 @@ export default {
     return out;
   },
 
-  load(ctx, { data, existing }) {
+  load(ctx, { data, existing, invalidatePageCache }) {
     const { getters, commit } = ctx;
 
     let type = normalizeType(data.type);
@@ -633,7 +630,8 @@ export default {
     commit('load', {
       ctx,
       data,
-      existing
+      existing,
+      invalidatePageCache // Avoid havePage invalidation
     });
 
     if ( type === SCHEMA ) {

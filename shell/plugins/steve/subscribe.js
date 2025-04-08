@@ -195,7 +195,7 @@ export function equivalentWatch(a, b) {
 
   if (a.mode !== b.mode && (a.mode || b.mode)) {
     return false;
-  } // TODO: RC keep. removed because the request.start message doesn't contain it, so we can't associate with the watch message
+  }
 
   if ( a.id !== b.id && (a.id || b.id) ) {
     return false;
@@ -690,10 +690,8 @@ const defaultActions = {
     state, getters, dispatch, commit
   }, { opt, ...params }) {
     const {
-      resourceType: a, namespace, id, selector, mode
+      resourceType, namespace, id, selector, mode
     } = params;
-
-    const resourceType = a;
 
     // TODO: RC need to handle the case where this is called often... surpassing speed we fetch ... so we get stale promise from first request (force?)
 
