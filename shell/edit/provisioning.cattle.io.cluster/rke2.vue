@@ -65,7 +65,6 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
-import { SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
