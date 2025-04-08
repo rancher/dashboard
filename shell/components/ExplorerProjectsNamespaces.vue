@@ -155,7 +155,7 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
+          groupById:        `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
           isFake:           true,
           mainRowKey:       project.id,
           nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
@@ -166,8 +166,8 @@ export default {
 
       if (this.showMockNotInProjectGroup) {
         fakeRows.push( {
-          groupByLabel: this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
-          mainRowKey:   'fake-empty',
+          groupById:  this.t('resourceTable.groupLabel.notInAProject'),
+          mainRowKey: 'fake-empty',
         });
       }
 
@@ -273,6 +273,9 @@ export default {
     },
     showCreateNsButton() {
       return this.groupPreference !== 'namespace';
+    },
+    projectGroupBy() {
+      return this.groupPreference === 'none' ? null : 'groupById';
     }
   },
   methods: {
@@ -359,7 +362,7 @@ export default {
         );
       }
 
-      if ( row.groupByLabel === this.notInProjectKey) {
+      if ( row.groupById === this.notInProjectKey) {
         return this.t('resourceTable.groupLabel.notInAProject');
       }
 
@@ -437,6 +440,7 @@ export default {
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
+      :group-by="projectGroupBy"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
       :loading="loading"
