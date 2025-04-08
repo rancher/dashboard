@@ -19,7 +19,7 @@ import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
 import KeyValue from '@shell/components/form/KeyValue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
-import { HARVESTER as HARVESTER_FEATURE, mapFeature, SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
+import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -30,6 +30,7 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annota
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -92,7 +93,13 @@ export default defineComponent({
     }
     if (!this.isLocal) {
       // The rancher agent that runs on the local cluster is embedded in the rancher pods that are run in the local cluster, so this is not needed.
-      await this.initSchedulingCustomization();
+      const sc = await initSchedulingCustomization(this.normanCluster, this.features, this.$store, this.mode);
+
+      this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+      this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+      this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+      this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+      this.errors = this.errors.concat(sc.errors);
     }
   },
 
@@ -362,26 +369,6 @@ export default defineComponent({
         this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT] = VERSION_MANAGEMENT_DEFAULT;
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
-    },
-    // This method is duplicated in shell/edit/provisioning.cattle.io.cluster/rke2.vue. If you are making changes to this function, you might need to change it there too
-    async initSchedulingCustomization() {
-      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      try {
-        this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-      try {
-        this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
-        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
-      }
-      if (this.mode === _EDIT && !!this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
-        this.schedulingCustomizationOriginallyEnabled = true;
-      }
     },
     setSchedulingCustomization(val) {
       if (val) {

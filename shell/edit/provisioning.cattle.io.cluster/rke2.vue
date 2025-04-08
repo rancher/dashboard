@@ -25,7 +25,9 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplaceArrays
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
+import {
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+} from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -149,7 +151,13 @@ export default {
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
-    await this.initSchedulingCustomization();
+    const sc = await initSchedulingCustomization(this.value.spec, this.features, this.$store, this.mode);
+
+    this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+    this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+    this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+    this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+    this.errors = this.errors.concat(sc.errors);
 
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
@@ -1060,28 +1068,6 @@ export default {
         // Store default versions
         this.defaultRke2 = defaultRke2;
         this.defaultK3s = defaultK3s;
-      }
-    },
-    // This method is duplicated in pkg/imported/components/CruImported. If you are making changes to this function, you might need to change it there too
-    async initSchedulingCustomization() {
-      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      try {
-        this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-      try {
-        this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-
-      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
-        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
-      }
-
-      if (this.mode === _EDIT && !!this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
-        this.schedulingCustomizationOriginallyEnabled = true;
       }
     },
 

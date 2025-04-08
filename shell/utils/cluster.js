@@ -6,6 +6,10 @@ import { SETTING } from '@shell/config/settings';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { compare, sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
+import { SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
+import isEmpty from 'lodash/isEmpty';
+import { set } from '@shell/utils/object';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
@@ -295,4 +299,35 @@ export function getAllOptionsAfterCurrentVersion(store, versions, currentVersion
   });
 
   return sortedWithDeprecatedLabel;
+}
+
+export async function initSchedulingCustomization(value, features, store, mode) {
+  const schedulingCustomizationFeatureEnabled = features(SCHEDULING_CUSTOMIZATION);
+  let clusterAgentDefaultPC = null;
+  let clusterAgentDefaultPDB = null;
+  let schedulingCustomizationOriginallyEnabled = false;
+  const errors = [];
+
+  try {
+    clusterAgentDefaultPC = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+  } catch (e) {
+    errors.push(e);
+  }
+  try {
+    clusterAgentDefaultPDB = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+  } catch (e) {
+    errors.push(e);
+  }
+
+  if (schedulingCustomizationFeatureEnabled && mode === _CREATE && isEmpty(value?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
+    set(value, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: clusterAgentDefaultPC, podDisruptionBudget: clusterAgentDefaultPDB });
+  }
+
+  if (mode === _EDIT && !!value?.clusterAgentDeploymentCustomization?.schedulingCustomization) {
+    schedulingCustomizationOriginallyEnabled = true;
+  }
+
+  return {
+    clusterAgentDefaultPC, clusterAgentDefaultPDB, schedulingCustomizationFeatureEnabled, schedulingCustomizationOriginallyEnabled, errors
+  };
 }
