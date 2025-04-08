@@ -2398,6 +2398,8 @@ drivers:
       =1 { {warningDrivers} Resources in the corresponding provider will not be automatically removed.}
       other { {warningDrivers} Resources in the corresponding providers will not be automatically removed.}
       }
+  error:
+    activate: Failed to activate { name } driver
 
 detailText:
   collapse: Hide
