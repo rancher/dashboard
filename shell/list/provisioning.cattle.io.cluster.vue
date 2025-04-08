@@ -113,24 +113,32 @@ export default {
     },
 
     createLocation() {
-      return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  this.$store.getters['currentProduct'].name,
-          resource: this.resource
-        },
+      const options = this.$store.getters[`type-map/optionsFor`](this.resource)?.custom || {};
+      const params = {
+        product:  this.$store.getters['currentProduct'].name,
+        resource: this.resource
       };
+      const defaultLocation = {
+        name: 'c-cluster-product-resource-create',
+        params
+      };
+
+      return options.createLocation ? options.createLocation(params) : defaultLocation;
     },
 
     importLocation() {
-      return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  this.$store.getters['currentProduct'].name,
-          resource: this.resource
-        },
+      const options = this.$store.getters[`type-map/optionsFor`](this.resource)?.custom || {};
+      const params = {
+        product:  this.$store.getters['currentProduct'].name,
+        resource: this.resource
+      };
+      const defaultLocation = {
+        name:  'c-cluster-product-resource-create',
+        params,
         query: { [MODE]: _IMPORT }
       };
+
+      return options.importLocation ? options.importLocation(params) : defaultLocation;
     },
 
     canImport() {

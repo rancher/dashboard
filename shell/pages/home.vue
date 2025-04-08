@@ -49,6 +49,21 @@ export default defineComponent({
   mixins: [PageHeaderActions],
 
   data() {
+    const options = this.$store.getters[`type-map/optionsFor`](CAPI.RANCHER_CLUSTER)?.custom || {};
+    const params = {
+      product:  MANAGER,
+      cluster:  BLANK_CLUSTER,
+      resource: CAPI.RANCHER_CLUSTER
+    };
+    const defaultCreateLocation = {
+      name: 'c-cluster-product-resource-create',
+      params,
+    };
+    const defaultImportLocation = {
+      ...defaultCreateLocation,
+      query: { [MODE]: _IMPORT }
+    };
+
     return {
       HIDE_HOME_PAGE_CARDS,
       fullVersion: getVersionInfo(this.$store).fullVersion,
@@ -87,24 +102,9 @@ export default defineComponent({
         },
       },
 
-      createLocation: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  MANAGER,
-          cluster:  BLANK_CLUSTER,
-          resource: CAPI.RANCHER_CLUSTER
-        },
-      },
+      createLocation: options.createLocation ? options.createLocation(params) : defaultCreateLocation,
 
-      importLocation: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  MANAGER,
-          cluster:  BLANK_CLUSTER,
-          resource: CAPI.RANCHER_CLUSTER
-        },
-        query: { [MODE]: _IMPORT }
-      },
+      importLocation: options.importLocation ? options.importLocation(params) : defaultImportLocation,
 
       headers: [
         STATE,
