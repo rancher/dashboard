@@ -137,10 +137,18 @@ export function load(state, {
     if (inMap) {
       // In theory cached `entry` should match provided `existing`, so changes merged from `data` into `entry` should be reflected in `existing`.
       // However.. there's a disconnect happening somewhere so merge data into `existing` before merging into `entry`
-      const latestEntry = existing ? replaceResource(existing, data, getters) : data;
+      const latestEntry = existing && entry !== existing ? replaceResource(existing, data, getters) : data;
 
       // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
       entry = replaceResource(entry, latestEntry, getters);
+
+      // if (data.id === 'default/aaa') {
+      //   // TODO: RC
+      //   const aa = entry === existing;
+      //   const a = data?.metadata?.state?.name;
+      //   const b = existing?.metadata?.state?.name;
+      //   const c = entry?.metadata?.state?.name;
+      // }
     } else {
       // There's no entry, make a new proxy
       entry = reactive(classify(ctx, data));

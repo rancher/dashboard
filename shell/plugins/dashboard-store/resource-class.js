@@ -35,7 +35,6 @@ import { markRaw } from 'vue';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import myLogger from '@shell/utils/my-logger';
-import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1266,6 +1265,7 @@ export default class Resource {
     // 200 - this is the only status code returned
     if ( res?._status === 200 ) {
       // Show state (probably terminating) immediately, don't wait for resource.change or debounced resource.changes update
+      // It would be neater to only do this in the debounced resource.changes world, but there's no neat / complete way to do this (paginationUtils will cause dep issues if imported)
       await this.$dispatch('load', {
         data: res, existing: this, invalidatePageCache: false
       });
