@@ -15,6 +15,8 @@ export default {
     ChangePassword, GlobalRoleBindings, CruResource, LabeledInput, Loading
   },
 
+  emits: ['update:mode'],
+
   mixins: [
     CreateEditView
   ],
@@ -40,6 +42,7 @@ export default {
         roles:        !showGlobalRoles,
         rolesChanged: false,
       },
+      user: {},
     };
   },
 
@@ -104,9 +107,9 @@ export default {
       this.errors = [];
       try {
         if (this.isCreate) {
-          const user = await this.createUser();
+          this.user = await this.createUser();
 
-          await this.updateRoles(user.id);
+          await this.updateRoles(this.user.id);
         } else {
           await this.editUser();
           await this.updateRoles();
@@ -150,7 +153,7 @@ export default {
 
       const normanUser = await this.$store.dispatch('rancher/find', {
         type: NORMAN.USER,
-        id:   this.value.id,
+        id:   this.value.id || this.user?.id,
       });
 
       // Save change of password
@@ -181,8 +184,24 @@ export default {
     },
 
     async updateRoles(userId) {
-      if (this.$refs.grb) {
+      if (!this.$refs.grb) {
+        return;
+      }
+
+      try {
         await this.$refs.grb.save(userId);
+      } catch (err) {
+        if (this.isCreate) {
+          this.$emit(
+            'update:mode',
+            {
+              mode:     _EDIT,
+              user:     this.user,
+              resource: 'management.cattle.io.user',
+            }
+          );
+        }
+        throw err;
       }
     }
   }
@@ -252,7 +271,7 @@ export default {
     >
       <GlobalRoleBindings
         ref="grb"
-        :user-id="value.id || liveValue.id"
+        :user-id="value.id || liveValue.id || user.id"
         :mode="mode"
         :real-mode="realMode"
         type="user"
