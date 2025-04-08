@@ -78,7 +78,7 @@ export default class NodeDriver extends Driver {
 
   activate() {
     return this.$dispatch('rancher/request', {
-      url:    `v3/nodeDrivers11/${ escape(this.id) }?action=activate`,
+      url:    `v3/nodeDrivers/${ escape(this.id) }?action=activate`,
       method: 'post',
     }, { root: true }).catch((err) => {
       this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: this.nameDisplay }), err }, { root: true });
