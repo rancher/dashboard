@@ -197,7 +197,7 @@ export default {
       let out = inputValue === '' ? null : inputValue;
 
       if (this.outputModifier) {
-        out = out === null ? null : `${ inputValue }${ this.unit }`;
+        out = out === null ? null : `${ parseInt(inputValue) }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ inputValue }`;
       } else if (out) {
@@ -226,7 +226,7 @@ export default {
     :required="required"
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
-    @change="update($event.target.value)"
+    @update:value="update"
     @blur="update($event.target.value)"
   >
     <template #suffix>

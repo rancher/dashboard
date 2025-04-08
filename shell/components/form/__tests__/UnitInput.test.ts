@@ -11,7 +11,7 @@ describe('component: UnitInput', () => {
     expect(wrapper.isVisible()).toBe(true);
   });
 
-  it.each(['blur', 'change'])('should emit input event when "%p" is fired', async(event) => {
+  it.each(['blur', 'update:value'])('should emit input event when "%p" is fired', async(event) => {
     const wrapper = mount(UnitInput, { props: { value: 1, delay: 0 } });
     const input = wrapper.find('input');
 
@@ -19,7 +19,7 @@ describe('component: UnitInput', () => {
     await input.setValue(4);
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[2]).toStrictEqual([4]);
+    expect(wrapper.emitted('update:value')[1]).toStrictEqual([4]);
   });
 
   it.each([
@@ -183,7 +183,7 @@ describe('component: UnitInput', () => {
     input.trigger('blur');
 
     expect(wrapper.emitted('update:value')).toBeTruthy();
-    expect(wrapper.emitted('update:value')[4][0]).toBe(value);
+    expect(wrapper.emitted('update:value')[0][0]).toBe(value);
   });
 
   describe.each([
@@ -206,7 +206,7 @@ describe('component: UnitInput', () => {
       expect(inputElement.value).toBe('123');
     });
 
-    it.each(['input', 'blur'])('on %p 123 should display input value 123', async(trigger) => {
+    it.each(['update:value', 'blur'])('on %p 123 should display input value 123', async(trigger) => {
       const wrapper = mount(UnitInput, {
         props: {
           value: '0',
@@ -247,7 +247,6 @@ describe('component: UnitInput', () => {
       const input = wrapper.find('input');
 
       await input.trigger('update:value');
-      await input.trigger('input');
 
       expect(input.element.value).toBe('123');
     });
