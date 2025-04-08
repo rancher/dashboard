@@ -431,8 +431,8 @@ export default {
       }
 
       if ( this.group === 'namespace' ) {
-        // This switches to group rows by a key which is the label for the group (??)
-        return 'groupByLabel';
+        // This switches to group rows by project Id
+        return 'groupById';
       }
 
       const custom = this._listGroupMapped?.[this.group];

@@ -123,7 +123,7 @@ export default class Namespace extends SteveModel {
     return project;
   }
 
-  get groupByLabel() {
+  get groupById() {
     const projectId = this.project?.id;
 
     if ( projectId ) {
