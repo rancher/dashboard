@@ -25,4 +25,12 @@ export default class CreateEditViewPo extends ComponentPo {
   editAsYaml() {
     return new AsyncButtonPo(this.self().find('[data-testid="form-yaml"]')).click();
   }
+
+  editClusterAsYaml() {
+    return new AsyncButtonPo(this.self().find('[data-testid="rke2-custom-create-yaml"]')).click();
+  }
+
+  saveClusterAsYaml() {
+    return new AsyncButtonPo(this.self().find('[data-testid="rke2-custom-create-yaml-save"]')).click();
+  }
 }
