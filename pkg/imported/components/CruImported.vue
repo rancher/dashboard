@@ -223,7 +223,9 @@ export default defineComponent({
     },
 
     showBasics() {
-      return this.isCreate || (!this.isRKE1 && (!!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT]));
+      const hasFieldsToShow = !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+
+      return this.isCreate || (!this.isRKE1 && hasFieldsToShow);
     },
     enableInstanceDescription() {
       return this.isLocal || this.isCreate;
