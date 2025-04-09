@@ -118,7 +118,11 @@ export default {
         this.$router.replace({ name: this.doneRoute });
         buttonDone(true);
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        if (err?.message?.includes('errors due to escalation')) {
+          this.errors = [this.t('rbac.errors.escalation')];
+        } else {
+          this.errors = exceptionToErrorsArray(err);
+        }
         buttonDone(false);
       }
     },
