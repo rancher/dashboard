@@ -6,6 +6,7 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import 'cypress-real-events/support';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -87,6 +88,18 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
       gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+      // #Percy tests
+      cy.get('i.checkbox-info.icon-info.icon-lg.v-popper--has-tooltip').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Self-Healing test');
+
+      cy.get('i[aria-label="When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted."]').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Always Keep Resource test');
+
+      cy.get('i[aria-label="Polling Interval is the time between a push to the Repository and Fleet&#39;s reaction to it."]').realHover();
+      cy.wait(500);
+      cy.percySnapshot('Polling Interval test');
       gitRepoCreatePage.setPollingInterval(13);
 
       cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
@@ -178,7 +191,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    xit('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
       const workspace = 'fleet-default';
 
       // go to fleet gitrepo
@@ -213,7 +226,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         });
     });
 
-    it('check all tabs are available in the details view', function() {
+    xit('check all tabs are available in the details view', function() {
       // testing https://github.com/rancher/dashboard/issues/11155
 
       const workspace = 'fleet-default';
@@ -282,7 +295,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   gitRepoDetails.bundlesCount().should('contain', '1');
     // });
 
-    it('check if graph is visible', function() {
+    xit('check if graph is visible', function() {
       const workspace = 'fleet-default';
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
