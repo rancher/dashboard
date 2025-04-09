@@ -22,6 +22,7 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
+import NotificationCenter from './NotificationCenter';
 import {
   RcDropdown,
   RcDropdownItem,
@@ -40,6 +41,7 @@ export default {
     ClusterProviderIcon,
     IconOrSvg,
     AppModal,
+    NotificationCenter,
     HeaderPageActionMenu,
     RcDropdown,
     RcDropdownItem,
@@ -659,6 +661,7 @@ export default {
 
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
+        <NotificationCenter />
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"

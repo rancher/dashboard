@@ -25,8 +25,16 @@ export default {
   },
 
   methods: {
-    close(growl) {
+    remove(growl) {
       this.$store.dispatch('growl/remove', growl.id);
+    },
+
+    close(growl) {
+      this.$store.dispatch('growl/close', growl.id);
+
+      // If a user closes a growl, we won't get the mouse leave event, so we won't start the auto removal
+      // again, leaving to stuck growls that should timeout
+      this.startAutoRemove();
     },
 
     closeAll() {
@@ -36,13 +44,18 @@ export default {
     closeExpired() {
       const now = new Date().getTime();
 
+      // Check that we should still be running the auto-close interval timer
+      if (!this.shouldRun) {
+        this.stopAutoRemove();
+      }
+      
       for ( const growl of this.stack ) {
         if ( !growl.timeout ) {
           continue;
         }
 
         if ( growl.started + growl.timeout < now ) {
-          this.close(growl);
+          this.remove(growl);
         }
       }
     },
@@ -124,7 +137,7 @@ export default {
         </div>
       </div>
     </div>
-    <div
+    <!-- <div
       v-if="stack.length > 1"
       class="text-right mr-10 mt-10"
     >
@@ -135,7 +148,7 @@ export default {
       >
         {{ t('growl.clearAll') }}
       </button>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -143,7 +156,7 @@ export default {
   .growl-container {
     z-index: 1000;
     position: absolute;
-    top: 0;
+    top: var(--header-height);
     right: 0;
     width: 100%;
 

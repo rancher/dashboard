@@ -3220,8 +3220,10 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in {version}
-  whatsNewLink: "What's new in {version}"
+  whatsNew:
+    title: Welcome to Rancher {version}
+    message: Learn more about the improvements and new capabilities in this version
+    link: Release Notes
   learnMore: Learn More
   support: Support
   community:

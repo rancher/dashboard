@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
@@ -14,7 +14,6 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
-import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -30,6 +29,7 @@ import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import TestPanel from '@shell/components/nav/NotificationCenter/TestPanel.vue';
 import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 
 export default defineComponent({
@@ -44,6 +44,7 @@ export default defineComponent({
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
+    TestPanel,
   },
 
   mixins: [PageHeaderActions],
@@ -66,7 +67,6 @@ export default defineComponent({
 
     return {
       HIDE_HOME_PAGE_CARDS,
-      fullVersion: getVersionInfo(this.$store).fullVersion,
       // Page actions don't change on the Home Page
       pageActions: [
         {
@@ -213,7 +213,7 @@ export default defineComponent({
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
+    ...mapGetters(['currentCluster', 'defaultClusterId']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     canCreateCluster() {
@@ -223,15 +223,11 @@ export default defineComponent({
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
-    readWhatsNewAlready() {
-      return readReleaseNotes(this.$store);
-    },
   },
 
   async created() {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
-    markSeenReleaseNotes(this.$store);
   },
 
   // Forget the types when we leave the page
@@ -406,19 +402,12 @@ export default defineComponent({
       return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
     },
 
-    showWhatsNew() {
-      // Update the value, so that the message goes away
-      markReadReleaseNotes(this.$store);
-    },
-
     async resetCards() {
       const value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS) || {};
 
       delete value.setLoginPage;
 
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-
-      await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
     },
 
     async toggleBanner() {
@@ -498,32 +487,8 @@ export default defineComponent({
       pref-key="welcomeBanner"
       data-testid="home-banner-graphic"
     />
+    <TestPanel />
     <IndentedPanel class="mt-20 mb-20">
-      <div
-        v-if="!readWhatsNewAlready"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            data-testid="changelog-banner"
-            color="info whats-new"
-          >
-            <div>
-              {{ t('landing.seeWhatsNew', { version: CURRENT_RANCHER_VERSION }) }}
-            </div>
-            <a
-              class="hand banner-link"
-              :href="releaseNotesUrl"
-              role="link"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              :aria-label="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })"
-              @click.stop="showWhatsNew"
-              @keyup.stop.enter="showWhatsNew"
-            ><span v-clean-html="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })" /></a>
-          </Banner>
-        </div>
-      </div>
       <div class="row home-panels">
         <div class="col main-panel">
           <div class="row panel">
@@ -708,19 +673,6 @@ export default defineComponent({
 
     .side-panel {
       margin-left: 1.75%;
-    }
-  }
-
-  .whats-new {
-    > :deep() .banner__content {
-      display: flex;
-
-      > div {
-        flex: 1;
-      }
-      > a {
-        align-self: flex-end;
-      }
     }
   }
 
