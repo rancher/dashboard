@@ -253,15 +253,13 @@ export default {
         // Label can be overridden by chart annotation
         const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:         chart.chartName,
+          name:        chart.chartName,
           label,
-          description:  chart.chartDescription,
-          id:           chart.id,
-          versions:     [],
-          installed:    false,
-          builtin:      false,
-          experimental: uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
-          certified:    uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER)
+          description: chart.chartDescription,
+          id:          chart.id,
+          versions:    [],
+          installed:   false,
+          builtin:     false,
         };
 
         item.versions = [...chart.versions];
@@ -282,9 +280,15 @@ export default {
         const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
+          item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
+          item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
+
           item.displayVersion = latestCompatible.version;
           item.icon = latestCompatible.icon;
         } else {
+          item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
+          item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
+
           item.displayVersion = item.versions?.[0]?.version;
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
@@ -323,6 +327,7 @@ export default {
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
           const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
+
           const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
@@ -334,6 +339,8 @@ export default {
             displayVersion: p.metadata?.version || '-',
             installed:      true,
             builtin:        !!p.builtin,
+            experimental:   rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:      rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
           };
 
           // Built-in plugins can chose to be hidden - used where we implement as extensions
