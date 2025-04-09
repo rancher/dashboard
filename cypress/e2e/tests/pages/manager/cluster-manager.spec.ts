@@ -596,6 +596,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     describe('Generic', () => {
       it('can create new cluster', () => {
+        cy.intercept('GET', `/v1/management.cattle.io.users?exclude=metadata.managedFields`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();
@@ -605,7 +606,18 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.waitForPage('mode=import');
         importClusterPage.selectGeneric(0);
         // Verify that we only show when editing
-        importClusterPage.repositoriesAccordion().should('not.be.visible');
+        importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
+        cy.wait('@getUsers');
+
+        // check accordions are displayed or not
+        importClusterPage.accordion(2, 'Basics').should('be.visible');
+        importClusterPage.accordion(3, 'Member Roles').should('be.visible');
+        importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(5, 'Advanced').scrollIntoView().should('be.visible');
+        importClusterPage.networkingAccordion().should('not.exist');
+        importClusterPage.registriesAccordion().should('not.exist');
+
+        importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
         importClusterPage.create();
 
@@ -614,14 +626,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           cy.wrap(intercept.response.body.id).as('importedClusterId');
 
           expect(intercept.request.body).to.deep.equal({
-            type:         importType,
-            agentEnvVars: [],
-            annotations:  {},
-            labels:       {},
-            name:         importGenericName
-
+            type:           importType,
+            agentEnvVars:   [],
+            annotations:    { 'rancher.io/imported-cluster-version-management': 'system-default' },
+            importedConfig: { privateRegistryURL: null },
+            labels:         {},
+            name:           importGenericName
           });
         });
+
         cy.get('@importedClusterId').then((importedClusterId) => {
           const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importedClusterId.toString());
 
@@ -658,15 +671,24 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editImportedClusterPage.waitForPage('mode=edit');
 
         editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName );
+
+        // check accordions are properly displayed
+        editImportedClusterPage.accordion(2, 'Basics').should('be.visible');
+        editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
+        editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
+        editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
+        editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
+        editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+
         // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
         editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
 
-        editImportedClusterPage.enableNetworkAccordion();
+        editImportedClusterPage.toggleAccordion(5, 'Networking');
         editImportedClusterPage.ace().enable();
         editImportedClusterPage.ace().enterFdqn(fqdn);
         editImportedClusterPage.ace().enterCaCerts(cacert);
 
-        editImportedClusterPage.enableRepositoriesAccordion();
+        editImportedClusterPage.toggleAccordion(6, 'Registries');
         editImportedClusterPage.enablePrivateRegistryCheckbox();
         editImportedClusterPage.privateRegistry().set(privateRegistry);
 
