@@ -191,7 +191,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    xit('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
       const workspace = 'fleet-default';
 
       // go to fleet gitrepo
@@ -226,7 +226,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         });
     });
 
-    xit('check all tabs are available in the details view', function() {
+    it('check all tabs are available in the details view', function() {
       // testing https://github.com/rancher/dashboard/issues/11155
 
       const workspace = 'fleet-default';
@@ -295,7 +295,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   gitRepoDetails.bundlesCount().should('contain', '1');
     // });
 
-    xit('check if graph is visible', function() {
+    it('check if graph is visible', function() {
       const workspace = 'fleet-default';
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
