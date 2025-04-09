@@ -13,13 +13,19 @@ import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import Collapse from '@shell/components/Collapse';
 
+// TODO: RC Remove l10n references for removed incompatibles
+// TODO: RC Add supercedes notices to SSP and subcedes to incremental and manual???
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
-  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
-  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
-
+// const incompatible = {
+//   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
+//   manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
+//   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+//   serverPagination:   ['incrementalLoading', 'manualRefresh'],
+// };
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',

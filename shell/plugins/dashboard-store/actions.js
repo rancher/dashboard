@@ -199,8 +199,12 @@ export default {
 
     let skipHaveAll = false;
 
+    if (type === 'pod') {
+      debugger;
+    }
+
     // if it's incremental loading, we do two parallel requests
-    // on for a limit of 100, to quickly show data
+    // one for a limit of 100, to quickly show data
     // another one with 1st page of the subset of the resource we are fetching
     // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
     let pageFetchOpts;
@@ -214,12 +218,12 @@ export default {
 
       pageFetchOpts = {
         ...opt,
-        url: addParam(opt.url, 'limit', `${ opt.incremental }`),
+        url: addParam(opt.url, 'limit', `${ opt.incremental.limit }`),
       };
 
       // this is where we "hijack" the limit for the dispatch('request') some lines below
       // and therefore have 2 initial requests in parallel
-      opt.url = addParam(opt.url, 'limit', '100');
+      opt.url = addParam(opt.url, 'limit', '5');
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll

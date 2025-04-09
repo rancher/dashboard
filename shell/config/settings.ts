@@ -200,14 +200,17 @@ export interface PerfSettingsKubeApi {
 
 export interface PerfSettings {
   inactivity: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
   incrementalLoading: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
-  manualRefresh: {};
+  manualRefresh: {
+    enabled: boolean;
+    threshold: number;
+  };
   disableWebsocketNotification: boolean;
   garbageCollection: GC_PREFERENCES;
   forceNsFilterV2: any;

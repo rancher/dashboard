@@ -3,6 +3,7 @@ import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
 import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -201,12 +202,25 @@ export default {
           .finally(() => (that['paginating'] = false));
       }
 
-      let incremental = 0;
+      let incremental = null;
 
       if (this.incremental) {
         const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
 
-        incremental = Math.ceil(resourceCount / PAGES);
+        sdfdsfdsf;
+
+        // can't `.next` through a set of known resources at specific point in time
+        // - removed for vai, requires caching entire result sets
+        // 1. could get page 1 --> 2 --> 3 --> 4 , but each page would be independently re-calculated at time of request
+        // - could we fetch all together to reduce risk?
+        // 2. could get 100 as usual, and just ALL in another request (user sees stuff quickly, second quest could take some time)
+
+        incremental = {
+          quickLoadPageLimit:   100,
+          otherPagesLimit:      this.canPaginate ? resourceCount : Math.ceil(resourceCount / PAGES),
+          // limit:                this.canPaginate ? 1 : Math.ceil(resourceCount / PAGES),
+          paginateByPageNumber: this.canPaginate
+        };
       }
 
       const opt = {
@@ -244,11 +258,13 @@ export default {
       this.init = true;
 
       // manual refresh settings config
-      const manualDataRefreshEnabled = this.perfConfig?.manualRefresh?.enabled;
+      const manualDataRefreshEnabled = perfSettingsUtils.manualRefreshUtils.isEnabled(this.canPaginate, this.perfConfig);
+      // this.perfConfig?.manualRefresh?.enabled;
       const manualDataRefreshThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // incremental loading settings config
-      const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
+      const incrementalLoadingEnabled = perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.canPaginate, this.perfConfig);
+      // const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
       const incrementalLoadingThreshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
 
       // other vars
