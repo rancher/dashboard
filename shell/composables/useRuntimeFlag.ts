@@ -6,12 +6,20 @@ import { getVersionInfo } from '@shell/utils/version';
 
 let store: Store<any>;
 
+/**
+ * Initializes runtime flags.
+ * @param vuexStore The Vuex store instance
+ */
 export const useRuntimeFlag = (vuexStore: Store<any>) => {
   store = vuexStore;
 
   return { featureDropdownMenu };
 };
 
+/**
+ * Check if the dropdown menu feature is enabled
+ * @returns A boolean indicating whether the dropdownMenu feature is enabled.
+ */
 const featureDropdownMenu = computed(() => {
   const { fullVersion } = getVersionInfo(store);
 
