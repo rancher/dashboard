@@ -6,7 +6,7 @@ import { getVersionInfo } from '@shell/utils/version';
 
 let store: Store<any>;
 
-export const useFeatureFlag = (vuexStore: Store<any>) => {
+export const useRuntimeFlag = (vuexStore: Store<any>) => {
   store = vuexStore;
 
   return { featureDropdownMenu };

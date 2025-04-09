@@ -24,7 +24,7 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { useFeatureFlag } from '@shell/composables/useFeatureFlag';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -546,7 +546,7 @@ export default {
     });
 
     const store = useStore();
-    const { featureDropdownMenu } = useFeatureFlag(store);
+    const { featureDropdownMenu } = useRuntimeFlag(store);
 
     return {
       table,

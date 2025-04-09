@@ -17,7 +17,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { useFeatureFlag } from '@shell/composables/useFeatureFlag';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 export default {
   name:       'ListProjectNamespace',
@@ -63,7 +63,7 @@ export default {
 
   setup() {
     const store = useStore();
-    const { featureDropdownMenu } = useFeatureFlag(store);
+    const { featureDropdownMenu } = useRuntimeFlag(store);
 
     return { featureDropdownMenu };
   },
