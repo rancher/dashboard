@@ -169,12 +169,6 @@ export default {
         parentPath = parentPath === '/' ? undefined : parentPath;
       }
 
-      if (!parentPath) {
-        const metaNav = this.$route.meta?.nav;
-
-        parentPath = metaNav ? metaNav.replace(':cluster', cluster) : undefined;
-      }
-
       for (const item of items.children) {
         if (item.children && this.hasActiveRoute(item)) {
           return true;

@@ -277,7 +277,6 @@ export default [
         meta:      { ...installRedirectRouteMeta(NEUVECTOR_NAME, NEUVECTOR_CHART_NAME, undefined, false) }
       }, {
         path:     '/c/:cluster/apps/charts',
-        meta:     { nav: '/c/:cluster/apps/charts' },
         children: [
           {
             path:      '',
