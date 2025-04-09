@@ -223,7 +223,7 @@ export default defineComponent({
     },
 
     showBasics() {
-      return this.isCreate || !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+      return this.isCreate || (!this.isRKE1 && (!!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT]));
     },
     enableInstanceDescription() {
       return this.isLocal || this.isCreate;
