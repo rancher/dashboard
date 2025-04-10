@@ -66,6 +66,8 @@ export default {
     } else if ( !this.filteredCredentials.length ) {
       this.credentialId = _NEW;
     }
+
+    this.credentialComponent = this.createComponent();
   },
 
   data() {
@@ -76,7 +78,8 @@ export default {
       newCredential:                 null,
       credCustomComponentValidation: false,
       nameRequiredValidation:        false,
-      originalId:                    this.value
+      originalId:                    this.value,
+      credentialComponent:           null
     };
   },
 
@@ -140,14 +143,6 @@ export default {
       return out;
     },
 
-    createComponent() {
-      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
-        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
-      }
-
-      return this.$store.getters['type-map/importCloudCredential']('generic');
-    },
-
     validationPassed() {
       if ( this.credentialId === _NONE ) {
         return false;
@@ -175,6 +170,13 @@ export default {
   },
 
   methods: {
+    createComponent() {
+      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
+        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
+      }
+
+      return this.$store.getters['type-map/importCloudCredential']('generic');
+    },
     async save(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
@@ -236,7 +238,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <CruResource
     v-else
-    :done-params="$attrs['done-params'] /* Without this, changes to the validationPassed prop end up propagating all the way to the root of the app and force a re-render when the input becomes valid. I haven't found a reasonable explanation for why this happens. */"
     :mode="mode"
     :validation-passed="validationPassed"
     :resource="newCredential"
@@ -267,7 +268,7 @@ export default {
       />
 
       <component
-        :is="createComponent"
+        :is="credentialComponent"
         ref="create"
         v-model:value="newCredential"
         mode="create"
