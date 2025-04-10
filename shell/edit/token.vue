@@ -218,7 +218,7 @@ export default {
             :options="expiryUnitsOptions"
             :clearable="false"
             :reduce="opt=>opt.value"
-            :hidden-label="t('accountAndKeys.apiKeys.add.ariaLabel.expirationUnits')"
+            :aria-label="t('accountAndKeys.apiKeys.add.ariaLabel.expirationUnits')"
           />
         </div>
       </div>

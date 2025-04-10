@@ -7,7 +7,7 @@ import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
-  emits: ['update:value', 'createdListItem'],
+  emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
 
   components: { LabeledTooltip },
   mixins:     [
@@ -91,18 +91,13 @@ export default {
     isLangSelect: {
       type:    Boolean,
       default: false
-    },
-    // at the time of this code update there is no option
-    // in the vue-select component to add a custom aria-label
-    // the next best thing is to render a screen-reader
-    // hidden element and connect it via ID
-    hiddenLabel: {
-      type:    String,
-      default: null,
-    },
+    }
   },
   data() {
-    return { uid: generateRandomAlphaString(10) };
+    return {
+      isOpen:       false,
+      generatedUid: `s-uid-${ generateRandomAlphaString(12) }`
+    };
   },
   methods: {
     // resizeHandler = in mixin
@@ -202,14 +197,26 @@ export default {
         return Math.random(100000);
       }
     },
+
     report(e) {
       alert(e);
     },
+
     handleDropdownOpen(args) {
       // function that prevents the "opening dropdown on focus"
       // default behaviour of v-select
       return args.noDrop || args.disabled ? false : args.open;
-    }
+    },
+    onOpen() {
+      this.isOpen = true;
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
+    onClose() {
+      this.isOpen = false;
+      this.$emit('on-close');
+    },
   },
   computed: {
     requiredField() {
@@ -270,7 +277,10 @@ export default {
       [$attrs.class]: $attrs.class
     }"
     :tabindex="disabled || isView ? -1 : 0"
-    role="listbox"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -298,12 +308,14 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-      role="listbox"
-      :input-id="uid"
+      role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
-      @open="resizeHandler"
+      @open="onOpen"
+      @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
     >
       <template
@@ -339,10 +351,6 @@ export default {
       :hover="hoverTooltip"
       :value="validationMessage"
     />
-    <label
-      class="sr-only"
-      :for="uid"
-    >{{ hiddenLabel }}</label>
   </div>
 </template>
 
