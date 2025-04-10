@@ -22,10 +22,6 @@ export default defineComponent({
 
   components: { KnownHostsEditDialog },
 
-  data() {
-    return { disableFocusTrapForUnitTests: false };
-  },
-
   computed: {
     isViewMode() {
       return this.mode === _VIEW;
@@ -87,7 +83,6 @@ export default defineComponent({
         ref="editDialog"
         :value="value"
         :mode="mode"
-        :disable-focus-trap-for-unit-tests="disableFocusTrapForUnitTests"
         @closed="dialogClosed"
       />
     </template>

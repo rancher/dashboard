@@ -2,6 +2,17 @@ import { mount } from '@vue/test-utils';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts/index.vue';
 
+jest.mock('focus-trap', () => {
+  return {
+    createFocusTrap: jest.fn().mockImplementation(() => {
+      return {
+        activate:   jest.fn(),
+        deactivate: jest.fn(),
+      };
+    }),
+  };
+});
+
 describe('component: SSHKnownHosts', () => {
   it.each([
     ['0 entities', '', 0],
@@ -15,10 +26,7 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode: _VIEW,
         value,
-      },
-      data() {
-        return { disableFocusTrapForUnitTests: true };
-      },
+      }
     });
 
     const knownSshHostsSummary = wrapper.find('[data-testid="input-known-ssh-hosts_summary"]');
@@ -34,10 +42,7 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode:  _EDIT,
         value: 'line1\nline2\n',
-      },
-      data() {
-        return { disableFocusTrapForUnitTests: true };
-      },
+      }
     });
 
     const knownSshHostsSummary = wrapper.find('[data-testid="input-known-ssh-hosts_summary"]');
@@ -52,10 +57,7 @@ describe('component: SSHKnownHosts', () => {
       props: {
         mode:  _EDIT,
         value: '',
-      },
-      data() {
-        return { disableFocusTrapForUnitTests: true };
-      },
+      }
     });
 
     const knownSshHostsOpenDialog = wrapper.find('[data-testid="input-known-ssh-hosts_open-dialog"]');
