@@ -99,6 +99,10 @@ export default {
       type:    String,
       default: '',
     },
+    testIdPrefix: {
+      type:    String,
+      default: '',
+    }
   },
 
   setup(props, { emit }) {
@@ -282,7 +286,7 @@ export default {
       <div
         v-for="(row, idx) in rows"
         :key="idx"
-        :data-testid="`array-list-box${ idx }`"
+        :data-testid="`${testIdPrefix}array-list-box${ idx }`"
         class="box"
       >
         <slot
@@ -306,7 +310,7 @@ export default {
                 v-if="valueMultiline"
                 ref="value"
                 v-model:value="row.value"
-                :data-testid="`textarea-${idx}`"
+                :data-testid="`${testIdPrefix}textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
@@ -317,7 +321,7 @@ export default {
                 v-else-if="rules.length > 0"
                 ref="value"
                 v-model:value="row.value"
-                :data-testid="`labeled-input-${idx}`"
+                :data-testid="`${testIdPrefix}labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
@@ -329,7 +333,7 @@ export default {
                 v-else
                 ref="value"
                 v-model="row.value"
-                :data-testid="`input-${idx}`"
+                :data-testid="`${testIdPrefix}input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :aria-label="a11yLabel ? a11yLabel : undefined"
@@ -352,7 +356,7 @@ export default {
               type="button"
               :disabled="isView"
               class="btn role-link"
-              :data-testid="`remove-item-${idx}`"
+              :data-testid="`${testIdPrefix}remove-item-${idx}`"
               :aria-label="`${_removeLabel} ${idx + 1}`"
               role="button"
               @click="remove(row, idx)"
@@ -386,7 +390,7 @@ export default {
           type="button"
           class="btn role-tertiary add"
           :disabled="loading || disableAdd"
-          data-testid="array-list-button"
+          :data-testid="`${testIdPrefix}array-list-button`"
           :aria-label="_addLabel"
           role="button"
           @click="add()"
