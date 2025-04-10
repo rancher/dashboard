@@ -63,17 +63,14 @@ export const actions = {
     commit('remove', id);
   },
 
-  close({ commit, dispatch, getters }, id ) {
+  async close({ commit, dispatch, getters }, id ) {
     const growl = getters.byId(id);
     
-    console.error('REMOVE GROWL');
-    console.error(growl);
-
     commit('remove', id);
 
-    // If the growl has a notification, mark it as read
+    // If the growl has a notification, mark it as read if the user dismisses the growl
     if (growl.notification) {
-      dispatch('notifications/markRead', growl.notification, { root: true });
+      await dispatch('notifications/markRead', growl.notification, { root: true });
     }
   },  
 
@@ -102,54 +99,59 @@ export const actions = {
     });
   },
 
-  warning({ commit, dispatch }, data) {
+  async warning({ commit, dispatch }, data) {
+    // Send a notification for the growl
+    const notification = await dispatch('notifications/fromGrowl', {
+      ...data,
+      level: NotificationLevel.Warning
+    }, { root: true });
+
     commit('add', {
       color:   'warning',
       icon:    'warning',
       timeout: DEFAULT_TIMEOUT,
+      notification,
       ...data
     });
-
-    // Send a notification for the growl
-    dispatch('notifications/fromGrowl', {
-      ...data,
-      level: NotificationLevel.Warning
-    }, { root: true });
   },
 
-  error({ commit, dispatch }, data) {
-    commit('add', {
-      color:   'error',
-      icon:    'error',
-      timeout: DEFAULT_TIMEOUT, // Errors timeout since they will be available as a notification
-      ...data
-    });
-
-    // Send a notification for the growl
-    dispatch('notifications/fromGrowl', {
-      ...data,
-      level: NotificationLevel.Error
-    }, { root: true });
-  },
-
-  async fromError({ commit, dispatch }, { title, err }) {
-    commit('add', {
-      color:   'error',
-      icon:    'error',
-      timeout: DEFAULT_TIMEOUT, // Errors timeout since they will be available as a notification
-      title,
-      message: stringify(err),
-    });
-
+  async error({ commit, dispatch }, data) {
     // Send a notification for the growl
     const notification = await dispatch('notifications/fromGrowl', {
       ...data,
       level: NotificationLevel.Error
     }, { root: true });
+      
+    commit('add', {
+      color:   'error',
+      icon:    'error',
+      timeout: DEFAULT_TIMEOUT, // Errors timeout since they will be available as a notification
+      notification,
+      ...data
+    });
+  },
+
+  async fromError({ commit, dispatch }, { title, err }) {
+    // Send a notification for the growl
+    const notification = await dispatch('notifications/fromGrowl', {
+      ...data,
+      level: NotificationLevel.Error
+    }, { root: true });
+
+    commit('add', {
+      color:   'error',
+      icon:    'error',
+      timeout: DEFAULT_TIMEOUT, // Errors timeout since they will be available as a notification
+      notification,
+      title,
+      message: stringify(err),
+    });
   },
 
   /**
    * Used to create a growl when a notification is sent
+   * 
+   * Growls are only shown for Success, Warning and Error notifications
    */
   notification({ commit }, notification) {
     const growl = {
@@ -174,8 +176,6 @@ export const actions = {
         break;
       default:
         growl.skip = true;
-        // growl.color = 'info';
-        // growl.icon = 'info';
     }
 
     // We don't show growls for info, announcement, task

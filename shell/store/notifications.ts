@@ -71,15 +71,9 @@ export const state = function(a: any): NotificationsStore {
   // Expire old notifications
   // TODO
 
-  // Filter out tasks/processes
-
-  // Register for notifications
-  for (var key in window.localStorage) {
-    console.error(key);
-  }
-
-  console.error('>>>');
-  console.log(a);
+  // for (var key in window.localStorage) {
+  //   console.error(key);
+  // }
 
   return { notifications };
 };
