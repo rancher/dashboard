@@ -343,7 +343,7 @@ export default {
   padding: 10px 5px;
   margin-bottom: 30px;
   margin-top: 5px;
-  background: var(--body-bg);
+  background: var(--body__bg);
   border-radius: 5px;
 
   p {
