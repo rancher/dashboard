@@ -513,7 +513,7 @@ export default {
       }
 
       &.active {
-        background-color: var(--body-bg);
+        background-color: var(--body__bg);
         border-left: solid 5px var(--primary);
 
         & A {
@@ -563,7 +563,7 @@ export default {
   .tab-container {
     width: calc(100% - #{$sideways-tabs-width});
     flex-grow: 1;
-    background-color: var(--body-bg);
+    background-color: var(--body__bg);
   }
 }
 </style>

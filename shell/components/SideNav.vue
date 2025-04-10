@@ -508,7 +508,7 @@ export default {
         padding: 10px;
 
         &:hover {
-          background: var(--nav-hover);
+          background: var(--nav--hover);
           text-decoration: none;
         }
 
