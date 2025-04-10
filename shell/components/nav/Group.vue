@@ -381,17 +381,17 @@ export default {
       }
 
       &.active {
-        color: var(--body-text);
-        background-color: var(--category--active);
+        color: var(--on-active);
+        background-color: var(--active);
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--body-text);
+          color: var(--on-active);
         }
 
         &:hover {
-          background-color: var(--category--active--hover);
+          background-color: var(--nav-active--hover);
         }
 
         ~ I {
@@ -399,7 +399,7 @@ export default {
         }
       }
       &:hover:not(.active) {
-        background-color: var(--nav-hover);
+        background-color: var(--nav--hover);
       }
       &:hover:not(.active).noHover {
         background-color: inherit;
@@ -435,6 +435,12 @@ export default {
 
       &.group-highlight {
         background: var(--category--active);
+
+        .child, .header {
+          &:hover {
+            background: var(--nav-category-active--hover);
+          }
+        }
       }
     }
 
@@ -473,6 +479,9 @@ export default {
         padding: 6px 8px 6px 8px;
       }
     }
+    :deep() a:hover {
+      text-decoration: none;
+    }
   }
 
   .body :deep() > .child.router-link-active,
@@ -485,14 +494,17 @@ export default {
 
     A {
       color: var(--on-active);
-      background-color: var(--active);
+      background: var(--active);
       font-weight: bold;
+      
+      &:hover {
+        background: var(--nav-active--hover);
+      }
     }
   }
 
   .body :deep() > .child {
     A {
-      border-left: solid 5px transparent;
       line-height: 16px;
       font-size: 14px;
       padding-left: 24px;

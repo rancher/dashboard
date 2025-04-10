@@ -47,7 +47,7 @@ export default {
     .group-panel-title {
       position: absolute;
       top: -7px;
-      background-color: var(--body-bg);
+      background-color: var(--body__bg);
       padding: 0 5px;
     }
     .group-panel-content {

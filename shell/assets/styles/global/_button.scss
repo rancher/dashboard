@@ -167,7 +167,7 @@ button,
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  opacity: 0.35;
+  opacity: var(--disabled-opacity);
 }
 
 .btn-group {
@@ -187,9 +187,17 @@ fieldset[disabled] .btn {
     background: var(--toggle-OFF__bg);
     color: var(--toggle-OFF__color);
 
+    &:hover {
+      background: var(--toggle-OFF--hover);
+    }
+   
     &.toggle-on {
       background: var(--toggle-ON__bg);
       color: var(--toggle-ON__color);
+
+      &:hover {
+        background: var(--active--hover);
+      }
     }
 
     &:focus {
@@ -198,15 +206,10 @@ fieldset[disabled] .btn {
     }
 
     &:focus-visible {
-      z-index: 1;
+      z-index: 1; 
       @include focus-outline;
     }
-    
-    &.active {
-      @extend .bg-primary;
-      background: var(--active);
-      color: var(--on-active);
-    }
+
   }
 
   .btn-disabled,
