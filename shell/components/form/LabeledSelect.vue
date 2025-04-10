@@ -116,9 +116,11 @@ export default {
 
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true,
-      uid:                generateRandomAlphaString(10)
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      isOpen:               false,
+      generatedUid: `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -197,11 +199,13 @@ export default {
     },
 
     onOpen() {
+      this.isOpen = true;
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
+      this.isOpen = false;
       this.$emit('on-close');
     },
 
@@ -279,6 +283,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -296,7 +301,9 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
-    role="listbox"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="this.$attrs['aria-describedby'] || undefined"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -308,7 +315,7 @@ export default {
     >
       <label
         v-if="hasLabel"
-        :id="`labeled-select-uid-${uid}`"
+        :for="labeledSelectLabelId"
       >
         <t
           v-if="labelKey"
@@ -324,7 +331,6 @@ export default {
     </div>
     <v-select
       ref="select-input"
-      :aria-labelledby="hasLabel ? `labeled-select-uid-${uid}` : ''"
       v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -345,7 +351,8 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
-      role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"

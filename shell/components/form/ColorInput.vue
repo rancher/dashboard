@@ -1,5 +1,6 @@
 <script>
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default {
   emits: ['update:value'],
@@ -67,6 +68,20 @@ export default {
       const disabled = this.disabled;
 
       return this.mode !== this.editMode || disabled;
+    },
+
+    ariaLabel() {
+      if (this.labelKey) {
+        return this.t(this.labelKey);
+      } else if (this.label) {
+        return this.label;
+      }
+
+      return this.$attrs['aria-label'] || this.t('generic.colorPicker');
+    },
+
+    ariaDescribedBy() {
+      return this.$attrs['aria-describedby'] || undefined;
     }
   },
 
@@ -99,12 +114,18 @@ export default {
     :tabindex="isDisabled ? -1 : 0"
     @keydown.space.prevent
     @keyup.enter.space.stop="handleKeyup($event)"
+    role="presentation"
   >
-    <label class="text-label"><t
-      v-if="labelKey"
-      :k="labelKey"
-      :raw="true"
-    />{{ label }}</label>
+    <label 
+      v-if="labelKey || label"
+      class="text-label">
+      <t
+        v-if="labelKey"
+        :k="labelKey"
+        :raw="true"
+      />
+      <template v-else-if="label">{{ label }}</template>
+    </label>
     <div
       :data-testid="componentTestid + '-color-input_preview-container'"
       class="preview-container"
@@ -117,7 +138,8 @@ export default {
         <input
           ref="input"
           :aria-disabled="isDisabled ? 'true' : 'false'"
-          :aria-label="t('generic.colorPicker')"
+          :aria-label="ariaLabel"
+          :aria-describedby="ariaDescribedBy"
           type="color"
           :disabled="isDisabled"
           tabindex="-1"
