@@ -74,9 +74,9 @@ export default defineComponent({
   .badge-state {
     align-items: center;
     display: inline-flex;
-    padding: 2px 10px;
+    padding: 2px 8px;
     border: 1px solid transparent;
-    border-radius: 20px;
+    border-radius: var(--border-radius);
 
     &.bg-info {
       border-color: var(--info);
@@ -92,8 +92,8 @@ export default defineComponent({
 
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
-      color: var(--success);
-      background: transparent;
+      color: var(--success-text);
+      background: var(--success);
       border-color: var(--success);
     }
 

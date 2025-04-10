@@ -705,7 +705,7 @@ $spacer: 10px;
     position: absolute;
     bottom: 0;
     width: 100%;
-    background: var(--body-bg);
+    background: var(--body__bg);
     .controls-steps {
 
       .btn {
