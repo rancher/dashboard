@@ -431,7 +431,7 @@ export default {
 <style lang="scss">
 .chart-container {
   display: flex;
-  background-color: var(--body-bg);
+  background-color: var(--body__bg);
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
@@ -445,7 +445,7 @@ export default {
     width: 100%;
     height: 100%;
     border-radius: var(--border-radius);
-    background-color: var(--body-bg);
+    background-color: var(--body__bg);
     z-index: 2;
     display: flex;
     align-items: center;
@@ -508,7 +508,7 @@ export default {
       }
 
       .node-hover-layer {
-        stroke: var(--body-bg);
+        stroke: var(--body__bg);
         stroke-width: 2;
         display: none;
       }
@@ -519,7 +519,7 @@ export default {
     width: 30%;
     position: relative;
     border-left: 1px solid var(--border);
-    background-color: var(--body-bg);
+    background-color: var(--body__bg);
     border-top-right-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
     overflow: hidden;

@@ -1693,7 +1693,7 @@ export default {
       right: 0;
       width: 300px;
       border: 1px solid var(--primary);
-      background-color: var(--body-bg);
+      background-color: var(--body__bg);
       padding: 20px;
       z-index: 2;
 
@@ -1931,7 +1931,7 @@ export default {
 
       .no-rows, .no-results {
         &:hover {
-          background-color: var(--body-bg);
+          background-color: var(--body__bg);
         }
       }
 
@@ -1939,7 +1939,7 @@ export default {
         &:before {
           content: "";
           display: block;
-          height: 20px;
+          height: 10px;
           background-color: transparent;
         }
       }
