@@ -470,7 +470,7 @@ export default {
       color: var(--on-active);
       background: var(--active);
       font-weight: bold;
-      
+
       &:hover {
         background: var(--nav-active--hover);
       }
