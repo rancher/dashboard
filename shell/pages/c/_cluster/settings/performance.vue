@@ -13,8 +13,6 @@ import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import Collapse from '@shell/components/Collapse';
 
-// TODO: RC Remove l10n references for removed incompatibles
-// TODO: RC Add supercedes notices to SSP and subcedes to incremental and manual???
 const incompatible = {
   incrementalLoading: ['forceNsFilterV2'],
   manualRefresh:      ['forceNsFilterV2'],
@@ -101,10 +99,6 @@ export default {
 
     steveCacheEnabled() {
       return this.$store.getters['features/get'](STEVE_CACHE);
-    },
-
-    steveCacheAndSSPEnabled() {
-      return this.steveCacheEnabled && this.value.serverPagination.enabled;
     },
 
     sspApplicableResources() {
@@ -263,27 +257,14 @@ export default {
           </h2>
           <p>{{ t('performance.serverPagination.description') }}</p>
           <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
-          />
-          <Banner
-            color="error"
-            label-key="performance.serverPagination.experimental"
-          />
-          <Checkbox
-            v-model:value="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-10"
-            :primary="true"
-            :disabled="!steveCacheEnabled"
-            @update:value="compatibleWarning('serverPagination', $event)"
-          />
+          >
+            <div v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
+          </Banner>
           <Collapse
             :title="t('performance.serverPagination.applicable')"
-            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
-            :isDisabled="!steveCacheAndSSPEnabled"
+            :open="steveCacheEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheEnabled"
             @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
           >
             <p

@@ -254,7 +254,6 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
     }
   },
   serverPagination: {
-    enabled:          false,
     useDefaultStores: true,
     stores:           undefined,
   }
