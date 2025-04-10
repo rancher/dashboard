@@ -260,14 +260,15 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      // TODO: RC convert to matching?
       // TODO: RC TEST
+      debugger;
 
+      // https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
       const { value: { spec: { selector = { } } } } = this;
 
       this.matchingPods = await matching({
-        labelSelector: selector,
-        type:          SERVICE,
+        labelSelector: { matchLabels: selector }, // TODO: RC two entries... 1) errors, 2) we OR them together, should they be AND?
+        type:          POD, // TODO: RC check all these match required type
         $store:        this.$store,
         inStore:       this.inStore,
         namespace:     this.value?.metadata?.namespace, // TODO: RC is this ever null?

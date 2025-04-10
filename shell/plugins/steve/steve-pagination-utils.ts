@@ -561,7 +561,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       return res;
     }, [] as string[]);
 
-    return filters.join(',');
+    return filters.join('&'); // TODO: RC are all expressions anded?
 
     // foo IN [bar] => ?filter=foo+IN+(bar)
     // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)

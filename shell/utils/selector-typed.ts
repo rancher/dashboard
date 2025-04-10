@@ -7,11 +7,11 @@ import { matching as rootMatching } from '@shell/utils/selector';
 // TODO: RC use this version everywhere
 
 /**
- * Find matching resources either via
- * a) fetching filtered resources directly (if pagination is supported for this type) - findPage
- * b) fetching all of type and filtering locally - findAll --> root matching
+ * Find matching resources either
+ * a) Pagination Enabled - fetch matching resources filtered on backend - findPage
+ * b) Pagination Disabled - fetch all resources and then filter locally - findAll --> root matching fn
  *
- * This is a much smarter version of shell/utils/selector.js `matching` (which just does local filtering)
+ * This is a much smarter version of root matching fn shell/utils/selector.js `matching` (which just does local filtering)
  *
  * If fetching all of a type can be avoided it's better to use the findLabelSelector action
  *
@@ -45,9 +45,9 @@ export async function matching({
   /**
    * Number of resources that are applicable when filtering.
    *
-   * Used to skip any potential http request if there's no resources to filter from
+   * Used to skip any potential http request if we know the result will be zero
    *
-   * If this property is not supplied we'll try and fetch it via the COUNTS object.
+   * If this property is not supplied we'll try and discover it from the COUNTS resource.
    */
   inScopeCount?: number
   /**

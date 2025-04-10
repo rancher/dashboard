@@ -451,9 +451,9 @@ export default {
   },
 
   /**
-   * If result not already cached, fetch filtered resource either via
-   * a) sql-cache backed api request (if pagination is supported for this type) - findPage
-   * b) legacy / native kube api request - findMatching
+   * If result not already cached, find matching resources either
+   * a) Pagination Enabled - fetch matching resources filtered on backend using the new sql-cache backed api - findPage
+   * b) Pagination Disabled - fetch matching resources filtered on backend using the old legacy / native kube api - findMatching
    *
    * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
    */

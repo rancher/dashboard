@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import { convert, matching, simplify } from '@shell/utils/selector';
+import { convert, simplify } from '@shell/utils/selector';
 import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
