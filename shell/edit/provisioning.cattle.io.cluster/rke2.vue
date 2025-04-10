@@ -25,10 +25,9 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplaceArrays
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { sortBy } from '@shell/utils/sort';
-
-import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
+import {
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+} from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -50,7 +49,7 @@ import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
 import SelectCredential from './SelectCredential';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
@@ -65,7 +64,7 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
-
+import { mapGetters } from 'vuex';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -89,6 +88,8 @@ const NODE_TOTAL = {
 };
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
+
+const REGISTRIES_TAB_NAME = 'registry';
 
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
@@ -149,6 +150,13 @@ export default {
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
+    const sc = await initSchedulingCustomization(this.value.spec, this.features, this.$store, this.mode);
+
+    this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+    this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+    this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+    this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+    this.errors = this.errors.concat(sc.errors);
 
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
@@ -242,20 +250,32 @@ export default {
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
-      harvesterVersionRange: {},
-      cisOverride:           false,
+      harvesterVersionRange:                    {},
+      cisOverride:                              false,
       truncateLimit,
-      busy:                  false,
-      machinePoolValidation: {}, // map of validation states for each machine pool
-      machinePoolErrors:     {},
-      addonConfigValidation: {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      allNamespaces:         [],
-      extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      busy:                                     false,
+      machinePoolValidation:                    {}, // map of validation states for each machine pool
+      machinePoolErrors:                        {},
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      allNamespaces:                            [],
+      extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      clusterAgentDeploymentCustomization:      null,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
+      activeTab:                                null,
+      REGISTRIES_TAB_NAME,
       labelForAddon
+
     };
   },
 
   computed: {
+    ...mapGetters({ features: 'features/get' }),
+    isActiveTabRegistries() {
+      return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
+    },
     clusterName() {
       return this.value.metadata?.name || '';
     },
@@ -321,15 +341,15 @@ export default {
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
 
-      let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
+      let allValidRke2Versions = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
+      let allValidK3sVersions = getAllOptionsAfterCurrentVersion(this.$store, this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
 
       if (!this.showDeprecatedPatchVersions) {
         // Normally, we only want to show the most recent patch version
         // for each Kubernetes minor version. However, if the user
         // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+        allValidRke2Versions = filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
+        allValidK3sVersions = filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
       }
 
       if (isAzure) {
@@ -711,7 +731,7 @@ export default {
       const first = all[0]?.value;
       const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
 
-      const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
+      const rke2 = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, null);
       const showRke2 = rke2.length;
       let out;
 
@@ -984,6 +1004,10 @@ export default {
       if (this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined) {
         this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName = '';
       }
+
+      if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
+        set(this.value, 'spec.localClusterAuthEndpoint', { enabled: false });
+      }
     },
 
     /**
@@ -1043,6 +1067,14 @@ export default {
         // Store default versions
         this.defaultRke2 = defaultRke2;
         this.defaultK3s = defaultK3s;
+      }
+    },
+
+    setSchedulingCustomization(val) {
+      if (val) {
+        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      } else {
+        delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
       }
     },
 
@@ -1108,6 +1140,17 @@ export default {
       } else {
         this.truncateLimit = 0;
         this.value.removeDefaultHostnameLengthLimit();
+      }
+    },
+
+    enableLocalClusterAuthEndpoint(neu) {
+      this.localValue.spec.localClusterAuthEndpoint.enabled = neu;
+      if (!neu) {
+        delete this.localValue.spec.localClusterAuthEndpoint.caCerts;
+        delete this.localValue.spec.localClusterAuthEndpoint.fqdn;
+      } else {
+        this.localValue.spec.localClusterAuthEndpoint.caCerts = '';
+        this.localValue.spec.localClusterAuthEndpoint.fqdn = '';
       }
     },
 
@@ -1648,7 +1691,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return mergeWithReplaceArrays(defaultChartValue?.values, this.userChartValues[key]);
+      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
     },
 
     initServerAgentArgs() {
@@ -1790,110 +1833,6 @@ export default {
         this.value.spec.rkeConfig = { registries: {} };
       }
       this.value.spec.rkeConfig.registries.configs = configs;
-    },
-
-    getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
-      const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
-        let disabled = false;
-        let experimental = false;
-        let isCurrentVersion = false;
-        let label = obj.id;
-
-        if (currentVersion) {
-          disabled = compare(obj.id, currentVersion) < 0;
-          isCurrentVersion = compare(obj.id, currentVersion) === 0;
-        }
-
-        if (defaultVersion) {
-          experimental = compare(defaultVersion, obj.id) < 0;
-        }
-
-        if (isCurrentVersion) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.current') }`;
-        }
-
-        if (experimental) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.experimental') }`;
-        }
-
-        return {
-          label,
-          value:      obj.id,
-          sort:       sortable(obj.id),
-          serverArgs: obj.serverArgs,
-          agentArgs:  obj.agentArgs,
-          charts:     obj.charts,
-          disabled,
-        };
-      });
-
-      if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
-        out.push({
-          label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
-          value: currentVersion,
-          sort:  sortable(currentVersion),
-        });
-      }
-
-      const sorted = sortBy(out, 'sort:desc');
-
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
-
-      const sortedWithDeprecatedLabel = sorted.map((optionData) => {
-        const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
-
-        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
-          return optionData;
-        }
-
-        return {
-          ...optionData,
-          label: `${ optionData.label } ${ this.t('cluster.kubernetesVersion.deprecated') }`
-        };
-      });
-
-      return sortedWithDeprecatedLabel;
-    },
-
-    getMostRecentPatchVersions(sortedVersions) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const versionMap = {};
-
-      sortedVersions.forEach((version) => {
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        if (!versionMap[majorMinor]) {
-          // Because we start with a sorted list of versions, we know the
-          // highest patch version is first in the list, so we only keep the
-          // first of each minor version in the list.
-          versionMap[majorMinor] = version.value;
-        }
-      });
-
-      return versionMap;
-    },
-
-    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
-
-      const filteredVersions = allVersions.filter((version) => {
-        // Always show pre-releases
-        if (semver.prerelease(version.value)) {
-          return true;
-        }
-
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
-          return true;
-        }
-
-        return false;
-      });
-
-      return filteredVersions;
     },
 
     generateYaml() {
@@ -2143,6 +2082,10 @@ export default {
     addonConfigValidationChanged(configName, isValid) {
       this.addonConfigValidation[configName] = isValid;
     },
+
+    handleTabChange(data) {
+      this.activeTab = data;
+    }
   }
 };
 </script>
@@ -2310,6 +2253,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         class="min-height"
+        @changed="handleTabChange"
       >
         <Tab
           name="basic"
@@ -2393,8 +2337,16 @@ export default {
             :mode="mode"
             :selected-version="selectedVersion"
             :truncate-limit="truncateLimit"
-            @update:value="$emit('input', $event)"
-            @truncate-hostname="truncateHostname"
+            @truncate-hostname-changed="truncateHostname"
+            @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
+            @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
+            @cluster-domain-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-domain'] = val"
+            @cluster-dns-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-dns'] = val"
+            @service-node-port-range-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-node-port-range'] = val"
+            @tls-san-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['tls-san'] = val"
+            @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
+            @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
+            @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
           />
         </Tab>
 
@@ -2412,10 +2364,11 @@ export default {
 
         <!-- Registries -->
         <Tab
-          name="registry"
+          :name="REGISTRIES_TAB_NAME"
           label-key="cluster.tabs.registry"
         >
           <Registries
+            v-if="isActiveTabRegistries"
             v-model:value="localValue"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
@@ -2475,15 +2428,20 @@ export default {
 
         <!-- Cluster Agent Configuration -->
         <Tab
+          v-if="value.spec.clusterAgentDeploymentCustomization"
           name="clusteragentconfig"
           label-key="cluster.agentConfig.tabs.cluster"
         >
           <AgentConfiguration
-            v-if="value.spec.clusterAgentDeploymentCustomization"
             v-model:value="value.spec.clusterAgentDeploymentCustomization"
             data-testid="rke2-cluster-agent-config"
             type="cluster"
             :mode="mode"
+            :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+            :default-p-c="clusterAgentDefaultPC"
+            :default-p-d-b="clusterAgentDefaultPDB"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
+            @scheduling-customization-changed="setSchedulingCustomization"
           />
         </Tab>
 

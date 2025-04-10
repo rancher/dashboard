@@ -20,6 +20,9 @@ export default {
 
       // escape
       (out[27] = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         vm.open = false;
         vm.search = '';
 
@@ -33,6 +36,13 @@ export default {
         if (!vm.open) {
           vm.open = true;
 
+          return;
+        }
+
+        // if the index of the option is -1
+        // it means are pressing enter on an invalid option
+        // we should exit
+        if (vm.typeAheadPointer === -1) {
           return;
         }
 

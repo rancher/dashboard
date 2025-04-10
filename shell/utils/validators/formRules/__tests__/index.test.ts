@@ -87,6 +87,45 @@ describe('formRules', () => {
     );
   });
 
+  describe('gitRepository', () => {
+    const message = JSON.stringify({ message: 'validation.git.repository' });
+    const testCases = [
+      // Valid HTTP(s)
+      ['https://github.com/rancher/dashboard.git', undefined],
+      ['http://github.com/rancher/dashboard.git', undefined],
+      ['https://github.com/rancher/dashboard', undefined],
+      ['https://github.com/rancher/dashboard/', undefined],
+
+      // Valid SSH
+      ['git@github.com:rancher/dashboard.git', undefined],
+      ['git@github.com:rancher/dashboard', undefined],
+      ['git@github.com:rancher/dashboard/', undefined],
+
+      // Not valid HTTP(s)
+      ['https://github.com/rancher/  dashboard.git', message],
+      ['http://github.com/rancher/  dashboard.git', message],
+      ['https://github.com/rancher/dashboard ', message],
+      ['foo://github.com/rancher/dashboard/', message],
+      ['github.com/rancher/dashboard/', message],
+
+      // Not valid SSH
+      ['git@github.com:rancher/  dashboard.git', message],
+      ['git@github.com:rancher/dashboard  ', message],
+      ['git@github.comrancher/dashboard', message],
+
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Git url: %p',
+      (url, expected) => {
+        const formRuleResult = formRules.gitRepository(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   describe('alphanumeric', () => {
     const message = JSON.stringify({ message: 'validation.alphanumeric', key: 'testDisplayKey' });
     const testCases = [
@@ -203,6 +242,33 @@ describe('formRules', () => {
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  describe('"registryUrl": has the expected output for each input', () => {
+    const expectedTranslation = JSON.stringify({ message: 'cluster.privateRegistry.privateRegistryUrlError' });
+    const testCases = [
+      // Empty
+      [undefined, undefined],
+
+      // Word
+      ['registry', expectedTranslation],
+
+      // Without schema
+      ['registry.io', undefined],
+
+      // With schemas
+      ['http://registry.io', undefined],
+      ['https://registry.io', undefined],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.registryUrl(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
   });
 
   it('"ruleGroups" : returns undefined when rulegroups are supplied', () => {

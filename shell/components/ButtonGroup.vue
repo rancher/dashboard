@@ -64,6 +64,22 @@ export default {
   methods: {
     change(value) {
       this.$emit('update:value', value);
+    },
+    actionDescription(opt) {
+      const tooltip = opt.tooltipKey ? this.t(opt.tooltipKey) : opt.tooltip;
+      const label = opt.labelKey ? this.t(opt.labelKey) : opt.label;
+
+      return tooltip || label || '';
+    },
+    actionAriaLabel(opt) {
+      const ariaLabel = opt.ariaLabel;
+      const label = opt.labelKey ? this.t(opt.labelKey) : opt.label;
+      const tooltip = opt.tooltipKey ? this.t(opt.tooltipKey) : opt.tooltip;
+
+      return ariaLabel || tooltip || label || undefined;
+    },
+    isPressed(opt) {
+      return this.value === opt.value;
     }
   }
 };
@@ -83,7 +99,8 @@ export default {
       :class="opt.class"
       :disabled="disabled || opt.disabled"
       role="button"
-      :aria-label="opt.labelKey ? t(opt.labelKey) : opt.label"
+      :aria-label="actionAriaLabel(opt)"
+      :aria-pressed="isPressed(opt)"
       @click="change(opt.value)"
     >
       <slot
@@ -94,6 +111,7 @@ export default {
         <i
           v-if="opt.icon"
           :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }"
+          :alt="actionAriaLabel(opt)"
         />
         <t
           v-if="opt.labelKey"

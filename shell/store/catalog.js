@@ -31,6 +31,13 @@ const CERTIFIED_SORTS = {
   other:                               3,
 };
 
+export const APP_UPGRADE_STATUS = {
+  NOT_APPLICABLE:    'not_applicable', // managed by fleet
+  NO_UPGRADE:        'no_upgrade', // no upgrade found
+  SINGLE_UPGRADE:    'single_upgrade', // a version available to upgrade to
+  MULTIPLE_UPGRADES: 'multiple_upgrades' // more than one match found
+};
+
 export const WINDOWS = 'windows';
 export const LINUX = 'linux';
 
@@ -57,7 +64,7 @@ export const getters = {
     const clustered = state.clusterRepos || [];
     const namespaced = state.namespacedRepos || [];
 
-    return [...clustered, ...namespaced];
+    return [...clustered, ...namespaced].filter((r) => r.spec?.enabled !== false);
   },
 
   // Raw charts
@@ -101,7 +108,7 @@ export const getters = {
 
   chart(state, getters) {
     return ({
-      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden, showDeprecated
+      key, repoType, repoName, chartName, includeHidden, showDeprecated, multiple
     }) => {
       if ( key && !repoType && !repoName && !chartName) {
         const parsed = parseKey(key);
@@ -111,7 +118,7 @@ export const getters = {
         chartName = parsed.chartName;
       }
 
-      let matching = filterBy(getters.charts, {
+      let matchingCharts = filterBy(getters.charts, {
         repoType,
         repoName,
         chartName,
@@ -119,18 +126,18 @@ export const getters = {
       });
 
       if ( includeHidden === false ) {
-        matching = matching.filter((x) => !x.hidden);
+        matchingCharts = matchingCharts.filter((x) => !x.hidden);
       }
 
-      if ( !matching.length ) {
+      if ( !matchingCharts.length ) {
         return;
       }
 
-      if ( preferRepoType && preferRepoName ) {
-        preferSameRepo(matching, preferRepoType, preferRepoName);
+      if (multiple) {
+        return matchingCharts;
       }
 
-      return matching[0];
+      return matchingCharts[0];
     };
   },
 

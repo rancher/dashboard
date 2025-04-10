@@ -11,6 +11,7 @@ export const ASYNC_BUTTON_STATES = {
 
 const TEXT = 'text';
 const TOOLTIP = 'tooltip';
+const DISABLED_CLASS_STYLE = 'btn-disabled';
 
 export type AsyncButtonCallback = (success: boolean) => void;
 
@@ -152,7 +153,27 @@ export default defineComponent({
         out[`btn-${ this.size }`] = true;
       }
 
+      // while we are waiting for the async button to get
+      // it's callback we want to the button to appear as disabled
+      // but not being actually disabled as need it to be
+      // able to return the keyboard navigation focus back to it
+      // which can't be done while actually disabled, as per
+      // https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#focusabilityofdisabledcontrols
+      if (this.phase === ASYNC_BUTTON_STATES.WAITING) {
+        out[DISABLED_CLASS_STYLE] = true;
+      }
+
+      // used to assist e2e testing mostly when waiting for button to return
+      // to it's normal state/phase
+      if (this.phase === ASYNC_BUTTON_STATES.ACTION) {
+        out['ready-for-action'] = true;
+      }
+
       return out;
+    },
+
+    appearsDisabled(): boolean {
+      return this.disabled || this.phase === ASYNC_BUTTON_STATES.WAITING;
     },
 
     displayIcon(): string {
@@ -204,10 +225,6 @@ export default defineComponent({
       return this.phase === ASYNC_BUTTON_STATES.WAITING;
     },
 
-    isDisabled(): boolean {
-      return this.disabled || this.phase === ASYNC_BUTTON_STATES.WAITING;
-    },
-
     isManualRefresh() {
       return this.mode === 'manual-refresh';
     },
@@ -232,7 +249,7 @@ export default defineComponent({
 
   methods: {
     clicked() {
-      if ( this.isDisabled ) {
+      if ( this.appearsDisabled ) {
         return;
       }
 
@@ -279,10 +296,12 @@ export default defineComponent({
 <template>
   <button
     ref="btn"
+    role="button"
     :class="classes"
     :name="name"
     :type="type"
-    :disabled="isDisabled"
+    :disabled="disabled"
+    :aria-disabled="appearsDisabled"
     :tab-index="tabIndex"
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"

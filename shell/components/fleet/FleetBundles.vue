@@ -126,7 +126,7 @@ export default {
             v-if="displayWarning(row)"
             class="text-warning"
           >
-            {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
+            {{ row.status.summary.ready || 0 }}/{{ row.status.summary.desiredReady }}</span>
           <span v-else-if="row.status && row.status.summary">{{ row.status.summary.desiredReady }}</span>
           <span v-else>-</span>
         </template>

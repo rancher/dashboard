@@ -157,6 +157,8 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
+  const gitRepository: Validator = (val: string) => val && !/^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(val) ? t('validation.git.repository') : undefined;
+
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
 
   const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key }) : undefined;
@@ -172,6 +174,21 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
     // making sure each container has an image name
     return containers.map((container: any) => containerImage(container)).find((containerError: string) => containerError);
+  };
+
+  const registryUrl = (privateRegistryURL: string) => {
+    if (!privateRegistryURL) {
+      return;
+    }
+
+    const pattern = new RegExp('^([a-z\\-0-9]+:\\/\\/?)?' + // scheme (optional, https://, http://, file:/, admin:/)
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // ip address
+        '(\\:\\d+)?'); // port
+
+    const isValid = pattern.test(privateRegistryURL);
+
+    return isValid ? undefined : t('cluster.privateRegistry.privateRegistryUrlError');
   };
 
   const dnsLabel: Validator = (val: string) => {
@@ -486,6 +503,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     dnsLabelRestricted,
     externalName,
     fileRequired,
+    gitRepository,
     groupsAreValid,
     hostname,
     imageUrl,
@@ -501,6 +519,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     minValue,
     noUpperCase,
     portNumber,
+    registryUrl,
     required,
     requiredInt,
     isInteger,

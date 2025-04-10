@@ -110,6 +110,28 @@ describe('gke Config', () => {
     expect(locationModeRadio.props().value).toBe(isUsingRegion);
   });
 
+  it('should not show the extra zones inputs if currently importing a new gke cluster', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        zone:              'us-east1-b',
+        region:            '',
+        cloudCredentialId: '',
+        projectId:         'test-project',
+        isImport:          true
+      },
+      ...setup
+    });
+
+    wrapper.setProps({ cloudCredentialId: 'abc' });
+    await flushPromises();
+
+    const extraZonesContainer = wrapper.findComponent('[data-testid="gke-extra-zones-container"]');
+
+    expect(extraZonesContainer.exists()).toBe(false);
+  });
+
   // mock data has multiple zones for us-east1 and us-east4
   it.each([
     ['us-east1-b', ['us-east1-c', 'us-east1-f']],

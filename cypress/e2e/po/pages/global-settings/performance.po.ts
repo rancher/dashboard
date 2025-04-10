@@ -5,7 +5,6 @@ import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import GenericPrompt from '@/cypress/e2e/po/prompts/genericPrompt.po';
 
 export class PerformancePagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
@@ -26,10 +25,6 @@ export class PerformancePagePo extends RootClusterPage {
 
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
     sideNav.navToSideMenuEntryByLabel('Performance');
-  }
-
-  incompatibleModal(): GenericPrompt {
-    return new GenericPrompt('.prompt-restore');
   }
 
   inactivityCheckbox(): CheckboxInputPo {
@@ -58,6 +53,10 @@ export class PerformancePagePo extends RootClusterPage {
 
   garbageCollectionCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Enable Garbage Collection');
+  }
+
+  garbageCollectionResourceCount() {
+    return LabeledInputPo.byLabel(this.self(), 'Resource Count');
   }
 
   namespaceFilteringCheckbox(): CheckboxInputPo {

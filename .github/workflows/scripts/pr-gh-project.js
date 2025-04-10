@@ -51,13 +51,15 @@ const event = require(process.env.GITHUB_EVENT_PATH);
 
 function getReferencedIssues(body) {
   // https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword
-  const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
+  // Handle both Fixes #NNNN and Fixes https://github.com/rancher/dashboard/issuues/NNNN
+  const regexp = /[Ff]ix(es|ed)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Cc]lose(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Rr]esolve(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)/g;
   var v;
   const issues = [];
   do {
     v = regexp.exec(body);
     if (v) {
-      const vNumber = parseInt(v[2], 10);
+      // Matches - 0 = Full string, 1 = es or ed, 2 = # or https://github.com/rancher/dashboard/issuues/, 3 = Issue number
+      const vNumber = parseInt(v[3], 10);
 
       if (!isNaN(vNumber)) {
         issues.push(vNumber);
@@ -143,7 +145,13 @@ async function processClosedAction() {
   // If not, then the issue has been completed, so we can process it
   r.forEach(openPR => {
     const fixed = getReferencedIssues(openPR.body);
-    fixed.forEach(issue => issueMap[issue] = false);
+    fixed.forEach(issue => {
+      // If the other PR fixes one of the issues that is fixed by this PR, then we need to update our map
+      // so that we ignore it, as there is still an open PR linked to the issue
+      if (issueMap[issue]) {
+        issueMap[issue] = false;
+      }
+    });
   });
 
   // Filter down the list of issues that should be closed because this PR was merged

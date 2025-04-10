@@ -51,8 +51,9 @@ describe('component: RoleDetailEdit', () => {
     const wrapper = mount(RoleDetailEdit, {
       props: {
         value: {
-          rules:   [{ verbs }],
-          subtype: 'GLOBAL'
+          rules:    [{ verbs }],
+          subtype:  'GLOBAL',
+          metadata: { name: 'global-role-with-inherited' },
         },
       },
 

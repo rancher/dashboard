@@ -137,6 +137,14 @@ export default {
       }
     },
 
+    /**
+     * On save several operations are executed to return a URL or open pop-up:
+     * - Retrieve data from the UI
+     * - "Test" the configuration through action and override the model
+     * - Retrieve scopes from redirect URL
+     * - Set default scopes and merge them with the ones from the redirect URL and from the "test" action
+     * @param {*} btnCb
+     */
     async save(btnCb) {
       await this.applyHooks(BEFORE_SAVE_HOOKS);
 
@@ -166,7 +174,7 @@ export default {
               this.model.accessMode = 'unrestricted';
             }
             if (this.model.openLdapConfig && !this.showLdap) {
-              delete this.model.openLdapConfig;
+              this.model.openLdapConfig = null;
             }
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });

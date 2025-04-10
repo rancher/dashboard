@@ -87,6 +87,10 @@ export default {
       type:    Boolean,
       default: null
     },
+    isLangSelect: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   methods: {
@@ -255,8 +259,11 @@ export default {
       [$attrs.class]: $attrs.class
     }"
     :tabindex="disabled || isView ? -1 : 0"
+    role="listbox"
     @click="focusSearch"
-    @keyup.enter.space.down="focusSearch"
+    @keydown.enter="focusSearch"
+    @keydown.down.prevent="focusSearch"
+    @keydown.space.prevent="focusSearch"
   >
     <v-select
       ref="select-input"
@@ -280,15 +287,20 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-
+      role="listitem"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
       @option:created="(e) => $emit('createdListItem', e)"
     >
-      <template #option="option">
-        <div @mousedown="(e) => onClickOption(option, e)">
+      <template
+        #option="option"
+      >
+        <div
+          :lang="isLangSelect ? option.value : undefined"
+          @mousedown="(e) => onClickOption(option, e)"
+        >
           {{ getOptionLabel(option.label) }}
         </div>
       </template>

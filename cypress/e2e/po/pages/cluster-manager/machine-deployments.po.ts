@@ -4,12 +4,14 @@ import MachineDeploymentsCreateEditPo from '@/cypress/e2e/po/edit/machine-deploy
 import MachineDeploymentsListPo from '@/cypress/e2e/po/lists/machine-deployments-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+
 export default class MachineDeploymentsPagePo extends PagePo {
-  private static createPath(clusterId: string) {
+  private static createPath(clusterId: string = BLANK_CLUSTER) {
     return `/c/${ clusterId }/manager/cluster.x-k8s.io.machinedeployment`;
   }
 
-  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+  static goTo(clusterId: string = BLANK_CLUSTER): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(MachineDeploymentsPagePo.createPath(clusterId));
   }
 

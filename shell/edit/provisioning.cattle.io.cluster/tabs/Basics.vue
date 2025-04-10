@@ -300,7 +300,7 @@ export default {
       return name === 'rancher-vsphere';
     },
 
-    showk8s21LegacyWarning() {
+    showk8sLegacyWarning() {
       const isLegacyEnabled = this.features(LEGACY);
 
       if (!isLegacyEnabled) {
@@ -437,7 +437,7 @@ export default {
       :label="t('cluster.banner.haveArgInfo')"
     />
     <Banner
-      v-if="showk8s21LegacyWarning"
+      v-if="showk8sLegacyWarning"
       color="warning"
       :label="t('cluster.legacyWarning')"
     />

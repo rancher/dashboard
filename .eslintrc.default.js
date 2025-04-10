@@ -201,7 +201,8 @@ module.exports = {
       ],
       rules: {
         '@typescript-eslint/no-empty-function': 'off',
-        '@typescript-eslint/ban-types':         'off'
+        '@typescript-eslint/ban-types':         'off',
+        'vue/require-toggle-inside-transition': 'off', // Introduced with new linting version 9.32.0
       }
     },
     {

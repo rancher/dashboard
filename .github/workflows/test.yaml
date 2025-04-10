@@ -79,7 +79,7 @@ jobs:
           ['@charts'],
           ['@explorer'],
           ['@explorer2'],
-          ['@fleet'],
+          ['@virtualizationMgmt', '@fleet'],
           ['@generic', '@globalSettings'],
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
@@ -142,7 +142,65 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
+  a11y-test:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: e2e-ui-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
 
+      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
+      # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      - name: Install Chrome 127
+        run: |
+          sudo apt-get install -y wget libu2f-udev
+          cd /tmp
+          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
+          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
+          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+          google-chrome --version
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_DIST_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_DIR }}
+      - name: Download e2e build ember
+        uses:  actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+      
+      - name: Run Rancher
+        run: yarn e2e:docker
+      
+      - name: Setup Rancher and user
+        run: |
+          yarn e2e:prod
+        env: 
+          GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
+          TEST_USERNAME: admin
+          TEST_ONLY: setup
+      - name: Run user tests
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env: 
+          TEST_SKIP: setup
+          GREP_TAGS: "@adminUser+@accessibility --@jenkins"
+          TEST_USERNAME: admin
+          TEST_A11Y: true
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: cypress/accessibility
+        
   unit-test:
     runs-on: ubuntu-latest
     steps:

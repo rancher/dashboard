@@ -40,9 +40,11 @@ export default {
   <app-modal
     v-if="showModal"
     custom-class="change-password-modal"
+    data-testid="change-password__modal"
     name="password-modal"
     :width="500"
     :height="465"
+    :trigger-focus-trap="true"
     @close="show(false)"
   >
     <Card
@@ -68,6 +70,8 @@ export default {
         <!-- type reset is required by lastpass -->
         <button
           class="btn role-secondary"
+          role="button"
+          :aria-label="t('changePassword.cancel')"
           type="reset"
           @click="show(false)"
         >

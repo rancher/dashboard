@@ -24,22 +24,17 @@ export default {
 </script>
 
 <template>
-  <div
-    class="config-badge"
-  >
+  <div class="config-badge">
     <div>
       <button
+        v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus'] }"
+        v-stripped-aria-label="tooltip"
         class="badge-install btn btn-sm role-secondary"
         data-testid="add-custom-cluster-badge"
         role="button"
-        tabindex="0"
         @click="customBadgeDialog"
-        @keyup.space="customBadgeDialog"
       >
-        <i
-          v-clean-tooltip="tooltip"
-          class="icon icon-brush-icon"
-        />
+        <i class="icon icon-brush-icon" />
       </button>
     </div>
   </div>
@@ -59,6 +54,10 @@ export default {
 
     > I {
       line-height: inherit;
+    }
+
+    &:focus {
+      outline: 0;
     }
   }
 

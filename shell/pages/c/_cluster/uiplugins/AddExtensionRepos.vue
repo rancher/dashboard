@@ -42,7 +42,8 @@ export default {
           branch: UI_PLUGINS_REPOS.PARTNERS.BRANCH,
         }
       },
-      isDialogActive: false,
+      isDialogActive:      false,
+      returnFocusSelector: '[data-testid="extensions-page-menu"]'
     };
   },
 
@@ -109,6 +110,7 @@ export default {
     :title="t('plugins.addRepos.title')"
     mode="add"
     data-testid="add-extensions-repos-modal"
+    :return-focus-selector="returnFocusSelector"
     @okay="doAddRepos"
     @closed="isDialogActive = false"
   >

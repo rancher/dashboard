@@ -70,6 +70,14 @@ export default {
   },
 
   data() {
+    return {
+      ops:    [],
+      rules:  [],
+      custom: []
+    };
+  },
+
+  created() {
     const t = this.$store.getters['i18n/t'];
 
     const podOptions = [
@@ -87,8 +95,6 @@ export default {
       { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
       { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
     ];
-
-    const ops = this.type === NODE ? nodeOptions : podOptions;
 
     let rules;
 
@@ -127,11 +133,8 @@ export default {
       rules.push(newRule);
     }
 
-    return {
-      ops,
-      rules,
-      custom: []
-    };
+    this.rules = rules;
+    this.ops = this.type === NODE ? nodeOptions : podOptions;
   },
 
   computed: {
@@ -242,6 +245,10 @@ export default {
 
 <template>
   <div>
+    <slot
+      v-if="rules.length"
+      name="header"
+    />
     <button
       v-if="showRemove && !isView"
       type="button"

@@ -11,7 +11,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _VIEW } from '@shell/config/query-params';
-import { toMilliseconds } from './duration.js';
+import { toSeconds } from '@shell/utils/duration';
 
 const IGNORED_ANNOTATIONS = [
   'summary',
@@ -207,7 +207,10 @@ export default {
     waitToFireFor: {
       get() {
         if (![null, undefined].includes(this.value.for)) {
-          return Math.floor(toMilliseconds(this.value.for) / 1000);
+          // see:
+          // https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule
+          // https://prometheus.io/docs/prometheus/latest/configuration/configuration/#duration
+          return toSeconds(this.value.for);
         }
 
         return undefined;
@@ -308,7 +311,7 @@ export default {
         >
           <template #field>
             <CodeMirror
-              class="mt-20"
+              class="mt-20 promql-input"
               :value="value.expr"
               :options="{
                 mode: null,
@@ -523,5 +526,9 @@ export default {
   position: absolute;
   top: 0;
   right: 5px;
+}
+
+.promql-input {
+  width: 100%;
 }
 </style>

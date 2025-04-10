@@ -1,7 +1,7 @@
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
-import Namespace from '@shell/models/namespace';
+import ModelNamespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
 import {
   CAPI,
@@ -12,14 +12,21 @@ import {
   SERVICE,
   INGRESS,
   WORKLOAD_TYPES,
-  HPA
+  HPA,
+  SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LABELS, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
+import { PaginationSettingsStore } from '@shell/types/resources/settings';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from 'types/kube/kube-api';
 
-interface NamespaceWithName extends Namespace {
-  name: string,
+/**
+ * This is a workaround for a ts build issue found in check-plugins-build.
+ *
+ * The build would error on <ns>.name, it somehow doesn't know about the steve model's properties (they are included in typegen)
+ */
+interface NamespaceWithName extends ModelNamespace {
+  name: string;
 }
 
 class NamespaceProjectFilters {
@@ -146,8 +153,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
-
+      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
+      { field: `status.connected` },
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
@@ -176,9 +183,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels."${ CAPI_LABELS.PROVIDER }"` },
+      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
+      { field: `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]` }
     ],
     [SERVICE]: [
       { field: 'spec.type' },
@@ -446,9 +454,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               this.validateField(validateFields, schema, field.field);
 
               const value = encodeURIComponent(field.value);
-              const exactPartial = field.exact ? `'${ value }'` : value;
 
-              return `${ this.convertArrayPath(field.field) }${ field.equals ? '=' : '!=' }${ exactPartial }`;
+              // = exact match (equals + exact)
+              // ~ partial match (equals + !exact)
+              // != not exact match (!equals + exact)
+              // !~ not partial match (!equals + !exact)
+              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
             }
 
             return field.value;
@@ -560,5 +573,38 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     // eee Lt 2=> ?filter=eee+>+2
   }
 }
+
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+  cluster: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        // if a resource list is shown by a custom resource list component or has specific list headers then it's not generically shown
+        // and must be included here.
+        enabled: [
+          NODE, EVENT,
+          WORKLOAD_TYPES.CRON_JOB, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET, POD,
+          CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
+          HPA, INGRESS, SERVICE,
+          PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+        ],
+        generic: true,
+      }
+    }
+  },
+  management: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        enabled: [
+          { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+        ],
+        generic: false,
+      }
+    }
+  }
+};
 
 export default new StevePaginationUtils();

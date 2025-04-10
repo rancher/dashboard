@@ -13,7 +13,12 @@ export default {
     title: {
       type:    String,
       default: ''
-    }
+    },
+
+    isDisabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   methods: {
@@ -25,10 +30,15 @@ export default {
 </script>
 
 <template>
-  <div class="collapse">
+  <div
+    class="collapse"
+    :class="{ 'disabled': isDisabled }"
+  >
     <slot name="title">
       <div
         class="advanced text-link"
+        :class="{ 'disabled': isDisabled }"
+        :disabled="isDisabled"
         data-testid="collapse-div"
         @click="showAdvanced"
       >
@@ -59,11 +69,14 @@ export default {
 <style lang="scss" scoped>
 .advanced {
   user-select: none;
-  padding: 0 5px;
   cursor: pointer;
   line-height: 40px;
   font-size: 15px;
   font-weight: 500;
+
+  .disabled {
+    cursor: not-allowed;
+  }
 }
 .content {
   background: var(--nav-active);

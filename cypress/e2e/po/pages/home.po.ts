@@ -61,6 +61,14 @@ export default class HomePagePo extends PagePo {
     cy.wait(['@restoreBanners', '@restoreBanners']);
   }
 
+  toggleBanner() {
+    const pageActionsPo = new PageActions();
+
+    cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
+    pageActionsPo.toggleBanner().click();
+    cy.wait('@toggleBanner');
+  }
+
   list(): HomeClusterListPo {
     return new HomeClusterListPo('[data-testid="sortable-table-list-container"]');
   }

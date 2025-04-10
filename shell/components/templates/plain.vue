@@ -68,7 +68,10 @@ export default {
       :class="{'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header :simple="true" />
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        :aria-label="t('layouts.plain')"
+      >
         <IndentedPanel class="pt-20">
           <router-view
             :key="$route.path"

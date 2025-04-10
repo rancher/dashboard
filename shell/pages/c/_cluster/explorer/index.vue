@@ -134,17 +134,17 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:        [],
-      cattleDeployment:   'loading',
-      fleetDeployment:    'loading',
-      fleetStatefulSet:   'loading',
-      disconnected:       false,
-      events:             [],
-      nodeMetrics:        [],
-      showClusterMetrics: false,
-      showK8sMetrics:     false,
-      showEtcdMetrics:    false,
-      canViewMetrics:     false,
+      constraints:             [],
+      cattleAgentResource:     'loading',
+      fleetControllerResource: 'loading',
+      fleetAgentResource:      'loading',
+      disconnected:            false,
+      events:                  [],
+      nodeMetrics:             [],
+      showClusterMetrics:      false,
+      showK8sMetrics:          false,
+      showEtcdMetrics:         false,
+      canViewMetrics:          false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -153,9 +153,9 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       STATES_ENUM,
       clusterCounts,
-      selectedTab:        'cluster-events',
-      extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
-      canViewEvents:      !!this.$store.getters['cluster/schemaFor'](EVENT),
+      selectedTab:             'cluster-events',
+      extensionCards:          getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
+      canViewEvents:           !!this.$store.getters['cluster/schemaFor'](EVENT),
       clusterServiceIcons,
     };
   },
@@ -197,11 +197,7 @@ export default {
     },
 
     fleetAgentNamespace() {
-      if (this.currentCluster.isLocal) {
-        return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
-      }
-
-      return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.STATEFUL_SET) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
+      return this.$store.getters['cluster/canList'](WORKLOAD_TYPES.DEPLOYMENT) && this.$store.getters['cluster/byId'](NAMESPACE, 'cattle-fleet-system');
     },
 
     cattleAgentNamespace() {
@@ -331,7 +327,7 @@ export default {
     },
 
     cattleAgent() {
-      const resources = [this.cattleDeployment];
+      const resources = [this.cattleAgentResource];
 
       return this.getAgentStatus(resources, { checkDisconnected: true });
     },
@@ -339,12 +335,12 @@ export default {
     fleetAgent() {
       const resources = this.currentCluster.isLocal ? [
         /**
-         * 'fleetStatefulSet' could take a while to be created by rancher.
-         * During that startup period, only 'fleetDeployment' will be used to calculate the fleet agent status.
+         * 'fleetAgentResource' could take a while to be created by rancher.
+         * During that startup period, only 'fleetControllerResource' will be used to calculate the fleet agent status.
          */
-        ...(this.fleetStatefulSet ? [this.fleetStatefulSet, this.fleetDeployment] : [this.fleetDeployment]),
+        ...(this.fleetAgentResource ? [this.fleetAgentResource, this.fleetControllerResource] : [this.fleetControllerResource]),
       ] : [
-        this.fleetStatefulSet
+        this.fleetAgentResource
       ];
 
       return this.getAgentStatus(resources);
@@ -492,23 +488,23 @@ export default {
     loadAgents() {
       if (this.fleetAgentNamespace) {
         if (this.currentCluster.isLocal) {
-          this.setAgentResource('fleetDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-fleet-system/fleet-controller');
-          this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-local-system/fleet-agent');
+          this.setAgentResource('fleetControllerResource', 'cattle-fleet-system/fleet-controller');
+          this.setAgentResource('fleetAgentResource', 'cattle-fleet-local-system/fleet-agent');
         } else {
-          this.setAgentResource('fleetStatefulSet', WORKLOAD_TYPES.STATEFUL_SET, 'cattle-fleet-system/fleet-agent');
+          this.setAgentResource('fleetAgentResource', 'cattle-fleet-system/fleet-agent');
         }
       }
       if (this.cattleAgentNamespace) {
-        this.setAgentResource('cattleDeployment', WORKLOAD_TYPES.DEPLOYMENT, 'cattle-system/cattle-cluster-agent');
+        this.setAgentResource('cattleAgentResource', 'cattle-system/cattle-cluster-agent');
         this.interval = setInterval(() => {
           this.disconnected = !!this.$store.getters['cluster/inError']({ type: NODE });
         }, 1000);
       }
     },
 
-    async setAgentResource(agent, type, id) {
+    async setAgentResource(agent, id) {
       try {
-        this[agent] = await this.$store.dispatch('cluster/find', { type, id });
+        this[agent] = await this.$store.dispatch('cluster/find', { type: WORKLOAD_TYPES.DEPLOYMENT, id });
       } catch (err) {
         this[agent] = null;
       }
@@ -673,11 +669,13 @@ export default {
       </div>
       <div data-testid="created__label">
         <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate
-          :value="currentCluster.metadata.creationTimestamp"
-          :add-suffix="true"
-          :show-tooltip="true"
-        /></span>
+        <span>
+          <LiveDate
+            :value="currentCluster.metadata.creationTimestamp"
+            :add-suffix="true"
+            :show-tooltip="true"
+          />
+        </span>
       </div>
       <div :style="{'flex':1}" />
       <div v-if="showClusterTools">

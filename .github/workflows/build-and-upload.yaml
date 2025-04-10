@@ -19,6 +19,7 @@ env:
 
 jobs:
   build-and-upload-hosted:
+    if: ${{ github.repository_owner == 'rancher' }}
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:

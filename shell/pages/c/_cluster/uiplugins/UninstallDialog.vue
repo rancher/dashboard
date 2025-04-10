@@ -20,7 +20,12 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
+  computed: {
+    ...mapGetters({ allCharts: 'catalog/charts' }),
+    returnFocusSelector() {
+      return `[data-testid="extension-card-uninstall-btn-${ this.plugin?.name }"]`;
+    }
+  },
 
   methods: {
     showDialog(plugin) {
@@ -78,6 +83,9 @@ export default {
     name="uninstallPluginDialog"
     height="auto"
     :scrollable="true"
+    :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
+    :return-focus-first-iterable-node-selector="'#extensions-main-page'"
     @close="closeDialog(false)"
   >
     <div

@@ -11,7 +11,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
-
+import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
@@ -155,7 +155,7 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
+          groupById:        `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
           isFake:           true,
           mainRowKey:       project.id,
           nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
@@ -166,8 +166,8 @@ export default {
 
       if (this.showMockNotInProjectGroup) {
         fakeRows.push( {
-          groupByLabel: this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
-          mainRowKey:   'fake-empty',
+          groupById:  this.t('resourceTable.groupLabel.notInAProject'),
+          mainRowKey: 'fake-empty',
         });
       }
 
@@ -273,6 +273,9 @@ export default {
     },
     showCreateNsButton() {
       return this.groupPreference !== 'namespace';
+    },
+    projectGroupBy() {
+      return this.groupPreference === 'none' ? null : 'groupById';
     }
   },
   methods: {
@@ -359,13 +362,25 @@ export default {
         );
       }
 
-      return row.groupByLabel;
+      if ( row.groupById === this.notInProjectKey) {
+        return this.t('resourceTable.groupLabel.notInAProject');
+      }
+
+      const project = row.project?.nameDisplay || row.project?.id || '';
+
+      return this.t('resourceTable.groupLabel.project', { name: escapeHtml(project) }, true);
     },
 
     projectDescription(group) {
       const project = group.rows[0].project;
 
       return project?.description;
+    },
+
+    projectResource(group) {
+      const row = group.rows[0];
+
+      return row.nameDisplay || row.id || '';
     },
 
     clearSelection() {
@@ -425,6 +440,7 @@ export default {
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
+      :group-by="projectGroupBy"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
       :loading="loading"
@@ -462,6 +478,7 @@ export default {
             <ButtonMultiAction
               class="project-action mr-10"
               :borderless="true"
+              :aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
               :invisible="!showProjectActionButton(group.group)"
               @click="showProjectAction($event, group.group)"
             />

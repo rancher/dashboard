@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import FleetSummary from '@shell/components/fleet/FleetSummary.vue';
 
 const REPO_NAME = 'testrepo';
@@ -13,12 +14,12 @@ const mockedBundlesInRepo = [{
   apiVersion: 'fleet.cattle.io/v1alpha1',
   kind:       'Bundle',
   repoName:   REPO_NAME,
+  namespace:  'fleet-default',
   metadata:   {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME
     },
-
     name:      `${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
     namespace: 'fleet-default',
     state:     {
@@ -53,12 +54,12 @@ const mockedBundlesInRepo = [{
   apiVersion: 'fleet.cattle.io/v1alpha1',
   kind:       'Bundle',
   repoName:   REPO_NAME,
+  namespace:  'fleet-default',
   metadata:   {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME
     },
-
     name:      `${ REPO_NAME }-${ CLUSTER_NAME }-5678`,
     namespace: 'fleet-default',
     state:     {
@@ -94,14 +95,54 @@ const mockedBundlesOutOfRepo = [{
   apiVersion: 'fleet.cattle.io/v1alpha1',
   kind:       'Bundle',
   repoName:   REPO_NAME_VARIANT,
+  namespace:  'custom-namespace',
   metadata:   {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME_VARIANT
     },
-
     name:      `${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-1234`,
-    namespace: 'fleet-default',
+    namespace: 'custom-namespace',
+    state:     {
+      error:         false,
+      message:       'Resource is Ready',
+      name:          'active',
+      transitioning: false
+    },
+  },
+  spec: {
+    correctDrift:        { },
+    forceSyncGeneration: 2,
+    ignore:              { },
+    namespace:           'custom-namespace-name',
+    resources:           [
+      {
+        content: 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: configmap-test\n  annotations:\n    {}\n#    key: string\n  labels:\n    {}\n#    key: string\ndata:\n  key1: val1\n  key2: val2\n  key3: val3',
+        name:    'test-configmap.yaml'
+      }
+    ],
+    targets: [
+      {
+        clusterName: 'nb-cluster0-28',
+        namespace:   'custom-namespace-name'
+      }
+    ]
+  }
+},
+{
+  id:         `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
+  type:       'fleet.cattle.io.bundle',
+  apiVersion: 'fleet.cattle.io/v1alpha1',
+  kind:       'Bundle',
+  repoName:   REPO_NAME,
+  namespace:  'custom-namespace',
+  metadata:   {
+    labels: {
+      'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
+      'fleet.cattle.io/repo-name': REPO_NAME
+    },
+    name:      `${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
+    namespace: 'custom-namespace',
     state:     {
       error:         false,
       message:       'Resource is Ready',
@@ -134,14 +175,14 @@ const mockedBundlesOutOfRepo = [{
   apiVersion: 'fleet.cattle.io/v1alpha1',
   kind:       'Bundle',
   repoName:   REPO_NAME_VARIANT,
+  namespace:  'custom-namespace',
   metadata:   {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME_VARIANT
     },
-
     name:      `${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-5678`,
-    namespace: 'fleet-default',
+    namespace: 'custom-namespace',
     state:     {
       error:         false,
       message:       'Resource is Ready',
@@ -175,7 +216,6 @@ const mockRepo = {
   apiVersion: 'fleet.cattle.io/v1alpha1',
   kind:       'GitRepo',
   metadata:   {
-
     name:      `${ REPO_NAME }`,
     namespace: 'fleet-default',
     state:     {
@@ -296,7 +336,7 @@ describe('component: FleetSummary', () => {
     [mockedBundlesInRepo, '2'],
   ])('displays the number of bundles associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
-      props:  { bundles, value: mockRepo },
+      props:  { bundles, value: new GitRepo(mockRepo) },
       global: { mocks: { $store: mockStore } }
     });
 
@@ -311,7 +351,7 @@ describe('component: FleetSummary', () => {
 
   ])('displays the number of deployments associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
-      props:  { bundles, value: mockRepo },
+      props:  { bundles, value: new GitRepo(mockRepo) },
       global: { mocks: { $store: mockStore } }
     });
 

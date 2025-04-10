@@ -156,6 +156,16 @@ export type LocationConfig = {
   context?: { [key: string]: string},
 };
 
+/**
+ * Environment metadata that extensions can access
+ */
+export type ExtensionEnvironment = {
+  version: string;
+  commit: string;
+  isPrime: boolean;
+  docsVersion: string; /** e.g. 'v2.10' */
+};
+
 export interface ProductOptions {
   /**
    * The category this product belongs under. i.e. 'config'
@@ -364,6 +374,11 @@ export interface ConfigureTypeOptions {
   customRoute?: Object;
 
   /**
+   * Custom options vary pre resource type
+   */
+  custom?: any;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // alias
@@ -462,6 +477,24 @@ export interface DSLReturnType {
   virtualType: (options: ConfigureVirtualTypeOptions) => void;
 
   /**
+   * Side menu ordering for grouping of pages
+   * @param input Name of the group
+   * @param weight Ordering to be applied for the specified group
+   * @param forBasic Apply to basic type instead of regular type tree
+   * @returns {@link void}
+   */
+  weightGroup: (input: string, weight: number, forBasic: boolean) => void;
+
+  /**
+   * Side menu ordering for simple pages
+   * @param input Name of the page/resource
+   * @param weight Ordering to be applied for the specified page/resource
+   * @param forBasic Apply to basic type instead of regular type tree
+   * @returns {@link void}
+   */
+  weightType: (input: string, weight: number, forBasic: boolean) => void;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // componentForType: (type: string, replacementType: string)
@@ -474,8 +507,6 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
-  // weightGroup: (input, weight, forBasic)
-  // weightType: (input, weight, forBasic)
 }
 
 /**
@@ -638,6 +669,11 @@ export interface IPlugin {
    * @param productName The name of the new product. This name is displayed in the navigation.
    */
   DSL(store: any, productName: string): DSLReturnType;
+
+  /**
+   * Get information about the Extension Environment
+   */
+  get environment(): ExtensionEnvironment;
 }
 
 // Internal interface

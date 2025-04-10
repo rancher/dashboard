@@ -61,6 +61,8 @@ HEADER {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100vw;
+  position: absolute;
 }
 
 .dashboard-content {
@@ -116,6 +118,7 @@ HEADER {
   grid-area: wm;
   overflow-y: hidden;
   z-index: z-index('windowsManager');
+  position: relative;
 }
 
 .localeSelector {

@@ -160,6 +160,8 @@ export default {
       <div>
         <button
           v-if="canChangePassword"
+          role="button"
+          :aria-label="t('accountAndKeys.account.change')"
           type="button"
           class="btn role-primary"
           data-testid="account_change_password"
@@ -177,11 +179,16 @@ export default {
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <CopyToClipboardText :text="apiUrl" />
+          <CopyToClipboardText
+            :aria-label="t('accountAndKeys.apiKeys.copyApiEnpoint')"
+            :text="apiUrl"
+          />
         </div>
       </div>
       <button
         v-if="apiKeySchema"
+        role="button"
+        :aria-label="t('accountAndKeys.apiKeys.add.label')"
         class="btn role-primary add mb-20"
         data-testid="account_create_api_keys"
         @click="addKey"

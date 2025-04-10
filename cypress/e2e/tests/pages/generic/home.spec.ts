@@ -2,7 +2,7 @@ import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
 
@@ -10,6 +10,31 @@ const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
+
+// Reset the home page card prefs, go the home page and ensure the page is fully loaded
+function goToHomePageAndSettle() {
+  // Reset the home page cards pref so that everything is shown
+  cy.setUserPreference({ 'home-page-cards': '{}' });
+
+  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', {
+    statusCode: 200,
+    body:       {
+      count: 0,
+      data:  [],
+    },
+  }).as('fetchClustersHomePage');
+
+  // Go to the home page
+  HomePagePo.goToAndWaitForGet();
+  homePage.waitForPage();
+
+  // Wait for the page to settle - filter the cluster list ensures table is ready and page is ready
+  cy.wait('@fetchClustersHomePage');
+
+  // Wait for the cluster table to load and filter so there are no rows
+  homeClusterList.resourceTable().sortableTable().filter('random text');
+  homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
+}
 
 describe('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -148,13 +173,13 @@ describe('Home Page', () => {
     });
 
     it('can click on Forums link', () => {
-      catchTargetPageException('TenantFeatures', 'https://forums.rancher.com');
+      catchTargetPageException('TenantFeatures', 'https://forums.suse.com');
 
       // click Forums link
       homePage.clickSupportLink(1, true);
 
-      cy.origin('https://forums.rancher.com', () => {
-        cy.url().should('include', 'forums.rancher.com/');
+      cy.origin('https://forums.suse.com', () => {
+        cy.url().should('include', 'forums.suse.com/');
       });
     });
 
@@ -214,27 +239,40 @@ describe('Home Page', () => {
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Hide home page banners
-     * Click the restore link
-     * Verify banners display on home page
-     */
-      HomePagePo.navTo();
-      homePage.waitForPage();
-      homePage.restoreAndWait();
+      goToHomePageAndSettle();
 
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.bannerGraphic().graphicBannerCloseButton();
-      homePage.bannerGraphic().graphicBanner().should('not.exist');
-
       homePage.getLoginPageBanner().checkVisible();
+
+      // Close the banner for changing login view
       homePage.getLoginPageBanner().closeButton();
       homePage.getLoginPageBanner().checkNotExists();
 
+      // Restore the cards should bring back the login banner
       homePage.restoreAndWait();
 
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
+      // Check login banner is visible
       homePage.getLoginPageBanner().checkVisible();
+    });
+
+    it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      goToHomePageAndSettle();
+
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('exist');
+      homePage.bannerGraphic().graphicBanner().should('be.visible');
+
+      // Hide the main banner graphic
+      homePage.toggleBanner();
+
+      // Banner graphic and the login banner should be visible
+      homePage.bannerGraphic().graphicBanner().should('not.exist');
+
+      // Show the banner graphic
+      homePage.toggleBanner();
+      homePage.bannerGraphic().graphicBanner().should('exist');
     });
 
     it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -272,7 +310,7 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
+        homePage.changelog().self().contains(`Learn more about the improvements and new capabilities in ${ CURRENT_RANCHER_VERSION }`);
         homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
 
         homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {

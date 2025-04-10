@@ -64,18 +64,27 @@ export default {
 
         g.hidden = !!hidden;
       });
-    },
+    }
   },
 };
 </script>
 
 <template>
   <div>
+    <p
+      id="describe-filter-resource-search"
+      hidden
+    >
+      {{ t('nav.resourceSearch.filteringDescription') }}
+    </p>
     <input
       ref="input"
       v-model="value"
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
+      role="textbox"
+      :aria-label="t('nav.resourceSearch.label')"
+      aria-describedby="describe-filter-resource-search"
       @keyup.esc="$emit('closeSearch')"
     >
     <div class="results">
@@ -103,11 +112,15 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .search, .search:hover, .search:focus {
+  .search, .search:hover {
     position: relative;
     background-color: var(--dropdown-bg);
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .search:focus-visible {
+    outline-offset: -2px;
   }
 
   .results {

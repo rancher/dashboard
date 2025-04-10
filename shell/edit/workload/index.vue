@@ -262,8 +262,10 @@ export default {
                 <h3>
                   {{ t('workload.container.ports.expose') }}
                   <i
-                    v-clean-tooltip="t('workload.container.ports.toolTip')"
+                    v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
+                    v-stripped-aria-label="t('workload.container.ports.toolTip')"
                     class="icon icon-info"
+                    tabindex="0"
                   />
                 </h3>
                 <p class="padded">
@@ -597,6 +599,7 @@ export default {
               v-if="!isView"
               type="button"
               class="btn-sm role-link"
+              data-testid="workload-button-add-container"
               @click="addContainerBtn"
             >
               <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}

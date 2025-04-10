@@ -87,7 +87,10 @@ export default {
     <div class="growl-list">
       <div
         v-for="(growl, idx) in stack"
-        :key="idx"
+        :key="growl.id"
+        role="alert"
+        :aria-labelledby="`growl-title-${ growl.id }`"
+        :aria-describedby="`growl-message-${ growl.id }`"
         :data-testid="`growl-list-item-${idx}`"
         :class="{'growl': true, ['bg-'+growl.color]: true}"
       >
@@ -103,11 +106,15 @@ export default {
               class="close hand icon icon-close"
               @click="close(growl)"
             />
-            <div class="growl-text-title">
+            <div
+              :id="`growl-title-${ growl.id }`"
+              class="growl-text-title"
+            >
               {{ growl.title }}
             </div>
             <p
               v-if="growl.message"
+              :id="`growl-message-${ growl.id }`"
               :class="{ 'has-title': !!growl.title }"
             >
               {{ growl.message }}

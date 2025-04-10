@@ -1,8 +1,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { createFocusTrap, FocusTrap } from 'focus-trap';
+import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
+
   name:  'Card',
   props: {
     /**
@@ -56,32 +57,25 @@ export default defineComponent({
       default: false,
     },
   },
-  data() {
-    return { focusTrapInstance: {} as FocusTrap };
-  },
-  mounted() {
-    if (this.triggerFocusTrap) {
-      this.focusTrapInstance = createFocusTrap(this.$refs.cardContainer as HTMLElement, {
-        escapeDeactivates: true,
+  setup(props) {
+    if (props.triggerFocusTrap) {
+      useBasicSetupFocusTrap('#focus-trap-card-container-element', {
+        // needs to be false because of import YAML modal from header
+        // where the YAML editor itself is a focus trap
+        // and we can't have it superseed the "escape key" to blur that UI element
+        // In this case the focus trap moves the focus out of the modal
+        // correctly once it closes because of the "onBeforeUnmount" trigger
+        escapeDeactivates: false,
         allowOutsideClick: true,
       });
-
-      this.$nextTick(() => {
-        this.focusTrapInstance.activate();
-      });
     }
-  },
-  beforeUnmount() {
-    if (this.focusTrapInstance && this.triggerFocusTrap) {
-      this.focusTrapInstance.deactivate();
-    }
-  },
+  }
 });
 </script>
 
 <template>
   <div
-    ref="cardContainer"
+    id="focus-trap-card-container-element"
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
     data-testid="card"

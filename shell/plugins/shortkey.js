@@ -10,6 +10,7 @@ const ShortKey = {};
 const mapFunctions = {};
 let objAvoided = [];
 let elementAvoided = [];
+let containerAvoided = [];
 let keyPressed = false;
 
 const parseValue = (value) => {
@@ -55,6 +56,7 @@ const unbindValue = (value, el) => {
 
 ShortKey.install = (Vue, options) => {
   elementAvoided = [...(options && options.prevent ? options.prevent : [])];
+  containerAvoided = [...(options && options.preventContainer ? options.preventContainer : [])];
   Vue.directive('shortkey', {
     beforeMount: (el, binding, vnode) => {
       // Mapping the commands
@@ -266,8 +268,15 @@ const mappingFunctions = ({
 const availableElement = (decodedKey) => {
   const objectIsAvoided = !!objAvoided.find((r) => r === document.activeElement);
   const filterAvoided = !!(elementAvoided.find((selector) => document.activeElement && document.activeElement.matches(selector)));
+  const filterAvoidedContainer = !!(containerAvoided.find((selector) => isActiveElementChildOf(selector)));
 
-  return !!mapFunctions[decodedKey] && !(objectIsAvoided || filterAvoided);
+  return !!mapFunctions[decodedKey] && !(objectIsAvoided || filterAvoided) && !filterAvoidedContainer;
+};
+
+const isActiveElementChildOf = (container) => {
+  const activeElement = document.activeElement;
+
+  return activeElement && activeElement.closest(container) !== null;
 };
 
 export default ShortKey;

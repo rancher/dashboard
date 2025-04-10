@@ -66,11 +66,19 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return this.self().get('.checkbox-label').contains('Insecure:');
   }
 
-  customClusterRegistrationCmd(cmd: string) {
+  customClusterRegistrationCmd(cmd: string, rkeType?: number) {
+    if (rkeType === 1) {
+      return `ssh -i custom_node_rke1.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIpRke1') } \"nohup ${ cmd }\"`;
+    }
+
     return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
   }
 
   credentialsBanner() {
     return new BannersPo(this.self().find('.banner').contains(`Ok, Let's create a new credential`));
+  }
+
+  errorsBanner() {
+    return new BannersPo('.banner.error', this.self());
   }
 }

@@ -24,14 +24,34 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it('versions for built-in extensions should display as expected', () => {
-    const pluginVersion = '1.0.0';
+  it('should go to the available tab by default', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'available');
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+  });
+
+  it('should show built-in extensions only when configured', () => {
+    const extensionsPo = new ExtensionsPagePo();
+    const pluginVersion = '1.0.0';
+
+    cy.setUserPreference({ 'plugin-developer': false });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Should not be able to see the built-in tab
+    extensionsPo.extensionTabBuiltin().checkNotExists();
+
+    // Set the preference
+    cy.setUserPreference({ 'plugin-developer': true });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Reload
+    extensionsPo.extensionTabBuiltin().checkExists();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabBuiltinClick();
+    extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
     extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
@@ -60,6 +80,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
+
+    cy.setUserPreference({ 'plugin-developer': false });
   });
 
   it('add repository', () => {
@@ -195,6 +217,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();
     appRepoList.waitForPage();
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
@@ -409,6 +432,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
+    extensionsPo.loading().should('not.exist');
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
@@ -418,6 +442,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
 
     // make sure both extensions have been imported
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
@@ -436,7 +462,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure both extensions have been imported after logging in again
     cy.login(undefined, undefined, false);
     extensionsPo.goTo();
-    extensionsPo.waitForPage();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');

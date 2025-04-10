@@ -26,7 +26,6 @@ $disabled  : $medium;
 $primary         : #3D98D3;
 $secondary       : $darker;
 $link            : #3D98D3;
-$keyboard-focus  : #3300ff;
 
 // Status colors
 $success         : #5D995D;
@@ -54,7 +53,7 @@ BODY, .theme-light {
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : #{$keyboard-focus};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
 
   .text-primary {
@@ -91,6 +90,10 @@ BODY, .theme-light {
 
   .text-link {
     color: var(--link) !important;
+
+    &.disabled {
+      color: var(--disabled-text) !important;
+    }
   }
 
   .bg-link {
@@ -347,6 +350,7 @@ BODY, .theme-light {
   --border                     : #{$medium};
   --border-width               : 1px;
   --border-radius              : 4px;
+  --border-radius-lg           : 8px;
   --outline                    : var(--primary);
   --outline-width              : 1px;
 
@@ -374,8 +378,8 @@ BODY, .theme-light {
   --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
-  --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-text        : var(--body-text);
+  --dropdown-hover-bg          : #{$light};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-group-text        : #{$darker};
@@ -544,4 +548,8 @@ BODY, .theme-light {
 
   --product-icon               : #{$darker};
   --product-icon-active        : #{$darkest};
+
+  --badge-state-disabled-text  : #{$darker};
+  --badge-state-disabled-bg    : #{$lighter};
+  --badge-state-disabled-border: #{$medium};
 }

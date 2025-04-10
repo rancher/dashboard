@@ -69,10 +69,11 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
+      setupWebSocket: any;
 
       state(state: any): any;
 
-      login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
+      login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
@@ -97,7 +98,7 @@ declare global {
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
-      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
+      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
@@ -105,6 +106,8 @@ declare global {
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+
+      setUserPreference(prefs: any);
 
       /**
        * update namespace filter
@@ -172,6 +175,16 @@ declare global {
        * Check if the vai FF is enabled
        */
       isVaiCacheEnabled(): Chainable<boolean>;
+
+      /**
+       * Run an accessibility check on the current page or the specified element
+       */
+      checkPageAccessibility(description?: string);
+
+      /**
+       * Run an accessibility check on the specified element
+       */
+      checkElementAccessibility(selector: any, description?: string);
     }
   }
 }

@@ -13,16 +13,24 @@ export default {
     },
   },
 
-  data() {
+  beforeMount() {
     if (this.value.issuer) {
       const { cn, notAfter, sans = [] } = this.value;
 
-      return {
-        cn, expiration: notAfter, sans, isTLS: true
-      };
-    } else {
-      return { isTLS: false };
+      this.expiration = notAfter;
+      this.sans = sans;
+      this.cn = cn;
+      this.isTLS = true;
     }
+  },
+
+  data() {
+    return {
+      isTLS:      false,
+      cn:         null,
+      sans:       [],
+      expiration: null,
+    };
   },
   computed: {
     // use 'text-warning' or 'text-error' classes if the cert is <8 days from expiring or expired respectively
@@ -43,7 +51,12 @@ export default {
 
 <template>
   <div v-if="isTLS">
-    <t k="secret.certificate.cn" /> {{ cn }} <span v-if="row.unrepeatedSans && row.unrepeatedSans.length">{{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}</span><br>
+    <t k="secret.certificate.cn" />
+    {{ cn }}
+    <span v-if="row.unrepeatedSans && row.unrepeatedSans.length">
+      {{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}
+    </span>
+    <br>
     <t k="secret.certificate.expires" />: <DateComponent
       :class="dateClass"
       :value="expiration"

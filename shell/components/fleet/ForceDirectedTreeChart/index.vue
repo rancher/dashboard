@@ -238,8 +238,12 @@ export default {
     },
     zoomFit() {
       const rootNode = d3.select('.root-node');
-      const paddingBuffer = 30;
 
+      if (!rootNode?.node()) {
+        return;
+      }
+
+      const paddingBuffer = 30;
       const chartDimentions = rootNode.node().getBoundingClientRect();
       const chartCoordinates = rootNode.node().getBBox();
       const parent = rootNode.node().parentElement;
@@ -386,10 +390,10 @@ export default {
                   <router-link
                     :to="item.valueObj.detailLocation"
                   >
-                    {{ item.valueObj.id }}
+                    {{ item.valueObj.label }}
                   </router-link>
                 </span>
-                <span v-else>{{ item.valueObj.id }}</span>
+                <span v-else>{{ item.valueObj.label }}</span>
               </td>
               <!-- state-badge template -->
               <td

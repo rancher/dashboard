@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
@@ -42,6 +42,10 @@ function normalizeStateCounts(data) {
 }
 
 export default class GitRepo extends SteveModel {
+  get currentUser() {
+    return this.$rootGetters['auth/v3User'] || {};
+  }
+
   applyDefaults() {
     const spec = this.spec || {};
     const meta = this.metadata || {};
@@ -68,7 +72,7 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 0, {
       action:   'pause',
-      label:    'Pause',
+      label:    this.t('fleet.gitRepo.actions.pause.label'),
       icon:     'icon icon-pause',
       bulkable: true,
       enabled:  !!this.links.update && !this.spec?.paused
@@ -76,21 +80,38 @@ export default class GitRepo extends SteveModel {
 
     insertAt(out, 1, {
       action:   'unpause',
-      label:    'Unpause',
+      label:    this.t('fleet.gitRepo.actions.unpause.label'),
       icon:     'icon icon-play',
       bulkable: true,
       enabled:  !!this.links.update && this.spec?.paused === true
     });
 
     insertAt(out, 2, {
-      action:   'forceUpdate',
-      label:    'Force Update',
-      icon:     'icon icon-refresh',
+      action:   'enablePolling',
+      label:    this.t('fleet.gitRepo.actions.enablePolling.label'),
+      icon:     'icon icon-endpoints_connected',
       bulkable: true,
-      enabled:  !!this.links.update
+      enabled:  !!this.links.update && !!this.spec?.disablePolling
     });
 
-    insertAt(out, 3, { divider: true });
+    insertAt(out, 3, {
+      action:   'disablePolling',
+      label:    this.t('fleet.gitRepo.actions.disablePolling.label'),
+      icon:     'icon icon-endpoints_disconnected',
+      bulkable: true,
+      enabled:  !!this.links.update && !this.spec?.disablePolling
+    });
+
+    insertAt(out, 4, {
+      action:     'forceUpdate',
+      label:      this.t('fleet.gitRepo.actions.forceUpdate.label'),
+      icon:       'icon icon-refresh',
+      bulkable:   true,
+      bulkAction: 'forceUpdateBulk',
+      enabled:    !!this.links.update
+    });
+
+    insertAt(out, 5, { divider: true });
 
     return out;
   }
@@ -105,11 +126,40 @@ export default class GitRepo extends SteveModel {
     this.save();
   }
 
-  forceUpdate() {
-    const now = this.spec.forceSyncGeneration || 1;
-
-    this.spec.forceSyncGeneration = now + 1;
+  enablePolling() {
+    this.spec.disablePolling = false;
     this.save();
+  }
+
+  disablePolling() {
+    this.spec.disablePolling = true;
+    this.save();
+  }
+
+  goToClone() {
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+    }
+
+    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
+      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+    }
+
+    super.goToClone();
+  }
+
+  forceUpdate(resources = [this]) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
+  }
+
+  forceUpdateBulk(resources) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
   }
 
   get state() {
@@ -178,7 +228,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get github() {
-    const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
+    const match = (this.spec.repo || '').match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
     if (match) {
       return match[1];
@@ -196,7 +246,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get repoDisplay() {
-    let repo = this.spec.repo;
+    let repo = this.spec.repo || '';
 
     if (!repo) {
       return null;
@@ -326,47 +376,32 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
+    return this.$getters['matching'](FLEET.BUNDLE, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name }, this.namespace);
   }
 
   get bundleDeployments() {
-    const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
-
-    return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+    return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 
   get allBundlesStatuses() {
-    const bundleDeploymentCountsPerBundle = this.bundleDeployments.reduce((acc, bd) => {
-      const bundleId = FleetUtils.bundleIdFromBundleDeploymentLabels(bd.metadata?.labels);
-      const state = mapStateToEnum(FleetUtils.bundleDeploymentState(bd));
-
-      if (!acc[bundleId]) {
-        acc[bundleId] = {
-          total:  0,
-          states: { [STATES_ENUM.READY]: 0 },
-        };
+    return this.bundles.reduce((acc, bundle) => {
+      if (isEmpty(bundle.status?.summary)) {
+        return acc;
       }
-      acc[bundleId].total++;
 
-      if (!acc[bundleId].states[state]) {
-        acc[bundleId].states[state] = 0;
-      }
-      acc[bundleId].states[state]++;
+      const { nonReadyResources, ...summary } = bundle.status?.summary;
 
-      return acc;
-    }, {});
-    const bundleIds = Object.keys(bundleDeploymentCountsPerBundle);
-
-    return bundleIds.reduce((acc, bundleId) => {
-      const state = primaryDisplayStatusFromCount(bundleDeploymentCountsPerBundle[bundleId].states);
+      const bdCounts = normalizeStateCounts(summary);
+      const state = primaryDisplayStatusFromCount(bdCounts.states);
 
       if (!acc.states[state]) {
         acc.states[state] = 0;
       }
       acc.states[state]++;
+      acc.total++;
 
       return acc;
-    }, { total: bundleIds.length, states: { [STATES_ENUM.READY]: 0 } } );
+    }, { total: 0, states: { [STATES_ENUM.READY]: 0 } } );
   }
 
   get allResourceStatuses() {
@@ -378,91 +413,79 @@ export default class GitRepo extends SteveModel {
       return {};
     }
 
-    return this.bundleDeployments
-      .filter((bd) => FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels) === clusterId)
-      .map((bd) => FleetUtils.resourcesFromBundleDeploymentStatus(bd.status))
-      .flat()
-      .map((r) => r.state)
-      .reduce((prev, state) => {
-        if (!prev[state]) {
-          prev[state] = 0;
-        }
-        prev[state]++;
-        prev.desiredReady++;
-
-        return prev;
-      }, { desiredReady: 0 });
+    return this.status?.perClusterResourceCounts[clusterId] || { desiredReady: 0 };
   }
 
   get resourcesStatuses() {
-    const bundleDeployments = this.bundleDeployments || [];
+    if (isEmpty(this.status?.resources)) {
+      return [];
+    }
+
     const clusters = (this.targetClusters || []).reduce((res, c) => {
       res[c.id] = c;
 
       return res;
     }, {});
+    const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
+      const { perClusterState, ...resource } = resourceInfo;
 
-    const out = [];
-
-    for (const bd of bundleDeployments) {
-      const clusterId = FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels);
-      const c = clusters[clusterId];
-
-      if (!c) {
-        continue;
-      }
-
-      const resources = FleetUtils.resourcesFromBundleDeploymentStatus(bd.status);
-
-      resources.forEach((r) => {
-        const id = FleetUtils.resourceId(r);
-        const type = FleetUtils.resourceType(r);
-        const state = r.state;
-
-        const color = colorForState(state).replace('text-', 'bg-');
-        const display = stateDisplay(state);
-
-        const detailLocation = {
-          name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
-          params: {
-            product:   NAME,
-            cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
-            resource:  type,
-            namespace: r.namespace,
-            id:        r.name,
-          }
-        };
-
-        const key = `${ c.id }-${ type }-${ r.namespace }-${ r.name }`;
-
-        out.push({
-          key,
-          tableKey: key,
-
-          // Needed?
-          id,
-          type,
-          clusterId: c.id,
-
-          // columns, see FleetResources.vue
-          state:             mapStateToEnum(state),
-          clusterName:       c.nameDisplay,
-          apiVersion:        r.apiVersion,
-          kind:              r.kind,
-          name:              r.name,
-          namespace:         r.namespace,
-          creationTimestamp: r.createdAt,
-
-          // other properties
-          stateBackground: color,
-          stateDisplay:    display,
-          stateSort:       stateSort(color, display),
-          detailLocation,
+      Object.entries(perClusterState).forEach(([state, clusterIds]) => {
+        clusterIds.filter((id) => !!clusters[id]).forEach((clusterId) => {
+          acc.push(Object.assign({}, resource, { clusterId, state }));
         });
       });
-    }
 
-    return out;
+      return acc;
+    }, []);
+
+    return resources.map((r) => {
+      const {
+        namespace, name, clusterId, state
+      } = r;
+      const id = FleetUtils.resourceId(r);
+      const type = FleetUtils.resourceType(r);
+      const c = clusters[clusterId];
+
+      const color = colorForState(state).replace('text-', 'bg-');
+      const display = stateDisplay(state);
+
+      const detailLocation = state !== STATES_ENUM.MISSING ? {
+        name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
+        params: {
+          product:  NAME,
+          cluster:  c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
+          resource: type,
+          namespace,
+          id:       name,
+        }
+      } : undefined;
+
+      const key = `${ clusterId }-${ type }-${ namespace }-${ name }`;
+
+      return {
+        key,
+        tableKey: key,
+
+        // Needed?
+        id,
+        type,
+        clusterId,
+
+        // columns, see FleetResources.vue
+        state:       mapStateToEnum(state),
+        clusterName: c.nameDisplay,
+        apiVersion:  r.apiVersion,
+        kind:        r.kind,
+        name:        r.name,
+        namespace:   r.namespace,
+
+        // other properties
+        stateBackground: color,
+        stateDisplay:    display,
+        stateSort:       stateSort(color, display),
+        detailLocation,
+      };
+    });
   }
 
   get clusterInfo() {
@@ -484,5 +507,42 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get authorId() {
+    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
+  }
+
+  get author() {
+    if (this.authorId) {
+      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
+    }
+
+    return null;
+  }
+
+  get createdBy() {
+    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
+
+    if (!displayName) {
+      return null;
+    }
+
+    return {
+      displayName,
+      location: !this.author ? null : {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  '_',
+          product:  'auth',
+          resource: MANAGEMENT.USER,
+          id:       this.author.id,
+        }
+      }
+    };
+  }
+
+  get showCreatedBy() {
+    return !!this.createdBy;
   }
 }

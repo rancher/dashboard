@@ -28,6 +28,11 @@ export default {
       }
     },
 
+    mode: {
+      type:    String,
+      default: '',
+    },
+
     asObject: {
       type:    Boolean,
       default: false,
@@ -126,6 +131,7 @@ export default {
             cm.indentSelection('subtract');
           }
         },
+        screenReaderLabel: this.t('import.editor.label'),
         // @TODO find a better way to display the outline
         // foldOptions: {
         //   widget: (from, to) => {
@@ -212,17 +218,21 @@ export default {
         class="btn-group btn-sm diff-mode"
       >
         <button
+          role="button"
+          :aria-label="t('generic.unified')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode !== 'split'}"
           @click="diffMode='unified'"
-        >Unified</button>
+        >{{ t('generic.unified') }}</button>
         <button
+          role="button"
+          :aria-label="t('generic.split')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode === 'split'}"
           @click="diffMode='split'"
-        >Split</button>
+        >{{ t('generic.split') }}</button>
       </span>
     </div>
     <CodeMirror
@@ -233,6 +243,7 @@ export default {
       :options="codeMirrorOptions"
       :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
+      :mode="mode"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"

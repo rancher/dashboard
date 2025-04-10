@@ -21,7 +21,6 @@
 
   // dark main text
   $lightest: #ffffff;
-  $keyboard-focus: #00ddff;
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
@@ -35,6 +34,10 @@
 
   $drag-over: #DCDEE7;
 
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
+
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
@@ -46,7 +49,6 @@
   --default-light-bg           : #{rgba($dark, 0.05)};
   --slider-light-bg            : #{rgba($darker, 1)};
   --slider-light-bg-right      : #{rgba($darker, 0)};
-  --primary-keyboard-focus     : #{$keyboard-focus};
 
   --muted                      : #{$disabled};
 
@@ -68,7 +70,7 @@
   --banner-text-color          : #{$lightest};
 
   --nav-bg                     : #{$darkest};
-  --nav-active                 : var(--primary-active-bg);
+  --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : var(--primary);
   --nav-expander-hover         : var(--primary-banner-bg);
@@ -111,10 +113,10 @@
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$light};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
-  --dropdown-group-text        : #{$disabled};
+  --dropdown-group-text        : #{$lighter};
   --dropdown-highlight-text    : var(--link);
 
   --input-text                 : #{$lightest};
@@ -146,7 +148,7 @@
   --tag-primary                : #{$lightest};
   --tag-bg                     : #{$medium};
 
-  --popover-bg                 : var(--body-bg);
+  --popover-bg                 : #{$darker};
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
 
@@ -219,4 +221,12 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
+
+  --badge-state-disabled-text  : #{$desc-light};
+  --badge-state-disabled-bg    : #{$medium};
+  --badge-state-disabled-border: #{$lighter};
+
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
 }

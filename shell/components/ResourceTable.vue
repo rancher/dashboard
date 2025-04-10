@@ -188,20 +188,11 @@ export default {
       type:    Number,
       default: null, // Default comes from the user preference
     },
-  },
 
-  mounted() {
-    /**
-     * v-shortkey prevents the event's propagation:
-     * https://github.com/fgr-araujo/vue-shortkey/blob/55d802ea305cadcc2ea970b55a3b8b86c7b44c05/src/index.js#L156-L157
-     *
-     * 'Enter' key press is handled via event listener in order to allow the event propagation
-     */
-    window.addEventListener('keyup', this.handleEnterKeyPress);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener('keyup', this.handleEnterKeyPress);
+    hideGroupingControls: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -602,9 +593,10 @@ export default {
     :mandatory-sort="_mandatorySort"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
+    @enter="handleEnterKeyPress"
   >
     <template
-      v-if="showGrouping"
+      v-if="!hideGroupingControls && showGrouping"
       #header-middle
     >
       <slot name="more-header-middle" />

@@ -10,6 +10,6 @@ export default class ActionMenuPo extends ComponentPo {
   }
 
   getMenuItem(name: string) {
-    return this.self().get('li > span').contains(name);
+    return this.self().get('[dropdown-menu-item]').contains(name);
   }
 }

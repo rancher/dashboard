@@ -34,7 +34,7 @@ export default class ExtensionsPagePo extends PagePo {
     return this.title().should('contain', 'Extensions');
   }
 
-  loading(options: any) {
+  loading() {
     return this.self().get('.data-loading');
   }
 
@@ -226,6 +226,14 @@ export default class ExtensionsPagePo extends PagePo {
 
   extensionTabAllClick(): Cypress.Chainable {
     return this.extensionTabs.clickNthTab(4);
+  }
+
+  extensionTabBuiltinClick(): Cypress.Chainable {
+    return this.extensionTabs.clickTabWithName('builtin');
+  }
+
+  extensionTabBuiltin() {
+    return this.extensionTabs.getTab('builtin');
   }
 
   // ------------------ extension reload banner ------------------

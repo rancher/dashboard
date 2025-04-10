@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
@@ -12,14 +13,13 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
-import Import from './import';
 import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const SORT_GROUPS = {
@@ -35,6 +35,8 @@ const SORT_GROUPS = {
 
 // uSed to proxy stylesheets for custom drivers that provide custom UI (RKE1)
 const PROXY_ENDPOINT = '/meta/proxy';
+const IMPORTED = 'imported';
+const LOCAL = 'local';
 
 export default {
   name: 'CruCluster',
@@ -44,11 +46,11 @@ export default {
   components: {
     CruResource,
     EmberPage,
-    Import,
     Loading,
     Rke2Config,
     SelectIconGrid,
-    ToggleSwitch
+    ToggleSwitch,
+    Banner
   },
 
   mixins: [CreateEditView],
@@ -171,7 +173,16 @@ export default {
   },
 
   data() {
-    const subType = this.$route.query[SUB_TYPE] || null;
+    let subType = null;
+
+    subType = this.$route.query[SUB_TYPE] || null;
+    if ( this.$route.query[SUB_TYPE]) {
+      subType = this.$route.query[SUB_TYPE];
+    } else if (this.value.isImported) {
+      subType = IMPORTED;
+    } else if (this.value.isLocal) {
+      subType = LOCAL;
+    }
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -219,6 +230,17 @@ export default {
             this.selectType(matchingSubtype.id, false);
           }
         }
+
+        // subType set by the ui during cluster creation
+        // this is likely from a ui extension trying to load custom ui to edit the cluster
+        const fromAnnotation = this.value.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
+
+        if (fromAnnotation) {
+          this.selectType(fromAnnotation, false);
+
+          return '';
+        }
+
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
@@ -228,17 +250,18 @@ export default {
 
           return '';
         }
-        // For RKE2/K3s clusters provisioned in Rancher with node pools,
+        // For existing RKE2/K3s clusters provisioned in Rancher,
+        // set the subtype using the machine pool provisioner
         // do not use an iFramed Ember page.
         if ( this.value.isRke2 && this.value.machineProvider ) {
-          // Edit existing RKE2
           this.selectType(this.value.machineProvider, false);
 
           return '';
         }
+
         if ( this.subType ) {
           // if driver type has a custom form component, don't load an ember page
-          if (this.selectedSubType.component) {
+          if (this.selectedSubType?.component) {
             return '';
           }
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
@@ -246,8 +269,6 @@ export default {
           if (this.selectedSubType?.emberLink) {
             return this.selectedSubType.emberLink;
           }
-
-          this.selectType(this.subType, false);
 
           return '';
         }
@@ -324,10 +345,7 @@ export default {
           addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
-
-      if ( isImport ) {
-        addType(this.$plugin, 'import', 'custom', false);
-      } else {
+      if (!isImport) {
         templates.forEach((chart) => {
           out.push({
             id:          `chart:${ chart.id }`,
@@ -364,23 +382,26 @@ export default {
 
           addType(this.$plugin, 'custom', 'custom2', false);
         }
-
-        // Add from extensions
-        this.extensions.forEach((ext) => {
-          // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
-          // default group is rke2
-          if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
-            return;
-          }
-          // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
-          if (isImport && !ext.showImport) {
-            return;
-          }
-          // Allow extensions to overwrite provisioners with the same id
-          out = out.filter((type) => type.id !== ext.id);
-          addExtensionType(ext, getters);
-        });
       }
+      // Add from extensions
+      this.extensions.forEach((ext) => {
+        // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
+        // default group is rke2
+        if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
+          return;
+        }
+        // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
+        if (isImport && !ext.showImport) {
+          return;
+        }
+        // Do not show the extension provisioner on create if it is disabled
+        if (!isImport && !!ext.hideCreate) {
+          return;
+        }
+        // Allow extensions to overwrite provisioners with the same id
+        out = out.filter((type) => type.id !== ext.id);
+        addExtensionType(ext, getters);
+      });
 
       return out;
 
@@ -648,6 +669,11 @@ export default {
           </div>
           {{ obj.label }}
         </h4>
+        <Banner
+          v-if="provisioner === _RKE1 && i === 1"
+          color="warning"
+          label-key="cluster.banner.rke1DeprecationShortMessage"
+        />
         <SelectIconGrid
           :rows="obj.types"
           key-field="id"
@@ -660,14 +686,7 @@ export default {
       </div>
     </template>
 
-    <Import
-      v-if="isImport"
-      v-model:value="localValue"
-      :mode="mode"
-      :provider="subType"
-      @update:value="$emit('input', $event)"
-    />
-    <template v-else-if="subType">
+    <template v-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
         :is="selectedSubType.component"

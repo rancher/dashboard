@@ -126,6 +126,11 @@ button,
   &.btn:not(.btn-sm) {
     line-height: $btn-height - 2px;
   }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
+  }
 }
 
 .role-link {
@@ -210,6 +215,7 @@ fieldset[disabled] .btn {
     }
   }
 
+  .btn-disabled,
   .btn[disabled] {
     // Ensure disabled button's border remains as-is, otherwise button appears vertically shorter than others in group
     border: inherit;

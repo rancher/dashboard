@@ -7,6 +7,7 @@ import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
 import { fetchLinks } from '@shell/config/home-links';
+import { processLink } from '@shell/plugins/clean-html';
 
 // i18n-ignore footer.wechat.title, footer.wechat.modalText, footer.wechat.modalText2
 export default {
@@ -77,7 +78,11 @@ export default {
         all.push(...this.links.defaults.filter((link) => link.enabled));
       }
 
-      return all;
+      // Process the links
+      return all.map((item) => ({
+        ...item,
+        value: processLink(item.value)
+      }));
     }
   },
   methods: {
@@ -135,7 +140,7 @@ export default {
           :aria-label="t('footer.wechat.title')"
           role="link"
           @click="show"
-          @keyup.enter="show"
+          @keydown.enter="show"
         >
           {{ t('footer.wechat.title') }}
         </a>
@@ -146,6 +151,7 @@ export default {
       name="wechat-modal"
       height="auto"
       :width="640"
+      :trigger-focus-trap="true"
       @close="close"
     >
       <div class="wechat-modal">
@@ -159,8 +165,7 @@ export default {
             :aria-label="t('generic.close')"
             role="button"
             @click="close"
-            @keyup.enter="close"
-            @keyup.space="close"
+            @keydown.enter.stop
           >
             {{ t('generic.close') }}
           </button>

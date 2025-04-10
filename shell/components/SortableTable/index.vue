@@ -1,7 +1,8 @@
 <script>
 import { mapGetters } from 'vuex';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
+import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -23,6 +24,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { getVersionInfo } from '@shell/utils/version';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -42,7 +45,14 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 export default {
   name: 'SortableTable',
 
-  emits: ['clickedActionButton', 'pagination-changed', 'group-value-change', 'selection', 'rowClick'],
+  emits: [
+    'clickedActionButton',
+    'pagination-changed',
+    'group-value-change',
+    'selection',
+    'rowClick',
+    'enter',
+  ],
 
   components: {
     THead,
@@ -51,6 +61,7 @@ export default {
     ActionDropdown,
     LabeledSelect,
     ButtonMultiAction,
+    ActionMenu,
   },
   mixins: [
     filtering,
@@ -518,6 +529,25 @@ export default {
       immediate: true
     },
   },
+  setup(_props, { emit }) {
+    const table = ref(null);
+
+    const handleEnterKey = (event) => {
+      if (event.key === 'Enter' && !event.target?.classList?.contains('checkbox-custom')) {
+        emit('enter', event);
+      }
+    };
+
+    onMounted(() => {
+      table.value.addEventListener('keyup', handleEnterKey);
+    });
+
+    onBeforeUnmount(() => {
+      table.value.removeEventListener('keyup', handleEnterKey);
+    });
+
+    return { table };
+  },
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
@@ -737,6 +767,12 @@ export default {
       });
 
       return rows;
+    },
+
+    featureDropdownMenu() {
+      const { fullVersion } = getVersionInfo(this.$store);
+
+      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
     }
   },
 
@@ -1055,7 +1091,10 @@ export default {
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
+                role="button"
+                :aria-label="act.label"
                 @click="applyTableAction(act, null, $event)"
+                @keydown.enter.stop
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
@@ -1207,12 +1246,21 @@ export default {
               </div>
             </div>
           </div>
-          <input
+          <p
             v-else-if="search"
+            id="describe-filter-sortable-table"
+            hidden
+          >
+            {{ t('sortableTable.filteringDescription') }}
+          </p>
+          <input
+            v-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
             class="input-sm search-box"
+            :aria-label="t('sortableTable.searchLabel')"
+            aria-describedby="describe-filter-sortable-table"
             :placeholder="t('sortableTable.search')"
           >
           <slot name="header-button" />
@@ -1220,6 +1268,7 @@ export default {
       </div>
     </div>
     <table
+      ref="table"
       class="sortable-table"
       :class="classObject"
       width="100%"
@@ -1298,6 +1347,7 @@ export default {
         v-for="(groupedRows) in displayRows"
         v-else
         :key="groupedRows.key"
+        tabindex="-1"
         :class="{ group: groupBy }"
       >
         <slot
@@ -1349,11 +1399,13 @@ export default {
                   class="row-check"
                   align="middle"
                 >
-                  {{ row.mainRowKey }}<Checkbox
+                  {{ row.mainRowKey }}
+                  <Checkbox
                     class="selection-checkbox"
                     :data-node-id="row.key"
                     :data-testid="componentTestid + '-' + i + '-checkbox'"
                     :value="selectedRows.includes(row.row)"
+                    :alternate-label="t('sortableTable.genericRowCheckbox', { item: row && row.row ? row.row.id : '' })"
                   />
                 </td>
                 <td
@@ -1405,9 +1457,9 @@ export default {
                           :value="col.value"
                           :row="row.row"
                           :col="col.col"
+                          :get-custom-detail-link="getCustomDetailLink"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
-                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"
@@ -1439,23 +1491,33 @@ export default {
                 </template>
                 <td
                   v-if="rowActions"
-                  align="middle"
                 >
                   <slot
                     name="row-actions"
                     :row="row.row"
+                    :index="i"
                   >
-                    <ButtonMultiAction
-                      :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
-                      :ref="`actionButton${i}`"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      :data-testid="componentTestid + '-' + i + '-action-button'"
-                      :borderless="true"
-                      @click="handleActionButtonClick(i, $event)"
-                      @keyup.enter="handleActionButtonClick(i, $event)"
-                      @keyup.space="handleActionButtonClick(i, $event)"
-                    />
+                    <template v-if="featureDropdownMenu">
+                      <ActionMenu
+                        :resource="row.row"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                      />
+                    </template>
+                    <template v-else>
+                      <ButtonMultiAction
+                        :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                        :ref="`actionButton${i}`"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        :aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
+                        :data-testid="componentTestid + '-' + i + '-action-button'"
+                        :borderless="true"
+                        @click="handleActionButtonClick(i, $event)"
+                        @keyup.enter="handleActionButtonClick(i, $event)"
+                        @keyup.space="handleActionButtonClick(i, $event)"
+                      />
+                    </template>
                   </slot>
                 </td>
               </tr>
@@ -1506,18 +1568,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-first"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.firstPageBtn')"
         @click="goToPage('first')"
       >
-        <i class="icon icon-chevron-beginning" />
+        <i
+          class="icon icon-chevron-beginning"
+          :alt="t('sortableTable.alt.firstPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-prev"
         :disabled="page == 1 || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.prevPageBtn')"
         @click="goToPage('prev')"
       >
-        <i class="icon icon-chevron-left" />
+        <i
+          class="icon icon-chevron-left"
+          :alt="t('sortableTable.alt.prevPageBtn')"
+        />
       </button>
       <span>
         {{ pagingDisplay }}
@@ -1527,18 +1599,28 @@ export default {
         class="btn btn-sm role-multi-action"
         data-testid="pagination-next"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.nextPageBtn')"
         @click="goToPage('next')"
       >
-        <i class="icon icon-chevron-right" />
+        <i
+          class="icon icon-chevron-right"
+          :alt="t('sortableTable.alt.nextPageBtn')"
+        />
       </button>
       <button
         type="button"
         class="btn btn-sm role-multi-action"
         data-testid="pagination-last"
         :disabled="page == totalPages || loading"
+        role="button"
+        :aria-label="t('sortableTable.ariaLabel.lastPageBtn')"
         @click="goToPage('last')"
       >
-        <i class="icon icon-chevron-end" />
+        <i
+          class="icon icon-chevron-end"
+          :alt="t('sortableTable.alt.lastPageBtn')"
+        />
       </button>
     </div>
     <button
@@ -1752,7 +1834,6 @@ export default {
     min-width: 400px;
     border-radius: 5px 5px 0 0;
     outline: 1px solid var(--border);
-    overflow: hidden;
     background: var(--sortable-table-bg);
     border-radius: 4px;
 

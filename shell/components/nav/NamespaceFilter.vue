@@ -894,12 +894,13 @@ export default {
     display: inline-block;
 
     .ns-glass {
-      height: 100vh;
-      left: 0;
-      opacity: 0;
-      position: absolute;
       top: 0;
-      width: 100vw;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      opacity: 0;
+      position: fixed;
+
       z-index: z-index('overContent');
     }
 
@@ -1008,7 +1009,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--dropdown-hover-bg);
+                color: var(--primary);
               }
             }
 

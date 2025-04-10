@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmits } from 'vue';
+import { computed } from 'vue';
 
 defineEmits(['click']);
 
@@ -22,10 +22,14 @@ const buttonClass = computed(() => {
   <button
     type="button"
     class="btn btn-sm role-multi-action actions"
+    role="button"
     :class="buttonClass"
     @click="(e: Event) => $emit('click', e)"
   >
-    <i class="icon icon-actions" />
+    <i
+      class="icon icon-actions"
+      :alt="t('sortableTable.tableActionsImgAlt')"
+    />
   </button>
 </template>
 

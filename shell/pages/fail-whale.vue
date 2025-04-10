@@ -70,12 +70,15 @@ export default {
         :simple="true"
       />
 
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        aria-label="Fail whale layout"
+      >
         <div
           v-if="error"
           class="outlet"
         >
-          <main class="main-layout error">
+          <div class="main-layout error">
             <div class="text-center">
               <BrandImage
                 file-name="error-desert-landscape.svg"
@@ -115,7 +118,7 @@ export default {
                 </a>
               </p>
             </div>
-          </main>
+          </div>
         </div>
       </main>
     </div>

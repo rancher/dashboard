@@ -11,6 +11,8 @@ import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import ArrayList from '@shell/components/form/ArrayList';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
+import { BASE_SCOPES } from '@shell/store/auth';
 
 export default {
   components: {
@@ -23,7 +25,8 @@ export default {
     AdvancedSection,
     ArrayList,
     LabeledInput,
-    RadioGroup
+    RadioGroup,
+    Checkbox,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -48,6 +51,7 @@ export default {
         tokenEndpoint:    null,
         userInfoEndpoint: null,
       },
+      // TODO #13457: this is duplicated due wrong format
       oidcScope: []
     };
   },
@@ -74,9 +78,10 @@ export default {
       }
 
       const { clientId, clientSecret } = this.model;
-      const isValidScope = this.model.id === 'keycloakoidc' || this.oidcScope?.includes('openid');
+      const isMissingAuthEndpoint = (this.requiresAuthEndpoint && !this.model.authEndpoint);
+      const isMissingScopes = !this.requiredScopes.every((scope) => this.oidcScope.includes(scope));
 
-      if ( !isValidScope ) {
+      if (isMissingAuthEndpoint || isMissingScopes) {
         return false;
       }
 
@@ -89,6 +94,19 @@ export default {
 
         return !!(clientId && clientSecret && rancherUrl && issuer);
       }
+    },
+
+    requiresAuthEndpoint() {
+      return ['genericoidc', 'keycloakoidc'].includes(this.model.id);
+    },
+
+    /**
+     * TODO #13457: Refactor scopes to be an array of terms
+     * Return valid scopes
+     * The scopes for given auth provider (model.id) have format of ['scope1 scope2 scope3']
+     */
+    requiredScopes() {
+      return this.model.id ? (BASE_SCOPES[this.model.id] || []) ? (BASE_SCOPES[this.model.id] || [])[0].split(' ') : [] : [];
     }
   },
 
@@ -102,6 +120,7 @@ export default {
     },
 
     'model.enabled'(neu) {
+      // TODO #13457: Refactor scopes to be an array of terms
       // Cover case where oidc gets disabled and we return to the edit screen with a reset model
       if (!neu) {
         this.oidcUrls = {
@@ -112,8 +131,10 @@ export default {
           userInfoEndpoint: null,
         };
         this.customEndpoint.value = false;
+        // TODO #13457: Refactor scopes to be an array of terms
         this.oidcScope = this.model?.scope?.split(' ');
       } else {
+        // TODO #13457: Refactor scopes to be an array of terms
         this.oidcScope = this.model?.scope?.split(' ');
       }
     },
@@ -128,13 +149,19 @@ export default {
 
   methods: {
     updateEndpoints() {
-      if (!this.oidcUrls.url) {
-        return;
-      }
       const isKeycloak = this.model.id === 'keycloakoidc';
 
+      if (!this.oidcUrls.url) {
+        this.model.issuer = '';
+        if (isKeycloak) {
+          this.model.authEndpoint = '';
+        }
+
+        return;
+      }
+
       const url = this.oidcUrls.url.replaceAll(' ', '');
-      const realmsPath = isKeycloak ? 'auth/realms' : 'realms';
+      const realmsPath = 'realms';
 
       this.model.issuer = `${ url }/${ realmsPath }/${ this.oidcUrls.realm || '' }`;
 
@@ -199,6 +226,7 @@ export default {
 
         <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
 
+        <!-- Auth credentials -->
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -220,6 +248,7 @@ export default {
           </div>
         </div>
 
+        <!-- Key/Certificate -->
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -253,6 +282,20 @@ export default {
           </div>
         </div>
 
+        <!-- Allow group search -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <Checkbox
+              v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
+              :label="t('authConfig.oidc.groupSearch.label')"
+              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
+            />
+          </div>
+        </div>
+
+        <!-- Scopes -->
         <div class="row mb-20">
           <div class="col span-6">
             <ArrayList
@@ -266,6 +309,7 @@ export default {
           </div>
         </div>
 
+        <!-- Generated vs Specific Endpoints -->
         <div class="row mb-20">
           <div class="col span-6">
             <RadioGroup
@@ -283,6 +327,7 @@ export default {
           </div>
         </div>
 
+        <!-- Generated endpoints -->
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -306,6 +351,7 @@ export default {
           </div>
         </div>
 
+        <!-- Specific Endpoints -->
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -336,12 +382,13 @@ export default {
               :label="t(`authConfig.oidc.authEndpoint`)"
               :mode="mode"
               :disabled="!customEndpoint.value"
-              :required="model.id === 'keycloakoidc'"
+              :required="requiresAuthEndpoint"
               data-testid="oidc-auth-endpoint"
             />
           </div>
         </div>
 
+        <!-- Advanced section -->
         <AdvancedSection :mode="mode">
           <div class="row mb-20">
             <div class="col span-6">

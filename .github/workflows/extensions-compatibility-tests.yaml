@@ -15,6 +15,7 @@ env:
 
 jobs:
   e2e-test-extensions-compatibility:
+    if: ${{ github.repository_owner == 'rancher' }}
     strategy:
       fail-fast: false
       matrix:

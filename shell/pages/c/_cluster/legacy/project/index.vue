@@ -17,7 +17,7 @@ export default {
     project(nue, old) {
       if (nue && !old) {
         // User selected a project while on this page, so redirect to the projects view now that we have a project
-        this.$router.replace({ name: 'c-cluster-legacy-project-page', params: { page: 'apps' } });
+        this.$router.replace({ name: 'c-cluster-legacy-project-page', params: { page: 'config-maps' } });
       }
     }
   }
