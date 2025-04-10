@@ -23,6 +23,14 @@ const markRead = (item: any) => {
 const markAllRead = () => {
   store.dispatch('notifications/markAllRead');
 };
+
+const keepOpen = (e: Event) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
+
+const hello = () => {
+};
 </script>
 
 <template>
@@ -41,7 +49,10 @@ const markAllRead = () => {
       </div>
     </rc-dropdown-trigger>
     <template #dropdownCollection>
-      <div class="notification-header">
+      <div
+        class="notification-header"
+        @click="keepOpen($event)"
+      >
         <div class="notification-title">
           Notifications
         </div>
@@ -70,7 +81,10 @@ const markAllRead = () => {
           :key="a.title"
         >
           <rc-dropdown-separator />
-          <rc-dropdown-item>
+          <rc-dropdown-item
+            :prevent-auto-close="true"
+            @click="hello()"
+          >
             <Notification
               :item="a"
               @markRead="markRead"

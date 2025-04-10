@@ -48,7 +48,7 @@ export default {
       if (!this.shouldRun) {
         this.stopAutoRemove();
       }
-      
+
       for ( const growl of this.stack ) {
         if ( !growl.timeout ) {
           continue;

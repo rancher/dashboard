@@ -17,9 +17,7 @@ const CLASSES = {
 
 const emits = defineEmits(['markRead']);
 
-const props = defineProps({
-  item: { type: Object as PropType<StoredNotification>, required: true },
-});
+const props = defineProps({ item: { type: Object as PropType<StoredNotification>, required: true } });
 
 const store = useStore();
 const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
@@ -48,22 +46,25 @@ const action = (action: NotificationAction) => {
 
 <template>
   <div class="notification">
-    <div class="sep"></div>
+    <div class="sep" />
     <div class="top">
       <div class="icon">
-        <i class="icon" :class="clz"></i>
+        <i
+          class="icon"
+          :class="clz"
+        />
       </div>
       <div class="item-title">
-          {{ item.title }}
+        {{ item.title }}
       </div>
       <div
-        @click.stop="$emit('markRead', item)"
         class="read-indicator"
+        @click.stop="emits('markRead', item)"
       >
         <div
           class="read-icon"
           :class="{ 'unread': !item.read }"
-        ></div>
+        />
       </div>
     </div>
     <div class="bottom">
@@ -76,29 +77,38 @@ const action = (action: NotificationAction) => {
       >
         {{ item.message }}
       </div>
-      <div class="progress" v-if="item.level === NotificationLevel.Task && typeof item.progress === 'number'">
+      <div
+        v-if="item.level === NotificationLevel.Task && typeof item.progress === 'number'"
+        class="progress"
+      >
         <div class="progress-bar">
-          <div class="pb-background"/>
-          <div :style="{width: `${item.progress}%`}" class="pb-foreground"/>
+          <div class="pb-background" />
+          <div
+            :style="{width: `${item.progress}%`}"
+            class="pb-foreground"
+          />
         </div>
         <div class="progress-percent">
           {{ item.progress }}%
         </div>
       </div>
-      <div class="actions" v-if="item.primaryAction || item.secondaryAction">
+      <div
+        v-if="item.primaryAction || item.secondaryAction"
+        class="actions"
+      >
         <button
           v-if="item.primaryAction"
           class="btn btn-sm role-primary"
           @click="action(item.primaryAction)"
         >
-          {{  item.primaryAction.label }}
+          {{ item.primaryAction.label }}
         </button>
         <button
           v-if="item.secondaryAction"
           class="btn btn-sm role-secondary"
           @click="action(item.secondaryAction)"
         >
-          {{  item.secondaryAction.label }}
+          {{ item.secondaryAction.label }}
         </button>
       </div>
     </div>

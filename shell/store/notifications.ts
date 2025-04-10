@@ -172,8 +172,8 @@ export const mutations = {
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
-   //state.notifications.unshift(notification);
-   state.notifications = notifications;
+    // state.notifications.unshift(notification);
+    state.notifications = notifications;
 
     // Sort the notifications by created date so that this one appears in the correct place
     // TODO
@@ -184,16 +184,11 @@ export const actions = {
   add( { commit, dispatch }: any, notification: Notification) {
     commit('add', notification);
 
-    console.error('>> Adding notification >>>>>');
-    console.error(notification);
-
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
   },
 
   fromGrowl( { commit }: any, notification: Notification) {
-    console.error('>> Adding notification from Growl >>>>>');
-    console.error(notification);
     notification.id = randomStr();
 
     commit('add', notification);
@@ -221,7 +216,11 @@ export const actions = {
     // For all notifications that have a preference, set the preference, since they are now read
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
 
+    console.error('Mark all as read'); // eslint-disable-line no-console
+
     for (let i = 0; i < withPreference.length; i++) {
+      // Check - all ???
+      console.log(withPreference); // eslint-disable-line no-console
       await dispatch('prefs/set', withPreference.all[i].preference, { root: true });
     }
   },
@@ -235,7 +234,6 @@ export const actions = {
   },
 
   init({ commit } : any) {
-    console.error('INIT !!!!!');
     window.addEventListener('storage', (ev) => {
       if (ev.key === LOCAL_STORAGE_KEY) {
         try {
