@@ -1069,7 +1069,7 @@ export default {
   .user-name {
     display: flex;
     align-items: center;
-    color: var(--secondary);
+    color: var(--body-text);
   }
 
   .user-menu {
