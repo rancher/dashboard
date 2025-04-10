@@ -24,7 +24,7 @@ export default ({
     },
 
     hiddenAriaDescribedLabel: {
-      type: String,
+      type:    String,
       default: ''
     },
   },
@@ -47,8 +47,8 @@ export default ({
           :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
-          @update:value="value.showMessage = $event.toString()"
           aria-describedby="hidden-label-notification-settings"
+          @update:value="value.showMessage = $event.toString()"
         />
       </div>
     </div>
