@@ -89,16 +89,14 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
       // #Percy tests
-      cy.get('i.checkbox-info.icon-info.icon-lg.v-popper--has-tooltip').realHover();
-      cy.wait(500);
+      gitRepoCreatePage.displaySelfHealingInformationMessage();
+
       cy.percySnapshot('Self-Healing test');
+      gitRepoCreatePage.displayAlwaysKeepInformationMessage();
 
-      cy.get('i[aria-label="When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted."]').realHover();
-      cy.wait(500);
       cy.percySnapshot('Always Keep Resource test');
+      gitRepoCreatePage.displayPollingInvervalTimeInformationMessage();
 
-      cy.get('i[aria-label="Polling Interval is the time between a push to the Repository and Fleet&#39;s reaction to it."]').realHover();
-      cy.wait(500);
       cy.percySnapshot('Polling Interval test');
       gitRepoCreatePage.setPollingInterval(13);
 
