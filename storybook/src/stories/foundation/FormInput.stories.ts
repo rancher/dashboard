@@ -1,0 +1,60 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import { useForm } from 'vee-validate';
+
+const meta: Meta<typeof LabeledInput> = { component: LabeledInput };
+
+export default meta;
+type Story = StoryObj<typeof LabeledInput>;
+
+const displayValidation = () => `
+<br />
+<br />
+<h3>Metadata generated:</h3>
+<pre><code>
+Values: {{ values }}
+Errors: {{ errVal }}
+Meta: {{ meta }}
+</code></pre>
+`;
+
+export const Default: Story = {
+  render: (args: any) => ({
+    components: { LabeledInput },
+    setup() {
+      const {
+        errors: errVal, values, meta, defineField
+      } = useForm({
+        validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
+        initialValues:    { name: '' },
+      });
+      const [name, nameAttrs] = defineField('name');
+
+      return {
+        name,
+        nameAttrs,
+        values,
+        errVal,
+        meta,
+        args
+      };
+    },
+    template: `
+      <LabeledInput
+        v-model:value="name"  
+        v-bind="{
+          ...args,
+          ...nameAttrs
+        }"
+        :subLabel="errVal.name"
+        :status="errVal.name ? 'error' : meta.touched ? 'success' : undefined"
+        :tooltipKey="errVal.name ? errVal.name : meta.touched ? 'Input correct' : undefined"
+      />
+      ${ displayValidation() }
+    `,
+  }),
+  args: {
+    label: 'Name',
+    type:  'text',
+  },
+};

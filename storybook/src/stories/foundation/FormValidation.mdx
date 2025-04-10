@@ -1,0 +1,39 @@
+import { Canvas, Meta } from "@storybook/addon-docs";
+import * as FormInput from './FormInput.stories';
+
+<Meta title="Foundation/Form Validation"  />
+
+# Form Validation
+
+Form validation based on the library [`vee-validate`](https://github.com/logaretm/vee-validate/). [Check here](https://vee-validate.logaretm.com/v4/guide/) for documentation.
+
+## Composition API
+
+### Input
+
+Example of input with validation based on [input component](/docs/stories-form-input--docs).
+
+For the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
+
+```ts
+setup() {
+  const { errors: errVal, values, meta } = useForm({
+    validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
+    initialValues:    { myList: [{ name: '' }] },
+  });
+  const { remove, push, fields } = useFieldArray('myList');
+
+  return {
+    remove,
+    push,
+    fields,
+    values,
+    errVal,
+    meta,
+  };
+},
+```
+
+<Canvas of={FormInput.Default} />
+
+### Nested Form 
