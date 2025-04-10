@@ -57,16 +57,19 @@
   
   --active: #{$primary-50};
   --on-active: #{$grey-90};
+  --active--hover: #{darken($primary-50, 5%)};
   --category--active: #{$primary-75};
   --category--active--hover: #{$grey-70};
 
   --toggle-OFF__bg: #{$grey-100};
   --toggle-OFF__color: #{$grey-40};
+  --toggle-OFF--hover: #{$grey-90};
   --toggle-ON__bg: var(--active);
   --toggle-ON__color: var(--on-active);
 
-
   --vertical-tabs__bg: #{$grey-90};
+
+  --disabled-opacity: .5;
 
   /*********************/
 
@@ -94,7 +97,7 @@
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : #{$darker};
+  --header-bg                  : var(--body__bg);
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$grey-0};
@@ -104,10 +107,12 @@
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$grey-0};
 
-  --nav-bg                     : #{$darkest};
+  --nav-bg                     : var(--body__bg);
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
+  --nav--hover                 : #{$grey-60};
+  --nav-category-active--hover: #{$grey-70};
+  --nav-active--hover          : var(--active--hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
@@ -117,7 +122,7 @@
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : #{$darkest};
+  --topmenu-bg                 : var(--body__bg);
   --topmenu-text               : #{$grey-0};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
@@ -158,7 +163,7 @@
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
-  --input-bg                   : var(--body-bg);
+  --input-bg                   : var(--body__bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
@@ -174,9 +179,9 @@
   --progress-bg                : #{$medium};
   --progress-divider           : #{$grey-0};
 
-  --sortable-table-bg          : #{lighten($darkest, 10%)};
-  --sortable-table-row-bg      : #{$darker};;
-  --sortable-table-header-bg   : #{$darkest};
+  --sortable-table-bg          : #{$grey-100};
+  --sortable-table-row-bg      : #{$darker};
+  --sortable-table-header-bg   : #{$grey-90};
   --sortable-table-top-divider : var(--border);
   --sortable-table-hover-bg    : #{$darkest};
   --sortable-table-selected-bg : var(--primary-light-bg);

@@ -409,7 +409,7 @@ $fontColor: var(--input-label);
  .checkbox-custom {
     height: 14px;
     width: 14px;
-    background-color: var(--body-bg);
+    background-color: var(--body__bg);
     border-radius: var(--border-radius);
     border: 1px solid var(--border);
     flex-shrink: 0;
