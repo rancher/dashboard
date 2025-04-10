@@ -216,12 +216,8 @@ export const actions = {
     // For all notifications that have a preference, set the preference, since they are now read
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
 
-    console.error('Mark all as read'); // eslint-disable-line no-console
-
     for (let i = 0; i < withPreference.length; i++) {
-      // Check - all ???
-      console.log(withPreference); // eslint-disable-line no-console
-      await dispatch('prefs/set', withPreference.all[i].preference, { root: true });
+      await dispatch('prefs/set', withPreference[i].preference, { root: true });
     }
   },
 

@@ -24,17 +24,19 @@ const markAllRead = () => {
   store.dispatch('notifications/markAllRead');
 };
 
-const keepOpen = (e: Event) => {
-  e.preventDefault();
-  e.stopPropagation();
-};
-
-const hello = () => {
+// Close all of the open growls when the notification center is shown, so that they do not overlap
+const open = (opened: boolean) => {
+  if (opened) {
+    store.dispatch('growl/clear');
+  }
 };
 </script>
 
 <template>
-  <rc-dropdown :aria-label="t('nav.actionMenu.label')">
+  <rc-dropdown
+    :aria-label="t('nav.actionMenu.label')"
+    @update:open="open"
+  >
     <rc-dropdown-trigger
       tertiary
       data-testid="page-actions-menu"
@@ -51,7 +53,6 @@ const hello = () => {
     <template #dropdownCollection>
       <div
         class="notification-header"
-        @click="keepOpen($event)"
       >
         <div class="notification-title">
           Notifications
@@ -81,10 +82,7 @@ const hello = () => {
           :key="a.title"
         >
           <rc-dropdown-separator />
-          <rc-dropdown-item
-            :prevent-auto-close="true"
-            @click="hello()"
-          >
+          <rc-dropdown-item>
             <Notification
               :item="a"
               @markRead="markRead"
