@@ -19,7 +19,7 @@ const addAll = () => {
   // Add a set of test notifications
   // Register notification
   store.dispatch('notifications/add', {
-    level:    NotificationLevel.Announcement,
+    level:   NotificationLevel.Announcement,
     title:   'New version available!',
     message: 'Rancher v2.9 is now available for installation'
   });
@@ -81,38 +81,48 @@ const reset = () => {
 
 const growl = () => {
   store.dispatch('growl/success', {
-    title: 'Extension loaded',
+    title:   'Extension loaded',
     message: 'Virtual Clusters UI Extension loaded successfully',
-  }, { root: true });  
-}
+  }, { root: true });
+};
 </script>
 
 <template>
   <div class="panel">
-    <div class="header">Notification Test Panel</div>
+    <div class="header">
+      Notification Test Panel
+    </div>
     <div class="actions">
       <button
+        class="btn btn-sm role-primary"
         @click="clearAll()"
-        class="btn btn-sm role-primary"
-      >Clear All</button>
+      >
+        Clear All
+      </button>
       <button
+        class="btn btn-sm role-primary"
         @click="addAll()"
-        class="btn btn-sm role-primary"
-      >Add All</button>
+      >
+        Add All
+      </button>
       <button
+        class="btn btn-sm role-primary"
         @click="updateProgress()"
-        class="btn btn-sm role-primary"
-      >Update progress</button>
+      >
+        Update progress
+      </button>
       <button
+        class="btn btn-sm role-primary"
         @click="reset()"
-        class="btn btn-sm role-primary"
-      >Reset release notes read</button>
+      >
+        Reset release notes read
+      </button>
       <button
-        @click="growl()"
         class="btn btn-sm role-primary"
+        @click="growl()"
       >
         Growl Test
-      </button>      
+      </button>
     </div>
   </div>
 </template>
