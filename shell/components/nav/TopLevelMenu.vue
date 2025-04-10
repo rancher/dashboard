@@ -1201,20 +1201,20 @@ export default {
         }
 
         &:hover {
-          color: var(--primary-hover-text);
-          background: var(--primary-hover-bg);
+          //color: var(--nav--hover-text);
+          background: var(--nav--hover);
           > div {
-            color: var(--primary-hover-text);
+            //color: var(--primary-hover-text);
 
             .description {
-              color: var(--default);
+              //color: var(--default);
             }
           }
           svg {
-            fill: var(--primary-hover-text);
+            //fill: var(--primary-hover-text);
           }
           div {
-            color: var(--primary-hover-text);
+            //color: var(--primary-hover-text);
           }
           &.disabled {
             background: transparent;

@@ -380,7 +380,7 @@ export default {
       .table-options-container {
         width: 350px;
         border: 1px solid var(--primary);
-        background-color: var(--body-bg);
+        background-color: var(--body__bg);
         padding: 20px;
         z-index: 1;
 

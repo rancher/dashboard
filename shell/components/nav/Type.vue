@@ -247,15 +247,16 @@ export default {
       white-space: nowrap;
       color: var(--body-text);
       height: 33px;
-
+/*
       &:hover {
-        background: var(--nav-hover);
+        background: var(--nav--hover);
         text-decoration: none;
 
         :deep() .icon {
           color: var(--body-text);
         }
       }
+        */
     }
 
     .favorite {
