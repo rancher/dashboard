@@ -195,6 +195,22 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
+  addEnvironmentVariable() {
+    cy.get('[data-testid="add-env-var"]').click();
+  }
+
+  removeEnvironmentVariable(index: number) {
+    cy.get(`[data-testid="env-var-row-${ index }"] .remove button`).click();
+  }
+
+  environmentVariableKeyInput(index: number) {
+    return LabeledInputPo.bySelector(this.self(), `[data-testid="env-var-row-${ index }"] .name`);
+  }
+
+  environmentVariableValueInput(index: number) {
+    return LabeledInputPo.bySelector(this.self(), `[data-testid="env-var-row-${ index }"] .single-value`);
+  }
+
   /**
    *
    * @returns po for the top level tabs in workloads ie general workload, pod, and one more per container

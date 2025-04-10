@@ -157,6 +157,33 @@ describe('Cluster Explorer', () => {
         });
       });
 
+      it('should be able to add and remove EnvVars', () => {
+        deploymentsCreatePage.goTo();
+        deploymentsCreatePage.waitForPage();
+
+        deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#container-0');
+        deploymentsCreatePage.nthContainerTabs(2);
+
+        deploymentsCreatePage.addEnvironmentVariable();
+        deploymentsCreatePage.addEnvironmentVariable();
+        deploymentsCreatePage.addEnvironmentVariable();
+
+        // Ensure the default key and value are empty as expected
+        expect(deploymentsCreatePage.environmentVariableKeyInput(0).value()).to.eq('');
+        expect(deploymentsCreatePage.environmentVariableValueInput(0).value()).to.eq('');
+
+        deploymentsCreatePage.environmentVariableKeyInput(0).set('a');
+        deploymentsCreatePage.environmentVariableValueInput(0).set('a');
+        deploymentsCreatePage.environmentVariableKeyInput(1).set('b');
+        deploymentsCreatePage.environmentVariableValueInput(1).set('b');
+        deploymentsCreatePage.environmentVariableKeyInput(2).set('c');
+        deploymentsCreatePage.environmentVariableValueInput(2).set('c');
+
+        // Ensure when we remove the variable we remove the correct row
+        deploymentsCreatePage.removeEnvironmentVariable(1);
+        expect(deploymentEditConfigPage.environmentVariableKeyInput(2).value()).to.eq('c');
+      });
+
       it('should be able to select Pod CSI storage option', () => {
         deploymentsCreatePage.goTo();
         deploymentsCreatePage.waitForPage();
