@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
 import { useForm } from 'vee-validate';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 const meta: Meta<typeof LabeledInput> = { component: LabeledInput };
 
@@ -17,15 +18,18 @@ Errors: {{ errVal }}
 Meta: {{ meta }}
 </code></pre>
 `;
+let t;
 
 export const Default: Story = {
   render: (args: any) => ({
     components: { LabeledInput },
     setup() {
+      const validators = (key: string) => formRulesGenerator(t, { key });
       const {
         errors: errVal, values, meta, defineField
       } = useForm({
-        validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
+        validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
+        // validationSchema: { name: (val: string) => validators('name').minLength(3)(val) ?? true },
         initialValues:    { name: '' },
       });
       const [name, nameAttrs] = defineField('name');
@@ -38,6 +42,9 @@ export const Default: Story = {
         meta,
         args
       };
+    },
+    created() {
+      t = this.$store.getters['i18n/t'];
     },
     template: `
       <LabeledInput
