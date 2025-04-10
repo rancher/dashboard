@@ -65,14 +65,14 @@ export const actions = {
 
   async close({ commit, dispatch, getters }, id ) {
     const growl = getters.byId(id);
-    
+
     commit('remove', id);
 
     // If the growl has a notification, mark it as read if the user dismisses the growl
     if (growl.notification) {
       await dispatch('notifications/markRead', growl.notification, { root: true });
     }
-  },  
+  },
 
   async success({ commit, dispatch }, data) {
     // Send a notification for the growl
@@ -121,7 +121,7 @@ export const actions = {
       ...data,
       level: NotificationLevel.Error
     }, { root: true });
-      
+
     commit('add', {
       color:   'error',
       icon:    'error',
@@ -134,8 +134,9 @@ export const actions = {
   async fromError({ commit, dispatch }, { title, err }) {
     // Send a notification for the growl
     const notification = await dispatch('notifications/fromGrowl', {
-      ...data,
-      level: NotificationLevel.Error
+      title,
+      message: stringify(err),
+      level:   NotificationLevel.Error
     }, { root: true });
 
     commit('add', {
@@ -150,7 +151,7 @@ export const actions = {
 
   /**
    * Used to create a growl when a notification is sent
-   * 
+   *
    * Growls are only shown for Success, Warning and Error notifications
    */
   notification({ commit }, notification) {
@@ -161,21 +162,21 @@ export const actions = {
       timeout:      DEFAULT_TIMEOUT,
     };
 
-    switch(notification.level) {
-      case NotificationLevel.Success:
-        growl.color = 'success';
-        growl.icon = 'checkmark';
-        break;
-      case NotificationLevel.Warning:
-        growl.color = 'warning';
-        growl.icon = 'warning';
-        break;
-      case NotificationLevel.Error:
-        growl.color = 'error';
-        growl.icon = 'error';
-        break;
-      default:
-        growl.skip = true;
+    switch (notification.level) {
+    case NotificationLevel.Success:
+      growl.color = 'success';
+      growl.icon = 'checkmark';
+      break;
+    case NotificationLevel.Warning:
+      growl.color = 'warning';
+      growl.icon = 'warning';
+      break;
+    case NotificationLevel.Error:
+      growl.color = 'error';
+      growl.icon = 'error';
+      break;
+    default:
+      growl.skip = true;
     }
 
     // We don't show growls for info, announcement, task
