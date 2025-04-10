@@ -18,12 +18,6 @@ const incompatible = {
   manualRefresh:      ['forceNsFilterV2'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
 };
-// const incompatible = {
-//   incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
-//   manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
-//   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
-//   serverPagination:   ['incrementalLoading', 'manualRefresh'],
-// };
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',

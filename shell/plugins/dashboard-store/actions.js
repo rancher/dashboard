@@ -199,6 +199,7 @@ export default {
 
     let skipHaveAll = false;
 
+    // TODO: RC debug
     if (type === 'pod') {
       debugger;
     }
@@ -218,12 +219,12 @@ export default {
 
       pageFetchOpts = {
         ...opt,
-        url: addParam(opt.url, 'limit', `${ opt.incremental.limit }`),
+        url: addParam(opt.url, 'limit', `${ opt.incremental.limit }`), // TODO: RC debug
       };
 
       // this is where we "hijack" the limit for the dispatch('request') some lines below
       // and therefore have 2 initial requests in parallel
-      opt.url = addParam(opt.url, 'limit', '5');
+      opt.url = addParam(opt.url, 'limit', '5'); // TODO: RC debug
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll

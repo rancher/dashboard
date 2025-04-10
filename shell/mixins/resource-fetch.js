@@ -207,6 +207,7 @@ export default {
       if (this.incremental) {
         const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
 
+        // TODO: RC decide on process for vai back api replacement for kube limit/next pagination
         sdfdsfdsf;
 
         // can't `.next` through a set of known resources at specific point in time
@@ -259,12 +260,10 @@ export default {
 
       // manual refresh settings config
       const manualDataRefreshEnabled = perfSettingsUtils.manualRefreshUtils.isEnabled(this.canPaginate, this.perfConfig);
-      // this.perfConfig?.manualRefresh?.enabled;
       const manualDataRefreshThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // incremental loading settings config
       const incrementalLoadingEnabled = perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.canPaginate, this.perfConfig);
-      // const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
       const incrementalLoadingThreshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
 
       // other vars
