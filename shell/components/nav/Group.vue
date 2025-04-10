@@ -158,6 +158,17 @@ export default {
         items = this.group;
       }
 
+      let parentPath = '';
+      const cluster = this.$route.params?.cluster;
+
+      // Where we use nested route configuration, consider the parent route when trying to identify the nav location
+      if (this.$route.matched.length > 1) {
+        const parentRoute = this.$route.matched[this.$route.matched.length - 2];
+
+        parentPath = parentRoute.path.replace(':cluster', cluster);
+        parentPath = parentPath === '/' ? undefined : parentPath;
+      }
+
       for (const item of items.children) {
         if (item.children && this.hasActiveRoute(item)) {
           return true;
@@ -166,8 +177,11 @@ export default {
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
+          const itemFullPath = this.$router.resolve(item.route).fullPath;
 
-          if (matchesNavLevel || this.$router.resolve(item.route).fullPath === withoutQuery) {
+          if (matchesNavLevel || itemFullPath === withoutQuery) {
+            return true;
+          } else if (parentPath && itemFullPath === parentPath) {
             return true;
           }
         }
