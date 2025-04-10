@@ -37,7 +37,7 @@ describe('component: LabeledInput', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(1);
     expect(wrapper.emitted('update:value')![0][0]).toBe(value);
   });
-  
+
   describe('using type "chron"', () => {
     it.each([
       ['0 * * * *', 'Every hour, every day'],
@@ -67,9 +67,11 @@ describe('component: LabeledInput', () => {
       ['multiline-password', 'textarea', ariaLabelVal, subLabelVal, ariaDescribedByIdVal],
     ])('for type %p should correctly fill out the appropriate fields on the component', (type, validationType, ariaLabel, subLabel, ariaDescribedById) => {
       const wrapper = mount(LabeledInput, {
-        propsData: { value: '', type, ariaLabel, subLabel },
-        attrs:     { 'aria-describedby': ariaDescribedById},
-        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+        propsData: {
+          value: '', type, ariaLabel, subLabel
+        },
+        attrs: { 'aria-describedby': ariaDescribedById },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
       });
 
       const field = wrapper.find(validationType);
@@ -79,7 +81,7 @@ describe('component: LabeledInput', () => {
       // validates type of input rendered
       expect(field.exists()).toBe(true);
       expect(ariaLabelProp).toBe(ariaLabel);
-      expect(ariaDescribedBy).toBe(`${ariaDescribedById} ${wrapper.vm.describedById}`);
+      expect(ariaDescribedBy).toBe(`${ ariaDescribedById } ${ wrapper.vm.describedById }`);
     });
   });
 
@@ -92,7 +94,8 @@ describe('component: LabeledInput', () => {
     });
 
     const mainInput = wrapper.find('input[type="text"]');
-    expect(mainInput.attributes('aria-label')).toBe(undefined)
-    expect(wrapper.find('label').text()).toBe(label)
+
+    expect(mainInput.attributes('aria-label')).toBeUndefined();
+    expect(wrapper.find('label').text()).toBe(label);
   });
 });

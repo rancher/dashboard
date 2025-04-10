@@ -72,10 +72,12 @@ describe('checkbox.vue', () => {
     const ariaDescribedById = 'some-external-id';
 
     const wrapper: Wrapper<InstanceType<typeof Checkbox>> = mount(
-      Checkbox, 
-      { 
-        propsData: { value: false, alternateLabel, description },
-        attrs:     { 'aria-describedby': ariaDescribedById},
+      Checkbox,
+      {
+        propsData: {
+          value: false, alternateLabel, description
+        },
+        attrs: { 'aria-describedby': ariaDescribedById },
       }
     );
 
@@ -87,19 +89,17 @@ describe('checkbox.vue', () => {
 
     // validates type of input rendered
     expect(ariaChecked).toBe('false');
-    expect(ariaLabelledBy).toBe(undefined)
+    expect(ariaLabelledBy).toBeUndefined();
     expect(ariaLabel).toBe(alternateLabel);
-    expect(ariaDescribedBy).toBe(`${ariaDescribedById} ${wrapper.vm.describedById}`);
+    expect(ariaDescribedBy).toBe(`${ ariaDescribedById } ${ wrapper.vm.describedById }`);
   });
 
   it('a11y: having a label should not render "aria-label" prop and have "aria-labelledby"', async() => {
-    const label = 'some-label'
+    const label = 'some-label';
 
     const wrapper: Wrapper<InstanceType<typeof Checkbox>> = mount(
-      Checkbox, 
-      { 
-        propsData: { value: true, label }
-      }
+      Checkbox,
+      { propsData: { value: true, label } }
     );
 
     const field = wrapper.find('.checkbox-custom');
@@ -110,8 +110,8 @@ describe('checkbox.vue', () => {
     // validates type of input rendered
     expect(field.exists()).toBe(true);
     expect(ariaChecked).toBe('true');
-    expect(ariaLabelledBy).toBe(wrapper.vm.idForLabel)
-    expect(ariaLabel).toBe(undefined);
-    expect(wrapper.find(`#${wrapper.vm.idForLabel}`).text()).toBe(label)
+    expect(ariaLabelledBy).toBe(wrapper.vm.idForLabel);
+    expect(ariaLabel).toBeUndefined();
+    expect(wrapper.find(`#${ wrapper.vm.idForLabel }`).text()).toBe(label);
   });
 });

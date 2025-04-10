@@ -43,7 +43,7 @@ export default ({
         bannerBgColor:   getComputedStyle(document.body).getPropertyValue('--default'),
         bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color')
       },
-      bannerTitleId: `describe-banners-${this.bannerType}-id`
+      bannerTitleId: `describe-banners-${ this.bannerType }-id`
     };
   },
 
@@ -158,7 +158,7 @@ export default ({
             :options="radioOptions.options"
             :labels="radioOptions.labels"
             :mode="mode"
-            :aria-describedby="bannerTitleId"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.bannerAlignment.label')}`"
           />
         </div>
         <div class="col span-2">
@@ -198,7 +198,7 @@ export default ({
             :default-value="themeVars.bannerTextColor"
             :label="t('banner.textColor')"
             :mode="mode"
-            :aria-describedby="bannerTitleId"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.textColor')}`"
           />
         </div>
         <div class="col span-6">
@@ -207,7 +207,7 @@ export default ({
             :default-value="themeVars.bannerBgColor"
             :label="t('banner.background')"
             :mode="mode"
-            :aria-describedby="bannerTitleId"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.background')}`"
           />
         </div>
       </div>

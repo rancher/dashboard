@@ -120,7 +120,7 @@ export default {
       shouldOpen:           true,
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
       isOpen:               false,
-      generatedUid: `ls-uid-${ generateRandomAlphaString(12) }`
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -303,7 +303,7 @@ export default {
     :tabindex="isView || disabled ? -1 : 0"
     role="combobox"
     :aria-expanded="isOpen"
-    :aria-describedby="this.$attrs['aria-describedby'] || undefined"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"

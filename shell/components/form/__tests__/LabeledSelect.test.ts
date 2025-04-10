@@ -215,7 +215,7 @@ describe('component: LabeledSelect', () => {
     });
   });
 
-  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async () => {
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
     const label = 'Foo';
     const value = 'foo';
     const ariaDescribedById = 'some-described-by-id';
@@ -224,14 +224,12 @@ describe('component: LabeledSelect', () => {
     const wrapper = mount(LabeledSelect, {
       props: {
         value,
-        label: itemLabel,
+        label:   itemLabel,
         options: [
           { label, value },
         ],
       },
-      attrs: {
-        ['aria-describedby']: ariaDescribedById
-      }
+      attrs: { 'aria-describedby': ariaDescribedById }
     });
 
     const labeledSelectContainer = wrapper.find('.labeled-select');
@@ -242,8 +240,6 @@ describe('component: LabeledSelect', () => {
 
     const vSelectInput = wrapper.find('.v-select');
 
-    
-
     expect(ariaExpanded).toBe('false');
     expect(ariaDescribedBy).toBe(ariaDescribedById);
     expect(containerId).toBe(wrapper.vm.labeledSelectLabelId);
@@ -251,7 +247,7 @@ describe('component: LabeledSelect', () => {
 
     // make sure it's hardcoded to a "neutral" value so that
     // in the current architecture of the component
-    // screen readers won't pick up the default "Select option" aria-label 
+    // screen readers won't pick up the default "Select option" aria-label
     // from the library
     expect(vSelectInput.attributes('aria-label')).toBe('-');
   });

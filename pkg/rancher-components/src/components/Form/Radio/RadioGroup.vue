@@ -108,9 +108,9 @@ export default defineComponent({
   emits: ['update:value'],
 
   data() {
-    return { 
-      currFocusedElem: undefined as undefined | EventTarget | null,
-      radioOptionsIdPrefix: `radio-option-${generateRandomAlphaString(12)}-`
+    return {
+      currFocusedElem:      undefined as undefined | EventTarget | null,
+      radioOptionsIdPrefix: `radio-option-${ generateRandomAlphaString(12) }-`
     };
   },
 
@@ -127,19 +127,19 @@ export default defineComponent({
         if (typeof opt === 'object' && opt) {
           out.push({
             ...opt,
-            radioOptionId: `${this.radioOptionsIdPrefix}${i}`
+            radioOptionId: `${ this.radioOptionsIdPrefix }${ i }`
           });
         } else if (this.labels) {
           out.push({
-            label: this.labels[i],
-            value: opt,
-            radioOptionId: `${this.radioOptionsIdPrefix}${i}`
+            label:         this.labels[i],
+            value:         opt,
+            radioOptionId: `${ this.radioOptionsIdPrefix }${ i }`
           });
         } else {
           out.push({
-            label: opt,
-            value: opt,
-            radioOptionId: `${this.radioOptionsIdPrefix}${i}`
+            label:         opt,
+            value:         opt,
+            radioOptionId: `${ this.radioOptionsIdPrefix }${ i }`
           });
         }
       }
@@ -164,16 +164,29 @@ export default defineComponent({
      * Radio Group Aria Label based on the label present on this input
      */
     radioGroupAriaLabel(): string | undefined {
+      // seems like VoiceOver screen reader isn't really picking up aria-labelledby
+      // let's just gather the label that comes in and assign it.
+      // We allow override with $attrs['aria-label'] for more control
+      if (this.$attrs['aria-label']) {
+        return this.$attrs['aria-label'] as string || undefined;
+      }
+
       return this.labelKey ? this.t(this.labelKey) : this.label ? this.label : undefined;
+    },
+    /**
+     * Radio Group Aria DescribedBy parent attribute for extendability
+     */
+    radioGroupAriaDescribedBy(): string | undefined {
+      return this.$attrs['aria-describedby'] as string || undefined;
     },
     /**
      * Radio Group value for aria-activedescendant HTML prop
      */
     ariaActiveDescendant(): string | undefined {
-      const activeOpt = this.normalizedOptions.find(opt => opt.value === this.value);
+      const activeOpt = this.normalizedOptions.find((opt) => opt.value === this.value);
 
       if (this.value && activeOpt) {
-        return activeOpt.radioOptionId
+        return activeOpt.radioOptionId;
       }
 
       return '';
@@ -224,35 +237,33 @@ export default defineComponent({
 </script>
 
 <template>
-  <fieldset>
+  <div>
     <!-- Label -->
     <div
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
       class="radio-group label"
     >
-      <legend>
-        <slot name="label">
-          <h3>
-            <t
-              v-if="labelKey"
-              :k="labelKey"
-            />
-            <template v-else-if="label">
-              {{ label }}
-            </template>
-            <i
-              v-if="tooltipKey"
-              v-clean-tooltip="t(tooltipKey)"
-              class="icon icon-info icon-lg"
-            />
-            <i
-              v-else-if="tooltip"
-              v-clean-tooltip="tooltip"
-              class="icon icon-info icon-lg"
-            />
-          </h3>
-        </slot>
-      </legend>
+      <slot name="label">
+        <h3>
+          <t
+            v-if="labelKey"
+            :k="labelKey"
+          />
+          <template v-else-if="label">
+            {{ label }}
+          </template>
+          <i
+            v-if="tooltipKey"
+            v-clean-tooltip="t(tooltipKey)"
+            class="icon icon-info icon-lg"
+          />
+          <i
+            v-else-if="tooltip"
+            v-clean-tooltip="tooltip"
+            class="icon icon-info icon-lg"
+          />
+        </h3>
+      </slot>
     </div>
 
     <!-- Group -->
@@ -260,7 +271,7 @@ export default defineComponent({
       ref="radioGroup"
       role="radiogroup"
       :aria-label="radioGroupAriaLabel"
-      :aria-describedby="$attrs['aria-describedby'] || undefined"
+      :aria-describedby="radioGroupAriaDescribedBy"
       :aria-activedescendant="ariaActiveDescendant"
       class="radio-group"
       :class="{'row':row}"
@@ -296,7 +307,7 @@ export default defineComponent({
         </slot>
       </div>
     </div>
-  </fieldset>
+  </div>
 </template>
 
 <style lang='scss'>

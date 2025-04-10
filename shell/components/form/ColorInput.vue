@@ -1,9 +1,10 @@
 <script>
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default {
   emits: ['update:value'],
+
+  inheritAttrs: false,
 
   props: {
     value: {
@@ -71,13 +72,16 @@ export default {
     },
 
     ariaLabel() {
-      if (this.labelKey) {
+      // We allow override with $attrs['aria-label'] for more control
+      if (this.$attrs['aria-label']) {
+        return this.$attrs['aria-label'];
+      } else if (this.labelKey) {
         return this.t(this.labelKey);
       } else if (this.label) {
         return this.label;
+      } else {
+        return this.t('generic.colorPicker');
       }
-
-      return this.$attrs['aria-label'] || this.t('generic.colorPicker');
     },
 
     ariaDescribedBy() {
@@ -114,11 +118,14 @@ export default {
     :tabindex="isDisabled ? -1 : 0"
     @keydown.space.prevent
     @keyup.enter.space.stop="handleKeyup($event)"
-    role="presentation"
   >
-    <label 
+    <!-- let make "label" not to be picked up by screen readers -->
+    <!-- because it's already included in aria-label (sr's announced it twice) -->
+    <label
       v-if="labelKey || label"
-      class="text-label">
+      class="text-label"
+      aria-hidden="true"
+    >
       <t
         v-if="labelKey"
         :k="labelKey"

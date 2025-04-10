@@ -31,9 +31,7 @@ describe('colorInput.vue', () => {
 
     const wrapper = shallowMount(ColorInput, {
       props: { label },
-      attrs: {
-        'aria-describedby': describeById
-      }
+      attrs: { 'aria-describedby': describeById }
     });
 
     const colorInput = wrapper.find('input');
@@ -41,24 +39,24 @@ describe('colorInput.vue', () => {
     const ariaLabel = colorInput.attributes('aria-label');
     const ariaDescribedBy = colorInput.attributes('aria-describedby');
 
-    expect(ariaDisabled).toBe('false')
-    expect(ariaLabel).toBe(label)
-    expect(ariaDescribedBy).toBe(describeById)
+    expect(ariaDisabled).toBe('false');
+    expect(ariaLabel).toBe(label);
+    expect(ariaDescribedBy).toBe(describeById);
   });
 
-  it('a11y: if no "label" is defined and we define "aria-label" on parent, it should use that "aria-label"', () => {
-    const ariaLabelText = 'some-label';
+  it('a11y: adding aria-label ($attrs) from parent should override label-based aria-label', () => {
+    const inputLabel = 'some-label';
+    const overrideLabel = 'some-override-label';
 
     const wrapper = shallowMount(ColorInput, {
-      props: {},
-      attrs: {
-        'aria-label': ariaLabelText
-      }
+      props: { label: inputLabel },
+      attrs: { 'aria-label': overrideLabel }
     });
 
     const colorInput = wrapper.find('input');
     const ariaLabel = colorInput.attributes('aria-label');
 
-    expect(ariaLabel).toBe(ariaLabelText)
+    expect(ariaLabel).toBe(overrideLabel);
+    expect(ariaLabel).not.toBe(inputLabel);
   });
 });

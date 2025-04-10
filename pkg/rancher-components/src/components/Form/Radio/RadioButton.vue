@@ -4,7 +4,9 @@ import { _VIEW } from '@shell/config/query-params';
 import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default defineComponent({
-  props: {
+
+  inheritAttrs: false,
+  props:        {
     /**
      * The name of the input, for grouping.
      */
@@ -79,16 +81,14 @@ export default defineComponent({
     },
 
     /**
-     * Radio option Id - used to link to aria-activedescendant 
+     * Radio option Id - used to link to aria-activedescendant
      * when using inside of the context of a Radio Group
      */
-     radioOptionId: {
+    radioOptionId: {
       type:    String,
       default: undefined
     },
   },
-
-  inheritAttrs: false,
 
   emits: ['update:value'],
 
@@ -177,6 +177,7 @@ export default defineComponent({
       @click.stop.prevent
     >
     <span
+      :id="radioOptionId"
       ref="custom"
       :class="[ isDisabled ? 'text-muted' : '', 'radio-custom']"
       :tabindex="isDisabled || preventFocusOnRadioGroups ? -1 : 0"
@@ -185,7 +186,6 @@ export default defineComponent({
       :aria-disabled="isDisabled"
       :aria-describedby="descriptionKey || description ? describeById : undefined"
       role="radio"
-      :id="radioOptionId"
     />
     <div class="labeling">
       <label
@@ -205,8 +205,8 @@ export default defineComponent({
       </label>
       <div
         v-if="descriptionKey || description"
-        class="radio-button-outer-container-description"
         :id="describeById"
+        class="radio-button-outer-container-description"
       >
         <t
           v-if="descriptionKey"
