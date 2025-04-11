@@ -15,12 +15,12 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
 
 ## Steps to Create & Use a New API
 
-1. **Create a File**  
+1. **Create a File**
    Within `shell/plugins/internal-api/` (or its subdirectories), create a `.api.ts` file. For example:
 
    `shell/plugins/internal-api/my-api.api.ts`
 
-2. **Export a Default Class**  
+2. **Export a Default Class**
    Your class should extend the provided `BaseApi` class. This ensures that your API has access to common functionality (like the Vuex store) without reimplementing it for every API. The class must have:
 
    - A constructor that calls the `BaseApi` constructor with the Vuex.Store instance.
@@ -31,7 +31,7 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
 
    ```ts
    // shell/plugins/internal-api/my-api.api.ts
-   import BaseApi from "@shell/plugins/internal-api/shared/base-api";
+   import { BaseApi } from "@shell/plugins/internal-api/shared/base-api";
 
    export default class MyApi extends BaseApi {
      // Name under which this API is injected => this.$myApi
@@ -46,7 +46,7 @@ This guide will walk you through creating and injecting custom Vue APIs for the 
    }
    ```
 
-3. **Usage in Vue Components**  
+3. **Usage in Vue Components**
    Once the file is saved, the `internalApiPlugin` (as shown in your `install-plugins.js`) will automatically discover your API file (e.g. `my-api.api.ts`), instantiate it with the Vuex store, and inject an instance of `MyApi` onto the Vue prototype. This means that:
 
    - In an Options API component, you can access your API via this.$myApi.
@@ -95,10 +95,12 @@ onMounted(() => {
 
 ## TypeScript Augmentation (Optional)
 
-To get TypeScript IntelliSense for `this.$myApi`, you can manually augment the `vue` module. In `shell/types/vue-shim.d.ts`, you can import your API class and add a property to `ComponentCustomProperties`:
+To get TypeScript IntelliSense for `this.$myApi`, you can manually augment the `vue` module. You can create a declaration file (e.g., `my-api.d.ts`) in the API Folder:
 
 ```ts
 import type MyApi from "@shell/plugins/internal-api/my-api.api";
+
+export {};
 
 declare module "vue" {
   interface ComponentCustomProperties {
