@@ -100,18 +100,22 @@ export class GitRepoCreatePo extends PagePo {
   }
 
   displayAlwaysKeepInformationMessage() {
-    this.self().get('i[aria-label="When enabled, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted."]').as('always');
+    this.self().get('[data-testid="checkbox-info-icon"]').eq(0).as('always');
+
     cy.get('@always').realHover();
     cy.get('@always', { timeout: 1000 }).should('have.attr', 'data-popper-shown');
   }
 
   displayPollingInvervalTimeInformationMessage() {
-    this.self().get('i[aria-label="Polling Interval is the time between a push to the Repository and Fleet&#39;s reaction to it."]').as('polling');
+    this.self().get('[data-testid="checkbox-info-icon"]').eq(1).as('polling');
+
     cy.get('@polling').realHover();
     cy.get('@polling', { timeout: 1000 }).should('have.attr', 'data-popper-shown');
   }
 
   displaySelfHealingInformationMessage() {
+    this.self().get('[data-testid="labeledTooltip-info-icon"]').eq(0).as('selfhealingicon');
+
     this.self().get('i.checkbox-info.icon-info.icon-lg.v-popper--has-tooltip').as('selfhealingicon');
     cy.get('@selfhealingicon').realHover();
     cy.get('@selfhealingicon', { timeout: 1000 }).should('have.attr', 'data-popper-shown');

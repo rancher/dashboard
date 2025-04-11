@@ -33,7 +33,7 @@ export default defineComponent({
      */
     componentTestid: {
       type:    String,
-      default: 'info-icon'
+      default: 'labeledTooltip-info-icon'
     },
   },
   computed: {
