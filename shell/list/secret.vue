@@ -1,14 +1,21 @@
 <script>
+import Masthead from '@shell/components/ResourceList/Masthead';
+import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 
+const SECRETS_TABS = {
+  NAMESPACED:     'namespaced',
+  PROJECT_SCOPED: 'project-scoped'
+};
+
 export default {
-  name:       'Secrets',
+  name:       'Secret',
   components: {
-    ResourceTable, Tabbed, Tab
+    ResourceTable, Tabbed, Tab, Masthead, Loading
   },
   props: {
     resource: {
@@ -34,19 +41,27 @@ export default {
 
   data() {
     const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
-    const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT).map((p) => {
-      const [clusterId, projectId] = p.id.split('/');
+    const hasAccessToProjectSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT);
+    const allProjects = [];
 
-      return {
-        clusterId,
-        projectId,
-        projectName: p.spec.displayName
-      };
-    });
+    if (hasAccessToProjectSchema) {
+      this.$store.getters['management/all'](MANAGEMENT.PROJECT).forEach((p) => {
+        const [clusterId, projectId] = p.id.split('/');
+
+        allProjects.push({
+          clusterId,
+          projectId,
+          projectName: p.spec.displayName
+        });
+      });
+    }
 
     return {
       headers,
-      allProjects
+      hasAccessToProjectSchema,
+      allProjects,
+      activeTab: null,
+      SECRETS_TABS
     };
   },
 
@@ -65,10 +80,24 @@ export default {
       return this.headers.map((h) => h.name === 'namespace' ? projectHeader : h);
     },
 
-    showProjectScopedTab() {
-      // TODO
-      return true;
-    }
+    createLocation() {
+      return {
+        name:  'c-cluster-product-resource-create',
+        query: { secretBase: this.activeTab }
+      };
+    },
+
+    createLabel() {
+      if (!this.hasAccessToProjectSchema) {
+        return this.t('generic.create');
+      } else if (this.activeTab === SECRETS_TABS.NAMESPACED) {
+        return this.t('secret.tabs.namespaced.create');
+      } else if (this.activeTab === SECRETS_TABS.PROJECT_SCOPED) {
+        return this.t('secret.tabs.projectScoped.create');
+      }
+
+      return this.t('generic.create');
+    },
   },
 
   methods: {
@@ -76,42 +105,57 @@ export default {
       const [clusterId, projectId] = row.metadata.annotations[PROJECT].split(':');
 
       return this.allProjects.find((p) => p.clusterId === clusterId && p.projectId === projectId)?.projectName;
+    },
+
+    handleTabChange(data) {
+      this.activeTab = data.selectedName;
     }
   }
 };
 </script>
 
 <template>
-  <Tabbed hideSingleTab>
-    <Tab
-      label-key="secret.tabs.namespaced.label"
-      name="namespaced"
-      :weight="1"
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <Masthead
+      :schema="schema"
+      :resource="resource"
+      :create-location="createLocation"
+      :create-button-label="createLabel"
+      :is-creatable="true"
+    />
+    <Tabbed
+      hideSingleTab
+      @changed="handleTabChange"
     >
-      <ResourceTable
-        :loading="$fetchState.pending"
-        :schema="schema"
-        :headers="headers"
-        :rows="rows"
-        :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-      />
-    </Tab>
-    <Tab
-      v-if="showProjectScopedTab"
-      label-key="secret.tabs.projectScoped.label"
-      name="project-scoped"
-    >
-      <ResourceTable
-        :loading="$fetchState.pending"
-        :schema="schema"
-        :headers="projectScopedHeaders"
-        :rows="projectScopedSecrets"
-        :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      <Tab
+        label-key="secret.tabs.namespaced.label"
+        :name="SECRETS_TABS.NAMESPACED"
+        :weight="1"
       >
-        <template #cell:project="{row}">
-          <span>{{ getProjectName(row) }}</span>
-        </template>
-      </ResourceTable>
-    </Tab>
-  </Tabbed>
+        <ResourceTable
+          :schema="schema"
+          :headers="headers"
+          :rows="rows"
+          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+        />
+      </Tab>
+      <Tab
+        v-if="hasAccessToProjectSchema"
+        label-key="secret.tabs.projectScoped.label"
+        :name="SECRETS_TABS.PROJECT_SCOPED"
+      >
+        <ResourceTable
+          :schema="schema"
+          :headers="projectScopedHeaders"
+          :rows="projectScopedSecrets"
+          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+        >
+          <template #cell:project="{row}">
+            <span>{{ getProjectName(row) }}</span>
+          </template>
+        </ResourceTable>
+      </Tab>
+    </Tabbed>
+  </div>
 </template>
