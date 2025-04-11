@@ -426,8 +426,8 @@ export default {
      * string. If not provided, the method will use the default resource from
      * the route parameters or the instance's resourceOverride property.
      */
-    configureResource(user = {}, resourceOverride = null) {
-      const id = user?.id || this.$route.params.id;
+    configureResource(userId = '', resourceOverride = null) {
+      const id = userId || this.$route.params.id;
       const resource = resourceOverride || this.resourceOverride || this.$route.params.resource;
       const options = this.$store.getters[`type-map/optionsFor`](resource);
 
@@ -453,9 +453,10 @@ export default {
      * @param {string} payload.resource - The resource string to use for
      * initialization.
      */
-    setMode({ mode, user, resource }) {
+    setMode({ mode, userId, resource }) {
       this.mode = mode;
-      this.configureResource(user, resource);
+      this.value.id = userId;
+      this.configureResource(userId, resource);
     }
   }
 };
