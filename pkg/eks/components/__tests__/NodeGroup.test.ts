@@ -1,4 +1,3 @@
-
 /* eslint-disable jest/no-mocks-import */
 import { shallowMount } from '@vue/test-utils';
 import NodeGroup from '@pkg/eks/components/NodeGroup.vue';
@@ -56,7 +55,10 @@ describe('eKS Node Groups: create', () => {
           id: 'lt-123123', name: 'test-template', version: 4
         },
         region:                 'foo',
-        amazonCredentialSecret: 'bar'
+        amazonCredentialSecret: 'bar',
+        launchTemplates:        [{
+          LaunchTemplateId: 'lt-123123', LaunchTemplateName: 'test-template', version: 4
+        }]
       },
       ...setup
     });
@@ -77,7 +79,10 @@ describe('eKS Node Groups: create', () => {
           id: 'lt-123123', name: 'test-template', version: 4
         },
         region:                 'foo',
-        amazonCredentialSecret: 'bar'
+        amazonCredentialSecret: 'bar',
+        launchTemplates:        [{
+          LaunchTemplateId: 'lt-123123', LaunchTemplateName: 'test-template', version: 4
+        }]
       },
       ...setup
     });
@@ -98,6 +103,9 @@ describe('eKS Node Groups: create', () => {
         },
         region:                 'foo',
         amazonCredentialSecret: 'bar',
+        launchTemplates:        [{
+          LaunchTemplateId: 'lt-123123', LaunchTemplateName: 'test-template', version: 4
+        }]
       },
       ...setup
     });
@@ -123,6 +131,9 @@ describe('eKS Node Groups: create', () => {
         },
         region:                 'foo',
         amazonCredentialSecret: 'bar',
+        launchTemplates:        [{
+          LaunchTemplateId: 'lt-123123', LaunchTemplateName: 'test-template', version: 4
+        }]
       },
       ...setup
     });
@@ -194,6 +205,9 @@ describe('eKS Node Groups: create', () => {
         },
         region:                 'foo',
         amazonCredentialSecret: 'bar',
+        launchTemplates:        [{
+          LaunchTemplateId: 'lt-123123', LaunchTemplateName: 'test-template', version: 4
+        }]
       },
       ...setup
     });

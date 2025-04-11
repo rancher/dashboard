@@ -55,7 +55,7 @@ export interface LaunchTemplateVersionData {
   UserData: string
 }
 export interface LaunchTemplateVersion {
-  VersionNumber: string,
+  VersionNumber: number,
   LaunchTemplateName: string,
   LaunchTemplateData: LaunchTemplateVersionData,
   LaunchTemplateId: string,
