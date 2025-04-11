@@ -2,6 +2,12 @@ import { randomStr } from '@shell/utils/string';
 
 const LOCAL_STORAGE_KEY = '#notifications';
 
+// Expire in seconds (14 days)
+const EXPIRY = 14 * 24 * 60 * 60;
+
+// Maximum number of notifications that are allowed
+const MAX_NOTIFICATIONS = 50;
+
 /**
  * Store for the UI Notification Centre
  */
@@ -69,11 +75,19 @@ export const state = function(a: any): NotificationsStore {
   }
 
   // Expire old notifications
-  // TODO
+  const now = new Date();
 
-  // for (var key in window.localStorage) {
-  //   console.error(key);
-  // }
+  notifications = notifications.filter((n: StoredNotification) => {
+    // Try ... catch in case the date parsing fails
+    try {
+      const created = new Date(n.created);
+      const diff = (now.getTime() - created.getTime())/1000; // Diff in seconds
+
+      return diff < EXPIRY;
+    } catch (e) {}
+
+    return true;
+  });
 
   return { notifications };
 };
@@ -121,6 +135,11 @@ export const mutations = {
 
     // Add to top of list
     state.notifications.unshift(stored);
+
+    // Check that we have not exceeded the maximum number of notifications
+    if (state.notifications.length > MAX_NOTIFICATIONS) {
+      state.notifications.pop();
+    }
 
     persist(state);
   },
