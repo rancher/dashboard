@@ -1,6 +1,10 @@
 import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { parse } from '@shell/utils/selector';
+// import { FilterArgs } from '@shell/types/store/pagination.types';
+// import { isEmpty } from 'lodash';
+// import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -49,7 +53,7 @@ export const CLUSTERIP = (() => {
   return clusterIp.id;
 })();
 
-export default class extends SteveModel {
+export default class Service extends SteveModel {
   get customValidationRules() {
     return [
       {
@@ -136,19 +140,20 @@ export default class extends SteveModel {
     return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
-  async fetchPods() {
-    if (this.podRelationship) {
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      await this.$dispatch('cluster/findMatching', {
-        type:      POD,
-        selector:  this.podRelationship.selector,
-        namespace: this.namespace
-      }, { root: true });
-    }
-  }
+  // TODO: RC confirm with pagination off.... no findPage usage
 
-  get pods() {
-    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+  async fetchPods() {
+    if (!this.podRelationship?.selector) {
+      return;
+    }
+
+    return await this.$dispatch('findLabelSelector', {
+      type:     POD,
+      matching: {
+        namespace:     this.metadata.namespace,
+        labelSelector: { matchExpressions: parse(this.podRelationship.selector) }
+      }
+    });
   }
 
   get serviceType() {

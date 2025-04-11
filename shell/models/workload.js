@@ -3,9 +3,11 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
+import { convertSelectorObj } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { matching } from '@shell/utils/selector-typed';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -205,22 +207,35 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
-  get showPodRestarts() {
-    return true;
-  }
+  // When this added... it already existed somewhere else
+  // get restartCount() {
+  //   const pods = this.pods;
+
+  //   let sum = 0;
+
+  //   pods.forEach((pod) => {
+  //     if (pod.status.containerStatuses) {
+  //       sum += pod.status?.containerStatuses[0].restartCount || 0;
+  //     }
+  //   });
+
+  //   return sum;
+  // }
 
   get restartCount() {
-    const pods = this.pods;
+    return this.pods.reduce((total, pod) => { // TODO: RC change usages of workload.pods
+      const { status:{ containerStatuses = [] } } = pod;
 
-    let sum = 0;
+      if (containerStatuses.length) {
+        total += containerStatuses.reduce((tot, container) => {
+          tot += container.restartCount || 0;
 
-    pods.forEach((pod) => {
-      if (pod.status.containerStatuses) {
-        sum += pod.status?.containerStatuses[0].restartCount || 0;
+          return tot;
+        }, 0);
       }
-    });
 
-    return sum;
+      return total;
+    }, 0);
   }
 
   get hasSidecars() {
@@ -334,6 +349,10 @@ export default class Workload extends WorkloadService {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
+      restarts: {
+        label:   this.t('resourceDetail.masthead.restartCount'),
+        content: this.restartCount
+      },
       endpoint: {
         label:     'Endpoints',
         content:   this.endpoint,
@@ -550,30 +569,59 @@ export default class Workload extends WorkloadService {
     }
   }
 
-  get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      return pods.filter((obj) => {
-        return matches(obj, podRelationship.selector);
+  async fetchPods() {
+    if (this.podSelector) {
+      return this.$dispatch('findLabelSelector', {
+        type:     POD,
+        matching: {
+          namespaced: this.metadata.namespace,
+          pagination: new FilterArgs({ labelSelector: this.podSelector }),
+        }
       });
-    } else {
-      return [];
     }
+
+    return undefined;
   }
 
-  get podGauges() {
+  get pods() {
+    console.warn('Anything using this must be updated to ????!!!');
+
+    throw Error('gah');
+  }
+
+  // get pods() {
+  //   const relationships = this.metadata?.relationships || [];
+  //   const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
+
+  //   if (podRelationship) {
+  //     const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+
+  //     return pods.filter((obj) => {
+  //       return matches(obj, podRelationship.selector);
+  //     });
+  //   } else {
+  //     return [];
+  //   }
+  // }
+
+  /**
+   * Return a string version of a matchLabel expression
+   */
+  get podSelector() {
+    const relationships = this.metadata?.relationships || [];
+    const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
+
+    return selector; // tODO: RC TEST this should always be string (check api)
+  }
+
+  calcPodGauges(pods) {
     const out = { };
 
-    if (!this.pods) {
+    if (!pods) {
       return out;
     }
 
-    this.pods.map((pod) => {
+    pods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -587,6 +635,10 @@ export default class Workload extends WorkloadService {
     });
 
     return out;
+  }
+
+  get podGauges() {
+    return this.calcPodGauges(this.pods); // TODO: RC change usages of workload.pods
   }
 
   // Job Specific
@@ -664,13 +716,16 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    const all = await this.$dispatch('findAll', { type: POD });
-    const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
+    // TODO: RC TEST
+    const matchInfo = await matching({
+      labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
+      type:          POD,
+      $store:        this.$store,
+      inStore:       this.$rootGetters['currentProduct'].inStore,
+      namespace:     this.metadata.namespace,
+    });
 
-    const selector = convertSelectorObj(this.spec.selector);
-
-    return matching(allInNamespace, selector);
+    return matchInfo.matches;
   }
 
   cleanForSave(data) {
