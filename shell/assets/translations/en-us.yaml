@@ -395,6 +395,9 @@ accountAndKeys:
         label: Description
         placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
+      ariaLabel:
+        expiration: Expiration duration - number input
+        expirationUnits: Expiration unit - time unit
       expiry:
         label: Automatically expire
         options:
@@ -2752,6 +2755,7 @@ clusterBadge:
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
+    badgeBgColorInput: Badge background color selector input
     badgeTextColor: Badge text color
     badgeAsIcon: Use custom badge
     maxCharsTooltip: Overwrites the default cluster name abbreviation.
