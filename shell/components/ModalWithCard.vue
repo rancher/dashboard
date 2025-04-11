@@ -65,6 +65,7 @@ export default {
     v-bind="$attrs"
     class="modal"
     data-testid="mvc__card"
+    :trigger-focus-trap="true"
     @close="$emit('finish', $event)"
   >
     <Card
