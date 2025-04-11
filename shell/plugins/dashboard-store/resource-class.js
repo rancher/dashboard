@@ -1834,6 +1834,7 @@ export default class Resource {
   }
 
   async _findRelationship(rel, direction) {
+    // TODO: RC TEST
     const { selectors, ids } = this._relationshipsFor(rel, direction);
     const out = [];
 

@@ -20,9 +20,7 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
-import {
-  POD, CAPI, HCI, COUNT, NAMESPACE, SERVICE
-} from '@shell/config/types';
+import { POD, CAPI, HCI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector-typed';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
@@ -260,58 +258,26 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      // TODO: RC TEST
-      debugger;
-
       // https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
       const { value: { spec: { selector = { } } } } = this;
 
       this.matchingPods = await matching({
-        labelSelector: { matchLabels: selector }, // TODO: RC two entries... 1) errors, 2) we OR them together, should they be AND?
-        type:          POD, // TODO: RC check all these match required type
+        labelSelector: { matchLabels: selector },
+        type:          POD,
         $store:        this.$store,
         inStore:       this.inStore,
-        namespace:     this.value?.metadata?.namespace, // TODO: RC is this ever null?
+        namespace:     this.value?.metadata?.namespace,
       });
-
-      // const { value: { spec: { selector = { } } } } = this;
-
-      // debugger;
-      // const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
-      // const namespaceCount = counts[SERVICE].namespaces[this.value?.metadata?.namespace]?.count || 0;
-
-      // if (isEmpty(selector) || namespaceCount === 0) {
-      //   this.matchingPods = {
-      //     matched: 0,
-      //     total:   namespaceCount,
-      //     none:    true,
-      //     sample:  null,
-      //   };
-      // } else {
-      //   debugger;
-      //   const match = await this.value.fetchPods();
-
-      //   this.matchingPods = {
-      //     matched: match.length,
-      //     total:   namespaceCount,
-      //     none:    match.length === 0,
-      //     sample:  match[0] ? match[0].nameDisplay : null,
-      //   };
-      // }
     }, 250, { leading: true }),
 
     async loadPods() {
       try {
         const hash = {
           provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          // pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
         await allHash(hash);
-        // const res = await allHash(hash);
-
-        // this.allPods = res.pods;
         this.updateMatchingPods();
       } catch (e) { }
     },

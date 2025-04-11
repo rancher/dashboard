@@ -12,6 +12,9 @@ const OP_MAP = {
 };
 
 // Parse a labelSelector string
+/**
+ * Convert a matchLabel string to a matchExpression object
+ */
 export function parse(labelSelector) {
   // matchLabels:
   // comma-separated list, all rules ANDed together

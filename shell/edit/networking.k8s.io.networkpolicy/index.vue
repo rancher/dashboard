@@ -7,7 +7,7 @@ import Tabbed from '@shell/components/Tabbed';
 import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
-import { NAMESPACE, POD } from '@shell/config/types';
+import { POD } from '@shell/config/types';
 import { convert, simplify } from '@shell/utils/selector';
 import { matching } from '@shell/utils/selector-typed';
 
@@ -44,14 +44,6 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const hash = await allHash({
-      // allPods:       this.$store.dispatch('cluster/findAll', { type: POD }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      // allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }), // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    });
-
-    // this.allPods = hash.allPods; // Used in matchingPods, and PolicyRules --> PolicyRule --> PolicyRuleTarget
-    // this.allNamespaces = hash.allNamespaces; // Used in PolicyRules --> PolicyRule --> PolicyRuleTarget
-
     this.updateMatchingPods();
   },
 
@@ -77,11 +69,10 @@ export default {
     return {
       POD,
       matchingPods,
-      // allPods:         [],
-      // allNamespaces:   [],
       podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
+      inStore: this.$store.getters['currentProduct'].inStore,
     };
   },
 
@@ -157,7 +148,7 @@ export default {
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore:       'cluster',
+        inStore:       this.inStore, // TODO: RC
         namespace:     this.value.metadata.namespace,
       });
 

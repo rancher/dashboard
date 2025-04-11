@@ -4,16 +4,19 @@ import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isEmpty } from '@shell/utils/object';
 import { matching as rootMatching } from '@shell/utils/selector';
 
-// TODO: RC use this version everywhere
+// TODO: RC investigate where this < `findLabelSelector` could be used
 
 /**
- * Find matching resources either
+ * Find resources that match a labelSelector. This behaves differently if vai based pagination is on
  * a) Pagination Enabled - fetch matching resources filtered on backend - findPage
- * b) Pagination Disabled - fetch all resources and then filter locally - findAll --> root matching fn
+ * b) Pagination Disabled - fetch all resources and then filter locally - findAll --> root `matching` fn
  *
- * This is a much smarter version of root matching fn shell/utils/selector.js `matching` (which just does local filtering)
+ * This is a much smarter version of root matching fn `matching` from shell/utils/selector.js  (which just does local filtering)
  *
- * If fetching all of a type can be avoided it's better to use the findLabelSelector action
+  * If fetching all of a resource should be avoided or we don't want to mess around with the cache the action `findLabelSelector` should be used
+ * - sometimes some legacy code expects all resources are fetched
+ * - sometimes we want to fetch a resource but not override the cache
+ *   - already have a pods list cached, don't want to overwrite that when finding pods associated with a service
  *
  * Resources are returned in a common format which includes metadata
  */

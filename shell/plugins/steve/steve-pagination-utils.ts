@@ -510,7 +510,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       // TODO: RC console for all below
       switch (exp.operator) {
-      case 'In':
+      case 'In': // TODO: RC test
         if (!exp.values?.length) {
           // The operator 'IN' must have `values` specified
           return res;
@@ -518,7 +518,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
         res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
         break;
-      case 'NotIn':
+      case 'NotIn': // TODO: RC test
         if (!exp.values?.length) {
           // The operator 'NotIn' must have `values` specified
           return res;
@@ -526,7 +526,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
         res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
         break;
-      case 'Exists':
+      case 'Exists': // TODO: RC test
         if (exp.values?.length) {
           // The operator 'Exist' must not have `values` specified
           return res;
@@ -534,7 +534,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
         res.push(`filter=${ labelKey }`);
         break;
-      case 'DoesNotExist':
+      case 'DoesNotExist': // TODO: RC test
         if (exp.values?.length) {
           // The operator 'DoesNotExist' must not have `values` specified
           return res;

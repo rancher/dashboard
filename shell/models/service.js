@@ -2,8 +2,9 @@ import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
-import { FilterArgs } from '@shell/types/store/pagination.types';
-import { isEmpty } from 'lodash';
+// import { FilterArgs } from '@shell/types/store/pagination.types';
+// import { isEmpty } from 'lodash';
+// import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -139,32 +140,9 @@ export default class Service extends SteveModel {
     return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
-  /**
-   * TODO: RC docs. always return object (relationship selectors are strings)
-   */
-  get podSelector() {
-    const { spec: { selector = { } } } = this;
-
-    // const selector = this.podRelationship?.selector;
-    // if (typeof selector === 'string') {
-    //   return {
-    //     matchExpressions: parse(selector)
-    //   }
-    // }
-
-    if (isEmpty(selector)) {
-      return undefined;
-    }
-
-    return { matchLabels: selector // TODO: RC confirm this is alll is ever is??? can it be string | exp[] | ??
-    };
-  }
-
   // TODO: RC confirm with pagination off.... no findPage usage
-  // TODO: RC ARG??? podSelector vs  this.podRelationship.selector
 
   async fetchPods() {
-    // TODO: RC TEST
     if (!this.podRelationship?.selector) {
       return;
     }
@@ -173,29 +151,10 @@ export default class Service extends SteveModel {
       type:     POD,
       matching: {
         namespace:     this.metadata.namespace,
-        labelSelector: { matchLabels: this.podRelationship.selector } // TODO: RC is this string or map
+        labelSelector: { matchExpressions: parse(this.podRelationship.selector) }
       }
-      // findPageOpts: { // Of type ActionFindPageArgs
-      //   namespaced: this.metadata.namespace,
-      //   pagination: new FilterArgs({ labelSelector: { matchLabels: this.podRelationship.selector} }),
-      // },
-      // findMatchingOpts: {
-      //   type:      POD,
-      //   selector:  this.podRelationship.selector,
-      //   namespace: this.namespace
-      // }
     });
   }
-
-  get pods() {
-    // TODO: RC What uses this??
-    console.warn('Anything using this must be updated to ????!!!');
-
-    return [];
-  }
-  // get pods() {
-  //   return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
-  // }
 
   get serviceType() {
     const serviceType = this.spec?.type;

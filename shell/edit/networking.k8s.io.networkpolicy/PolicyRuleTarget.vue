@@ -77,6 +77,7 @@ export default {
       TARGET_OPTIONS,
       targetOptions:      Object.values(TARGET_OPTIONS),
       throttleTime:       250,
+      inStore:            this.$store.getters['currentProduct'].inStore,
     };
   },
   computed: {
@@ -156,10 +157,6 @@ export default {
       handler:   'updateMatches',
       immediate: true
     },
-    // allNamespaces: {
-    //   handler:   'updateMatches',
-    //   immediate: true // TODO: RC
-    // },
     'value.podSelector': {
       handler:   'updateMatches',
       immediate: true
@@ -205,16 +202,15 @@ export default {
       }
     },
     async getMatchingPods() {
+      // TODO: RC TEST
       return await matching({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore:       'cluster',
+        inStore:       this.inStore, // TODO: RC
         namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace, // TODO: RC multiple?
         transient:     true,
       });
-
-      // TODO: RC TEST
 
       // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
       // const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
@@ -236,7 +232,7 @@ export default {
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
         $store:        this.$store,
-        inStore:       'cluster',
+        inStore:       this.inStore,
         transient:     true,
       });
 

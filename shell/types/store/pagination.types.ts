@@ -305,7 +305,7 @@ export class PaginationArgs {
    */
   sort: PaginationSort[];
   /**
-   * A collection of `filter` params
+   * A collection of traditional `filter` params covering logic such as x is y, x is like y, x is not y
    *
    * For more info see {@link PaginationParamFilter}
    */
@@ -318,7 +318,7 @@ export class PaginationArgs {
   projectsOrNamespaces: PaginationParamProjectOrNamespace[];
 
   /**
-   * TODO: RC
+   * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
    */
   labelSelector?: KubeLabelSelector;
 
@@ -362,7 +362,7 @@ export class PaginationArgs {
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
     /**
-     * TODO: RC
+     * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
      */
     labelSelector?: KubeLabelSelector,
   }) {
@@ -419,7 +419,7 @@ export class FilterArgs extends PaginationArgs {
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
     /**
-     * TODO: RC
+     * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
      */
     labelSelector?: KubeLabelSelector
   }) {

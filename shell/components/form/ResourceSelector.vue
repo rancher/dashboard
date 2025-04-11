@@ -49,8 +49,6 @@ export default {
         sample:  null,
         total:   0,
       },
-      // allResources:        [],
-      // allResourcesInScope: [],
       tableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](this.type)
       ),
@@ -98,40 +96,14 @@ export default {
 
   methods: {
     updateMatchingResources: throttle(async function() {
-      // TODO: RC TEST
       this.matchingResources = await matching({
         labelSelector: { matchExpressions: this.selectorExpressions },
         type:          this.type,
+        inStore:       this.inStore,
         $store:        this.$store,
         inScopeCount:  this.allResourcesInScope,
         namespace:     this.namespace,
       });
-
-      // let match = [];
-
-      // if (this.selectorExpressions?.length) {
-      //   const findPageArgs = { // Of type ActionFindPageArgs
-      //     namespaced: this.namespace,
-      //     pagination: new FilterArgs({ labelSelector: { matchExpressions: this.selectorExpressions } }),
-      //   };
-
-      //   const res = await this.$dispatch('findPage', { type: this.type, opt: findPageArgs });
-
-      //   match = res;
-      // }
-
-      // // this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
-      // // const match = matching(this.allResourcesInScope, this.selectorExpressions);
-      // const matched = match.length || 0;
-      // const sample = match[0]?.nameDisplay;
-
-      // this.matchingResources = {
-      //   matched,
-      //   matches: match,
-      //   none:    matched === 0,
-      //   sample,
-      //   total:   this.allResourcesInScope.length,
-      // };
     }, 250, { leading: true }),
   }
 

@@ -95,47 +95,23 @@ export default {
     },
 
     async removeCatalogResources(catalog) {
-      // const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ catalog.name }`;
       const pageSelector = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name };
       const namespace = UI_PLUGIN_NAMESPACE;
 
-      // const findPageOpts = {
-      //   namespaced: namespace,
-      //   pagination: new FilterArgs({ labelSelector: { matchLabels: pageSelector } }),
-      // };
-
+      // TODO: RC TEST
       if ( catalog.name ) {
         const hash = await allHash({
           deployment: this.$store.dispatch('management/findLabelSelector', {
             type:     WORKLOAD_TYPES.DEPLOYMENT,
             matching: { namespace, labelSelector: { matchLabels: pageSelector } }
-            // type:             WORKLOAD_TYPES.DEPLOYMENT,            // context:          this.$store,
-            // findPageOpts,
-            // findMatchingOpts: {
-            //   type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
-            // }
           }),
           service: this.$store.dispatch('management/findLabelSelector', {
             type:     SERVICE,
             matching: { namespace, labelSelector: { matchLabels: pageSelector } }
-            // type:             SERVICE,
-            // context:          this.$store,
-            // findPageOpts,
-            // findMatchingOpts: { // TODO: RC LEGACY? No-op
-            //   type: SERVICE, selector, namespace
-            // }
           }),
           repo: this.$store.dispatch('management/findLabelSelector', {
             type:     CATALOG.CLUSTER_REPO,
             matching: { labelSelector: { matchLabels: pageSelector } }
-
-            // type:         CATALOG.CLUSTER_REPO,
-            // context:      this.$store,
-            // findPageOpts: {
-            //   ...findPageOpts,
-            //   namespace: undefined,
-            // },
-            // findMatchingOpts: { type: CATALOG.CLUSTER_REPO, selector }
           })
         });
 

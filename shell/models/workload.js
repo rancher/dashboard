@@ -3,7 +3,7 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, parse } from '@shell/utils/selector';
+import { convertSelectorObj } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { FilterArgs } from '@shell/types/store/pagination.types';
@@ -223,7 +223,7 @@ export default class Workload extends WorkloadService {
   // }
 
   get restartCount() {
-    return this.pods.reduce((total, pod) => {
+    return this.pods.reduce((total, pod) => { // TODO: RC change usages of workload.pods
       const { status:{ containerStatuses = [] } } = pod;
 
       if (containerStatuses.length) {
@@ -570,32 +570,23 @@ export default class Workload extends WorkloadService {
   }
 
   async fetchPods() {
-    // const podSelector = this.podSelector;
+    if (this.podSelector) {
+      return this.$dispatch('findLabelSelector', {
+        type:     POD,
+        matching: {
+          namespaced: this.metadata.namespace,
+          pagination: new FilterArgs({ labelSelector: this.podSelector }),
+        }
+      });
+    }
 
-    // if (podSelector) {
-    return this.$dispatch('findLabelSelector', {
-      type:     POD,
-      matching: {
-        namespaced: this.metadata.namespace,
-        pagination: new FilterArgs({ labelSelector: this.podSelector }),
-      }
-    });
-
-    // const findPageArgs = { // Of type ActionFindPageArgs
-    //   namespaced: this.metadata.namespace,
-    //   pagination: new FilterArgs({ labelSelector: podSelector }),
-    // };
-
-    // return this.$dispatch('findPage', { type: POD, opt: findPageArgs });
-    // }
-
-    // return Promise.resolve(undefined);
+    return undefined;
   }
 
   get pods() {
     console.warn('Anything using this must be updated to ????!!!');
 
-    return [];
+    throw Error('gah');
   }
 
   // get pods() {
@@ -614,17 +605,13 @@ export default class Workload extends WorkloadService {
   // }
 
   /**
-   * TODO: RC what SHOULD this do? always return object (relationship selectors are strings)
+   * Return a string version of a matchLabel expression
    */
   get podSelector() {
     const relationships = this.metadata?.relationships || [];
     const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
 
-    if (typeof selector === 'string') {
-      return { matchExpressions: parse(selector) };
-    }
-
-    return selector;
+    return selector; // tODO: RC TEST this should always be string (check api)
   }
 
   calcPodGauges(pods) {
@@ -651,7 +638,7 @@ export default class Workload extends WorkloadService {
   }
 
   get podGauges() {
-    return this.calcPodGauges(this.pods);
+    return this.calcPodGauges(this.pods); // TODO: RC change usages of workload.pods
   }
 
   // Job Specific
@@ -729,27 +716,16 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    // TODO: RC fetchPods (findLabelSelector) vs matchingPods (matching)
-
-    // TODO: RC where is this used, for shell? test
     // TODO: RC TEST
     const matchInfo = await matching({
       labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
       type:          POD,
       $store:        this.$store,
-      inStore:       'cluster',
+      inStore:       this.$rootGetters['currentProduct'].inStore,
       namespace:     this.metadata.namespace,
     });
 
     return matchInfo.matches;
-
-    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    // const all = await this.$dispatch('findAll', { type: POD });
-    // const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
-
-    // const selector = convertSelectorObj(this.spec.selector);
-
-    // return matching(allInNamespace, selector);
   }
 
   cleanForSave(data) {

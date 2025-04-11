@@ -381,6 +381,10 @@ export default {
       return;
     }
 
+    if (type === 'pod') {
+      debugger;
+    }
+
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -451,19 +455,22 @@ export default {
   },
 
   /**
-   * If result not already cached, find matching resources either
-   * a) Pagination Enabled - fetch matching resources filtered on backend using the new sql-cache backed api - findPage
-   * b) Pagination Disabled - fetch matching resources filtered on backend using the old legacy / native kube api - findMatching
+   * If result not already cached, make a http request to fetch resources matching a kube `labelSelector`.
+   *
+   * This is different if vai based pagination is on
+   * a) Pagination Enabled - use the new sql-cache backed api - findPage
+   * b) Pagination Disabled - use the old 'native kube api' - findMatching
    *
    * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
    */
   async findLabelSelector(ctx, {
     type,
+    context,
     matching: {
       namespace,
       labelSelector
     },
-    opts
+    opt
   }) {
     const { getters, dispatch } = ctx;
 
@@ -477,18 +484,19 @@ export default {
     if (getters[`paginationEnabled`]?.(args)) {
       return dispatch('findPage', {
         type,
-        opts: {
-          ...(opts || {}),
+        opt: {
+          ...(opt || {}),
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
         }
       });
     }
 
+    // TODO: RC test
     return dispatch('findMatching', {
       type,
       selector: labelSelector.matchLabels,
-      opts,
+      opt,
       namespace,
     });
   },

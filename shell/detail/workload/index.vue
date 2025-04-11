@@ -16,7 +16,8 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
-import { FilterArgs } from '@shell/types/store/pagination.types';
+import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { TYPES } from '@shell/models/secret';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -48,10 +49,7 @@ export default {
     } catch {}
 
     const hash = {
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      // allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
-      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-      // allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      // TODO: RC search for references to https://github.com/rancher/dashboard/issues/10417
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.
@@ -62,19 +60,19 @@ export default {
       hash.matchingPods = this.value.fetchPods();
     }
 
-    // if (this.serviceSchema) {
-    //   const findPageArgs = { // Of type ActionFindPageArgs
-    //     namespaced: this.value.metadata.namespace,
-    //     pagination: new FilterArgs({
-    //       filters: PaginationParamFilter.createSingleField({
-    //         field: 'metadata.fields.1',
-    //         value: TYPES.TLS
-    //       })
-    //     }),
-    //   };
+    if (this.serviceSchema) {
+      const findPageArgs = { // Of type ActionFindPageArgs
+        namespaced: this.value.metadata.namespace,
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createSingleField({
+            field: 'metadata.fields.1',
+            value: TYPES.TLS
+          })
+        }),
+      };
 
-    //   hash.matchingServices = this.$store.dispatch('cluster/findPage', { type: SERVICE, opt: findPageArgs });
-    // }
+      hash.namespaceTLSServices = this.$store.dispatch('cluster/findPage', { type: SERVICE, opt: findPageArgs });
+    }
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
       hash.jobs = this.value.matchingJobs();
@@ -100,16 +98,13 @@ export default {
         this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_PROJECT_METRICS_DETAIL_URL, this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
       }
     }
-    // this.findMatchingServices();
+    this.findMatchingServices();
     this.findMatchingIngresses();
   },
 
-  // TODO: RC https://github.com/rancher/dashboard/pull/6311
-
   data() {
     return {
-      // allPods:                         [],
-      // allServices:                     [],
+      namespaceTLSServices:            [],
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
@@ -203,23 +198,6 @@ export default {
       }, 0);
     },
 
-    // Not used anywhere!
-    // podRestarts() {
-    //   return this.value.pods.reduce((total, pod) => {
-    //     const { status:{ containerStatuses = [] } } = pod;
-
-    //     if (containerStatuses.length) {
-    //       total += containerStatuses.reduce((tot, container) => {
-    //         tot += container.restartCount;
-
-    //         return tot;
-    //       }, 0);
-    //     }
-
-    //     return total;
-    //   }, 0);
-    // },
-
     podHeaders() {
       return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
@@ -280,30 +258,26 @@ export default {
     async scaleUp() {
       await this.scale(true);
     },
-    // findMatchingServices() {
-    //   if (!this.serviceSchema) {
-    //     return [];
-    //   }
-    //   const matchingPods = this.value.pods;
+    findMatchingServices() {
+      if (!this.serviceSchema) {
+        return [];
+      }
 
-    //   // Find Services that have selectors that match this
-    //   // workload's Pod(s).
-    //   const matchingServices = this.allServices.filter((service) => {
-    //     const selector = service.spec.selector;
+      // Find Services that have selectors that match this workload's Pod(s).
+      this.matchingServices = this.namespaceTLSServices.filter((service) => {
+        const selector = service.spec.selector;
 
-    //     for (let i = 0; i < matchingPods.length; i++) {
-    //       const pod = matchingPods[i];
+        for (let i = 0; i < this.matchingPods.length; i++) {
+          const pod = this.matchingPods[i];
 
-    //       if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
-    //         return true;
-    //       }
-    //     }
+          if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
+            return true;
+          }
+        }
 
-    //     return false;
-    //   });
-
-    //   this.matchingServices = matchingServices;
-    // },
+        return false;
+      });
+    },
     findMatchingIngresses() {
       if (!this.ingressSchema) {
         return [];

@@ -408,6 +408,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get pods() {
+    // TODO: RC ??
     const allPods = this.$rootGetters['cluster/all'](POD);
 
     return allPods.filter((pod) => pod.spec.nodeName === this.name);

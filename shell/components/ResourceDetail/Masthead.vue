@@ -530,8 +530,6 @@ export default {
               {{ value.createdBy.displayName }}
             </span>
           </span>
-          <!-- <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span> -->
-          <!-- TODO: RC where did showPodRestarts go, into model header? -->
         </div>
       </div>
       <slot name="right">
