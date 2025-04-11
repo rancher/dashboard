@@ -108,6 +108,7 @@ export default {
       :value="afterLoginRoute"
       name="login-route"
       :options="routeRadioOptions"
+      :aria-label="`${t('prefs.landing.label')} - ${ t('landing.landingPrefs.body')}`"
       @update:value="updateLoginRoute"
     >
       <template #label>
@@ -119,6 +120,7 @@ export default {
         <div class="custom-page">
           <RadioButton
             :label="option.label"
+            :radio-option-id="option.radioOptionId"
             :val="false"
             :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
             :v-bind="$attrs"

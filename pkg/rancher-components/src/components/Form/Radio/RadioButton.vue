@@ -1,10 +1,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import { randomStr } from '@shell/utils/string';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default defineComponent({
-  props: {
+
+  inheritAttrs: false,
+  props:        {
     /**
      * The name of the input, for grouping.
      */
@@ -76,7 +78,16 @@ export default defineComponent({
     preventFocusOnRadioGroups: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    /**
+     * Radio option Id - used to link to aria-activedescendant
+     * when using inside of the context of a Radio Group
+     */
+    radioOptionId: {
+      type:    String,
+      default: undefined
+    },
   },
 
   emits: ['update:value'],
@@ -84,7 +95,8 @@ export default defineComponent({
   data() {
     return {
       isChecked:    this.value === this.val,
-      randomString: `${ randomStr() }-radio`,
+      randomString: `${ generateRandomAlphaString(12) }-radio`,
+      describeById: `${ generateRandomAlphaString(12) }-radio-described-id`,
     };
   },
 
@@ -165,11 +177,14 @@ export default defineComponent({
       @click.stop.prevent
     >
     <span
+      :id="radioOptionId"
       ref="custom"
       :class="[ isDisabled ? 'text-muted' : '', 'radio-custom']"
       :tabindex="isDisabled || preventFocusOnRadioGroups ? -1 : 0"
       :aria-label="label"
       :aria-checked="isChecked"
+      :aria-disabled="isDisabled"
+      :aria-describedby="descriptionKey || description ? describeById : undefined"
       role="radio"
     />
     <div class="labeling">
@@ -190,6 +205,7 @@ export default defineComponent({
       </label>
       <div
         v-if="descriptionKey || description"
+        :id="describeById"
         class="radio-button-outer-container-description"
       >
         <t
