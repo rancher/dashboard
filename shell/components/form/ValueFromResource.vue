@@ -119,8 +119,8 @@ export default {
       name.value = toRef(props.value.name);
       break;
     default:
-      name.value = toRef(props.value.name);
-      valStr.value = toRef(props.value.value);
+      name.value = props.value.name || '';
+      valStr.value = props.value.value || '';
       break;
     }
 
