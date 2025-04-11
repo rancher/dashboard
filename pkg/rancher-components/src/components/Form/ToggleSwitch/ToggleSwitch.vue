@@ -54,6 +54,11 @@ export default defineComponent({
       switchInput.value?.removeEventListener('focus', focus);
       switchInput.value?.removeEventListener('blur', blur);
     });
+
+    return {
+      switchChrome,
+      switchInput,
+    };
   },
 
   data() {
