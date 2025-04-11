@@ -131,7 +131,7 @@ export default defineComponent({
      */
     componentTestid: {
       type:    String,
-      default: null
+      default: 'checkbox'
     },
   },
 
@@ -307,7 +307,7 @@ export default defineComponent({
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="t(tooltipKey)"
             class="checkbox-info icon icon-info icon-lg"
-            :data-testid="componentTestid + 'info-icon'"
+            :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
           <i
@@ -315,7 +315,7 @@ export default defineComponent({
             v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="tooltip"
             class="checkbox-info icon icon-info icon-lg"
-            :data-testid="componentTestid + 'info-icon'"
+            :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
