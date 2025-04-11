@@ -77,11 +77,6 @@ export default {
       default: null,
     },
 
-    groupBy: {
-      type:    String,
-      default: null
-    },
-
     namespaced: {
       type:    Boolean,
       default: null, // Automatic from schema
@@ -117,9 +112,33 @@ export default {
       default: true,
     },
 
+    /**
+     * Field to group rows by, row[groupBy] must be something that can be a map key
+     */
+    groupBy: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Override any product based group options
+     */
+    groupOptions: {
+      type:    Array,
+      default: null
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
+    },
+
+    /**
+     * If the current preference for group isn't applicable, or not set, use this instead
+     */
+    groupDefault: {
+      type:    String,
+      default: DEFAULT_GROUP,
     },
 
     groupTooltip: {
@@ -189,10 +208,6 @@ export default {
       default: null, // Default comes from the user preference
     },
 
-    hideGroupingControls: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -328,8 +343,18 @@ export default {
       // If we are grouping by a custom group, it may specify that we hide a specific column
       const custom = this._listGroupMapped?.[this.group];
 
+      let hideColumn;
+
       if (custom?.hideColumn) {
-        const idx = headers.findIndex((header) => header.name === custom.hideColumn);
+        hideColumn = custom.hideColumn;
+      } else {
+        const componentCustom = this.groupOptions?.find((go) => go.value === this.group);
+
+        hideColumn = componentCustom?.hideColumn;
+      }
+
+      if (hideColumn) {
+        const idx = headers.findIndex((header) => header.name === hideColumn);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -388,17 +413,17 @@ export default {
     group: {
       get() {
         // Check group is valid
-        const exists = this.groupOptions.find((g) => g.value === this._group);
+        const exists = this._groupOptions.find((g) => g.value === this._group);
 
         if (!exists) {
           // Attempt to find the default option in available options...
           // if not use the first value in the options collection...
           // and if not that just fall back to the default
-          if (this.groupOptions.find((g) => g.value === DEFAULT_GROUP)) {
-            return DEFAULT_GROUP;
+          if (this._groupOptions.find((g) => g.value === this.groupDefault)) {
+            return this.groupDefault;
           }
 
-          return this.groupOptions[0]?.value || DEFAULT_GROUP;
+          return this._groupOptions[0]?.value || this.groupDefault || DEFAULT_GROUP;
         }
 
         return this._group;
@@ -413,7 +438,7 @@ export default {
         const namespaceGroupable = this.$store.getters['isMultipleNamespaces'] && this.isNamespaced;
         const customGroupable = !!this.options?.listGroups?.length;
 
-        return namespaceGroupable || customGroupable;
+        return namespaceGroupable || customGroupable || this.groupOptions?.length;
       }
 
       return this.groupable || false;
@@ -442,10 +467,20 @@ export default {
         return custom.field;
       }
 
+      const componentCustom = this.groupOptions?.find((go) => go.value === this.group);
+
+      if (componentCustom?.field) {
+        return componentCustom.field;
+      }
+
       return null;
     },
 
-    groupOptions() {
+    _groupOptions() {
+      if (this.groupOptions) {
+        return this.groupOptions;
+      }
+
       // Ignore the defaults below, we have an override set of groups
       // REPLACE (instead of SUPPLEMENT) defaults with listGroups (given listGroupsWillOverride is true)
       if (this.options?.listGroupsWillOverride && !!this.options?.listGroups?.length) {
@@ -569,7 +604,7 @@ export default {
     :alt-loading="altLoading"
     :group-by="computedGroupBy"
     :group="group"
-    :group-options="groupOptions"
+    :group-options="_groupOptions"
     :search="search"
     :paging="true"
     :paging-params="parsedPagingParams"
@@ -596,14 +631,14 @@ export default {
     @enter="handleEnterKeyPress"
   >
     <template
-      v-if="!hideGroupingControls && showGrouping"
+      v-if="showGrouping && _groupOptions.length > 1"
       #header-middle
     >
       <slot name="more-header-middle" />
 
       <ButtonGroup
         v-model:value="group"
-        :options="groupOptions"
+        :options="_groupOptions"
       />
     </template>
 

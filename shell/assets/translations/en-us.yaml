@@ -5214,6 +5214,7 @@ resourceTable:
     role: Group by Role
     cluster: Group by Cluster
     device: Group by Device
+    pool: Group by Pool
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
