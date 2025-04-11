@@ -425,6 +425,7 @@ export default {
 
 <template>
   <div class="row mb-20">
+    <slot name="secret-project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
       :data-testid="componentTestid + '-namespace-create'"
