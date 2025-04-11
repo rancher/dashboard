@@ -38,3 +38,9 @@
   padding: 2px;
   text-align: center;
 }
+
+@media screen and (max-width: 1280px) {
+  .catalog-card-container {
+    grid-template-columns: 100%;
+  }
+}

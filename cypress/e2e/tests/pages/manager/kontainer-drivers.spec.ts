@@ -18,8 +18,12 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   let removeDriver = false;
   let driverId = '';
   const oracleDriver = 'Oracle OKE';
+  const googleDriver = 'Google GKE';
   const linodeDriver = 'Linode LKE';
+  const tencentDriver = 'Tencent TKE';
   const exampleDriver = 'Example';
+  const amazonDriver = 'Amazon EKS';
+  const azureDriver = 'Azure AKS';
 
   before(() => {
     cy.login();
@@ -79,6 +83,27 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.mastheadTitle().should('contain', 'example');
   });
 
+  it('will show error if could not deactivate driver', () => {
+    cy.intercept('POST', '/v3/kontainerDrivers/googlekubernetesengine?action=deactivate', {
+      statusCode: 500,
+      body:       { message: `Could not deactivate driver` }
+    }).as('deactivationError');
+
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().details(googleDriver, 1).should('contain', 'Active');
+
+    driversPage.list().actionMenu(googleDriver).getMenuItem('Deactivate').click();
+    const deactivateDialog = new DeactivateDriverDialogPo();
+
+    deactivateDialog.deactivate();
+
+    cy.wait('@deactivationError').then(() => {
+      deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
+    });
+    deactivateDialog.cancel();
+  });
+
   it('can deactivate driver', () => {
     const requestData = { };
 
@@ -128,6 +153,23 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName('example', 'exist');
   });
 
+  it('will show error if could not activate driver', () => {
+    cy.intercept('POST', '/v3/kontainerDrivers/tencentkubernetesengine?action=activate', {
+      statusCode: 500,
+      body:       { message: `Could not activate driver` }
+    }).as('activationError');
+
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().details(tencentDriver, 1).should('contain', 'Inactive');
+
+    driversPage.list().actionMenu(tencentDriver).getMenuItem('Activate').click();
+
+    cy.wait('@activationError').then(() => {
+      cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
+    });
+  });
+
   it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
@@ -146,65 +188,65 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName('example', 'exist');
   });
 
-  it('can activate drivers in bulk', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
-      .set();
-
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=activate').as('activateOracleDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate').as('activateLinodeDriver');
-
-    driversPage.list().activate().click();
-    cy.wait('@activateLinodeDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@activateOracleDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Active');
-    driversPage.list().details(linodeDriver, 1).should('contain', 'Active');
-
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(oracleDriver, 'exist');
-    createCluster.gridElementExistanceByName(linodeDriver, 'exist');
-  });
-
   it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().details(linodeDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+    driversPage.list().details(amazonDriver, 1).scrollIntoView().should('contain', 'Active');
+    driversPage.list().details(azureDriver, 1).scrollIntoView().should('contain', 'Active');
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
       .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
       .click();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracleDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=deactivate').as('deactivateLinodeDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=deactivate').as('deactivateAmazonDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateAzureDriver');
 
     const deactivateDialog = new DeactivateDriverDialogPo();
 
     deactivateDialog.deactivate();
-    cy.wait('@deactivateLinodeDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
+    cy.wait('@deactivateAmazonDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@deactivateAzureDriver').its('response.statusCode').should('eq', 200);
+    driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
+    driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
 
     // check options on cluster create page
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
     createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(linodeDriver, 'not.exist');
+    createCluster.gridElementExistanceByName(amazonDriver, 'not.exist');
+    createCluster.gridElementExistanceByName(azureDriver, 'not.exist');
+  });
+
+  it('can activate drivers in bulk', () => {
+    KontainerDriversPagePo.navTo();
+    driversPage.waitForPage();
+    driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
+    driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
+      .set();
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
+      .set();
+
+    cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=activate').as('activateAmazonDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateAzureDriver');
+
+    driversPage.list().activate().click();
+    cy.wait('@activateAmazonDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@activateAzureDriver').its('response.statusCode').should('eq', 200);
+    driversPage.list().details(amazonDriver, 1).should('contain', 'Active');
+    driversPage.list().details(azureDriver, 1).should('contain', 'Active');
+
+    // check options on cluster create page
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.createCluster();
+    createCluster.waitForPage();
+    createCluster.gridElementExistanceByName(amazonDriver, 'exist');
+    createCluster.gridElementExistanceByName(azureDriver, 'exist');
   });
 
   it('can delete drivers in bulk', () => {

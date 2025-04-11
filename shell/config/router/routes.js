@@ -276,14 +276,24 @@ export default [
         name:      'c-cluster-neuvector',
         meta:      { ...installRedirectRouteMeta(NEUVECTOR_NAME, NEUVECTOR_CHART_NAME, undefined, false) }
       }, {
-        path:      '/c/:cluster/apps/charts',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/index.vue')),
-        name:      'c-cluster-apps-charts'
-      },
-      {
-        path:      '/c/:cluster/apps/charts/install',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
-        name:      'c-cluster-apps-charts-install'
+        path:     '/c/:cluster/apps/charts',
+        children: [
+          {
+            path:      '',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/index.vue')),
+            name:      'c-cluster-apps-charts'
+          },
+          {
+            path:      'chart',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/chart.vue')),
+            name:      'c-cluster-apps-charts-chart',
+          },
+          {
+            path:      'install',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
+            name:      'c-cluster-apps-charts-install',
+          },
+        ]
       },
       {
         path:      '/c/:cluster/auth/config',
@@ -354,17 +364,14 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/settings/performance.vue')),
         name:      'c-cluster-settings-performance'
       }, {
-        path:      '/c/:cluster/apps/charts/chart',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/chart.vue')),
-        name:      'c-cluster-apps-charts-chart'
-      }, {
         path:      '/c/:cluster/auth/group.principal/assign-edit',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/group.principal/assign-edit.vue')),
         name:      'c-cluster-auth-group.principal-assign-edit'
       }, {
         path:      '/c/:cluster/auth/user.retention',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/user.retention/index.vue')),
-        name:      'c-cluster-auth-user.retention'
+        name:      'c-cluster-auth-user.retention',
+        meta:      { nav: '/c/:cluster/auth/management.cattle.io.user' }
       }, {
         path:      '/c/:cluster/manager/cloudCredential/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/create.vue')),

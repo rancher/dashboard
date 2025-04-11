@@ -225,6 +225,7 @@ export default {
       height="auto"
       styles="max-height: 100vh;"
       :click-to-close="!restart || !waiting"
+      :trigger-focus-trap="true"
       @close="close"
     >
       <Card

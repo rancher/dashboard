@@ -28,6 +28,7 @@ export default {
   <span>
     <template v-if="isIp(row.externalIp)">
       {{ row.externalIp }} <CopyToClipboard
+        :aria-label="t('internalExternalIP.copyExternalIp')"
         label-as="tooltip"
         :text="row.externalIp"
         class="icon-btn"
@@ -43,6 +44,7 @@ export default {
     </template>
     <template v-else-if="isIp(row.internalIp)">
       {{ row.internalIp }}<CopyToClipboard
+        :aria-label="t('internalExternalIP.copyInternalIp')"
         label-as="tooltip"
         :text="row.internalIp"
         class="icon-btn"
