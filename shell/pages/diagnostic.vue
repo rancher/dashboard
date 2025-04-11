@@ -83,6 +83,16 @@ export default {
   },
 
   data() {
+    return {
+      systemInformation:         null,
+      topFifteenForResponseTime: null,
+      responseTimes:             null,
+      finalCounts:               null,
+      includeResponseTimes:      true,
+    };
+  },
+
+  created() {
     const {
       userAgent,
       userAgentData,
@@ -129,14 +139,7 @@ export default {
       systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
     }
 
-    return {
-      systemInformation,
-      topFifteenForResponseTime: null,
-      responseTimes:             null,
-      finalCounts:               null,
-      includeResponseTimes:      true,
-      storeMapping:              this.$store?._modules?.root?.state,
-    };
+    this.systemInformation = systemInformation;
   },
 
   computed: {
@@ -157,7 +160,7 @@ export default {
       const fileName = 'rancher-diagnostic-data.json';
       const data = {
         systemInformation: this.systemInformation,
-        storeMapping:      this.parseStoreData(this.storeMapping),
+        storeMapping:      this.parseStoreData(this.$store?._modules?.root?.state),
         resourceCounts:    this.finalCounts,
         responseTimes:     this.responseTimes,
       };

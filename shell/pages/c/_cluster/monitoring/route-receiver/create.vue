@@ -7,10 +7,13 @@ export default {
   components: { ResourceDetail },
 
   data() {
-    const { query:{ resource } } = this.$route;
+    return { resource: null };
+  },
 
-    return { resource };
+  created() {
+    this.resource = this.$route.query.resource;
   }
+
 };
 </script>
 
