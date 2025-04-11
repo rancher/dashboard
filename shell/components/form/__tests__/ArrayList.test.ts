@@ -58,11 +58,11 @@ describe('the ArrayList', () => {
     });
 
     jest.useFakeTimers();
-    await (wrapper.get('[data-testid="remove-item-1"]').element as HTMLElement).click();
+    await (wrapper.get('[data-testid="array-list-remove-item-1"]').element as HTMLElement).click();
     jest.advanceTimersByTime(50);
     jest.useRealTimers();
 
-    expect(wrapper.find('[data-testid="remove-item-2"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="array-list-remove-item-2"]').exists()).toBe(false);
     expect((wrapper.emitted('remove')![0][0] as any).row.value).toStrictEqual('string 1');
     expect(wrapper.vm.rows).toStrictEqual([{ value: 'string 0' }, { value: 'string 2' }]);
     expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(['string 0', 'string 2']);
