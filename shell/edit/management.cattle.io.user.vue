@@ -42,7 +42,7 @@ export default {
         roles:        !showGlobalRoles,
         rolesChanged: false,
       },
-      user: {},
+      watchOverride: false,
     };
   },
 
@@ -107,9 +107,9 @@ export default {
       this.errors = [];
       try {
         if (this.isCreate) {
-          this.user = await this.createUser();
+          const user = await this.createUser();
 
-          await this.updateRoles(this.user.id);
+          await this.updateRoles(user.id);
         } else {
           await this.editUser();
           await this.updateRoles();
@@ -196,11 +196,12 @@ export default {
         await this.$refs.grb.save(userId);
       } catch (err) {
         if (this.isCreate) {
+          this.watchOverride = true;
           this.$emit(
             'update:mode',
             {
+              userId,
               mode:     _EDIT,
-              user:     this.user,
               resource: 'management.cattle.io.user',
             }
           );
@@ -275,9 +276,10 @@ export default {
     >
       <GlobalRoleBindings
         ref="grb"
-        :user-id="value.id || liveValue.id || user.id"
+        :user-id="value.id || liveValue.id"
         :mode="mode"
         :real-mode="realMode"
+        :watch-override="watchOverride"
         type="user"
         @hasChanges="validation.rolesChanged = $event"
         @canLogIn="validation.roles = $event"
