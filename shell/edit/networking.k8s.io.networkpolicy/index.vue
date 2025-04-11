@@ -16,7 +16,6 @@ import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import PolicyRules from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRules';
 import ResourceTable from '@shell/components/ResourceTable';
-import { allHash } from '@shell/utils/promise';
 
 const POLICY_TYPES = {
   INGRESS: 'Ingress',
@@ -143,28 +142,13 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      // TODO: RC TEST
-      const matchInfo = await matching({
+      this.matchingPods = await matching({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore:       this.inStore, // TODO: RC
+        inStore:       this.inStore,
         namespace:     this.value.metadata.namespace,
       });
-
-      this.matchingPods = matchInfo.matches;
-      // const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
-      // const match = matching(allInNamespace, this.podSelectorExpressions);
-      // const matched = match.length || 0;
-      // const sample = match[0]?.nameDisplay;
-
-      // this.matchingPods = {
-      //   matched,
-      //   matches: match,
-      //   none:    matched === 0,
-      //   sample,
-      //   total:   allInNamespace.length,
-      // };
     }, 250, { leading: true }),
   },
 };
@@ -187,6 +171,7 @@ export default {
       :value="value"
       :mode="mode"
     />
+    <!-- TODO: RC list netowrkpolicy - why no click on name?? -->
 
     <div class="row mb-40">
       <div class="col span-12">
