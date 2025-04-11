@@ -124,6 +124,15 @@ export default defineComponent({
       type:    String,
       default: undefined
     },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: null
+    },
   },
 
   emits: ['update:value'],
@@ -298,6 +307,7 @@ export default defineComponent({
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="t(tooltipKey)"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + 'info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
           <i
@@ -305,6 +315,7 @@ export default defineComponent({
             v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="tooltip"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + 'info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
