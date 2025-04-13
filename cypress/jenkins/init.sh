@@ -74,6 +74,8 @@ if [ -f "${PRIV_KEY}" ]; then rm "${PRIV_KEY}"; fi
 ssh-keygen -t ecdsa -b 521 -N "" -f "${PRIV_KEY}"
 ls -al "${WORKSPACE}/.ssh/"
 
+prefix_random=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
+
 corral config --public_key "${PRIV_KEY}.pub" --user_id jenkins
 corral config vars set corral_user_public_key "$(cat ${PRIV_KEY}.pub)"
 corral config vars set corral_user_id jenkins
@@ -157,8 +159,6 @@ create_initial_clusters() {
   ls -al packages/aws/
   cat packages/aws/dashboard-tests.yaml
   cat packages/aws/custom-node.yaml
-
-  prefix_random=$(cat /dev/urandom | env LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
 
   corral config vars set bootstrap_password "${BOOTSTRAP_PASSWORD:-password}"
   corral config vars set aws_route53_zone "${AWS_ROUTE53_ZONE}"
@@ -271,5 +271,11 @@ corral create --skip-cleanup --recreate --debug ci dist/aws-dashboard-tests-t3a.
 corral config vars -o yaml
 corral vars ci corral_private_key -o yaml
 NODE_EXTERNAL_IP="$(corral vars ci first_node_ip)"
+
+echo "Custom node for Auth server"
+corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-auth"
+corral create --skip-cleanup --recreate --debug auth dist/aws-dashboard-auth-t3a.xlarge
+corral config vars set auth_node_ip "$(corral vars auth first_node_ip)"
+
 cd "${WORKSPACE}"
 echo "${PWD}"
