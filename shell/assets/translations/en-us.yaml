@@ -4760,6 +4760,8 @@ principal:
   name: Name
   loginName: Username
   type: Type
+  alt:
+    avatar: User avatar image
 
 probe:
   checkInterval:
