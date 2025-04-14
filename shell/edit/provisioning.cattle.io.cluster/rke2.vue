@@ -576,7 +576,7 @@ export default {
         out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
       }
 
-      if (counts.etcd === 0) {
+      if (counts.etcd <= 0) {
         out.color.etcd = NODE_TOTAL.error.color;
         out.icon.etcd = NODE_TOTAL.error.icon;
       } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
@@ -584,7 +584,7 @@ export default {
         out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.controlPlane === 0) {
+      if (counts.controlPlane <= 0) {
         out.color.controlPlane = NODE_TOTAL.error.color;
         out.icon.controlPlane = NODE_TOTAL.error.icon;
       } else if (counts.controlPlane === 1) {
@@ -592,7 +592,7 @@ export default {
         out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.worker === 0) {
+      if (counts.worker <= 0) {
         out.color.worker = NODE_TOTAL.error.color;
         out.icon.worker = NODE_TOTAL.error.icon;
       } else if (counts.worker === 1) {
