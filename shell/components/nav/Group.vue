@@ -274,7 +274,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr>
+          <hr role="none">
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN

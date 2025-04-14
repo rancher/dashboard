@@ -225,7 +225,7 @@ export default {
       v-if="!isSingleProduct"
       class="mt-10 mb-10"
     >
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference
         data-testid="prefs__landingPagePreference"
@@ -233,7 +233,7 @@ export default {
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.displaySettings.title'" />
       <p class="set-landing-leadin">
         {{ t('prefs.displaySettings.detail', {}, raw=true) }}
@@ -277,7 +277,7 @@ export default {
       v-if="!isSingleProduct"
       class="col adv-features mt-10 mb-10"
     >
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
         v-model:value="scalingDownPrompt"
@@ -288,7 +288,7 @@ export default {
     </div>
     <!-- Advanced Features -->
     <div class="col adv-features mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
         v-model:value="viewInApi"
@@ -331,7 +331,7 @@ export default {
     </div>
     <!-- YAML editor key mapping -->
     <div class="col mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
         v-model:value="keymap"
@@ -344,7 +344,7 @@ export default {
       v-if="!isSingleProduct"
       class="col mt-10 mb-40"
     >
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
         v-model:value="showPreRelease"

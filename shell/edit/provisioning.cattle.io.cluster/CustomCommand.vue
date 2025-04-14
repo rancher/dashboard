@@ -260,7 +260,10 @@ export default {
       />
 
       <template v-if="cluster.supportsWindows">
-        <hr class="mt-20 mb-20">
+        <hr
+          class="mt-20 mb-20"
+          role="none"
+        >
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <Banner
           v-if="readyForWindows"

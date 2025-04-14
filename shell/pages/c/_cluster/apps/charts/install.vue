@@ -1386,7 +1386,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr>
+                    <hr role="none">
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
