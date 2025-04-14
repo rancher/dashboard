@@ -11,11 +11,9 @@ Form validation based on the library [`vee-validate`](https://github.com/logaret
 
 ## Composition API
 
-### Input
-
-Example of input with validation based on [input component](/docs/stories-form-input--docs).
-
 For the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
+
+Example of configuration with custom defined rules a during declaration:
 
 ```ts
 setup() {
@@ -33,6 +31,38 @@ setup() {
   };
 },
 ```
+
+Example of configuration using existing rules:
+
+```ts
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+
+setup() {
+  const store = useStore();
+  const { t } = useI18n(store);
+  const validators = (key: string) => formRulesGenerator(t, { key });
+  const {
+    errors: errVal, values, meta, defineField
+  } = useForm({
+    validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
+    initialValues:    { name: '' },
+  });
+  const [name, nameAttrs] = defineField('name');
+
+  return {
+    name,
+    nameAttrs,
+    values,
+    errVal,
+    meta,
+    args
+  };
+},
+```
+
+### Input
+
+Case of input with validation based on [input component](/docs/stories-form-input--docs) and [existing rules](https://github.com/rancher/dashboard/blob/master/shell/utils/validators/formRules/index.ts).
 
 <Canvas of={FormInput.Default} />
 
