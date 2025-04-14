@@ -7,9 +7,7 @@ import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import {
-  colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, STATES_ENUM, stateSort,
-} from '@shell/plugins/dashboard-store/resource-class';
+import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
 import FleetUtils from '@shell/utils/fleet';
 
@@ -439,51 +437,28 @@ export default class GitRepo extends SteveModel {
     }, []);
 
     return resources.map((r) => {
-      const {
-        namespace, name, clusterId, state
-      } = r;
-      const id = FleetUtils.resourceId(r);
+      const { namespace, name, clusterId } = r;
       const type = FleetUtils.resourceType(r);
       const c = clusters[clusterId];
 
-      const color = colorForState(state).replace('text-', 'bg-');
-      const display = stateDisplay(state);
-
-      const detailLocation = state !== STATES_ENUM.MISSING ? {
-        name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
-        params: {
-          product:  NAME,
-          cluster:  c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME], // explorer uses the "management" Cluster name, which differs from the Fleet Cluster name
-          resource: type,
-          namespace,
-          id:       name,
-        }
-      } : undefined;
-
-      const key = `${ clusterId }-${ type }-${ namespace }-${ name }`;
-
       return {
-        key,
-        tableKey: key,
+        key: `${ clusterId }-${ type }-${ namespace }-${ name }`,
 
         // Needed?
-        id,
+        id: FleetUtils.resourceId(r),
         type,
         clusterId,
 
         // columns, see FleetResources.vue
-        state:       mapStateToEnum(state),
+        state:       mapStateToEnum(r.state),
         clusterName: c.nameDisplay,
         apiVersion:  r.apiVersion,
         kind:        r.kind,
-        name:        r.name,
-        namespace:   r.namespace,
+        name,
+        namespace,
 
         // other properties
-        stateBackground: color,
-        stateDisplay:    display,
-        stateSort:       stateSort(color, display),
-        detailLocation,
+        detailLocation: FleetUtils.detailLocation(r, c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME]),
       };
     });
   }

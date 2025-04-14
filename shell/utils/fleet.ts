@@ -6,8 +6,9 @@ import {
   BundleStatus,
   Condition,
 } from '@shell/types/resources/fleet';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { mapStateToEnum, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { FLEET as FLEET_ANNOTATIONS, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -55,6 +56,19 @@ class Fleet {
     }
 
     return `${ r.apiVersion.split('/', 2)[0] }.${ type }`;
+  }
+
+  detailLocation(r: Resource, mgmtClusterName: string): any {
+    return mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
+      name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
+      params: {
+        product:   EXPLORER_NAME,
+        cluster:   mgmtClusterName,
+        resource:  this.resourceType(r),
+        namespace: r.namespace,
+        id:        r.name,
+      },
+    };
   }
 
   /**
