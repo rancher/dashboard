@@ -7573,6 +7573,9 @@ typeLabel:
     }
 
 action:
+  ariaLabel:
+    hidePass: Hide {area}
+    showPass: Reveal {area}
   clone: Clone
   disable: Disable
   download: Download YAML
