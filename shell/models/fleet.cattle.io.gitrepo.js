@@ -8,7 +8,6 @@ import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { NAME } from '@shell/config/product/explorer';
 import FleetUtils from '@shell/utils/fleet';
 
 function quacksLikeAHash(str) {
