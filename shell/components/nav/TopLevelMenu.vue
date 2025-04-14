@@ -699,7 +699,7 @@ export default {
                   v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
-                  <hr>
+                  <hr role="none">
                 </div>
               </div>
 
@@ -813,7 +813,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.multiCluster') }}
                 </span>
@@ -846,7 +846,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.configuration') }}
                 </span>
