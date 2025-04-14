@@ -41,6 +41,8 @@ export default {
   },
 
   data() {
+    console.error('ON DIALOG COMPONENT....');
+
     return { closed: false };
   },
 

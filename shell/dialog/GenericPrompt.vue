@@ -98,6 +98,7 @@ export default {
           :label="err"
         />
         <div class="buttons">
+          ALEX
           <button
             class="btn role-secondary mr-10"
             @click="close"

@@ -1,6 +1,11 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
+import {
+  DEFAULT_FOCUS_TRAP_OPTS,
+  useBasicSetupFocusTrap,
+  getFirstFocusableElement,
+  useWatcherBasedSetupFocusTrapWithDestroyIncluded
+} from '@shell/composables/focusTrap';
 
 export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
@@ -10,7 +15,8 @@ export default defineComponent({
   emits: ['close'],
 
   inheritAttrs: false,
-  props:        {
+
+  props: {
     /**
      * If set to false, it will not be possible to close modal by clicking on
      * the background or by pressing Esc key.
@@ -80,7 +86,25 @@ export default defineComponent({
     returnFocusFirstIterableNodeSelector: {
       type:    String,
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
-    }
+    },
+    /**
+     * trigger focus trap - but watcher based
+     */
+    triggerFocusTrapWatcherBased: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * watcher-based focus trap variable to watch
+     */
+    focusTrapWatcherBasedVariable: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+
+  data() {
+    return { fakeWatchVar: true };
   },
   computed: {
     modalWidth(): string {
@@ -131,9 +155,23 @@ export default defineComponent({
         };
       }
 
-      useBasicSetupFocusTrap('#modal-container-element', opts);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable || 'fakeWatchVar', '#modal-container-element', opts, true);
+
+      // if (!props.triggerFocusTrapWatcherBased) {
+      //   useBasicSetupFocusTrap('#modal-container-element', opts);
+      // }
     }
   },
+  // created() {
+  //   // This usecase is to cover the PromptModal scenario where it's renders a generic component inside.
+  //   // Due to the architecture of the PromptModal it needs to be handled with a watcher based focus trap
+  //   // but with a dedicated unmount hook
+  //   if (this.triggerFocusTrapWatcherBased) {
+  //     const opts:any = DEFAULT_FOCUS_TRAP_OPTS;
+
+  //     useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.focusTrapWatcherBasedVariable, '#modal-container-element', opts, true);
+  //   }
+  // },
   mounted() {
     document.addEventListener('keydown', this.handleEscapeKey);
   },
