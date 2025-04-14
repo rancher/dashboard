@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import { useForm, useFieldArray } from 'vee-validate';
+import { useForm } from 'vee-validate';
 
 const meta: Meta<typeof ArrayList> = { component: ArrayList };
 
@@ -21,16 +21,16 @@ const Template: Story = {
   render: (args: any) => ({
     components: { ArrayList },
     setup() {
-      const { errors: errVal, values, meta } = useForm({
-        validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
-        initialValues:    { myList: [{ name: '' }] },
+      const {
+        errors: errVal, values, meta, defineField
+      } = useForm({
+        validationSchema: { list: (values: string[]) => ['openid', 'profile', 'email'].every((scope) => values.includes(scope)) ? true : 'It should include "openid profile email"' },
+        initialValues:    { list: ['openid', 'profile'] },
       });
-      const { remove, push, fields } = useFieldArray('myList');
+      const [list] = defineField('list');
 
       return {
-        remove,
-        push,
-        fields,
+        list,
         values,
         errVal,
         meta,
@@ -39,11 +39,11 @@ const Template: Story = {
     },
     template: `
     <ArrayList
-      v-model:value="fields"
+      v-model:value="list"
       v-bind="args"
-    >
-    
-    </ArrayList>
+    ></ArrayList>
+    <br />
+    <p v-if="errVal && errVal.list">{{errVal.list}}</p>
     ${ displayValidation() }
     `,
   }),
