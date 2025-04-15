@@ -430,8 +430,7 @@ export default {
 
       return {
         content,
-        placement:     'right',
-        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
+        placement: 'right',
         popperClass
       };
     },
