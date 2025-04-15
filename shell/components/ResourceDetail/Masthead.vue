@@ -13,6 +13,9 @@ import {
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import TabTitle from '@shell/components/TabTitle';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import { useStore } from 'vuex';
 
 // i18n-uses resourceDetail.header.*
 
@@ -26,7 +29,12 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
+    BadgeState,
+    Banner,
+    ButtonGroup,
+    ExtensionPanel,
+    TabTitle,
+    ActionMenu,
   },
   props: {
     value: {
@@ -90,6 +98,13 @@ export default {
       type:    Boolean,
       default: false,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
   },
 
   data() {
@@ -561,17 +576,28 @@ export default {
               class="mr-10"
             />
 
-            <button
-              v-if="isView"
-              ref="actions"
-              data-testid="masthead-action-menu"
-              aria-haspopup="true"
-              type="button"
-              class="btn role-multi-action actions"
-              @click="showActions"
-            >
-              <i class="icon icon-actions" />
-            </button>
+            <template v-if="featureDropdownMenu">
+              <ActionMenu
+                v-if="isView"
+                button-role="multiAction"
+                button-size="compact"
+                :resource="value"
+                data-testid="masthead-action-menu"
+              />
+            </template>
+            <template v-else>
+              <button
+                v-if="isView"
+                ref="actions"
+                data-testid="masthead-action-menu"
+                aria-haspopup="true"
+                type="button"
+                class="btn role-multi-action actions"
+                @click="showActions"
+              >
+                <i class="icon icon-actions" />
+              </button>
+            </template>
           </div>
         </div>
       </slot>
