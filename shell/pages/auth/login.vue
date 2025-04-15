@@ -40,11 +40,9 @@ export default {
   },
 
   data() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
-
     return {
-      username,
-      remember: !!username,
+      username: '',
+      remember: false,
       password: '',
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
@@ -136,6 +134,11 @@ export default {
   },
 
   async fetch() {
+    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+
+    this.username = username;
+    this.remember = !!username;
+
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');

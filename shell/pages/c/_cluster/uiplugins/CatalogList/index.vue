@@ -19,17 +19,15 @@ export default {
   mixins: [ResourceManager],
 
   data() {
-    const actions = [
-      {
-        action:  'showCatalogUninstallDialog',
-        label:   this.t('plugins.uninstall.label'),
-        icon:    'icon icon-trash',
-        enabled: true,
-      }
-    ];
-
     return {
-      actions,
+      actions: [
+        {
+          action:  'showCatalogUninstallDialog',
+          label:   this.t('plugins.uninstall.label'),
+          icon:    'icon icon-trash',
+          enabled: true,
+        }
+      ],
       catalogHeaders: UI_PLUGIN_CATALOG,
     };
   },

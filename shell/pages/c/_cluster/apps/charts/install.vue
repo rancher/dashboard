@@ -45,6 +45,22 @@ const VALUES_STATE = {
   DIFF: 'DIFF'
 };
 
+/**
+ * Helm CLI options that are not persisted on the back end,
+ * but are used for the final install/upgrade operation.
+ */
+const defaultCmdOpts = {
+  cleanupOnFail: false,
+  crds:          true,
+  hooks:         true,
+  force:         false,
+  resetValues:   false,
+  openApi:       true,
+  wait:          true,
+  timeout:       600,
+  historyMax:    5,
+};
+
 function isPlainLayout(query) {
   return Object.keys(query).includes(HIDE_SIDE_NAV);
 }
@@ -359,20 +375,6 @@ export default {
   },
 
   data() {
-    /* Helm CLI options that are not persisted on the back end,
-    but are used for the final install/upgrade operation. */
-    const defaultCmdOpts = {
-      cleanupOnFail: false,
-      crds:          true,
-      hooks:         true,
-      force:         false,
-      resetValues:   false,
-      openApi:       true,
-      wait:          true,
-      timeout:       600,
-      historyMax:    5,
-    };
-
     return {
       defaultRegistrySetting: '',
       customRegistrySetting:  '',
