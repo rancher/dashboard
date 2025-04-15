@@ -426,7 +426,7 @@ export default {
         </div>
         <div
           id="wizard-footer-controls"
-          class="controls-row pt-20"
+          class="controls-row"
         >
           <slot
             name="cancel"
@@ -674,7 +674,7 @@ $spacer: 10px;
 // We have to account for the absolute position of the .controls-row
 .footer-error {
   margin-top: -40px;
-  margin-bottom: 70px;
+  margin-bottom: calc($footer-height + 10px);
 }
 
   .controls-row {

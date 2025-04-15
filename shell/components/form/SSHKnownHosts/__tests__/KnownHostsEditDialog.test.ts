@@ -14,6 +14,17 @@ const requiredSetup = () => {
   return { global: { mocks: { $store: mockedStore() } } };
 };
 
+jest.mock('focus-trap', () => {
+  return {
+    createFocusTrap: jest.fn().mockImplementation(() => {
+      return {
+        activate:   jest.fn(),
+        deactivate: jest.fn(),
+      };
+    }),
+  };
+});
+
 describe('component: KnownHostsEditDialog', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="modals"></div>';
@@ -21,7 +32,7 @@ describe('component: KnownHostsEditDialog', () => {
       attachTo: document.body,
       props:    {
         mode:  _EDIT,
-        value: 'line1\nline2\n',
+        value: 'line1\nline2\n'
       },
       ...requiredSetup(),
     });
