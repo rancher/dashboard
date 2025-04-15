@@ -231,6 +231,7 @@ export default {
     },
 
     parent() {
+      // parentNameOverride to add when navigating from App Bundles -> GitRepo/HelmApp details
       const displayName = this.value?.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 

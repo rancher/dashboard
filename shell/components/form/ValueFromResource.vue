@@ -24,6 +24,20 @@ export default {
         return { valueFrom: {} };
       }
     },
+    options: {
+      type:    Array,
+      default: () => {
+        return [
+          { value: 'simple', label: 'Key/Value Pair' },
+          { value: 'resourceFieldRef', label: 'Resource' },
+          { value: 'configMapKeyRef', label: 'ConfigMap Key' },
+          { value: 'secretKeyRef', label: 'Secret key' },
+          { value: 'fieldRef', label: 'Pod Field' },
+          { value: 'secretRef', label: 'Secret' },
+          { value: 'configMapRef', label: 'ConfigMap' },
+        ];
+      }
+    },
     allConfigMaps: {
       type:    Array,
       default: () => []
@@ -44,16 +58,6 @@ export default {
   },
 
   data() {
-    const typeOpts = [
-      { value: 'simple', label: 'Key/Value Pair' },
-      { value: 'resourceFieldRef', label: 'Resource' },
-      { value: 'configMapKeyRef', label: 'ConfigMap Key' },
-      { value: 'secretKeyRef', label: 'Secret key' },
-      { value: 'fieldRef', label: 'Pod Field' },
-      { value: 'secretRef', label: 'Secret' },
-      { value: 'configMapRef', label: 'ConfigMap' },
-    ];
-
     const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
     let type;
 
@@ -64,7 +68,7 @@ export default {
     } else if (this.value.value) {
       type = 'simple';
     } else if (this.value.valueFrom) {
-      type = Object.keys((this.value.valueFrom))[0] || 'simple';
+      type = Object.keys((this.value.valueFrom))[0] || this.options[0].value || 'simple';
     }
 
     let refName;
@@ -78,13 +82,13 @@ export default {
     switch (type) {
     case 'resourceFieldRef':
       name = this.value.name;
-      refName = this.value.valueFrom[type].containerName;
-      key = this.value.valueFrom[type].resource || '';
+      refName = this.value.valueFrom?.[type]?.containerName || '';
+      key = this.value.valueFrom?.[type]?.resource || '';
       break;
     case 'configMapKeyRef':
       name = this.value.name;
-      key = this.value.valueFrom[type].key || '';
-      refName = this.value.valueFrom[type].name;
+      key = this.value.valueFrom?.[type]?.key || '';
+      refName = this.value.valueFrom?.[type]?.name;
       referenced = this.allConfigMaps.filter((resource) => {
         return resource.metadata.name === refName;
       })[0];
@@ -95,12 +99,12 @@ export default {
     case 'secretRef':
     case 'configMapRef':
       name = this.value.prefix;
-      refName = this.value[type].name;
+      refName = this.value[type]?.name;
       break;
     case 'secretKeyRef':
       name = this.value.name;
-      key = this.value.valueFrom[type].key || '';
-      refName = this.value.valueFrom[type].name;
+      key = this.value.valueFrom?.[type]?.key || '';
+      refName = this.value.valueFrom?.[type]?.name;
       referenced = this.allSecrets.filter((resource) => {
         return resource.metadata.name === refName;
       })[0];
@@ -119,7 +123,7 @@ export default {
     }
 
     return {
-      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys, key, fieldPath, name, resourceKeyOpts, valStr
+      type, refName, referenced: refName, secrets: this.allSecrets, keys, key, fieldPath, name, resourceKeyOpts, valStr
     };
   },
   computed: {
@@ -188,6 +192,10 @@ export default {
     extraColumn() {
       return ['resourceFieldRef', 'configMapKeyRef', 'secretKeyRef'].includes(this.type);
     },
+
+    hideVariableName() {
+      return this.options?.find((t) => t.value === this.type)?.hideVariableName || false;
+    }
   },
 
   watch: {
@@ -267,7 +275,7 @@ export default {
         v-model:value="type"
         :mode="mode"
         :multiple="false"
-        :options="typeOpts"
+        :options="options"
         option-label="label"
         :searchable="false"
         :reduce="e=>e.value"
@@ -276,7 +284,10 @@ export default {
       />
     </div>
 
-    <div class="name">
+    <div
+      v-if="!hideVariableName"
+      class="name"
+    >
       <LabeledInput
         v-model:value="name"
         :label="nameLabel"

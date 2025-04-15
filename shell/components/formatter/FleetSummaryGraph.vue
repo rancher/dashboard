@@ -63,7 +63,7 @@ export default {
     class="text-center hand"
     placement="top"
     :show-group="row.id"
-    :triggers="show ? ['click'] : []"
+    :triggers="show ? ['hover'] : []"
     offset="1"
   >
     <ProgressBarMulti

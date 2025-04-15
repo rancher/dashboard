@@ -170,6 +170,21 @@ export default class GitRepo extends SteveModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
+  get source() {
+    return {
+      value:   this.spec.repo || '',
+      display: this.repoDisplay,
+      icon:    this.repoIcon,
+    };
+  }
+
+  get sourceSub() {
+    return {
+      value:   this.status.commit,
+      display: this.commitDisplay
+    };
+  }
+
   get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
@@ -507,6 +522,40 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get readyClusters() {
+    return this.status?.readyClusters || 0;
+  }
+
+  get _detailLocation() {
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return {
+        ...super._detailLocation,
+        name: 'c-cluster-fleet-application-resource-namespace-id'
+      };
+    }
+
+    return super._detailLocation;
+  }
+
+  get doneOverride() {
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return {
+        ...super.listLocation,
+        name: 'c-cluster-fleet-application'
+      };
+    }
+
+    return super.listLocation;
+  }
+
+  get parentNameOverride() {
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
+    }
+
+    return null;
   }
 
   get authorId() {

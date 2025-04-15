@@ -78,7 +78,7 @@ export default {
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.sourceAppName === this.repoName);
 
       if (!resources.length) {
         return [];
