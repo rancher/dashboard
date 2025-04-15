@@ -57,6 +57,7 @@ describe('class: Workload', () => {
             clusterName:                'whatever',
             deletionGracePeriodSeconds: 'whatever',
             generateName:               'whatever',
+            ownerReferences:            'whatever',
           },
           spec: {
             template: {
