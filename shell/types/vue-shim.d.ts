@@ -1,4 +1,6 @@
 /* eslint-disable */
+import type ShellApi from '@shell/plugins/internal-api/shell/shell.api';
+
 export {};
 
 declare module 'vue' {
@@ -15,6 +17,7 @@ declare module 'vue' {
       getters: Record<string, any>,
       dispatch: (action: string, payload?: any) => Promise<any>,
       commit: (mutation: string, payload?: any) => void,
-    }
+    },
+    $shell: ShellApi,
   }
 }
