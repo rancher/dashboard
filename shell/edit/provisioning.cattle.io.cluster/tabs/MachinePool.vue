@@ -292,7 +292,10 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-10">
+    <hr
+      class="mt-10"
+      role="none"
+    >
     <component
       :is="configComponent"
       v-if="value.config && configComponent"

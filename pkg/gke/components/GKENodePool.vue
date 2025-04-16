@@ -292,7 +292,7 @@ export default defineComponent({
 <template>
   <div>
     <h3>{{ t('gke.groupDetails') }}</h3>
-    <hr>
+    <hr role="none">
     <div class="row mb-10">
       <div class="col span-4">
         <LabeledInput
@@ -372,7 +372,7 @@ export default defineComponent({
     <h3 class="mt-20">
       {{ t('gke.nodeDetails') }}
     </h3>
-    <hr>
+    <hr role="none">
     <div class="row mb-10">
       <div class="col span-6">
         <Checkbox

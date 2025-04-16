@@ -95,7 +95,7 @@ export default {
               <t k="istio.links.kiali.label" />
               <i class="icon icon-external-link pull-right" />
             </a>
-            <hr>
+            <hr role="none">
             <div class="description">
               <span v-clean-html="t('istio.links.kiali.description', {link: monitoringUrl}, true)" />
             </div>
@@ -131,7 +131,7 @@ export default {
               <t k="istio.links.jaeger.label" />
               <i class="icon icon-external-link pull-right" />
             </a>
-            <hr>
+            <hr role="none">
             <div class="description">
               <span v-clean-html="t('istio.links.jaeger.description', true)" />
             </div>

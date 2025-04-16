@@ -137,6 +137,7 @@ export default {
             tabindex="0"
             class="hide-show"
             role="button"
+            :aria-label="reveal ? t('action.ariaLabel.hidePass', { area: label }) : t('action.ariaLabel.showPass', { area: label })"
             @click.prevent.stop="hideShowFn"
             @keyup.space.prevent.stop="hideShowFn"
           >

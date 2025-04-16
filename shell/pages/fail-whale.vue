@@ -110,6 +110,7 @@ export default {
               <hr
                 class="custom-content"
                 :style="styles"
+                role="none"
               >
               <p class="mt-20">
                 <a

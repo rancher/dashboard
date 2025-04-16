@@ -544,7 +544,10 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr v-if="subtype.description">
+                  <hr
+                    v-if="subtype.description"
+                    role="none"
+                  >
                   <div
                     v-if="subtype.description"
                     class="description"

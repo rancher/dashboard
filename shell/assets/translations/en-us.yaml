@@ -144,6 +144,7 @@ nav:
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
+    sideNav: Secondary menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: Harvester cluster menu item
@@ -4759,6 +4760,8 @@ principal:
   name: Name
   loginName: Username
   type: Type
+  alt:
+    avatar: User avatar image
 
 probe:
   checkInterval:
@@ -7572,6 +7575,9 @@ typeLabel:
     }
 
 action:
+  ariaLabel:
+    hidePass: Hide {area}
+    showPass: Reveal {area}
   clone: Clone
   disable: Disable
   download: Download YAML
