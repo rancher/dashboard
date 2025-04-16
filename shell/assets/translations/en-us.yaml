@@ -4164,6 +4164,14 @@ node:
     scaleDown: Scale Down
     forceDelete: Force Delete
 
+notificationCenter:
+  caughtUp: "You're all caught up"
+  dates:
+    today: Today
+    yesterday: Yesterday
+  markAllRead: Mark all as read
+  title: Notifications
+
 persistentVolume:
   pluginConfiguration:
     label: Plugin configuration

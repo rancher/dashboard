@@ -81,7 +81,7 @@ export const state = function(a: any): NotificationsStore {
     // Try ... catch in case the date parsing fails
     try {
       const created = new Date(n.created);
-      const diff = (now.getTime() - created.getTime())/1000; // Diff in seconds
+      const diff = (now.getTime() - created.getTime()) / 1000; // Diff in seconds
 
       return diff < EXPIRY;
     } catch (e) {}
