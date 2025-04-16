@@ -272,7 +272,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
         </div>
         <div
           v-if="item.primaryAction || item.secondaryAction"
-          class="actions"
+          class="notification-actions"
         >
           <button
             v-if="item.primaryAction"
@@ -414,7 +414,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           }
         }
 
-        .actions {
+        .notification-actions {
           display: flex;
           margin-top: 10px;
 
