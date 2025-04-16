@@ -3,10 +3,10 @@ import AmazonCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-cred
 
 export default class EKSCloudCredentialsCreateEditPo extends AmazonCloudCredentialsCreateEditPo {
   region(): LabeledSelectPo {
-    return new LabeledSelectPo('[id$=__combobox]');
+    return new LabeledSelectPo('[#vs1__combobox]');
   }
 
   defaultRegion(): LabeledSelectPo {
-    return new LabeledSelectPo('[id$=__combobox]');
+    return new LabeledSelectPo('[#vs2__combobox]');
   }
 }

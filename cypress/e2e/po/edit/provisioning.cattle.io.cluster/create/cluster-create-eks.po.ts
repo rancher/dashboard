@@ -3,6 +3,8 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import ClusterManagerCreateRke2AmazonPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-amazon.po';
 import EKSCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials-eks.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import eksVersions from '@/pkg/eks/assets/data/eks-versions.js';
 
 /**
  * Create page for an EKS cluster
@@ -30,5 +32,31 @@ export default class ClusterManagerCreateEKSPagePo extends ClusterManagerCreateR
 
   getClusterDescription() {
     return new LabeledInputPo('[placeholder*="better describes this resource"]');
-}
+  }
+
+  getEKSzoneSelect() {
+    return new LabeledSelectPo('[id="vs1__combobox"]');
+  }
+
+  getEKSversionSelect() {
+    return new LabeledSelectPo('[id="vs9__combobox"]');
+  }
+
+  getEKSnodeGroup() {
+    return new LabeledSelectPo('[data-testid="eks-nodegroup-name"]');
+  }
+
+  getLatestEKSversion() {
+    let latestVersion = 0;
+
+    eksVersions.forEach((version: string) => {
+      const versionNumber = Number(version);
+
+      if (versionNumber > latestVersion) {
+        latestVersion = versionNumber;
+      }
+    });
+
+    return String(latestVersion);
+  }
 }
