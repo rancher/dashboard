@@ -88,8 +88,8 @@ const applyShow = () => {
         dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
         @keydown="handleKeydown"
-        @keydown.down="setFocus('down')"
-        @keydown.up="setFocus('up')"
+        @keydown.down.prevent="setFocus('down')"
+        @keydown.up.prevent="setFocus('up')"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
