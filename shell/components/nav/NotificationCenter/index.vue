@@ -1,27 +1,41 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import Notification from './Notification.vue';
+import NotificationHeader from './NotificationHeader.vue';
 import {
   RcDropdown,
-  RcDropdownItem,
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
 
 const store = useStore();
-const pageActions = computed(() => store.getters['notifications/all']);
+const allNotifications = computed(() => store.getters['notifications/all']);
 const unreadLevelClass = computed(() => {
   return `level-${ store.getters['notifications/unreadLevel'] }`;
 });
-const unreadCount = computed(() => store.getters['notifications/unreadCount']);
 
-const markRead = (item: any) => {
-  store.dispatch('notifications/markRead', item.id);
-};
+// There may be more notifications than we can show on screen, so the popover needs to scroll
+const scroller = ref<HTMLElement>();
 
-const markAllRead = () => {
-  store.dispatch('notifications/markAllRead');
+// This is a workaround
+// When either the top or bottom notification are focused via keyboard up/down, the item does not
+// fully scroll into view, which looks odd
+// Here we adjust the scroll position to fix that - note we do this via a timeout - if we try and
+// do this immediately or either via nextTick, this does not work
+const scrollPanel = (index: number, count: number) => {
+  const DELAY = 175;
+
+  // Header is 0, so 1 is the first notification
+  if (index === 1) {
+    setTimeout(() => {
+      scroller?.value?.scrollTo(0, 0);
+    }, DELAY);
+  } else if (index === count - 1) {
+    setTimeout(() => {
+      scroller?.value?.scrollTo(0, 2000000);
+    }, DELAY);
+  }
 };
 
 // Close all of the open growls when the notification center is shown, so that they do not overlap
@@ -51,52 +65,57 @@ const open = (opened: boolean) => {
       </div>
     </rc-dropdown-trigger>
     <template #dropdownCollection>
-      <div
-        class="notification-header"
-      >
-        <div class="notification-title">
-          Notifications
-        </div>
-        <div v-if="unreadCount !== 0">
-          <a
-            role="button"
-            href="#"
-            @click.stop="markAllRead()"
-          >
-            Mark all as read
-          </a>
-        </div>
-      </div>
-      <div
-        v-if="pageActions.length === 0"
-        class="no-notifications"
-      >
-        <div class="hands">
-          &#x1F64C;
-        </div>
-        <div>You're all caught up</div>
-      </div>
-      <div class="scroll-container">
-        <template
-          v-for="(a) in pageActions"
-          :key="a.title"
+      <div class="notification-dropdown">
+        <NotificationHeader class="header" />
+        <div
+          v-if="allNotifications.length === 0"
+          class="no-notifications"
         >
-          <rc-dropdown-separator />
-          <rc-dropdown-item>
+          <div class="hands">
+            &#x1F64C;
+          </div>
+          <div>
+            {{ t('notificationCenter.caughtUp', {}, true) }}
+          </div>
+        </div>
+        <div
+          ref="scroller"
+          class="scroll-container"
+        >
+          <template
+            v-for="(a, index) in allNotifications"
+            :key="a.title"
+          >
+            <rc-dropdown-separator v-if="index > 0" />
             <Notification
               :item="a"
-              @markRead="markRead"
+              @didFocus="scrollPanel"
             />
-          </rc-dropdown-item>
-        </template>
+          </template>
+        </div>
       </div>
     </template>
   </rc-dropdown>
 </template>
 
 <style lang="scss" scoped>
+  .notification-dropdown {
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+
+    .header {
+      flex: 0;
+    }
+
+    .scroll-container {
+      overflow: auto;
+      max-height: 80vh;
+      padding: 5px 0;
+    }
+  }
+
   .no-notifications {
-    border-top: 1px solid var(--border);
     padding: 0 20px;
     text-align: center;
     min-width: 240px;
@@ -109,10 +128,6 @@ const open = (opened: boolean) => {
     > div {
       padding-top: 10px;
     }
-  }
-
-  .scroll-container {
-    max-height: 80vh;
   }
 
   .level-indicator {
@@ -129,9 +144,8 @@ const open = (opened: boolean) => {
       height: 11px;
       width: 11px;
       background-color: var(--primary);
-      border: 1px solid #fff; // Needed so we can see this when hovered
+      border: 1px solid var(--header-bg); // Needed so we can see this when hovered
       transition: opacity 0.5s ease-in-out;
-      // transition: background-color 0.5s ease-in-out;
       opacity: 0;
 
       &.level-5 {
@@ -157,21 +171,6 @@ const open = (opened: boolean) => {
       &.level--1 {
         opacity: 0;
       }
-    }
-  }
-
-  .notification-header {
-    display: flex;
-    align-items: center;
-    padding: 8px 20px;
-
-    .notification-title {
-      font-weight: bold;
-      flex: 1;
-    }
-
-    A {
-      color: var(--link);
     }
   }
 </style>
