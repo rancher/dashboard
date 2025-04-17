@@ -116,7 +116,6 @@ export class GitRepoCreatePo extends PagePo {
   displaySelfHealingInformationMessage() {
     this.self().get('[data-testid="labeledTooltip-info-icon"]').eq(0).as('selfhealingicon');
 
-    this.self().get('i.checkbox-info.icon-info.icon-lg.v-popper--has-tooltip').as('selfhealingicon');
     cy.get('@selfhealingicon').realHover();
     cy.get('@selfhealingicon').should('have.attr', 'data-popper-shown');
   }
