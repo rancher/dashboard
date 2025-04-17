@@ -26,7 +26,15 @@ export default defineComponent({
     hover: {
       type:    Boolean,
       default: true
-    }
+    },
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'labeledTooltip-info-icon'
+    },
   },
   computed: {
     iconClass(): string {
@@ -64,6 +72,7 @@ export default defineComponent({
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
         tabindex="0"
+        :data-testid="componentTestid"
       />
     </template>
     <template v-else>

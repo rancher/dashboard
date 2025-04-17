@@ -6,6 +6,7 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import 'cypress-real-events/support';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
@@ -88,6 +89,16 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
       gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+      // #Percy tests
+      gitRepoCreatePage.displaySelfHealingInformationMessage();
+
+      cy.percySnapshot('Self-Healing test');
+      gitRepoCreatePage.displayAlwaysKeepInformationMessage();
+
+      cy.percySnapshot('Always Keep Resource test');
+      gitRepoCreatePage.displayPollingInvervalTimeInformationMessage();
+
+      cy.percySnapshot('Polling Interval test');
       gitRepoCreatePage.setPollingInterval(13);
 
       cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
