@@ -112,7 +112,7 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 
   deleteItemWithUI(name: string) {
-    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').click();
+    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').scrollIntoView().click();
 
     const promptRemove = new PromptRemove();
 
