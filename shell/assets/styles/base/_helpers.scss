@@ -131,6 +131,10 @@ $spacing-property-map: (
   color: var(--input-label);
 }
 
+.text-no-break {
+  white-space: nowrap;
+}
+
 .hide {
   display: none !important;
 }

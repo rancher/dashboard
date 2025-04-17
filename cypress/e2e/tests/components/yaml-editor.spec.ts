@@ -11,6 +11,7 @@ describe('Yaml Editor', () => {
 
   beforeEach(() => {
     cy.login();
+    cy.viewport(1280, 720);
 
     // Create a new deployment resource
     deploymentsCreatePage.goTo();
