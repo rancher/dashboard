@@ -172,7 +172,7 @@ export default {
                   <i class="icon icon-external-link" />
                 </div>
               </div>
-              <hr>
+              <hr role="none">
               <div class="description">
                 <span>
                   <t :k="fel.description" />

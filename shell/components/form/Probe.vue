@@ -245,6 +245,7 @@ export default {
           v-if="kind && kind!=='none'"
           :style="{'position':'relative', 'margin':'0px'}"
           class="vertical"
+          role="none"
         >
       </div>
 
