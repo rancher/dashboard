@@ -1,0 +1,70 @@
+name:  Feature/Issue/Epic that require acceptance criteria
+about: All approved features/issues/epics with clear requirements on the expected behavior of the Rancher Dashboard
+title: "<feature title: summarize feature in one line>"
+labels: ["kind/enhancement"]
+assignees: ''
+body:
+- type: textarea
+  attributes:
+    label: Issue/Epic Scope
+    description: "A clear and concise description of what the issue/epic is about and what is it being created for."
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Acceptance Criteria
+    description: "List all the use cases you can think about, each of them with a clear description of the expected behavior."
+    placeholder: |
+        Please, try to include all possible use-cases. The QA team can help and include more as needed :)
+        - [ ] 
+        - [ ]  
+  validations:
+    required: true    
+- type: textarea
+  attributes:
+    label: UI tracking
+    description: "List of sub-issues/steps required for the dashboard team to complete the feature accomplishing all the acceptance criteria"
+    placeholder: |
+        List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically. 
+        - [ ] #issue_number or URL
+        - [ ] 
+  validations:
+    required: false 
+- type: textarea
+  attributes:
+    label: UX tracking
+    description: "List of sub-issues/steps required for the UX team to complete the feature accomplishing all the acceptance criteria"
+    placeholder: |
+        List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically. 
+        - [ ] #issue_number or URL
+        - [ ] 
+  validations:
+    required: false          
+- type: textarea
+  attributes:
+    label: Backend tracking
+    description: "List of sub-issues/steps required for the backend to complete the feature accomplishing all the acceptance criteria"
+    placeholder: |
+        List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
+        - [ ]
+        - [ ] 
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: QA/Testing
+    description: "List all testing steps/sub-issues to test the feature, covering all the acceptance criteria"
+    placeholder: |
+        List the testing steps or link automation sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
+        For sub-issues please, label them as unit, e2e or manual tests. Testing steps directly described here should be reproduction steps for manual testing.
+        - [ ]
+        - [ ] 
+  validations:
+    required: false 
+- type: input
+  attributes:
+    label: If this is an issue that requires collaboration of multiple teams
+    description: "Tag a representative of each team involved in the completion of the feature, so they can track feature work."
+    placeholder: "Use @ and type the github username of easch of the team representatives involved"
+  validations:
+    required: false   
