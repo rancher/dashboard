@@ -2,17 +2,17 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import FleetWorkspaceCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.fleetworkspace.po';
+import FleetRestrictionCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.gitreporestriction.po';
 
-export class FleetWorkspaceListPagePo extends PagePo {
-  static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
+export class FleetGitRepoRestrictionListPagePo extends PagePo {
+  static url = `/c/_/fleet/fleet.cattle.io.gitreporestriction`
 
   constructor() {
-    super(FleetWorkspaceListPagePo.url);
+    super(FleetGitRepoRestrictionListPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetWorkspaceListPagePo.url);
+    return cy.visit(FleetGitRepoRestrictionListPagePo.url);
   }
 
   static navTo() {
@@ -24,14 +24,14 @@ export class FleetWorkspaceListPagePo extends PagePo {
     const sideNav = new ProductNavPo();
 
     sideNav.navToSideMenuGroupByLabel('Advanced');
-    sideNav.navToSideMenuEntryByLabel('Workspaces');
+    sideNav.navToSideMenuEntryByLabel('GitRepoRestrictions');
   }
 
   sharedComponents() {
     return new SharedComponentsPo(this.self());
   }
 
-  createWorkspaceForm(fleetWorkspace?: string): FleetWorkspaceCreateEditPo {
-    return new FleetWorkspaceCreateEditPo(fleetWorkspace);
+  createRestrictionForm(fleetWorkspace?: string, id?: string): FleetRestrictionCreateEditPo {
+    return new FleetRestrictionCreateEditPo(fleetWorkspace, id);
   }
 }

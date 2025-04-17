@@ -66,22 +66,23 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       headerPo.selectWorkspace('fleet-default');
 
       // Metadata step
-      gitRepoCreatePage.setRepoName(name);
-
-      gitRepoCreatePage.goToNext();
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set(name);
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
 
       // Repository details step
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
 
-      gitRepoCreatePage.goToNext();
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
 
       // Target info step
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickOption(6);
 
-      gitRepoCreatePage.goToNext();
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
 
       // Advanced info step
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
@@ -91,9 +92,10 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
-      gitRepoCreatePage.create().then(() => {
-        reposToDelete.push(`fleet-default/${ name }`);
-      });
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().create()
+        .then(() => {
+          reposToDelete.push(`fleet-default/${ name }`);
+        });
 
       let gitSecretName = '';
       let helmSecretName = '';
@@ -153,15 +155,19 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
         listPage.goTo();
         listPage.waitForPage();
-        listPage.repoList().resourceTable().checkVisible();
-        listPage.repoList().resourceTable().sortableTable().checkVisible();
-        listPage.repoList().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-        listPage.repoList().resourceTable().sortableTable().noRowsShouldNotExist();
+        listPage.sharedComponents().list().resourceTable().checkVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .checkVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .checkLoadingIndicatorNotVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .noRowsShouldNotExist();
 
         // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
-        listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
-        gitRepoCreatePage.title().contains('Git 仓库: fleet-e2e-test-gitrepo').should('be.visible');
-
+        listPage.sharedComponents().goToDetailsPage('fleet-e2e-test-gitrepo');
+        gitRepoCreatePage.mastheadTitle().then((title) => {
+          expect(title.replace(/\s+/g, ' ')).to.contain('Git 仓库: fleet-e2e-test-gitrepo');
+        });
         // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
         prefPage.goTo();
         prefPage.languageDropdownMenu().checkVisible();
@@ -189,14 +195,15 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // check table headers
       const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-      listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
+      listPage.sharedComponents().list().resourceTable().sortableTable()
+        .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
         });
 
       // go to fleet gitrepo details
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
@@ -223,7 +230,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
       gitRepoDetails.waitForPage(null, 'bundles');
       gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
       const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
@@ -290,7 +297,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
 
       gitRepoDetails.waitForPage(null, 'bundles');
 
