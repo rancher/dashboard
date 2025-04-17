@@ -9,6 +9,7 @@ export type ButtonRoleProps = {
   secondary?: boolean;
   tertiary?: boolean;
   link?: boolean;
+  multiAction?: boolean;
   ghost?: boolean;
 }
 

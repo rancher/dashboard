@@ -1,6 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import { _VIEW } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceDetail/Masthead.vue';
+import { createStore } from 'vuex';
 
 const mockedStore = () => {
   return {
@@ -17,12 +18,15 @@ const mockedStore = () => {
 };
 
 const requiredSetup = () => {
+  const store = createStore({ getters: { 'management/byId': () => jest.fn() } });
+
   return {
     stubs: {
       'router-link': RouterLinkStub,
       LiveDate:      true
     },
-    mocks: { $store: mockedStore() }
+    provide: { store },
+    mocks:   { $store: mockedStore() }
   };
 };
 

@@ -83,7 +83,7 @@ const handleActivate = (e: KeyboardEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.stop="handleKeydown"
+    @keydown.up.down.prevent.stop="handleKeydown"
   >
     <slot name="before">
       <!--Empty slot content-->

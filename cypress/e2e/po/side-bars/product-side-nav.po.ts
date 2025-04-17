@@ -81,4 +81,12 @@ export default class ProductNavPo extends ComponentPo {
   version() {
     return new VersionNumberPo('.side-menu .version');
   }
+
+  /**
+   * Active navigation item
+   */
+  activeNavItem() {
+    return this.groups().get('.router-link-active').should('exist').invoke('text')
+      .then((s) => s.trim());
+  }
 }

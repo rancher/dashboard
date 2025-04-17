@@ -1374,7 +1374,10 @@ export default {
         </button>
       </div>
 
-      <hr class="mt-10 mb-10">
+      <hr
+        class="mt-10 mb-10"
+        role="none"
+      >
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
@@ -1521,7 +1524,10 @@ export default {
           />
         </div>
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
 
         <h3 class="mt-20">
           {{ t("workload.container.titles.nodeScheduling") }}
@@ -1545,7 +1551,10 @@ export default {
           @update="updateScheduling"
         />
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
       </portal>
     </div>
     <div v-if="errors.length">

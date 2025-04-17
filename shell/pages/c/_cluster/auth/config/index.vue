@@ -7,6 +7,8 @@ import { authProvidersInfo } from '@shell/utils/auth';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 
+const resource = MANAGEMENT.AUTH_CONFIG;
+
 export default {
   components: {
     SelectIconGrid, Banner, Loading
@@ -24,19 +26,7 @@ export default {
   },
 
   data() {
-    const resource = MANAGEMENT.AUTH_CONFIG;
-    const getters = this.$store.getters;
-    const inStore = getters['currentStore'](resource);
-    const hasListComponent = getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
-    const schema = getters[`${ inStore }/schemaFor`](resource);
-
     return {
-      resource,
-      schema,
-      hasListComponent,
-      hasEditComponent,
-
       // Provided by fetch later
       enabled:  false,
       nonLocal: null,
@@ -60,6 +50,14 @@ export default {
         }
       };
     },
+
+    inStore() {
+      return this.$store.getters['currentStore'](resource);
+    },
+
+    schema() {
+      return this.$store.getters[`${ this.inStore }/schemaFor`](resource);
+    }
   },
 
   methods: {

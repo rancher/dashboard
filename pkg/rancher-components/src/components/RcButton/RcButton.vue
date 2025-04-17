@@ -15,6 +15,7 @@ const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'secondary', className: 'role-secondary' },
   { role: 'tertiary', className: 'role-tertiary' },
   { role: 'link', className: 'role-link' },
+  { role: 'multiAction', className: 'role-multi-action' },
   { role: 'ghost', className: 'role-ghost' },
 ];
 

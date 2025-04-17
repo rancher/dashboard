@@ -91,4 +91,21 @@ describe('toggleSwitch.vue', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(1);
     expect(wrapper.emitted('update:value')[0][0]).toBe(offValue);
   });
+
+  it('adds focus class when input is focused', async() => {
+    const wrapper = shallowMount(ToggleSwitch);
+
+    await wrapper.find('input').trigger('focus');
+
+    expect(wrapper.find('.slider').classes()).toContain('focus');
+  });
+
+  it('removes focus class when input is blurred', async() => {
+    const wrapper = shallowMount(ToggleSwitch);
+
+    await wrapper.find('input').trigger('focus');
+    await wrapper.find('input').trigger('blur');
+
+    expect(wrapper.find('.slider').classes()).not.toContain('focus');
+  });
 });

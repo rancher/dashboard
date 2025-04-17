@@ -2,6 +2,17 @@ import { mount } from '@vue/test-utils';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts/index.vue';
 
+jest.mock('focus-trap', () => {
+  return {
+    createFocusTrap: jest.fn().mockImplementation(() => {
+      return {
+        activate:   jest.fn(),
+        deactivate: jest.fn(),
+      };
+    }),
+  };
+});
+
 describe('component: SSHKnownHosts', () => {
   it.each([
     ['0 entities', '', 0],
