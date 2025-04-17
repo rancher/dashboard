@@ -261,11 +261,10 @@ export default {
           >
             <span
               v-clean-html="labelFor(col)"
-              class="text-no-break"
             />
             <span
               v-if="col.subLabel"
-              class="text-muted text-no-break"
+              class="text-muted"
             >
               {{ col.subLabel }}
             </span>
