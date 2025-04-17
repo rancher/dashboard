@@ -103,14 +103,14 @@ export class GitRepoCreatePo extends PagePo {
     this.self().get('[data-testid="checkbox-info-icon"]').eq(0).as('always');
 
     cy.get('@always').realHover();
-    cy.get('@always', { timeout: 1000 }).should('have.attr', 'data-popper-shown');
+    cy.get('@always').should('have.attr', 'data-popper-shown');
   }
 
   displayPollingInvervalTimeInformationMessage() {
     this.self().get('[data-testid="checkbox-info-icon"]').eq(1).as('polling');
 
     cy.get('@polling').realHover();
-    cy.get('@polling', { timeout: 1000 }).should('have.attr', 'data-popper-shown');
+    cy.get('@polling').should('have.attr', 'data-popper-shown');
   }
 
   displaySelfHealingInformationMessage() {
@@ -118,6 +118,6 @@ export class GitRepoCreatePo extends PagePo {
 
     this.self().get('i.checkbox-info.icon-info.icon-lg.v-popper--has-tooltip').as('selfhealingicon');
     cy.get('@selfhealingicon').realHover();
-    cy.get('@selfhealingicon', { timeout: 1000 }).should('have.attr', 'data-popper-shown');
+    cy.get('@selfhealingicon').should('have.attr', 'data-popper-shown');
   }
 }
