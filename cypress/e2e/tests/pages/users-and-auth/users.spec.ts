@@ -45,6 +45,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     const userBasePassword = 'userBase-password';
 
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
 
     userCreate.waitForPage();
@@ -60,6 +61,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   it('can create Standard User and view their details', () => {
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
 
     userCreate.username().set(standardUsername);
@@ -101,6 +103,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
     userCreate.waitForPage();
 
@@ -117,6 +120,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   it('can Refresh Group Memberships', () => {
     // Refresh Group Membership and verify request is made
     usersPo.goTo();
+    usersPo.waitForPage();
     cy.intercept('POST', '/v3/users?action=refreshauthprovideraccess').as('refreshGroup');
     usersPo.list().refreshGroupMembership().click();
     cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
@@ -124,7 +128,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
+      cy.intercept('GET', '/v3/users?limit=0').as('getUsers');
       usersPo.goTo();
+      usersPo.waitForPage();
+      cy.wait('@getUsers');
 
       let menu = usersPo.list().actionMenu(standardUsername);
 
@@ -176,6 +183,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const viewYaml = usersPo.createEdit(userId);
 
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'View YAML');
       cy.url().should('include', `?mode=view&as=yaml`);
       viewYaml.mastheadTitle().should('contain', standardUsername);
@@ -186,6 +194,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
       cy.readFile(downloadedFilename).should('exist').then((buffer) => {
         const obj: any = jsyaml.load(buffer);
@@ -200,6 +209,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('can Delete user', () => {
       // Delete user and verify user is removed from list
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
 
       const promptRemove = new PromptRemove();

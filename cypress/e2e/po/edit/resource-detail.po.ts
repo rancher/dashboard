@@ -2,6 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export default class ResourceDetailPo extends ComponentPo {
   /**
@@ -26,6 +27,10 @@ export default class ResourceDetailPo extends ComponentPo {
    */
   resourceYaml() {
     return new ResourceYamlPo(this.self());
+  }
+
+  tabs() {
+    return new TabbedPo('[data-testid="tabbed"]');
   }
 
   title(): Cypress.Chainable<string> {

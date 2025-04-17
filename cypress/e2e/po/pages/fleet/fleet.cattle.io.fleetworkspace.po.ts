@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import FleetWorkspaceList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.workspace.po';
+import FleetWorkspaceCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.fleetworkspace.po';
 
 export class FleetWorkspaceListPagePo extends PagePo {
   static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
@@ -27,20 +27,11 @@ export class FleetWorkspaceListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Workspaces');
   }
 
-  workspacesList() {
-    return new FleetWorkspaceList('[data-testid="sortable-table-list-container"]');
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
-  goToDetailsPage(elemName: string) {
-    const resourceTable = new ResourceTablePo(this.self());
-
-    return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
-  }
-
-  /**
-   * Convenience method
-   */
-  sortableTable() {
-    return this.workspacesList().resourceTable().sortableTable();
+  createWorkspaceForm(fleetWorkspace?: string): FleetWorkspaceCreateEditPo {
+    return new FleetWorkspaceCreateEditPo(fleetWorkspace);
   }
 }

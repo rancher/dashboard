@@ -144,6 +144,7 @@ nav:
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
+    sideNav: Secondary menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: Harvester cluster menu item
@@ -395,6 +396,9 @@ accountAndKeys:
         label: Description
         placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
+      ariaLabel:
+        expiration: Expiration duration - number input
+        expirationUnits: Expiration unit - time unit
       expiry:
         label: Automatically expire
         options:
@@ -2752,6 +2756,7 @@ clusterBadge:
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
+    badgeBgColorInput: Badge background color selector input
     badgeTextColor: Badge text color
     badgeAsIcon: Use custom badge
     maxCharsTooltip: Overwrites the default cluster name abbreviation.
@@ -4755,6 +4760,8 @@ principal:
   name: Name
   loginName: Username
   type: Type
+  alt:
+    avatar: User avatar image
 
 probe:
   checkInterval:
@@ -5210,6 +5217,7 @@ resourceTable:
     role: Group by Role
     cluster: Group by Cluster
     device: Group by Device
+    pool: Group by Pool
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
@@ -7567,6 +7575,9 @@ typeLabel:
     }
 
 action:
+  ariaLabel:
+    hidePass: Hide {area}
+    showPass: Reveal {area}
   clone: Clone
   disable: Disable
   download: Download YAML

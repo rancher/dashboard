@@ -43,7 +43,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
+    return cy.get('body').find('[dropdown-menu-collection]');
   }
 
   /**
@@ -54,7 +54,7 @@ export default class SortableTablePo extends ComponentPo {
 
     popOver.should('be.visible');
 
-    return popOver.find('li').contains(name);
+    return popOver.find('[dropdown-menu-item]').contains(name);
   }
 
   /**

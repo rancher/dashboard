@@ -22,11 +22,15 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
-    fleetClusterGroups.clickCreate();
+    fleetClusterGroups.sharedComponents().baseResourceList().masthead().create();
     fleetClusterGroups.createFleetClusterGroupsForm().waitForPage();
 
-    fleetClusterGroups.createFleetClusterGroupsForm().nameNsDescription().name().set(clusterGroupName);
-    fleetClusterGroups.createFleetClusterGroupsForm().saveCreateForm().cruResource().saveOrCreate()
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().createEditView()
+      .nameNsDescription()
+      .name()
+      .set(clusterGroupName);
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().cruResource()
+      .saveOrCreate()
       .click()
       .then(() => {
         removeClusterGroups = true;
@@ -34,17 +38,22 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
       });
 
     fleetClusterGroups.waitForPage();
-    fleetClusterGroups.clusterGroupsList().details(clusterGroupName, 1).should('be.visible');
+    fleetClusterGroups.sharedComponents().resourceTableDetails(clusterGroupName, 1).should('be.visible');
   });
 
   it('can edit a cluster group', () => {
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
-    fleetClusterGroups.clusterGroupsList().actionMenu(clusterGroupName).getMenuItem('Edit Config').click();
+    fleetClusterGroups.sharedComponents().list().actionMenu(clusterGroupName).getMenuItem('Edit Config')
+      .click();
     fleetClusterGroups.createFleetClusterGroupsForm(localWorkspace, clusterGroupName).waitForPage('mode=edit');
-    fleetClusterGroups.createFleetClusterGroupsForm().nameNsDescription().description().set(`${ clusterGroupName }-fleet-desc`);
-    fleetClusterGroups.createFleetClusterGroupsForm().saveCreateForm().cruResource().saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clustergroups/${ localWorkspace }/${ clusterGroupName }`)
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().createEditView()
+      .nameNsDescription()
+      .description()
+      .set(`${ clusterGroupName }-fleet-desc`);
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().cruResource()
+      .saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clustergroups/${ localWorkspace }/${ clusterGroupName }`)
       .then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(response?.body.metadata).to.have.property('name', clusterGroupName);
@@ -57,11 +66,19 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
-    fleetClusterGroups.clusterGroupsList().actionMenu(clusterGroupName).getMenuItem('Clone').click();
+    fleetClusterGroups.sharedComponents().list().actionMenu(clusterGroupName).getMenuItem('Clone')
+      .click();
     fleetClusterGroups.createFleetClusterGroupsForm(localWorkspace, clusterGroupName).waitForPage('mode=clone');
-    fleetClusterGroups.createFleetClusterGroupsForm().nameNsDescription().name().set(`clone-${ clusterGroupName }`);
-    fleetClusterGroups.createFleetClusterGroupsForm().nameNsDescription().description().set(`${ clusterGroupName }-fleet-desc`);
-    fleetClusterGroups.createFleetClusterGroupsForm().saveCreateForm().cruResource().saveAndWaitForRequests('POST', 'v1/fleet.cattle.io.clustergroups')
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().createEditView()
+      .nameNsDescription()
+      .name()
+      .set(`clone-${ clusterGroupName }`);
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().createEditView()
+      .nameNsDescription()
+      .description()
+      .set(`${ clusterGroupName }-fleet-desc`);
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().cruResource()
+      .saveAndWaitForRequests('POST', 'v1/fleet.cattle.io.clustergroups')
       .then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
         removeClusterGroups = true;
@@ -70,15 +87,17 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
         expect(response?.body.metadata.annotations).to.have.property('field.cattle.io/description', `${ clusterGroupName }-fleet-desc`);
       });
     fleetClusterGroups.waitForPage();
-    fleetClusterGroups.clusterGroupsList().details(`clone-${ clusterGroupName }`, 1).should('be.visible');
+    fleetClusterGroups.sharedComponents().resourceTableDetails(`clone-${ clusterGroupName }`, 1).should('be.visible');
   });
 
   it('can delete cluster group', () => {
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
-    fleetClusterGroups.clusterGroupsList().actionMenu(clusterGroupName).getMenuItem('Delete').click();
-    fleetClusterGroups.clusterGroupsList().resourceTable().sortableTable().rowNames('.col-link-detail')
+    fleetClusterGroups.sharedComponents().list().actionMenu(clusterGroupName).getMenuItem('Delete')
+      .click();
+    fleetClusterGroups.sharedComponents().list().resourceTable().sortableTable()
+      .rowNames('.col-link-detail')
       .then((rows: any) => {
         const promptRemove = new PromptRemove();
 
@@ -87,8 +106,10 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
         promptRemove.remove();
         cy.wait('@deleteClusterGroup');
         fleetClusterGroups.waitForPage();
-        fleetClusterGroups.clusterGroupsList().resourceTable().sortableTable().checkRowCount(false, rows.length - 1);
-        fleetClusterGroups.clusterGroupsList().resourceTable().sortableTable().rowNames('.col-link-detail')
+        fleetClusterGroups.sharedComponents().list().resourceTable().sortableTable()
+          .checkRowCount(false, rows.length - 1);
+        fleetClusterGroups.sharedComponents().list().resourceTable().sortableTable()
+          .rowNames('.col-link-detail')
           .should('not.contain', `clone-${ clusterGroupName }`);
       });
   });
@@ -97,9 +118,11 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
   it('can open "Edit as YAML"', () => {
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
-    fleetClusterGroups.clickCreate();
-    fleetClusterGroups.createFleetClusterGroupsForm().saveCreateForm().createEditView().editAsYaml();
-    fleetClusterGroups.createFleetClusterGroupsForm().saveCreateForm().resourceYaml().codeMirror()
+    fleetClusterGroups.sharedComponents().baseResourceList().masthead().create();
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().createEditView()
+      .editAsYaml();
+    fleetClusterGroups.createFleetClusterGroupsForm().sharedComponents().resourceDetail().resourceYaml()
+      .codeMirror()
       .checkExists();
   });
 
@@ -109,19 +132,20 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     FleetClusterGroupsListPagePo.navTo();
     fleetClusterGroups.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
-    fleetClusterGroups.clusterGroupsList().rowWithName(groupName).checkVisible();
+    fleetClusterGroups.sharedComponents().list().rowWithName(groupName).checkVisible();
 
     // check table headers
     const expectedHeaders = ['State', 'Name', 'Clusters Ready', 'Resources', 'Age'];
 
-    fleetClusterGroups.clusterGroupsList().resourceTable().sortableTable().tableHeaderRow()
+    fleetClusterGroups.sharedComponents().list().resourceTable().sortableTable()
+      .tableHeaderRow()
       .within('.table-header-container .content')
       .each((el, i) => {
         expect(el.text().trim()).to.eq(expectedHeaders[i]);
       });
 
     // go to fleet cluster details
-    fleetClusterGroups.goToDetailsPage(groupName);
+    fleetClusterGroups.sharedComponents().goToDetailsPage(groupName);
 
     const fleetClusterGroupDetailsPage = new FleetClusterGroupDetailsPo(localWorkspace, groupName);
 

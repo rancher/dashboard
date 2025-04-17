@@ -107,6 +107,7 @@ export default {
               @click="close(growl)"
             />
             <div
+              v-if="growl.title"
               :id="`growl-title-${ growl.id }`"
               class="growl-text-title"
             >

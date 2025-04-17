@@ -114,7 +114,8 @@ export default {
   <div :style="{'width':'100%'}">
     <div
       v-for="(row, i) in allEnv"
-      :key="i"
+      :key="row.id"
+      :data-testid="`env-var-row-${i}`"
     >
       <ValueFromResource
         v-model:value="row.value"

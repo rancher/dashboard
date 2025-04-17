@@ -72,7 +72,9 @@ export default {
     const { existing = false } = this.$attrs;
 
     // If needed, fetch all the workloads that have prometheus operator like containers
-    this.workloadTypes = !existing ? Object.values(WORKLOAD_TYPES) : [];
+    const { CRON_JOB, ...validWorkloads } = WORKLOAD_TYPES;
+
+    this.workloadTypes = !existing ? Object.values(validWorkloads) : [];
 
     this.workloadTypes.forEach((type) => {
       // We'll use a filter to fetch the results. Atm there's no neat way to differentiate between ALL results and JUST filtered

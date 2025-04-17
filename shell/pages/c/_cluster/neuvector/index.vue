@@ -65,7 +65,7 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr>
+            <hr role="none">
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

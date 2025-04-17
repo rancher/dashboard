@@ -1,10 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
-import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
 export class GitRepoEditPo extends PagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
@@ -19,12 +18,8 @@ export class GitRepoEditPo extends PagePo {
     super(GitRepoEditPo.createPath(fleetWorkspace, gitRepoName));
   }
 
-  title() {
-    return this.self().get('.title .primaryheader  h1');
-  }
-
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
   setBranchName(branch = 'dashboard-e2e-basic') {
@@ -45,10 +40,6 @@ export class GitRepoEditPo extends PagePo {
 
   targetCluster(): LabeledSelectPo {
     return new LabeledSelectPo('[data-testid="fleet-gitrepo-target-cluster"]');
-  }
-
-  footer() {
-    return new CreateEditViewPo(this.self());
   }
 
   gitRepoPaths() {
