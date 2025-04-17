@@ -394,7 +394,11 @@ export default {
 </script>
 
 <template>
-  <nav class="side-nav">
+  <nav
+    class="side-nav"
+    role="navigation"
+    :aria-label="t('nav.ariaLabel.sideNav')"
+  >
     <!-- Actual nav -->
     <div class="nav">
       <template

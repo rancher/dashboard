@@ -17,17 +17,19 @@ export default {
   mixins: [Brand, BrowserTabVisibility],
 
   data() {
+    return {
+      previousRoute: '',
+      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
+    };
+  },
+
+  created() {
     const store = this.$store;
 
     if (!store.state.error && !store.state.cameFromError) {
       store.commit('cameFromError');
       this.$router.replace('/');
     }
-
-    return {
-      previousRoute: '',
-      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
-    };
   },
 
   computed: {
@@ -108,6 +110,7 @@ export default {
               <hr
                 class="custom-content"
                 :style="styles"
+                role="none"
               >
               <p class="mt-20">
                 <a
