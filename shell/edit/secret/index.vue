@@ -1,5 +1,9 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import {
+  SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS,
+  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
+} from '@shell/config/query-params';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { PROJECT, CAPI } from '@shell/config/labels-annotations';
 import FormValidation from '@shell/mixins/form-validation';
@@ -8,9 +12,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
-import {
-  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
-} from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -89,11 +90,11 @@ export default {
     });
 
     const projectName = this.value?.metadata?.annotations?.[PROJECT]?.split(':')[1];
-    const showProjectSelector = !!projectName || (this.mode === _CREATE && this.$route.query.secretBase === 'project-scoped');
+    const isProjectScoped = !!projectName || (this.mode === _CREATE && this.$route.query[SECRET_SCOPE] === SECRET_SCOPED_TABS.PROJECT_SCOPED);
 
     return {
       isCloud,
-      showProjectSelector,
+      isProjectScoped,
       nodeDrivers:       null,
       secretTypes,
       secretType:        this.value._type,
@@ -126,7 +127,7 @@ export default {
         };
       });
 
-      if (this.showProjectSelector && !this.projectName) {
+      if (this.isProjectScoped && !this.projectName) {
         this.projectName = out[0];
       }
 
@@ -362,7 +363,7 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-if="showProjectSelector"
+        v-if="isProjectScoped"
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -371,12 +372,11 @@ export default {
           namespace: fvGetAndReportPathRules('metadata.namespace'),
         }"
       >
-        <template #secret-project-selector>
+        <template #project-selector>
           <LabeledSelect
             v-model:value="projectName"
             class="mr-20"
-            :disabled="mode !== 'create'"
-            data-testid="name-ns-description-project"
+            :disabled="!isCreate"
             :label="t('namespace.project.label')"
             :options="projectOpts"
             required
@@ -386,7 +386,7 @@ export default {
       </NameNsDescription>
 
       <NameNsDescription
-        v-if="!showProjectSelector"
+        v-if="!isProjectScoped"
         :value="value"
         :mode="mode"
         :namespaced="!isCloud"

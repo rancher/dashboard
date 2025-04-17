@@ -5252,7 +5252,6 @@ resourceYaml:
     unified: Unified
     split: Split
 
-
 secret:
   authentication: Authentication
   certificate:

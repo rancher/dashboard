@@ -4,13 +4,10 @@ import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
+import { SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS } from '@shell/config/query-params';
+import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
-
-const SECRETS_TABS = {
-  NAMESPACED:     'namespaced',
-  PROJECT_SCOPED: 'project-scoped'
-};
 
 export default {
   name:       'Secret',
@@ -61,7 +58,7 @@ export default {
       hasAccessToProjectSchema,
       allProjects,
       activeTab: null,
-      SECRETS_TABS
+      SECRET_SCOPED_TABS
     };
   },
 
@@ -77,22 +74,22 @@ export default {
         sort:     'project',
       };
 
-      return this.headers.map((h) => h.name === 'namespace' ? projectHeader : h);
+      return this.headers.map((h) => h.name === NAMESPACE_HEADER.name ? projectHeader : h);
     },
 
     createLocation() {
       return {
         name:  'c-cluster-product-resource-create',
-        query: { secretBase: this.activeTab }
+        query: { [SECRET_SCOPE]: this.activeTab }
       };
     },
 
     createLabel() {
       if (!this.hasAccessToProjectSchema) {
         return this.t('generic.create');
-      } else if (this.activeTab === SECRETS_TABS.NAMESPACED) {
+      } else if (this.activeTab === SECRET_SCOPED_TABS.NAMESPACED) {
         return this.t('secret.tabs.namespaced.create');
-      } else if (this.activeTab === SECRETS_TABS.PROJECT_SCOPED) {
+      } else if (this.activeTab === SECRET_SCOPED_TABS.PROJECT_SCOPED) {
         return this.t('secret.tabs.projectScoped.create');
       }
 
@@ -102,7 +99,7 @@ export default {
 
   methods: {
     getProjectName(row) {
-      const [clusterId, projectId] = row.metadata.annotations[PROJECT].split(':');
+      const [clusterId, projectId] = row.metadata.annotations[PROJECT]?.split(':');
 
       return this.allProjects.find((p) => p.clusterId === clusterId && p.projectId === projectId)?.projectName;
     },
@@ -130,7 +127,7 @@ export default {
     >
       <Tab
         label-key="secret.tabs.namespaced.label"
-        :name="SECRETS_TABS.NAMESPACED"
+        :name="SECRET_SCOPED_TABS.NAMESPACED"
         :weight="1"
       >
         <ResourceTable
@@ -143,7 +140,7 @@ export default {
       <Tab
         v-if="hasAccessToProjectSchema"
         label-key="secret.tabs.projectScoped.label"
-        :name="SECRETS_TABS.PROJECT_SCOPED"
+        :name="SECRET_SCOPED_TABS.PROJECT_SCOPED"
       >
         <ResourceTable
           :schema="schema"
