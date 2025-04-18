@@ -8,6 +8,8 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
 
+export const IS_HELM_OP_FEATURE_ENABLED = true;
+
 export function init(store) {
   const {
     product,
