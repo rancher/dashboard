@@ -204,24 +204,7 @@ export default {
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
-          let value;
-          let label;
-
-          try {
-            const config = JSON.parse(O.spec.config);
-
-            const id = config.vlan;
-
-            value = O.id;
-            label = `${ value } (vlanId=${ id })`;
-          } catch (err) {}
-
-          return {
-            label,
-            value
-          };
-        });
+        this.networks = res.networks.value?.data;
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -391,7 +374,7 @@ export default {
       storageClass:       [],
       namespaces:         [],
       namespaceOptions:   [],
-      networkOptions:     [],
+      networks:           [],
       userDataOptions:    [],
       networkDataOptions: [],
       allNodeObjects:     [],
@@ -437,6 +420,31 @@ export default {
       },
       set(neu) {
         this.images = neu;
+      }
+    },
+
+    networkOptions: {
+      get() {
+        return (this.networks || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
+          let value;
+          let label;
+
+          try {
+            const config = JSON.parse(O.spec.config);
+            const id = config.vlan;
+
+            value = O.id;
+            label = `${ value } (vlanId=${ id })`;
+          } catch (err) {}
+
+          return {
+            label,
+            value
+          };
+        });
+      },
+      set(neu) {
+        this.networks = neu;
       }
     },
 
@@ -739,6 +747,21 @@ export default {
           const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` });
 
           this.images = res?.data;
+        }
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+    },
+
+    async getAvailableNetworks() {
+      try {
+        const clusterId = get(this.credential, 'decodedData.clusterId');
+
+        if (clusterId) {
+          const url = `/k8s/clusters/${ clusterId }/v1`;
+          const res = await this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` });
+
+          this.networks = res?.data;
         }
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
@@ -1414,6 +1437,7 @@ export default {
                 :required="true"
                 label-key="cluster.credential.harvester.network.networkName"
                 :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
+                @on-open="getAvailableNetworks"
                 @update:value="update"
               />
             </div>
