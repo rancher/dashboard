@@ -141,7 +141,7 @@ export default {
         name="resources"
         :weight="20"
       >
-        <FleetResources :value="value" />
+        <FleetResources :rows="value.resourcesStatuses" />
       </Tab>
     </ResourceTabs>
   </div>
