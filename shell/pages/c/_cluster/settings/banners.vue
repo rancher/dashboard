@@ -207,7 +207,7 @@ export default {
 
       <!-- Header Settings -->
       <h2 class="mt-40 mb-10 setting-title">
-        {{ t('banner.headerBanner') }}
+        {{ t('banner.bannerHeader') }}
         <i
           v-if="!!uiBannerIndividual.bannerHeader"
           class="icon icon-lock"
@@ -242,7 +242,7 @@ export default {
 
       <!-- Footer settings -->
       <h2 class="mt-40 mb-10 setting-title">
-        {{ t('banner.footerBanner') }}
+        {{ t('banner.bannerFooter') }}
         <i
           v-if="!!uiBannerIndividual.bannerFooter"
           class="icon icon-lock"
@@ -277,7 +277,7 @@ export default {
 
       <!-- Consent settings -->
       <h2 class="mt-40 mb-10 setting-title">
-        {{ t('banner.loginScreenBanner') }}
+        {{ t('banner.bannerConsent') }}
         <i
           v-if="!!uiBannerIndividual.bannerConsent"
           class="icon icon-lock"
@@ -316,6 +316,7 @@ export default {
         v-model:value="bannerVal.loginError"
         :mode="mode"
         :label="t('notifications.loginError.messageLabel')"
+        :hidden-aria-described-label="t('notifications.loginError.header')"
       />
     </div>
     <template
