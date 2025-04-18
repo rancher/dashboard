@@ -1834,13 +1834,27 @@ export default class Resource {
   }
 
   async _findRelationship(rel, direction) {
+    // TODO: RC TEST
     const { selectors, ids } = this._relationshipsFor(rel, direction);
     const out = [];
 
     for ( const sel of selectors ) {
-      const matching = await this.$dispatch('findMatching', sel);
+      const {
+        type,
+        selector,
+        namespace,
+        opt,
+      } = sel;
+      const matching = await this.$dispatch('findLabelSelector', {
+        type,
+        matching: {
+          namespace,
+          labelSelector: { matchLabels: selector } // TODO: RC selector is string or map
+        },
+        opts: opt
+      });
 
-      addObjects(out, matching.data);
+      addObjects(out, matching.data); // TODO: RC not data...??
     }
 
     for ( const obj of ids ) {

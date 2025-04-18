@@ -7,6 +7,7 @@ import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export default {
   emits: ['closed', 'refresh', 'update'],
@@ -94,18 +95,24 @@ export default {
     },
 
     async removeCatalogResources(catalog) {
-      const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ catalog.name }`;
+      const pageSelector = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name };
       const namespace = UI_PLUGIN_NAMESPACE;
 
-      if ( selector ) {
+      // TODO: RC TEST
+      if ( catalog.name ) {
         const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatching', {
-            type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
+          deployment: this.$store.dispatch('management/findLabelSelector', {
+            type:     WORKLOAD_TYPES.DEPLOYMENT,
+            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
           }),
-          service: this.$store.dispatch('management/findMatching', {
-            type: SERVICE, selector, namespace
+          service: this.$store.dispatch('management/findLabelSelector', {
+            type:     SERVICE,
+            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
           }),
-          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector })
+          repo: this.$store.dispatch('management/findLabelSelector', {
+            type:     CATALOG.CLUSTER_REPO,
+            matching: { labelSelector: { matchLabels: pageSelector } }
+          })
         });
 
         for ( const resource of Object.keys(hash) ) {

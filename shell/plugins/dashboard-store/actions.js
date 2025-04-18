@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -362,6 +363,9 @@ export default {
   },
 
   /**
+   * If result not already cached, make a http request to fetch a specific set of resources
+   *
+   * This accepts all the new sql-cache backed api features (sort, filter, etc)
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
@@ -375,6 +379,10 @@ export default {
       console.error('Attempting to find a page for a resource but no pagination settings supplied', type); // eslint-disable-line no-console
 
       return;
+    }
+
+    if (type === 'pod') {
+      debugger;
     }
 
     type = getters.normalizeType(type);
@@ -444,6 +452,53 @@ export default {
       data: out.data,
       pagination
     } : findAllGetter(getters, type, opt);
+  },
+
+  /**
+   * If result not already cached, make a http request to fetch resources matching a kube `labelSelector`.
+   *
+   * This is different if vai based pagination is on
+   * a) Pagination Enabled - use the new sql-cache backed api - findPage
+   * b) Pagination Disabled - use the old 'native kube api' - findMatching
+   *
+   * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
+   */
+  async findLabelSelector(ctx, {
+    type,
+    context,
+    matching: {
+      namespace,
+      labelSelector
+    },
+    opt
+  }) {
+    const { getters, dispatch } = ctx;
+
+    // TODO: RC return all if no / empty labelSelector.. or none?
+
+    const args = {
+      id: type,
+      context,
+    };
+
+    if (getters[`paginationEnabled`]?.(args)) {
+      return dispatch('findPage', {
+        type,
+        opt: {
+          ...(opt || {}),
+          namespaced: namespace,
+          pagination: new FilterArgs({ labelSelector }),
+        }
+      });
+    }
+
+    // TODO: RC test
+    return dispatch('findMatching', {
+      type,
+      selector: labelSelector.matchLabels,
+      opt,
+      namespace,
+    });
   },
 
   async findMatching(ctx, {

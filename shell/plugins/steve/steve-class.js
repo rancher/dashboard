@@ -58,4 +58,8 @@ export default class SteveModel extends HybridModel {
 
     return val;
   }
+
+  paginationEnabled() {
+    return this.$getters['paginationEnabled'](this.type);
+  }
 }
