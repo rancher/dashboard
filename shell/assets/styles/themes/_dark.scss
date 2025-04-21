@@ -33,11 +33,12 @@
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+  $body-bg: #33334A;;
 
   /*********************/
   
-  --body__bg: #{$grey-80};
-  --body__border: #{$grey-60};
+  --body__bg: #{$body-bg};
+  --body__border: #{$grey-50};
   --link: #{$primary-55};
   
   --primary: #{$primary};
@@ -61,15 +62,33 @@
   --category--active: #{$primary-75};
   --category--active--hover: #{$grey-70};
 
-  --toggle-OFF__bg: #{$grey-100};
-  --toggle-OFF__color: #{$grey-40};
+  --toggle-OFF__bg: #{$grey-80};
+  --toggle-OFF__color: #{$grey-30};
   --toggle-OFF--hover: #{$grey-90};
   --toggle-ON__bg: var(--active);
   --toggle-ON__color: var(--on-active);
 
-  --vertical-tabs__bg: #{$grey-90};
+  --vertical-tabs__bg: #{darken($body-bg, 10%)};
+  --tabbed-sidebar-bg: var(--vertical-tabs__bg);
 
   --disabled-opacity: .5;
+
+  $success         : #007032;
+  $warning         : #FFC845;
+  $error           : #B13333;
+  $info            : #4884E5;
+
+  --success-banner    : #{rgba($success, 0.40)};
+  --on-success-banner : #70FFBA;
+
+  --warning-banner    : #{$warning};
+  --on-warning-banner : #000000;
+
+  --info-banner    : #{rgba($info, 0.40)};
+  --on-info-banner : #D2E1F9;
+
+  --error-banner    :  #{$error};
+  --on-error-banner : #FFFFFF;
 
   /*********************/
 
@@ -137,11 +156,11 @@
   --overlay-bg                 : #{rgba($darkest, 0.75)};
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$grey-0};
-  --checkbox-border            : #{$medium};
+  --checkbox-tick              : var(--on-active);
+  --checkbox-border            : var(--body__border);
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -295,4 +314,19 @@
   .secondary-text-link {
     color: var(--link-text-secondary);
   }
+
+  --border: var(--body__border);
+  --nav-border: var(--body__border);
+  --topmost-border: var(--body__border);
+  --header-border: var(--body__border);
+
+  --nav--hover: #{lighten($body-bg, 10%)};
+
+  --sortable-table-bg           : #{$grey-90};
+  --sortable-table-row-bg       : var(--body__bg);
+  --sortable-table-header-bg    : #1F1F2D;
+  --sortable-table-top-divider  : var(--body__border);
+  --sortable-table-hover-bg     : #{lighten($body-bg, 10%)};
+  --sortable-table-selected-bg  : var(--primary-light-bg);
+  --sortable-table-group-label  : #{$grey-30};
 }

@@ -414,7 +414,7 @@ export default {
 
         .child, .header {
           &:hover {
-            background: var(--nav-category-active--hover);
+            background: var(--category--active--hover);
           }
         }
       }
