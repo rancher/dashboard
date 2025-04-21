@@ -1,77 +1,60 @@
 .suse {
-  $primary: #4DD192;
-  $primary-light: #72EEB3;
-  $info:  $primary-80;
-  $selected: rgba($primary, .5);
-  $prime-body-bg: #33334A;
+  $light-green-jungle: #4DD192;
+  $lighter-green-jungle: #72EEB3;
 
-  --primary-hover-text         : #{$grey-90};
-  --primary-active-bg          : #{darken($primary, 25%)};
-  --primary-active-text        : #{$grey-90};
-  --primary-border             : #{$primary};
-  --primary-banner-bg          : #{rgba($primary, 0.15)};
-  --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+  &.theme-light {
+    --primary: #{$green-jungle};
+    --on-primary: #FFFFFF;
+    --primary--hover: #{$green-120};
 
-  --info                    : #{$info};
-  --info-text               : #{contrast-color($info)};
-  --info-hover-bg           : #{darken($info, 10%)};
-  --info-hover-text         : #{saturate($grey-0, 20%)};
-  --info-active-bg          : #{darken($info, 25%)};
-  --info-active-text        : #{contrast-color(darken($info, 25%))};
-  --info-border             : #{$info};
-  --info-banner-bg          : #{rgba($info, 0.15)};
-  --info-light-bg           : #{rgba($info, 0.05)};
+    --non-primary-text: #{$green-120};
+    --non-primary-hover: #{$green-20};
 
+    --secondary: var(--body__bg);
+    --secondary__border: #{$green-jungle};
+    --on-secondary: var(--non-primary-text);
+    --secondary--hover: var(--non-primary-hover);
 
-  --body__bg: #{$prime-body-bg};
-  --body__border: #{$grey-50};
-  --link: #{$primary-55};
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --tertiary--hover: var(--non-primary-hover);
 
-  --primary                    : #{$primary};
-  --on-primary                 : #{$grey-90};
-  --primary--hover             : #{$primary-light};
+    $super-light-green: #F4F6F5;
+    --active: #{$green-140};
+    --on-active: #{$grey-0};
+    --active--hover: #{$green-120};
+    --category--active: #{$super-light-green};
+    --category--active--hover: #e8eeeb;
 
-  --non-primary-hover: #{darken($prime-body-bg, 10%)};
+    --checkbox-tick              : var(--on-active);
+    --checkbox-border            : var(--body__border);
+    --checkbox-tick-disabled     : #{darken($disabled, 40%)};
+    --checkbox-disabled-bg       : #{$disabled};
+    --checkbox-ticked-bg         : var(--active);
+  }
 
-  --secondary: var(--body__bg);
-  --secondary__border: #{$primary-light};
-  --on-secondary: #{$primary-light};
-  --secondary--hover: var(--non-primary-hover);
+  &.theme-dark {
+    --primary: #{$light-green-jungle};
+    --on-primary: #{$grey-90};
+    --primary--hover: #{$lighter-green-jungle};
 
-  --tertiary: transparent;
-  --on-tertiary: #{$primary-light};
-  --tertiary--hover: var(--non-primary-hover);
-  
-  --active: #{$primary-50};
-  --on-active: #{$grey-90};
-  --active--hover: #{darken($primary-50, 5%)};
-  --category--active: #{$primary-75};
-  --category--active--hover: #{$grey-70};
+    --non-primary-text: #{$lighter-green-jungle};
+    --non-primary-hover: #1A2A4D;
 
-  --toggle-OFF__bg: #{$grey-80};
-  --toggle-OFF__color: #{$grey-30};
-  --toggle-OFF--hover: #{$grey-90};
-  --toggle-ON__bg: var(--active);
-  --toggle-ON__color: var(--on-active);
+    --secondary: var(--body__bg);
+    --secondary__border: var(--non-primary-text);
+    --on-secondary: var(--non-primary-text);
+    --secondary--hover: var(--non-primary-hover);
 
-  --vertical-tabs__bg: #{darken($prime-body-bg, 10%)};
-  --tabbed-sidebar-bg: var(--vertical-tabs__bg);
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --tertiary--hover: var(--non-primary-hover);
 
-  --disabled-opacity: .5;
-
-  --border: var(--body__border);
-  --nav-border: var(--body__border);
-  --topmost-border: var(--body__border);
-  --header-border: var(--body__border);
-
-  --nav--hover: #{lighten($prime-body-bg, 10%)};
-
-  --sortable-table-bg           : #{$grey-90};
-  --sortable-table-row-bg       : var(--body__bg);
-  --sortable-table-header-bg    : #1F1F2D;
-  --sortable-table-top-divider  : var(--body__border);
-  --sortable-table-hover-bg     : #{lighten($prime-body-bg, 10%)};
-  --sortable-table-selected-bg  : var(--primary-light-bg);
-  --sortable-table-group-label  : #{$grey-30};
+    $category-active: #212523;
+    --active: #{$green-40};
+    --on-active: #{$grey-90};
+    --active--hover: #{$green-60};
+    --category--active: #{$category-active};
+    --category--active--hover: #{lighten($category-active, 10%)};
+  }
 }

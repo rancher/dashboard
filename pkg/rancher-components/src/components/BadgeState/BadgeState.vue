@@ -76,25 +76,28 @@ export default defineComponent({
     display: inline-flex;
     padding: 2px 8px;
     border: 1px solid transparent;
-    border-radius: var(--border-radius);
+    border-radius: 20px;
+    height: 20px;
 
     &.bg-info {
-      border-color: var(--info);
+      color: var(--on-info-banner);
+      background: var(--info-banner);
     }
 
     &.bg-error {
-      border-color: var(--error);
+      color: var(--on-error-banner);
+      background: var(--error-banner);
     }
 
     &.bg-warning {
-      border-color: var(--warning);
+      color: var(--on-warning-banner);
+      background: var(--warning-banner);
     }
 
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
-      color: var(--success-text);
-      background: var(--success);
-      border-color: var(--success);
+      color: var(--on-success-banner);
+      background: var(--success-banner);
     }
 
     // Added badge-disabled instead of bg-disabled since bg-disabled is used in other places with !important styling, an investigation is needed to make the naming consistent
