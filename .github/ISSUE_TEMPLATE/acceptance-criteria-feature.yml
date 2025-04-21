@@ -1,5 +1,5 @@
-name:  Feature/Issue/Epic that requires acceptance criteria
-description: Create features/issues/epics with clear requirements on the expected behavior of the Rancher UI
+name:  Feature/ Issue / Epic that requires acceptance criteria
+description: Create feature / issue /epic with clear requirements on the expected behavior of the Rancher UI
 title: "Summarize feature in one line"
 labels: ["kind/enhancement"]
 assignees: []
