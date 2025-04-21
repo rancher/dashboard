@@ -12,6 +12,12 @@ import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
 import { shallowRef } from 'vue';
 import { debounce } from 'lodash';
+import {
+  RcDropdown,
+  RcDropdownTrigger,
+  RcDropdownItemCheckbox,
+  RcDropdownItemSelect,
+} from '@components/RcDropdown';
 
 import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
@@ -91,6 +97,10 @@ export default {
     Checkbox,
     AsyncButton,
     VirtualList,
+    RcDropdown,
+    RcDropdownTrigger,
+    RcDropdownItemCheckbox,
+    RcDropdownItemSelect,
   },
 
   props: {
@@ -145,7 +155,8 @@ export default {
       lines:               [],
       now:                 new Date(),
       logItem:             shallowRef(LogItem),
-      isContainerMenuOpen: false
+      isContainerMenuOpen: false,
+      range:               '',
     };
   },
 
@@ -636,6 +647,39 @@ export default {
         </div>
 
         <div class="log-action log-action-group ml-5">
+          <rc-dropdown>
+            <rc-dropdown-trigger class="condensed">
+              <i
+                class="icon icon-gear"
+                :alt="t('wm.containerLogs.options')"
+              />
+              <template #after>
+                <i
+                  class="icon icon-chevron-up"
+                  :alt="t('wm.containerLogs.expand')"
+                />
+              </template>
+            </rc-dropdown-trigger>
+            <template #dropdownCollection>
+              <rc-dropdown-item-select
+                :model-value="range"
+                :options="rangeOptions"
+                @select="toggleRange($event)"
+              />
+              <rc-dropdown-item-checkbox
+                :model-value="wrap"
+                @click="toggleWrap"
+              >
+                {{ t('wm.containerLogs.wrap') }}
+              </rc-dropdown-item-checkbox>
+              <rc-dropdown-item-checkbox
+                :model-value="timestamps"
+                @click="toggleTimestamps"
+              >
+                {{ t('wm.containerLogs.timestamps') }}
+              </rc-dropdown-item-checkbox>
+            </template>
+          </rc-dropdown>
           <div
             role="menu"
             tabindex="0"
@@ -873,5 +917,10 @@ export default {
         }
       }
     }
+  }
+
+  .condensed {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 </style>

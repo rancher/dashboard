@@ -63,7 +63,7 @@ export default {
           if (vm.closeOnSelect) {
             // this ties in to the Select component implementation
             // so that the enter key handler doesn't open the dropdown again
-            this.overridesMixinPreventDoubleTriggerKeysOpen = true;
+            this.overridesMixinPreventDoubleTriggerKeysOpen = false;
             vm.open = false;
             vm.typeAheadPointer = -1;
           }
