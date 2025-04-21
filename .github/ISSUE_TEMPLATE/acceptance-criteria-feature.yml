@@ -27,9 +27,9 @@ body:
   id: acceptance_criteria
   attributes:
     label: Acceptance Criteria
-    description: "List applicable use cases, each of them with a clear description of the expected behavior or alternative link to a requirements document."
-    value: |
-      Please, try to include all possible use-cases. The QA team can help and include more as needed.    
+    description: "List applicable use cases, each of them with a clear description of the expected behavior or alternative link to a requirements document. Please, try to include all possible use-cases. The QA team can help and include more as needed."
+    placeholder: |
+      List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.   
       - [ ] 
       - [ ]  
   validations:
@@ -39,7 +39,7 @@ body:
   attributes:
     label: UI/UX Dependencies
     description: "List of sub-issues/steps required for the UI/UX team to complete the feature, accomplishing all the acceptance criteria."
-    value: |  
+    placeholder: |  
       List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
         - [ ] #issue_number or URL
         - [ ] 
@@ -50,7 +50,7 @@ body:
   attributes:
     label: Other Dependencies
     description: "List of sub-issues/steps required for the backend or other teams to complete the feature, accomplishing all the acceptance criteria."
-    value: |
+    placeholder: |
       List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
         - [ ]
         - [ ] 
@@ -63,7 +63,7 @@ body:
     description: |
       List all testing steps/sub-issues to test the feature, covering all the acceptance criteria. For sub-issues please, label them as unit, e2e or manual tests. 
       Testing steps directly described here are reproduction steps for manual testing.
-    value: |
+    placeholder: |
         List the testing steps or link automation sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
         - [ ]
         - [ ] 
