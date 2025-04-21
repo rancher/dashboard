@@ -11,6 +11,14 @@ $grey-10    : #EEF0F4;
 $grey-5     : #F5F7FA;
 $grey-0     : #FFFFFF;
 
+$green-140    : #025937;
+$green-120    : #008657;
+$green-jungle : #30BA78;
+$green-80     : #42D29F;
+$green-60     : #83E1BE;
+$green-40     : #C0EFDE;
+$green-20     : #EAFAF4;
+
 //color for items that are not enabled
 $disabled  : $grey-20;
 
@@ -30,10 +38,10 @@ $secondary      : $grey-50;
 $link           : $primary-80;
 
 // Status colors
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #3D98D3;
+$success         : #007032;
+$warning         : #FFC845;
+$error           : #B13333;
+$info            : #1F67DB;
 
 $contrasted-dark: $grey-90 !default;
 $contrasted-light: $grey-0 !default;
@@ -246,6 +254,9 @@ BODY, .theme-light {
   --success-banner-bg          : #{rgba($success, 0.15)};
   --success-light-bg           : #{rgba($success, 0.05)};
 
+  --success-banner    : #{rgba($success, 0.10)};
+  --on-success-banner : $success;
+
   .text-success {
     color: var(--success) !important;
   }
@@ -276,6 +287,9 @@ BODY, .theme-light {
   --info-border             : #{$info};
   --info-banner-bg          : #{rgba($info, 0.15)};
   --info-light-bg           : #{rgba($info, 0.05)};
+
+  --info-banner    : #{rgba($info, 0.10)};
+  --on-info-banner : #{$info};
 
   .text-info {
     color: var(--info) !important;
@@ -308,6 +322,9 @@ BODY, .theme-light {
   --warning-banner-bg          : #{rgba($warning, 0.15)};
   --warning-light-bg           : #{rgba($warning, 0.05)};
 
+  --warning-banner    : #{rgba($warning, 0.30)};
+  --on-warning-banner : #924200;
+
   .text-warning {
     color: var(--warning) !important;
   }
@@ -339,6 +356,8 @@ BODY, .theme-light {
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 
+  --error-banner    :  #{$error};
+  --on-error-banner : #FFFFFF;
 
   .text-error {
     color: var(--error) !important;
@@ -451,11 +470,11 @@ BODY, .theme-light {
   --overlay-bg                 : #{rgba($grey-5, 0.75)};
   --shadow                     : #{rgba($grey-20, 0.85)};
 
-  --checkbox-tick              : #{$grey-0};
-  --checkbox-border            : #{$grey-20};
+  --checkbox-tick              : var(--on-active);
+  --checkbox-border            : var(--body__border);
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
