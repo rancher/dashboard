@@ -488,9 +488,12 @@ export function deepToRaw(obj, cache = new WeakSet()) {
  * More info: https://github.com/lodash/lodash/issues/1313
  *
  * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
+ * 
+ * This helper is also used for another case in rke2.vue to handle merging addon chart default values with the user's current values.
+ * It fixed https://github.com/rancher/dashboard/issues/12418
  */
 export function mergeWithReplaceArrays(obj1 = {}, obj2 = {}) {
-  return mergeWith(obj1, obj2, (obj1Value, obj2Value) => {
+  return mergeWith({}, obj1, obj2, (obj1Value, obj2Value) => {
     if (Array.isArray(obj1Value) && Array.isArray(obj2Value)) {
       return obj2Value;
     }

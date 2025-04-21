@@ -1691,7 +1691,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+      return mergeWithReplaceArrays(defaultChartValue?.values, this.userChartValues[key]);
     },
 
     initServerAgentArgs() {
