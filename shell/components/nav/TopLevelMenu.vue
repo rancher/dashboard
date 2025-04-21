@@ -1066,7 +1066,7 @@ export default {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--link);
+        color: var(--on-tertiary);
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
