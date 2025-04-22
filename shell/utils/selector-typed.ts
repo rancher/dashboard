@@ -2,7 +2,7 @@ import { COUNT } from '@shell/config/types';
 import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isEmpty } from '@shell/utils/object';
-import { matching as rootMatching } from '@shell/utils/selector';
+import { convert, matching as rootMatching } from '@shell/utils/selector';
 
 // TODO: RC investigate where this < `findLabelSelector` could be used
 
@@ -72,13 +72,13 @@ export async function matching({
   let match = [];
 
   if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
+    if (typeof inScopeCount === 'undefined') {
+      const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      inScopeCount = namespace ? counts?.[type]?.namespaces[namespace]?.count || 0 : counts?.[type]?.summary?.count || 0;
+    }
+
     if (labelSelector?.matchExpressions?.length || !isEmpty(labelSelector?.matchLabels)) {
-      if (typeof inScopeCount === 'undefined') {
-        const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
-
-        inScopeCount = namespace ? counts?.[type]?.namespaces[namespace]?.count || 0 : counts?.[type]?.summary?.count || 0;
-      }
-
       if (inScopeCount) {
         const findPageArgs = { // Of type ActionFindPageArgs
           namespaced: namespace,
@@ -87,6 +87,9 @@ export async function matching({
         };
 
         match = await $store.dispatch(`${ inStore }/findPage`, { type, opt: findPageArgs });
+        if (transient) {
+          match = match.data;
+        }
       }
     }
   } else {
@@ -96,7 +99,8 @@ export async function matching({
       candidates = candidates.filter((e: any) => e.metadata?.namespace === namespace);
     }
 
-    match = rootMatching(candidates, labelSelector);
+    match = matches(candidates, labelSelector);
+    inScopeCount = candidates.length;
   }
 
   const matched = match.length || 0;
@@ -109,4 +113,13 @@ export async function matching({
     sample,
     total:   inScopeCount || 0,
   };
+}
+
+/**
+ * This is similar to shell/utils/selector.js `matches`, but accepts a kube labelSelector
+ */
+function matches(candidates: any[], labelSelector: KubeLabelSelector) {
+  const convertedObject = convert(labelSelector.matchLabels, labelSelector.matchExpressions);
+
+  return rootMatching(candidates, convertedObject);
 }

@@ -449,7 +449,7 @@ export default {
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
     return opt.transient ? {
-      data: out.data,
+      data: await dispatch('createMany', out.data), // Return classified objects
       pagination
     } : findAllGetter(getters, type, opt);
   },

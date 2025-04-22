@@ -11,7 +11,6 @@ const OP_MAP = {
   '>':  'Gt',
 };
 
-// Parse a labelSelector string
 /**
  * Convert a matchLabel string to a matchExpression object
  */
@@ -104,13 +103,17 @@ export function parse(labelSelector) {
   return out;
 }
 
-// Convert a Selector object to matchExpressions
+/**
+ * Convert a Selector object to matchExpressions
+ */
 export function convertSelectorObj(obj) {
   return convert(obj.matchLabels || {}, obj.matchExpressions || []);
 }
 
-// Convert matchLabels to matchExpressions
-// Optionally combining with an existing set of matchExpressions
+/**
+ * Convert matchLabels to matchExpressions
+ * Optionally combining with an existing set of matchExpressions
+ */
 export function convert(matchLabelsObj, matchExpressions) {
   const keys = Object.keys(matchLabelsObj || {});
   const out = matchExpressions || [];
@@ -133,8 +136,10 @@ export function convert(matchLabelsObj, matchExpressions) {
   return out;
 }
 
-// Convert matchExpressions to matchLabels when possible,
-// returning the simplest combination of them.
+/**
+ * Convert matchExpressions to matchLabels when possible,
+ * returning the simplest combination of them.
+ */
 export function simplify(matchExpressionsInput) {
   const matchLabels = {};
   const matchExpressions = [];
@@ -166,6 +171,12 @@ export function simplify(matchExpressionsInput) {
   return { matchLabels, matchExpressions };
 }
 
+/**
+ *
+ * For a fn that accepts a kube labelSelector object see shell/utils/selector-typed.ts `matches`
+ *
+ * @param {*} selector Is NOT a labelSelector object
+ */
 export function matches(obj, selector, labelKey = 'metadata.labels') {
   let rules = [];
 

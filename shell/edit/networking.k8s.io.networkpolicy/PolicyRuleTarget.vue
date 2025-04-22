@@ -8,7 +8,7 @@ import { convert, simplify } from '@shell/utils/selector';
 import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
-import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 import { matching } from '@shell/utils/selector-typed';
 import { allHash } from '@shell/utils/promise';
@@ -19,6 +19,9 @@ const TARGET_OPTIONS = {
   POD_SELECTOR:               'podSelector',
   NAMESPACE_AND_POD_SELECTOR: 'namespaceAndPodSelector',
 };
+
+// Component shown for Network Policy --> Ingress/Egress Rules --> Rule Type
+// Edit Network Policy --> PolicyRules 1 --> M PolicyRule 1 --> M PolicyRuleTarget
 
 export default {
   components: {
@@ -68,16 +71,19 @@ export default {
     }
 
     return {
-      portOptions:        ['TCP', 'UDP'],
-      matchingPods:       {},
-      matchingNamespaces: {},
-      invalidCidr:        null,
-      invalidCidrs:       [],
+      portOptions:  ['TCP', 'UDP'],
+      matchingPods: {
+        matches: [], matched: 0, total: 0
+      },
+      matchingNamespaces: {
+        matches: [], matched: 0, total: 0
+      },
+      invalidCidr:   null,
+      invalidCidrs:  [],
       POD,
       TARGET_OPTIONS,
-      targetOptions:      Object.values(TARGET_OPTIONS),
-      throttleTime:       250,
-      inStore:            this.$store.getters['currentProduct'].inStore,
+      targetOptions: Object.values(TARGET_OPTIONS),
+      inStore:       this.$store.getters['currentProduct'].inStore,
     };
   },
   computed: {
@@ -176,18 +182,22 @@ export default {
       immediate: true
     }
   },
-  methods: {
-    updateMatches() {
-      throttle(async() => {
-        const { ns, p } = await allHash({
-          ns: this.getMatchingNamespaces(),
-          p:  this.getMatchingPods()
-        });
 
-        this.matchingNamespaces = ns;
-        this.matchingPods = p;
-      }, this.throttle, { leading: true })(); // TODO: RC shouldn't there be a number? what's default?
-    },
+  fetch() {
+    this.updateMatches();
+  },
+
+  methods: {
+    updateMatches: debounce(async function() {
+      const { ns, p } = await allHash({
+        ns: this.getMatchingNamespaces(),
+        p:  this.getMatchingPods()
+      });
+
+      this.matchingNamespaces = ns;
+      this.matchingPods = p;
+    }, 500),
+
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 
@@ -201,33 +211,18 @@ export default {
         this.invalidCidr = null;
       }
     },
+
     async getMatchingPods() {
-      // TODO: RC TEST
       return await matching({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
-        inStore:       this.inStore, // TODO: RC
-        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace, // TODO: RC multiple?
+        inStore:       this.inStore,
+        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace,
         transient:     true,
       });
-
-      // const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
-      // const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
-      // const match = matching(allInNamespace, this.podSelectorExpressions);
-      // const matched = match.length || 0;
-      // const sample = match[0]?.nameDisplay;
-
-      // return {
-      //   matched,
-      //   matches: match,
-      //   none:    matched === 0,
-      //   sample,
-      //   total:   allInNamespace.length,
-      // };
     },
     async getMatchingNamespaces() {
-      // TODO: RC TEST
       return await matching({
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
@@ -235,19 +230,6 @@ export default {
         inStore:       this.inStore,
         transient:     true,
       });
-
-      // const allNamespaces = this.allNamespaces;
-      // const match = matching(allNamespaces, this.namespaceSelectorExpressions);
-      // const matched = match.length || 0;
-      // const sample = match[0]?.nameDisplay;
-
-      // return {
-      //   matched,
-      //   matches: match,
-      //   none:    matched === 0,
-      //   sample,
-      //   total:   allNamespaces.length,
-      // };
     },
   }
 };

@@ -314,7 +314,8 @@ self.onmessage = (e) => {
     if (workerActions[action]) {
       workerActions[action](e?.data[action]);
     } else {
-      console.warn('no associated action for:', action); // eslint-disable-line no-console
+      // This catches any window sendMessage event. We're hitting this on hot-reload of code where somehow this file is loaded
+      console.debug('no associated action for:', action); // eslint-disable-line no-console
     }
   });
 }; // bind everything to the worker's onmessage handler via the workerActions

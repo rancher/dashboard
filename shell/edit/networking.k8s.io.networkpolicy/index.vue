@@ -171,7 +171,6 @@ export default {
       :value="value"
       :mode="mode"
     />
-    <!-- TODO: RC list netowrkpolicy - why no click on name?? -->
 
     <div class="row mb-40">
       <div class="col span-12">
@@ -192,10 +191,6 @@ export default {
               :label="t('networkpolicy.ingress.enable')"
               data-testid="network-policy-ingress-enable-checkbox"
             />
-            <!--
-            :all-pods="allPods"
-             :all-namespaces="allNamespaces"
-             -->
             <PolicyRules
               v-if="hasIngressPolicies"
               :value="value"
@@ -220,9 +215,6 @@ export default {
               :mode="mode"
               :label="t('networkpolicy.egress.enable')"
             />
-            <!--
-            :all-namespaces="allNamespaces"
-            :all-pods="allPods" -->
             <PolicyRules
               v-if="hasEgressPolicies"
               :value="value"
