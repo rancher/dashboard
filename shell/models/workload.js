@@ -578,10 +578,9 @@ export default class Workload extends WorkloadService {
       let pods = [];
 
       if (this.$getters['paginationEnabled']({ id: POD })) {
-        // If pagination is enabled we should have a small collection of pods which have already had the matchExpression supplied, so use `all` instead
-        const a = this.$getters['all'](POD);
-
-        pods = a.filter((p) => p.metadata.namespace === this.metadata.namespace);
+        // If pagination is enabled we should have a small collection of pods which have already had the matchExpression applied,
+        // so use `all` instead and just in case filter by ns
+        pods = this.$getters['all'](POD).filter((p) => p.metadata.namespace === this.metadata.namespace);
       } else {
         // If pagination is disabled optimise candidate pods via podsByNamespace,
         pods = this.$getters['podsByNamespace'](this.metadata.namespace);

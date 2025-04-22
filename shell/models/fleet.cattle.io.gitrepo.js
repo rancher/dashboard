@@ -376,10 +376,12 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
+    // Should be updated to use findLabelSelector
     return this.$getters['matching'](FLEET.BUNDLE, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name }, this.namespace);
   }
 
   get bundleDeployments() {
+    // Should be updated to use findLabelSelector
     return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 

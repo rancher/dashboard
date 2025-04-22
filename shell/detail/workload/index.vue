@@ -49,7 +49,6 @@ export default {
     } catch {}
 
     const hash = {
-      // TODO: RC search for references to https://github.com/rancher/dashboard/issues/10417
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.

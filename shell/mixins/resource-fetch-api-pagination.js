@@ -45,6 +45,7 @@ export default {
         filters:              [],
         projectsOrNamespaces: [],
       },
+      tablePagination: undefined,
     };
   },
 
@@ -58,7 +59,14 @@ export default {
       }
     },
 
+    /**
+     * Has the pagination changed?
+     * 1. The Table pagination settings have changed
+     * 2. The ns/project filter has changed
+     */
     paginationChanged(event) {
+      this.tablePagination = event;
+
       const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new PaginationFilterField({
         field,
         value: event.filter.searchQuery,
@@ -104,7 +112,7 @@ export default {
 
       // Kick off a change
       if (this.pPagination) {
-        this.debouncedSetPagination({ ...this.pPagination });
+        this.paginationChanged(this.tablePagination);
       }
     },
 

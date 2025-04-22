@@ -1775,7 +1775,6 @@ export default class Resource {
     return this._findRelationship('owner', 'to');
   }
 
-  // TODO: RC BUG - change NS in header filter --> does not reach table
   _relationshipsFor(rel, direction) {
     const out = { selectors: [], ids: [] };
 
