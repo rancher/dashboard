@@ -1305,7 +1305,7 @@ export default {
         delete clonedCurrentConfig.metadata;
 
         if (this.provider === VMWARE_VSPHERE) {
-          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig);
+          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig, true);
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
         }
@@ -1691,7 +1691,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+      return mergeWithReplaceArrays(defaultChartValue?.values, this.userChartValues[key]);
     },
 
     initServerAgentArgs() {
