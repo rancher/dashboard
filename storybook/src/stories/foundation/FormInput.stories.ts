@@ -18,7 +18,7 @@ Errors: {{ errVal }}
 Meta: {{ meta }}
 </code></pre>
 `;
-let t;
+let t; // This seems to be a Storybook bug not allowing hooks
 
 export const Default: Story = {
   render: (args: any) => ({
@@ -44,7 +44,7 @@ export const Default: Story = {
       };
     },
     created() {
-      t = this.$store.getters['i18n/t'];
+      t = this.$store.getters['i18n/t']; // This seems to be a Storybook bug not allowing hooks
     },
     template: `
       <LabeledInput
