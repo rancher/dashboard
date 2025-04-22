@@ -1305,7 +1305,7 @@ export default {
         delete clonedCurrentConfig.metadata;
 
         if (this.provider === VMWARE_VSPHERE) {
-          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig);
+          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig, true);
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
         }
