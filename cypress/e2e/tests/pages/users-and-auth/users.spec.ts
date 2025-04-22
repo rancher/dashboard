@@ -543,6 +543,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.waitForPage();
       usersPo.list().create();
 
+      const runTimestamp = +new Date();
+      const runPrefix = `e2e-test-${ runTimestamp }`;
       const adminUsername = `${ runPrefix }-admin-user`;
       const adminPassword = 'admin-password';
 
