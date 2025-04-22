@@ -8,6 +8,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -50,7 +51,7 @@ export default class ExtensionsPagePo extends PagePo {
    * @returns {Cypress.Chainable}
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields').as('getRepos');
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`).as('getRepos');
 
     // we should be on the extensions page
     this.waitForPage(null, 'available');
@@ -82,7 +83,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.gitBranch().set(branch);
 
     // save it
-    appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    appRepoCreate.saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     appRepoList.waitForPage();
     appRepoList.list().state(name).should('contain', 'Active');
