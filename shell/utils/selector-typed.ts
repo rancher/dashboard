@@ -78,7 +78,7 @@ export async function matching({
       inScopeCount = namespace ? counts?.[type]?.namespaces[namespace]?.count || 0 : counts?.[type]?.summary?.count || 0;
     }
 
-    if (labelSelector?.matchExpressions?.length || !isEmpty(labelSelector?.matchLabels)) {
+    if (!isLabelSelectorEmpty(labelSelector)) {
       if (inScopeCount) {
         const findPageArgs = { // Of type ActionFindPageArgs
           namespaced: namespace,
@@ -118,8 +118,16 @@ export async function matching({
 /**
  * This is similar to shell/utils/selector.js `matches`, but accepts a kube labelSelector
  */
-function matches(candidates: any[], labelSelector: KubeLabelSelector) {
+function matches<T = any>(candidates: T[], labelSelector: KubeLabelSelector): T[] {
   const convertedObject = convert(labelSelector.matchLabels, labelSelector.matchExpressions);
 
   return rootMatching(candidates, convertedObject);
+}
+
+export function isLabelSelectorEmpty(labelSelector?: KubeLabelSelector): boolean {
+  if (labelSelector?.matchExpressions?.length || !isEmpty(labelSelector?.matchLabels)) {
+    return false;
+  }
+
+  return true;
 }

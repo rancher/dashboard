@@ -10,6 +10,7 @@ import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { FilterArgs } from '@shell/types/store/pagination.types';
+import { isLabelSelectorEmpty } from '@shell/utils/selector-typed';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -473,15 +474,16 @@ export default {
     opt
   }) {
     const { getters, dispatch } = ctx;
-
-    // TODO: RC return all if no / empty labelSelector.. or none?
-
     const args = {
       id: type,
       context,
     };
 
     if (getters[`paginationEnabled`]?.(args)) {
+      if (isLabelSelectorEmpty(labelSelector)) {
+        throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
+      }
+
       return dispatch('findPage', {
         type,
         opt: {
@@ -492,7 +494,8 @@ export default {
       });
     }
 
-    // TODO: RC test
+    // TODO: RC test longhorn root page shell/pages/c/_cluster/longhorn/index.vue
+    // shell/pages/c/_cluster/uiplugins/CatalogList/CatalogUninstallDialog.vue  hub.docker.io/rancher/ui-plugin-catalog:4.0.1
     return dispatch('findMatching', {
       type,
       selector: labelSelector.matchLabels,

@@ -3,7 +3,7 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj } from '@shell/utils/selector';
+import { convertSelectorObj, matches, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { FilterArgs } from '@shell/types/store/pagination.types';
@@ -207,21 +207,6 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
-  // When this added... it already existed somewhere else
-  // get restartCount() {
-  //   const pods = this.pods;
-
-  //   let sum = 0;
-
-  //   pods.forEach((pod) => {
-  //     if (pod.status.containerStatuses) {
-  //       sum += pod.status?.containerStatuses[0].restartCount || 0;
-  //     }
-  //   });
-
-  //   return sum;
-  // }
-
   get restartCount() {
     return this.pods.reduce((total, pod) => { // TODO: RC change usages of workload.pods
       const { status:{ containerStatuses = [] } } = pod;
@@ -419,10 +404,13 @@ export default class Workload extends WorkloadService {
       });
     }
 
-    out.push( {
+    out.push({
       label:     'Image',
       content:   this.imageNames,
       formatter: 'PodImages'
+    }, {
+      label:   detailItem.restarts.label,
+      content: detailItem.restarts.content,
     });
 
     switch (type) {
@@ -570,12 +558,12 @@ export default class Workload extends WorkloadService {
   }
 
   async fetchPods() {
-    if (this.podSelector) {
+    if (this.podMatchExpression) {
       return this.$dispatch('findLabelSelector', {
         type:     POD,
         matching: {
-          namespaced: this.metadata.namespace,
-          pagination: new FilterArgs({ labelSelector: this.podSelector }),
+          namespaced:    this.metadata.namespace,
+          labelSelector: { matchExpressions: this.podMatchExpression },
         }
       });
     }
@@ -584,25 +572,28 @@ export default class Workload extends WorkloadService {
   }
 
   get pods() {
-    console.warn('Anything using this must be updated to ????!!!');
+    console.error('Anything using this must be updated to ????!!!'); // TODO: RC Remove
 
-    throw Error('gah');
+    if (this.podMatchExpression) {
+      let pods = [];
+
+      if (this.$getters['paginationEnabled']({ id: POD })) {
+        // If pagination is enabled we should have a small collection of pods which have already had the matchExpression supplied, so use `all` instead
+        const a = this.$getters['all'](POD);
+
+        pods = a.filter((p) => p.metadata.namespace === this.metadata.namespace);
+      } else {
+        // If pagination is disabled optimise candidate pods via podsByNamespace,
+        pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+      }
+
+      return pods.filter((obj) => {
+        return matches(obj, this.podMatchExpression); // TODO: RC find all `matches` and see if can change
+      });
+    } else {
+      return [];
+    }
   }
-
-  // get pods() {
-  //   const relationships = this.metadata?.relationships || [];
-  //   const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
-
-  //   if (podRelationship) {
-  //     const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-  //     return pods.filter((obj) => {
-  //       return matches(obj, podRelationship.selector);
-  //     });
-  //   } else {
-  //     return [];
-  //   }
-  // }
 
   /**
    * Return a string version of a matchLabel expression
@@ -611,7 +602,11 @@ export default class Workload extends WorkloadService {
     const relationships = this.metadata?.relationships || [];
     const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
 
-    return selector; // tODO: RC TEST this should always be string (check api)
+    return selector;
+  }
+
+  get podMatchExpression() {
+    return this.podSelector ? parse(this.podSelector) : null;
   }
 
   calcPodGauges(pods) {

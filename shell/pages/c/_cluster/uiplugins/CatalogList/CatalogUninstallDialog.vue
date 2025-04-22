@@ -95,23 +95,23 @@ export default {
     },
 
     async removeCatalogResources(catalog) {
-      const pageSelector = { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name };
-      const namespace = UI_PLUGIN_NAMESPACE;
-
-      // TODO: RC TEST
       if ( catalog.name ) {
+        const namespace = UI_PLUGIN_NAMESPACE;
+        // of type KubeLabelSelector
+        const labelSelector = { matchLabels: { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name } };
+
         const hash = await allHash({
           deployment: this.$store.dispatch('management/findLabelSelector', {
             type:     WORKLOAD_TYPES.DEPLOYMENT,
-            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
+            matching: { namespace, labelSelector }
           }),
           service: this.$store.dispatch('management/findLabelSelector', {
             type:     SERVICE,
-            matching: { namespace, labelSelector: { matchLabels: pageSelector } }
+            matching: { namespace, labelSelector }
           }),
           repo: this.$store.dispatch('management/findLabelSelector', {
             type:     CATALOG.CLUSTER_REPO,
-            matching: { labelSelector: { matchLabels: pageSelector } }
+            matching: { labelSelector }
           })
         });
 

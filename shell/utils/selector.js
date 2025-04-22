@@ -12,7 +12,12 @@ const OP_MAP = {
 };
 
 /**
- * Convert a matchLabel string to a matchExpression object
+ * Convert a string to a matchExpression object
+ *
+ * *string* is from https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010.
+ * However... it seems to contain more operators than just `=` which the labels.Selector `String` does not use
+ *
+ * matchExpression is an array of 'key' 'operator' 'values'
  */
 export function parse(labelSelector) {
   // matchLabels:

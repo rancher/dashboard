@@ -408,7 +408,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get pods() {
-    // TODO: RC ??
+    // This fetches all pods that are in the store, rather than all pods in the cluster
     const allPods = this.$rootGetters['cluster/all'](POD);
 
     return allPods.filter((pod) => pod.spec.nodeName === this.name);

@@ -10,6 +10,9 @@ export interface KubeLabelSelectorExpression {
   values?: string[],
 }
 
+/**
+ * https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#labelselector-v1-meta
+ */
 export interface KubeLabelSelector {
   matchExpressions?: KubeLabelSelectorExpression[],
   /**

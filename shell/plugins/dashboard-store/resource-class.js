@@ -34,6 +34,7 @@ import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { parse } from '@shell/utils/selector';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1774,6 +1775,7 @@ export default class Resource {
     return this._findRelationship('owner', 'to');
   }
 
+  // TODO: RC BUG - change NS in header filter --> does not reach table
   _relationshipsFor(rel, direction) {
     const out = { selectors: [], ids: [] };
 
@@ -1791,6 +1793,7 @@ export default class Resource {
       }
 
       if ( r.selector ) {
+        // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
         addObjects(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
@@ -1834,10 +1837,12 @@ export default class Resource {
   }
 
   async _findRelationship(rel, direction) {
-    // TODO: RC TEST
+    // Find resources for this resource's metadata.relationships (steve prop)
+    // These will either reference a selector (stringified matchLabels) OR specific resources (ids)
     const { selectors, ids } = this._relationshipsFor(rel, direction);
     const out = [];
 
+    // Find all the resources that match the selector
     for ( const sel of selectors ) {
       const {
         type,
@@ -1849,14 +1854,15 @@ export default class Resource {
         type,
         matching: {
           namespace,
-          labelSelector: { matchLabels: selector } // TODO: RC selector is string or map
+          labelSelector: { matchExpressions: parse(selector) }
         },
         opts: opt
       });
 
-      addObjects(out, matching.data); // TODO: RC not data...??
+      addObjects(out, matching);
     }
 
+    // Find all the resources that match the required id's
     for ( const obj of ids ) {
       const { type, id } = obj;
       let matching = this.$getters['byId'](type, id);

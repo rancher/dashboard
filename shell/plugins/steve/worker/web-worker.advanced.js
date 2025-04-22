@@ -315,6 +315,7 @@ self.onmessage = (e) => {
       workerActions[action](e?.data[action]);
     } else {
       // This catches any window sendMessage event. We're hitting this on hot-reload of code where somehow this file is loaded
+      // Could be related to extensions, which have their own version of this
       console.debug('no associated action for:', action); // eslint-disable-line no-console
     }
   });
