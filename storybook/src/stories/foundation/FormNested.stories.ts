@@ -44,12 +44,21 @@ const Template: Story = {
 
                     return !message;
                   }
+                }),
+                image: yup.string().test({
+                  name:    'required',
+                  message: () => message,
+                  test:    (val) => {
+                    message = validators('Container image').required(val);
+
+                    return !message;
+                  }
                 })
               })
             )
             .strict(),
         }),
-        initialValues: { containers: [{ name: '1' }, { name: '2' }] }
+        initialValues: { containers: [{ name: '1', image: '' }, { name: '2', image: '' }] }
       });
 
       const {
@@ -71,29 +80,57 @@ const Template: Story = {
     created() {
       t = this.$store.getters['i18n/t'];
     },
+    methods: {
+      getErrors: <T extends object>(errVal: T, prefix: string, i: number, suffix?: string) => Object
+        .keys(errVal)
+        .filter((key) => key.includes(`${ prefix }[${ i }]${ suffix ? `.${ suffix }` : '' }`))
+        .map((key: string) => errVal[key as keyof T])
+
+    },
     template: `
     <Tabbed v-bind="args">
       <Tab
         v-for="(container, i) in containers"
         :key="container.key"
         :name="'Container ' + (i + 1)"
+        :displayAlertIcon="getErrors(errVal, 'containers', i).length"
       >
-      <div>
-        <LabeledInput
-          v-model:value="container.value.name"
-          label="Container name"
-          type="text"
-          :subLabel="errVal.containers ? errVal.containers[i].name : ''"
-          :status="errVal.containers && errVal.containers[i].name ? 'error' : meta.touched ? 'success' : undefined"
-          :tooltipKey="errVal.containers && errVal.containers[i].name ? errVal.containers[i].name : meta.touched ? 'Input correct' : undefined"
-        />
+        <Tabbed :useHash=${ args.useHash } :sideTabs=${ true }>
+          <Tab
+            name="name"
+            label="Name settings"
+            :displayAlertIcon="getErrors(errVal, 'containers', i, 'name').length"
+          >
+            <LabeledInput
+              v-model:value="container.value.name"
+              label="Container name"
+              type="text"
+              :subLabel="getErrors(errVal, 'containers', i, 'name')"
+              :status="getErrors(errVal, 'containers', i, 'name').length ? 'error' : meta.touched ? 'success' : undefined"
+            />
+          </Tab>
+          <Tab
+            name="image"
+            label="Image settings"
+            :displayAlertIcon="getErrors(errVal, 'containers', i, 'image').length"
+          >
+            <LabeledInput
+              v-model:value="container.value.image"
+              label="Container image"
+              type="text"
+              :subLabel="getErrors(errVal, 'containers', i, 'image')"
+              :status="getErrors(errVal, 'containers', i, 'image').length ? 'error' : meta.touched ? 'success' : undefined"
+            />
+          </Tab>
+        </Tabbed>
+
         <br />
         <button @click="removeContainer(i)">Remove</button>
-      </div>
       </Tab>
+
       <template #tab-row-extras>
         <li class="tablist-controls">
-          <button @click="addContainer({ name: '' })">Add container</button>
+          <button @click="addContainer({ name: '', image: '' })">Add container</button>
         </li>
       </template>
     </Tabbed>
