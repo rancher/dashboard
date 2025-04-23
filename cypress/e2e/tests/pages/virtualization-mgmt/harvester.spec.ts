@@ -23,7 +23,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createHarvesterChart');
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }`).as('updateHarvesterChart');
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=install`).as('installHarvesterExtension');
-    cy.intercept('POST', '/v1/provisioning.cattle.io.clusters').as('createHarvesterCluster');
+    cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
     // verify install button and message displays
     harvesterPo.goTo();
