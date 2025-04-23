@@ -49,6 +49,10 @@ export default {
     userId: {
       type:    String,
       default: ''
+    },
+    watchOverride: {
+      type:    Boolean,
+      default: true,
     }
   },
   async fetch() {
@@ -138,7 +142,7 @@ export default {
       this.update();
     },
     userId(userId, oldUserId) {
-      if (userId === oldUserId) {
+      if (userId === oldUserId || this.watchOverride === true) {
         return;
       }
       this.update();
