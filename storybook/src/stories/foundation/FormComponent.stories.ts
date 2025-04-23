@@ -10,6 +10,7 @@ type Story = StoryObj<typeof ArrayList>;
 const displayValidation = () => `
 <br />
 <br />
+<h3>Metadata generated:</h3>
 <pre><code>
 Values: {{ values }}
 Errors: {{ errVal }}

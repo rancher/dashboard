@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/vue3';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { useForm, useFieldArray } from 'vee-validate';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import * as yup from 'yup';
 
 const meta: Meta = {};
 
@@ -12,20 +14,32 @@ type Story = StoryObj;
 const displayValidation = () => `
 <br />
 <br />
+<h3>Metadata generated:</h3>
 <pre><code>
 Values: {{ values }}
 Errors: {{ errVal }}
 Meta: {{ meta }}
 </code></pre>
 `;
-
+let t;
 const Template: Story = {
   render: (args: any) => ({
     components: {
       Tab, Tabbed, LabeledInput
     },
     setup() {
-      const { errors: errVal, values, meta } = useForm({ initialValues: { containers: [{ name: '1' }, { name: '2' }] } });
+      const validators = (key: string) => formRulesGenerator(t, { key });
+      const { errors: errVal, values, meta } = useForm({
+        validationSchema: yup.object().shape({
+          containers: yup
+            .array().of(
+              yup.object().shape({ name: yup.string().required().label('Container name') })
+            )
+            .strict(),
+        }),
+        initialValues: { containers: [{ name: '1' }, { name: '2' }] }
+      });
+
       const {
         remove: removeContainer,
         push: addContainer,
@@ -41,6 +55,9 @@ const Template: Story = {
         meta,
         args
       };
+    },
+    created() {
+      t = this.$store.getters['i18n/t'];
     },
     template: `
     <Tabbed v-bind="args">
@@ -64,7 +81,7 @@ const Template: Story = {
       </Tab>
       <template #tab-row-extras>
         <li class="tablist-controls">
-          <button @click="addContainer({ name: containers.length + 1 })">Add container</button>
+          <button @click="addContainer({ name: '' })">Add container</button>
         </li>
       </template>
     </Tabbed>
