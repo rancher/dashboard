@@ -2493,7 +2493,7 @@ export default {
         </Tab>
 
         <AgentEnv
-          v-model:value="localValue"
+          v-model:value="localValue.spec"
           :mode="mode"
           @update:value="$emit('input', $event)"
         />
