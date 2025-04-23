@@ -6,6 +6,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 import { ref } from 'vue';
 
+type LabeledSelectComponent = {
+  focusSearch: () => void;
+};
+
 defineProps({
   modelValue: {
     type:    String,
@@ -24,7 +28,7 @@ const emits = defineEmits(['click', 'select']);
 const { handleKeydown, handleActivate } = useDropdownItem();
 
 const dropdownMenuItem = ref<HTMLDivElement | null>(null);
-const menuItemSelect = ref<any>(null);
+const menuItemSelect = ref<LabeledSelectComponent | null>(null);
 
 const handleClick = () => {
   menuItemSelect?.value?.focusSearch();
@@ -40,7 +44,7 @@ const focusMenuItem = () => {
     ref="dropdownMenuItem"
     dropdown-menu-item
     tabindex="-1"
-    role="menuitemselect"
+    role="menuitem"
     :disabled="disabled || null"
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
