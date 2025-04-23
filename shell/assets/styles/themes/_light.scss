@@ -39,7 +39,7 @@ $link           : $primary-80;
 
 // Status colors
 $success         : #007032;
-$warning         : #FFC845;
+$warning         : #FFE47A;
 $error           : #B13333;
 $info            : #1F67DB;
 
@@ -76,7 +76,7 @@ BODY, .theme-light {
   
   --active: #{$primary-140};
   --on-active: #{$grey-0};
-  --active--hover: #{lighten($primary-140, 10%)};
+  --active--hover: #{lighten($primary-140, 5%)};
   --category--active: #{$primary-15};
   --category--active--hover: #{$grey-20};
 
@@ -100,7 +100,6 @@ BODY, .theme-light {
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
-
 
   .text-primary {
     color: var(--primary) !important;
@@ -131,8 +130,6 @@ BODY, .theme-light {
   --link-border             : #{$link};
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
-
-
 
   .text-link {
     color: var(--link) !important;
@@ -168,7 +165,6 @@ BODY, .theme-light {
   --default-light-bg           : #{rgba($grey-10, 0.05)};
   --slider-light-bg            : #{rgba($grey-0, 1)};
   --slider-light-bg-right      : #{rgba($grey-0, 0)};
-
 
   .text-default {
     color: var(--default) !important;
@@ -226,8 +222,6 @@ BODY, .theme-light {
       }
   }
 
-
-
   --success                    : #{$success};
   --success-text               : #{contrast-color($success)};
   --success-hover-bg           : #{darken($success, 10%)};
@@ -237,9 +231,6 @@ BODY, .theme-light {
   --success-border             : #{$success};
   --success-banner-bg          : #{rgba($success, 0.15)};
   --success-light-bg           : #{rgba($success, 0.05)};
-
-  --success-banner    : #{rgba($success, 0.10)};
-  --on-success-banner : $success;
 
   .text-success {
     color: var(--success) !important;
@@ -261,7 +252,6 @@ BODY, .theme-light {
       }
   }
 
-
   --info                    : #{$info};
   --info-text               : #{contrast-color($info)};
   --info-hover-bg           : #{darken($info, 10%)};
@@ -271,9 +261,6 @@ BODY, .theme-light {
   --info-border             : #{$info};
   --info-banner-bg          : #{rgba($info, 0.15)};
   --info-light-bg           : #{rgba($info, 0.05)};
-
-  --info-banner    : #{rgba($info, 0.10)};
-  --on-info-banner : #{$info};
 
   .text-info {
     color: var(--info) !important;
@@ -295,7 +282,6 @@ BODY, .theme-light {
       }
   }
 
-
   --warning                    : #{$warning};
   --warning-text               : #{contrast-color($warning)};
   --warning-hover-bg           : #{darken($warning, 10%)};
@@ -305,9 +291,6 @@ BODY, .theme-light {
   --warning-border             : #{$warning};
   --warning-banner-bg          : #{rgba($warning, 0.15)};
   --warning-light-bg           : #{rgba($warning, 0.05)};
-
-  --warning-banner    : #{rgba($warning, 0.30)};
-  --on-warning-banner : #924200;
 
   .text-warning {
     color: var(--warning) !important;
@@ -340,9 +323,6 @@ BODY, .theme-light {
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 
-  --error-banner    :  #{$error};
-  --on-error-banner : #FFFFFF;
-
   .text-error {
     color: var(--error) !important;
   }
@@ -362,7 +342,6 @@ BODY, .theme-light {
       background: var(--error-active-bg);
       }
   }
-
 
   --body-bg                    : #{$grey-0};
   --body-text                  : #{$grey-90};
@@ -384,7 +363,7 @@ BODY, .theme-light {
   --nav-width                  : 250px;
   --nav-bg                     : var(--body__bg);
   --nav-active                 : #{$grey-10};
-  --nav--hover                  : #{$grey-20};
+  --nav--hover                  : #{$grey-10};
   --nav-category-active--hover : #{$grey-20};
   --nav-active--hover          : var(--active--hover);
   --nav-expander-hover         : #{darken($grey-20, 10%)};
@@ -610,4 +589,18 @@ BODY, .theme-light {
   --badge-state-disabled-text  : #{$grey-50};
   --badge-state-disabled-bg    : #{$grey-5};
   --badge-state-disabled-border: #{$grey-20};
+  
+  /* Semantics */
+
+  --warning-banner    : #{$warning};
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --success-banner    : #{rgba($success, 0.10)};
+  --on-success-banner : $success;
+
+  --info-banner    : #{rgba($info, 0.10)};
+  --on-info-banner : #{$info};
+  
+  --error-banner    :  #{$error};
+  --on-error-banner : #FFFFFF;
 }
