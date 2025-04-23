@@ -28,12 +28,24 @@ const Template: Story = {
       Tab, Tabbed, LabeledInput
     },
     setup() {
+      let message: string;
       const validators = (key: string) => formRulesGenerator(t, { key });
+      // https://github.com/jquense/yup?tab=readme-ov-file#schematestname-string-message-string--function--any-test-function-schema
       const { errors: errVal, values, meta } = useForm({
         validationSchema: yup.object().shape({
           containers: yup
             .array().of(
-              yup.object().shape({ name: yup.string().required().label('Container name') })
+              yup.object().shape({
+                name: yup.string().test({
+                  name:    'required',
+                  message: () => message,
+                  test:    (val) => {
+                    message = validators('Container name').required(val);
+
+                    return !message;
+                  }
+                })
+              })
             )
             .strict(),
         }),
