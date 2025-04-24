@@ -85,8 +85,8 @@ export default {
         name:   'c-cluster-product-resource-namespace-id',
         params: {
           resource:  HCI.CLUSTER,
-          namespace: this.value.metadata.namespace,
-          id:        this.normanCluster.id,
+          namespace: this.normanCluster.provisioningClusterNs,
+          id:        this.normanCluster.provisioningClusterName,
         },
       });
     },
