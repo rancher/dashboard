@@ -19,10 +19,8 @@ import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
-import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
-import AddExtensionRepos from './AddExtensionRepos';
 import CatalogList from './CatalogList/index.vue';
 import Banner from '@components/Banner/Banner.vue';
 import {
@@ -53,7 +51,6 @@ export default {
   components: {
     ActionMenu,
     BadgeState,
-    DeveloperInstallDialog,
     IconMessage,
     CatalogList,
     Banner,
@@ -66,7 +63,6 @@ export default {
     Tabbed,
     UninstallDialog,
     SetupUIPlugins,
-    AddExtensionRepos,
     TabTitle
   },
 
@@ -540,13 +536,30 @@ export default {
 
     // Developer Load is in the action menu
     showDeveloperLoadDialog() {
-      this.$refs.developerInstallDialog.showDialog();
+      this.$store.dispatch('management/promptModal', {
+        component:           'DeveloperLoadExtensionDialog',
+        returnFocusSelector: '[data-testid="extensions-page-menu"]',
+        componentProps:      {
+          closed: (res) => {
+            this.didInstall(res);
+          }
+        }
+      });
     },
 
     showAddExtensionReposDialog() {
       this.updateAddReposSetting();
       this.refreshCharts(true);
-      this.$refs.addExtensionReposDialog.showDialog();
+
+      this.$store.dispatch('management/promptModal', {
+        component:      'AddExtensionReposDialog',
+        testId:         'add-extensions-repos-modal',
+        componentProps: {
+          done: () => {
+            this.updateInstallStatus(true);
+          }
+        }
+      });
     },
 
     showCatalogLoadDialog() {
@@ -1031,14 +1044,6 @@ export default {
       ref="catalogUninstallDialog"
       @closed="didUninstall"
       @refresh="() => reloadRequired = true"
-    />
-    <DeveloperInstallDialog
-      ref="developerInstallDialog"
-      @closed="didInstall"
-    />
-    <AddExtensionRepos
-      ref="addExtensionReposDialog"
-      @done="updateInstallStatus(true)"
     />
   </div>
 </template>
