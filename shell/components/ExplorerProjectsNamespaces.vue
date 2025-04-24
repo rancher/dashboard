@@ -9,7 +9,6 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
-import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
@@ -24,7 +23,6 @@ export default {
   components: {
     ExtensionPanel,
     Masthead,
-    MoveModal,
     ResourceTable,
     ButtonMultiAction,
     ActionMenu,
@@ -398,6 +396,7 @@ export default {
     },
 
     clearSelection() {
+      console.error('NEEDS TO WORK SOMEHOW FROM MODEL!!!!');
       this.$refs.table.clearSelection();
     },
 
@@ -569,7 +568,6 @@ export default {
         </tr>
       </template>
     </ResourceTable>
-    <MoveModal @moving="clearSelection" />
   </div>
 </template>
 <style lang="scss" scoped>

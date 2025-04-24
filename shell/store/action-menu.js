@@ -6,17 +6,11 @@ export const state = function() {
     resources:         [],
     elem:              null,
     event:             null,
-    showPromptMove:    false,
     showPromptRemove:  false,
     showPromptRestore: false,
-    showAssignTo:      false,
-    showPromptUpdate:  false,
     showModal:         false,
-    toMove:            [],
     toRemove:          [],
     toRestore:         [],
-    toAssign:          [],
-    toUpdate:          [],
     modalData:         {},
   };
 };
@@ -89,16 +83,6 @@ export const mutations = {
     state.toRemove = resources;
   },
 
-  togglePromptMove(state, resources) {
-    if (!resources) {
-      state.showPromptMove = false;
-      resources = [];
-    } else {
-      state.showPromptMove = !state.showPromptMove;
-      state.toMove = Array.isArray(resources) ? resources : [resources];
-    }
-  },
-
   togglePromptRestore(state, resources) {
     if (!resources) {
       state.showPromptRestore = false;
@@ -110,31 +94,6 @@ export const mutations = {
       }
     }
     state.toRestore = resources;
-  },
-
-  toggleAssignTo(state, resources) {
-    state.showAssignTo = !state.showAssignTo;
-
-    if (!isArray(resources)) {
-      resources = [resources];
-    }
-
-    state.toAssign = resources;
-  },
-
-  togglePromptUpdate(state, resources) {
-    if (!resources) {
-      // Clearing the resources also hides the prompt
-      state.showPromptUpdate = false;
-    } else {
-      state.showPromptUpdate = !state.showPromptUpdate;
-    }
-
-    if (!isArray(resources)) {
-      resources = [resources];
-    }
-
-    state.toUpdate = resources;
   },
 
   togglePromptModal(state, data) {

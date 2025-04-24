@@ -73,7 +73,18 @@ export default class Namespace extends SteveModel {
   }
 
   move(resources = this) {
-    this.$dispatch('promptMove', resources);
+    this.$dispatch('promptModal', {
+      component:      'MoveNamespaceDialog',
+      resources:      !Array.isArray(resources) ? [resources] : resources,
+      modalWidth:     '440',
+      height:         'auto',
+      styles:         'max-height: 100vh;',
+      componentProps: {
+        movingCb: () => {
+          console.warn('REFS', resources);
+        }
+      }
+    });
   }
 
   get isSystem() {
