@@ -8,6 +8,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import FixedBannerPo from '@/cypress/e2e/po/components/fixed-banner.po';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -247,7 +248,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().selectAll().set();
       usersPo.list().openBulkActionDropdown();
 
-      cy.intercept('GET', '/v1/management.cattle.io.users/*').as('downloadYaml');
+      cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
       usersPo.list().bulkActionButton('Download YAML').click({ force: true });
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, 'resources.zip');

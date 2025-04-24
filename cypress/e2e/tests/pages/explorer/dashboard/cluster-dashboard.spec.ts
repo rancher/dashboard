@@ -245,7 +245,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
-    clusterDashboard.eventsList().resourceTable().sortableTable().rowElements()
+    clusterDashboard.sharedComponents().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
 
     clusterDashboard.fullEventsLink().click();
@@ -253,7 +253,8 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     const events = new EventsPagePo('local');
 
     events.waitForPage();
-    events.sortableTable().rowElements().should('have.length.gte', 2);
+    events.sharedComponents().resourceTable().sortableTable().rowElements()
+      .should('have.length.gte', 2);
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
@@ -263,7 +264,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
+    clusterDashboard.sharedComponents().resourceTable().sortableTable().checkRowCount(true, 1);
 
     let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
@@ -272,10 +273,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
       }
 
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
         .self()
         .scrollIntoView();
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
@@ -287,12 +288,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       events.waitForPage();
 
-      events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+      events.sharedComponents().resourceTable().sortableTable().checkRowCount(true, 1);
 
       const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
         'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
-      events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+      events.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedFullHeaders[i]);

@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import { EventsCreateEditPo } from '@/cypress/e2e/po/edit/events.po';
 
 export class EventsPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -21,14 +22,11 @@ export class EventsPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Events');
   }
 
-  eventslist(): EventsListPo {
-    return new EventsListPo('[data-testid="sortable-table-list-container"]');
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
-  /**
-   * Convenience method
-   */
-  sortableTable() {
-    return this.eventslist().resourceTable().sortableTable();
+  eventCreateEditPo(): EventsCreateEditPo {
+    return new EventsCreateEditPo();
   }
 }

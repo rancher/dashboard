@@ -110,92 +110,141 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
           expect(initialCount).to.be.greaterThan(3 * pageSize);
 
           // pagination is visible
-          events.sortableTable().pagination().checkVisible();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .checkVisible();
 
           const loadingPo = new LoadingPo('.title .resource-loading-indicator');
 
           loadingPo.checkNotExists();
 
           // basic checks on navigation buttons
-          events.sortableTable().pagination().beginningButton().isDisabled();
-          events.sortableTable().pagination().leftButton().isDisabled();
-          events.sortableTable().pagination().rightButton().isEnabled();
-          events.sortableTable().pagination().endButton().isEnabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
           // check text before navigation
-          events.sortableTable().pagination().self().scrollIntoView();
-          events.sortableTable().pagination().paginationText().then((el) => {
-            expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
-          });
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .paginationText()
+            .then((el) => {
+              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
+            });
 
           // navigate to next page - right button
           countHelper.setupCount(vaiCacheEnabled, initialCount);
-          events.sortableTable().pagination().rightButton().click();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
           countHelper.handleCount(vaiCacheEnabled);
 
           // check text and buttons after navigation
-          events.sortableTable().pagination().self().scrollIntoView();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
           countHelper.getCount().then((count) => {
-            return events.sortableTable().pagination().paginationText().then((el) => {
-              expect(el.trim()).to.eq(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
-            });
+            return events.sharedComponents().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
+              });
           });
-          events.sortableTable().pagination().beginningButton().isEnabled();
-          events.sortableTable().pagination().leftButton().isEnabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
           // navigate to first page - left button
           countHelper.setupCount(vaiCacheEnabled, initialCount);
-          events.sortableTable().pagination().leftButton().click();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
           countHelper.handleCount(vaiCacheEnabled);
 
           // check text and buttons after navigation
-          events.sortableTable().pagination().self().scrollIntoView();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
           countHelper.getCount().then((count) => {
-            return events.sortableTable().pagination().paginationText().then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
-            });
+            return events.sharedComponents().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
           });
 
-          events.sortableTable().pagination().beginningButton().isDisabled();
-          events.sortableTable().pagination().leftButton().isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
           // navigate to last page - end button
           countHelper.setupCount(vaiCacheEnabled, initialCount);
-          events.sortableTable().pagination().endButton().scrollIntoView()
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
             .click();
           countHelper.handleCount(vaiCacheEnabled);
 
           // check text after navigation
-          events.sortableTable().pagination().self().scrollIntoView();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
           countHelper.getCount().then((count) => {
-            return events.sortableTable().pagination().paginationText().then((el) => {
-              let pages = Math.floor(count / pageSize);
+            return events.sharedComponents().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                let pages = Math.floor(count / pageSize);
 
-              if (count % pageSize === 0) {
-                pages--;
-              }
-              const from = (pages * pageSize) + 1;
-              const to = count;
+                if (count % pageSize === 0) {
+                  pages--;
+                }
+                const from = (pages * pageSize) + 1;
+                const to = count;
 
-              expect(el.trim()).to.eq(`${ from } - ${ to } of ${ to } Events`);
-            });
+                expect(el.trim()).to.eq(`${ from } - ${ to } of ${ to } Events`);
+              });
           });
 
           // navigate to first page - beginning button
           countHelper.setupCount(vaiCacheEnabled, initialCount);
-          events.sortableTable().pagination().beginningButton().click();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
           countHelper.handleCount(vaiCacheEnabled);
 
           // check text and buttons after navigation
-          events.sortableTable().pagination().self().scrollIntoView();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
           countHelper.getCount().then((count) => {
-            events.sortableTable().pagination().paginationText().then((el) => {
-              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
-            });
+            events.sharedComponents().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
           });
 
-          events.sortableTable().pagination().beginningButton().isDisabled();
-          events.sortableTable().pagination().leftButton().isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.sharedComponents().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
         });
     });
 
@@ -205,25 +254,27 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       EventsPagePo.navTo();
       events.waitForPage();
 
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, pageSize);
+      events.sharedComponents().resourceTable().sortableTable().checkVisible();
+      events.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      events.sharedComponents().resourceTable().sortableTable().checkRowCount(false, pageSize);
 
       // filter by namespace
-      events.sortableTable().filter(nsName2);
+      events.sharedComponents().resourceTable().sortableTable().filter(nsName2);
       events.waitForPage(`q=${ nsName2 }`);
-      events.eventslist().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('be.visible');
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('be.visible');
 
       // filter by name
-      events.sortableTable().filter(uniquePod);
+      events.sharedComponents().resourceTable().sortableTable().filter(uniquePod);
       events.waitForPage(`q=${ uniquePod }`);
-      events.eventslist().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('be.visible');
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('be.visible');
 
-      events.sortableTable().resetFilter();
+      events.sharedComponents().resourceTable().sortableTable().resetFilter();
     });
 
     it('sorting changes the order of paginated events data', () => {
@@ -231,29 +282,43 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.waitForPage();
 
       // check table is sorted by `last seen` in ASC order by default
-      events.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+      events.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'down');
 
       // sort by name in ASC order
-      events.sortableTable().sort(11).click();
-      events.sortableTable().tableHeaderRow().checkSortOrder(11, 'down');
+      events.sharedComponents().resourceTable().sortableTable().sort(11)
+        .click();
+      events.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(11, 'down');
 
       // event name should be visible on first page (sorted in ASC order)
-      events.sortableTable().tableHeaderRow().self().scrollIntoView();
-      events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
+      events.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .scrollIntoView()
+        .should('be.visible');
 
       // sort by name in DESC order
-      events.sortableTable().sort(11).click();
-      events.sortableTable().tableHeaderRow().checkSortOrder(11, 'up');
+      events.sharedComponents().resourceTable().sortableTable().sort(11)
+        .click();
+      events.sharedComponents().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(11, 'up');
 
       // event name should be NOT visible on first page (sorted in DESC order)
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('not.exist');
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('not.exist');
 
       // navigate to last page
-      events.sortableTable().pagination().endButton().scrollIntoView()
+      events.sharedComponents().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
         .click();
 
       // event name should be visible on last page (sorted in DESC order)
-      events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
+      events.sharedComponents().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .scrollIntoView()
+        .should('be.visible');
     });
 
     it('pagination is hidden', () => {
@@ -263,10 +328,11 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.waitForPage();
       cy.wait('@eventsDataSmall');
 
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 3);
-      events.sortableTable().pagination().checkNotExists();
+      events.sharedComponents().resourceTable().sortableTable().checkVisible();
+      events.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      events.sharedComponents().resourceTable().sortableTable().checkRowCount(false, 3);
+      events.sharedComponents().resourceTable().sortableTable().pagination()
+        .checkNotExists();
     });
 
     after('clean up', () => {

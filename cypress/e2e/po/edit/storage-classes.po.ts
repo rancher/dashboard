@@ -4,7 +4,7 @@ import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 export default class StorageClassesCreateEditPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
-    const root = `/c/${ clusterId }/explorer/storage.k8s.io.storageclass/create`;
+    const root = `/c/${ clusterId }/explorer/storage.k8s.io.storageclass`;
 
     return id ? `${ root }/${ id }` : `${ root }/create`;
   }
@@ -13,7 +13,7 @@ export default class StorageClassesCreateEditPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = '_', id?: string) {
+  constructor(clusterId = 'local', id?: string) {
     super(StorageClassesCreateEditPo.createPath(clusterId, id));
   }
 

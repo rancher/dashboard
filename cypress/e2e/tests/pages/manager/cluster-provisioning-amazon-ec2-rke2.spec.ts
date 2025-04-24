@@ -6,6 +6,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
@@ -69,7 +70,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
     cloudCredForm.defaultRegion().clickOptionWithLabel('us-west-1');
     cloudCredForm.saveButton().expectToBeEnabled();
 
-    cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
+    cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('pageLoad');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id;

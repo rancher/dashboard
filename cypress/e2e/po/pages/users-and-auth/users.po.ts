@@ -5,6 +5,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import LinkPo from '@/cypress/e2e/po/components/link.po';
 import ClusterPage from '@/cypress/e2e/po/pages/cluster-page.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 
 export default class UsersPo extends ClusterPage {
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
@@ -25,6 +26,10 @@ export default class UsersPo extends ClusterPage {
 
   waitForRequests() {
     UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0'], 15000);
+  }
+
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
   list() {
