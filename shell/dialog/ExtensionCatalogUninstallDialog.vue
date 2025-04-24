@@ -6,12 +6,47 @@ import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 
 export default {
-  emits: ['closed', 'refresh', 'update'],
+  emits: ['close'],
 
-  components: { AsyncButton, AppModal },
+  components: { AsyncButton },
+
+  props: {
+    /**
+     * Catalog object
+     */
+    catalog: {
+      type:     Object,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback to trigger refresh banner on extensions screen
+     */
+    refresh: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    // TODO: handle console warns if we remove these props (resources, regbackgroundclosing)
+    resources: {
+      type:    Array,
+      default: () => []
+    },
+    registerBackgroundClosing: {
+      type:    Function,
+      default: () => {}
+    }
+  },
 
   async fetch() {
     if ( this.$store.getters['management/schemaFor'](UI_PLUGIN) ) {
@@ -23,11 +58,8 @@ export default {
 
   data() {
     return {
-      catalog:             undefined,
-      busy:                false,
-      plugins:             null,
-      showModal:           false,
-      returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]'
+      busy:    false,
+      plugins: null,
     };
   },
 
@@ -40,19 +72,14 @@ export default {
   },
 
   methods: {
-    showDialog(catalog) {
-      this.catalog = catalog;
-      this.busy = false;
-      this.showModal = true;
-    },
-
     closeDialog(result) {
-      this.showModal = false;
-      this.$emit('closed', result);
+      this.closed(result);
 
       if ( result ) {
-        this.$emit('refresh');
+        this.refresh();
       }
+
+      this.$emit('close');
     },
 
     async uninstall() {
@@ -76,7 +103,6 @@ export default {
       if ( pluginApps.length ) {
         try {
           pluginApps.forEach((app) => {
-            this.$emit('update', app.name, 'uninstall');
             app.remove();
           });
         } catch (e) {
@@ -120,46 +146,33 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    name="uninstallCatalogDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    @close="closeDialog(false)"
-  >
-    <div
-      v-if="catalog"
-      class="plugin-install-dialog"
-    >
-      <h4 class="mt-10">
-        {{ t('plugins.uninstall.title', { name: catalog.name }) }}
-      </h4>
-      <div class="mt-10 dialog-panel">
-        <div class="dialog-info">
-          <p>
-            {{ t('plugins.uninstall.catalog') }}
-          </p>
-        </div>
-        <div class="dialog-buttons">
-          <button
-            :disabled="busy"
-            class="btn role-secondary"
-            data-testid="uninstall-ext-modal-cancel-btn"
-            @click="closeDialog(false)"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <AsyncButton
-            mode="uninstall"
-            data-testid="uninstall-ext-modal-uninstall-btn"
-            @click="uninstall()"
-          />
-        </div>
+  <div class="plugin-install-dialog">
+    <h4 class="mt-10">
+      {{ t('plugins.uninstall.title', { name: catalog.name }) }}
+    </h4>
+    <div class="mt-10 dialog-panel">
+      <div class="dialog-info">
+        <p>
+          {{ t('plugins.uninstall.catalog') }}
+        </p>
+      </div>
+      <div class="dialog-buttons">
+        <button
+          :disabled="busy"
+          class="btn role-secondary"
+          data-testid="uninstall-ext-modal-cancel-btn"
+          @click="closeDialog(false)"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          mode="uninstall"
+          data-testid="uninstall-ext-modal-uninstall-btn"
+          @click="uninstall()"
+        />
       </div>
     </div>
-  </app-modal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

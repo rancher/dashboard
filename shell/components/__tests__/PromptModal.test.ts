@@ -32,6 +32,8 @@ import ChangePasswordDialog from '@shell/dialog/ChangePasswordDialog.vue';
 import AssignToDialog from '@shell/dialog/AssignToDialog.vue';
 import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
+import ExtensionCatalogInstallDialog from '@shell/dialog/ExtensionCatalogInstallDialog.vue';
+import ExtensionCatalogUninstallDialog from '@shell/dialog/ExtensionCatalogUninstallDialog.vue';
 
 import { createStore } from 'vuex';
 
@@ -117,6 +119,8 @@ describe('component: PromptModal', () => {
     ['AssignToDialog', AssignToDialog],
     ['FeatureFlagListDialog', FeatureFlagListDialog],
     ['MoveNamespaceDialog', MoveNamespaceDialog],
+    ['ExtensionCatalogInstallDialog', ExtensionCatalogInstallDialog],
+    ['ExtensionCatalogUninstallDialog', ExtensionCatalogUninstallDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,

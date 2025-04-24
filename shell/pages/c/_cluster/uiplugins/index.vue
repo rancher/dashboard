@@ -15,8 +15,6 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import LazyImage from '@shell/components/LazyImage';
 import { BadgeState } from '@components/BadgeState';
-import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
-import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
 import CatalogList from './CatalogList/index.vue';
@@ -52,8 +50,6 @@ export default {
     IconMessage,
     CatalogList,
     Banner,
-    CatalogLoadDialog,
-    CatalogUninstallDialog,
     LazyImage,
     PluginInfoPanel,
     Tab,
@@ -559,11 +555,34 @@ export default {
     },
 
     showCatalogLoadDialog() {
-      this.$refs.catalogLoadDialog.showDialog();
+      this.$store.dispatch('management/promptModal', {
+        component:           'ExtensionCatalogInstallDialog',
+        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
+        componentProps:      {
+          refresh: () => {
+            this.reloadRequired = true;
+          },
+          closed: (res) => {
+            this.didInstall(res);
+          }
+        }
+      });
     },
 
     showCatalogUninstallDialog(ev) {
-      this.$refs.catalogUninstallDialog.showDialog(ev);
+      this.$store.dispatch('management/promptModal', {
+        component:           'ExtensionCatalogUninstallDialog',
+        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
+        componentProps:      {
+          catalog: ev,
+          refresh: () => {
+            this.reloadRequired = true;
+          },
+          closed: (res) => {
+            this.didUninstall(res);
+          }
+        }
+      });
     },
 
     showInstallDialog(plugin, mode, ev) {
@@ -1049,17 +1068,6 @@ export default {
         </div>
       </template>
     </div>
-
-    <CatalogLoadDialog
-      ref="catalogLoadDialog"
-      @closed="didInstall"
-      @refresh="() => reloadRequired = true"
-    />
-    <CatalogUninstallDialog
-      ref="catalogUninstallDialog"
-      @closed="didUninstall"
-      @refresh="() => reloadRequired = true"
-    />
   </div>
 </template>
 
