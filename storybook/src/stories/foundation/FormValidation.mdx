@@ -13,9 +13,13 @@ Form validation based on the library [`vee-validate`](https://vee-validate.logar
 
 For the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
 
+### Inline defined rules
+
 Example of configuration with custom defined rules a during declaration:
 
 ```ts
+import { useForm } from 'vee-validate';
+
 setup() {
   const { errors: errVal, values, meta } = useForm({
     validationSchema: { name: (val: string) => val !== '' ? true : 'Field is required' },
@@ -32,10 +36,13 @@ setup() {
 },
 ```
 
+### Custom rules
+
 Example of configuration using existing rules:
 
 ```ts
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { useForm } from 'vee-validate';
 
 setup() {
   const store = useStore();
@@ -47,15 +54,72 @@ setup() {
     validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
     initialValues:    { name: '' },
   });
-  const [name, nameAttrs] = defineField('name');
+  const [name] = defineField('name');
 
   return {
     name,
-    nameAttrs,
     values,
     errVal,
     meta,
     args
+  };
+},
+```
+
+### Rules with Yup
+
+Example of configuration using [`yup`](https://github.com/jquense/yup):
+
+```ts
+import * as yup from 'yup';
+import { useForm } from 'vee-validate';
+
+setup() {
+  const { errors: errVal, values, meta } = useForm({
+    validationSchema: { name: yup.string().required().label('Container name') },
+    initialValues:    { name: '' },
+  });
+  const [name] = defineField('name');
+
+  return {
+    name,
+    values,
+    errVal,
+    meta,
+  };
+},
+```
+
+### Custom rules with Yup
+
+```ts
+import * as yup from 'yup';
+import { useForm } from 'vee-validate';
+
+setup() {
+  const store = useStore();
+  const { t } = useI18n(store);
+  const validators = (key: string) => formRulesGenerator(t, { key });
+  const { errors: errVal, values, meta } = useForm({
+    validationSchema: { name: yup.string().test({
+      name:    'required',
+      message: () => message,
+      test:    (val) => {
+        message = validators('Container name').required(val);
+
+        return !message;
+      }
+    })
+  })
+    initialValues:    { name: '' },
+  });
+  const [name] = defineField('name');
+
+  return {
+    name,
+    values,
+    errVal,
+    meta,
   };
 },
 ```
