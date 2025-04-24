@@ -20,6 +20,8 @@ import ScalePoolDownDialog from '@shell/dialog/ScalePoolDownDialog.vue';
 import SloDialog from '@shell/dialog/SloDialog.vue';
 
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
+import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
+import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
 import { createStore } from 'vuex';
 
 jest.mock('@shell/utils/clipboard', () => {
@@ -91,7 +93,9 @@ describe('component: PromptModal', () => {
     ['ScaleMachineDownDialog', ScaleMachineDownDialog],
     ['ScalePoolDownDialog', ScalePoolDownDialog],
     // new modals created/moved
-    ['WechatDialog', WechatDialog]
+    ['WechatDialog', WechatDialog],
+    ['InstallExtensionDialog', InstallExtensionDialog],
+    ['UninstallExtensionDialog', UninstallExtensionDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,
