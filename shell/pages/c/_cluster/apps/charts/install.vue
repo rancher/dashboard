@@ -1,6 +1,8 @@
 <script>
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
+import mergeWith from 'lodash/mergeWith';
+import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
@@ -328,15 +330,29 @@ export default {
       */
       this.removeGlobalValuesFrom(userValues);
 
+      const userKeys = Object.keys(userValues);
+      const customizer = (objValue, srcValue, key) => {
+        if (userKeys.includes(key) && isObject(srcValue)) {
+          return {
+            ...objValue,
+            ...srcValue
+          };
+        }
+      };
+
       /*
-        The merge() method is used to merge two or more objects
+        The mergeWith() method is used to merge two or more objects
         starting with the left-most to the right-most to create a
         parent mapping object. When two keys are the same, the
         generated object will have value for the rightmost key.
-        In this case, any values in userValues override any
+        With the customizer, any values in userValues override any
         matching values in versionInfo.
       */
-      this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
+      this.chartValues = mergeWith(
+        merge({}, this.versionInfo?.values || {}),
+        userValues,
+        customizer
+      );
 
       if (this.showCustomRegistry) {
         /**
