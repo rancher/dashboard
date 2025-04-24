@@ -6,7 +6,7 @@ import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
 
 export default {
-  emits: ['closeSearch'],
+  emits: ['close'],
 
   components: { Group },
 
@@ -77,6 +77,7 @@ export default {
     >
       {{ t('nav.resourceSearch.filteringDescription') }}
     </p>
+<<<<<<< HEAD:shell/components/nav/Jump.vue
     <div class="dialog-title">
       <div>{{ t('nav.resourceSearch.label') }}</div>
       <p>{{ t('nav.resourceSearch.prompt') }}</p>
@@ -93,6 +94,18 @@ export default {
         @keyup.esc="$emit('closeSearch')"
       >
     </div>
+=======
+    <input
+      ref="input"
+      v-model="value"
+      :placeholder="t('nav.resourceSearch.placeholder')"
+      class="search"
+      role="textbox"
+      :aria-label="t('nav.resourceSearch.label')"
+      aria-describedby="describe-filter-resource-search"
+      @keyup.esc="$emit('close')"
+    >
+>>>>>>> 590215a8dc (refactor import and search header modals as a prompt modal + add unit tests):shell/dialog/SearchDialog.vue
     <div class="results">
       <div
         v-for="g in groups"
@@ -106,7 +119,7 @@ export default {
           :group="g"
           :can-collapse="false"
           :fixed-open="true"
-          @close="$emit('closeSearch')"
+          @close="$emit('close')"
         >
           <template #accordion>
             <h6>{{ g.label }}</h6>

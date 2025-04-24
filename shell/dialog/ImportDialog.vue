@@ -120,12 +120,9 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <Card
-    v-else
     :show-highlight-border="false"
     data-testid="import-yaml"
-    :trigger-focus-trap="true"
   >
     <template #title>
       <div style="display: block; width: 100%;">
