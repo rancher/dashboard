@@ -137,73 +137,78 @@ export default {
     @finish="saveOverride"
     @error="e=>errors = e"
   >
-    <Banner
-      v-if="isCreate"
-      color="warning"
-    >
-      {{ t('harvesterManager.cluster.supportMessage') }}
-    </Banner>
-    <div class="mt-20">
-      <NameNsDescription
-        v-if="!isView"
-        v-model:value="normanCluster"
-        :mode="mode"
-        :namespaced="false"
-        :nameEditable="!isEdit"
-        :descriptionDisabled="!isCreate"
-        nameKey="name"
-        descriptionKey="description"
-        name-label="cluster.name.label"
-        name-placeholder="cluster.name.placeholder"
-        description-label="cluster.description.label"
-        description-placeholder="cluster.description.placeholder"
-      />
-    </div>
-
-    <Tabbed :side-tabs="true">
-      <Tab
-        name="memberRoles"
-        label-key="cluster.tabs.memberRoles"
-        :weight="3"
+    <Loading
+      v-if="$fetchState.pending"
+      mode="relative"
+    />
+    <div v-else>
+      <Banner
+        v-if="isCreate"
+        color="warning"
       >
-        <Banner
-          v-if="isEdit"
-          color="info"
-        >
-          {{ t('cluster.memberRoles.removeMessage') }}
-        </Banner>
-        <ClusterMembershipEditor
-          :mode="canManageMembers ? mode : VIEW"
-          :parent-id="normanCluster.id ? normanCluster.id : null"
-          @membership-update="onMembershipUpdate"
-        />
-      </Tab>
-      <Tab
-        name="agentEnv"
-        label-key="cluster.tabs.agentEnv"
-      >
-        <KeyValue
-          v-model:value="normanCluster.agentEnvVars"
-          :mode="mode"
-          key-name="name"
-          :as-map="false"
-          :preserve-keys="['valueFrom']"
-          :supported="(row) => typeof row.valueFrom === 'undefined'"
-          :read-allowed="true"
-          :value-can-be-empty="true"
-          :key-label="t('cluster.agentEnvVars.keyLabel')"
-          :parse-lines-from-file="true"
-        />
-      </Tab>
-      <Tab
-        name="labels"
-        label-key="generic.labelsAndAnnotations"
-      >
-        <Labels
+        {{ t('harvesterManager.cluster.supportMessage') }}
+      </Banner>
+      <div class="mt-20">
+        <NameNsDescription
+          v-if="!isView"
           v-model:value="normanCluster"
           :mode="mode"
+          :namespaced="false"
+          :nameEditable="!isEdit"
+          nameKey="name"
+          descriptionKey="description"
+          name-label="cluster.name.label"
+          name-placeholder="cluster.name.placeholder"
+          description-label="cluster.description.label"
+          description-placeholder="cluster.description.placeholder"
         />
-      </Tab>
-    </Tabbed>
+      </div>
+
+      <Tabbed :side-tabs="true">
+        <Tab
+          name="memberRoles"
+          label-key="cluster.tabs.memberRoles"
+          :weight="3"
+        >
+          <Banner
+            v-if="isEdit"
+            color="info"
+          >
+            {{ t('cluster.memberRoles.removeMessage') }}
+          </Banner>
+          <ClusterMembershipEditor
+            :mode="canManageMembers ? mode : VIEW"
+            :parent-id="normanCluster.id ? normanCluster.id : null"
+            @membership-update="onMembershipUpdate"
+          />
+        </Tab>
+        <Tab
+          name="agentEnv"
+          label-key="cluster.tabs.agentEnv"
+        >
+          <KeyValue
+            v-model:value="normanCluster.agentEnvVars"
+            :mode="mode"
+            key-name="name"
+            :as-map="false"
+            :preserve-keys="['valueFrom']"
+            :supported="(row) => typeof row.valueFrom === 'undefined'"
+            :read-allowed="true"
+            :value-can-be-empty="true"
+            :key-label="t('cluster.agentEnvVars.keyLabel')"
+            :parse-lines-from-file="true"
+          />
+        </Tab>
+        <Tab
+          name="labels"
+          label-key="generic.labelsAndAnnotations"
+        >
+          <Labels
+            v-model:value="normanCluster"
+            :mode="mode"
+          />
+        </Tab>
+      </Tabbed>
+    </div>
   </CruResource>
 </template>
