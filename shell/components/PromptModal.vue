@@ -14,9 +14,10 @@ export default {
 
   data() {
     return {
-      opened:            false,
-      backgroundClosing: null,
-      componentRendered: false
+      opened:                 false,
+      fixUnitTestTrapOptions: false,
+      backgroundClosing:      null,
+      componentRendered:      false
     };
   },
 
@@ -123,6 +124,7 @@ export default {
     :return-focus-selector="returnFocusSelector"
     :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
     :focus-trap-watcher-based-variable="componentRendered"
+    :fix-unit-test-trap-options="fixUnitTestTrapOptions"
     @close="close()"
   >
     <component
