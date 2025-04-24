@@ -14,15 +14,15 @@ export default {
 
   data() {
     return {
-      opened:            false,
-      backgroundClosing: null,
-      componentRendered: false
+      opened:                 false,
+      fixUnitTestTrapOptions: false,
+      backgroundClosing:      null,
+      componentRendered:      false
     };
   },
 
   computed: {
     ...mapState('action-menu', ['showModal', 'modalData']),
-
     resources() {
       let resources = this.modalData?.resources;
 
@@ -32,10 +32,27 @@ export default {
 
       return resources || [];
     },
-
+    testId() {
+      return this.modalData?.testId || 'prompt-modal-generic-testid';
+    },
+    returnFocusSelector() {
+      return this.modalData?.returnFocusSelector || undefined;
+    },
+    returnFocusFirstIterableNodeSelector() {
+      return this.modalData?.returnFocusFirstIterableNodeSelector || undefined;
+    },
     modalWidth() {
       // property set from workload.js to overwrite modal default width of 600px, with fallback value as well
       return this.modalData?.modalWidth || '600px';
+    },
+    customClass() {
+      return this.modalData?.customClass || undefined;
+    },
+    styles() {
+      return this.modalData?.styles || undefined;
+    },
+    height() {
+      return this.modalData?.height || undefined;
     },
     component() {
       // Looks for a dialog component by looking up in plugins and @shell/dialog/${name}.
@@ -52,6 +69,9 @@ export default {
     },
     closeOnClickOutside() {
       return this.modalData?.closeOnClickOutside;
+    },
+    modalName() {
+      return this.modalData?.modalName;
     }
   },
 
@@ -93,10 +113,18 @@ export default {
 <template>
   <app-modal
     v-if="opened && component"
+    :name="modalName"
     :click-to-close="closeOnClickOutside"
     :width="modalWidth"
-    :trigger-focus-trap-watcher-based="true"
+    :data-testid="testId"
+    :custom-class="customClass"
+    :styles="styles"
+    :height="height"
+    :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
+    :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
     :focus-trap-watcher-based-variable="componentRendered"
+    :fix-unit-test-trap-options="fixUnitTestTrapOptions"
     @close="close()"
   >
     <component

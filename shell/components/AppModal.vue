@@ -2,7 +2,6 @@
 import { defineComponent } from 'vue';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
-  useBasicSetupFocusTrap,
   getFirstFocusableElement,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
@@ -98,8 +97,22 @@ export default defineComponent({
      */
     focusTrapWatcherBasedVariable: {
       type:    Boolean,
-      default: false,
+      default: undefined,
     },
+    fakeWatchVar: {
+      type:    Boolean,
+      default: true,
+    },
+    /**
+     * property need to manipulate focus-trap lib for unit tests
+     * as per https://github.com/focus-trap/tabbable#common-options
+     * which has to be "none" in order for them to work
+     * manual test on Rancher Dashboard shows all modals work fine without this
+     */
+    fixUnitTestTrapOptions: {
+      type:    Boolean,
+      default: false,
+    }
   },
   computed: {
     modalWidth(): string {
@@ -127,6 +140,13 @@ export default defineComponent({
         ...this.stylesPropToObj,
       };
     },
+    watcherVariableForFocusTrap(): boolean {
+      if (this.focusTrapWatcherBasedVariable !== undefined) {
+        return this.focusTrapWatcherBasedVariable;
+      }
+
+      return true;
+    }
   },
   setup(props) {
     if (props.triggerFocusTrap) {
@@ -150,19 +170,12 @@ export default defineComponent({
         };
       }
 
-      if (!props.triggerFocusTrapWatcherBased) {
-        useBasicSetupFocusTrap('#modal-container-element', opts);
+      // needed as a workaround/fix for PromptModal unit tests
+      if (props.fixUnitTestTrapOptions) {
+        opts.tabbableOptions = { displayCheck: 'none' };
       }
-    }
-  },
-  created() {
-    // This usecase is to cover the PromptModal scenario where it's renders a generic component inside.
-    // Due to the architecture of the PromptModal it needs to be handled with a watcher based focus trap
-    // but with a dedicated unmount hook
-    if (this.triggerFocusTrapWatcherBased) {
-      const opts:any = DEFAULT_FOCUS_TRAP_OPTS;
 
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.focusTrapWatcherBasedVariable, '#modal-container-element', opts, true);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable !== undefined ? props.focusTrapWatcherBasedVariable : props.fakeWatchVar, '#modal-container-element', opts, true);
     }
   },
   mounted() {
