@@ -93,32 +93,32 @@ const Template: Story = {
         v-for="(container, i) in containers"
         :key="container.key"
         :name="'Container ' + (i + 1)"
-        :displayAlertIcon="getErrors(errVal, 'containers', i).length"
+        :displayAlertIcon="!!getErrors(errVal, 'containers', i).length"
       >
         <Tabbed :useHash=${ args.useHash } :sideTabs=${ true }>
           <Tab
             name="name"
             label="Name settings"
-            :displayAlertIcon="getErrors(errVal, 'containers', i, 'name').length"
+            :displayAlertIcon="!!getErrors(errVal, 'containers', i, 'name').length"
           >
             <LabeledInput
               v-model:value="container.value.name"
               label="Container name"
               type="text"
-              :subLabel="getErrors(errVal, 'containers', i, 'name')"
+              :subLabel="getErrors(errVal, 'containers', i, 'name').join(', ')"
               :status="getErrors(errVal, 'containers', i, 'name').length ? 'error' : meta.touched ? 'success' : undefined"
             />
           </Tab>
           <Tab
             name="image"
             label="Image settings"
-            :displayAlertIcon="getErrors(errVal, 'containers', i, 'image').length"
+            :displayAlertIcon="!!getErrors(errVal, 'containers', i, 'image').length"
           >
             <LabeledInput
               v-model:value="container.value.image"
               label="Container image"
               type="text"
-              :subLabel="getErrors(errVal, 'containers', i, 'image')"
+              :subLabel="getErrors(errVal, 'containers', i, 'image').join(', ')"
               :status="getErrors(errVal, 'containers', i, 'image').length ? 'error' : meta.touched ? 'success' : undefined"
             />
           </Tab>
