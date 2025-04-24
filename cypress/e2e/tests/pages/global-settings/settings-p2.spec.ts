@@ -14,7 +14,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-const removeServerUrl = false;
+let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {

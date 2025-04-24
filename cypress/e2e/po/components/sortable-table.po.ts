@@ -25,6 +25,15 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Get the bulk action button
+   * @param label
+   * @returns
+   */
+  bulkActionButton(label: string) {
+    return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {

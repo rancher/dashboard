@@ -503,6 +503,7 @@ export default {
               <ActionMenu
                 v-if="showProjectActionButton(group.group)"
                 :resource="getProjectActions(group.group)"
+                data-testid="action-button"
                 :button-aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
               />
               <div
