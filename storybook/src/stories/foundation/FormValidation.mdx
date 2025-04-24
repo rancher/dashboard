@@ -2,6 +2,7 @@ import { Canvas, Meta } from "@storybook/addon-docs";
 import * as FormInput from './FormInput.stories';
 import * as FormNested from './FormNested.stories';
 import * as FormComponent from './FormComponent.stories';
+import * as FormMarkup from './FormMarkup.stories';
 
 <Meta title="Foundation/Form Validation"  />
 
@@ -9,9 +10,40 @@ import * as FormComponent from './FormComponent.stories';
 
 Form validation based on the library [`vee-validate`](https://vee-validate.logaretm.com/v4/guide/overview/) for documentation.
 
-## Composition API
+## Components
 
-For the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
+VeeValidate provides components ready to use as wrapper for the inputs. Read [official documentation](https://vee-validate.logaretm.com/v4/guide/components/validation/) for further details.
+
+NOTE: If not slot is defined, a default input field text is instead adopted.
+
+### Basic use case
+
+To integrate with our existing components, you just need to wrap it around the `Field` component. Here an example using LabeledInput:
+
+<Canvas of={FormMarkup.Default} />
+
+```html
+<Form>
+  <Field
+    name="field"
+    value=""
+    :rules="(value) => value && value.trim() ? true : 'This is required'"
+    v-slot="{ field, meta }"
+  >
+    <LabeledInput
+      name="field"
+      v-bind="field"
+      :subLabel="meta.errors.join(', ')"
+      :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
+      :tooltipKey="!!meta.errors.length ? meta.errors.join(', ') : meta.touched ? 'Input correct' : undefined"
+    />
+  </Field>
+</Form>
+```
+
+## Declared form (Composition API)
+
+Form can be defined within the setup (also using Options API) using the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
 
 ### Inline defined rules
 
@@ -132,7 +164,7 @@ Case of input with validation based on [input component](/docs/stories-form-inpu
 
 ### Nested Form 
 
-Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`yup`](https://github.com/jquense/yup) validation library.
+Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`yup`](https://github.com/jquense/yup) validation library and custom validation inside Yup.
 
 NOTE: A method to integrate custom validations without Yup library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
 
@@ -143,3 +175,4 @@ NOTE: A method to integrate custom validations without Yup library [is not defin
 In this case using [ArrayList](https://rancher.github.io/storybook/?path=/docs/stories-components-arraylist--docs) component, the terms 'openid', 'profile' and 'email' are required.
 
 <Canvas of={FormComponent.Default} />
+
