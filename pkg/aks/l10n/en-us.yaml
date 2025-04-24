@@ -12,6 +12,7 @@ aks:
   kubernetesVersion:
     label: Kubernetes Version
     current: '{version} (Current)'
+    upgradeWarning: (minor version >1 not allowed by AKS)
     notAvailableInRegion: This version is not available in the selected region.
   nodeResourceGroup:
     tooltip: 'The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_resource-group_cluster-name_location. This value cannot exceed 80 characters.'
