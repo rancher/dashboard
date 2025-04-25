@@ -9,36 +9,48 @@ const meta: Meta = {};
 export default meta;
 type Story = StoryObj;
 
-export const Default: Story = {
+export const Template: Story = {
   render: (args: any) => ({
     components: {
       Form, Field, FieldArray, Tab, Tabbed, LabeledInput
     },
+    setup() {
+      return {
+        args,
+        initialValues: { containers: [{ name: '1', image: '' }, { name: '2', image: '' }] }
+      };
+    },
+    methods: {
+      getErrors: <T extends object>(errors: T, prefix: string, i: number, suffix?: string) => Object
+        .keys(errors)
+        .filter((key) => key.includes(`${ prefix }[${ i }]${ suffix ? `.${ suffix }` : '' }`))
+        .map((key: string) => errors[key as keyof T])
+
+    },
     template: `
-      <Form v-slot="{ errors }">
+      <Form v-slot="{ errors, meta: formMeta }" :initial-values="initialValues">
         <Tabbed v-bind="args">
-          <FieldArray name="links" v-slot="{ containers, push, remove }">
+          <FieldArray name="containers" v-slot="{ fields, push, remove }">
             <Tab
-              v-for="(container, i) in containers"
+              v-for="(container, i) in fields"
               :key="container.key"
               :name="'Container ' + (i + 1)"
-              :displayAlertIcon=""
+              :displayAlertIcon="!!getErrors(errors, 'containers', i).length"
             >
               <Tabbed :useHash=${ args.useHash } :sideTabs=${ true }>
                 <Tab
-                  name="name"
+                  name="name-settings"
                   label="Name settings"
-                  :displayAlertIcon=""
+                  :displayAlertIcon="!!getErrors(errors, 'containers', i, 'name').length"
                 >
                   <Field
-                    :name="'links[' + i +'].name'"
-                    value=""
+                    :name="'containers[' + i +'].name'"
                     :rules="(value) => value && value.trim() ? true : 'This is required'"
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput
-                      name="'links[' + i +'].name'"
-                      v-bind="name"
+                      name="field"
+                      v-bind="field"
                       :subLabel="meta.errors.join(', ')"
                       :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
                       :tooltipKey="!!meta.errors.length ? meta.errors.join(', ') : meta.touched ? 'Input correct' : undefined"
@@ -46,19 +58,18 @@ export const Default: Story = {
                   </Field>
                 </Tab>
                 <Tab
-                  name="image"
+                  name="image-settings"
                   label="Image settings"
-                  :displayAlertIcon=""
+                  :displayAlertIcon="!!getErrors(errors, 'containers', i, 'image').length"
                 >
                   <Field
-                    name="'links[' + i +'].image'"
-                    value=""
+                    :name="'containers[' + i +'].image'"
                     :rules="(value) => value && value.trim() ? true : 'This is required'"
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput
-                      name="'links[' + i +'].image'"
-                      v-bind="'links[' + i +'].image'"
+                      name="field"
+                      v-bind="field"
                       :subLabel="meta.errors.join(', ')"
                       :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
                       :tooltipKey="!!meta.errors.length ? meta.errors.join(', ') : meta.touched ? 'Input correct' : undefined"
@@ -66,19 +77,26 @@ export const Default: Story = {
                   </Field>
                 </Tab>
               </Tabbed>
-
               <br />
               <button @click="remove(i)">Remove</button>
             </Tab>
-
+          </FieldArray>
             <template #tab-row-extras>
               <li class="tablist-controls">
                 <button @click="push({ name: '', image: '' })">Add container</button>
               </li>
             </template>
-          </FieldArray>
         </Tabbed>
+        <br />
+        <br />
+        <pre>Meta: {{ formMeta }}</pre>
+        <pre>Errors: {{ errors }}</pre>
       </Form>
     `,
   }),
+};
+
+export const Default: Story = {
+  ...Template,
+  args: { useHash: false },
 };
