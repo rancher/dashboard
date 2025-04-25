@@ -401,8 +401,42 @@ describe('fx: mergeWithReplace', () => {
     [undefined, {}, {}],
   ];
 
-  it.each(testCases)('should merge properly', (obj1, obj2, expected) => {
+  it.each(testCases)('should merge arrays properly', (obj1, obj2, expected) => {
     const result = mergeWithReplace(obj1, obj2);
+
+    expect(result).toStrictEqual(expected);
+  });
+
+  it.each([
+    [
+      { a: { b: false, c: false } }, { a: { b: true, c: null } }, { a: { b: true, c: null } }
+    ],
+    [
+      {
+        a: [{
+          b: 'test', c: 'test', value: true
+        }]
+      }, {
+        a: [{
+          b: 'test', c: 'test', operator: 'exists'
+        }]
+      }, {
+        a: [{
+          b: 'test', c: 'test', operator: 'exists'
+        }]
+      }
+    ],
+    [
+      {
+        a: { enabled: false }, b: { enabled: false }, c: { enabled: false }
+      },
+      { c: { enabled: true, stripUnderscores: true } },
+      {
+        a: { enabled: false }, b: { enabled: false }, c: { enabled: true, stripUnderscores: true }
+      }
+    ]
+  ])('should overwrite duplicate object properties when merging objects', (left, right, expected) => {
+    const result = mergeWithReplace(left, right, { replaceObjectProps: true });
 
     expect(result).toStrictEqual(expected);
   });
