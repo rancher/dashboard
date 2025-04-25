@@ -7,6 +7,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
+import { getPluginChartVersion } from '@shell/utils/uiplugins';
 
 // Note: This dialog handles installation and update of a plugin
 
@@ -86,11 +87,13 @@ export default {
       this.plugin = plugin;
       this.mode = mode;
 
+      const chartVersion = getPluginChartVersion(plugin);
+
       // Default to latest version on install (this is default on the plugin)
-      this.version = plugin.displayVersion;
+      this.version = chartVersion;
 
       if (mode === 'update') {
-        this.currentVersion = plugin.displayVersion;
+        this.currentVersion = chartVersion;
 
         // Update to latest version, so take the first version
         if (plugin.installableVersions?.length > 0) {
@@ -98,9 +101,9 @@ export default {
         }
       } else if (mode === 'rollback') {
         // Find the newest version once we remove the current version
-        const versionNames = plugin.installableVersions.filter((v) => v.version !== plugin.displayVersion);
+        const versionNames = plugin.installableVersions.filter((v) => v.version !== chartVersion);
 
-        this.currentVersion = plugin.displayVersion;
+        this.currentVersion = chartVersion;
 
         if (versionNames.length > 0) {
           this.version = versionNames[0].version;

@@ -357,8 +357,12 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
-          if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
-            chart.upgrade = chart.installableVersions[0].version;
+          const latestInstallableVersion = chart.installableVersions?.[0];
+
+          if (latestInstallableVersion) {
+            if (p.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
+              chart.upgrade = latestInstallableVersion.version;
+            }
           }
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
