@@ -270,9 +270,9 @@ export default {
           'install'
         );
 
-        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
+        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name, 20);
 
-        installed = await waitForUIPackage(this.$store, extension);
+        installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
       }
 

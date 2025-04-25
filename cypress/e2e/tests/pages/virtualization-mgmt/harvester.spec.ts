@@ -1,7 +1,7 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import { HarvesterClusterDetailsPo, HarvesterClusterPagePo } from '@/cypress/e2e/po/pages/virtualization-mgmt/harvester-clusters.po';
 import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const extensionsPo = new ExtensionsPagePo();
@@ -19,11 +19,18 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     });
   });
 
+  /**
+   * Assumes that Harvester Extension is NOT installed
+   *
+   * Harvester Extension will also be removed after all tests run
+   *
+   * (pattern needs fixing)
+   */
   it('can auto install harvester and begin process of importing a harvester cluster', () => {
     cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createHarvesterChart');
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }`).as('updateHarvesterChart');
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=install`).as('installHarvesterExtension');
-    cy.intercept('POST', '/v1/provisioning.cattle.io.clusters').as('createHarvesterCluster');
+    cy.intercept('POST', '/v3/clusters').as('createHarvesterCluster');
 
     // verify install button and message displays
     harvesterPo.goTo();
@@ -65,22 +72,24 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     harvesterPo.createHarvesterClusterForm().resourceDetail().createEditView().create();
     cy.wait('@createHarvesterCluster').then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
+
+      const harvesterClusterId = response.body.id;
+      const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterId);
+
+      harvesterDetails.waitForPage(null, 'registration');
+      harvesterDetails.title().should('contain', harvesterClusterName);
+
+      // navigate to harvester list page and verify the logo and tagline do not display after cluster created
+      HarvesterClusterPagePo.navTo();
+      harvesterPo.waitForPage();
+      harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
+        .checkVisible();
+      harvesterPo.harvesterLogo().should('not.exist');
+      harvesterPo.harvesterTagline().should('not.exist');
+
+      // delete cluster
+      cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`);
     });
-    const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterName);
-
-    harvesterDetails.waitForPage(null, 'registration');
-    harvesterDetails.title().should('contain', harvesterClusterName);
-
-    // navigate to harvester list page and verify the logo and tagline do not display after cluster created
-    HarvesterClusterPagePo.navTo();
-    harvesterPo.waitForPage();
-    harvesterPo.list().resourceTable().sortableTable().rowWithName(harvesterClusterName)
-      .checkVisible();
-    harvesterPo.harvesterLogo().should('not.exist');
-    harvesterPo.harvesterTagline().should('not.exist');
-
-    // delete cluster
-    cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterName }`);
   });
 
   it('missing repo message should display when repo does NOT exist', () => {
@@ -192,18 +201,18 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();
-      cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
+      cy.wait('@updateHarvesterChart', EXTRA_LONG_TIMEOUT_OPT);
 
       // check for update harvester message
       harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not updated');
       harvesterPo.updateOrInstallButton().click();
 
       // wait for update version update
-      cy.wait('@upgradeHarvesterExtension', MEDIUM_TIMEOUT_OPT).then(({ request, response }) => {
+      cy.wait('@upgradeHarvesterExtension', EXTRA_LONG_TIMEOUT_OPT).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(201);
         expect(request?.body?.charts[0].version).to.eq(versions[0]);
       });
-      cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
+      cy.wait('@updateHarvesterChart', EXTRA_LONG_TIMEOUT_OPT);
 
       // verify update button and message not displayed
       harvesterPo.extensionWarning().should('not.exist');
