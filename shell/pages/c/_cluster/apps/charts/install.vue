@@ -1,8 +1,6 @@
 <script>
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import mergeWith from 'lodash/mergeWith';
-import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
@@ -34,7 +32,9 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { clone, diff, get, set } from '@shell/utils/object';
+import {
+  clone, diff, get, mergeWithReplace, set
+} from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -330,28 +330,10 @@ export default {
       */
       this.removeGlobalValuesFrom(userValues);
 
-      const userKeys = Object.keys(userValues);
-      const customizer = (objValue, srcValue, key) => {
-        if (userKeys.includes(key) && isObject(srcValue)) {
-          return {
-            ...objValue,
-            ...srcValue
-          };
-        }
-      };
-
-      /*
-        The mergeWith() method is used to merge two or more objects
-        starting with the left-most to the right-most to create a
-        parent mapping object. When two keys are the same, the
-        generated object will have value for the rightmost key.
-        With the customizer, any values in userValues override any
-        matching values in versionInfo.
-      */
-      this.chartValues = mergeWith(
+      this.chartValues = mergeWithReplace(
         merge({}, this.versionInfo?.values || {}),
         userValues,
-        customizer
+        { replaceObjectProps: true }
       );
 
       if (this.showCustomRegistry) {

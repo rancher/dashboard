@@ -1,6 +1,6 @@
 import { reactive, isReactive } from 'vue';
 import {
-  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys, deepToRaw, mergeWithReplaceArrays
+  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys, deepToRaw, mergeWithReplace
 } from '@shell/utils/object';
 
 describe('fx: get', () => {
@@ -379,7 +379,7 @@ describe('fx: deepToRaw', () => {
   });
 });
 
-describe('fx: mergeWithReplaceArrays', () => {
+describe('fx: mergeWithReplace', () => {
   const testCases: Array<[object?, object?, object?]> = [
     // Some array test cases, an array from the first object should be replaced with the array from the second object
     [{ a: ['one'] }, { a: [] }, { a: [] }],
@@ -402,7 +402,7 @@ describe('fx: mergeWithReplaceArrays', () => {
   ];
 
   it.each(testCases)('should merge properly', (obj1, obj2, expected) => {
-    const result = mergeWithReplaceArrays(obj1, obj2);
+    const result = mergeWithReplace(obj1, obj2);
 
     expect(result).toStrictEqual(expected);
   });
