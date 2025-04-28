@@ -4,7 +4,6 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import Carousel from '@shell/components/Carousel';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
@@ -15,11 +14,13 @@ import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
-import { removeObject, addObject, findBy } from '@shell/utils/array';
+import { removeObject, addObject } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+import AppCard from '@shell/components/cards/AppCard';
+import { get } from '@shell/utils/object';
 
 export default {
   name:       'Charts',
@@ -31,9 +32,9 @@ export default {
     Loading,
     Checkbox,
     Select,
-    SelectIconGrid,
     TypeDescription,
-    TabTitle
+    TabTitle,
+    AppCard
   },
 
   async fetch() {
@@ -80,31 +81,16 @@ export default {
     hideRepos: mapPref(HIDE_REPOS),
 
     repoOptions() {
-      let nextColor = 0;
-      // Colors 3 and 4 match `rancher` and `partner` colors, so just avoid them
-      const colors = [1, 2, 5, 6, 7, 8];
-
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
           _key:    r._key,
           label:   r.nameDisplay,
-          color:   r.color,
           weight:  ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
           enabled: !this.hideRepos.includes(r._key),
         };
       });
 
       out = sortBy(out, ['weight', 'label']);
-
-      for ( const entry of out ) {
-        if ( !entry.color ) {
-          entry.color = `color${ colors[nextColor] }`;
-          nextColor++;
-          if ( nextColor >= colors.length ) {
-            nextColor = 0;
-          }
-        }
-      }
 
       return out;
     },
@@ -250,16 +236,7 @@ export default {
   },
 
   methods: {
-    colorForChart(chart) {
-      const repos = this.repoOptions;
-      const repo = findBy(repos, '_key', chart.repoKey);
-
-      if ( repo ) {
-        return repo.color;
-      }
-
-      return null;
-    },
+    get,
 
     toggleAll(on) {
       for ( const r of this.repoOptions ) {
@@ -331,6 +308,21 @@ export default {
         },
         query
       });
+    },
+
+    handleRepoClick(repo) {
+      // TODO
+      // console.log('Repo Clicked, ', repo);
+    },
+
+    handleCategoryClick(category) {
+      // TODO
+      // console.log('Category Clicked, ', category);
+    },
+
+    handleTagClick(tag) {
+      // TODO
+      // console.log('Tag Clicked, ', tag);
     },
 
     focusSearch() {
@@ -419,15 +411,9 @@ export default {
             :value="repo.enabled"
             :label="repo.label"
             class="pull-left repo in-select"
-            :class="{ [repo.color]: true}"
-            :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i
-                v-if="!repo.all"
-                class=" pl-5 icon icon-dot icon-sm"
-                :class="{[repo.color]: true}"
-              />
+              <span>{{ repo.label }}</span>
             </template>
           </Checkbox>
         </template>
@@ -501,16 +487,27 @@ export default {
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
-      <SelectIconGrid
-        v-else
-        data-testid="chart-selection-grid"
-        component-test-id="chart-selection"
-        :rows="filteredCharts"
-        name-field="chartNameDisplay"
-        description-field="chartDescription"
-        :color-for="colorForChart"
-        @clicked="(row) => selectChart(row)"
-      />
+      <template v-else>
+        <div class="apps-container">
+          <AppCard
+            v-for="(chart, i) in filteredCharts"
+            :key="i"
+            :title="chart.chartNameDisplay"
+            :description="chart.chartDescription"
+            :logo="chart.versions[0].icon"
+            :logo-alt-text="t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') })"
+            :featured="chart.featured"
+            :as-link="true"
+            :deprecated="chart.deprecated"
+            :version="chart.versions[0].version"
+            :repo="chart.repoNameDisplay"
+            :categories="chart.categories"
+            @card-click="selectChart(chart)"
+            @repo-click="handleRepoClick"
+            @category-click="handleCategoryClick"
+          />
+        </div>
+      </template>
     </div>
     <div
       v-else
@@ -578,6 +575,13 @@ export default {
     display: inline-block;
     line-height: 2.4rem;
   }
+}
+
+.apps-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, max-content));
+  grid-gap: var(--gap-md);
+  overflow: hidden;
 }
 
 .checkbox-outer-container.in-select {
