@@ -689,6 +689,7 @@ export default defineComponent({
             :loading-launch-templates="loadingLaunchTemplates"
             :loading-ssh-key-pairs="loadingSshKeyPairs"
             :norman-cluster="normanCluster"
+            @error="errors.push($event)"
           />
         </Tab>
       </Tabbed>
