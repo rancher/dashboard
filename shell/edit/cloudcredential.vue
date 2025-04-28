@@ -100,6 +100,30 @@ export default {
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
+    hasCustomCloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
+    },
+
+    cloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/importCloudCredential'](driverName);
+    },
+
+    genericCloudCredentialComponent() {
+      return this.$store.getters['type-map/importCloudCredential']('generic');
+    },
+
+    cloudComponent() {
+      if (this.hasCustomCloudCredentialComponent) {
+        return this.cloudCredentialComponent;
+      }
+
+      return this.genericCloudCredentialComponent;
+    },
+
     validationPassed() {
       return this.credCustomComponentValidation && this.nameRequiredValidation;
     },
@@ -110,14 +134,6 @@ export default {
 
     driverName() {
       return this.value?.provider;
-    },
-
-    cloudComponent() {
-      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
-        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
-      }
-
-      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     // array of id, label, description, initials for type selection step
@@ -194,7 +210,6 @@ export default {
   },
 
   methods: {
-
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
     },
@@ -276,7 +291,6 @@ export default {
     <Loading v-if="$fetchState.pending" />
     <CruResource
       v-else
-      :done-params="$attrs['done-params'] /* Without this, changes to the validationPassed prop end up propagating all the way to the root of the app and force a re-render when the input becomes valid. I haven't found a reasonable explanation for why this happens. */"
       :mode="mode"
       :validation-passed="validationPassed"
       :selected-subtype="value._type"
