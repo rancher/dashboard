@@ -11,12 +11,12 @@ type Story = StoryObj<typeof LabeledInput>;
 const displayValidation = () => `
 <br />
 <br />
-<h3>Metadata generated:</h3>
-<pre><code>
-Values: {{ values }}
-Errors: {{ errVal }}
-Meta: {{ meta }}
-</code></pre>
+<details>
+<summary>Meta</summary>
+<pre>Meta: {{ meta }}</pre>
+<pre>Values: {{ values }}</pre>
+<pre>Errors: {{ errors }}</pre>
+</details>
 `;
 let t; // This seems to be a Storybook bug not allowing hooks
 

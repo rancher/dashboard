@@ -18,38 +18,43 @@ VeeValidate provides components ready to use as wrapper for the inputs. Read [of
 
 NOTE: If not slot is defined, a default input field text is instead adopted.
 
-### Input and Component
+### Components: Input and Vue Component
 
 To integrate with our existing components, you just need to wrap it around the `Field` component. Here an example using LabeledInput:
 
 <Canvas of={FormComponentInput.Default} />
 
-```html
-<Form>
-  <Field
-    name="field"
-    value=""
-    :rules="(value) => value && value.trim() ? true : 'This is required'"
-    v-slot="{ field, meta }"
-  >
-    <LabeledInput
-      name="field"
-      v-bind="field"
-      :subLabel="meta.errors.join(', ')"
-      :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
-      :tooltipKey="!!meta.errors.length ? meta.errors.join(', ') : meta.touched ? 'Input correct' : undefined"
-    />
-  </Field>
-</Form>
-```
-
-### Nested
+### Components: Nested
 
 <Canvas of={FormComponentNested.Default} />
 
 ## Declared form (Composition API)
 
 Form can be defined within the setup (also using Options API) using the [Composition API](https://vee-validate.logaretm.com/v4/guide/composition-api/getting-started/) we will have to define everything in the setup, e.g.:
+
+### Composition API: Input
+
+Case of input with validation based on [input component](/docs/stories-form-input--docs) and [existing rules](https://github.com/rancher/dashboard/blob/master/shell/utils/validators/formRules/index.ts).
+
+<Canvas of={FormCompositionInput.Default} />
+
+### Composition API: Nested Form 
+
+Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`yup`](https://github.com/jquense/yup) validation library and custom validation inside Yup.
+
+NOTE: A method to integrate custom validations without Yup library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
+
+<Canvas of={FormCompositionNested.Default} />
+
+### Composition API: Form with custom Component
+
+In this case using [ArrayList](https://rancher.github.io/storybook/?path=/docs/stories-components-arraylist--docs) component, the terms 'openid', 'profile' and 'email' are required.
+
+<Canvas of={FormCompositionComponent.Default} />
+
+## Rules declaration
+
+Rules may be defined in different ways, based on current tools.
 
 ### Inline defined rules
 
@@ -79,29 +84,16 @@ setup() {
 Example of configuration using existing rules:
 
 ```ts
+
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useForm } from 'vee-validate';
 
-setup() {
-  const store = useStore();
-  const { t } = useI18n(store);
-  const validators = (key: string) => formRulesGenerator(t, { key });
-  const {
-    errors: errVal, values, meta, defineField
-  } = useForm({
-    validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
-    initialValues:    { name: '' },
-  });
-  const [name] = defineField('name');
-
-  return {
-    name,
-    values,
-    errVal,
-    meta,
-    args
-  };
-},
+const store = useStore();
+const { t } = useI18n(store);
+const validators = (key: string) => formRulesGenerator(t, { key });
+useForm({
+  validationSchema: { name: (val: string) => validators('name').required(val) ?? true },
+});
 ```
 
 ### Rules with Yup
@@ -112,20 +104,9 @@ Example of configuration using [`yup`](https://github.com/jquense/yup):
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 
-setup() {
-  const { errors: errVal, values, meta } = useForm({
-    validationSchema: { name: yup.string().required().label('Container name') },
-    initialValues:    { name: '' },
-  });
-  const [name] = defineField('name');
-
-  return {
-    name,
-    values,
-    errVal,
-    meta,
-  };
-},
+useForm({
+  validationSchema: { name: yup.string().required().label('Container name') },
+});
 ```
 
 ### Custom rules with Yup
@@ -134,51 +115,18 @@ setup() {
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 
-setup() {
-  const store = useStore();
-  const { t } = useI18n(store);
-  const validators = (key: string) => formRulesGenerator(t, { key });
-  const { errors: errVal, values, meta } = useForm({
-    validationSchema: { name: yup.string().test({
-      name:    'required',
-      message: () => message,
-      test:    (val) => {
-        message = validators('Container name').required(val);
+const store = useStore();
+const { t } = useI18n(store);
+const validators = (key: string) => formRulesGenerator(t, { key });
+useForm({
+  validationSchema: { name: yup.string().test({
+    name:    'required',
+    message: () => message,
+    test:    (val) => {
+      message = validators('Container name').required(val);
 
-        return !message;
-      }
-    })
+      return !message;
+    }
   })
-    initialValues:    { name: '' },
-  });
-  const [name] = defineField('name');
-
-  return {
-    name,
-    values,
-    errVal,
-    meta,
-  };
-},
+});
 ```
-
-### Input
-
-Case of input with validation based on [input component](/docs/stories-form-input--docs) and [existing rules](https://github.com/rancher/dashboard/blob/master/shell/utils/validators/formRules/index.ts).
-
-<Canvas of={FormCompositionInput.Default} />
-
-### Nested Form 
-
-Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`yup`](https://github.com/jquense/yup) validation library and custom validation inside Yup.
-
-NOTE: A method to integrate custom validations without Yup library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
-
-<Canvas of={FormCompositionNested.Default} />
-
-### Form with custom Component
-
-In this case using [ArrayList](https://rancher.github.io/storybook/?path=/docs/stories-components-arraylist--docs) component, the terms 'openid', 'profile' and 'email' are required.
-
-<Canvas of={FormCompositionComponent.Default} />
-

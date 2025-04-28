@@ -106,8 +106,11 @@ export const Template: Story = {
         </Tabbed>
         <br />
         <br />
-        <pre>Meta: {{ formMeta }}</pre>
-        <pre>Errors: {{ errors }}</pre>
+        <details>
+          <summary>Meta</summary>
+          <pre>Meta: {{ formMeta }}</pre>
+          <pre>Errors: {{ errors }}</pre>
+        </details>
       </Form>
     `,
   }),

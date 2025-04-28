@@ -30,7 +30,10 @@ export const Default: Story = {
           />
           <br />
           <br />
-          <pre>{{ meta }}</pre>
+          <details>
+            <summary>Meta</summary>
+            <pre>Meta: {{ meta }}</pre>
+          </details>
         </Field>
       </Form>
     `,
