@@ -4,7 +4,7 @@ import Select from '@shell/components/form/Select.vue';
 import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
 
 export default {
-  name: 'LocalSelector',
+  name: 'LocaleSelector',
 
   components: {
     Select,
