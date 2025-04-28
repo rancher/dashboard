@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export default class PromptRemove extends ComponentPo {
   constructor() {
@@ -29,5 +30,9 @@ export default class PromptRemove extends ComponentPo {
   // Get the warning message
   warning() {
     return this.self().get('.card-body .text-warning');
+  }
+
+  checkbox() {
+    return new CheckboxInputPo(this.self().get('[data-checkbox-ctrl]'));
   }
 }

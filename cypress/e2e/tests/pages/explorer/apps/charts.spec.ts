@@ -1,12 +1,13 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartsPage = new ChartsPage();
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
 
     cy.login();
     chartsPage.goTo();
@@ -110,7 +111,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartPage.waitForPage();
 
     // Set up intercept for the network request triggered by $fetch
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterSelect');
+    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
     chartPage.selectVersion('105.1.0+up4.10.0');
 
@@ -138,7 +139,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.waitForPage();
 
     // Set up intercept after navigating back
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterBack');
+    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterBack');
 
     cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
   });
@@ -146,7 +147,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the repos dropdown', () => {
     const disabledRepoId = 'disabled-repo';
 
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields', (req) => {
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`, (req) => {
       req.reply({
         statusCode: 200,
         body:       {
