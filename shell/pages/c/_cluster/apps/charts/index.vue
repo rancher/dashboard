@@ -533,6 +533,7 @@ export default {
             :version="chart.versions[0].version"
             :repo="chart.repoNameDisplay"
             :categories="chart.categories"
+            :tags="chart.tags"
             @card-click="selectChart(chart)"
             @repo-click="handleRepoClick"
             @category-click="handleCategoryClick"
