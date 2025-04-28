@@ -456,7 +456,9 @@ export default {
   },
 
   /**
-   * If result not already cached, make a http request to fetch resources matching a kube `labelSelector`.
+   * Find results matching a kube `labelSelector` object
+   *
+   * If result not already cached, make a http request to fetch resources matching the selector/s
    *
    * This is different if vai based pagination is on
    * a) Pagination Enabled - use the new sql-cache backed api - findPage
@@ -494,8 +496,8 @@ export default {
       });
     }
 
-    // TODO: RC test longhorn root page shell/pages/c/_cluster/longhorn/index.vue
-    // shell/pages/c/_cluster/uiplugins/CatalogList/CatalogUninstallDialog.vue  hub.docker.io/rancher/ui-plugin-catalog:4.0.1
+    // TODO: RC test SSP disabled - test longhorn root page shell/pages/c/_cluster/longhorn/index.vue
+    // TODO: RC test SSP disabled - shell/pages/c/_cluster/uiplugins/CatalogList/CatalogUninstallDialog.vue  hub.docker.io/rancher/ui-plugin-catalog:4.0.1
     return dispatch('findMatching', {
       type,
       selector: labelSelector.matchLabels,

@@ -7,7 +7,6 @@ import { allHash } from '@shell/utils/promise';
 
 import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
-import { FilterArgs } from '@shell/types/store/pagination.types';
 
 export default {
   emits: ['closed', 'refresh', 'update'],

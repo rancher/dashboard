@@ -140,13 +140,12 @@ export default class Service extends SteveModel {
     return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
-  // TODO: RC confirm with pagination off.... no findPage usage
-
   async fetchPods() {
     if (!this.podRelationship?.selector) {
       return;
     }
 
+    // TODO: RC test SSP disabled
     return await this.$dispatch('findLabelSelector', {
       type:     POD,
       matching: {

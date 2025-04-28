@@ -142,7 +142,7 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(async function() {
-      this.matchingPods = await matching({
+      this.matchingPods = await matching({ // TODO: RC test SSP disabled
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,

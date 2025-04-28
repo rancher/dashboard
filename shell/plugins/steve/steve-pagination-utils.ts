@@ -485,11 +485,17 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     return res;
   }
 
+  /**
+   * Convert kube labelSelector object into steve filter params
+   *
+   * A lot of the requirements and details are taken directly from
+   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+   */
   private convertLabelSelectorPaginationParams(schema: Schema, labelSelector: KubeLabelSelector): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
-    // matchLabels are just shortcuts on matchExpressions, for ease convert them
+    // matchLabels are just simpler versions of matchExpressions, for ease convert them
     if (labelSelector.matchLabels) {
       Object.entries(labelSelector.matchLabels).forEach(([key, value]) => {
         const expression: KubeLabelSelectorExpression = {
@@ -502,58 +508,77 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       });
     }
 
-    // TODO: RC gt | lt only applicable to NodeSelector. can check on node schema??
-
     // concert all matchExpressions into string params
     const filters: string[] = expressions.reduce((res, exp) => {
       const labelKey = `metadata.labels[${ exp.key }]`;
 
-      // TODO: RC console for all below
       switch (exp.operator) {
-      case 'In': // TODO: RC test
+      case 'In':
         if (!exp.values?.length) {
-          // The operator 'IN' must have `values` specified
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(IN) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
 
+        // foo IN [bar] => ?filter=foo+IN+(bar)
+        // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
         res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
         break;
-      case 'NotIn': // TODO: RC test
+      case 'NotIn':
+
         if (!exp.values?.length) {
-          // The operator 'NotIn' must have `values` specified
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(NOTIN) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
 
+        // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
         res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
         break;
-      case 'Exists': // TODO: RC test
+      case 'Exists':
+
         if (exp.values?.length) {
-          // The operator 'Exist' must not have `values` specified
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Exists) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
 
+        // bbb Exists=> ?filter=bbb
         res.push(`filter=${ labelKey }`);
         break;
-      case 'DoesNotExist': // TODO: RC test
+      case 'DoesNotExist':
         if (exp.values?.length) {
-          // The operator 'DoesNotExist' must not have `values` specified
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(DoesNotExist) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
 
+        // ccc DoesNotExist ?filter=!bbb. # or %21bbb
         res.push(`filter=!${ labelKey }`);
         break;
-      case 'Gt': // TODO: RC test
+      case 'Gt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+
         if (typeof exp.values !== 'string') {
-          // The operator 'Gt' must not have `values` that is a string
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Gt) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
+
+        // ddd Gt 1=> ?filter=ddd+>+1
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
-      case 'Lt': // TODO: RC test
+      case 'Lt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
-          // The operator 'Lt' must not have `values` that is a string
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
+
           return res;
         }
+
+        // eee Lt 2=> ?filter=eee+<+2
         res.push(`filter=${ labelKey } < (${ exp.values })`);
         break;
       }
@@ -561,16 +586,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       return res;
     }, [] as string[]);
 
-    return filters.join('&'); // TODO: RC are all expressions anded?
-
-    // foo IN [bar] => ?filter=foo+IN+(bar)
-    // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
-    // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
-    // bbb Exists=> ?filter=bbb
-    // ccc DoesNotExist ?filter=!bbb. # or %21bbb
-
-    // ddd Gt 1=> ?filter=ddd+<+1
-    // eee Lt 2=> ?filter=eee+>+2
+    // "All of the requirements, from both matchLabels and matchExpressions are ANDed together -- they must all be satisfied in order to match"
+    return filters.join('&');
   }
 }
 

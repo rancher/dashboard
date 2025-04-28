@@ -261,7 +261,7 @@ export default {
       // https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
       const { value: { spec: { selector = { } } } } = this;
 
-      this.matchingPods = await matching({
+      this.matchingPods = await matching({ // TODO: RC test SSP disabled
         labelSelector: { matchLabels: selector },
         type:          POD,
         $store:        this.$store,

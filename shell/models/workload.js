@@ -6,7 +6,6 @@ import day from 'dayjs';
 import { convertSelectorObj, matches, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
-import { FilterArgs } from '@shell/types/store/pagination.types';
 import { matching } from '@shell/utils/selector-typed';
 
 export const defaultContainer = {
@@ -20,6 +19,7 @@ export const defaultContainer = {
   },
   volumeMounts: []
 };
+
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
@@ -208,7 +208,7 @@ export default class Workload extends WorkloadService {
   }
 
   get restartCount() {
-    return this.pods.reduce((total, pod) => { // TODO: RC change usages of workload.pods
+    return this.pods.reduce((total, pod) => {
       const { status:{ containerStatuses = [] } } = pod;
 
       if (containerStatuses.length) {
@@ -559,6 +559,7 @@ export default class Workload extends WorkloadService {
 
   async fetchPods() {
     if (this.podMatchExpression) {
+      // TODO: RC test SSP disabled
       return this.$dispatch('findLabelSelector', {
         type:     POD,
         matching: {
@@ -571,9 +572,13 @@ export default class Workload extends WorkloadService {
     return undefined;
   }
 
+  /**
+   * This getter expects a superset of workload pods to have been fetched already
+   *
+   * If pagination is disabled all pods would have been fetched
+   * If pagination is disabled only a small subset of pods would have been fetched
+   */
   get pods() {
-    console.error('Anything using this must be updated to ????!!!'); // TODO: RC Remove
-
     if (this.podMatchExpression) {
       let pods = [];
 
@@ -587,7 +592,7 @@ export default class Workload extends WorkloadService {
       }
 
       return pods.filter((obj) => {
-        return matches(obj, this.podMatchExpression); // TODO: RC find all `matches` and see if can change
+        return matches(obj, this.podMatchExpression);
       });
     } else {
       return [];
@@ -632,7 +637,7 @@ export default class Workload extends WorkloadService {
   }
 
   get podGauges() {
-    return this.calcPodGauges(this.pods); // TODO: RC change usages of workload.pods
+    return this.calcPodGauges(this.pods);
   }
 
   // Job Specific
@@ -710,7 +715,7 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    // TODO: RC TEST
+    // TODO: RC test SSP disabled
     const matchInfo = await matching({
       labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
       type:          POD,

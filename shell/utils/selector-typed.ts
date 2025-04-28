@@ -4,8 +4,6 @@ import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isEmpty } from '@shell/utils/object';
 import { convert, matching as rootMatching } from '@shell/utils/selector';
 
-// TODO: RC investigate where this < `findLabelSelector` could be used
-
 /**
  * Find resources that match a labelSelector. This behaves differently if vai based pagination is on
  * a) Pagination Enabled - fetch matching resources filtered on backend - findPage
@@ -68,7 +66,6 @@ export async function matching({
   sample: any,
   total: number,
 }> {
-  // TODO: RC confirm value of selector from everywhere (matches has some funky logic aka converts odd things, if valid returns all candidates)
   let match = [];
 
   if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
