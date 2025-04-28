@@ -542,10 +542,10 @@ export default {
       this.activeElement = null;
     },
     down(input) {
-      const exising = this.activeElement || document.activeElement;
+      const existing = this.activeElement || document.activeElement;
 
       // Focus the first element in the list
-      if (input || !exising) {
+      if (input || !existing) {
         if (this.$refs.options) {
           const c = this.$refs.options.children;
 
@@ -554,15 +554,11 @@ export default {
           }
         }
       } else {
-        let next = exising.nextSibling;
+        let next = existing.nextElementSibling;
 
-        if (next?.children?.length) {
-          const item = next.children[0];
-
-          // Skip over dividers (assumes we don't have two dividers next to each other)
-          if (item.classList.contains('ns-divider')) {
-            next = next.nextSibling;
-          }
+        // Skip over dividers (assumes we don't have two dividers next to each other)
+        if (next.classList.contains('ns-divider')) {
+          next = next.nextElementSibling;
         }
 
         if (next?.focus) {
@@ -572,14 +568,10 @@ export default {
     },
     up() {
       if (document.activeElement) {
-        let prev = document.activeElement.previousSibling;
+        let prev = document.activeElement.previousElementSibling;
 
-        if (prev?.children?.length) {
-          const item = prev.children[0];
-
-          if (item.classList.contains('ns-divider')) {
-            prev = prev.previousSibling;
-          }
+        if (prev.classList.contains('ns-divider')) {
+          prev = prev.previousElementSibling;
         }
 
         if (prev?.focus) {
@@ -693,7 +685,7 @@ export default {
     data-testid="namespaces-filter"
     tabindex="0"
     @mousedown.prevent
-    @focus="open()"
+    @keydown.down="open"
   >
     <div
       v-if="isOpen"
@@ -833,43 +825,49 @@ export default {
       <div
         ref="options"
         class="ns-options"
-        role="list"
+        role="listbox"
       >
-        <div
+        <template
           v-for="(opt, i) in cachedFiltered"
-          :id="opt.elementId"
           :key="opt.id"
-          tabindex="0"
-          class="ns-option"
-          :disabled="opt.enabled ? null : true"
-          :class="{
-            'ns-selected': opt.selected,
-            'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
-          }"
-          :data-testid="`namespaces-option-${i}`"
-          @click="opt.enabled && selectOption(opt)"
-          @mouseover="opt.enabled && mouseOver($event)"
-          @keydown="itemKeyHandler($event, opt)"
         >
-          <div
+          <hr
             v-if="opt.kind === NAMESPACE_FILTER_KINDS.DIVIDER"
+            role="separator"
+            aria-orientation="horizontal"
             class="ns-divider"
-          />
+          >
           <div
             v-else
-            class="ns-item"
+            :id="opt.elementId"
+            tabindex="-1"
+            role="option"
+            class="ns-option"
+            :disabled="opt.enabled ? null : true"
+            :class="{
+              'ns-selected': opt.selected,
+              'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
+            }"
+            :data-testid="`namespaces-option-${i}`"
+            @click="opt.enabled && selectOption(opt)"
+            @mouseover="opt.enabled && mouseOver($event)"
+            @keydown="itemKeyHandler($event, opt)"
           >
-            <i
-              v-if="opt.kind === NAMESPACE_FILTER_KINDS.NAMESPACE"
-              class="icon icon-folder"
-            />
-            <div>{{ opt.label }}</div>
-            <i
-              v-if="opt.selected"
-              class="icon icon-checkmark"
-            />
+            <div
+              class="ns-item"
+            >
+              <i
+                v-if="opt.kind === NAMESPACE_FILTER_KINDS.NAMESPACE"
+                class="icon icon-folder"
+              />
+              <div>{{ opt.label }}</div>
+              <i
+                v-if="opt.selected"
+                class="icon icon-checkmark"
+              />
+            </div>
           </div>
-        </div>
+        </template>
         <div
           v-if="cachedFiltered.length === 0"
           class="ns-none"
