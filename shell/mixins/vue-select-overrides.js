@@ -1,8 +1,5 @@
 
 export default {
-  data() {
-    return { overridesMixinPreventDoubleTriggerKeysOpen: false };
-  },
   methods: {
     mappedKeys(map, vm) {
       // Defaults found at - https://github.com/sagalbot/vue-select/blob/master/src/components/Select.vue#L947
@@ -63,7 +60,6 @@ export default {
           if (vm.closeOnSelect) {
             // this ties in to the Select component implementation
             // so that the enter key handler doesn't open the dropdown again
-            this.overridesMixinPreventDoubleTriggerKeysOpen = false;
             vm.open = false;
             vm.typeAheadPointer = -1;
           }
