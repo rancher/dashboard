@@ -182,7 +182,7 @@ export default {
     },
     addIcon: {
       type:    String,
-      default: 'icon-plus',
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
@@ -295,12 +295,6 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
-    },
-    /**
-     * Filter rows based on toggler, keeping to still emit all the values
-     */
-    filteredRows() {
-      return this.rows.filter((row) => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -618,8 +612,10 @@ export default {
               {{ _keyLabel }}
               <i
                 v-if="_protip && !isView && addAllowed"
-                v-clean-tooltip="_protip"
+                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="_protip"
                 class="icon icon-info"
+                tabindex="0"
               />
             </label>
             <label
@@ -663,11 +659,14 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in filteredRows"
+        v-for="(row,i) in rows"
         v-else
         :key="i"
       >
-        <div class="rowgroup">
+        <div
+          class="rowgroup"
+          :class="{'hide': isProtected(row.key) && !toggleFilter}"
+        >
           <div class="row">
             <!-- Key -->
             <div
@@ -824,7 +823,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || isProtected(row.key) || disabled"
-                  :aria-label="removeLabel || t('generic.remove')"
+                  :aria-label="`${removeLabel || t('generic.remove')} ${ i+1 }`"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -855,8 +854,8 @@ export default {
           @click="add()"
         >
           <i
-            v-if="loading"
-            class="mr-5 icon icon-spinner icon-spin icon-lg"
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
           /> {{ _addLabel }}
         </button>
         <FileSelector

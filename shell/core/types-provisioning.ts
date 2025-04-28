@@ -150,6 +150,13 @@ export interface IClusterProvisioner {
    * Text to show top right on the cluster provider card. For example `Experimental`
    */
   tag?: string;
+  /**
+   * Hide the provider card in the cluster creation flow.
+   * By default we show providers in create wizard, however, there are some providers we want to only show on import.
+   * For that case, we should set hideCreate to true and showImport to true.
+   * If not set, the card will be shown in the cluster creation page
+   */
+  hideCreate?: boolean
 
   /**
    * Also show the provider card in the cluster importing flow

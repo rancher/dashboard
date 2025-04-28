@@ -1,6 +1,8 @@
-import { ref, provide, nextTick } from 'vue';
+import { ref, provide, nextTick, defineEmits } from 'vue';
 import { useDropdownCollection } from './useDropdownCollection';
 import { RcButtonType } from '@components/RcButton';
+
+const rcDropdownEmits = defineEmits(['update:open']);
 
 /**
  * Composable that provides the context for a dropdown menu. Includes methods
@@ -11,10 +13,11 @@ import { RcButtonType } from '@components/RcButton';
  * @returns Dropdown context methods and state. Used for programmatic
  * interactions and setting focus.
  */
-export const useDropdownContext = () => {
+export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
   const {
     dropdownItems,
     firstDropdownItem,
+    lastDropdownItem,
     dropdownContainer,
     registerDropdownCollection,
   } = useDropdownCollection();
@@ -30,6 +33,7 @@ export const useDropdownContext = () => {
       didKeydown.value = false;
     }
     isMenuOpen.value = show;
+    emit('update:open', show);
   };
 
   /**
@@ -67,7 +71,7 @@ export const useDropdownContext = () => {
   /**
    * Sets focus to the first dropdown item if a keydown event has occurred.
    */
-  const setFocus = () => {
+  const setFocus = (direction: 'down' | 'up') => {
     nextTick(() => {
       if (!didKeydown.value) {
         dropdownContainer.value?.focus();
@@ -75,7 +79,12 @@ export const useDropdownContext = () => {
         return;
       }
 
-      firstDropdownItem.value?.focus();
+      if (direction === 'down') {
+        firstDropdownItem.value?.focus();
+      } else if (direction === 'up') {
+        lastDropdownItem.value?.focus();
+      }
+
       didKeydown.value = false;
     });
   };
@@ -92,7 +101,7 @@ export const useDropdownContext = () => {
       dropdownItems,
       close:             () => returnFocus(),
       focusFirstElement: () => {
-        setFocus();
+        setFocus('down');
       },
       handleKeydown,
     });

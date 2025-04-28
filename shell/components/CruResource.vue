@@ -490,7 +490,12 @@ export default {
             class="subtype-banner"
             :class="{ selected: subtype.id === _selectedSubtype }"
             :data-testid="`subtype-banner-item-${subtype.id}`"
+            tabindex="0"
+            :aria-disabled="false"
+            :aria-label="subtype.description ? `${subtype.label} - ${subtype.description}` : subtype.label"
+            role="link"
             @click="selectType(subtype.id, $event)"
+            @keyup.enter.space="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
               <div class="subtype-container">
@@ -539,7 +544,10 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr v-if="subtype.description">
+                  <hr
+                    v-if="subtype.description"
+                    role="none"
+                  >
                   <div
                     v-if="subtype.description"
                     class="description"
@@ -825,6 +833,10 @@ export default {
     .round-image {
       background-color: var(--primary);
     }
+
+    &:focus-visible {
+      @include focus-outline;
+    }
   }
 }
 
@@ -897,6 +909,8 @@ form.create-resource-container .cru {
     position: sticky;
     bottom: 0;
     background-color: var(--header-bg);
+    height: $footer-height;
+    box-sizing: border-box;
 
     // Overrides outlet padding
     margin-left: -$space-m;

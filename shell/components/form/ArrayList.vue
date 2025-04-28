@@ -1,4 +1,5 @@
 <script>
+import { ref, watch, computed } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
@@ -48,6 +49,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    addIcon: {
+      type:    String,
+      default: '',
+    },
     addLabel: {
       type:    String,
       default: '',
@@ -90,32 +95,93 @@ export default {
       // we only want functions in the rules array
       validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     },
+    a11yLabel: {
+      type:    String,
+      default: '',
+    },
+    componentTestid: {
+      type:    String,
+      default: 'array-list',
+    }
   },
-  data() {
-    const input = (Array.isArray(this.value) ? this.value : []).slice();
-    const rows = [];
+
+  setup(props, { emit }) {
+    const input = (Array.isArray(props.value) ? props.value : []).slice();
+    const rows = ref([]);
 
     for ( const value of input ) {
-      rows.push({ value });
+      rows.value.push({ value });
     }
-    if ( !rows.length && this.initialEmptyRow ) {
-      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
+    if ( !rows.value.length && props.initialEmptyRow ) {
+      const value = props.defaultAddValue ? clone(props.defaultAddValue) : '';
 
-      rows.push({ value });
+      rows.value.push({ value });
     }
 
-    return { rows, lastUpdateWasFromValue: false };
+    const isView = computed(() => {
+      return props.mode === _VIEW;
+    });
+
+    /**
+     * Cleanup rows and emit input
+     */
+    const update = () => {
+      if ( isView.value ) {
+        return;
+      }
+      const out = [];
+
+      for ( const row of rows.value ) {
+        const trim = !props.valueMultiline && (typeof row.value === 'string');
+        const value = trim ? row.value.trim() : row.value;
+
+        if ( typeof value !== 'undefined' ) {
+          out.push(value);
+        }
+      }
+      emit('update:value', out);
+    };
+
+    const lastUpdateWasFromValue = ref(false);
+    const queueUpdate = debounce(update, 50);
+
+    watch(
+      rows,
+      () => {
+        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
+        // this was called which then forced rows to updated again
+        if (!lastUpdateWasFromValue.value) {
+          queueUpdate();
+        }
+        lastUpdateWasFromValue.value = false;
+      },
+      { deep: true }
+    );
+
+    watch(
+      () => props.value,
+      () => {
+        lastUpdateWasFromValue.value = true;
+        rows.value = (props.value || []).map((v) => ({ value: v }));
+      },
+      { deep: true }
+    );
+
+    return {
+      rows,
+      lastUpdateWasFromValue,
+      queueUpdate,
+      isView,
+      update,
+    };
   },
+
   computed: {
     _addLabel() {
       return this.addLabel || this.t('generic.add');
     },
     _removeLabel() {
       return this.removeLabel || this.t('generic.remove');
-    },
-
-    isView() {
-      return this.mode === _VIEW;
     },
     showAdd() {
       return this.addAllowed;
@@ -137,29 +203,7 @@ export default {
       return !this.valueMultiline && this.protip;
     }
   },
-  watch: {
-    value: {
-      deep: true,
-      handler() {
-        this.lastUpdateWasFromValue = true;
-        this.rows = (this.value || []).map((v) => ({ value: v }));
-      }
-    },
-
-    rows: {
-      deep: true,
-      handler(newValue, oldValue) {
-        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
-        // this was called which then forced rows to updated again
-        if (!this.lastUpdateWasFromValue) {
-          this.queueUpdate();
-        }
-        this.lastUpdateWasFromValue = false;
-      }
-    }
-  },
   created() {
-    this.queueUpdate = debounce(this.update, 50);
   },
   methods: {
     add() {
@@ -183,26 +227,6 @@ export default {
       this.$emit('remove', { row, index });
       removeAt(this.rows, index);
       this.queueUpdate();
-    },
-
-    /**
-     * Cleanup rows and emit input
-     */
-    update() {
-      if ( this.isView ) {
-        return;
-      }
-      const out = [];
-
-      for ( const row of this.rows ) {
-        const trim = !this.valueMultiline && (typeof row.value === 'string');
-        const value = trim ? row.value.trim() : row.value;
-
-        if ( typeof value !== 'undefined' ) {
-          out.push(value);
-        }
-      }
-      this.$emit('update:value', out);
     },
 
     /**
@@ -262,7 +286,7 @@ export default {
       <div
         v-for="(row, idx) in rows"
         :key="idx"
-        :data-testid="`array-list-box${ idx }`"
+        :data-testid="`${componentTestid}-box${ idx }`"
         class="box"
       >
         <slot
@@ -286,7 +310,7 @@ export default {
                 v-if="valueMultiline"
                 ref="value"
                 v-model:value="row.value"
-                :data-testid="`textarea-${idx}`"
+                :data-testid="`${componentTestid}-textarea-${idx}`"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
                 :disabled="disabled"
@@ -297,7 +321,7 @@ export default {
                 v-else-if="rules.length > 0"
                 ref="value"
                 v-model:value="row.value"
-                :data-testid="`labeled-input-${idx}`"
+                :data-testid="`${componentTestid}-labeled-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 :rules="rules"
@@ -309,9 +333,10 @@ export default {
                 v-else
                 ref="value"
                 v-model="row.value"
-                :data-testid="`input-${idx}`"
+                :data-testid="`${componentTestid}-input-${idx}`"
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
+                :aria-label="a11yLabel ? a11yLabel : undefined"
                 @paste="onPaste(idx, $event)"
               >
             </slot>
@@ -331,7 +356,9 @@ export default {
               type="button"
               :disabled="isView"
               class="btn role-link"
-              :data-testid="`remove-item-${idx}`"
+              :data-testid="`${componentTestid}-remove-item-${idx}`"
+              :aria-label="`${_removeLabel} ${idx + 1}`"
+              role="button"
               @click="remove(row, idx)"
             >
               {{ _removeLabel }}
@@ -363,12 +390,14 @@ export default {
           type="button"
           class="btn role-tertiary add"
           :disabled="loading || disableAdd"
-          data-testid="array-list-button"
+          :data-testid="`${componentTestid}-button`"
+          :aria-label="_addLabel"
+          role="button"
           @click="add()"
         >
           <i
-            v-if="loading"
-            class="mr-5 icon icon-spinner icon-spin icon-lg"
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
           />
           {{ _addLabel }}
         </button>

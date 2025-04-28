@@ -1,14 +1,8 @@
 #!/usr/bin/env node
 
-// Update Chart.yaml and values.yaml files
-
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-
-// TODO: Should already be in the template
-// const UI_PLUGIN_ANNOTATION_NAME = 'catalog.cattle.io/ui-component';
-// const UI_PLUGIN_ANNOTATION_VALUE = 'plugins';
 
 console.log('Helm file update');
 
@@ -17,12 +11,10 @@ if (process.argv.length !== 4) {
   process.exit(1);
 }
 
-const destFolder = process.argv[2];
+const chartFolder = process.argv[2];
 const pkgFilePath = process.argv[3];
 
 const pkgFile = JSON.parse(fs.readFileSync(pkgFilePath, 'utf8'));
-
-const chartFolder = destFolder;
 const chartFile = path.join(chartFolder, 'Chart.yaml');
 const valuesFile = path.join(chartFolder, 'values.yaml');
 
@@ -32,36 +24,57 @@ if (!fs.existsSync(chartFolder)) {
 }
 
 // --------------------------------------------------------------------------------
-// Chart.yaml
+// Chart.yaml updates (annotations)
 // --------------------------------------------------------------------------------
 const chart = yaml.load(fs.readFileSync(chartFile, 'utf8'));
-let updated = false;
+let chartUpdated = false;
 
-// Add in annotations to match any rules in the package file
-if (pkgFile.rancher && typeof pkgFile.rancher === 'object') {
-  // See if there are any annotations and merge them in, if there are
-  if (pkgFile.rancher.annotations) {
-    chart.annotations = chart.annotations || {};
-    Object.keys(pkgFile.rancher.annotations).forEach((key) => {
-      chart.annotations[key] = pkgFile.rancher.annotations[key];
-      updated = true;
-    });
-  }
+if (pkgFile.rancher?.annotations) {
+  chart.annotations = chart.annotations || {};
+  Object.entries(pkgFile.rancher.annotations).forEach(([key, value]) => {
+    if (chart.annotations[key] !== value) {
+      chart.annotations[key] = value;
+      chartUpdated = true;
+    }
+  });
 }
 
-if (updated) {
-  // Write out updated file
-  const str = yaml.dump(chart);
-
-  fs.writeFileSync(chartFile, str, 'utf8');
+if (chartUpdated) {
+  fs.writeFileSync(chartFile, yaml.dump(chart), 'utf8');
+  console.log('Updated Chart.yaml annotations');
 }
 
 // --------------------------------------------------------------------------------
-// values.yaml
+// values.yaml updates (endpoints)
 // --------------------------------------------------------------------------------
-
 const values = yaml.load(fs.readFileSync(valuesFile, 'utf8'));
 
-const valuesYaml = yaml.dump(values, { quotingType: '"' });
+// Get package metadata from package.json
+const pkgName = pkgFile.name;
+const pkgVersion = pkgFile.version;
+const pkgFullName = `${ pkgName }-${ pkgVersion }`;
 
-fs.writeFileSync(valuesFile, valuesYaml, 'utf8');
+// Determine build type from environment
+const isGitHubBuild = process.env.GITHUB_BUILD === 'true';
+
+// Set endpoints based on build type
+if (isGitHubBuild) {
+  const githubSource = process.env.GITHUB_SOURCE;
+  const githubBranch = process.env.GITHUB_BRANCH;
+
+  values.plugin.endpoint = `https://raw.githubusercontent.com/${ githubSource }/${ githubBranch }/extensions/${ pkgName }/${ pkgVersion }`;
+} else {
+  const imagePrefix = process.env.IMAGE_PREFIX || '';
+  const baseExt = process.env.BASE_EXT;
+
+  values.plugin.endpoint = `http://${ imagePrefix }${ baseExt }-svc.cattle-ui-plugin-system:8080/plugin/${ pkgFullName }`;
+}
+
+// Always set compressedEndpoint as endpoint + .tgz
+values.plugin.compressedEndpoint = `${ values.plugin.endpoint }.tgz`;
+
+// Write updated values.yaml
+fs.writeFileSync(valuesFile, yaml.dump(values, { quotingType: '"' }), 'utf8');
+console.log('Updated values.yaml endpoints:');
+console.log(`- endpoint: ${ values.plugin.endpoint }`);
+console.log(`- compressedEndpoint: ${ values.plugin.compressedEndpoint }`);

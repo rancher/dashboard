@@ -2131,7 +2131,6 @@ fleet:
       notReady: 未就绪
       waitApplied: 等待应用
   gitRepo:
-    createLocalBanner: 将 Git 仓库部署到本地工作区时，你无法定位任何集群或集群组
     tabs:
       resources: 资源
       unready: 未就绪
@@ -2721,8 +2720,6 @@ landing:
       other {核}}
     cpuUsed: 已用 CPU
     memoryUsed: 已用内存
-  seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
-  whatsNewLink: "2.8 的新功能"
   learnMore: 了解更多
   support: 支持
   community:

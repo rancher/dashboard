@@ -53,12 +53,12 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
   return newIndex;
 };
 
-const handleClick = () => {
+const handleClick = (e: MouseEvent) => {
   if (props.disabled) {
     return;
   }
 
-  emits('click');
+  emits('click', e);
   close();
 };
 
@@ -71,17 +71,6 @@ const handleActivate = (e: KeyboardEvent) => {
     e?.target?.click();
   }
 };
-
-/**
- * Handles keydown events to focus the dropdown item.
- * @param e - The Mouse event.
- */
-const handleMouseEnter = (e: MouseEvent) => {
-  if (e?.target instanceof HTMLElement) {
-    e?.target?.focus();
-  }
-};
-
 </script>
 
 <template>
@@ -94,9 +83,11 @@ const handleMouseEnter = (e: MouseEvent) => {
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
-    @keydown.up.down.stop="handleKeydown"
-    @mouseenter="handleMouseEnter"
+    @keydown.up.down.prevent.stop="handleKeydown"
   >
+    <slot name="before">
+      <!--Empty slot content-->
+    </slot>
     <slot name="default">
       <!--Empty slot content-->
     </slot>
@@ -105,6 +96,9 @@ const handleMouseEnter = (e: MouseEvent) => {
 
 <style lang="scss" scoped>
   [dropdown-menu-item] {
+    display: flex;
+    gap: 8px;
+    align-items: center;
     padding: 9px 8px;
     margin: 0 9px;
     border-radius: 4px;

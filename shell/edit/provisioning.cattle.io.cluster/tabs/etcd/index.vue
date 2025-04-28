@@ -48,7 +48,7 @@ export default {
       return this.value.spec.rkeConfig.etcd;
     },
     argsEtcdExposeMetrics() {
-      return !!this.selectedVersion?.serverArgs['etcd-expose-metrics'];
+      return !!this.selectedVersion?.serverArgs?.['etcd-expose-metrics'];
     },
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
@@ -90,7 +90,8 @@ export default {
           v-model:value="etcd.snapshotRetention"
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
-          :suffix="t('cluster.rke2.snapshots.suffix')"
+          :suffix="s3Backup ? t('cluster.rke2.snapshots.s3Suffix') : t('cluster.rke2.snapshots.suffix')"
+          :tooltip="s3Backup ? t('cluster.rke2.etcd.snapshotRetention.tooltip') : undefined"
         />
       </div>
     </div>
@@ -102,8 +103,8 @@ export default {
         :value="s3Backup"
         name="etcd-s3"
         :options="[false, true]"
-        label="Backup Snapshots to S3"
-        :labels="['Disable','Enable']"
+        :label="t('cluster.rke2.etcd.s3backups.label')"
+        :labels="[t('generic.disable'),t('generic.enable')]"
         :mode="mode"
         @update:value="$emit('s3-backup-changed', $event)"
       />

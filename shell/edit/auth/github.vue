@@ -143,7 +143,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr>
+        <hr role="none">
 
         <AllowedPrincipals
           provider="github"

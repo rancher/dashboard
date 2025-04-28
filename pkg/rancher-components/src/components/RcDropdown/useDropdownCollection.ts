@@ -10,6 +10,7 @@ export const useDropdownCollection = () => {
   const dropdownItems = ref<Element[]>([]);
   const dropdownContainer = ref<HTMLElement | null>(null);
   const firstDropdownItem = ref<HTMLElement | null>(null);
+  const lastDropdownItem = ref<HTMLElement | null>(null);
 
   /**
    * Registers the dropdown container and initializes dropdown items.
@@ -21,6 +22,12 @@ export const useDropdownCollection = () => {
       registerDropdownItems();
       if (dropdownItems.value[0] instanceof HTMLElement) {
         firstDropdownItem.value = dropdownItems.value[0];
+      }
+
+      const lastItem = dropdownItems.value[dropdownItems.value.length - 1];
+
+      if (lastItem instanceof HTMLElement) {
+        lastDropdownItem.value = lastItem;
       }
     }
   };
@@ -40,6 +47,7 @@ export const useDropdownCollection = () => {
   return {
     dropdownItems,
     firstDropdownItem,
+    lastDropdownItem,
     dropdownContainer,
     registerDropdownCollection,
   };

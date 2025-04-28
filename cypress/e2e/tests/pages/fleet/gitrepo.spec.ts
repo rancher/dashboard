@@ -6,11 +6,15 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import 'cypress-real-events/support';
 
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+  let adminUsername = '';
+  let adminUserId = '';
+
   describe('Create', () => {
     const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
@@ -36,6 +40,11 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     });
 
     beforeEach(() => {
+      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+        adminUserId = resp.body.data[0].id.trim();
+        adminUsername = resp.body.data[0].username.trim();
+      });
+
       cy.createE2EResourceName('git-repo').as('gitRepo');
     });
 
@@ -49,101 +58,141 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
-      cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
       const { name } = gitRepoCreateRequest.metadata;
       const {
         repo, branch, paths, helmRepoURLRegex
       } = gitRepoCreateRequest.spec;
 
-      gitRepoCreatePage.setRepoName(name);
-      gitRepoCreatePage.setGitRepoUrl(repo);
       headerPo.selectWorkspace('fleet-default');
+
+      // Metadata step
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set(name);
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+
+      // Repository details step
+      gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
-      gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
-
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
-      gitRepoCreatePage.goToNext();
 
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+
+      // Target info step
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickOption(6);
-      gitRepoCreatePage.create().then(() => {
-        reposToDelete.push(`fleet-default/${ name }`);
+
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+
+      // Advanced info step
+      gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
+      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
+      gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
+      // #Percy tests
+      gitRepoCreatePage.displaySelfHealingInformationMessage();
+
+      cy.percySnapshot('Self-Healing test');
+      gitRepoCreatePage.displayAlwaysKeepInformationMessage();
+
+      cy.percySnapshot('Always Keep Resource test');
+      gitRepoCreatePage.displayPollingInvervalTimeInformationMessage();
+
+      cy.percySnapshot('Polling Interval test');
+      gitRepoCreatePage.setPollingInterval(13);
+
+      cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+
+      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().create()
+        .then(() => {
+          reposToDelete.push(`fleet-default/${ name }`);
+        });
+
+      let gitSecretName = '';
+      let helmSecretName = '';
+
+      // Intercept 2nd interceptSecret call - Git SSH secret creation, see https://docs.cypress.io/api/commands/intercept#Interception-lifecycle
+      cy.wait('@interceptSecret').then(({ request, response }) => {
+        gitSecretName = response.body.metadata.name;
+
+        expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+        expect(response.statusCode).to.eq(201);
+        expect(gitSecretName).not.to.eq('');
+        expect(response.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
       });
 
-      // First request is for creating credentials
-      let secretName = '';
-      let requestLabels = null;
-      let secretLabels = null;
+      // Intercept 1st interceptSecret call - Helm secret creation see https://docs.cypress.io/api/commands/intercept#Interception-lifecycle
+      cy.wait('@interceptSecret').then(({ request, response }) => {
+        helmSecretName = response.body.metadata.name;
 
-      cy.wait('@interceptSecret')
-        .then(({ request, response }) => {
-          requestLabels = request.body.metadata.labels;
-          expect(requestLabels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
-          expect(response.statusCode).to.eq(201);
-          secretName = response.body.metadata.name;
-          secretLabels = response.body.metadata.labels;
-          expect(secretName).not.to.eq('');
-          expect(secretLabels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+        expect(request.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+        expect(response.statusCode).to.eq(201);
+        expect(helmSecretName).not.to.eq('');
+        expect(response.body.metadata.labels).to.be.an('object').and.to.have.property('fleet.cattle.io/managed').that.equals('true');
+      });
 
-          // Second request is for creating the git repo
-          return cy.wait('@interceptGitRepo');
-        })
-        .then(({ request, response }) => {
-          gitRepoCreateRequest.spec.helmSecretName = secretName;
-          expect(response.statusCode).to.eq(201);
-          expect(request.body).to.deep.eq(gitRepoCreateRequest);
+      cy.wait('@interceptGitRepo').then(({ request, response }) => {
+        gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-display-name'] = adminUsername;
+        gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-user-id'] = adminUserId;
+        gitRepoCreateRequest.spec.helmSecretName = helmSecretName;
+        gitRepoCreateRequest.spec.clientSecretName = gitSecretName; // Git SSH credentials
+        gitRepoCreateRequest.spec.pollingInterval = '13s';
 
-          const listPage = new FleetGitRepoListPagePo();
+        expect(response.statusCode).to.eq(201);
+        expect(request.body).to.deep.eq(gitRepoCreateRequest);
 
-          listPage.waitForPage();
+        const listPage = new FleetGitRepoListPagePo();
 
-          const prefPage = new PreferencesPagePo();
+        listPage.waitForPage();
 
-          // START TESTING https://github.com/rancher/dashboard/issues/9984
-          // change language to chinese
-          prefPage.goTo();
-          prefPage.languageDropdownMenu().checkVisible();
-          prefPage.languageDropdownMenu().toggle();
-          prefPage.languageDropdownMenu().isOpened();
+        const prefPage = new PreferencesPagePo();
 
-          cy.intercept({
-            method: 'PUT', url: 'v1/userpreferences/*', times: 1
-          }).as(`prefUpdateZhHans`);
-          prefPage.languageDropdownMenu().clickOption(2);
-          cy.wait('@prefUpdateZhHans').then(({ response }) => {
-            expect(response?.statusCode).to.eq(200);
-            expect(response?.body.data).to.have.property('locale', 'zh-hans');
-          });
-          prefPage.languageDropdownMenu().isClosed();
+        // START TESTING https://github.com/rancher/dashboard/issues/9984
+        // change language to chinese
+        prefPage.goTo();
+        prefPage.languageDropdownMenu().checkVisible();
+        prefPage.languageDropdownMenu().toggle();
+        prefPage.languageDropdownMenu().isOpened();
 
-          listPage.goTo();
-          listPage.waitForPage();
-          listPage.repoList().resourceTable().checkVisible();
-          listPage.repoList().resourceTable().sortableTable().checkVisible();
-          listPage.repoList().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-          listPage.repoList().resourceTable().sortableTable().noRowsShouldNotExist();
+        cy.intercept({
+          method: 'PUT', url: 'v1/userpreferences/*', times: 1
+        }).as(`prefUpdateZhHans`);
+        prefPage.languageDropdownMenu().clickOption(2);
+        cy.wait('@prefUpdateZhHans').then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(response?.body.data).to.have.property('locale', 'zh-hans');
+        });
+        prefPage.languageDropdownMenu().isClosed();
 
-          // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
-          listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
-          gitRepoCreatePage.title().contains('Git 仓库: fleet-e2e-test-gitrepo').should('be.visible');
+        listPage.goTo();
+        listPage.waitForPage();
+        listPage.sharedComponents().list().resourceTable().checkVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .checkVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .checkLoadingIndicatorNotVisible();
+        listPage.sharedComponents().list().resourceTable().sortableTable()
+          .noRowsShouldNotExist();
 
-          // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
-          prefPage.goTo();
-          prefPage.languageDropdownMenu().checkVisible();
-          prefPage.languageDropdownMenu().toggle();
-          prefPage.languageDropdownMenu().isOpened();
+        // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
+        listPage.sharedComponents().goToDetailsPage('fleet-e2e-test-gitrepo');
+        gitRepoCreatePage.mastheadTitle().then((title) => {
+          expect(title.replace(/\s+/g, ' ')).to.contain('Git 仓库: fleet-e2e-test-gitrepo');
+        });
+        // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
+        prefPage.goTo();
+        prefPage.languageDropdownMenu().checkVisible();
+        prefPage.languageDropdownMenu().toggle();
+        prefPage.languageDropdownMenu().isOpened();
 
-          cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
-          prefPage.languageDropdownMenu().clickOptionWithLabel('English');
-          cy.wait('@prefUpdateEnUs').then(({ response }) => {
-            expect(response?.statusCode).to.eq(200);
-            expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
-          });
-          prefPage.languageDropdownMenu().isClosed();
-        })
-      ;
+        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdateEnUs`);
+        prefPage.languageDropdownMenu().clickOptionWithLabel('English');
+        cy.wait('@prefUpdateEnUs').then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(response?.body.data).to.have.property('locale', 'en-us'); // Flake: This can sometimes be zh-hans.....?!
+        });
+        prefPage.languageDropdownMenu().isClosed();
+      });
     });
 
     it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
@@ -157,14 +206,15 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // check table headers
       const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-      listPage.repoList().resourceTable().sortableTable().tableHeaderRow()
+      listPage.sharedComponents().list().resourceTable().sortableTable()
+        .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeadersListView[i]);
         });
 
       // go to fleet gitrepo details
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
@@ -191,7 +241,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
       gitRepoDetails.waitForPage(null, 'bundles');
       gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
       const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
@@ -258,7 +308,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       listPage.goTo();
       listPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.repoList().details(this.gitRepo, 2).find('a').click();
+      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
 
       gitRepoDetails.waitForPage(null, 'bundles');
 

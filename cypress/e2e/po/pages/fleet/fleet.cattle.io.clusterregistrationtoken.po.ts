@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import FleetClusterRegistrationTokensList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import FleetTokensCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 
 export class FleetClusterRegistrationTokenListPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`
@@ -27,17 +27,11 @@ export class FleetClusterRegistrationTokenListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Cluster Registration Tokens');
   }
 
-  tokensList() {
-    return new FleetClusterRegistrationTokensList('[data-testid="sortable-table-list-container"]');
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
-  goToDetailsPage(elemName: string) {
-    const resourceTable = new ResourceTablePo(this.self());
-
-    return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
-  }
-
-  resourceTable() {
-    return new ResourceTablePo(this.self());
+  createTokenForm(fleetWorkspace?: string, id?: string): FleetTokensCreateEditPo {
+    return new FleetTokensCreateEditPo(fleetWorkspace, id);
   }
 }

@@ -1,5 +1,5 @@
 import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -43,7 +43,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
+    return cy.get('body').find('[dropdown-menu-collection]');
   }
 
   /**
@@ -54,7 +54,7 @@ export default class SortableTablePo extends ComponentPo {
 
     popOver.should('be.visible');
 
-    return popOver.find('li').contains(name);
+    return popOver.find('[dropdown-menu-item]').contains(name);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { PaginationSettings } from '@shell/types/resources/settings';
+import { PaginationSettings, PaginationSettingsStore } from '@shell/types/resources/settings';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
@@ -14,6 +14,7 @@ import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
+import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 
 /**
  * Helper functions for server side pagination
@@ -30,6 +31,18 @@ class PaginationUtils {
     const perf = getPerformanceSetting(rootGetters);
 
     return perf.serverPagination;
+  }
+
+  public getStoreSettings(ctx: any): PaginationSettingsStore
+  public getStoreSettings(serverPagination: PaginationSettings): PaginationSettingsStore
+  public getStoreSettings(arg: any | PaginationSettings): PaginationSettingsStore {
+    const serverPagination: PaginationSettings = arg?.rootGetters !== undefined ? this.getSettings(arg) : arg;
+
+    return serverPagination?.useDefaultStores ? this.getStoreDefault() : serverPagination?.stores || this.getStoreDefault();
+  }
+
+  public getStoreDefault(): PaginationSettingsStore {
+    return PAGINATION_SETTINGS_STORE_DEFAULTS;
   }
 
   isSteveCacheEnabled({ rootGetters }: any): boolean {
@@ -61,7 +74,7 @@ class PaginationUtils {
       return false;
     }
 
-    const storeSettings = settings.stores?.[enabledFor.store];
+    const storeSettings = this.getStoreSettings(settings)?.[enabledFor.store];
 
     // No pagination setting for target store, not enabled
     if (!storeSettings) {

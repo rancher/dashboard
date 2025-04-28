@@ -11,6 +11,7 @@ jobs:
     name: Validate Code
     uses: ./.github/workflows/build-test.yaml
   build:
+    if: ${{ github.repository_owner == 'rancher' }}
     name: Build and Upload
     uses: ./.github/workflows/build-and-upload.yaml
     needs:

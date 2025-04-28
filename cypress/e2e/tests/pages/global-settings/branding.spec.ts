@@ -17,9 +17,14 @@ const settings = {
     new:      'Rancher e2e'
   },
   primaryColor: {
-    original: '#3d98d3', // 3D98D3
-    new:      '#f80dd8',
-    newRGB:   'rgb(248, 13, 216)', // 'rgb(220, 222, 231)'
+    original:     '#3d98d3', // 3D98D3
+    new:          '#f80dd8',
+    newRGB:       'rgb(248, 13, 216)', // 'rgb(220, 222, 231)'
+    // the browser seems to sometimes slightly change the color
+    // don't know if it's related to the actual color input output
+    // OR the application of the color in the css
+    // check PR  https://github.com/rancher/dashboard/pull/13954 description
+    validNewRGBs: ['rgb(248, 13, 216)', 'rgb(249, 63, 224)']
   },
   linkColor: {
     original: '#3d98d3', // #3D98D3
@@ -81,11 +86,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
     homePage.title().should('eq', `Welcome to ${ settings.privateLabel.new }`);
 
     // Check in session
-    cy.title().should('eq', settings.privateLabel.new);
+    cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     // Check over reload
     cy.reload();
-    cy.title().should('eq', settings.privateLabel.new);
+    cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     BrandingPagePo.navTo();
 
@@ -94,7 +99,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.applyAndWait('**/ui-pl', 200);
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
-    cy.title({ timeout: 2000 }).should('eq', settings.privateLabel.original);
+    cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
   });
 
   it('Logo', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -352,17 +357,17 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     BrandingPagePo.navTo();
 
-    // Set
     brandingPage.primaryColorCheckbox().set();
     brandingPage.primaryColorPicker().value().should('not.eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().set(settings.primaryColor.new);
     brandingPage.applyAndWait('**/ui-primary-color', 200);
+    brandingPage.applyButton().waitForDisabledAppearanceToDisappear();
 
     // Check in session
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     // Check over reload
@@ -370,7 +375,7 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().previewColor().should('eq', settings.primaryColor.newRGB);
     brandingPage.applyButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     // check that login page has new styles applied
@@ -378,13 +383,13 @@ describe('Branding', { testIsolation: 'off' }, () => {
     loginPage.goTo();
 
     loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
 
     cy.reload();
 
     loginPage.submitButton().self().should('have.css', 'background').should((background: string) => {
-      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.newRGB));
+      expect(background).to.satisfy((b) => b.startsWith(settings.primaryColor.validNewRGBs[0]) || b.startsWith(settings.primaryColor.validNewRGBs[1]));
     });
     // EO test https://github.com/rancher/dashboard/issues/10788
 

@@ -9,7 +9,7 @@ import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
-import ActionMenu from '@shell/components/ActionMenu';
+import ActionMenu from '@shell/components/ActionMenuShell';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
@@ -45,7 +45,8 @@ const TABS_VALUES = {
   INSTALLED: 'installed',
   UPDATES:   'updates',
   AVAILABLE: 'available',
-  ALL:       'all'
+  BUILTIN:   'builtin',
+  ALL:       'all',
 };
 
 export default {
@@ -210,15 +211,19 @@ export default {
     },
 
     list() {
-      const all = this.available;
+      // If not an extension developer, then don't include built-in extensions
+      const all = this.pluginDeveloper ? this.available : this.available.filter((p) => !p.builtin);
 
       switch (this.view) {
       case TABS_VALUES.INSTALLED:
-        return all.filter((p) => !!p.installed || !!p.installing);
+        // We never show built-in extensions as installed - installed are just the ones the user has installed
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
       case TABS_VALUES.UPDATES:
         return this.updates;
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
+      case TABS_VALUES.BUILTIN:
+        return all.filter((p) => p.builtin);
       default:
         return all;
       }
@@ -688,25 +693,11 @@ export default {
         </div>
         <!-- extensions menu -->
         <div v-if="hasFeatureFlag && hasMenuActions">
-          <button
-            ref="actions"
-            aria-haspopup="true"
-            type="button"
-            class="btn role-multi-action actions"
-            data-testid="extensions-page-menu"
-            role="button"
-            :aria-label="t('plugins.labels.menu')"
-            @click="setMenu"
-          >
-            <i class="icon icon-actions" />
-          </button>
           <ActionMenu
+            data-testid="extensions-page-menu"
+            button-role="tertiary"
+            :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
-            :open="menuOpen"
-            :use-custom-target-element="true"
-            :custom-target-element="menuTargetElement"
-            :custom-target-event="menuTargetEvent"
-            @close="setMenu(false)"
             @devLoad="showDeveloperLoadDialog"
             @manageRepos="manageRepos"
             @addRancherRepos="showAddExtensionReposDialog"
@@ -791,9 +782,15 @@ export default {
             :badge="updates.length"
           />
           <Tab
+            v-if="pluginDeveloper"
+            :name="TABS_VALUES.BUILTIN"
+            label-key="plugins.tabs.builtin"
+            :weight="17"
+          />
+          <Tab
             :name="TABS_VALUES.ALL"
             label-key="plugins.tabs.all"
-            :weight="17"
+            :weight="16"
           />
         </Tabbed>
         <div
@@ -843,11 +840,13 @@ export default {
                   :error-src="defaultIcon"
                   :src="plugin.icon"
                   class="icon plugin-icon-img"
+                  :alt="t('plugins.altIcon', { extension: plugin.name })"
                 />
                 <img
                   v-else
                   :src="defaultIcon"
                   class="icon plugin-icon-img"
+                  :alt="t('plugins.altIcon', { extension: plugin.name })"
                 >
               </div>
               <!-- extension card -->

@@ -26,7 +26,6 @@ $disabled  : $medium;
 $primary         : #3D98D3;
 $secondary       : $darker;
 $link            : #3D98D3;
-$keyboard-focus  : #3300ff;
 
 // Status colors
 $success         : #5D995D;
@@ -54,7 +53,7 @@ BODY, .theme-light {
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : #{$keyboard-focus};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
 
   .text-primary {
@@ -91,6 +90,10 @@ BODY, .theme-light {
 
   .text-link {
     color: var(--link) !important;
+
+    &.disabled {
+      color: var(--disabled-text) !important;
+    }
   }
 
   .bg-link {

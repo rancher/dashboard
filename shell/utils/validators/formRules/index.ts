@@ -176,6 +176,21 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     return containers.map((container: any) => containerImage(container)).find((containerError: string) => containerError);
   };
 
+  const registryUrl = (privateRegistryURL: string) => {
+    if (!privateRegistryURL) {
+      return;
+    }
+
+    const pattern = new RegExp('^([a-z\\-0-9]+:\\/\\/?)?' + // scheme (optional, https://, http://, file:/, admin:/)
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // ip address
+        '(\\:\\d+)?'); // port
+
+    const isValid = pattern.test(privateRegistryURL);
+
+    return isValid ? undefined : t('cluster.privateRegistry.privateRegistryUrlError');
+  };
+
   const dnsLabel: Validator = (val: string) => {
     const validators = [
       dnsChars,
@@ -504,6 +519,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     minValue,
     noUpperCase,
     portNumber,
+    registryUrl,
     required,
     requiredInt,
     isInteger,

@@ -173,13 +173,16 @@ export default {
     </div>
     <PromptChangePassword ref="promptChangePassword" />
 
-    <hr>
+    <hr role="none">
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <CopyToClipboardText :text="apiUrl" />
+          <CopyToClipboardText
+            :aria-label="t('accountAndKeys.apiKeys.copyApiEnpoint')"
+            :text="apiUrl"
+          />
         </div>
       </div>
       <button

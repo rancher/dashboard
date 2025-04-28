@@ -9,6 +9,7 @@ $btn-height: 40px;
 $input-height: 61px;
 $unlabeled-input-height: 40px;
 $unlabaled-select-padding: 3px 0;
+$footer-height: 60px;
 
 $input-padding-lg: 18px;
 $input-padding-sm: 10px;
@@ -39,6 +40,8 @@ $z-indexes: (
   windowsManager: 13,
 
   mainHeader: 14,
+
+  cruFooter: 19,
 
   modalOverlay: 20,
   modalContent: 21,

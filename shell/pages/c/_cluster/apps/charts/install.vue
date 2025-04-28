@@ -45,6 +45,22 @@ const VALUES_STATE = {
   DIFF: 'DIFF'
 };
 
+/**
+ * Helm CLI options that are not persisted on the back end,
+ * but are used for the final install/upgrade operation.
+ */
+const defaultCmdOpts = {
+  cleanupOnFail: false,
+  crds:          true,
+  hooks:         true,
+  force:         false,
+  resetValues:   false,
+  openApi:       true,
+  wait:          true,
+  timeout:       600,
+  historyMax:    5,
+};
+
 function isPlainLayout(query) {
   return Object.keys(query).includes(HIDE_SIDE_NAV);
 }
@@ -359,20 +375,6 @@ export default {
   },
 
   data() {
-    /* Helm CLI options that are not persisted on the back end,
-    but are used for the final install/upgrade operation. */
-    const defaultCmdOpts = {
-      cleanupOnFail: false,
-      crds:          true,
-      hooks:         true,
-      force:         false,
-      resetValues:   false,
-      openApi:       true,
-      wait:          true,
-      timeout:       600,
-      historyMax:    5,
-    };
-
     return {
       defaultRegistrySetting: '',
       customRegistrySetting:  '',
@@ -502,7 +504,7 @@ export default {
     },
 
     charts() {
-      const current = this.existing?.matchingChart(true);
+      const current = this.existing?.matchingCharts(true)[0];
 
       const out = this.$store.getters['catalog/charts'].filter((x) => {
         if ( x.key === current?.key || x.chartName === current?.chartName ) {
@@ -1386,7 +1388,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr>
+                    <hr role="none">
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
@@ -1858,7 +1860,7 @@ export default {
       }
 
       .namespace-create-banner {
-        margin-bottom: 70px;
+        margin-bottom: calc($footer-height + 10px);
       }
     }
     &__values {

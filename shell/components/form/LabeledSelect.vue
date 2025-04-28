@@ -5,6 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
@@ -116,7 +117,8 @@ export default {
   data() {
     return {
       selectedVisibility: 'visible',
-      shouldOpen:         true
+      shouldOpen:         true,
+      uid:                generateRandomAlphaString(10)
     };
   },
 
@@ -154,6 +156,10 @@ export default {
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
+      if (this.isView || this.disabled || this.loading) {
+        return;
+      }
+
       // we need this override as in a "closeOnSelect" type of component
       // if we don't have this override, it would open again
       if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
@@ -290,14 +296,20 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
+    role="listbox"
     @click="focusSearch"
-    @keydown.enter.space.down="focusSearch"
+    @keydown.enter="focusSearch"
+    @keydown.down.prevent="focusSearch"
+    @keydown.space.prevent="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :id="`labeled-select-uid-${uid}`"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -312,6 +324,7 @@ export default {
     </div>
     <v-select
       ref="select-input"
+      :aria-labelledby="hasLabel ? `labeled-select-uid-${uid}` : ''"
       v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -332,6 +345,7 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
+      role="listitem"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -361,7 +375,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">

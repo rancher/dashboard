@@ -1,4 +1,5 @@
 import { MANAGEMENT } from '@shell/config/types';
+import { SCHEDULING_CUSTOMIZATION as SCHEDULING_CUSTOMIZATION_FEATURE } from '@shell/config/features';
 
 const definitions = {};
 
@@ -36,6 +37,7 @@ export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-
 export const STEVE_CACHE = create('ui-sql-cache', false);
 export const UIEXTENSION = create('uiextension', true);
 export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
+export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

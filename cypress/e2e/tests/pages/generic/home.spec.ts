@@ -2,7 +2,7 @@ import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
 
@@ -173,13 +173,13 @@ describe('Home Page', () => {
     });
 
     it('can click on Forums link', () => {
-      catchTargetPageException('TenantFeatures', 'https://forums.rancher.com');
+      catchTargetPageException('TenantFeatures', 'https://forums.suse.com');
 
       // click Forums link
       homePage.clickSupportLink(1, true);
 
-      cy.origin('https://forums.rancher.com', () => {
-        cy.url().should('include', 'forums.rancher.com/');
+      cy.origin('https://forums.suse.com', () => {
+        cy.url().should('include', 'forums.suse.com/');
       });
     });
 
@@ -310,7 +310,7 @@ describe('Home Page', () => {
       homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
+        homePage.changelog().self().contains(`Learn more about the improvements and new capabilities in ${ CURRENT_RANCHER_VERSION }`);
         homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
 
         homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {

@@ -1,6 +1,11 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
+import {
+  DEFAULT_FOCUS_TRAP_OPTS,
+  useBasicSetupFocusTrap,
+  getFirstFocusableElement,
+  useWatcherBasedSetupFocusTrapWithDestroyIncluded
+} from '@shell/composables/focusTrap';
 
 export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
@@ -80,7 +85,21 @@ export default defineComponent({
     returnFocusFirstIterableNodeSelector: {
       type:    String,
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
-    }
+    },
+    /**
+     * trigger focus trap - but watcher based
+     */
+    triggerFocusTrapWatcherBased: {
+      type:    Boolean,
+      default: false,
+    },
+    /**
+     * watcher-based focus trap variable to watch
+     */
+    focusTrapWatcherBasedVariable: {
+      type:    Boolean,
+      default: false,
+    },
   },
   computed: {
     modalWidth(): string {
@@ -107,7 +126,7 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
-    }
+    },
   },
   setup(props) {
     if (props.triggerFocusTrap) {
@@ -131,7 +150,19 @@ export default defineComponent({
         };
       }
 
-      useBasicSetupFocusTrap('#modal-container-element', opts);
+      if (!props.triggerFocusTrapWatcherBased) {
+        useBasicSetupFocusTrap('#modal-container-element', opts);
+      }
+    }
+  },
+  created() {
+    // This usecase is to cover the PromptModal scenario where it's renders a generic component inside.
+    // Due to the architecture of the PromptModal it needs to be handled with a watcher based focus trap
+    // but with a dedicated unmount hook
+    if (this.triggerFocusTrapWatcherBased) {
+      const opts:any = DEFAULT_FOCUS_TRAP_OPTS;
+
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.focusTrapWatcherBasedVariable, '#modal-container-element', opts, true);
     }
   },
   mounted() {
@@ -208,7 +239,7 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20;
+    z-index: z-index('modalOverlay');
 
     .modal-container {
       background-color: var(--modal-bg);

@@ -1,7 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ACE from '@/cypress/e2e/po/components/ace.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 /**
  * Edit page for imported cluster
@@ -11,7 +13,7 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
   }
 
-  static goTo(clusterId: string, clusterName: string): Cypress.Chainable<Cypress.AUTWindow> {
+  static goTo(clusterId: string, clusterName: string ): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ClusterManagerEditImportedPagePo.createPath(clusterId, clusterName));
   }
 
@@ -19,12 +21,32 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     super(ClusterManagerEditImportedPagePo.createPath(clusterId, clusterName));
   }
 
-  name(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Name');
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
   }
 
   ace(): ACE {
     return new ACE();
+  }
+
+  accordion(index: number, label: string) {
+    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
+  }
+
+  toggleAccordion(index: number, label: string) {
+    return this.accordion(index, label).click();
+  }
+
+  privateRegistryCheckbox() {
+    return new CheckboxInputPo('[data-testid="private-registry-enable-checkbox"]');
+  }
+
+  enablePrivateRegistryCheckbox() {
+    return this.privateRegistryCheckbox().set();
+  }
+
+  privateRegistry() {
+    return LabeledInputPo.byLabel(this.self(), 'Container Registry');
   }
 
   resourceDetail() {

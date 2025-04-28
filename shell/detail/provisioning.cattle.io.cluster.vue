@@ -215,6 +215,41 @@ export default {
   },
 
   data() {
+    const noneGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    };
+    const poolColumn = {
+      name:     'pool',
+      labelKey: 'cluster.machinePool.name.label',
+      value:    'spec.nodePoolName',
+      getValue: (row) => row.spec.nodePoolName,
+      sort:     ['spec.nodePoolName'],
+    };
+    const poolGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.pool',
+      icon:       'icon-cluster',
+      hideColumn: poolColumn.name,
+      value:      'spec.nodePoolName',
+      field:      'spec.nodePoolName'
+    };
+
+    const machineColumn = {
+      name:     'pool',
+      labelKey: 'cluster.machinePool.name.label',
+      value:    'pool.nameDisplay',
+      getValue: (row) => row.pool.nameDisplay,
+      sort:     ['pool.nameDisplay'],
+    };
+    const machineGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.pool',
+      icon:       'icon-cluster',
+      hideColumn: machineColumn.name,
+      value:      'poolId',
+      field:      'poolId'
+    };
+
     return {
 
       allMachines:           [],
@@ -250,7 +285,25 @@ export default {
         conditions:   true, // in ResourceTabs
       },
 
-      showWindowsWarning: false
+      showWindowsWarning: false,
+
+      machineColumn,
+      poolColumn,
+
+      noneGroupOption,
+
+      machineGroupOption,
+      machineGroupOptions: [
+        noneGroupOption,
+        machineGroupOption
+      ],
+
+      poolGroupOption,
+      poolGroupOptions: [
+        noneGroupOption,
+        poolGroupOption,
+      ]
+
     };
   },
 
@@ -416,7 +469,7 @@ export default {
     },
 
     machineHeaders() {
-      return [
+      const headers = [
         STATE,
         NAME_COL,
         {
@@ -433,10 +486,16 @@ export default {
         ROLES,
         AGE,
       ];
+
+      if (!this.value.isCustom) {
+        headers.splice(3, 0, this.machineColumn);
+      }
+
+      return headers;
     },
 
     mgmtNodeSchemaHeaders() {
-      return [
+      const headers = [
         STATE, NAME_COL,
         {
           name:          'node-name',
@@ -452,6 +511,12 @@ export default {
         ROLES,
         AGE
       ];
+
+      if (!this.value.isCustom) {
+        headers.splice(3, 0, this.poolColumn);
+      }
+
+      return headers;
     },
 
     rke1Snapshots() {
@@ -745,6 +810,12 @@ export default {
       color="error"
       :label="$fetchState.error"
     />
+
+    <Banner
+      v-if="value.isRke1"
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
     <ResourceTabs
       :value="value"
       :default-tab="defaultTab"
@@ -766,10 +837,10 @@ export default {
           :schema="machineSchema"
           :headers="machineHeaders"
           default-sort-by="name"
-          :groupable="false"
-          :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
+          :group-default="machineGroupOption.value"
           :group-sort="['pool.nameDisplay']"
+          :group-options="value.isCustom ? [noneGroupOption] : machineGroupOptions"
           :sort-generation-fn="machineSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
@@ -853,11 +924,12 @@ export default {
           :schema="mgmtNodeSchema"
           :headers="mgmtNodeSchemaHeaders"
           :rows="nodes"
-          :groupable="false"
-          :group-by="value.isCustom ? null : 'spec.nodePoolName'"
           group-ref="pool"
+          :group-default="poolGroupOption.value"
           :group-sort="['pool.nameDisplay']"
+          :group-options="value.isCustom ? [noneGroupOption] : poolGroupOptions"
           :sort-generation-fn="nodeSortGenerationFn"
+          :hide-grouping-controls="true"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">

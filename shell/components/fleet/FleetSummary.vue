@@ -2,57 +2,47 @@
 import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetStatus from '@shell/components/fleet/FleetStatus';
 
-const getResourceDefaultState = (labelGetter, stateKey) => {
-  return {
-    ready: {
+const getResourcesDefaultState = (labelGetter, stateKey) => {
+  return [
+    STATES_ENUM.READY,
+    STATES_ENUM.NOT_READY,
+    STATES_ENUM.WAIT_APPLIED,
+    STATES_ENUM.MODIFIED,
+    STATES_ENUM.MISSING,
+    STATES_ENUM.ORPHANED,
+    STATES_ENUM.UNKNOWN,
+  ].reduce((acc, state) => {
+    acc[state] = {
       count:  0,
-      color:  STATES[STATES_ENUM.READY].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label ),
-      status: STATES_ENUM.READY
-    },
-    info: {
+      color:  STATES[state].color,
+      label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+      status: state
+    };
+
+    return acc;
+  }, {});
+};
+
+const getBundlesDefaultState = (labelGetter, stateKey) => {
+  return [
+    STATES_ENUM.READY,
+    STATES_ENUM.INFO,
+    STATES_ENUM.WARNING,
+    STATES_ENUM.NOT_READY,
+    STATES_ENUM.ERROR,
+    STATES_ENUM.ERR_APPLIED,
+    STATES_ENUM.WAIT_APPLIED,
+    STATES_ENUM.UNKNOWN,
+  ].reduce((acc, state) => {
+    acc[state] = {
       count:  0,
-      color:  STATES[STATES_ENUM.INFO].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label ),
-      status: STATES_ENUM.INFO
-    },
-    warning: {
-      count:  0,
-      color:  STATES[STATES_ENUM.WARNING].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label ),
-      status: STATES_ENUM.WARNING
-    },
-    notready: {
-      count:  0,
-      color:  STATES[STATES_ENUM.NOT_READY].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label ),
-      status: STATES_ENUM.NOT_READY
-    },
-    error: {
-      count:  0,
-      color:  STATES[STATES_ENUM.ERROR].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label ),
-      status: STATES_ENUM.ERROR
-    },
-    errapplied: {
-      count:  0,
-      color:  STATES[STATES_ENUM.ERR_APPLIED].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label ),
-      status: STATES_ENUM.ERR_APPLIED,
-    },
-    waitapplied: {
-      count:  0,
-      color:  STATES[STATES_ENUM.WAIT_APPLIED].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label ),
-      status: STATES_ENUM.WAIT_APPLIED
-    },
-    unknown: {
-      count:  0,
-      color:  STATES[STATES_ENUM.UNKNOWN].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label ),
-      status: STATES_ENUM.UNKNOWN
-    }
-  };
+      color:  STATES[state].color,
+      label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+      status: state
+    };
+
+    return acc;
+  }, {});
 };
 
 export default {
@@ -83,14 +73,18 @@ export default {
       return this.value.metadata.name;
     },
 
+    repoNamespace() {
+      return this.value.metadata.namespace;
+    },
+
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.repoName === this.repoName);
 
       if (!resources.length) {
         return [];
       }
 
-      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = { ...getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach(({ status, metadata }) => {
         if (!status) {
@@ -99,7 +93,7 @@ export default {
           return;
         }
 
-        const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
+        const k = status?.summary?.ready > 0 && status?.summary.desiredReady === status?.summary?.ready;
 
         if (k) {
           out.ready.count += 1;
@@ -155,19 +149,20 @@ export default {
     },
 
     resourceCounts() {
-      const resources = this.value.status.resources || [];
-      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = { ...getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const resourceStatuses = this.value.allResourceStatuses;
 
-      resources.forEach(({ state }) => {
-        const k = state?.toLowerCase();
+      Object.entries(resourceStatuses.states)
+        .filter(([_, count]) => count > 0)
+        .forEach(([state, count]) => {
+          const k = state?.toLowerCase();
 
-        if (out[k]) {
-          out[k].count += 1;
-
-          return;
-        }
-        out.unknown.count += 1;
-      });
+          if (out[k]) {
+            out[k].count += count;
+          } else {
+            out.unknown.count += count;
+          }
+        });
 
       return Object.values(out).map((item) => {
         item.value = item.count;

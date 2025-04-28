@@ -40,4 +40,12 @@ export default class PodPo extends CreateEditViewPo {
   saveCreateForm(): ResourceDetailPo {
     return new ResourceDetailPo(this.self());
   }
+
+  addButton() {
+    return this.self().find('[data-testid="workload-button-add-container"]');
+  }
+
+  tabsPrimary() {
+    return this.self().find('[data-testid="workload-horizontal-tabs"]');
+  }
 }

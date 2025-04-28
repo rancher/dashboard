@@ -8,6 +8,8 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import ModalManager from '@shell/components/ModalManager';
+import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -26,6 +28,8 @@ export default {
     PromptModal,
     FixedBanner,
     GrowlManager,
+    ModalManager,
+    SlideInPanelManager,
     AwsComplianceBanner,
     AzureWarning,
     Inactivity
@@ -68,7 +72,10 @@ export default {
       :class="{'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header :simple="true" />
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        :aria-label="t('layouts.plain')"
+      >
         <IndentedPanel class="pt-20">
           <router-view
             :key="$route.path"
@@ -78,6 +85,7 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <PromptModal />
+        <ModalManager />
         <AssignTo />
         <button
           v-if="themeShortcut"
@@ -96,6 +104,7 @@ export default {
 
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <SlideInPanelManager />
     <Inactivity />
   </div>
 </template>

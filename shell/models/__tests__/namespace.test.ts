@@ -84,7 +84,31 @@ describe('class Namespace', () => {
   });
 
   it.todo('should return the project');
-  it.todo('should return the groupByLabel with i18n');
+
+  describe('handling groupById', () => {
+    it('should return the groupById if have project id', () => {
+      const namespace = new Namespace({});
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue({
+        id:   'mock-project-id',
+        type: 'project',
+        name: 'mock-project',
+      });
+
+      expect(namespace.groupById).toStrictEqual('mock-project-id');
+    });
+
+    it('should return the groupById if project id undefined', () => {
+      const t = jest.fn(() => 'Not in a Project');
+      const ctx = { rootGetters: { 'i18n/t': t } };
+      const namespace = new Namespace({}, ctx);
+
+      jest.spyOn(namespace, 'project', 'get').mockReturnValue({});
+
+      expect(namespace.groupById).toStrictEqual('Not in a Project');
+    });
+  });
+
   it.todo('should return the project name with i18n');
   it.todo('should return the projectNameSort');
   it.todo('should check if istioInstalled');

@@ -1,6 +1,7 @@
 <script lang='ts'>
 import { mapGetters, Store } from 'vuex';
 import { defineComponent } from 'vue';
+import cloneDeep from 'lodash/cloneDeep';
 
 import { removeObject } from '@shell/utils/array';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
@@ -26,6 +27,8 @@ import Logging from './Logging.vue';
 import Config from './Config.vue';
 import Networking from './Networking.vue';
 import AccountAccess from './AccountAccess.vue';
+import Import from './Import.vue';
+
 import EKSValidators from '../util/validators';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 
@@ -39,6 +42,22 @@ const DEFAULT_CLUSTER = {
   windowsPreferedCluster:              false,
   fleetAgentDeploymentCustomization:   {},
   clusterAgentDeploymentCustomization: {}
+};
+
+const DEFAULT__IMPORT_CLUSTER = {
+  dockerRootDir:                       '/var/lib/docker',
+  enableNetworkPolicy:                 false,
+  labels:                              {},
+  annotations:                         {},
+  windowsPreferedCluster:              false,
+  fleetAgentDeploymentCustomization:   {},
+  clusterAgentDeploymentCustomization: {},
+  eksConfig:                           {
+    amazonCredentialSecret: '',
+    displayName:            '',
+    imported:               true,
+    region:                 ''
+  }
 };
 
 export const DEFAULT_REGION = 'us-west-2';
@@ -94,7 +113,8 @@ export default defineComponent({
     Accordion,
     Banner,
     AgentConfiguration,
-    Loading
+    Loading,
+    Import
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -128,30 +148,37 @@ export default defineComponent({
       // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.eksConfig?.kubernetesVersion || '';
     } else {
-      this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
+      if (this.isImport) {
+        this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(DEFAULT__IMPORT_CLUSTER) }, { root: true });
+        this.config = this.normanCluster.eksConfig as EKSConfig;
+      } else {
+        this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...DEFAULT_CLUSTER }, { root: true });
+      }
       if (!this.$store.getters['auth/principalId'].includes('local://')) {
         this.normanCluster.annotations[CREATOR_PRINCIPAL_ID] = this.$store.getters['auth/principalId'];
       }
     }
 
-    if (!this.normanCluster.eksConfig) {
-      this.normanCluster['eksConfig'] = { ...DEFAULT_EKS_CONFIG };
-    }
-    if (!this.normanCluster.fleetAgentDeploymentCustomization) {
-      this.normanCluster['fleetAgentDeploymentCustomization'] = {};
-    }
-    if (!this.normanCluster.clusterAgentDeploymentCustomization) {
-      this.normanCluster['clusterAgentDeploymentCustomization'] = {};
-    }
-    this.config = this.normanCluster.eksConfig as EKSConfig;
+    if (!this.isImport) {
+      if (!this.normanCluster.eksConfig) {
+        this.normanCluster['eksConfig'] = { ...DEFAULT_EKS_CONFIG } as any as EKSConfig;
+      }
+      if (!this.normanCluster.fleetAgentDeploymentCustomization) {
+        this.normanCluster['fleetAgentDeploymentCustomization'] = {};
+      }
+      if (!this.normanCluster.clusterAgentDeploymentCustomization) {
+        this.normanCluster['clusterAgentDeploymentCustomization'] = {};
+      }
+      this.config = this.normanCluster.eksConfig as EKSConfig;
 
-    if ((!this.config.nodeGroups || !this.config.nodeGroups.length) && this.mode === _CREATE) {
-      this.config['nodeGroups'] = [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }];
-    }
-    if (this.config.nodeGroups) {
-      this.nodeGroups = this.config.nodeGroups;
-    } else {
-      this.config['nodeGroups'] = this.nodeGroups;
+      if ((!this.config.nodeGroups || !this.config.nodeGroups.length) && this.mode === _CREATE) {
+        this.config['nodeGroups'] = [{ ...DEFAULT_NODE_GROUP_CONFIG, nodegroupName: 'group1' }];
+      }
+      if (this.config.nodeGroups) {
+        this.nodeGroups = this.config.nodeGroups;
+      } else {
+        this.config['nodeGroups'] = this.nodeGroups;
+      }
     }
     if (this.mode !== _VIEW) {
       this.fetchInstanceTypes();
@@ -162,15 +189,27 @@ export default defineComponent({
   },
 
   data() {
+    // if we are registering a new EKS cluster most of the form is hidden
+    const isImport = this.$route?.query?.mode === 'import';
+
     return {
+      isImport,
       cloudCredentialId: '',
       normanCluster:     { name: '' } as unknown as NormanCluster,
       nodeGroups:        [] as EKSNodeGroup[],
       config:            { } as EKSConfig,
       membershipUpdate:  {} as {newBindings: any[], removedBindings: any[], save: Function},
       originalVersion:   '',
-
-      fvFormRuleSets: [{
+      fvFormRuleSets:    isImport ? [{
+        path:  'name',
+        rules: ['nameRequired'],
+      },
+      // eks cluster name when choosing a cluster to register
+      {
+        path:  'displayName',
+        rules: ['displayNameRequired'],
+      }
+      ] : [{
         path:  'name',
         rules: ['nameRequired'],
       },
@@ -221,7 +260,7 @@ export default defineComponent({
       loadingLaunchTemplates: false,
       loadingSshKeyPairs:     false,
       loadingIam:             false,
-      iamInfo:                {} as {Roles: AWS.IamRole[]},
+      iamInfo:                [] as AWS.IamRole[],
       ec2Roles:               [] as AWS.IamRole[],
       eksRoles:               [] as AWS.IamRole[],
       sshKeyPairs:            [] as string[],
@@ -237,12 +276,12 @@ export default defineComponent({
   },
 
   watch: {
-    'iamInfo'(neu: {Roles: AWS.IamRole[]}) {
+    'iamInfo'(neu: AWS.IamRole[]) {
       const ec2Roles = [] as AWS.IamRole[];
       const eksRoles = [] as AWS.IamRole[];
-      const allRoles = neu?.Roles;
+      const allRoles = neu;
 
-      allRoles.forEach((role: AWS.IamRole) => {
+      (allRoles || []).forEach((role: AWS.IamRole) => {
         const policy = JSON.parse(decodeURIComponent(role.AssumeRolePolicyDocument));
         const statement = policy.Statement;
 
@@ -281,11 +320,16 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    fetchState(): {pending: boolean} {
+      return this.$fetchState;
+    },
+
     fvExtraRules(): {[key:string]: Function} {
       let out: any = {};
 
       if (this.hasCredential) {
         out = {
+          displayNameRequired:    EKSValidators.displayNameRequired(this),
           nameRequired:           EKSValidators.clusterNameRequired(this),
           nodeGroupNamesRequired: EKSValidators.nodeGroupNamesRequired(this),
           nodeGroupNamesUnique:   EKSValidators.nodeGroupNamesUnique(this),
@@ -415,7 +459,9 @@ export default defineComponent({
   methods: {
     setClusterName(name: string): void {
       this.normanCluster['name'] = name;
-      this.config['displayName'] = name;
+      if (!this.isImport) {
+        this.config['displayName'] = name;
+      }
     },
 
     onMembershipUpdate(update: {newBindings: any[], removedBindings: any[], save: Function}): void {
@@ -440,9 +486,6 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
-      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
-        this.normanCluster.eksConfig['nodeGroups'] = null;
-      }
       await this.normanCluster.save();
 
       return await this.normanCluster.waitForCondition('InitialRolesPopulated');
@@ -513,9 +556,9 @@ export default defineComponent({
       try {
         const ec2Client = await store.dispatch('aws/ec2', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
 
-        const launchTemplateInfo = await ec2Client.describeLaunchTemplates({ DryRun: false });
-
-        this.launchTemplates = launchTemplateInfo.LaunchTemplates;
+        this.launchTemplates = await store.dispatch('aws/depaginateList', {
+          client: ec2Client, cmd: 'describeLaunchTemplates', opt: { DryRun: false }
+        });
       } catch (err: any) {
         const errors = this.errors as any[];
 
@@ -535,7 +578,9 @@ export default defineComponent({
       const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.iamInfo = await iamClient.listRoles({});
+        const res = await store.dispatch('aws/depaginateList', { client: iamClient, cmd: 'listRoles' });
+
+        this.iamInfo = res;
       } catch (err: any) {
         const errors = this.errors as any[];
 
@@ -573,7 +618,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="fetchState.pending" />
 
   <CruResource
     v-else
@@ -596,7 +641,7 @@ export default defineComponent({
         <LabeledInput
           required
           label-key="eks.clusterName.label"
-          :value="config.displayName"
+          :value="normanCluster.name"
           :mode="mode"
           :rules="fvGetAndReportPathRules('name')"
           data-testid="eks-name-input"
@@ -627,121 +672,140 @@ export default defineComponent({
       v-if="hasCredential"
       data-testid="crueks-form"
     >
-      <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
-      <Tabbed
-        class="mb-20"
-        :side-tabs="true"
-        :show-tabs-add-remove="mode !== VIEW"
-        @removeTab="removeGroup($event)"
-        @addTab="addGroup()"
-      >
-        <Tab
-          v-for="(node, i) in nodeGroups"
-          :key="i"
-          :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
-          :name="`${node.nodegroupName} ${i}`"
-        >
-          <NodeGroup
-            v-model:node-role="node.nodeRole"
-            v-model:launch-template="node.launchTemplate"
-            v-model:nodegroup-name="node.nodegroupName"
-            v-model:ec2-ssh-key="node.ec2SshKey"
-            v-model:tags="node.tags"
-            v-model:resource-tags="node.resourceTags"
-            v-model:disk-size="node.diskSize"
-            v-model:image-id="node.imageId"
-            v-model:instance-type="node.instanceType"
-            v-model:spot-instance-types="node.spotInstanceTypes"
-            v-model:user-data="node.userData"
-            v-model:gpu="node.gpu"
-            v-model:desired-size="node.desiredSize"
-            v-model:min-size="node.minSize"
-            v-model:max-size="node.maxSize"
-            v-model:request-spot-instances="node.requestSpotInstances"
-            v-model:labels="node.labels"
-            v-model:version="node.version"
-            v-model:pool-is-upgrading="node._isUpgrading"
-            :rules="{
-              nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
-              maxSize: fvGetAndReportPathRules('maxSize'),
-              minSize: fvGetAndReportPathRules('minSize'),
-              desiredSize: fvGetAndReportPathRules('desiredSize'),
-              instanceType: fvGetAndReportPathRules('instanceType'),
-              diskSize: fvGetAndReportPathRules('diskSize'),
-              minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
-            }"
-            :cluster-version="config.kubernetesVersion"
-            :original-cluster-version="originalVersion"
-            :region="config.region"
-            :amazon-credential-secret="config.amazonCredentialSecret"
-            :is-new-or-unprovisioned="isNewOrUnprovisioned"
-            :pool-is-new="node._isNew"
-            :mode="mode"
-            :instance-type-options="instanceTypeOptions"
-            :spot-instance-type-options="spotInstanceTypeOptions"
-            :launch-templates="launchTemplates"
-            :ec2-roles="ec2Roles"
-            :ssh-key-pairs="sshKeyPairs"
-            :loading-instance-types="loadingInstanceTypes"
-            :loading-roles="loadingIam"
-            :loading-launch-templates="loadingLaunchTemplates"
-            :loading-ssh-key-pairs="loadingSshKeyPairs"
-            :norman-cluster="normanCluster"
-          />
-        </Tab>
-      </Tabbed>
       <Accordion
+        v-if="isImport"
         class="mb-20"
         :title="t('eks.accordionHeaders.cluster')"
         :open-initially="true"
       >
-        <Config
-          v-model:kubernetes-version="config.kubernetesVersion"
+        <Import
+          v-model:cluster-name="config.displayName"
           v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
-          v-model:ebs-c-s-i-driver="config.ebsCSIDriver"
-          v-model:service-role="config.serviceRole"
-          v-model:kms-key="config.kmsKey"
-          v-model:secrets-encryption="config.secretsEncryption"
-          v-model:tags="config.tags"
+          :credential="config.amazonCredentialSecret"
           :mode="mode"
-          :config="config"
-          :eks-roles="eksRoles"
-          :loading-iam="loadingIam"
-          :original-version="originalVersion"
-          data-testid="eks-config-section"
+          :region="config.region"
+          :rules="{ displayName: fvGetAndReportPathRules('displayName') }"
           @error="e=>errors.push(e)"
         />
       </Accordion>
+      <template v-else>
+        <div><h3>{{ t('eks.nodeGroups.title') }}</h3></div>
+        <Tabbed
+          class="mb-20"
+          :side-tabs="true"
+          :show-tabs-add-remove="mode !== VIEW"
+          @removeTab="removeGroup($event)"
+          @addTab="addGroup()"
+        >
+          <Tab
+            v-for="(node, i) in nodeGroups"
+            :key="i"
+            :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
+            :name="`${node.nodegroupName} ${i}`"
+          >
+            <NodeGroup
+              v-model:node-role="node.nodeRole"
+              v-model:launch-template="node.launchTemplate"
+              v-model:nodegroup-name="node.nodegroupName"
+              v-model:ec2-ssh-key="node.ec2SshKey"
+              v-model:tags="node.tags"
+              v-model:resource-tags="node.resourceTags"
+              v-model:disk-size="node.diskSize"
+              v-model:image-id="node.imageId"
+              v-model:instance-type="node.instanceType"
+              v-model:spot-instance-types="node.spotInstanceTypes"
+              v-model:user-data="node.userData"
+              v-model:gpu="node.gpu"
+              v-model:desired-size="node.desiredSize"
+              v-model:min-size="node.minSize"
+              v-model:max-size="node.maxSize"
+              v-model:request-spot-instances="node.requestSpotInstances"
+              v-model:labels="node.labels"
+              v-model:version="node.version"
+              v-model:pool-is-upgrading="node._isUpgrading"
+              :rules="{
+                nodegroupName: fvGetAndReportPathRules('nodegroupNames'),
+                maxSize: fvGetAndReportPathRules('maxSize'),
+                minSize: fvGetAndReportPathRules('minSize'),
+                desiredSize: fvGetAndReportPathRules('desiredSize'),
+                instanceType: fvGetAndReportPathRules('instanceType'),
+                diskSize: fvGetAndReportPathRules('diskSize'),
+                minMaxDesired: fvGetAndReportPathRules('minMaxDesired')
+              }"
+              :cluster-version="config.kubernetesVersion"
+              :original-cluster-version="originalVersion"
+              :region="config.region"
+              :amazon-credential-secret="config.amazonCredentialSecret"
+              :is-new-or-unprovisioned="isNewOrUnprovisioned"
+              :pool-is-new="node._isNew"
+              :mode="mode"
+              :instance-type-options="instanceTypeOptions"
+              :spot-instance-type-options="spotInstanceTypeOptions"
+              :launch-templates="launchTemplates"
+              :ec2-roles="ec2Roles"
+              :ssh-key-pairs="sshKeyPairs"
+              :loading-instance-types="loadingInstanceTypes"
+              :loading-roles="loadingIam"
+              :loading-launch-templates="loadingLaunchTemplates"
+              :loading-ssh-key-pairs="loadingSshKeyPairs"
+              :norman-cluster="normanCluster"
+              @error="errors.push($event)"
+            />
+          </Tab>
+        </Tabbed>
+        <Accordion
+          class="mb-20"
+          :title="t('eks.accordionHeaders.cluster')"
+          :open-initially="true"
+        >
+          <Config
+            v-model:kubernetes-version="config.kubernetesVersion"
+            v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
+            v-model:ebs-c-s-i-driver="config.ebsCSIDriver"
+            v-model:service-role="config.serviceRole"
+            v-model:kms-key="config.kmsKey"
+            v-model:secrets-encryption="config.secretsEncryption"
+            v-model:tags="config.tags"
+            :mode="mode"
+            :config="config"
+            :eks-roles="eksRoles"
+            :loading-iam="loadingIam"
+            :original-version="originalVersion"
+            data-testid="eks-config-section"
+            @error="errors.push($event)"
+          />
+        </Accordion>
 
-      <Accordion
-        class="mb-20"
-        :title="t('eks.accordionHeaders.networking')"
-        :open-initially="true"
-      >
-        <Networking
-          v-model:public-access="config.publicAccess"
-          v-model:private-access="config.privateAccess"
-          v-model:public-access-sources="config.publicAccessSources"
-          v-model:subnets="config.subnets"
-          v-model:security-groups="config.securityGroups"
-          :mode="mode"
-          :region="config.region"
-          :amazon-credential-secret="config.amazonCredentialSecret"
-          :status-subnets="statusSubnets"
-          :rules="{subnets:fvGetAndReportPathRules('subnets')}"
-        />
-      </Accordion>
-      <Accordion
-        class="mb-20"
-        :title="t('eks.accordionHeaders.logging')"
-        :open-initially="true"
-      >
-        <Logging
-          v-model:logging-types="config.loggingTypes"
-          :mode="mode"
-          :config="config"
-        />
-      </Accordion>
+        <Accordion
+          class="mb-20"
+          :title="t('eks.accordionHeaders.networking')"
+          :open-initially="true"
+        >
+          <Networking
+            v-model:public-access="config.publicAccess"
+            v-model:private-access="config.privateAccess"
+            v-model:public-access-sources="config.publicAccessSources"
+            v-model:subnets="config.subnets"
+            v-model:security-groups="config.securityGroups"
+            :mode="mode"
+            :region="config.region"
+            :amazon-credential-secret="config.amazonCredentialSecret"
+            :status-subnets="statusSubnets"
+            :rules="{subnets:fvGetAndReportPathRules('subnets')}"
+          />
+        </Accordion>
+        <Accordion
+          class="mb-20"
+          :title="t('eks.accordionHeaders.logging')"
+          :open-initially="true"
+        >
+          <Logging
+            v-model:logging-types="config.loggingTypes"
+            :mode="mode"
+            :config="config"
+          />
+        </Accordion>
+      </template>
 
       <Accordion
         class="mb-20"
@@ -765,7 +829,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         class="mb-20"
-        :title="t('members.clusterMembership')"
+        :title="t('members.memberRoles')"
       >
         <Banner
           v-if="isEdit"
@@ -776,7 +840,7 @@ export default defineComponent({
         <ClusterMembershipEditor
           v-if="canManageMembers"
           :mode="mode"
-          :parent-id="normanCluster.id ? normanCluster.id : null"
+          :parent-id="normanCluster.id ? normanCluster.id : undefined"
           @membership-update="onMembershipUpdate"
         />
       </Accordion>

@@ -58,7 +58,18 @@ export default {
 
     isActive() {
       const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
-      const pageFullPath = this.$route.fullPath?.toLowerCase();
+      const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
+      const routeMetaNav = this.$route.meta?.nav;
+
+      // If the route explicitly declares the nav path that should be highlighted, then use that
+      if (routeMetaNav) {
+        const cluster = this.$route.params?.cluster;
+        const navPath = routeMetaNav.replace(':cluster', cluster);
+
+        if (navPath === typeFullPath) {
+          return true;
+        }
+      }
 
       if ( !this.type.exact) {
         const typeSplit = typeFullPath.split('/');
@@ -122,6 +133,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
+        :aria-current="isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"

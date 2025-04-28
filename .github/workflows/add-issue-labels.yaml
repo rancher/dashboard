@@ -5,6 +5,7 @@ on:
       - opened
 jobs:
   add_qa_label_to_issues:
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     permissions:
       issues: write

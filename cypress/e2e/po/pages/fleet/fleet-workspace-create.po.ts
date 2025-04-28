@@ -1,6 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export class GitRepoCreatePo extends PagePo {
     static url: string;
@@ -26,17 +24,5 @@ export class GitRepoCreatePo extends PagePo {
 
     constructor(clusterId: string) {
       super(GitRepoCreatePo.createPath(clusterId));
-    }
-
-    footer() {
-      return new CreateEditViewPo(this.self());
-    }
-
-    setWorkspaceName(name: string) {
-      return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
-    }
-
-    create() {
-      return this.footer().create();
     }
 }

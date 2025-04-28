@@ -38,7 +38,9 @@ export class ConfigMapPagePo extends PagePo {
   }
 
   searchForConfigMap(name: string) {
-    return this.list().resourceTable().sortableTable().filter(name);
+    this.list().resourceTable().sortableTable().filter(name);
+
+    return cy.url().should('include', `q=${ name }`);
   }
 
   title() {

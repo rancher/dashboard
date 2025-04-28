@@ -29,6 +29,10 @@ export default {
   },
 
   data() {
+    return { rules: [] };
+  },
+
+  created() {
     const rules = [];
 
     // on creation in agent configuration, the backend "eats"
@@ -49,7 +53,7 @@ export default {
       });
     }
 
-    return { rules };
+    this.rules = rules;
   },
 
   computed: {

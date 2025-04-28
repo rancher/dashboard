@@ -13,6 +13,9 @@ import {
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import TabTitle from '@shell/components/TabTitle';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import { useStore } from 'vuex';
 
 // i18n-uses resourceDetail.header.*
 
@@ -26,7 +29,12 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup, ExtensionPanel, TabTitle
+    BadgeState,
+    Banner,
+    ButtonGroup,
+    ExtensionPanel,
+    TabTitle,
+    ActionMenu,
   },
   props: {
     value: {
@@ -90,6 +98,13 @@ export default {
       type:    Boolean,
       default: false,
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
   },
 
   data() {
@@ -504,10 +519,32 @@ export default {
               {{ namespace }}
             </span>
           </span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
-            class="live-date"
-            :value="value.creationTimestamp"
-          /></span>
+          <span v-if="parent.showAge">
+            {{ t("resourceDetail.masthead.age") }}:
+            <LiveDate
+              class="live-date"
+              :value="value.creationTimestamp"
+            />
+          </span>
+          <span
+            v-if="value.showCreatedBy"
+            data-testid="masthead-subheader-createdBy"
+          >
+            {{ t("resourceDetail.masthead.createdBy") }}:
+            <router-link
+              v-if="value.createdBy.location"
+              :to="value.createdBy.location"
+              data-testid="masthead-subheader-createdBy-link"
+            >
+              {{ value.createdBy.displayName }}
+            </router-link>
+            <span
+              v-else
+              data-testid="masthead-subheader-createdBy_plain-text"
+            >
+              {{ value.createdBy.displayName }}
+            </span>
+          </span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>
@@ -539,17 +576,28 @@ export default {
               class="mr-10"
             />
 
-            <button
-              v-if="isView"
-              ref="actions"
-              data-testid="masthead-action-menu"
-              aria-haspopup="true"
-              type="button"
-              class="btn role-multi-action actions"
-              @click="showActions"
-            >
-              <i class="icon icon-actions" />
-            </button>
+            <template v-if="featureDropdownMenu">
+              <ActionMenu
+                v-if="isView"
+                button-role="multiAction"
+                button-size="compact"
+                :resource="value"
+                data-testid="masthead-action-menu"
+              />
+            </template>
+            <template v-else>
+              <button
+                v-if="isView"
+                ref="actions"
+                data-testid="masthead-action-menu"
+                aria-haspopup="true"
+                type="button"
+                class="btn role-multi-action actions"
+                @click="showActions"
+              >
+                <i class="icon icon-actions" />
+              </button>
+            </template>
           </div>
         </div>
       </slot>
@@ -587,11 +635,8 @@ export default {
   }
 
   HEADER {
-    margin: 0 0 0 -5px;
-
-    .title {
-      overflow-x: hidden;
-    }
+    margin: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .primaryheader {
@@ -600,14 +645,13 @@ export default {
     align-items: center;
 
     h1 {
-      margin: 0;
+      margin: 0 0 0 -5px;
       overflow-x: hidden;
       display: flex;
       flex-direction: row;
       align-items: center;
 
       .masthead-resource-title {
-        padding: 0 8px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
@@ -638,6 +682,7 @@ export default {
   }
 
   .masthead-state {
+    margin-left: 8px;
     font-size: initial;
   }
 

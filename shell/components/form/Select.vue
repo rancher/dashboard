@@ -2,11 +2,12 @@
 import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
-  emits: ['update:value', 'createdListItem'],
+  emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
 
   components: { LabeledTooltip },
   mixins:     [
@@ -87,8 +88,17 @@ export default {
       type:    Boolean,
       default: null
     },
+    isLangSelect: {
+      type:    Boolean,
+      default: false
+    }
   },
-
+  data() {
+    return {
+      isOpen:       false,
+      generatedUid: `s-uid-${ generateRandomAlphaString(12) }`
+    };
+  },
   methods: {
     // resizeHandler = in mixin
     getOptionLabel(option) {
@@ -187,14 +197,26 @@ export default {
         return Math.random(100000);
       }
     },
+
     report(e) {
       alert(e);
     },
+
     handleDropdownOpen(args) {
       // function that prevents the "opening dropdown on focus"
       // default behaviour of v-select
       return args.noDrop || args.disabled ? false : args.open;
-    }
+    },
+    onOpen() {
+      this.isOpen = true;
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
+    onClose() {
+      this.isOpen = false;
+      this.$emit('on-close');
+    },
   },
   computed: {
     requiredField() {
@@ -255,8 +277,14 @@ export default {
       [$attrs.class]: $attrs.class
     }"
     :tabindex="disabled || isView ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="focusSearch"
-    @keydown.enter.space.down="focusSearch"
+    @keydown.enter="focusSearch"
+    @keydown.down.prevent="focusSearch"
+    @keydown.space.prevent="focusSearch"
   >
     <v-select
       ref="select-input"
@@ -280,15 +308,23 @@ export default {
       :modelValue="value != null ? value : ''"
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
-
+      role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
-      @open="resizeHandler"
+      @open="onOpen"
+      @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
     >
-      <template #option="option">
-        <div @mousedown="(e) => onClickOption(option, e)">
+      <template
+        #option="option"
+      >
+        <div
+          :lang="isLangSelect ? option.value : undefined"
+          @mousedown="(e) => onClickOption(option, e)"
+        >
           {{ getOptionLabel(option.label) }}
         </div>
       </template>

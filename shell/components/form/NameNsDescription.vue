@@ -1,5 +1,7 @@
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import { computed, ref, toRef, watch } from 'vue';
+import { mapActions, useStore } from 'vuex';
+
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
@@ -8,6 +10,7 @@ import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { normalizeName } from '@shell/utils/kube';
+import { useI18n } from '@shell/composables/useI18n';
 
 export default {
   name: 'NameNsDescription',
@@ -169,54 +172,165 @@ export default {
   },
 
   data() {
-    const v = this.value;
-    const metadata = v.metadata;
-    let namespace, name, description;
+    return { createNamespace: false };
+  },
 
-    if (this.nameKey) {
-      name = get(v, this.nameKey);
-    } else {
-      name = metadata?.name;
-    }
+  setup(props, { emit }) {
+    const v = toRef(props.value);
+    const metadata = v.value.metadata;
+    const namespace = ref(null);
+    const name = ref(null);
+    const description = ref(null);
 
-    if (this.namespaced) {
-      if (this.forceNamespace) {
-        namespace = this.forceNamespace;
-        this.updateNamespace(namespace);
-      } else if (this.namespaceKey) {
-        namespace = get(v, this.namespaceKey);
-      } else {
-        namespace = metadata?.namespace;
+    watch(name, (val) => {
+      if (props.normalizeName) {
+        val = normalizeName(val);
       }
 
-      if (!namespace && !this.noDefaultNamespace) {
-        namespace = this.$store.getters['defaultNamespace'];
+      if (props.nameKey) {
+        set(props.value, props.nameKey, val);
+      } else {
+        props.value.metadata['name'] = val;
+      }
+      emit('update:value', props.value);
+    });
+
+    if (props.nameKey) {
+      name.value = get(v.value, props.nameKey);
+    } else {
+      name.value = metadata?.name || '';
+    }
+
+    const isCreate = computed(() => {
+      return props.mode === _CREATE;
+    });
+
+    const store = useStore();
+    const { t } = useI18n(store);
+    const allowedNamespaces = computed(() => store.getters.allowedNamespaces());
+    const storeNamespaces = computed(() => store.getters.namespaces());
+    const currentCluster = computed(() => store.getters.currentCluster);
+
+    const inStore = computed(() => {
+      return store.getters['currentStore']();
+    });
+
+    const nsSchema = computed(() => {
+      return store.getters[`${ inStore.value }/schemaFor`](NAMESPACE);
+    });
+
+    const canCreateNamespace = computed(() => {
+      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
+      return (nsSchema.value?.collectionMethods || []).includes('POST') && currentCluster.value?.canUpdate;
+    });
+
+    /**
+     * Map namespaces from the store to options, adding divider and create button
+     */
+    const options = computed(() => {
+      let namespaces;
+
+      if (props.namespacesOverride) {
+        // Use the resources provided
+        namespaces = props.namespacesOverride;
+      } else {
+        if (props.namespaceOptions) {
+          // Use the namespaces provided
+          namespaces = (props.namespaceOptions.map((ns) => ns.name) || []).sort();
+        } else {
+          // Determine the namespaces
+          const namespaceObjs = isCreate.value ? allowedNamespaces.value : storeNamespaces.value;
+
+          namespaces = Object.keys(namespaceObjs);
+        }
+      }
+
+      const options = namespaces
+        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
+        .map(props.namespaceMapper || ((obj) => ({
+          label: obj.nameDisplay,
+          value: obj.id,
+        })));
+
+      const sortedByLabel = sortBy(options, 'label');
+
+      if (props.forceNamespace) {
+        sortedByLabel.unshift({
+          label: props.forceNamespace,
+          value: props.forceNamespace,
+        });
+      }
+
+      const createButton = {
+        label: t('namespace.createNamespace'),
+        value: '',
+        kind:  'highlighted'
+      };
+      const divider = {
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      };
+
+      const createOverhead = canCreateNamespace.value || props.createNamespaceOverride ? [createButton, divider] : [];
+
+      return [
+        ...createOverhead,
+        ...sortedByLabel
+      ];
+    });
+
+    const updateNamespace = (val) => {
+      if (props.forceNamespace) {
+        val = props.forceNamespace;
+      }
+
+      if (props.namespaced) {
+        emit('isNamespaceNew', !val || (options.value && !options.value.find((n) => n.value === val)));
+      }
+
+      if (props.namespaceKey) {
+        set(props.value, props.namespaceKey, val);
+      } else {
+        props.value.metadata.namespace = val;
+      }
+    };
+
+    if (props.namespaced) {
+      if (props.forceNamespace) {
+        namespace.value = toRef(props.forceNamespace);
+        updateNamespace(namespace);
+      } else if (props.namespaceKey) {
+        namespace.value = get(v, props.namespaceKey);
+      } else {
+        namespace.value = metadata?.namespace;
+      }
+
+      if (!namespace.value && !props.noDefaultNamespace) {
+        namespace.value = store.getters['defaultNamespace'];
         if (metadata) {
           metadata.namespace = namespace;
         }
       }
     }
 
-    if (this.descriptionKey) {
-      description = get(v, this.descriptionKey);
+    if (props.descriptionKey) {
+      description.value = get(v, props.descriptionKey);
     } else {
-      description = metadata?.annotations?.[DESCRIPTION];
+      description.value = metadata?.annotations?.[DESCRIPTION];
     }
-
-    const inStore = this.$store.getters['currentStore']();
-    const nsSchema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
 
     return {
       namespace,
       name,
       description,
-      createNamespace: false,
-      nsSchema
+      isCreate,
+      options,
+      updateNamespace,
     };
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
     ...mapActions('cru-resource', ['setCreateNamespace']),
     namespaceReallyDisabled() {
       return (
@@ -228,68 +342,8 @@ export default {
       return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
     },
 
-    /**
-     * Map namespaces from the store to options, adding divider and create button
-     */
-    options() {
-      let namespaces;
-
-      if (this.namespacesOverride) {
-        // Use the resources provided
-        namespaces = this.namespacesOverride;
-      } else {
-        if (this.namespaceOptions) {
-          // Use the namespaces provided
-          namespaces = (this.namespaceOptions.map((ns) => ns.name) || []).sort();
-        } else {
-          // Determine the namespaces
-          const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
-
-          namespaces = Object.keys(namespaceObjs);
-        }
-      }
-
-      const options = namespaces
-        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
-        .map(this.namespaceMapper || ((obj) => ({
-          label: obj.nameDisplay,
-          value: obj.id,
-        })));
-
-      const sortedByLabel = sortBy(options, 'label');
-
-      if (this.forceNamespace) {
-        sortedByLabel.unshift({
-          label: this.forceNamespace,
-          value: this.forceNamespace,
-        });
-      }
-
-      const createButton = {
-        label: this.t('namespace.createNamespace'),
-        value: '',
-        kind:  'highlighted'
-      };
-      const divider = {
-        label:    'divider',
-        disabled: true,
-        kind:     'divider'
-      };
-
-      const createOverhead = this.canCreateNamespace || this.createNamespaceOverride ? [createButton, divider] : [];
-
-      return [
-        ...createOverhead,
-        ...sortedByLabel
-      ];
-    },
-
     isView() {
       return this.mode === _VIEW;
-    },
-
-    isCreate() {
-      return this.mode === _CREATE;
     },
 
     showCustomize() {
@@ -308,27 +362,9 @@ export default {
 
       return `span-${ span }`;
     },
-
-    canCreateNamespace() {
-      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
-      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster?.canUpdate;
-    }
   },
 
   watch: {
-    name(val) {
-      if (this.normalizeName) {
-        val = normalizeName(val);
-      }
-
-      if (this.nameKey) {
-        set(this.value, this.nameKey, val);
-      } else {
-        this.value.metadata['name'] = val;
-      }
-      this.$emit('update:value', this.value);
-    },
-
     namespace(val) {
       this.updateNamespace(val);
       this.$emit('update:value', this.value);
@@ -346,29 +382,13 @@ export default {
 
   mounted() {
     this.$nextTick(() => {
-      if (this.$refs.name) {
-        this.$refs.name.focus();
+      if (this.$refs.nameInput) {
+        this.$refs.nameInput.focus();
       }
     });
   },
 
   methods: {
-    updateNamespace(val) {
-      if (this.forceNamespace) {
-        val = this.forceNamespace;
-      }
-
-      if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find((n) => n.value === val)));
-      }
-
-      if (this.namespaceKey) {
-        set(this.value, this.namespaceKey, val);
-      } else {
-        this.value.metadata.namespace = val;
-      }
-    },
-
     changeNameAndNamespace(e) {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
@@ -389,7 +409,7 @@ export default {
           true,
         );
         this.$emit('isNamespaceNew', true);
-        this.$nextTick(() => this.$refs.namespace.focus());
+        this.$nextTick(() => this.$refs.namespaceInput.focus());
       } else {
         this.createNamespace = false;
         this.$store.dispatch(
@@ -411,7 +431,7 @@ export default {
       class="col span-3"
     >
       <LabeledInput
-        ref="namespace"
+        ref="namespaceInput"
         v-model:value="namespace"
         :label="t('namespace.label')"
         :placeholder="t('namespace.createNamespace')"
@@ -459,9 +479,10 @@ export default {
       class="col span-3"
     >
       <LabeledInput
-        ref="name"
+        ref="nameInput"
         key="name"
         v-model:value="name"
+        data-testid="NameNsDescriptionNameInput"
         :label="t(nameLabel)"
         :placeholder="t(namePlaceholder)"
         :disabled="nameReallyDisabled"
@@ -473,7 +494,6 @@ export default {
     </div>
 
     <slot name="customize" />
-    <!-- // TODO: here goes the custom component -->
     <div
       v-show="!descriptionHidden"
       :data-testid="componentTestid + '-description'"

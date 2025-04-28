@@ -137,6 +137,7 @@ export default {
             tabindex="0"
             class="hide-show"
             role="button"
+            :aria-label="reveal ? t('action.ariaLabel.hidePass', { area: label }) : t('action.ariaLabel.showPass', { area: label })"
             @click.prevent.stop="hideShowFn"
             @keyup.space.prevent.stop="hideShowFn"
           >
@@ -164,6 +165,9 @@ export default {
 
     .labeled-input {
       .addon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding-left: 12px;
         min-width: 65px;
 

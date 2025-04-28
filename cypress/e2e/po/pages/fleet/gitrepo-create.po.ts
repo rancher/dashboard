@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
-import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
@@ -36,15 +36,11 @@ export class GitRepoCreatePo extends PagePo {
     const listPage = new FleetGitRepoListPagePo();
 
     listPage.navTo();
-    listPage.repoList().create();
+    listPage.sharedComponents().resourceDetail().createEditView().create();
   }
 
-  footer() {
-    return new CreateEditViewPo(this.self());
-  }
-
-  setRepoName(name: string) {
-    return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
   setBranchName(branch = 'dashboard-e2e-basic') {
@@ -63,16 +59,8 @@ export class GitRepoCreatePo extends PagePo {
     return this.gitRepoPaths().setValueAtIndex(path, index);
   }
 
-  goToNext() {
-    return this.footer().nextPage();
-  }
-
   targetCluster(): LabeledSelectPo {
     return new LabeledSelectPo('[data-testid="fleet-gitrepo-target-cluster"]');
-  }
-
-  create() {
-    return this.footer().create();
   }
 
   gitRepoPaths() {
@@ -84,10 +72,35 @@ export class GitRepoCreatePo extends PagePo {
   }
 
   helmAuthSelectOrCreate() {
+    return this.authSelectOrCreate('[data-testid="gitrepo-git-auth"]');
+  }
+
+  gitAuthSelectOrCreate() {
     return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
   }
 
-  title() {
-    return this.self().get('.title .primaryheader  h1');
+  setPollingInterval(value: number) {
+    return LabeledInputPo.byLabel(this.self(), 'Polling Interval').set(value);
+  }
+
+  displayAlwaysKeepInformationMessage() {
+    this.self().get('[data-testid="checkbox-info-icon"]').eq(0).as('always');
+
+    cy.get('@always').realHover();
+    cy.get('@always').should('have.attr', 'data-popper-shown');
+  }
+
+  displayPollingInvervalTimeInformationMessage() {
+    this.self().get('[data-testid="checkbox-info-icon"]').eq(1).as('polling');
+
+    cy.get('@polling').realHover();
+    cy.get('@polling').should('have.attr', 'data-popper-shown');
+  }
+
+  displaySelfHealingInformationMessage() {
+    this.self().get('[data-testid="labeledTooltip-info-icon"]').eq(0).as('selfhealingicon');
+
+    cy.get('@selfhealingicon').realHover();
+    cy.get('@selfhealingicon').should('have.attr', 'data-popper-shown');
   }
 }

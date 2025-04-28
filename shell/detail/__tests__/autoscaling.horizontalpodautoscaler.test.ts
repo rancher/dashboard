@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils';
+import camelCase from 'lodash/camelCase';
 import HorizontalPodAutoScaler from '@shell/detail/autoscaling.horizontalpodautoscaler/index.vue';
 
 describe('view: autoscaling.horizontalpodautoscaler', () => {
@@ -43,7 +44,7 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
 
   };
 
-  const value = {
+  const valueWithResourceMetrics = {
     status: {
       currentMetrics: [
         {
@@ -100,36 +101,96 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
       }
     }
   };
+  const valueWithOtherMetrics = {
+    status: {
+      currentMetrics: [
 
-  const metricsValue = Object.values(value.spec.metrics);
-  const currentMetrics = Object.values(value.status.currentMetrics);
+        {
+          external: {
+            metric:  { name: 's1-prometheus' },
+            current: { averageValue: 50 }
+          },
+          type: 'External'
 
-  const wrapper = mount(HorizontalPodAutoScaler, {
-    props:  { value },
-    global: { mocks, stubs },
+        }
+      ],
+    },
+    spec: {
+      metrics: [
+        {
+          external: {
+            metric: { name: 's1-prometheus' },
+            target: { averageValue: 50, type: 'AverageValue' }
+          },
+          type: 'External'
+        }
+      ]
+    }
+  }
+;
+
+  describe('with resource metrics:', () => {
+    const metricsValue = Object.values(valueWithResourceMetrics.spec.metrics);
+    const currentMetrics = Object.values(valueWithResourceMetrics.status.currentMetrics);
+
+    const wrapper = mount(HorizontalPodAutoScaler, {
+      props:  { value: valueWithResourceMetrics },
+      global: { mocks, stubs },
+    });
+
+    describe.each(valueWithResourceMetrics.spec.metrics)('should display metrics for each resource:', (metric) => {
+      const name = metric.resource.name;
+
+      it(`${ name }:`, () => {
+      // Resource metrics
+        const resourceValue = wrapper.get(`[data-testid="resource-metrics-value-${ name }"]`);
+        const resourceName = wrapper.get(`[data-testid="resource-metrics-name-${ name }"]`);
+        const metricValue = metricsValue.find((f) => f.resource.name === name)?.resource;
+
+        // Current Metrics
+        const averageUtilization = wrapper.get(`[data-testid="current-metrics-Average Utilization-${ name }"]`);
+        const averageValue = wrapper.get(`[data-testid="current-metrics-Average Value-${ name }"]`);
+        const currentResource = currentMetrics.find((f) => f.resource.name === name)?.resource.current;
+
+        // Resource metrics
+        expect(resourceValue.element.textContent).toBe(`${ metricValue?.target?.averageUtilization }`);
+        expect(resourceName.element.textContent).toBe(`${ metricValue?.name }`);
+
+        // Current Metrics
+        expect(averageUtilization.element.textContent).toBe(`${ currentResource?.averageUtilization }`);
+        expect(averageValue.element.textContent).toBe(`${ currentResource?.averageValue }`);
+      });
+    });
   });
 
-  describe.each(value.spec.metrics)('should display metrics for each resource:', (metric) => {
-    const name = metric.resource.name;
+  describe('with other metrics:', () => {
+    const currentMetrics = Object.values(valueWithOtherMetrics.status.currentMetrics);
 
-    it(`${ name }:`, () => {
-      // Resource metrics
-      const resourceValue = wrapper.get(`[data-testid="resource-metrics-value-${ name }"]`);
-      const resourceName = wrapper.get(`[data-testid="resource-metrics-name-${ name }"]`);
-      const metricValue = metricsValue.find((f) => f.resource.name === name)?.resource;
+    const wrapper = mount(HorizontalPodAutoScaler, {
+      props:  { value: valueWithOtherMetrics },
+      global: { mocks, stubs },
+    });
 
-      // Current Metrics
-      const averageUtilization = wrapper.get(`[data-testid="current-metrics-Average Utilization-${ name }"]`);
-      const averageValue = wrapper.get(`[data-testid="current-metrics-Average Value-${ name }"]`);
-      const currentResource = currentMetrics.find((f) => f.resource.name === name)?.resource.current;
+    describe.each(valueWithOtherMetrics.spec.metrics)('should display metrics for each resource:', (metric) => {
+      const metricType = camelCase(metric.type);
+      const name = metric[metricType as keyof typeof metric].metric.name;
 
-      // Resource metrics
-      expect(resourceValue.element.textContent).toBe(`${ metricValue?.target?.averageUtilization }`);
-      expect(resourceName.element.textContent).toBe(`${ metricValue?.name }`);
+      it(`${ name }:`, () => {
+        // Resource metrics
+        const resourceValue = wrapper.get(`[data-testid="resource-metrics-value-${ name }"]`);
+        const metricValue = metric[metricType as keyof typeof metric];
 
-      // Current Metrics
-      expect(averageUtilization.element.textContent).toBe(`${ currentResource?.averageUtilization }`);
-      expect(averageValue.element.textContent).toBe(`${ currentResource?.averageValue }`);
+        // Current Metrics
+        const averageValue = wrapper.get(`[data-testid="current-metrics-Average Value-${ name }"]`);
+        const currentMatch = currentMetrics.find((f) => f[metricType as keyof typeof metric]?.metric.name === name);
+        const currentValue = currentMatch[metricType as keyof typeof metric]?.current;
+
+        // Resource metrics
+        expect(resourceValue.element.textContent).toBe(`${ metricValue?.target?.averageValue }`);
+
+        // Current Metrics
+        expect(averageValue.element.textContent).toBe(`${ currentValue?.averageValue }`);
+      });
     });
   });
 });

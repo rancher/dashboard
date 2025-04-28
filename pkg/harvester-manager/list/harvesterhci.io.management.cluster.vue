@@ -413,19 +413,23 @@ export default {
         </template>
 
         <template #cell:harvester="{row}">
-          <router-link
+          <button
             class="btn btn-sm role-primary"
-            :to="row.detailLocation"
+            :disabled="!row.isSupportedHarvester"
+            @click="$router.push(row.detailLocation)"
           >
             {{ t('harvesterManager.manage') }}
-          </router-link>
+          </button>
         </template>
       </ResourceTable>
       <div v-else>
         <div class="no-clusters">
           {{ t('harvesterManager.cluster.none') }}
         </div>
-        <hr class="info-section">
+        <hr
+          class="info-section"
+          role="none"
+        >
       </div>
     </div>
     <template v-if="harvester.toInstall || harvester.toUpdate || !rows || !rows.length">

@@ -228,6 +228,14 @@ export default class ExtensionsPagePo extends PagePo {
     return this.extensionTabs.clickNthTab(4);
   }
 
+  extensionTabBuiltinClick(): Cypress.Chainable {
+    return this.extensionTabs.clickTabWithName('builtin');
+  }
+
+  extensionTabBuiltin() {
+    return this.extensionTabs.getTab('builtin');
+  }
+
   // ------------------ extension reload banner ------------------
   extensionReloadBanner() {
     return this.self().getId('extension-reload-banner');

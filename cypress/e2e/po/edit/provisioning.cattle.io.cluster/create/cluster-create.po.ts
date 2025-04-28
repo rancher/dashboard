@@ -77,4 +77,8 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   credentialsBanner() {
     return new BannersPo(this.self().find('.banner').contains(`Ok, Let's create a new credential`));
   }
+
+  errorsBanner() {
+    return new BannersPo('.banner.error', this.self());
+  }
 }

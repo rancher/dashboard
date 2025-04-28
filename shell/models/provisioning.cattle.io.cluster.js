@@ -10,6 +10,7 @@ import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
 /**
  * Class representing Cluster resource.
@@ -180,6 +181,15 @@ export default class ProvCluster extends SteveModel {
 
     const all = actions.concat(out);
 
+    // If the cluster is a KEV1 cluster then prevent edit
+    if (this.isKev1) {
+      const edit = all.find((action) => action.action === 'goToEdit');
+
+      if (edit) {
+        edit.enabled = false;
+      }
+    }
+
     // If we have a helper that wants to modify the available actions, let it do it
     if (this.customProvisionerHelper?.availableActions) {
       // Provider can either modify the provided list or return one of its own
@@ -187,6 +197,15 @@ export default class ProvCluster extends SteveModel {
     }
 
     return all;
+  }
+
+  get detailLocation() {
+    // Prevent going to detail page for a KEV1 cluster
+    if (this.isKev1) {
+      return undefined;
+    }
+
+    return super.detailLocation;
   }
 
   get normanCluster() {
@@ -287,6 +306,11 @@ export default class ProvCluster extends SteveModel {
 
   get isLocal() {
     return this.mgmt?.isLocal;
+  }
+
+  // Is the cluster a legacy (unsupported) KEV1 cluster?
+  get isKev1() {
+    return KEV1.includes(this.mgmt?.spec?.genericEngineConfig?.driverName);
   }
 
   get isImported() {
@@ -988,7 +1012,7 @@ export default class ProvCluster extends SteveModel {
 
   get groupByParent() {
     // Customer helper can report if the cluster has a parent cluster
-    return this.customProvisionerHelper?.parentCluster?.(this) || this.t('resourceTable.groupLabel.NotInACluster');
+    return this.customProvisionerHelper?.parentCluster?.(this) || this.t('resourceTable.groupLabel.notInACluster');
   }
 
   get hasError() {

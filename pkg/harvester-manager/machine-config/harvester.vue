@@ -579,9 +579,10 @@ export default {
         this.value.vmAffinity = base64Decode(this.value.vmAffinity);
       }
 
-      if (!this.value.cpuCount) {
-        const message = this.validatorRequiredField(
-          this.t('cluster.credential.harvester.cpu')
+      if (!this.value.cpuCount || Number(this.value.cpuCount) <= 0) {
+        const message = this.validatorMinimumField(
+          this.t('cluster.credential.harvester.cpu'),
+          1
         );
 
         errors.push(message);
@@ -595,9 +596,10 @@ export default {
         errors.push(message);
       }
 
-      if (!this.value.memorySize) {
-        const message = this.validatorRequiredField(
-          this.t('cluster.credential.harvester.memory')
+      if (!this.value.memorySize || Number(this.value.memorySize) <= 0) {
+        const message = this.validatorMinimumField(
+          this.t('cluster.credential.harvester.memory'),
+          1
         );
 
         errors.push(message);
@@ -624,6 +626,10 @@ export default {
       return this.t('validation.required', { key });
     },
 
+    validatorMinimumField(key, min) {
+      return this.t('validation.minValue', { key, min });
+    },
+
     validatorDiskAndNetowrk(errors) {
       const disks = JSON.parse(this.value.diskInfo).disks;
       const interfaces = JSON.parse(this.value.networkInfo).interfaces;
@@ -645,9 +651,10 @@ export default {
           errors.push(message);
         }
 
-        if (!disk.size) {
-          const message = this.validatorRequiredField(
-            this.t('cluster.credential.harvester.disk')
+        if (!disk.size || Number(disk.size) <= 0) {
+          const message = this.validatorMinimumField(
+            this.t('cluster.credential.harvester.disk'),
+            1
           );
 
           errors.push(message);
@@ -744,11 +751,12 @@ export default {
       if (clusterId) {
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        const vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
-
         let deviceCapacity = null;
+        let vGpus = null ;
 
         try {
+          vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
+
           const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
 
           if (harvesterCluster?.links?.deviceCapacity) {
@@ -1185,6 +1193,7 @@ export default {
             suffix="C"
             output-as="string"
             required
+            min="1"
             :mode="mode"
             :disabled="disabled"
             :placeholder="t('cluster.harvester.machinePool.cpu.placeholder')"
@@ -1201,6 +1210,7 @@ export default {
             :mode="mode"
             :disabled="disabled"
             required
+            min="1"
             :placeholder="t('cluster.harvester.machinePool.memory.placeholder')"
           />
         </div>
@@ -1309,6 +1319,7 @@ export default {
                     :mode="mode"
                     :disabled="disabled"
                     required
+                    min="1"
                     :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
                     @update:value="update"
                   />
@@ -1363,7 +1374,10 @@ export default {
         </button>
       </div>
 
-      <hr class="mt-10 mb-10">
+      <hr
+        class="mt-10 mb-10"
+        role="none"
+      >
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
@@ -1510,7 +1524,10 @@ export default {
           />
         </div>
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
 
         <h3 class="mt-20">
           {{ t("workload.container.titles.nodeScheduling") }}
@@ -1534,7 +1551,10 @@ export default {
           @update="updateScheduling"
         />
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
       </portal>
     </div>
     <div v-if="errors.length">

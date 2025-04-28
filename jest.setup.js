@@ -7,6 +7,7 @@ import { floatingVueOptions } from '@shell/plugins/floating-vue';
 import vSelect from 'vue-select';
 import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
+import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import '@shell/plugins/replaceall';
 import { TextEncoder, TextDecoder } from 'util';
 
@@ -41,8 +42,9 @@ config.global.directives = {
       el.textContent = `%${ binding.value }%`;
     }
   },
-  'clean-tooltip': cleanTooltipDirective,
-  'clean-html':    cleanHtmlDirective,
+  'clean-tooltip':       cleanTooltipDirective,
+  'clean-html':          cleanHtmlDirective,
+  'stripped-aria-label': htmlStrippedAriaLabelDirective,
 };
 
 config.global.stubs['t'] = { template: '<span><slot /></span>' };
@@ -62,6 +64,24 @@ beforeAll(() => {
     }))
   });
 });
+jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
+// eslint-disable-next-line no-console
+jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[Vue warn]') ? null : console.log(warning));
+
+// jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
+jest.mock('@shell/composables/useI18n', () => {
+  return {
+    useI18n() {
+      return {
+        t(key) {
+          return key;
+        }
+      };
+    }
+  };
+});
+// eslint-disable-next-line no-console
+jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[Vue warn]') ? null : console.log(warning));
 
 /**
  * Common initialization for each test, required for resetting states

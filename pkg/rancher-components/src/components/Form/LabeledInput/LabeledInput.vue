@@ -2,7 +2,7 @@
 import { defineComponent, inject } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
@@ -105,6 +105,15 @@ export default defineComponent({
     class: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * Optionally use this to comply with a11y IF there's no label
+     * associated with the input
+     */
+    ariaLabel: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -139,6 +148,8 @@ export default defineComponent({
     return {
       updated:          false,
       validationErrors: '',
+      inputId:          `input-${ generateRandomAlphaString(12) }`,
+      describedById:    `described-by-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -240,6 +251,14 @@ export default defineComponent({
     }
   },
 
+  mounted() {
+    const id = this.$attrs?.id as string | undefined;
+
+    if (id) {
+      this.inputId = id;
+    }
+  },
+
   created() {
     /**
      * Determines if the Labeled Input @input event should be debounced.
@@ -330,7 +349,10 @@ export default defineComponent({
     }"
   >
     <slot name="label">
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="inputId"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -349,21 +371,26 @@ export default defineComponent({
     <slot name="field">
       <TextAreaAutoGrow
         v-if="type === 'multiline' || type === 'multiline-password'"
+        :id="inputId"
         ref="value"
         v-bind="$attrs"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
+        :aria-describedby="cronHint || subLabel ? describedById : undefined"
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
       <input
         v-else
+        :id="inputId"
         ref="value"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         role="textbox"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
@@ -375,6 +402,7 @@ export default defineComponent({
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
+        :aria-describedby="cronHint || subLabel ? describedById : undefined"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -383,12 +411,14 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- informational tooltip about field -->
     <LabeledTooltip
-      v-if="hasTooltip && !focused"
+      v-if="hasTooltip"
       :hover="hoverTooltip"
       :value="tooltipValue"
       :status="status"
     />
+    <!-- validation tooltip -->
     <LabeledTooltip
       v-if="!!validationMessage"
       :hover="hoverTooltip"
@@ -401,13 +431,15 @@ export default defineComponent({
     >
       <div
         v-if="cronHint"
+        :id="describedById"
         role="alert"
         :aria-label="cronHint"
       >
         {{ cronHint }}
       </div>
       <div
-        v-if="subLabel"
+        v-else-if="subLabel"
+        :id="describedById"
         v-clean-html="subLabel"
       />
     </div>

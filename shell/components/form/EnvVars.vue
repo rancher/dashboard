@@ -39,14 +39,10 @@ export default {
   },
 
   data() {
-    const { env = [], envFrom = [] } = this.value;
-
-    const allEnv = [...env, ...envFrom].map((row) => {
-      return { value: row, id: randomStr(4) };
-    });
-
     return {
-      env, envFrom, allEnv
+      env:     [],
+      envFrom: [],
+      allEnv:  [],
     };
   },
 
@@ -63,7 +59,18 @@ export default {
       }
     }
   },
+
   created() {
+    const { env = [], envFrom = [] } = this.value;
+
+    const allEnv = [...env, ...envFrom].map((row) => {
+      return { value: row, id: randomStr(4) };
+    });
+
+    this.env = env;
+    this.envFrom = envFrom;
+    this.allEnv = allEnv;
+
     this.queueUpdate = debounce(this.update, 500);
   },
 
@@ -107,7 +114,8 @@ export default {
   <div :style="{'width':'100%'}">
     <div
       v-for="(row, i) in allEnv"
-      :key="i"
+      :key="row.id"
+      :data-testid="`env-var-row-${i}`"
     >
       <ValueFromResource
         v-model:value="row.value"

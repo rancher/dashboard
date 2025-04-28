@@ -114,8 +114,8 @@ export default defineComponent({
     return {
       loadingVpcs:           false,
       loadingSecurityGroups: false,
-      vpcInfo:               {} as {Vpcs: AWS.VPC[]},
-      subnetInfo:            {} as {Subnets: AWS.Subnet[]},
+      vpcInfo:               [] as AWS.VPC[],
+      subnetInfo:            [] as AWS.Subnet[],
       securityGroupInfo:     {} as {SecurityGroups: AWS.SecurityGroup[]},
       chooseSubnet:          !!this.subnets && !!this.subnets.length
     };
@@ -127,8 +127,8 @@ export default defineComponent({
     // {[vpc id]: [subnets]}
     vpcOptions() {
       const out: {key:string, label:string, _isSubnet?:boolean, kind?:string}[] = [];
-      const vpcs: AWS.VPC[] = this.vpcInfo?.Vpcs || [];
-      const subnets: AWS.Subnet[] = this.subnetInfo?.Subnets || [];
+      const vpcs: AWS.VPC[] = this.vpcInfo || [];
+      const subnets: AWS.Subnet[] = this.subnetInfo || [];
       const mappedSubnets: {[key:string]: AWS.Subnet[]} = {};
 
       subnets.forEach((s) => {
@@ -204,7 +204,7 @@ export default defineComponent({
         return null;
       }
 
-      return (this.subnetInfo?.Subnets || []).find((s) => this.subnets.includes(s.SubnetId))?.VpcId;
+      return (this.subnetInfo || []).find((s) => this.subnets.includes(s.SubnetId))?.VpcId;
     },
 
     isNew(): boolean {
@@ -228,8 +228,8 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.vpcInfo = await ec2Client.describeVpcs({ });
-        this.subnetInfo = await ec2Client.describeSubnets({ });
+        this.vpcInfo = await this.$store.dispatch('aws/depaginateList', { client: ec2Client, cmd: 'describeVpcs' });
+        this.subnetInfo = await this.$store.dispatch('aws/depaginateList', { client: ec2Client, cmd: 'describeSubnets' });
       } catch (err) {
         this.$emit('error', err);
       }

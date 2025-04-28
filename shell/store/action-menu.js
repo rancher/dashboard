@@ -27,7 +27,7 @@ export const getters = {
   event:     (state) => state.event,
   resources: (state) => state.resources,
 
-  options(state) {
+  optionsArray(state) {
     let selected = state.resources;
 
     if ( !selected ) {
@@ -41,7 +41,7 @@ export const getters = {
     const map = {};
 
     for ( const node of selected ) {
-      if (node.availableActions) {
+      if (node?.availableActions) {
         for ( const act of node.availableActions ) {
           _add(map, act);
         }
@@ -50,7 +50,10 @@ export const getters = {
 
     const out = _filter(map);
 
-    return { ...out };
+    return [...out];
+  },
+  options(_state, getters) {
+    return { ...getters.optionsArray };
   },
 
 };
@@ -144,12 +147,19 @@ export const mutations = {
 
     state.modalData = data;
   },
+
+  SET_RESOURCE(state, resources) {
+    state.resources = !isArray(resources) ? [resources] : resources;
+  }
 };
 
 export const actions = {
   execute({ state }, { action, args, opts }) {
     return _execute(state.resources, action, args, opts);
   },
+  setResource({ commit }, resource) {
+    commit('SET_RESOURCE', resource);
+  }
 };
 
 // -----------------------------

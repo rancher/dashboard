@@ -37,7 +37,7 @@ export default {
     handleLineBreaksConsentText(banner) {
       if (banner.text?.length) {
         // split text by newline char
-        const textArray = banner.text.split(/\\n/).filter((element) => element);
+        const textArray = banner.text.split('\n').filter((element) => element);
 
         if (textArray.length > 1) {
           textArray.forEach((str, i) => {
@@ -130,11 +130,11 @@ export default {
 
             if (isEmpty(banner)) {
               if (showHeader && this.header) {
-                bannerContent = bannerHeader || {};
+                bannerContent = this.handleLineBreaksConsentText(bannerHeader) || {};
               } else if (showConsent && this.consent) {
                 bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
               } else if (showFooter && this.footer) {
-                bannerContent = bannerFooter || {};
+                bannerContent = this.handleLineBreaksConsentText(bannerFooter) || {};
               } else {
                 bannerContent = {};
               }
@@ -168,16 +168,20 @@ export default {
     >
       <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
       <div v-if="isTextAnArray">
-        <p
+        <div
           v-for="(text, index) in banner.text"
           :key="index"
+          class="array-row"
         >
           {{ text }}
-        </p>
+        </div>
       </div>
-      <p v-else>
+      <div
+        v-else
+        class="single-row"
+      >
         {{ banner.text }}
-      </p>
+      </div>
     </div>
     <div v-else-if="showDialog">
       <div class="banner-dialog-glass" />
@@ -192,16 +196,20 @@ export default {
           >
             <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
             <div v-if="isTextAnArray">
-              <p
+              <div
                 v-for="(text, index) in banner.text"
                 :key="index"
+                class="array-row"
               >
                 {{ text }}
-              </p>
+              </div>
             </div>
-            <p v-else>
+            <div
+              v-else
+              class="single-row"
+            >
               {{ banner.text }}
-            </p>
+            </div>
           </div>
           <button
             class="btn role-primary"
@@ -223,7 +231,6 @@ export default {
     padding: 0 20px;
 
     &.banner-consent {
-      position: absolute;
       height: unset;
       min-height: 2em;
       overflow: hidden;

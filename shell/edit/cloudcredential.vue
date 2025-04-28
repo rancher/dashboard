@@ -100,6 +100,30 @@ export default {
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
+    hasCustomCloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
+    },
+
+    cloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/importCloudCredential'](driverName);
+    },
+
+    genericCloudCredentialComponent() {
+      return this.$store.getters['type-map/importCloudCredential']('generic');
+    },
+
+    cloudComponent() {
+      if (this.hasCustomCloudCredentialComponent) {
+        return this.cloudCredentialComponent;
+      }
+
+      return this.genericCloudCredentialComponent;
+    },
+
     validationPassed() {
       return this.credCustomComponentValidation && this.nameRequiredValidation;
     },
@@ -110,14 +134,6 @@ export default {
 
     driverName() {
       return this.value?.provider;
-    },
-
-    cloudComponent() {
-      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
-        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
-      }
-
-      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     // array of id, label, description, initials for type selection step
@@ -194,7 +210,6 @@ export default {
   },
 
   methods: {
-
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
     },
