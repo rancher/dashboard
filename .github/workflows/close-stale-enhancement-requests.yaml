@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          debug-only: true # Uncomment to switch back to dry-run
+          # debug-only: true # Uncomment to switch back to dry-run
           exempt-issue-labels: "JIRA" # We don't want to close jira issues as these came from customers
           only-issue-labels: "kind/enhancement"
           days-before-pr-stale: -1
