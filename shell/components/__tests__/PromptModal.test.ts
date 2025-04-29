@@ -95,7 +95,7 @@ describe('component: PromptModal', () => {
       {
         attachTo: document.body,
         data() {
-          return { opened: true }; // this controls modal content visibility
+          return { opened: true }; // this controls modal content visibility //
         },
         global: {
           mocks: {
