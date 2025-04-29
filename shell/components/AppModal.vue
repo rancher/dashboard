@@ -86,32 +86,20 @@ export default defineComponent({
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
     },
     /**
-     * trigger focus trap - but watcher based
-     */
-    triggerFocusTrapWatcherBased: {
-      type:    Boolean,
-      default: false,
-    },
-    /**
      * watcher-based focus trap variable to watch
      */
     focusTrapWatcherBasedVariable: {
       type:    Boolean,
       default: undefined,
     },
-    fakeWatchVar: {
+    /**
+     * prop used to immediately trigger the focus trap when a proper watch variable is not required
+     * will default to this prop IF there's no "focusTrapWatcherBasedVariable" being passed
+     * prop used only in setup (if you need a proper watcher variable, pass it via "focusTrapWatcherBasedVariable")
+     */
+    autoTriggerFocusTrapWatcher: {
       type:    Boolean,
       default: true,
-    },
-    /**
-     * property need to manipulate focus-trap lib for unit tests
-     * as per https://github.com/focus-trap/tabbable#common-options
-     * which has to be "none" in order for them to work
-     * manual test on Rancher Dashboard shows all modals work fine without this
-     */
-    fixUnitTestTrapOptions: {
-      type:    Boolean,
-      default: false,
     }
   },
   computed: {
@@ -139,13 +127,6 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
-    },
-    watcherVariableForFocusTrap(): boolean {
-      if (this.focusTrapWatcherBasedVariable !== undefined) {
-        return this.focusTrapWatcherBasedVariable;
-      }
-
-      return true;
     }
   },
   setup(props) {
@@ -170,12 +151,7 @@ export default defineComponent({
         };
       }
 
-      // needed as a workaround/fix for PromptModal unit tests
-      if (props.fixUnitTestTrapOptions) {
-        opts.tabbableOptions = { displayCheck: 'none' };
-      }
-
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable !== undefined ? props.focusTrapWatcherBasedVariable : props.fakeWatchVar, '#modal-container-element', opts, true);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? props.autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
     }
   },
   mounted() {

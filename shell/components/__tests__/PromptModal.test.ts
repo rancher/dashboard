@@ -95,9 +95,7 @@ describe('component: PromptModal', () => {
       {
         attachTo: document.body,
         data() {
-          return {
-            opened:                 true, // this controls modal content visibility
-            fixUnitTestTrapOptions: true // promptModal flag to allow unit tests to run on focus trap
+          return { opened: true, // this controls modal content visibility
           };
         },
         global: {

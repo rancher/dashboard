@@ -216,7 +216,6 @@ export default {
   >
     <template #title>
       <h4 class="text-default-text">
-        ALEX
         {{ t('clusterBadge.modal.title') }}
       </h4>
     </template>
