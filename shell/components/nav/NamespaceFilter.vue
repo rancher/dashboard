@@ -384,10 +384,6 @@ export default {
     }
   },
 
-  beforeUnmount() {
-    this.removeCloseKeyHandler();
-  },
-
   mounted() {
     this.layout();
   },
@@ -480,28 +476,25 @@ export default {
         }
       });
     },
-    addCloseKeyHandler() {
-      document.addEventListener('keyup', this.closeKeyHandler);
-    },
-    removeCloseKeyHandler() {
-      document.removeEventListener('keyup', this.closeKeyHandler);
-    },
-    closeKeyHandler(e) {
-      if (e.keyCode === KEY.ESCAPE ) {
-        this.close();
-      }
-    },
     // Keyboard support
     itemKeyHandler(e, opt) {
       if (e.keyCode === KEY.DOWN ) {
         e.preventDefault();
         e.stopPropagation();
         this.down();
-      } else if (e.keyCode === KEY.UP ) {
+
+        return;
+      }
+
+      if (e.keyCode === KEY.UP) {
         e.preventDefault();
         e.stopPropagation();
         this.up();
-      } else if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
+
+        return;
+      }
+
+      if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
         if (this.namespaceFilterMode && !opt.enabled) {
           return;
         }
@@ -518,10 +511,8 @@ export default {
         e.stopPropagation();
         this.down(true);
         break;
-      case KEY.TAB:
-        // Tab out of the input box
+      case KEY.ESCAPE:
         this.close();
-        e.target.blur();
         break;
       case KEY.CR:
         if (this.filtered.length === 1) {
@@ -529,6 +520,10 @@ export default {
           this.filter = '';
         }
         break;
+      case KEY.TAB:
+        if (e.shiftKey) {
+          this.close();
+        }
       }
     },
     mouseOver(event) {
@@ -544,11 +539,11 @@ export default {
       el.focus();
       this.activeElement = null;
     },
-    down(input) {
+    down(input, focusFirst = true) {
       const existing = this.activeElement || document.activeElement;
 
       // Focus the first element in the list
-      if (input || !existing) {
+      if (input || (!existing && !focusFirst)) {
         if (this.$refs.options) {
           const c = this.$refs.options.children;
 
@@ -559,8 +554,12 @@ export default {
       } else {
         let next = existing.nextElementSibling;
 
+        if (!next) {
+          next = existing.parentNode.firstElementChild;
+        }
+
         // Skip over dividers (assumes we don't have two dividers next to each other)
-        if (next.classList.contains('ns-divider')) {
+        if (next?.classList.contains('ns-divider')) {
           next = next.nextElementSibling;
         }
 
@@ -570,8 +569,14 @@ export default {
       }
     },
     up() {
-      if (document.activeElement) {
+      const existing = this.activeElement || document.activeElement;
+
+      if (existing) {
         let prev = document.activeElement.previousElementSibling;
+
+        if (!prev) {
+          prev = existing.parentNode.lastElementChild;
+        }
 
         if (prev.classList.contains('ns-divider')) {
           prev = prev.previousElementSibling;
@@ -594,7 +599,6 @@ export default {
       this.$nextTick(() => {
         this.focusFilter();
       });
-      this.addCloseKeyHandler();
       this.layout();
     },
     clearFilter() {
@@ -602,13 +606,13 @@ export default {
       this.focusFilter();
     },
     focusFilter() {
-      this.$refs.filter.focus();
+      this.$refs.filterInput.focus();
     },
     close() {
       this.isOpen = false;
       this.activeElement = null;
-      this.removeCloseKeyHandler();
       this.layout();
+      this.$refs.namespaceFilterInput.focus();
     },
     clear() {
       this.value = [];
@@ -688,11 +692,13 @@ export default {
 <template>
   <div
     v-if="!$fetchState.pending"
+    ref="namespaceFilterInput"
+    role="combobox"
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
     @mousedown.prevent
-    @keydown.down="open"
+    @keydown.down.enter="open"
   >
     <div
       v-if="isOpen"
@@ -796,7 +802,7 @@ export default {
       <div class="ns-controls">
         <div class="ns-input">
           <input
-            ref="filter"
+            ref="filterInput"
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
@@ -843,6 +849,10 @@ export default {
         ref="options"
         class="ns-options"
         role="listbox"
+        tabindex="0"
+        @keydown.down.enter.stop="down"
+        @keydown.escape="close()"
+        @keydown.tab.exact.stop="close()"
       >
         <template
           v-for="(opt, i) in cachedFiltered"
@@ -907,6 +917,7 @@ export default {
   .ns-filter {
     width: 280px;
     display: inline-block;
+    border-radius: var(--border-radius);
 
     .ns-glass {
       top: 0;
