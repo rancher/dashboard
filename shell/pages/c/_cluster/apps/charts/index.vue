@@ -339,14 +339,16 @@ export default {
       });
     },
 
-    handleRepoClick(repo) {
+    handleRepoClick(repoLabel) {
       // TODO
       // console.log('Repo Clicked, ', repo);
+      // const repoKey = this.repoOptions.find((opt) => opt.label === repoLabel)._key;
+      // addObject(this.hideRepos, repoKey);
     },
 
     handleCategoryClick(category) {
       // TODO
-      // console.log('Category Clicked, ', category);
+      // this.category = category;
     },
 
     handleTagClick(tag) {
