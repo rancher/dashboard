@@ -3944,6 +3944,10 @@ namespaceFilter:
       one {1 item selected}
       other {{total} items selected}
       }
+  input: Filter namespace options
+  buttons:
+    clear: Remove applied namespace filters
+    clearFilter: Clear namespace options filter 
 
 namespaceList:
   selectLabel: Namespace

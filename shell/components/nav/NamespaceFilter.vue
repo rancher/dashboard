@@ -800,12 +800,17 @@ export default {
       data-testid="namespaces-menu"
     >
       <div class="ns-controls">
-        <div class="ns-input">
+        <div
+          class="ns-input"
+          role="status"
+          aria-live="polite"
+        >
           <input
             ref="filterInput"
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
+            :aria-label="t('namespaceFilter.input')"
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
@@ -814,6 +819,7 @@ export default {
             small
             ghost
             class="ns-filter-clear"
+            :aria-label="t('namespaceFilter.button.clearFilter')"
             @click="clearFilter"
             @keydown.enter.stop="clearFilter"
           >
@@ -836,6 +842,7 @@ export default {
           small
           ghost
           class="ns-clear"
+          :aria-label="t('namespaceFilter.button.clear')"
           @click="clear()"
           @keydown.enter.stop="clear()"
         >
@@ -850,6 +857,7 @@ export default {
         class="ns-options"
         role="listbox"
         tabindex="0"
+        aria-live="polite"
         @keydown.down.enter.stop="down"
         @keydown.escape="close()"
         @keydown.tab.exact.stop="close()"
