@@ -239,6 +239,7 @@ nav:
     ariaLabel: Filter clusters on main menu
   resourceSearch:
     label: Resource Search
+    prompt: Search for a Kubernetes Resource/Custom Resource type
     toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
     filteringDescription: Using this input will immediately filter the results in the list below

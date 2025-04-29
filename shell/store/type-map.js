@@ -659,7 +659,14 @@ export const getters = {
 
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
 
-        const labelDisplay = highlightLabel(label, count, typeObj.schema);
+        let labelDisplay = highlightLabel(label, count, typeObj.schema);
+
+        // If we did not match on just the label, add the schema name and see if that matches
+        if (!labelDisplay && typeObj.schema?.attributes) {
+          const schemaName = `${ typeObj.schema.attributes.resource }.${ typeObj.schema.attributes.group }`;
+
+          labelDisplay = highlightLabel(`${ label } (${ schemaName })`, count, typeObj.schema);
+        }
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
