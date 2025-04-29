@@ -86,4 +86,8 @@ export default class ComponentPo {
   shouldHaveValue(value: string, options?: GetOptions): Cypress.Chainable<boolean> {
     return this.self(options).should('have.value', value);
   }
+
+  shouldContainText(text: string, options?: GetOptions): Cypress.Chainable<boolean> {
+    return this.self(options).should('contain.text', text);
+  }
 }

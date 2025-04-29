@@ -57,6 +57,14 @@ describe('Home Page', () => {
       cy.login();
     });
 
+    it('Validate home page with percy', { tags: ['@generic', '@adminUser'] }, () => {
+      // Navigate to home page and wait for page to be fully loaded.
+      HomePagePo.goToAndWaitForGet();
+
+      // #takes percy snapshot.
+      cy.percySnapshot('Home Page');
+    });
+
     it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
       /**
        * Get cluster details from the Home page

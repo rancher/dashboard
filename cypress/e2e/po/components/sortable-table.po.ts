@@ -159,8 +159,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Get rows names. To avoid the 'no rows' on first load use `noRowsShouldNotExist`
    */
-  rowNames(rowNameSelector = 'td:nth-of-type(3)') {
-    return this.rowElements().find(rowNameSelector).then(($els: any) => {
+  rowNames(rowNameSelector = 'td:nth-of-type(3)', options?: any) {
+    return this.rowElements(options).find(rowNameSelector).then(($els: any) => {
       return (
         Cypress.$.makeArray<string>($els).map((el: any) => el.innerText as string)
       );
