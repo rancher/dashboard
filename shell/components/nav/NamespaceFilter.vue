@@ -20,10 +20,13 @@ import { KEY } from '@shell/utils/platform';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { RcButton } from '@components/RcButton';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
+
+  components: { RcButton },
 
   data() {
     return {
@@ -594,6 +597,10 @@ export default {
       this.addCloseKeyHandler();
       this.layout();
     },
+    clearFilter() {
+      this.filter = '';
+      this.focusFilter();
+    },
     focusFilter() {
       this.$refs.filter.focus();
     },
@@ -796,11 +803,18 @@ export default {
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
-          <i
+          <RcButton
             v-if="hasFilter"
-            class="ns-filter-clear icon icon-close"
-            @click="filter = ''"
-          />
+            small
+            ghost
+            class="ns-filter-clear"
+            @click="clearFilter"
+            @keydown.enter.stop="clearFilter"
+          >
+            <i
+              class="icon icon-close"
+            />
+          </RcButton>
         </div>
         <div
           v-if="namespaceFilterMode"
@@ -811,15 +825,18 @@ export default {
             class="icon icon-info"
           />
         </div>
-        <div
+        <RcButton
           v-else
+          small
+          ghost
           class="ns-clear"
+          @click="clear()"
+          @keydown.enter.stop="clear()"
         >
           <i
             class="icon icon-close"
-            @click="clear()"
           />
-        </div>
+        </RcButton>
       </div>
       <div class="ns-divider mt-0" />
       <div
@@ -908,18 +925,15 @@ export default {
     }
 
     .ns-clear {
+      padding: 0 5px;
       &:hover {
         color: var(--primary);
-        cursor: pointer;
       }
     }
 
     .ns-singleton-info, .ns-clear {
       align-items: center;
       display: flex;
-      > i {
-        padding-right: 5px;
-      }
     }
 
     .ns-input {
@@ -936,10 +950,11 @@ export default {
       cursor: pointer;
       position: absolute;
       right: 10px;
-      top: 5px;
+      top: 10px;
       line-height: 24px;
       text-align: center;
-      width: 24px;
+      width: 14px;
+      min-height: 14px;
     }
 
     .ns-dropdown-menu {
