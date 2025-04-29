@@ -32,7 +32,9 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { clone, diff, get, set } from '@shell/utils/object';
+import {
+  clone, diff, get, mergeWithReplace, set
+} from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -312,15 +314,11 @@ export default {
       */
       this.removeGlobalValuesFrom(userValues);
 
-      /*
-        The merge() method is used to merge two or more objects
-        starting with the left-most to the right-most to create a
-        parent mapping object. When two keys are the same, the
-        generated object will have value for the rightmost key.
-        In this case, any values in userValues override any
-        matching values in versionInfo.
-      */
-      this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
+      this.chartValues = mergeWithReplace(
+        merge({}, this.versionInfo?.values || {}),
+        userValues,
+        { replaceObjectProps: true }
+      );
 
       if (this.showCustomRegistry) {
         /**
