@@ -5,6 +5,9 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { _EDIT } from '@shell/config/query-params';
 import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget';
 
+// Components shown for Network Policy --> Ingress/Egress Rules --> Rule Type are...
+// Edit Network Policy --> `PolicyRules` 1 --> M `PolicyRule` 1 --> M `PolicyRuleTarget`
+
 export default {
   components: {
     ArrayListGrouped, PolicyRulePort, PolicyRuleTarget

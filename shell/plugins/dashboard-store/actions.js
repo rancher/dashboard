@@ -382,10 +382,6 @@ export default {
       return;
     }
 
-    if (type === 'pod') {
-      debugger;
-    }
-
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {

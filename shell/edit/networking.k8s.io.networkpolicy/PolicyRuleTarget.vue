@@ -11,7 +11,6 @@ import { Banner } from '@components/Banner';
 import debounce from 'lodash/debounce';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 import { matching } from '@shell/utils/selector-typed';
-import { allHash } from '@shell/utils/promise';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -20,8 +19,8 @@ const TARGET_OPTIONS = {
   NAMESPACE_AND_POD_SELECTOR: 'namespaceAndPodSelector',
 };
 
-// Component shown for Network Policy --> Ingress/Egress Rules --> Rule Type
-// Edit Network Policy --> PolicyRules 1 --> M PolicyRule 1 --> M PolicyRuleTarget
+// Components shown for Network Policy --> Ingress/Egress Rules --> Rule Type are...
+// Edit Network Policy --> `PolicyRules` 1 --> M `PolicyRule` 1 --> M `PolicyRuleTarget`
 
 export default {
   components: {
@@ -46,18 +45,6 @@ export default {
       type:    String,
       default: ''
     },
-    // allPods: {
-    //   type:    Array,
-    //   default: () => {
-    //     return [];
-    //   },
-    // },
-    // allNamespaces: {
-    //   type:    Array,
-    //   default: () => {
-    //     return [];
-    //   },
-    // },
   },
   data() {
     if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
@@ -189,13 +176,9 @@ export default {
 
   methods: {
     updateMatches: debounce(async function() {
-      const { ns, p } = await allHash({
-        ns: this.getMatchingNamespaces(),
-        p:  this.getMatchingPods()
-      });
-
-      this.matchingNamespaces = ns;
-      this.matchingPods = p;
+      // Note - needs to be sequential as getMatchingPods requires matchingNamespaces to be up-to-date
+      this.matchingNamespaces = await this.getMatchingNamespaces();
+      this.matchingPods = await this.getMatchingPods();
     }, 500),
 
     validateCIDR() {
@@ -213,7 +196,7 @@ export default {
     },
 
     async getMatchingPods() {
-      return await matching({ // TODO: RC test SSP disabled
+      return await matching({ // TODO: RC test DONE
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
@@ -223,7 +206,7 @@ export default {
       });
     },
     async getMatchingNamespaces() {
-      return await matching({ // TODO: RC test SSP disabled
+      return await matching({ // TODO: RC test DONE
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
         $store:        this.$store,

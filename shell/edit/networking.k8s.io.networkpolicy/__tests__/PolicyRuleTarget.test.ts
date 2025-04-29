@@ -55,8 +55,9 @@ describe.each([
       mocks: {
         $store: {
           getters: {
-            'i18n/exists': mockExists,
-            'i18n/t':      (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+            'i18n/exists':  mockExists,
+            'i18n/t':       (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
+            currentProduct: { inStore: 'cluster' },
           }
         }
       },

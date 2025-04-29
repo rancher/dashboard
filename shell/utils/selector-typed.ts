@@ -1,6 +1,7 @@
 import { COUNT } from '@shell/config/types';
 import { KubeLabelSelector } from '@shell/types/kube/kube-api';
-import { FilterArgs } from '@shell/types/store/pagination.types';
+import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
+import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { isEmpty } from '@shell/utils/object';
 import { convert, matching as rootMatching } from '@shell/utils/selector';
 
@@ -28,7 +29,9 @@ export async function matching({
   transient = false,
 }: {
   /**
-   * Standard kube label selector object
+   * Standard kube label selector object.
+   *
+   * If this is 'empty' (no matchLabels or matchExpressions) it will return all results
    */
   labelSelector: KubeLabelSelector,
   /**
@@ -52,9 +55,14 @@ export async function matching({
    */
   inScopeCount?: number
   /**
-   * Optional namespace to apply selector to
+   * Optional namespace or namespaces to apply selector to
+   *
+   * If this is undefined then namespaces will totally be ignored
+   *
+   * If this is provided all resources must be within them. If an empty array is provided then no resources will be matched
+   *
    */
-  namespace?: string,
+  namespace?: string | string[],
   /**
    * Should the result bypass the store?
    */
@@ -68,18 +76,50 @@ export async function matching({
 }> {
   let match = [];
 
-  if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
-    if (typeof inScopeCount === 'undefined') {
-      const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
+  const filterByNamespaces = !!namespace; // Result set must come from a resource in a namespace
+  const safeNamespaces = Array.isArray(namespace) ? namespace : !!namespace ? [namespace] : [];
 
-      inScopeCount = namespace ? counts?.[type]?.namespaces[namespace]?.count || 0 : counts?.[type]?.summary?.count || 0;
+  // Try to determine if there are resources to filter by (nothing to filter on = no matches = skip)
+  if (typeof inScopeCount === 'undefined') {
+    const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
+
+    if (filterByNamespaces) {
+      inScopeCount = 0;
+      safeNamespaces.forEach((n) => {
+        inScopeCount += counts?.[type]?.namespaces[n]?.count || 0;
+      });
+    } else {
+      inScopeCount = counts?.[type]?.summary?.count || 0;
     }
+  }
+  const haveCandidates = (inScopeCount || 0) > 0;
 
-    if (!isLabelSelectorEmpty(labelSelector)) {
-      if (inScopeCount) {
-        const findPageArgs = { // Of type ActionFindPageArgs
-          namespaced: namespace,
-          pagination: new FilterArgs({ labelSelector }),
+  // Try to determine if there are namespaces to filter with (namespaces supplied but empty = no matches = skip
+  const ignoredOrHaveNamespaceFilters = (!filterByNamespaces || safeNamespaces.length > 0);
+
+  console.info('selector-type', haveCandidates, ignoredOrHaveNamespaceFilters);
+
+  // Only proceed if there's something to filter on or with
+  if (haveCandidates && ignoredOrHaveNamespaceFilters) {
+    const haveLabelSelectorFilters = !isLabelSelectorEmpty(labelSelector);
+
+    if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
+      console.info('selector-type', 'api', haveLabelSelectorFilters, filterByNamespaces);
+
+      // Pagination for this type is enabled, so apply filters via API
+      if (haveLabelSelectorFilters || filterByNamespaces) {
+        const findPageArgs: ActionFindPageArgs = {
+          pagination: new FilterArgs({
+            labelSelector,
+            filters: PaginationParamFilter.createMultipleFields(
+              safeNamespaces.map(
+                (n) => new PaginationFilterField({
+                  field: 'metadata.namespace', // API only compatible with steve atm...
+                  value: n,
+                })
+              )
+            ),
+          }),
           transient,
         };
 
@@ -88,16 +128,35 @@ export async function matching({
           match = match.data;
         }
       }
-    }
-  } else {
-    let candidates = await $store.dispatch(`${ inStore }/findAll`, { type });
+    } else {
+      // Pagination for this type is NOT enabled, so apply filters locally
+      let candidates = [];
 
-    if (namespace) {
-      candidates = candidates.filter((e: any) => e.metadata?.namespace === namespace);
-    }
+      console.info('selector-type', 'local', haveLabelSelectorFilters, filterByNamespaces);
 
-    match = matches(candidates, labelSelector);
-    inScopeCount = candidates.length;
+      if (haveLabelSelectorFilters || filterByNamespaces) {
+        candidates = await $store.dispatch(`${ inStore }/findAll`, { type });
+
+        // First filter candidates by namespace
+        if (filterByNamespaces) {
+          console.info('selector-type', 'local', 'ns', safeNamespaces, candidates.length);
+
+          candidates = candidates.filter((e: any) => safeNamespaces.includes(e.metadata?.namespace));
+        }
+
+        // Next filter candidates by selector
+        if (haveLabelSelectorFilters) {
+          console.info('selector-type', 'local', 'label', labelSelector, candidates.length);
+
+          candidates = matches(candidates, labelSelector);
+        }
+      }
+
+      console.info('selector-type', 'local', 'res', candidates.length);
+
+      match = candidates;
+      inScopeCount = candidates.length;
+    }
   }
 
   const matched = match.length || 0;
