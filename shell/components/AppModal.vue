@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
   getFirstFocusableElement,
@@ -91,15 +91,6 @@ export default defineComponent({
     focusTrapWatcherBasedVariable: {
       type:    Boolean,
       default: undefined,
-    },
-    /**
-     * prop used to immediately trigger the focus trap when a proper watch variable is not required
-     * will default to this prop IF there's no "focusTrapWatcherBasedVariable" being passed
-     * prop used only in setup (if you need a proper watcher variable, pass it via "focusTrapWatcherBasedVariable")
-     */
-    autoTriggerFocusTrapWatcher: {
-      type:    Boolean,
-      default: true,
     }
   },
   computed: {
@@ -151,7 +142,10 @@ export default defineComponent({
         };
       }
 
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? props.autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
+      // prop used to immediately trigger the focus trap when a proper watch variable is not required
+      const autoTriggerFocusTrapWatcher = ref(true);
+
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
     }
   },
   mounted() {
