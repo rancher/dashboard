@@ -702,7 +702,7 @@ export default {
     data-testid="namespaces-filter"
     tabindex="0"
     @mousedown.prevent
-    @keydown.down.enter="open"
+    @keydown.down.enter.space="open"
   >
     <div
       v-if="isOpen"
@@ -848,8 +848,9 @@ export default {
           ghost
           class="ns-clear"
           :aria-label="t('namespaceFilter.button.clear')"
-          @click="clear()"
-          @keydown.enter.stop="clear()"
+          @click="clear"
+          @keydown.enter.stop="clear"
+          @keydown.tab.exact.prevent="down"
         >
           <i
             class="icon icon-close"
@@ -864,8 +865,8 @@ export default {
         tabindex="0"
         aria-live="polite"
         @keydown.down.enter.stop="down"
-        @keydown.escape="close()"
-        @keydown.tab.exact.stop="close()"
+        @keydown.escape="close"
+        @keydown.tab.exact.stop="close"
       >
         <template
           v-for="(opt, i) in cachedFiltered"
