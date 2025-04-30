@@ -322,7 +322,7 @@ export default {
     openSearch() {
       this.$store.dispatch('cluster/promptModal', {
         component:           'SearchDialog',
-        testid:              'search-modal',
+        testId:              'search-modal',
         modalWidth:          '50%',
         height:              'auto',
         styles:              'max-height: 90vh;',
