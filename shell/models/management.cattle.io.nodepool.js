@@ -1,9 +1,20 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
-import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
+
+const RKE1_ALLOWED_ACTIONS = [
+  'goToViewYaml',
+  'download',
+  'viewInApi'
+];
 
 export default class MgmtNodePool extends HybridModel {
+  get _availableActions() {
+    const out = super._availableActions;
+
+    return out.filter((a) => a.divider || RKE1_ALLOWED_ACTIONS.includes(a.action));
+  }
+
   get nodeTemplateId() {
     return (this.spec?.nodeTemplateName || '').replace(/:/, '/');
   }
@@ -172,11 +183,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   canScaleDownPool() {
-    if (!this.isEtcd && !this.isControlPlane) {
-      return true;
-    }
-
-    return notOnlyOfRole(this, this?.provisioningCluster?.nodes);
+    return false;
   }
 
   remove() {

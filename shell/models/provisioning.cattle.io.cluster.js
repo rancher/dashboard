@@ -12,6 +12,14 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
+const RKE1_ALLOWED_ACTIONS = [
+  'openShell',
+  'downloadKubeConfig',
+  'copyKubeConfig',
+  'download',
+  'viewInApi'
+];
+
 /**
  * Class representing Cluster resource.
  * @extends SteveModel
@@ -40,17 +48,6 @@ export default class ProvCluster extends SteveModel {
         content: this.desired,
       },
     ].filter((x) => !!x.content);
-
-    // RKE Template details
-    const rkeTemplate = this.rkeTemplate;
-
-    if (rkeTemplate) {
-      out.push({
-        label:     this.t('cluster.detail.rkeTemplate'),
-        formatter: 'RKETemplateName',
-        content:   rkeTemplate,
-      });
-    }
 
     if (!this.machineProvider) {
       out.splice(1, 1);
@@ -188,6 +185,15 @@ export default class ProvCluster extends SteveModel {
       if (edit) {
         edit.enabled = false;
       }
+    }
+
+    // If RKE1, then remove most of the actions
+    if (this.isRke1) {
+      all.forEach((action) => {
+        if (!RKE1_ALLOWED_ACTIONS.includes(action.action)) {
+          action.enabled = false;
+        }
+      });
     }
 
     // If we have a helper that wants to modify the available actions, let it do it
@@ -861,38 +867,9 @@ export default class ProvCluster extends SteveModel {
 
     return {
       displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      upgrade:     this.rkeTemplateUpgrade,
       template,
       revision,
     };
-  }
-
-  get rkeTemplateUpgrade() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-
-    // Get all of the template revisions for this template
-    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter((t) => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
-
-    if (revisions.length <= 1) {
-      // Only one template revision
-      return false;
-    }
-
-    revisions.sort((a, b) => {
-      return parseInt(a.metadata.resourceVersion, 10) - parseInt(b.metadata.resourceVersion, 10);
-    }).reverse();
-
-    return revisions[0].id !== clusterTemplateRevisionName ? revisions[0].spec?.displayName : false;
   }
 
   get _stateObj() {
