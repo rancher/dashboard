@@ -65,12 +65,13 @@ export default {
       matchingNamespaces: {
         matches: [], matched: 0, total: 0
       },
-      invalidCidr:   null,
-      invalidCidrs:  [],
+      invalidCidr:            null,
+      invalidCidrs:           [],
       POD,
       TARGET_OPTIONS,
-      targetOptions: Object.values(TARGET_OPTIONS),
-      inStore:       this.$store.getters['currentProduct'].inStore,
+      targetOptions:          Object.values(TARGET_OPTIONS),
+      inStore:                this.$store.getters['currentProduct'].inStore,
+      debouncedUpdateMatches: debounce(this.updateMatches, 500)
     };
   },
   computed: {
@@ -147,39 +148,39 @@ export default {
   },
   watch: {
     namespace: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.podSelector': {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.namespaceSelector': {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.ipBlock.cidr':   'validateCIDR',
     'value.ipBlock.except': 'validateCIDR',
     podSelectorExpressions: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     namespaceSelectorExpressions: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     }
   },
 
   fetch() {
-    this.updateMatches();
+    this.debouncedUpdateMatches();
   },
 
   methods: {
-    updateMatches: debounce(async function() {
+    async updateMatches() {
       // Note - needs to be sequential as getMatchingPods requires matchingNamespaces to be up-to-date
       this.matchingNamespaces = await this.getMatchingNamespaces();
       this.matchingPods = await this.getMatchingPods();
-    }, 500),
+    },
 
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];

@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils';
 import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget';
 import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/mock.json';
 import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/selectors.test.ts';
+import { nextTick } from 'vue';
+import { COUNT, NAMESPACE, POD } from '@shell/config/types';
 
 type MatchData = {
   matched: number;
@@ -20,6 +22,7 @@ const newNamespace = {
   metadata: {
     annotations:       { user: 'john' },
     name:              'default',
+    namespace:         mock.defaultNamespace,
     creationTimestamp: '2024-01-31T10:24:03Z',
     fields:            ['default', 'Active', '1d'],
     labels:            { user: 'john' },
@@ -45,19 +48,50 @@ describe.each([
       return { throttleTime: 0 };
     },
     props: {
-      namespace:     mock.defaultNamespace,
-      allNamespaces: mock.allNamespaces,
-      allPods:       mock.allPods,
-      type:          'ingress',
+      namespace: mock.defaultNamespace,
+      type:      'ingress',
       mode
     },
     global: {
       mocks: {
         $store: {
+          dispatch: (action: string, { type }: { type: string}) => {
+            switch (action) {
+            case 'cluster/findAll':
+              switch (type) {
+              case NAMESPACE:
+                return mock.allNamespaces;
+              case POD:
+                return mock.allPods;
+              default:
+                throw new Error('unknown type');
+              }
+            default:
+              throw new Error('unknown action');
+            }
+          },
           getters: {
             'i18n/exists':  mockExists,
             'i18n/t':       (key: string, matchData: MatchData) => matchData ? `${ key }-${ matchData.total }` : key,
             currentProduct: { inStore: 'cluster' },
+            'cluster/all':  (type: string) => {
+              switch (type) {
+              case COUNT:
+                return mock.counts;
+              default:
+                throw new Error('unknown type');
+              }
+            },
+            'cluster/findAll': ({ type }: {type: string}) => {
+              switch (type) {
+              case NAMESPACE:
+                return mock.allNamespaces;
+              case POD:
+                return mock.allPods;
+              default:
+                throw new Error('unknown type');
+              }
+            }
           }
         }
       },
@@ -65,6 +99,20 @@ describe.each([
   });
 
   describe(`${ mode } mode`, () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    const waitForUpdatedMatched = async() => {
+      jest.advanceTimersByTime(1000); // Wait for debounced call to fetch updated cluster list
+      await nextTick(); // Wait for changes to cluster list to trigger changes
+    };
+
     it('should display ip-block selector rule', async() => {
       const ipBlock = mock.selectors.ipBlock;
 
@@ -84,6 +132,7 @@ describe.each([
     });
 
     it('should display namespace selector rule', async() => {
+      // This test needs improving - mock data needs to contain more than applicable to selector
       const namespaceSelector = mock.selectors.namespace;
 
       await wrapper.setProps({ value: { namespaceSelector } });
@@ -92,6 +141,12 @@ describe.each([
 
       // Check rule type selector
       expect(wrapper.vm.targetType).toBe('namespaceSelector');
+
+      // Check the matching namespaces displayed by the banner
+      expect(wrapper.vm.$data.matchingNamespaces.matched).toBe(0);
+
+      await wrapper.vm.updateMatches();
+      await waitForUpdatedMatched();
 
       // Check the matching namespaces displayed by the banner
       expect(wrapper.vm.$data.matchingNamespaces.matched).toBe(1);
@@ -106,21 +161,10 @@ describe.each([
       expect(selectors.namespaceAndPod.podRule.exists()).toBe(false);
 
       expect(selectors.namespace.element).toBeDefined();
-
-      // Updating allNamespace should update the matching namespaces message too
-      await wrapper.setProps({
-        allNamespaces: [
-          ...wrapper.vm.$props.allNamespaces,
-          newNamespace
-        ]
-      });
-
-      const expectedTotal = 3;
-
-      expect(wrapper.vm.$data.matchingNamespaces.total).toBe(expectedTotal);
     });
 
     it('should display pod selector rule', async() => {
+      // This test needs improving - mock data needs to contain more than applicable to selector
       const podSelector = mock.selectors.pod;
 
       await wrapper.setProps({ value: { podSelector } });
