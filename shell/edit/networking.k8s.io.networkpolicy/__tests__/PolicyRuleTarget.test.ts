@@ -40,10 +40,10 @@ describe.each([
               case POD:
                 return mock.allPods;
               default:
-                throw new Error('unknown type');
+                throw new Error(`unknown type ${ type }`);
               }
             default:
-              throw new Error('unknown action');
+              throw new Error(`unknown action ${ action }`);
             }
           },
           getters: {
@@ -55,7 +55,7 @@ describe.each([
               case COUNT:
                 return mock.counts;
               default:
-                throw new Error('unknown type');
+                throw new Error(`unknown type ${ type }`);
               }
             },
             'cluster/findAll': ({ type }: {type: string}) => {
@@ -65,7 +65,17 @@ describe.each([
               case POD:
                 return mock.allPods;
               default:
-                throw new Error('unknown type');
+                throw new Error(`unknown type ${ type }`);
+              }
+            },
+            'cluster/schemaFor': (type: string) => {
+              switch (type) {
+              case NAMESPACE:
+                return { attributes: { namespaced: false } };
+              case POD:
+                return { attributes: { namespaced: true } };
+              default:
+                throw new Error(`unknown type ${ type }`);
               }
             }
           }

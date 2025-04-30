@@ -5,6 +5,14 @@ import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell
 import { isEmpty } from '@shell/utils/object';
 import { convert, matching as rootMatching } from '@shell/utils/selector';
 
+type MatchingResponse = {
+  matched: number,
+  matches: any[],
+  none: boolean,
+  sample: any,
+  total: number,
+}
+
 /**
  * Find resources that match a labelSelector. This behaves differently if vai based pagination is on
  * a) Pagination Enabled - fetch matching resources filtered on backend - findPage
@@ -32,6 +40,8 @@ export async function matching({
    * Standard kube label selector object.
    *
    * If this is 'empty' (no matchLabels or matchExpressions) it will return all results
+   *
+   * If this is 'null' it will return no results
    */
   labelSelector: KubeLabelSelector,
   /**
@@ -67,19 +77,12 @@ export async function matching({
    * Should the result bypass the store?
    */
   transient?: boolean,
-}): Promise<{
-  matched: number,
-  matches: any[],
-  none: boolean,
-  sample: any,
-  total: number,
-}> {
-  let match = [];
-
-  const filterByNamespaces = !!namespace; // Result set must come from a resource in a namespace
+}): Promise<MatchingResponse> {
+  const isNamespaced = $store.getters[`${ inStore }/schemaFor`](type)?.attributes.namespaced;
   const safeNamespaces = Array.isArray(namespace) ? namespace : !!namespace ? [namespace] : [];
+  const filterByNamespaces = isNamespaced && !!namespace ; // Result set must come from a resource in a namespace
 
-  // Try to determine if there are resources to filter by (nothing to filter on = no matches = skip)
+  // Determine if there's actually anything to filter on
   if (typeof inScopeCount === 'undefined') {
     const counts = $store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts || {};
 
@@ -92,62 +95,68 @@ export async function matching({
       inScopeCount = counts?.[type]?.summary?.count || 0;
     }
   }
-  const haveCandidates = (inScopeCount || 0) > 0;
 
-  // Try to determine if there are namespaces to filter with (namespaces supplied but empty = no matches = skip
-  const ignoredOrHaveNamespaceFilters = (!filterByNamespaces || safeNamespaces.length > 0);
+  // Exit early if there are any situations that always return nothing
+  const noCandidates = (inScopeCount || 0) === 0;
+  const filterByNamespaceButNoNamespace = isNamespaced && !!namespace && (!safeNamespaces || safeNamespaces.length === 0);
+  const explicityNullLabelSelector = labelSelector === null || (labelSelector?.matchLabels === null && !labelSelector.matchExpressions === null);
 
-  // Only proceed if there's something to filter on or with
-  if (haveCandidates && ignoredOrHaveNamespaceFilters) {
-    const haveLabelSelectorFilters = !isLabelSelectorEmpty(labelSelector);
-
-    if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
-      // Pagination for this type is enabled, so apply filters via API
-
-      if (haveLabelSelectorFilters || filterByNamespaces) {
-        const findPageArgs: ActionFindPageArgs = {
-          pagination: new FilterArgs({
-            labelSelector,
-            filters: PaginationParamFilter.createMultipleFields(
-              safeNamespaces.map(
-                (n) => new PaginationFilterField({
-                  field: 'metadata.namespace', // API only compatible with steve atm...
-                  value: n,
-                })
-              )
-            ),
-          }),
-          transient,
-        };
-
-        match = await $store.dispatch(`${ inStore }/findPage`, { type, opt: findPageArgs });
-        if (transient) {
-          match = match.data;
-        }
-      }
-    } else {
-      // Pagination for this type is NOT enabled, so apply filters locally
-      let candidates = [];
-
-      if (haveLabelSelectorFilters || filterByNamespaces) {
-        candidates = await $store.dispatch(`${ inStore }/findAll`, { type });
-
-        // First filter candidates by namespace
-        if (filterByNamespaces) {
-          candidates = candidates.filter((e: any) => safeNamespaces.includes(e.metadata?.namespace));
-        }
-
-        // Next filter candidates by selector
-        if (haveLabelSelectorFilters) {
-          candidates = matches(candidates, labelSelector);
-        }
-      }
-
-      match = candidates;
-      inScopeCount = candidates.length;
-    }
+  if (noCandidates || filterByNamespaceButNoNamespace || explicityNullLabelSelector) {
+    return generateMatchingResponse([], inScopeCount || 0);
   }
 
+  if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
+    if (isLabelSelectorEmpty(labelSelector) && (!!namespace && !safeNamespaces?.length)) {
+      // no namespaces - ALL resources are candidates
+      // no labels - return all candidates
+      // too many to fetch...
+      throw new Error('Either populated labelSelector or namespace/s must be supplied in order to call findPage');
+    }
+
+    const findPageArgs: ActionFindPageArgs = {
+      pagination: new FilterArgs({
+        labelSelector,
+        filters: PaginationParamFilter.createMultipleFields(
+          safeNamespaces.map(
+            (n) => new PaginationFilterField({
+              field: 'metadata.namespace', // API only compatible with steve atm...
+              value: n,
+            })
+          )
+        ),
+      }),
+      transient,
+    };
+
+    let match = await $store.dispatch(`${ inStore }/findPage`, { type, opt: findPageArgs });
+
+    if (transient) {
+      match = match.data;
+    }
+
+    return generateMatchingResponse(match, inScopeCount || 0);
+  } else {
+    // Start off with everything as a candidate
+    let candidates = await $store.dispatch(`${ inStore }/findAll`, { type });
+
+    inScopeCount = candidates.length;
+
+    // Filter out namespace specific stuff
+    if (isNamespaced && safeNamespaces?.length > 0) {
+      candidates = candidates.filter((e: any) => safeNamespaces.includes(e.metadata?.namespace));
+      inScopeCount = candidates.length;
+    }
+
+    // Apply labelSelector
+    if (labelSelector.matchLabels || labelSelector.matchExpressions) {
+      candidates = matches(candidates, labelSelector);
+    }
+
+    return generateMatchingResponse(candidates, inScopeCount || 0);
+  }
+}
+
+const generateMatchingResponse = <T extends { [key: string]: any, nameDisplay: string}>(match: T[], inScopeCount: number): MatchingResponse => {
   const matched = match.length || 0;
   const sample = match[0]?.nameDisplay;
 
@@ -158,7 +167,7 @@ export async function matching({
     sample,
     total:   inScopeCount || 0,
   };
-}
+};
 
 /**
  * This is similar to shell/utils/selector.js `matches`, but accepts a kube labelSelector
