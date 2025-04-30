@@ -124,6 +124,13 @@ export default {
       calculatePosition(dropdownList, component, width, this.placement);
     },
 
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     focusSearch() {
       // we need this override as in a "closeOnSelect" type of component
       // if we don't have this override, it would open again
@@ -281,7 +288,7 @@ export default {
     :aria-expanded="isOpen"
     :aria-label="$attrs['aria-label'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
-    @click="focusSearch"
+    @click="clickSelect"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
     @keydown.space.prevent="focusSearch"
