@@ -213,7 +213,6 @@ export default {
   <Card
     class="prompt-badge"
     :show-highlight-border="false"
-    :trigger-focus-trap="true"
   >
     <template #title>
       <h4 class="text-default-text">

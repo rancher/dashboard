@@ -1,8 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
-  useBasicSetupFocusTrap,
   getFirstFocusableElement,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
@@ -87,19 +86,12 @@ export default defineComponent({
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
     },
     /**
-     * trigger focus trap - but watcher based
-     */
-    triggerFocusTrapWatcherBased: {
-      type:    Boolean,
-      default: false,
-    },
-    /**
      * watcher-based focus trap variable to watch
      */
     focusTrapWatcherBasedVariable: {
       type:    Boolean,
-      default: false,
-    },
+      default: undefined,
+    }
   },
   computed: {
     modalWidth(): string {
@@ -126,7 +118,7 @@ export default defineComponent({
         width: this.modalWidth,
         ...this.stylesPropToObj,
       };
-    },
+    }
   },
   setup(props) {
     if (props.triggerFocusTrap) {
@@ -150,19 +142,10 @@ export default defineComponent({
         };
       }
 
-      if (!props.triggerFocusTrapWatcherBased) {
-        useBasicSetupFocusTrap('#modal-container-element', opts);
-      }
-    }
-  },
-  created() {
-    // This usecase is to cover the PromptModal scenario where it's renders a generic component inside.
-    // Due to the architecture of the PromptModal it needs to be handled with a watcher based focus trap
-    // but with a dedicated unmount hook
-    if (this.triggerFocusTrapWatcherBased) {
-      const opts:any = DEFAULT_FOCUS_TRAP_OPTS;
+      // prop used to immediately trigger the focus trap when a proper watch variable is not required
+      const autoTriggerFocusTrapWatcher = ref(true);
 
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.focusTrapWatcherBasedVariable, '#modal-container-element', opts, true);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
     }
   },
   mounted() {
