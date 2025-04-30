@@ -20,6 +20,7 @@ import { KEY } from '@shell/utils/platform';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { randomStr } from '@shell/utils/string';
 import { RcButton } from '@components/RcButton';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
@@ -38,6 +39,7 @@ export default {
       cachedFiltered:      [],
       NAMESPACE_FILTER_KINDS,
       namespaceFilterMode: undefined,
+      containerId:         `dropdown-${ randomStr() }`,
     };
   },
 
@@ -694,6 +696,8 @@ export default {
     v-if="!$fetchState.pending"
     ref="namespaceFilterInput"
     role="combobox"
+    :aria-expanded="isOpen"
+    :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
@@ -708,6 +712,7 @@ export default {
 
     <!-- Select Dropdown control -->
     <div
+      :id="containerId"
       ref="dropdown"
       class="ns-dropdown"
       data-testid="namespaces-dropdown"
@@ -878,6 +883,7 @@ export default {
             tabindex="-1"
             role="option"
             class="ns-option"
+            :aria-selected="opt.selected"
             :disabled="opt.enabled ? null : true"
             :class="{
               'ns-selected': opt.selected,
