@@ -124,7 +124,22 @@ export default {
       calculatePosition(dropdownList, component, width, this.placement);
     },
 
-    focusSearch() {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
+   focusSearch(ev) {
+      const searchBox = document.querySelector('.vs__search');
+
+      // added to mitigate https://github.com/rancher/dashboard/issues/14361
+      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
+        ev.preventDefault();
+      }
+
+
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -266,7 +281,7 @@ export default {
     :aria-expanded="isOpen"
     :aria-label="$attrs['aria-label'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
-    @click="focusSearch"
+    @click="clickSelect"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
     @keydown.self.space.prevent="focusSearch"

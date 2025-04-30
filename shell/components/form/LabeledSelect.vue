@@ -156,6 +156,13 @@ export default {
   },
 
   methods: {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {
@@ -290,7 +297,7 @@ export default {
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-required="requiredField"
-    @click="focusSearch"
+    @click="clickSelect"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
     @keydown.self.space.prevent="focusSearch"
