@@ -62,7 +62,7 @@ export const Template: Story = {
                 >
                   <Field
                     :name="'containers[' + i +'].name'"
-                    :rules="(value) => validators('Container name').required(value)"
+                    :rules="(value) => validators('Container name').required(value) ?? true"
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput
@@ -81,7 +81,7 @@ export const Template: Story = {
                 >
                   <Field
                     :name="'containers[' + i +'].image'"
-                    :rules="(value) => validators('Container image').required(value)"
+                    :rules="(value) => validators('Container image').required(value) ?? true"
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput

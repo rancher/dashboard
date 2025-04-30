@@ -18,9 +18,8 @@ const displayValidation = () => `
 <summary>Meta</summary>
 <pre>Meta: {{ meta }}</pre>
 <pre>Values: {{ values }}</pre>
-<pre>Errors: {{ errors }}</pre>
+<pre>Errors: {{ errVal }}</pre>
 </details>
-</code></pre>
 `;
 let t;
 const Template: Story = {

@@ -15,7 +15,7 @@ const displayValidation = () => `
 <summary>Meta</summary>
 <pre>Meta: {{ meta }}</pre>
 <pre>Values: {{ values }}</pre>
-<pre>Errors: {{ errors }}</pre>
+<pre>Errors: {{ errVal }}</pre>
 </details>
 `;
 let t; // This seems to be a Storybook bug not allowing hooks
