@@ -22,7 +22,6 @@ import TabTitle from '@shell/components/TabTitle';
 import AppCard from '@shell/components/cards/AppCard';
 import { get } from '@shell/utils/object';
 import { CATALOG } from '@shell/config/types';
-import { compare } from '@shell/utils/version';
 
 export default {
   name:       'Charts',
@@ -164,28 +163,6 @@ export default {
         category:    this.category,
         searchQuery: this.searchQuery,
         hideRepos:   this.hideRepos
-      });
-
-      // using Map since the number of available apps and the installed apps can be large
-      const installedMap = new Map();
-
-      this.installedApps.forEach((app) => {
-        const key = `${ app.spec.chart.metadata.name }-${ app.spec.chart.metadata.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] }`;
-
-        installedMap.set(key, app);
-      });
-
-      res.forEach((chart) => {
-        const key = `${ chart.chartName }-${ chart.repoName }`;
-        const installedApp = installedMap.get(key);
-
-        chart.installed = !!installedApp;
-
-        if (installedApp) {
-          chart.upgradable = compare(installedApp.spec.chart.metadata.version, chart.versions[0].version) < 0;
-        } else {
-          chart.upgradable = false;
-        }
       });
 
       return res;
@@ -529,10 +506,10 @@ export default {
             :logo-alt-text="t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') })"
             :featured="chart.featured"
             :as-link="true"
-            :installed="chart.installed"
-            :upgradable="chart.upgradable"
+            :installed="chart.isInstalled"
+            :upgradable="chart.upgradeable"
             :deprecated="chart.deprecated"
-            :version="chart.versions[0].version"
+            :version="chart.versionDisplay"
             :repo="chart.repoNameDisplay"
             :categories="chart.categories"
             :tags="chart.tags"

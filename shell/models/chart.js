@@ -1,9 +1,11 @@
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
   REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { CATALOG } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default class Chart extends SteveModel {
   queryParams(from, hideSideNav) {
@@ -46,5 +48,48 @@ export default class Chart extends SteveModel {
       params: { cluster: clusterId || currentCluster?.id || BLANK_CLUSTER },
       query,
     });
+  }
+
+  // This works as the inverted version of "matchingCharts" in shell/models/catalog.cattle.io.app.js
+  get matchingInstalledApps() {
+    const [latestVersion, ...otherVersions] = this.versions || [];
+    const appHome = latestVersion?.home;
+    const installedApps = this.$rootGetters['cluster/all'](CATALOG.APP);
+
+    return installedApps.filter((installedApp) => {
+      const metadata = installedApp?.spec?.chart?.metadata;
+      const name = metadata?.name;
+      const version = metadata?.version;
+      const home = metadata?.home;
+
+      const repoName = metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME] ||
+                       installedApp?.metadata?.labels?.[CATALOG_ANNOTATIONS.CLUSTER_REPO_NAME];
+
+      // name and repo should match
+      if (name !== this.chartName || !repoName || repoName !== this.repoName) {
+        return false;
+      }
+
+      // match by comparing home URL in the latest version vs home URL from the installed app
+      if (appHome && home === appHome) {
+        return true;
+      }
+
+      // match by version + home for the rest
+      return otherVersions.some((v) => v.version === version && home === appHome);
+    });
+  }
+
+  get isInstalled() {
+    // when there's only one match, we know we found the best match
+    return this.matchingInstalledApps.length === 1;
+  }
+
+  get versionDisplay() {
+    return this.isInstalled && this.upgradeable ? this.matchingInstalledApps[0].currentVersion : this.versions[0].version;
+  }
+
+  get upgradeable() {
+    return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
   }
 }
