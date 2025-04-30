@@ -3945,7 +3945,7 @@ namespaceFilter:
       other {{total} items selected}
       }
   input: Filter namespace options
-  buttons:
+  button:
     clear: Remove applied namespace filters
     clearFilter: Clear namespace options filter 
 
