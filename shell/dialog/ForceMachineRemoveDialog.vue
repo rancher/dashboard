@@ -34,7 +34,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     nameToMatch() {
-      return this.machine.spec.infrastructureRef.name;
+      return this.machine?.spec?.infrastructureRef?.name;
     },
 
     deleteDisabled() {
