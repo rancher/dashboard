@@ -49,6 +49,21 @@ export default {
       return this.$store.getters['i18n/t'](this.pagingLabel, opt);
     },
 
+    perPage() {
+      let out = this.rowsPerPage || 0;
+
+      if ( out <= 0 ) {
+        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+      }
+
+      // This should ideally never happen, but the preference value could be invalid, so return something...
+      if ( out <= 0 ) {
+        out = 10;
+      }
+
+      return out;
+    },
+
     pagedRows() {
       if (this.externalPaginationEnabled) {
         return this.rows;
@@ -61,9 +76,7 @@ export default {
   },
 
   data() {
-    const perPage = this.getPerPage();
-
-    return { page: 1, perPage };
+    return { page: 1 };
   },
 
   watch: {
@@ -89,22 +102,6 @@ export default {
   },
 
   methods: {
-    getPerPage() {
-      // perPage can not change while the list is displayed
-      let out = this.rowsPerPage || 0;
-
-      if ( out <= 0 ) {
-        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
-      }
-
-      // This should ideally never happen, but the preference value could be invalid, so return something...
-      if ( out <= 0 ) {
-        out = 10;
-      }
-
-      return out;
-    },
-
     setPage(num) {
       if (this.page === num) {
         return;
