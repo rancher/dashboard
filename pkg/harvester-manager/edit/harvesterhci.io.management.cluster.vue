@@ -38,6 +38,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  inheritAttrs: false,
+
   props: {
     mode: {
       type:     String,
