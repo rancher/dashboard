@@ -28,7 +28,6 @@ export const mapFeature = function(name) {
 export const MULTI_CLUSTER = create('multi-cluster-management', true);
 export const LEGACY = create('legacy', false);
 export const RKE2 = create('rke2', true);
-export const RKE1_UI = create('rke1-ui', true);
 export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
 export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
