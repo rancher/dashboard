@@ -1,5 +1,5 @@
 import { COUNT } from '@shell/config/types';
-import { KubeLabelSelector } from '@shell/types/kube/kube-api';
+import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { isEmpty } from '@shell/utils/object';
@@ -97,16 +97,13 @@ export async function matching({
   // Try to determine if there are namespaces to filter with (namespaces supplied but empty = no matches = skip
   const ignoredOrHaveNamespaceFilters = (!filterByNamespaces || safeNamespaces.length > 0);
 
-  console.info('selector-type', haveCandidates, ignoredOrHaveNamespaceFilters);
-
   // Only proceed if there's something to filter on or with
   if (haveCandidates && ignoredOrHaveNamespaceFilters) {
     const haveLabelSelectorFilters = !isLabelSelectorEmpty(labelSelector);
 
     if ($store.getters[`${ inStore }/paginationEnabled`]?.({ id: type })) {
-      console.info('selector-type', 'api', haveLabelSelectorFilters, filterByNamespaces);
-
       // Pagination for this type is enabled, so apply filters via API
+
       if (haveLabelSelectorFilters || filterByNamespaces) {
         const findPageArgs: ActionFindPageArgs = {
           pagination: new FilterArgs({
@@ -132,27 +129,19 @@ export async function matching({
       // Pagination for this type is NOT enabled, so apply filters locally
       let candidates = [];
 
-      console.info('selector-type', 'local', haveLabelSelectorFilters, filterByNamespaces);
-
       if (haveLabelSelectorFilters || filterByNamespaces) {
         candidates = await $store.dispatch(`${ inStore }/findAll`, { type });
 
         // First filter candidates by namespace
         if (filterByNamespaces) {
-          console.info('selector-type', 'local', 'ns', safeNamespaces, candidates.length);
-
           candidates = candidates.filter((e: any) => safeNamespaces.includes(e.metadata?.namespace));
         }
 
         // Next filter candidates by selector
         if (haveLabelSelectorFilters) {
-          console.info('selector-type', 'local', 'label', labelSelector, candidates.length);
-
           candidates = matches(candidates, labelSelector);
         }
       }
-
-      console.info('selector-type', 'local', 'res', candidates.length);
 
       match = candidates;
       inScopeCount = candidates.length;
@@ -181,9 +170,27 @@ function matches<T = any>(candidates: T[], labelSelector: KubeLabelSelector): T[
 }
 
 export function isLabelSelectorEmpty(labelSelector?: KubeLabelSelector): boolean {
-  if (labelSelector?.matchExpressions?.length || !isEmpty(labelSelector?.matchLabels)) {
-    return false;
+  return !labelSelector?.matchExpressions?.length && isEmpty(labelSelector?.matchLabels);
+}
+
+export function labelSelectorToSelector(labelSelector?: KubeLabelSelector): string {
+  if (isLabelSelectorEmpty(labelSelector)) {
+    return '';
   }
 
-  return true;
+  const res: string[] = [];
+
+  Object.entries(labelSelector?.matchLabels || {}).forEach(([key, value]) => {
+    res.push(`${ key }=${ value }`);
+  });
+
+  (labelSelector?.matchExpressions || []).forEach((value: KubeLabelSelectorExpression) => {
+    if (value.operator === 'In' && value.values?.length === 1) {
+      res.push(`${ value.key }=${ value.values[0] }`);
+    } else {
+      throw new Error(`Unsupported matchExpression found when converting to selector string. ${ value }`);
+    }
+  });
+
+  return res.join(',');
 }

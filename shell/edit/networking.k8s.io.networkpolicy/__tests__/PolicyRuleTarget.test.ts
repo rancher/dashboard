@@ -13,30 +13,6 @@ type MatchData = {
   sample?: string;
 }
 
-const newNamespace = {
-  id:       'new-namespace',
-  type:     'namespace',
-  kind:     'Namespace',
-  spec:     { finalizers: ['kubernetes'] },
-  status:   { phase: 'Active' },
-  metadata: {
-    annotations:       { user: 'john' },
-    name:              'default',
-    namespace:         mock.defaultNamespace,
-    creationTimestamp: '2024-01-31T10:24:03Z',
-    fields:            ['default', 'Active', '1d'],
-    labels:            { user: 'john' },
-    relationships:     null,
-    resourceVersion:   '1',
-    state:             {
-      error:         false,
-      message:       '',
-      name:          'active',
-      transitioning: false
-    }
-  }
-};
-
 describe.each([
   'view',
   'edit',

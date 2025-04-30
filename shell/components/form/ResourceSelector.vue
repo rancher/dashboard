@@ -96,7 +96,6 @@ export default {
 
   methods: {
     updateMatchingResources: throttle(async function() {
-      // TODO: RC test SSP disabled
       this.matchingResources = await matching({
         labelSelector: { matchExpressions: this.selectorExpressions },
         type:          this.type,

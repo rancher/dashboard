@@ -197,7 +197,7 @@ export default {
     },
 
     async getMatchingPods() {
-      return await matching({ // TODO: RC test DONE
+      return await matching({
         labelSelector: { matchExpressions: this.podSelectorExpressions },
         type:          POD,
         $store:        this.$store,
@@ -207,7 +207,7 @@ export default {
       });
     },
     async getMatchingNamespaces() {
-      return await matching({ // TODO: RC test DONE
+      return await matching({
         labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
         type:          NAMESPACE,
         $store:        this.$store,

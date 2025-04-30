@@ -39,6 +39,10 @@ export function parse(labelSelector) {
   // operator: In, NotIn, Exists, or DoesNotExist
   // values:  [array, of, values, even, if, only, one]
 
+  if (!labelSelector) {
+    return [];
+  }
+
   labelSelector = labelSelector.replace(/\+/g, ' ');
 
   if ( parseCache[labelSelector] ) {

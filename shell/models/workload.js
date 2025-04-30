@@ -559,7 +559,6 @@ export default class Workload extends WorkloadService {
 
   async fetchPods() {
     if (this.podMatchExpression) {
-      // TODO: RC test SSP disabled
       return this.$dispatch('findLabelSelector', {
         type:     POD,
         matching: {
@@ -715,11 +714,10 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    // TODO: RC test SSP disabled
     const matchInfo = await matching({
       labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
       type:          POD,
-      $store:        this.$store,
+      $store:        this.$store || { getters: this.$rootGetters, dispatch: (action, args) => this.$dispatch(action.split('/')[1], args) },
       inStore:       this.$rootGetters['currentProduct'].inStore,
       namespace:     this.metadata.namespace,
     });

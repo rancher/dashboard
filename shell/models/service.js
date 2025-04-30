@@ -141,16 +141,11 @@ export default class Service extends SteveModel {
   }
 
   async fetchPods() {
-    if (!this.podRelationship?.selector) {
-      return;
-    }
-
-    // TODO: RC test SSP disabled
     return await this.$dispatch('findLabelSelector', {
       type:     POD,
       matching: {
         namespace:     this.metadata.namespace,
-        labelSelector: { matchExpressions: parse(this.podRelationship.selector) }
+        labelSelector: { matchExpressions: parse(this.podRelationship?.selector) }
       }
     });
   }
