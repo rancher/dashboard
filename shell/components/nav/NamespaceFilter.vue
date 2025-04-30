@@ -764,13 +764,18 @@ export default {
         >
           <div>{{ ns.label }}</div>
           <!-- block user from removing the last selection if ns forced filtering is on -->
-          <i
+          <RcButton
             v-if="!namespaceFilterMode || value.length > 1"
-            class="icon icon-close"
+            small
+            ghost
+            class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
+            @keydown.enter.space.stop="removeOption(ns, $event)"
             @mousedown="handleValueMouseDown(ns, $event)"
-          />
+          >
+            <i class="icon icon-close" />
+          </RcButton>
         </div>
       </div>
 
@@ -980,6 +985,10 @@ export default {
       line-height: 24px;
       text-align: center;
       width: 14px;
+      min-height: 14px;
+    }
+
+    .ns-chip-button {
       min-height: 14px;
     }
 
