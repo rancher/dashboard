@@ -364,7 +364,15 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
+          // Use the currently installed version's metadata to show/hide the experimental and certified labels
           if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
+            const installedVersion = (chart.installableVersions || []).find((v) => v?.version === p.version);
+
+            if (installedVersion) {
+              chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
+              chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
+            }
+
             chart.upgrade = chart.installableVersions[0].version;
           }
         } else {
