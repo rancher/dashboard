@@ -18,7 +18,7 @@ import {
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
-import { KubeLabelSelector, KubeLabelSelectorExpression } from 'types/kube/kube-api';
+import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.

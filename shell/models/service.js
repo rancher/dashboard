@@ -145,9 +145,23 @@ export default class Service extends SteveModel {
       type:     POD,
       matching: {
         namespace:     this.metadata.namespace,
-        labelSelector: { matchExpressions: parse(this.podRelationship?.selector) }
+        labelSelector: { matchExpressions: parse(this.podRelationship?.selector) },
       }
     });
+  }
+
+  /**
+   * This getter expects a superset of workload pods to have been fetched already
+   *
+   * It assumes fetchPods has been called and should be used instead of the response of fetchPods
+   * (findAll --> findLabelSelector world results won't trigger change detection)
+   */
+  get pods() {
+    if (this.podRelationship?.selector) {
+      return this.$getters['matchingLabelSelector'](POD, { matchExpressions: parse(this.podRelationship?.selector) }, this.metadata.namespace);
+    } else {
+      return [];
+    }
   }
 
   get serviceType() {

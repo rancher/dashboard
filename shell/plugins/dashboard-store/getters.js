@@ -9,6 +9,7 @@ import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { labelSelectorToSelector } from '@shell/utils/selector-typed';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
@@ -91,12 +92,55 @@ export default {
     return state.types[type].list;
   },
 
+  /**
+   * This is a _manual_ application of the selector against whatever is in the store
+   *
+   * The store must be populated with enough resources to make this valid
+   *
+   * It's like `matching` except
+   * - it accepts a kube labelSelector object (see KubeLabelSelector)
+   * - if the store already has the selector and only the selector just return it, otherwise run through `matching`
+   */
+  matchingLabelSelector: (state, getters, rootState) => (type, labelSelector, namespace) => {
+    type = getters.normalizeType(type);
+    const selector = labelSelectorToSelector(labelSelector);
+    const page = getters['havePage'](type, selector)?.request;
+
+    // Does the store contain the result of a vai backed api request?
+    if (
+      page?.namespace === namespace &&
+      page?.pagination?.filters?.length === 0 &&
+      page?.pagination.labelSelector &&
+      selector === labelSelectorToSelector(page?.pagination.labelSelector
+      )
+    ) {
+      return getters.all(type);
+    }
+
+    // Does the store contain the result of a specific labelSelector request?
+    if (getters['haveSelector'](type, selector)) {
+      return getters.all(type);
+    }
+
+    // Does the store have all and we can pretend like it contains a result of a labelSelector?
+    if (getters['haveAll'](type)) {
+      return getters.matching( type, selector, namespace );
+    }
+
+    return [];
+  },
+
+  /**
+   * This is a _manual_ application of the selector against whatever is in the store
+   *
+   * The store must be populated with enough resources to make this valid
+   */
   matching: (state, getters, rootState) => (type, selector, namespace, config = { skipSelector: false }) => {
     let matching = getters['all'](type);
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace && typeof namespace === 'string') {
-      matching = matching.filter((obj) => obj.namespace === namespace);
+      matching = getters['podsByNamespace'](namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({

@@ -562,9 +562,9 @@ export default class Workload extends WorkloadService {
       return this.$dispatch('findLabelSelector', {
         type:     POD,
         matching: {
-          namespaced:    this.metadata.namespace,
+          namespace:     this.metadata.namespace,
           labelSelector: { matchExpressions: this.podMatchExpression },
-        }
+        },
       });
     }
 
@@ -574,25 +574,12 @@ export default class Workload extends WorkloadService {
   /**
    * This getter expects a superset of workload pods to have been fetched already
    *
-   * If pagination is disabled all pods would have been fetched
-   * If pagination is disabled only a small subset of pods would have been fetched
+   * It assumes fetchPods has been called and should be used instead of the response of fetchPods
+   * (findAll --> findLabelSelector world results won't trigger change detection)
    */
   get pods() {
     if (this.podMatchExpression) {
-      let pods = [];
-
-      if (this.$getters['paginationEnabled']({ id: POD })) {
-        // If pagination is enabled we should have a small collection of pods which have already had the matchExpression applied,
-        // so use `all` instead and just in case filter by ns
-        pods = this.$getters['all'](POD).filter((p) => p.metadata.namespace === this.metadata.namespace);
-      } else {
-        // If pagination is disabled optimise candidate pods via podsByNamespace,
-        pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-      }
-
-      return pods.filter((obj) => {
-        return matches(obj, this.podMatchExpression);
-      });
+      return this.$getters['matchingLabelSelector'](POD, { matchExpressions: this.podMatchExpression }, this.metadata.namespace);
     } else {
       return [];
     }

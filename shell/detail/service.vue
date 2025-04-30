@@ -37,7 +37,7 @@ export default {
   },
 
   async fetch() {
-    this.matchingPods = await this.value.fetchPods();
+    await this.value.fetchPods();
   },
 
   data() {
@@ -83,7 +83,6 @@ export default {
 
     return {
       servicePortInfoHeaders,
-      matchingPods:    [],
       podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
@@ -155,7 +154,7 @@ export default {
       :weight="4"
     >
       <ResourceTable
-        :rows="matchingPods"
+        :rows="value.pods"
         :headers="podTableHeaders"
         key-field="id"
         :table-actions="false"

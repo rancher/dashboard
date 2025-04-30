@@ -12,7 +12,7 @@ import CountGauge from '@shell/components/CountGauge';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allDashboardsExist } from '@shell/utils/grafana';
+import { allDashboardsExist, hasLeader } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
@@ -56,7 +56,7 @@ export default {
     };
 
     if (this.podSchema) {
-      hash.matchingPods = this.value.fetchPods();
+      hash.pods = this.value.fetchPods();
     }
 
     if (this.serviceSchema) {
@@ -107,8 +107,6 @@ export default {
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
-      matchingPods:                    [],
-      allJobs:                         [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
@@ -215,18 +213,18 @@ export default {
 
     showPodGaugeCircles() {
       const podGauges = Object.values(this.podGauges);
-      const total = this.matchingPods.length;
+      const total = this.value.pods.length;
 
       return !podGauges.find((pg) => pg.count === total);
     },
 
     podGauges() {
-      return this.value.calcPodGauges(this.matchingPods);
+      return this.value.calcPodGauges(this.value.pods);
     },
 
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
-      const total = this.isCronJob ? this.totalRuns : this.matchingPods.length;
+      const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
       return !jobGauges.find((jg) => jg.count === total);
     },
@@ -235,6 +233,7 @@ export default {
       return !!SCALABLE_TYPES.includes(this.value.type) && this.value.canUpdate;
     },
   },
+
   methods: {
     async scale(isUp) {
       try {
@@ -266,8 +265,8 @@ export default {
       this.matchingServices = this.namespaceTLSServices.filter((service) => {
         const selector = service.spec.selector;
 
-        for (let i = 0; i < this.matchingPods.length; i++) {
-          const pod = this.matchingPods[i];
+        for (let i = 0; i < this.value.pods.length; i++) {
+          const pod = this.value.pods[i];
 
           if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
             return true;
@@ -342,15 +341,15 @@ export default {
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
     <div
-      v-if="matchingPods || value.jobGauges"
+      v-if="value.pods || value.jobGauges"
       class="gauges mb-20"
-      :class="{'gauges__pods': !!matchingPods}"
+      :class="{'gauges__pods': !!value.pods}"
     >
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
           :key="key"
-          :total="isCronJob? totalRuns : matchingPods.length"
+          :total="isCronJob? totalRuns : value.pods.length"
           :useful="group.count || 0"
           :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -361,7 +360,7 @@ export default {
         <CountGauge
           v-for="(group, key) in podGauges"
           :key="key"
-          :total="matchingPods.length"
+          :total="value.pods.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -394,8 +393,8 @@ export default {
         :weight="4"
       >
         <ResourceTable
-          v-if="matchingPods?.length"
-          :rows="matchingPods"
+          v-if="value.pods?.length"
+          :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
           :schema="podSchema"

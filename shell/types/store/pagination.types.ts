@@ -1,5 +1,5 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
-import { KubeLabelSelector } from 'types/kube/kube-api';
+import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 
 // Pagination Typing
 // These structures are designed to offer both convenience and flexibility based on a common structure and are

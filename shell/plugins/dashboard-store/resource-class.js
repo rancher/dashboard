@@ -1180,7 +1180,8 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = this.toSave() || { ...this };
+    // Completely disconnect the object we're going to save (and mangle in cleanForSave) and `this`
+    opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;

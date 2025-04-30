@@ -482,6 +482,7 @@ export default {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
       }
 
+      // opt of type ActionFindPageArgs
       return dispatch('findPage', {
         type,
         opt: {
@@ -517,7 +518,13 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
-    if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
+
+    if ( opt.force !== true && getters['haveSelector'](type, selector)) {
+      return getters.all(type);
+    }
+
+    // Optimisation - We can pretend like we've fetched a specific selectors worth instead of replacing ALL pods with only SOME
+    if ( opt.force !== true && getters['haveAll'](type)) {
       return getters.matching( type, selector, namespace );
     }
 
@@ -525,6 +532,7 @@ export default {
 
     opt = opt || {};
     opt.labelSelector = selector;
+    opt.namespaced = namespace;
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
@@ -553,7 +561,7 @@ export default {
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return getters.matching( type, selector, namespace );
+    return getters.all(type);
   },
 
   // opt:
