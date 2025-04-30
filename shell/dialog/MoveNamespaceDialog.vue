@@ -64,9 +64,8 @@ export default {
   },
 
   methods: {
-    close() {
-      this.movingCb(); // TO DELETE!!!
-      this.$emit('close');
+    close(data) {
+      this.$emit('close', data);
     },
 
     async move(finish) {
@@ -81,11 +80,10 @@ export default {
       });
 
       try {
-        this.movingCb();
         await Promise.all(promises);
         finish(true);
         this.targetProject = null;
-        this.close();
+        this.close({ performCallback: true, moveNamespaceCb: true });
       } catch (ex) {
         finish(false);
       }

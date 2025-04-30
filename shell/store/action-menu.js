@@ -2,25 +2,26 @@ import { filterBy, isArray } from '@shell/utils/array';
 
 export const state = function() {
   return {
-    show:              false,
-    resources:         [],
-    elem:              null,
-    event:             null,
-    showPromptRemove:  false,
-    showPromptRestore: false,
-    showModal:         false,
-    toRemove:          [],
-    toRestore:         [],
-    modalData:         {},
+    show:                false,
+    resources:           [],
+    elem:                null,
+    event:               null,
+    showPromptRemove:    false,
+    showPromptRestore:   false,
+    showModal:           false,
+    performCallbackData: undefined,
+    toRemove:            [],
+    toRestore:           [],
+    modalData:           {},
   };
 };
 
 export const getters = {
-  showing:   (state) => state.show,
-  elem:      (state) => state.elem,
-  event:     (state) => state.event,
-  resources: (state) => state.resources,
-
+  showing:             (state) => state.show,
+  elem:                (state) => state.elem,
+  event:               (state) => state.event,
+  resources:           (state) => state.resources,
+  performCallbackData: (state) => state.performCallbackData,
   optionsArray(state) {
     let selected = state.resources;
 
@@ -100,11 +101,18 @@ export const mutations = {
     if (!data) {
       // Clearing the resources also hides the prompt
       state.showModal = false;
+    } else if (data.performCallback) {
+      state.performCallbackData = data;
+      state.showModal = false;
     } else {
       state.showModal = true;
     }
 
     state.modalData = data;
+  },
+
+  clearCallbackData(state) {
+    state.performCallbackData = undefined;
   },
 
   SET_RESOURCE(state, resources) {
@@ -118,6 +126,9 @@ export const actions = {
   },
   setResource({ commit }, resource) {
     commit('SET_RESOURCE', resource);
+  },
+  clearCallbackData({ commit }) {
+    commit('clearCallbackData');
   }
 };
 

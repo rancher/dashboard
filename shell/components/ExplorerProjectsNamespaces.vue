@@ -87,9 +87,20 @@ export default {
       }
     };
   },
-
+  watch: {
+    actionCb: {
+      handler(neu) {
+        if (neu?.moveNamespaceCb) {
+          this.clearSelection();
+          this.$store.dispatch('action-menu/clearCallbackData');
+        }
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters({ actionCb: 'action-menu/performCallbackData' }),
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -396,7 +407,6 @@ export default {
     },
 
     clearSelection() {
-      console.error('NEEDS TO WORK SOMEHOW FROM MODEL!!!!');
       this.$refs.table.clearSelection();
     },
 

@@ -131,10 +131,11 @@ export default {
           const response = await this.$axios.get(url, { timeout: 5000 });
 
           if (response?.status === 200) {
-            await this.$store.dispatch('management/findAll', { type: this.resource, opt: { force: true } });
             btnCB(true);
             this.waiting = false;
             this.close();
+
+            await this.$store.dispatch('management/findAll', { type: this.resource, opt: { force: true } });
           }
         } catch (e) {}
 
