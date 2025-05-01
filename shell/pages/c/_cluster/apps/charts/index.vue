@@ -496,7 +496,10 @@ export default {
         </div>
       </div>
       <template v-else>
-        <div class="apps-container">
+        <div
+          class="apps-container"
+          data-testid="apps-container"
+        >
           <AppCard
             v-for="(chart, i) in filteredCharts"
             :key="i"
