@@ -81,10 +81,13 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
     installedAppsPage.goTo();
     installedAppsPage.waitForPage();
-    installedAppsPage.sharedComponents(MEDIUM_TIMEOUT_OPT).resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-    installedAppsPage.sharedComponents().resourceTable().sortableTable().noRowsShouldNotExist();
-    installedAppsPage.sharedComponents().resourceTableDetails(chartApp, 1).should('exist');
-    installedAppsPage.sharedComponents().resourceTableDetails(chartCrd, 1).should('exist');
+    cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .noRowsShouldNotExist();
+    installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
+    installedAppsPage.appsList().resourceTableDetails(chartCrd, 1).should('exist');
 
     clusterTools.goTo();
     clusterTools.waitForPage();
@@ -110,13 +113,18 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
     installedAppsPage.goTo();
     installedAppsPage.waitForPage();
-    installedAppsPage.sharedComponents(MEDIUM_TIMEOUT_OPT).resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-    installedAppsPage.sharedComponents().resourceTable().sortableTable().noRowsShouldNotExist();
+    cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .noRowsShouldNotExist();
 
-    installedAppsPage.sharedComponents().resourceTable().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
       .should('not.contain', chartApp);
     // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
-    installedAppsPage.sharedComponents().resourceTable().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
+    installedAppsPage.appsList().baseResourceList().resourceTable().sortableTable()
+      .waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
   });
 
   after('clean up', () => {

@@ -1,14 +1,8 @@
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 
 /**
  * List component for fleet.cattle.io.gitrepo resources
  */
-export default class FleetGitRepoList extends BaseResourceList {
-  create() {
-    return this.masthead().actions().eq(0).click();
-  }
+export default class FleetGitRepoList extends BaseListPagePo {
 
-  details(name: string, index: number) {
-    return this.resourceTable().sortableTable().rowWithName(name).column(index);
-  }
 }

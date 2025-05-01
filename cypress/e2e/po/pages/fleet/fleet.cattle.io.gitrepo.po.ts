@@ -1,17 +1,18 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { GitRepoCreateEditPo } from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.gitrepo.po';
+import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitrepo.po';
 
-export class FleetGitRepoListPagePo extends PagePo {
+export class FleetGitRepoPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.gitrepo`
 
   constructor() {
-    super(FleetGitRepoListPagePo.url);
+    super(FleetGitRepoPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetGitRepoListPagePo.url);
+    return cy.visit(FleetGitRepoPagePo.url);
   }
 
   navTo() {
@@ -24,10 +25,14 @@ export class FleetGitRepoListPagePo extends PagePo {
 
     sideNav.navToSideMenuEntryByLabel('Git Repos');
 
-    this.sharedComponents().list().checkVisible();
+    this.gitRepoList().checkVisible();
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  gitRepoList() {
+    return new FleetGitRepoList(this.path);
+  }
+
+  createGitRepoForm(fleetWorkspace?: string, gitRepoName?: string): GitRepoCreateEditPo {
+    return new GitRepoCreateEditPo(fleetWorkspace, gitRepoName);
   }
 }

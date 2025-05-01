@@ -1,46 +1,22 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 
-export class GitRepoCreatePo extends PagePo {
-  static url: string;
+export class GitRepoCreateEditPo extends BaseDetailPagePo {
+  private static createPath(fleetWorkspace?: string, gitRepoName?: string) {
+    const root = `/c/_/fleet/fleet.cattle.io.gitrepo`;
 
-  private static createPath(
-    clusterId: string,
-    queryParams?: Record<string, string>
-  ) {
-    const urlStr = `/c/${ clusterId }/fleet/fleet.cattle.io.gitrepo/create`;
-
-    if (!queryParams) {
-      return urlStr;
-    }
-
-    const params = new URLSearchParams(queryParams);
-
-    return `${ urlStr }?${ params.toString() }`;
+    return fleetWorkspace ? `${ root }/${ fleetWorkspace }/${ gitRepoName }` : `${ root }/create`;
   }
 
-  static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(GitRepoCreatePo.createPath(clusterId));
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
   }
 
-  constructor(clusterId: string) {
-    super(GitRepoCreatePo.createPath(clusterId));
-  }
-
-  static navTo() {
-    const listPage = new FleetGitRepoListPagePo();
-
-    listPage.navTo();
-    listPage.sharedComponents().resourceDetail().createEditView().create();
-  }
-
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  constructor(fleetWorkspace?: string, gitRepoName?: string) {
+    super(GitRepoCreateEditPo.createPath(fleetWorkspace, gitRepoName));
   }
 
   setBranchName(branch = 'dashboard-e2e-basic') {
@@ -72,11 +48,11 @@ export class GitRepoCreatePo extends PagePo {
   }
 
   helmAuthSelectOrCreate() {
-    return this.authSelectOrCreate('[data-testid="gitrepo-git-auth"]');
+    return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
   }
 
   gitAuthSelectOrCreate() {
-    return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
+    return this.authSelectOrCreate('[data-testid="gitrepo-git-auth"]');
   }
 
   setPollingInterval(value: number) {

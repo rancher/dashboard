@@ -1,10 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 /**
  * Details component for fleet.cattle.io.bundle resources
  */
-export default class FleetBundleDetailsPo extends PagePo {
+export default class FleetBundleDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, bundleName: string) {
     return `/c/_/fleet/fleet.cattle.io.bundle/${ fleetWorkspace }/${ bundleName }`;
   }

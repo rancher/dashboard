@@ -1,4 +1,4 @@
-import { FleetClusterRegistrationTokenListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import { FleetClusterRegistrationTokenPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { clusterRegistrationTokensNoData, generateclusterRegistrationTokensDataSmall } from '@/cypress/e2e/blueprints/fleet/cluster-registration-tokens-get';
 import * as path from 'path';
@@ -13,7 +13,7 @@ const tokenNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  const fleetTokensPage = new FleetClusterRegistrationTokenListPagePo();
+  const fleetTokensPage = new FleetClusterRegistrationTokenPagePo();
   const headerPo = new HeaderPo();
 
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
@@ -29,15 +29,15 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensPage.goTo();
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().baseResourceList().masthead().title()
+      fleetTokensPage.tokenList().baseResourceList().masthead().title()
         .should('contain', 'Cluster Registration Tokens');
       headerPo.selectWorkspace(defaultWorkspace);
-      fleetTokensPage.sharedComponents().baseResourceList().masthead().createYaml();
+      fleetTokensPage.tokenList().baseResourceList().masthead().createYaml();
       fleetTokensPage.createTokenForm().waitForPage('as=yaml');
       fleetTokensPage.createTokenForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Cluster Registration Token: Create');
       });
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
         // convert yaml into json to update values
@@ -45,11 +45,11 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
           json.metadata.name = customTokenName;
 
-          fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@createToken').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
@@ -57,7 +57,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
         tokenNameList.push(customTokenName);
       });
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().rowWithName(customTokenName).checkVisible();
+      fleetTokensPage.tokenList().list().rowWithName(customTokenName).checkVisible();
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
@@ -66,13 +66,13 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensPage.goTo();
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().actionMenu(customTokenName).getMenuItem('Edit YAML')
+      fleetTokensPage.tokenList().list().actionMenu(customTokenName).getMenuItem('Edit YAML')
         .click();
       fleetTokensPage.createTokenForm(defaultWorkspace, customTokenName).waitForPage('mode=edit&as=yaml');
       fleetTokensPage.createTokenForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`Cluster Registration Token: ${ customTokenName }`);
       });
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -80,10 +80,10 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
           json.metadata.namespace = localWorkspace;
 
-          fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@editToken').then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -97,13 +97,13 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensPage.goTo();
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().actionMenu(customTokenName).getMenuItem('Clone')
+      fleetTokensPage.tokenList().list().actionMenu(customTokenName).getMenuItem('Clone')
         .click();
       fleetTokensPage.createTokenForm(defaultWorkspace, customTokenName).waitForPage('mode=clone&as=yaml');
       fleetTokensPage.createTokenForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`Cluster Registration Token: Clone from ${ customTokenName }`);
       });
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -111,17 +111,17 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
           json.metadata.name = `${ customTokenName }-clone`;
 
-          fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetTokensPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetTokensPage.createTokenForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@cloneToken').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
       });
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().rowWithName(`${ customTokenName }-clone`).checkVisible();
+      fleetTokensPage.tokenList().list().rowWithName(`${ customTokenName }-clone`).checkVisible();
     });
 
     it('can Download YAML', () => {
@@ -129,7 +129,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensPage.goTo();
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().actionMenu(customTokenName).getMenuItem('Download YAML')
+      fleetTokensPage.tokenList().list().actionMenu(customTokenName).getMenuItem('Download YAML')
         .click();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customTokenName }.yaml`);
@@ -146,9 +146,9 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     it('can delete a cluster registration token', () => {
       fleetTokensPage.goTo();
       fleetTokensPage.waitForPage();
-      fleetTokensPage.sharedComponents().list().actionMenu(`${ customTokenName }-clone`).getMenuItem('Delete')
+      fleetTokensPage.tokenList().list().actionMenu(`${ customTokenName }-clone`).getMenuItem('Delete')
         .click();
-      fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetTokensPage.tokenList().list().resourceTable().sortableTable()
         .rowNames('.col-link-detail')
         .then((rows: any) => {
           const promptRemove = new PromptRemove();
@@ -158,9 +158,9 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
           promptRemove.remove();
           cy.wait('@deleteToken');
           fleetTokensPage.waitForPage();
-          fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+          fleetTokensPage.tokenList().list().resourceTable().sortableTable()
             .checkRowCount(false, rows.length - 1);
-          fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+          fleetTokensPage.tokenList().list().resourceTable().sortableTable()
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customTokenName }-clone`);
         });
@@ -186,27 +186,27 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Secret-Name'];
 
-      fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetTokensPage.tokenList().list().resourceTable().sortableTable()
         .tableHeaderRow()
         .get('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
         });
 
-      fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetTokensPage.tokenList().list().resourceTable().sortableTable()
         .checkRowCount(true, 1);
     });
 
     it('validate cluster registration tokens table', () => {
       generateclusterRegistrationTokensDataSmall();
-      FleetClusterRegistrationTokenListPagePo.navTo();
+      FleetClusterRegistrationTokenPagePo.navTo();
       fleetTokensPage.waitForPage();
       headerPo.selectWorkspace(defaultWorkspace);
 
       // check table headers
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Secret-Name'];
 
-      fleetTokensPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetTokensPage.tokenList().list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {

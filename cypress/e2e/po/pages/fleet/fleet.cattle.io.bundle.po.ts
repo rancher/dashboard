@@ -1,18 +1,18 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetBundlesCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.bundle.po';
+import FleetBundlesList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.bundle.po';
 
-export class FleetBundlesListPagePo extends PagePo {
+export class FleetBundlesPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.bundle`
 
   constructor() {
-    super(FleetBundlesListPagePo.url);
+    super(FleetBundlesPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetBundlesListPagePo.url);
+    return cy.visit(FleetBundlesPagePo.url);
   }
 
   static navTo() {
@@ -27,8 +27,8 @@ export class FleetBundlesListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Bundles');
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  bundlesList() {
+    return new FleetBundlesList(this.path);
   }
 
   createBundlesForm(fleetWorkspace?: string, id?: string): FleetBundlesCreateEditPo {

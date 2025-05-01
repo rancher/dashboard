@@ -1,7 +1,6 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export default class FleetClusterGroupsCreateEditPo extends PagePo {
+export default class FleetClusterGroupsCreateEditPo extends BaseDetailPagePo {
   private static createPath(clusterId: string, workspace?: string, id?: string ) {
     const root = `/c/${ clusterId }/fleet/fleet.cattle.io.clustergroup`;
 
@@ -14,9 +13,5 @@ export default class FleetClusterGroupsCreateEditPo extends PagePo {
 
   constructor(clusterId = '_', workspace?: string, id?: string) {
     super(FleetClusterGroupsCreateEditPo.createPath(clusterId, workspace, id));
-  }
-
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
   }
 }

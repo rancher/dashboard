@@ -1,7 +1,6 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
-import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { GitRepoEditPo } from '@/cypress/e2e/po/edit/fleet/gitrepo-edit.po';
+import { GitRepoCreateEditPo } from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.gitrepo.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
@@ -9,12 +8,12 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetGitRepoPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const fleetDashboardPage = new FleetDashboardPagePo('_');
-  const gitRepoCreatePage = new GitRepoCreatePo('_');
+  const gitRepoCreatePage = new GitRepoCreateEditPo();
   const headerPo = new HeaderPo();
 
   let repoName;
@@ -84,7 +83,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sharedComponents().goToDetailsPage(repoName);
+    fleetDashboardPage.gitReposList().goToDetailsPage(repoName);
     gitRepoDetails.waitForPage(null, 'bundles');
   });
 
@@ -121,7 +120,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     cy.intercept('GET', '/v1/fleet.cattle.io.clusters?exclude=metadata.managedFields').as('getFleetClusters');
     cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
 
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+    const gitRepoEditPage = new GitRepoCreateEditPo(localWorkspace, repoName);
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
@@ -134,14 +133,14 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
       expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: Clone from ${ repoName }`);
     });
     headerPo.selectWorkspace(defaultWorkspace);
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+    gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
       .name()
       .set(`clone-${ repoName }`);
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nextPage();
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nextPage();
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
     cy.wait('@getSecrets', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().create()
+    gitRepoEditPage.resourceDetail().createEditView().create()
       .then(() => {
         removeGitRepo = true;
         reposToDelete.push(`${ defaultWorkspace }/clone-${ repoName }`);
@@ -154,7 +153,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   });
 
   it('user lands in correct git repo workspace when using workspace link on Fleet Dashboard', () => {
-    const gitrepoListPage = new FleetGitRepoListPagePo();
+    const gitrepoListPage = new FleetGitRepoPagePo();
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
@@ -175,7 +174,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   });
 
   it('can Edit Yaml', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+    const gitRepoEditPage = new GitRepoCreateEditPo(localWorkspace, repoName);
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
@@ -209,7 +208,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   });
 
   it('can Edit Config', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+    const gitRepoEditPage = new GitRepoCreateEditPo(localWorkspace, repoName);
     const description = `${ repoName }-desc`;
 
     fleetDashboardPage.goTo();
@@ -218,11 +217,11 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
       .click();
 
     gitRepoEditPage.waitForPage('mode=edit');
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+    gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
       .description()
       .set(description);
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nextPage();
-    gitRepoEditPage.sharedComponents().resourceDetail().createEditView().save();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().save();
     fleetDashboardPage.waitForPage();
   });
 
