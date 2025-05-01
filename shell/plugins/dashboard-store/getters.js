@@ -1,5 +1,5 @@
 
-import { SCHEMA, COUNT } from '@shell/config/types';
+import { SCHEMA, COUNT, POD } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -140,7 +140,7 @@ export default {
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace && typeof namespace === 'string') {
-      matching = getters['podsByNamespace'](namespace);
+      matching = type === POD ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
