@@ -190,7 +190,7 @@ export default class ProvCluster extends SteveModel {
     // If RKE1, then remove most of the actions
     if (this.isRke1) {
       all.forEach((action) => {
-        if (!RKE1_ALLOWED_ACTIONS.includes(action.action)) {
+        if (!action.divider && !RKE1_ALLOWED_ACTIONS.includes(action.action)) {
           action.enabled = false;
         }
       });
