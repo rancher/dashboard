@@ -112,10 +112,11 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     installedAppsPage.waitForPage();
     installedAppsPage.sharedComponents(MEDIUM_TIMEOUT_OPT).resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     installedAppsPage.sharedComponents().resourceTable().sortableTable().noRowsShouldNotExist();
+
     installedAppsPage.sharedComponents().resourceTable().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
       .should('not.contain', chartApp);
-    installedAppsPage.sharedComponents().resourceTable().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)
-      .should('not.contain', chartCrd);
+    // CRD removal may take time to reflect in the UI, so we conditionally wait until it's gone
+    installedAppsPage.sharedComponents().resourceTable().sortableTable().waitForListItemRemoval('.col-link-detail', chartCrd, MEDIUM_TIMEOUT_OPT);
   });
 
   after('clean up', () => {
