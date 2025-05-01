@@ -6,6 +6,7 @@ import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+import { getPluginChartVersion } from '@shell/utils/uiplugins';
 
 export default {
   async fetch() {
@@ -79,7 +80,7 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      const versionName = version || this.info.displayVersion;
+      const versionName = version || getPluginChartVersion(this.info);
 
       const isVersionNotCompatible = this.info.versions?.find((v) => v.version === versionName && !v.isVersionCompatible);
 
