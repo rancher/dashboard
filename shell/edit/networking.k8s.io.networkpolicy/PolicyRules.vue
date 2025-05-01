@@ -27,18 +27,6 @@ export default {
       type:    String,
       default: 'ingress'
     },
-    // allPods: {
-    //   type:    Array,
-    //   default: () => {
-    //     return [];
-    //   },
-    // },
-    // allNamespaces: {
-    //   type:    Array,
-    //   default: () => {
-    //     return [];
-    //   },
-    // },
   },
   data() {
     if (!this.value.spec[this.type]) {

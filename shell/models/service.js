@@ -2,9 +2,6 @@ import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
-// import { FilterArgs } from '@shell/types/store/pagination.types';
-// import { isEmpty } from 'lodash';
-// import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
