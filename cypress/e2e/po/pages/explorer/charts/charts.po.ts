@@ -55,13 +55,9 @@ export class ChartsPage extends PagePo {
     return new AppCardPo('[data-testid="apps-container"] [data-testid="app-card"]');
   }
 
-  getChartByName(name: string) {
-    return this.charts().self().find(`[data-testid="select-icon-grid-${ name }"]`);
-  }
-
   checkChartGenericIcon(name: string, isGeneric = true) {
-    const src = this.charts().self().contains(name).parent()
-      .find('.logo img')
+    const src = this.charts().getAppByName(name)
+      .get('[data-testid="app-card-logo-wrapper"] img')
       .invoke('attr', 'src');
 
     if (isGeneric) {

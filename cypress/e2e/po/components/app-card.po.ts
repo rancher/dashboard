@@ -5,7 +5,11 @@ export default class AppCardPo extends ComponentPo {
     super(selector);
   }
 
+  getAppByName(name: string) {
+    return this.self().find('[data-testid="app-card-title"]').contains(name);
+  }
+
   select(name: string) {
-    return this.self().find('[data-testid="app-card-title"]').contains(name).click();
+    return this.getAppByName(name).click();
   }
 }
