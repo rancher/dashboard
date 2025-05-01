@@ -183,7 +183,11 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   canScaleDownPool() {
-    return false;
+    if (!this.isEtcd && !this.isControlPlane) {
+      return true;
+    }
+
+    return notOnlyOfRole(this, this?.provisioningCluster?.nodes);
   }
 
   remove() {
