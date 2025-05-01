@@ -42,12 +42,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adm
     dialog.checkExists();
     dialog.checkVisible();
 
-    dialog.searchBox().type('fleet');
+    dialog.searchBox().type('auth');
 
     // Wait for less than 20 - then we know the results are updated for our search
     dialog.results().should('have.length.lt', 20);
     dialog.results().should('have.length.gt', 1);
-    dialog.results().first().should('have.text', 'Contents (contents.fleet.cattle.io)');
+    dialog.results().first().should('have.text', 'SelfSubjectReviews (selfsubjectreviews.authentication.k8s.io)');
 
     dialog.close();
 
