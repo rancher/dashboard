@@ -75,20 +75,26 @@ function handleCardClick(e) {
     :class="{ asLink }"
     role="button"
     tabindex="0"
+    data-testid="app-card"
     @click="handleCardClick"
     @keydown.enter="handleCardClick"
   >
-    <div class="left-section">
+    <div
+      class="left-section"
+      data-testid="app-card-logo-wrapper"
+    >
       <div class="logo">
         <LazyImage
           :src="logo"
           :alt="logoAltText"
+          data-testid="app-card-logo"
         />
       </div>
       <div
         v-if="featured"
         v-clean-tooltip="t('generic.featured')"
         class="featured"
+        data-testid="app-card-badge-featured"
       >
         {{ t('generic.shortFeatured') }}
       </div>
@@ -100,6 +106,7 @@ function handleCardClick(e) {
           <h3
             v-clean-tooltip="title"
             class="title"
+            data-testid="app-card-title"
           >
             {{ title }}
           </h3>
@@ -108,11 +115,13 @@ function handleCardClick(e) {
               v-if="deprecated"
               v-clean-tooltip="t('generic.deprecated')"
               class="icon icon-error deprecated"
+              data-testid="app-card-status-deprecated"
             />
             <span
               v-if="upgradable"
               v-clean-tooltip="t('generic.upgradeable')"
               class="upgradable"
+              data-testid="app-card-status-upgradable"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -134,6 +143,7 @@ function handleCardClick(e) {
               v-if="installed"
               v-clean-tooltip="t('generic.installed')"
               class="installed"
+              data-testid="app-card-status-installed"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -160,6 +170,7 @@ function handleCardClick(e) {
           <div
             v-if="version"
             class="version"
+            data-testid="app-card-version"
           >
             <svg
               v-clean-tooltip="t('tableHeaders.version')"
@@ -187,6 +198,7 @@ function handleCardClick(e) {
       <div
         v-if="description"
         class="description"
+        data-testid="app-card-description"
       >
         <p>{{ description }}</p>
       </div>
@@ -195,6 +207,7 @@ function handleCardClick(e) {
         <div
           v-if="repo"
           class="spec-block no-card-click"
+          data-testid="app-card-repo"
         >
           <span
             v-clean-tooltip="t('tableHeaders.repoName')"
@@ -220,6 +233,7 @@ function handleCardClick(e) {
             class="spec-text"
             role="button"
             tabindex="0"
+            data-testid="app-card-repo-text"
             @click="emit('repo-click', repo)"
             @keydown.enter="emit('repo-click', repo)"
           >
@@ -230,6 +244,7 @@ function handleCardClick(e) {
         <div
           v-if="categories.length"
           class="spec-block no-card-click"
+          data-testid="app-card-categories"
         >
           <span
             v-clean-tooltip="t('generic.category')"
@@ -271,6 +286,7 @@ function handleCardClick(e) {
             class="spec-text"
             role="button"
             tabindex="0"
+            :data-testid="`app-card-category-${i}`"
             @click="emit('category-click', category)"
             @keydown.enter="emit('category-click', category)"
           >
@@ -281,6 +297,7 @@ function handleCardClick(e) {
         <div
           v-if="tags.length"
           class="spec-block no-card-click"
+          data-testid="app-card-tags"
         >
           <span
             v-clean-tooltip="t('generic.tags')"
@@ -315,6 +332,7 @@ function handleCardClick(e) {
             class="spec-text"
             role="button"
             tabindex="0"
+            :data-testid="`app-card-tag-${i}`"
             @click="emit('tag-click', tag)"
             @keydown.enter="emit('tag-click', tag)"
           >
