@@ -149,7 +149,7 @@ export async function matching({
 
     // Apply labelSelector
     if (labelSelector.matchLabels || labelSelector.matchExpressions) {
-      candidates = matches(candidates, labelSelector);
+      candidates = matches(candidates, labelSelector, 'metadata.labels');
     }
 
     return generateMatchingResponse(candidates, inScopeCount || 0);
@@ -172,10 +172,10 @@ const generateMatchingResponse = <T extends { [key: string]: any, nameDisplay: s
 /**
  * This is similar to shell/utils/selector.js `matches`, but accepts a kube labelSelector
  */
-function matches<T = any>(candidates: T[], labelSelector: KubeLabelSelector): T[] {
+function matches<T = any>(candidates: T[], labelSelector: KubeLabelSelector, labelKey: string): T[] {
   const convertedObject = convert(labelSelector.matchLabels, labelSelector.matchExpressions);
 
-  return rootMatching(candidates, convertedObject);
+  return rootMatching(candidates, convertedObject, labelKey);
 }
 
 export function isLabelSelectorEmpty(labelSelector?: KubeLabelSelector): boolean {
