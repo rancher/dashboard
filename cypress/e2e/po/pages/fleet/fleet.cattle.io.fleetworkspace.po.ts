@@ -1,10 +1,13 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import FleetWorkspaceCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.fleetworkspace.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
+import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
-export class FleetWorkspaceListPagePo extends PagePo {
+export class FleetWorkspaceListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
 
   constructor() {
@@ -16,9 +19,9 @@ export class FleetWorkspaceListPagePo extends PagePo {
   }
 
   static navTo() {
-    const fleetDashboardPage = new FleetDashboardPagePo('_');
+    const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
-    FleetDashboardPagePo.navTo();
+    FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
@@ -26,12 +29,54 @@ export class FleetWorkspaceListPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Advanced');
     sideNav.navToSideMenuEntryByLabel('Workspaces');
   }
+}
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+export class FleetWorkspaceCreateEditPo extends BaseDetailPagePo {
+  private static createPath(fleetWorkspace?: string) {
+    const root = '/c/_/fleet/management.cattle.io.fleetworkspace';
+
+    return fleetWorkspace ? `${ root }/${ fleetWorkspace }` : `${ root }/create`;
   }
 
-  createWorkspaceForm(fleetWorkspace?: string): FleetWorkspaceCreateEditPo {
-    return new FleetWorkspaceCreateEditPo(fleetWorkspace);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(fleetWorkspace?: string) {
+    super(FleetWorkspaceCreateEditPo.createPath(fleetWorkspace));
+  }
+
+  allowTargetNsTabList() {
+    return new ArrayListPo('section#allowedtargetnamespaces');
+  }
+
+  lablesAnnotationsKeyValue() {
+    return new KeyValuePo('section#labels');
+  }
+}
+
+export class FleetWorkspaceDetailsPo extends BaseDetailPagePo {
+  private static createPath(fleetWorkspace: string) {
+    return `/c/_/fleet/management.cattle.io.fleetworkspace/${ fleetWorkspace }`;
+  }
+
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(fleetWorkspace: string) {
+    super(FleetWorkspaceDetailsPo.createPath(fleetWorkspace));
+  }
+
+  workspaceTabs(): TabbedPo {
+    return new TabbedPo();
+  }
+
+  recentEventsList() {
+    return new ResourceTablePo('#events [data-testid="sortable-table-list-container"]');
+  }
+
+  relatedResourcesList(index: number) {
+    return new ResourceTablePo(`#related div:nth-of-type(${ index })[data-testid="sortable-table-list-container"]`);
   }
 }
