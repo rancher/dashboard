@@ -258,4 +258,18 @@ export default class SortableTablePo extends ComponentPo {
   pagination() {
     return new PaginationPo();
   }
+
+  waitForListItemRemoval(rowNameSelector = '.col-link-detail', name: string, options?: GetOptions) {
+    return this.rowNames(rowNameSelector)
+      .then((rowNames: string[]) => {
+        rowNames.forEach((name, index) => cy.log(`Row ${ index }: ${ name }`));
+
+        if (rowNames.includes(name)) {
+          cy.log(`${ name } found. Waiting for it to be removed...`);
+          cy.contains(rowNameSelector, name, options).should('not.exist');
+        } else {
+          cy.log(`${ name } already removed.`);
+        }
+      });
+  }
 }
