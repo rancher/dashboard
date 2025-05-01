@@ -16,8 +16,6 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
-import { FilterArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { TYPES } from '@shell/models/secret';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -60,17 +58,7 @@ export default {
     }
 
     if (this.serviceSchema) {
-      const findPageArgs = { // Of type ActionFindPageArgs
-        namespaced: this.value.metadata.namespace,
-        pagination: new FilterArgs({
-          filters: PaginationParamFilter.createSingleField({
-            field: 'metadata.fields.1',
-            value: TYPES.TLS
-          })
-        }),
-      };
-
-      hash.namespaceTLSServices = this.$store.dispatch('cluster/findPage', { type: SERVICE, opt: findPageArgs });
+      hash.servicesInNamespace = this.$store.dispatch('cluster/findAll', { type: SERVICE, opt: { namespaced: this.value.metadata.namespace } });
     }
 
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
@@ -103,7 +91,7 @@ export default {
 
   data() {
     return {
-      namespaceTLSServices:            [],
+      servicesInNamespace:             [],
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
@@ -262,7 +250,7 @@ export default {
       }
 
       // Find Services that have selectors that match this workload's Pod(s).
-      this.matchingServices = this.namespaceTLSServices.filter((service) => {
+      this.matchingServices = this.servicesInNamespace.filter((service) => {
         const selector = service.spec.selector;
 
         for (let i = 0; i < this.value.pods.length; i++) {
