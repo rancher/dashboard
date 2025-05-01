@@ -12,7 +12,7 @@ import CountGauge from '@shell/components/CountGauge';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allDashboardsExist, hasLeader } from '@shell/utils/grafana';
+import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';

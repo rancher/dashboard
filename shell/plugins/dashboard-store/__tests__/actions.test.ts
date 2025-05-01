@@ -175,7 +175,9 @@ describe('dashboard-store: actions', () => {
         haveSelector:   jest.fn(() => false),
         matching:       jest.fn(() => 'getters.all'),
         urlFor:         jest.fn(() => 'getters.urlFor'),
-        urlOptions:     jest.fn(() => 'getters.urlOptions')
+        urlOptions:     jest.fn(() => 'getters.urlOptions'),
+        haveAll:        jest.fn(() => false),
+        all:            jest.fn(() => []),
       };
       const rootGetters = { 'type-map/optionsFor': jest.fn() };
 
