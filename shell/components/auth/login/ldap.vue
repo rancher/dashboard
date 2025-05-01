@@ -54,7 +54,7 @@ export default {
 </script>
 
 <template>
-  <form>
+  <form @submit.prevent>
     <template v-if="open">
       <div class="span-6 offset-3">
         <div class="mb-20">
