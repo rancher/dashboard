@@ -363,6 +363,48 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         cy.get('[data-testid="workload-button-add-container"]').should('contain.text', 'Add Container');
       });
     });
+
+    // testing https://github.com/rancher/dashboard/issues/14071
+    it('should remove the correct environment variable from the workload form', () => {
+      const podDetails = new PodPo();
+
+      workloadsPodPage.goTo();
+      workloadsPodPage.createPod();
+
+      podDetails.nameNsDescription().name().set(singlePodName);
+
+      // add multiple environment variables
+      const envVars = [
+        { key: 'FIRST_VAR', value: 'one' },
+        { key: 'SECOND_VAR', value: 'two' },
+        { key: 'THIRD_VAR', value: 'three' },
+      ];
+
+      envVars.forEach(({ key, value }, index) => {
+        podDetails.environmentVariables().setKeyValueEnvVarAtIndex(key, value, index);
+      });
+
+      // confirm all env vars are present
+      envVars.forEach(({ key }, index) => {
+        podDetails.environmentVariables().getVariableAtIndex(index).find('.name input')
+          .should('have.value', key)
+          .and('exist');
+      });
+
+      // remove SECOND_VAR
+      podDetails.environmentVariables().removeButtonAtIndex(1).click();
+
+      // confirm only FIRST_VAR and THIRD_VAR remain
+      const newEnvVars = [
+        { key: 'FIRST_VAR', value: 'one' },
+        { key: 'THIRD_VAR', value: 'three' },
+      ];
+
+      newEnvVars.forEach(({ key }, index) => {
+        podDetails.environmentVariables().getVariableAtIndex(index).find('.name input').should('have.value', key);
+      });
+      podDetails.environmentVariables().getVariableByName('SECOND_VAR').should('not.exist');
+    });
   });
 
   // describe.skip('[Vue3 Skip]: should delete pod', () => {

@@ -118,6 +118,36 @@ describe('aks provisioning form', () => {
     expect(versionDropdown.props().value).toBe('0.00.0');
   });
 
+  it.each([[
+    '1.26.0',
+    mockVersionsSorted.filter((v: string) => semver.lte(v, '1.27.0') && semver.gte(v, '1.26.0'))
+  ],
+  ['1.25.0',
+    mockVersionsSorted.filter((v: string) => semver.lte(v, '1.26.0') && semver.gte(v, '1.25.0'))
+  ],
+  ])('should only allow upgrading one minor version at a time', async(originalVersion, validVersions) => {
+    const wrapper = shallowMount(Config, {
+      propsData: {
+        config: DEFAULT_CLUSTER_CONFIG, value: {}, mode: _EDIT
+      },
+      ...requiredSetup({ value: '>=1.23.x' })
+    });
+
+    wrapper.setData({ originalVersion });
+
+    await setCredential(wrapper);
+    const versionDropdown = wrapper.getComponent('[data-testid="cruaks-kubernetesversion"]');
+    const enabledOptions = versionDropdown.props().options.reduce((enabledOpts, opt) => {
+      if (!opt.disabled) {
+        enabledOpts.push(opt.value);
+      }
+
+      return enabledOpts;
+    }, []);
+
+    expect(enabledOptions).toStrictEqual(validVersions);
+  });
+
   it.each([['1.26.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.26.0'))], ['1.24.0', mockVersionsSorted.filter((v: string) => semver.gte(v, '1.24.0'))],
   ])('should not allow a k8s version downgrade on edit', async(originalVersion, validVersions) => {
     const wrapper = shallowMount(Config, {

@@ -1,19 +1,19 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
 export class SharedComponentsPo extends ComponentPo {
-  resourceTable() {
-    return new ResourceTablePo(this.self());
+  resourceTable(options?: GetOptions) {
+    return new ResourceTablePo(this.self(options));
   }
 
-  baseResourceList() {
-    return new BaseResourceList(this.self());
+  baseResourceList(options?: GetOptions) {
+    return new BaseResourceList(this.self(options));
   }
 
-  resourceDetail() {
-    return new ResourceDetailPo(this.self());
+  resourceDetail(options?: GetOptions) {
+    return new ResourceDetailPo(this.self(options));
   }
 
   list() {
@@ -21,7 +21,7 @@ export class SharedComponentsPo extends ComponentPo {
   }
 
   resourceTableDetails(name: string, index: number) {
-    return this.list().resourceTable().sortableTable().rowWithName(name)
+    return this.baseResourceList().resourceTable().sortableTable().rowWithName(name)
       .column(index);
   }
 

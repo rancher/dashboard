@@ -137,7 +137,7 @@ export default {
           {{ t('drainNode.titleMultiple', { count: kubeNodes.length }) }}
         </template>
         <template v-else>
-          {{ t('drainNode.titleOne', { name: kubeNodes[0].name }, true) }}
+          {{ t('drainNode.titleOne', { name: kubeNodes[0]?.name }, true) }}
         </template>
       </h4>
     </template>

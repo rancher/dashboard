@@ -358,17 +358,6 @@ export default {
       if ( !isSelected ) {
         this.update([node], this.selectedRows.slice());
       }
-
-      let resources = this.selectedRows;
-
-      if ( this.mangleActionResources ) {
-        resources = await this.mangleActionResources(resources);
-      }
-
-      this.$store.commit(`action-menu/show`, {
-        resources,
-        event: e,
-      });
     },
 
     keySelectRow(row, more = false) {
