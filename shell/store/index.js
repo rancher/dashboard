@@ -1071,6 +1071,7 @@ export const actions = {
       projects:   fetchProjects(),
       counts:     dispatch('cluster/findAll', { type: COUNT }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
+      // TODO: RC why is this commented out?
       // navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 

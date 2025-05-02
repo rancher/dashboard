@@ -1181,10 +1181,6 @@ export default class Resource {
       opt.headers['accept'] = 'application/json';
     }
 
-    if (this.id === 'harvester') {
-      debugger;
-    }
-
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
     opt.data = this.toSave() || JSON.parse(JSON.stringify(this)); // Needs to completely dereference self to ensure properties that are cleaned are not removed from cache
 
@@ -1222,9 +1218,6 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        if (this.id === 'harvester') {
-          debugger;
-        }
         await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
       }
     } catch (e) {

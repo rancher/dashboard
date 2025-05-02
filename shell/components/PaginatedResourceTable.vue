@@ -94,8 +94,8 @@ export default defineComponent({
       const customHeaders: any[] = this.canPaginate ? this.paginationHeaders : this.headers;
 
       return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
-    },
-  },
+    }
+  }
 });
 
 </script>

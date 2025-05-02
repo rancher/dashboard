@@ -196,15 +196,6 @@ async function getHelmRepository(store: any, matchFn: (repository: any) => boole
   if (store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
     const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch: false } });
 
-    // const a = repos.find((r) => r.id === 'harvester');
-
-    // console.warn('getHelmRepository', a.id, a.metadata.state.name);
-
-    // return repos.find((r: any) => {
-    //   const target = branch ? r.spec?.gitRepo : r.spec?.url ;
-
-    //   return target === url;
-    // });
     return repos.find(matchFn);
   } else {
     throw new Error('No permissions');

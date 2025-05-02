@@ -383,8 +383,6 @@ const sharedActions = {
      */
     params
   }) {
-    // console.warn(event, id, callback, params);
-
     if (!listeners[event]) {
       console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
 
@@ -474,10 +472,6 @@ const sharedActions = {
 
       return;
     }
-
-    // if (type === 'management.cattle.io.cluster') {
-    //   debugger;
-    // }
 
     if ( !stop && getters.watchStarted({
       type, id, selector, namespace, mode
@@ -1134,8 +1128,6 @@ const defaultMutations = {
   setWatchStarted(state, obj) {
     const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
-    // console.warn('setWatchStarted', 'existing', existing, 'find', obj, state.started);
-
     if ( !existing ) {
       addObject(state.started, obj);
     }
@@ -1146,7 +1138,6 @@ const defaultMutations = {
   setWatchStopped(state, obj) {
     const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
-    // console.warn('setWatchStopped', 'existing', existing, 'find', obj, state.started);
     if ( existing ) {
       removeObject(state.started, existing);
     } else {
@@ -1199,8 +1190,6 @@ const defaultGetters = {
 
   watchStarted: (state) => (obj) => {
     const existing = state.started.find((entry) => equivalentWatch(obj, entry));
-
-    // console.warn('watchStarted', 'existing', existing, 'find', obj, state.started);
 
     return !!existing;
   },

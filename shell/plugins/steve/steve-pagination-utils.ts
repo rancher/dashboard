@@ -71,10 +71,6 @@ class NamespaceProjectFilters {
     // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
-      // if (ns.id === 'p-vpnlz') { default
-      // if (ns.id === 'local-p-7r5c2') {
-      //   debugger;
-      // }
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
       let hideObscure = false;
 

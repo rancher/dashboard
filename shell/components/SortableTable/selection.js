@@ -132,7 +132,7 @@ export default {
      * Handle changes to the page (SSP enabled)
      */
     externalPaginationResult() {
-      // myLogger.warn('ss', 'selection', 'watch', 'externalPaginationResult', this.pagedRows);
+      // myLogger.warn('ss', 'selection', 'watch', 'externalPaginationResult', this.pagedRows); // TODO: RC DEBUG --> REMOVE
       // Handle changes to the page (SSP enabled)
       this.pageChanged(this.pagedRows);
     },
@@ -141,7 +141,7 @@ export default {
      * Handle changes to the page (SSP disabled)
      */
     pagedRows() {
-      // myLogger.warn('ss', 'selection', 'watch', 'pagedRows', this.pagedRows);
+      // myLogger.warn('ss', 'selection', 'watch', 'pagedRows', this.pagedRows); // TODO: RC DEBUG --> REMOVE
 
       this.pageChanged(this.pagedRows);
     }

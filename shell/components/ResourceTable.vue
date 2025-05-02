@@ -599,7 +599,7 @@ export default {
       }
     },
 
-  },
+  }
 };
 </script>
 

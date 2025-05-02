@@ -103,13 +103,8 @@ export default {
   },
 
   watch: {
-    // async harvesterRepository(value) {
-    //   if (value) {
-    //     console.warn('list', 'watch', 'harvesterRepository');
-    //     await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
     async harvesterRepository(neu) {
       if (neu) {
-        console.warn('list', 'watch', 'harvesterRepository');
         await refreshHelmRepository(this.$store, neu.spec.gitRepo || neu.spec.url);
 
         if (this.harvester.extension) {

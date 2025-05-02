@@ -202,7 +202,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       $store,
       id:       'tlm-unpinned-clusters',
       onChange: () => {
-        // console.warn('TLM:H', 'clustersPinnedWrapper', 'onChange', this.args);
         if (this.args) {
           this.update(this.args);
         }
@@ -220,8 +219,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       $store,
       id:       'tlm-prov-clusters',
       onChange: () => {
-        // console.warn('TLM:H', 'provClusterWrapper', 'onChange', this.args);
-
         if (this.args) {
           this.update(this.args);
         }
@@ -271,9 +268,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     const _clustersPinned = res.pinned
       .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
       .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
-
-    // debugger;
-    // console.warn('TLM:H', 'update', '_clustersPinned', JSON.parse(JSON.stringify(_clustersPinned))[0]);
 
     this.clustersPinned.length = 0;
     this.clustersOthers.length = 0;

@@ -388,10 +388,6 @@ export default {
 
     type = getters.normalizeType(type);
 
-    // if (type === 'management.cattle.io.node') {
-    //   debugger;
-    // }
-
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
