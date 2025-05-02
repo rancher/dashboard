@@ -78,6 +78,7 @@ BODY, .theme-light {
 
   --link                    : #{$link};
   --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
   --link-hover-bg           : #{darken($link, 10%)};
   --link-hover-text         : #{saturate($lightest, 20%)};
   --link-active-bg          : #{darken($link, 25%)};
@@ -93,6 +94,15 @@ BODY, .theme-light {
 
     &.disabled {
       color: var(--disabled-text) !important;
+    }
+  }
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
     }
   }
 
