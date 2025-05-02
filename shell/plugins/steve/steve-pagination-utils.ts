@@ -36,7 +36,6 @@ type GetProject = (id: string) => any
 
 class NamespaceProjectFilters {
   protected isNamespaceLocalProject(ns: Namespace, getProject: GetProject, isLocalCluster: boolean): boolean {
-    console.warn(ns.id, ns);
     // Are we in the local cluster? If not we can skip everything
     if (!isLocalCluster) {
       return false;
@@ -77,12 +76,12 @@ class NamespaceProjectFilters {
       //   debugger;
       // }
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
-      // const hideObscure = showDynamicRancherNamespaces ? false : ns.customIsObscure(customObscurePrefixes);
       let hideObscure = false;
 
       if (!showDynamicRancherNamespaces) {
+        // if we are to hide dynamic rancher namespaces ... then hide obscure namespaces
         if (ns.isObscure) {
-          // ignore local cluster ns's that are projects
+          // don't count local cluster ns's that are local cluster projects
           hideObscure = !this.isNamespaceLocalProject(ns, getProject, isLocalCluster);
         }
       }
@@ -118,12 +117,8 @@ class NamespaceProjectFilters {
       allNamespaces, isAllSystem, getProject, isLocalCluster
     } = args;
     const allSystem = allNamespaces.filter((ns) => {
-      if (ns.id.startsWith('local-p-')) {
-        debugger;
-      }
-
+      // don't count local cluster ns's that are local cluster projects as system projects (we want their resources to show)
       return ns.isSystem && !this.isNamespaceLocalProject(ns, getProject, isLocalCluster);
-      // return (ns.isSystem && !ns.metadata.name.startsWith('local-p-')) || ns.metadata.name === .startsWith('System');
     });
 
     // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has

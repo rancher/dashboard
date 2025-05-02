@@ -54,7 +54,7 @@ class PaginationUtils {
    * Is pagination enabled at a global level or for a specific resource
    */
   isEnabled({ rootGetters }: any, enabledFor: PaginationResourceContext) {
-    // if (enabledFor?.resource?.id === 'pod') { // TODO: RC remove
+    // if (enabledFor?.resource?.id === 'pod') { // TODO: RC DEBUG --> REMOVE
     //   return false;
     // }
     // Cache must be enabled to support pagination api
