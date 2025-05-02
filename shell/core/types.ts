@@ -374,6 +374,11 @@ export interface ConfigureTypeOptions {
   customRoute?: Object;
 
   /**
+   * Custom options vary pre resource type
+   */
+  custom?: any;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // alias
