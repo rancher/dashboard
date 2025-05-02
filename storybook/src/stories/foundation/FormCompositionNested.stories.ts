@@ -4,7 +4,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { useForm, useFieldArray } from 'vee-validate';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
-import * as yup from 'yup';
+import { toTypedSchema } from '@vee-validate/zod';
+import * as zod from 'zod';
 
 const meta: Meta = {};
 
@@ -21,43 +22,23 @@ const displayValidation = () => `
 <pre>Errors: {{ errVal }}</pre>
 </details>
 `;
-let t;
 const Template: Story = {
   render: (args: any) => ({
     components: {
       Tab, Tabbed, LabeledInput
     },
     setup() {
-      let message: string;
-      const validators = (key: string) => formRulesGenerator(t, { key });
-      // https://github.com/jquense/yup?tab=readme-ov-file#schematestname-string-message-string--function--any-test-function-schema
+      const validators = (key: string) => formRulesGenerator((key: string) => key, { key });
       const { errors: errVal, values, meta } = useForm({
-        validationSchema: yup.object().shape({
-          containers: yup
-            .array().of(
-              yup.object().shape({
-                name: yup.string().test({
-                  name:    'required',
-                  message: () => message,
-                  test:    (val) => {
-                    message = validators('Container name').required(val);
-
-                    return !message;
-                  }
-                }),
-                image: yup.string().test({
-                  name:    'required',
-                  message: () => message,
-                  test:    (val) => {
-                    message = validators('Container image').required(val);
-
-                    return !message;
-                  }
-                })
-              })
-            )
-            .strict(),
-        }),
+        // https://zod.dev/?id=custom-schemas
+        validationSchema: toTypedSchema(
+          zod.object({
+            containers: zod.object({
+              name:  zod.custom((val) => !validators('').required(val), validators('Container name').required(undefined)),
+              image: zod.custom((val) => !validators('').required(val), validators('Container image').required(undefined)),
+            }).array(),
+          })
+        ),
         initialValues: { containers: [{ name: '1', image: '' }, { name: '2', image: '' }] }
       });
 
@@ -76,9 +57,6 @@ const Template: Story = {
         meta,
         args
       };
-    },
-    created() {
-      t = this.$store.getters['i18n/t'];
     },
     methods: {
       getErrors: <T extends object>(errVal: T, prefix: string, i: number, suffix?: string) => Object

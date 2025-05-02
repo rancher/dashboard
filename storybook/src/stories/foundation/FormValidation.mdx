@@ -40,9 +40,9 @@ Case of input with validation based on [input component](/docs/stories-form-inpu
 
 ### Composition API: Nested Form 
 
-Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`yup`](https://github.com/jquense/yup) validation library and custom validation inside Yup.
+Form validation with nested cases as in Workloads using [Tabs](/docs/stories-components-tab--docs) and [`zod`](https://zod.dev/) validation library and custom validation inside `zod`.
 
-NOTE: A method to integrate custom validations without Yup library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
+NOTE: A method to integrate custom validations without Zod library [is not defined and not clear](https://github.com/logaretm/vee-validate/discussions).
 
 <Canvas of={FormCompositionNested.Default} />
 
@@ -84,9 +84,10 @@ setup() {
 Example of configuration using existing rules:
 
 ```ts
-
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useForm } from 'vee-validate';
+import { useI18n } from '@shell/composables/useI18n';
+import { useStore } from 'vuex';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -96,37 +97,33 @@ useForm({
 });
 ```
 
-### Rules with Yup
+### Rules with zod
 
-Example of configuration using [`yup`](https://github.com/jquense/yup):
+Example of configuration using [`zod`](https://zod.dev/):
 
 ```ts
-import * as yup from 'yup';
+import * as zod from 'zod';
+import { toTypedSchema } from '@vee-validate/zod';
 import { useForm } from 'vee-validate';
 
 useForm({
-  validationSchema: { name: yup.string().required().label('Container name') },
+  validationSchema: toTypedSchema(zod.string().nonempty('Container name is required')),
 });
 ```
 
-### Custom rules with Yup
+### Custom rules with zod
+
+[As by documentation](https://zod.dev/?id=custom-schemas) use `.custom()`
 
 ```ts
-import * as yup from 'yup';
+import * as zod from 'zod';
 import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
 
 const store = useStore();
 const { t } = useI18n(store);
 const validators = (key: string) => formRulesGenerator(t, { key });
 useForm({
-  validationSchema: { name: yup.string().test({
-    name:    'required',
-    message: () => message,
-    test:    (val) => {
-      message = validators('Container name').required(val);
-
-      return !message;
-    }
-  })
+  validationSchema: toTypedSchema(zod.custom((val) => validators('Container name').required(val))),
 });
 ```
