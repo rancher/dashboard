@@ -213,8 +213,8 @@ export default {
         // can't `.next` through a set of known resources at specific point in time
         // - removed for vai, requires caching entire result sets
         // 1. could get page 1 --> 2 --> 3 --> 4 , but each page would be independently re-calculated at time of request
-        // - could we fetch all together to reduce risk?
-        // 2. could get 100 as usual, and just ALL in another request (user sees stuff quickly, second quest could take some time)
+        // 2. could get 1, 2, 3, 4 all together. they are still independently created however less chance of discrepancy
+        // 3. could get 100 as usual, and just ALL in another request (user sees stuff quickly, second quest could take some time)
 
         incremental = {
           quickLoadPageLimit:   100,
