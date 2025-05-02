@@ -99,6 +99,11 @@ export default {
     },
 
     groupSelected() {
+      // Can not click on groups that are fixed open
+      if (this.fixedOpen) {
+        return;
+      }
+
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
@@ -219,14 +224,14 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive}"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
     <div
       v-if="showHeader"
       class="header"
-      :class="{'active': isOverview, 'noHover': !canCollapse}"
+      :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
       role="button"
-      tabindex="0"
+      :tabindex="fixedOpen ? -1 : 0"
       :aria-label="group.labelDisplay || group.label || ''"
       @click="groupSelected()"
       @keyup.enter="groupSelected()"
@@ -371,6 +376,9 @@ export default {
       }
       &:hover:not(.active) {
         background-color: var(--nav-hover);
+      }
+      &:hover:not(.active).noHover {
+        background-color: inherit;
       }
     }
   }

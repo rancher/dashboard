@@ -238,9 +238,10 @@ nav:
     clusters: clusters
     ariaLabel: Filter clusters on main menu
   resourceSearch:
-    label: Resource Search
-    toolTip: Resource Search {key}
-    placeholder: Type to search for a resource...
+    label: Resource Type Search
+    prompt: Search for a Kubernetes Resource/Custom Resource type
+    toolTip: Resource Type Search {key}
+    placeholder: Type to search for a resource type...
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
