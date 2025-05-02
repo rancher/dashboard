@@ -130,7 +130,6 @@ export default {
   watch: {
     /**
      * Handle changes to the page (SSP enabled)
-     * TODO: RC why isn't pagedRows made from rows triggering pageRows watch
      */
     externalPaginationResult() {
       // myLogger.warn('ss', 'selection', 'watch', 'externalPaginationResult', this.pagedRows);

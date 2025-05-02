@@ -122,7 +122,8 @@ class PaginationWrapper<T extends object> {
 
   private async watch() {
     if (!this.steveWatchParams) {
-      // TODO: RC
+      console.error('Calling watch but no watch params created'); // eslint-disable-line no-console
+
       return;
     }
     const watchParams: STEVE_WATCH_EVENT_PARAMS = {
@@ -135,7 +136,8 @@ class PaginationWrapper<T extends object> {
 
   private async unWatch() {
     if (!this.steveWatchParams) {
-      // TODO: RC
+      console.error('Calling unWatch but no watch params created'); // eslint-disable-line no-console
+
       return;
     }
 

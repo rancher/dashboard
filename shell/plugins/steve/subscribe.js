@@ -368,6 +368,9 @@ const sharedActions = {
 
   // TODO: RC bug - create imported cluster.... no mgmt cluster received....
   /**
+   * Create a trigger for a specific type of watch event
+   *
+   * For example if a watch on mgmt clusters exists and a page wants to know when any changes occur
    * @param {} ctx
    * @param {STEVE_WATCH_EVENT_PARAMS} event
    */
@@ -383,7 +386,7 @@ const sharedActions = {
     // console.warn(event, id, callback, params);
 
     if (!listeners[event]) {
-      console.error('....'); // TODO: RC
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
 
       return;
     }
@@ -417,9 +420,8 @@ const sharedActions = {
      */
     params
   }) {
-    // TODO: RC
     if (!listeners[event]) {
-      console.info('....'); // TODO: RC
+      console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
 
       return;
     }
@@ -473,6 +475,10 @@ const sharedActions = {
       return;
     }
 
+    // if (type === 'management.cattle.io.cluster') {
+    //   debugger;
+    // }
+
     if ( !stop && getters.watchStarted({
       type, id, selector, namespace, mode
     }) ) {
@@ -491,14 +497,21 @@ const sharedActions = {
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
     // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
-    if (typeof revision === 'undefined') { // TODO: RC
+    if (typeof revision === 'undefined') { // TODO: RC DEBUG --> REMOVE
       revision = getters.nextResourceVersion(type, id);
+    }
+
+    // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
+    if (type === 'pod') {
+      console.info('!!!!!!!!!!!!!!revision', revision);
+      // revision = 155770;// Number.MAX_SAFE_INTEGER; // 155770 from resource
+      // revision = 1;// Number.MAX_SAFE_INTEGER;
+      // revision = Number.MAX_SAFE_INTEGER;
     }
 
     const msg = { resourceType: type };
 
-    // paginationUtils.isSteveCacheEnabled({ rootGetters })
-    if (mode) { // TODO: RC specific to type (no). specific to request (yes) (even though end might not matter?)
+    if (mode) {
       msg.mode = mode;
     }
 
@@ -693,10 +706,8 @@ const defaultActions = {
       resourceType, namespace, id, selector, mode
     } = params;
 
-    // TODO: RC need to handle the case where this is called often... surpassing speed we fetch ... so we get stale promise from first request (force?)
-
     if (!resourceType) {
-      console.warn('TODO: RC', 'tracked', params);
+      console.error(`A socket message has prompted a request to fetch a resource but no resource type was supplied`); // eslint-disable-line no-console
 
       return;
     }
@@ -728,12 +739,18 @@ const defaultActions = {
     } else {
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // Other findX use options (id/ns/selector) from the messages received over socket.
-        // For paginated requests though we need to get them from the store.
-        const storePagination = getters['havePage'](resourceType); // TODO: RC other messages just id/namespace/labelSelect from socket message
+        // However paginated requests have more complex params so grab them from store from the store.
+        const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
           have = []; // TODO: RC ensure we don't supplement store / leave stale entries
 
+          // This could have been kicked off given a resource.changes message
+          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
+          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
+          // (see deferred process - `waiting.push(later);` - in request action).
+          //
+          // If this becomes an issue we need to debounce and work around the deferred issue within request
           want = await dispatch('findPage', {
             type: resourceType,
             opt:  {

@@ -44,12 +44,17 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   namespaced?: string,
   /**
-   * TODO: RC undefined = true
+   * Watch for changes
+   *
+   * false = no, all other values = yes
    */
   watch?: boolean,
-  hasManualRefresh?: boolean,
   /**
    * TODO: RC
+   */
+  hasManualRefresh?: boolean,
+  /**
+   * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
 }

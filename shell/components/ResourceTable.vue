@@ -219,8 +219,6 @@ export default {
   },
 
   data() {
-    // TODO: RC bug? settings page. change something in browser A. not after update on browser B
-
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
@@ -666,10 +664,10 @@ export default {
       v-if="externalPaginationEnabled"
       #watch-controls
     >
-      <!-- TODO:RC UX REVIEW! -->
-      <!-- TODO:RC inline style $btn-height-->
-      <!-- TODO: RC BUG setting fixed height breaks height in home page. fixed because thin browser and select rows causes height to grow. see also class="refresh-button" -->
-      <!-- TODO:RC l10n-->
+      <!-- TODO: RC Refresh Toggle Agreed UX REVIEW! -->
+      <!-- TODO: RC Refresh Toggle Agreed inline style $btn-height-->
+      <!-- TODO: RC Refresh Toggle Agreed BUG setting fixed height breaks height in home page. fixed because thin browser and select rows causes height to grow. see also class="refresh-button" -->
+      <!-- TODO: RC Refresh Toggle Agreed  l10n-->
       <!-- This and mixing 'TODO' should be moved out to PaginatedResourceTable.... but there's far too many places where ResourceTable is used  -->
       <ToggleSwitch
         :value="watching"

@@ -141,14 +141,6 @@ export function load(state, {
 
       // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
       entry = replaceResource(entry, latestEntry, getters);
-
-      // if (data.id === 'default/aaa') {
-      //   // TODO: RC
-      //   const aa = entry === existing;
-      //   const a = data?.metadata?.state?.name;
-      //   const b = existing?.metadata?.state?.name;
-      //   const c = entry?.metadata?.state?.name;
-      // }
     } else {
       // There's no entry, make a new proxy
       entry = reactive(classify(ctx, data));
@@ -499,11 +491,21 @@ export default {
     data,
     ctx,
     pagination,
+    revision
   }) {
     if (!data) {
       return;
     }
+    // We loop over data three times in this mutator, which is bad
+    // However we're only dealing with pageSize worth of data and splitting out into three loops improves legibility
+
     const keyField = ctx.getters.keyFieldForType(type);
+
+    // Why don't we just replace the map? Because we
+    // 1. nav to list, subscribe to changes
+    // 2. nav to resource in list
+    // 3. update to page comes over
+    // 4. need to update the reference the detail list uses
     const proxiesMap = {};
     const proxies = reactive(data.map((x) => {
       proxiesMap[x[keyField]] = true;
@@ -527,7 +529,7 @@ export default {
 
     // Update Map (update existing / add latest)
     for ( let i = 0 ; i < proxies.length ; i++ ) {
-      // This could probably be merged with the first loop above, but count shouldn't be high (restricted by page size) and readability is better here
+      // This could probably be merged with the first loop above
       const existing = cache.map.get(proxies[i][keyField]);
       const latest = proxies[i];
 
@@ -542,6 +544,7 @@ export default {
     cache.havePage = pagination;
     cache.haveNamespace = undefined;
     cache.haveAll = undefined;
+    cache.revision = revision;
 
     return proxies;
   },

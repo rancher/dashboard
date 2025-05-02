@@ -13,7 +13,7 @@ export default {
   },
 
   data() {
-    // TODO: RC table tweaks: does not cover anything fetched secondary / page resources
+    // TODO: RC Refresh Toggle Agreed: table tweaks: does not cover anything fetched secondary / page resources
 
     const watchOpts = this.schema?.id ? {
       type: this.schema.id,
@@ -33,7 +33,7 @@ export default {
   methods: {
     toggleWatch(toggle) {
       if (toggle) {
-        // TODO: RC table tweaks: BUG - hit refresh whilst toggle off... findAll will watch again
+        // TODO: RC Refresh Toggle Agreed: table tweaks: BUG - hit refresh whilst toggle off... findAll will watch again
 
         // Assume there's a gap between cache and reality, to restart watch with something that will make a new http request to refresh it
         this.$store.dispatch(`${ this.inStore }/resyncWatch`, {

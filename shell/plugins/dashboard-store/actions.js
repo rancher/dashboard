@@ -284,6 +284,7 @@ export default {
       return Promise.reject(e);
     }
 
+    // TODO: RC DEBUG --> REMOVE
     // if (type.indexOf('clusterrepo') >= 0) {
     //   const a = out.data.find((a) => a.id === 'harvester');
 
@@ -395,9 +396,19 @@ export default {
       commit('registerType', type);
     }
 
+    // of type @STEVE_WATCH_PARAMS
+    const watchArgs = {
+      type,
+      namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+      force:     opt.forceWatch === true,
+      mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
+    };
+
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
-      // TODO: RC watch?
+      if (opt.watch !== false ) {
+        dispatch('watch', watchArgs);
+      }
 
       return findAllGetter(getters, type, opt);
     }
@@ -423,7 +434,6 @@ export default {
     }
 
     // TODO: RC this should be done to catch watch all --> watch some
-    // if ( !opt.transient
     // await dispatch('unwatch', { type });
 
     // Of type @StorePagination
@@ -444,21 +454,14 @@ export default {
       commit('loadPage', {
         ctx,
         type,
-        data: out.data,
+        data:     out.data,
         pagination,
+        revision: out.revision,
       });
     }
 
     if ( !opt.transient && opt.watch !== false ) {
-      // of type @STEVE_WATCH_PARAMS
-      const args = {
-        type,
-        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
-        force:     opt.forceWatch === true,
-        mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
-      };
-
-      dispatch('watch', args);
+      dispatch('watch', watchArgs);
     }
 
     if (opt.hasManualRefresh) {
