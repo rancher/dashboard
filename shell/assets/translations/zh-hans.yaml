@@ -137,7 +137,6 @@ nav:
   restoreSnapshot: 还原快照
   rotateCertificates: 轮换证书
   rotateEncryptionKeys: 轮换加密密钥
-  saveAsRKETemplate: 保存为 RKE 模板
   takeSnapshot: 拍摄快照
   group:
     cluster: 集群
@@ -4445,12 +4444,6 @@ promptRollback:
   currentLabel: "（当前）"
   multipleWorkloadError: "一次只能回滚一个工作负载。"
   singleRevisionBanner: 没有可用于回滚的修订版本。
-
-promptSaveAsRKETemplate:
-  title: 将 {cluster} 转换为新的 RKE 模板
-  name: 集群模板名称
-  description: 创建新的集群模板，并使用当前集群配置发起修改。
-  warning: 此操作将对集群进行修改，即把新创建的集群模板和修改应用到集群中。此操作不能撤销。
 
 promptRotateEncryptionKey:
   title: 轮换加密密钥
