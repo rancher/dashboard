@@ -156,11 +156,6 @@ export default class ProvCluster extends SteveModel {
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
         enabled: canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
-      }, {
-        action:  'saveAsRKETemplate',
-        label:   this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
-        icon:    'icon icon-folder',
-        enabled: canSaveRKETemplate,
       }, { divider: true }];
 
     // Harvester Cluster 1:1 Harvester Cloud Cred
@@ -817,13 +812,6 @@ export default class ProvCluster extends SteveModel {
 
   restoreSnapshotAction(resource = this) {
     this.$dispatch('promptRestore', [resource]);
-  }
-
-  saveAsRKETemplate(cluster = this) {
-    this.$dispatch('promptModal', {
-      componentProps: { cluster },
-      component:      'SaveAsRKETemplateDialog'
-    });
   }
 
   rotateCertificates(cluster = this) {
