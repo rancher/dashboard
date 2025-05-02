@@ -102,15 +102,6 @@ export default class ProvCluster extends SteveModel {
 
     const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
 
-    const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
-    let canUpdateClusterTemplate = false;
-
-    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods?.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods?.includes('PUT'))) {
-      canUpdateClusterTemplate = true;
-    }
-
-    const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
-
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
