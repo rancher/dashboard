@@ -111,8 +111,6 @@ export default class ProvCluster extends SteveModel {
 
     const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
 
-    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
-
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
@@ -155,7 +153,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
-        enabled: canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
+        enabled: canEditRKE2cluster
       }, { divider: true }];
 
     // Harvester Cluster 1:1 Harvester Cloud Cred
