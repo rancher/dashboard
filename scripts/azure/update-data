@@ -17,6 +17,7 @@ const DIR = path.resolve(SCRIPT, '../../..');
 const ENDPOINTS_URL = 'https://learn.microsoft.com/en-us/azure/reliability/regions-list';
 const TS_FILE = path.resolve(DIR, 'pkg/aks/util/aks-regions.ts');
 const COLUMN_REGEX = /<td>(.*)<\/td>/;
+const US_GOV = 'usgov';
 
 function findRegions(body) {
   const regions = [];
@@ -165,7 +166,9 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   const removed = [];
 
   existing.forEach((r) => {
-    if (!regions.includes(r)) {
+    if (r.startsWith(US_GOV)) {
+      regions.push(r);
+    } else if (!regions.includes(r)) {
       removed.push(r);
     }
   });
@@ -187,7 +190,8 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   }
 
   if (added.length || removed.length) {
-    writeNewFile(regions);
+    // Sort the regions (needs a resort if we added back in usgov regions)
+    writeNewFile(regions.sort());
   } else {
     console.log('No changes to the Azure region data');
   }
