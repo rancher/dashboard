@@ -154,6 +154,13 @@ export default {
   },
 
   methods: {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {
@@ -297,7 +304,7 @@ export default {
     ]"
     :tabindex="isView || disabled ? -1 : 0"
     role="listbox"
-    @click="focusSearch"
+    @click="clickSelect"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
     @keydown.space.prevent="focusSearch"
