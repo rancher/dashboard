@@ -304,6 +304,7 @@ export default {
     role="combobox"
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -326,6 +327,7 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
