@@ -46,10 +46,6 @@ export default {
     noResources() {
       return !this.value.resourcesStatuses?.length;
     },
-
-    showClusterSelector() {
-      return this.workspace.id !== 'fleet-local' && !this.noResources;
-    }
   },
 
   methods: {
@@ -94,7 +90,7 @@ export default {
       :search="!noResources"
     >
       <template
-        v-if="showClusterSelector"
+        v-if="!noResources"
         #header-left
       >
         <div class="row">
@@ -104,6 +100,7 @@ export default {
               :label="'Cluster'"
               :options="clusterOptions"
               :mode="'edit'"
+              :disabled="workspace.id === 'fleet-local'"
             />
           </div>
         </div>

@@ -123,6 +123,7 @@ export default {
   computed: {
     ...mapState(['workspace', 'allNamespaces']),
     ...mapGetters({ isOpenSlideInPanel: 'slideInPanel/isOpen' }),
+    ...mapGetters({ isClosingSlideInPanel: 'slideInPanel/isClosing' }),
 
     workspaces() {
       if (this.fleetWorkspaces?.length) {
@@ -271,6 +272,10 @@ export default {
     },
 
     showResourceDetails(value, statePanel, workspace, selected) {
+      if (this.isClosingSlideInPanel) {
+        return;
+      }
+
       this.selectedCard = selected;
 
       this.$shell.slideInPanel({
@@ -472,7 +477,7 @@ export default {
             >
               <template v-if="cardResources[workspace.id][state.stateDisplay].length">
                 <div
-                  class="card-panel-title"
+                  class="title"
                   @click="toggleState(workspace.id, state.stateDisplay)"
                 >
                   <i
@@ -649,10 +654,11 @@ export default {
       }
 
       .card-panel {
-        .card-panel-title {
+        .title {
           display: flex;
           align-items: center;
           cursor: pointer;
+          width: fit-content;
 
           .icon {
             margin-right: 5px;
