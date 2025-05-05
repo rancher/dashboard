@@ -182,8 +182,9 @@ fieldset[disabled] .btn {
   .btn {
     position: relative;
     display: inline-flex;
-    width: 38px;
+    width: auto;
     height: 32px;
+    padding: 0 12px;
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);

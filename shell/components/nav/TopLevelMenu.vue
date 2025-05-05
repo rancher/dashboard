@@ -1182,6 +1182,10 @@ export default {
           div .description {
             color: var(--on-active);
           }
+
+          &:hover {
+            background: var(--nav-active--hover);
+          }
         }
 
         &:focus-visible {
