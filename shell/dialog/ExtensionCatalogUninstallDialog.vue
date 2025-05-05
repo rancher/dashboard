@@ -37,7 +37,6 @@ export default {
       default:  () => {},
       required: true
     },
-    // TODO: handle console warns if we remove these props (resources, regbackgroundclosing)
     resources: {
       type:    Array,
       default: () => []
