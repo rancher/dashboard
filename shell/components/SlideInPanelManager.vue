@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useStore } from 'vuex';
 
 const HEADER_HEIGHT = 55;
@@ -23,8 +23,20 @@ const panelTop = computed(() => {
 const panelHeight = computed(() => `calc(100vh - ${ panelTop?.value })`);
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
+const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.value?.zIndex ?? 1000) }`);
 
-const panelTitle = computed(() => currentProps?.value?.title || 'Details');
+const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
+const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
+
+watch(
+  () => (store as any).$router.currentRoute,
+  () => {
+    if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
+      closePanel();
+    }
+  },
+  { deep: true }
+);
 
 function closePanel() {
   store.commit('slideInPanel/close');
@@ -44,9 +56,18 @@ function closePanel() {
       <div
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
-        :style="{ width: panelWidth, right: panelRight, top: panelTop, height: panelHeight }"
+        :style="{
+          width: panelWidth,
+          right: panelRight,
+          top: panelTop,
+          height: panelHeight,
+          ['z-index']: panelZIndex
+        }"
       >
-        <div class="header">
+        <div
+          v-if="showHeader"
+          class="header"
+        >
           <div class="title">
             {{ panelTitle }}
           </div>
@@ -84,7 +105,6 @@ function closePanel() {
   background-color: var(--body-bg);
   display: block;
   opacity: 0.5;
-  z-index: 1000;
 }
 
 .slide-in {
@@ -92,7 +112,6 @@ function closePanel() {
   flex-direction: column;
   position: fixed;
   top: 0;
-  z-index: 2000;
   transition: right 0.5s ease;
   border-left: 1px solid var(--border);
   background-color: var(--body-bg);
