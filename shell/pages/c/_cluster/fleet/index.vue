@@ -9,6 +9,7 @@ import { filterBy } from '@shell/utils/array';
 import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
 import ResourceCard from '@shell/components/fleet/dashboard/ResourceCard.vue';
+import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -266,6 +267,21 @@ export default {
 
       Object.keys(this.isStateCollapsed[workspace] || []).forEach((state) => {
         this.isStateCollapsed[workspace][state] = val;
+      });
+    },
+
+    showResourceDetails(value, statePanel, workspace, selected) {
+      this.selectedCard = selected;
+
+      this.$shell.slideInPanel({
+        component:      ResourceDetails,
+        componentProps: {
+          value,
+          statePanel,
+          workspace,
+          showHeader: false,
+          zIndex:     1
+        }
       });
     },
   },

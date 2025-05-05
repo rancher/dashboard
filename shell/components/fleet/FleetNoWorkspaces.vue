@@ -25,6 +25,7 @@ export default {
   <div class="intro-box">
     <i class="icon icon-repository" />
     <div class="title">
+      <!-- TODO include helmOps -->
       <span v-clean-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
     </div>
     <div
