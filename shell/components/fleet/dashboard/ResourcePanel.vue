@@ -1,5 +1,5 @@
 <script>
-import { DoughnutChart } from 'vue-chart-3';
+import { markRaw } from 'vue';
 import { Chart, registerables } from 'chart.js';
 import { BadgeState } from '@components/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
@@ -12,15 +12,17 @@ export default {
 
   emits: ['select:states'],
 
-  components: {
-    DoughnutChart,
-    BadgeState,
-  },
+  components: { BadgeState },
 
   props: {
     resources: {
       type:    Array,
       default: () => ([])
+    },
+
+    workspace: {
+      type:    String,
+      default: ''
     },
 
     type: {
@@ -41,8 +43,11 @@ export default {
 
   data() {
     return {
+      chartId:      `${ this.workspace }-${ this.type }`,
+      chart:        null,
       chartOptions: {
-        plugins: {
+        responsive: true,
+        plugins:    {
           legend: { display: false },
           title:  { display: false },
         },
@@ -62,6 +67,28 @@ export default {
       },
       selectedStates: {},
     };
+  },
+
+  mounted() {
+    if (this.showChart) {
+      const container = document.getElementById(`${ this.chartId }-container`);
+
+      const canvas = document.createElement('canvas');
+      canvas.id = this.chartId;
+
+      container.append(canvas);
+
+      const data = this.buildChartData();
+      const options = this.chartOptions;
+
+      const chart = new Chart(canvas, {
+        type: 'doughnut',
+        data,
+        options,
+      });
+
+      this.chart = markRaw(chart);
+    }
   },
 
   computed: {
@@ -92,13 +119,26 @@ export default {
       return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
     },
 
-    chartData() {
+    typeLabel() {
+      return this.t(`typeLabel."${ this.type }"`, { count: this.resources.length });
+    },
+  },
+
+  watch: {
+    states: {
+      handler: 'updateChart',
+      deep:    true,
+    }
+  },
+
+  methods: {
+    buildChartData() {
       const chartStates = FleetUtils.dashboardStates;
 
       const labels = chartStates.map(({ label }) => label);
       const backgroundColor = chartStates.map(({ color }) => color);
 
-      const data = chartStates.map(({ id }) => this.states.find((s) => s.id === id)?.count || 0);
+      const data = this.getChartStates(this.states);
 
       return {
         labels,
@@ -111,12 +151,20 @@ export default {
       };
     },
 
-    typeLabel() {
-      return this.t(`typeLabel."${ this.type }"`, { count: this.resources.length });
-    },
-  },
+    updateChart(states) {
+      if (this.chart) {
+        this.chart.data.datasets.forEach((dataset) => {
+          dataset.data = this.getChartStates(states);
+        });
 
-  methods: {
+        this.chart.update();
+      }
+    },
+
+    getChartStates(states) {
+      return FleetUtils.dashboardStates.map(({ id }) => states.find((s) => s.id === id)?.count || 0);
+    },
+
     onClickBadge(state) {
       if (!this.selectable) {
         return;
@@ -136,13 +184,9 @@ export default {
   <div class="panel">
     <div
       v-if="showChart"
+      :id="chartId + '-container'"
       class="chart"
-    >
-      <DoughnutChart
-        :chart-data="chartData"
-        :options="chartOptions"
-      />
-    </div>
+    />
     <div class="details">
       <div class="description">
         <span class="count">{{ resources.length }}</span>
@@ -155,7 +199,7 @@ export default {
           class="badge"
           :class="{
             ['selectable']: selectable,
-            ['selected']: selectedStates[state.id]
+            ['selected']: selectable && selectedStates[state.id]
           }"
           :color="state.stateBackground"
           :label="` ${ state.count } `"
@@ -163,7 +207,7 @@ export default {
           @click="onClickBadge(state)"
         >
           <template
-            v-if="selectedStates[state.id]"
+            v-if="selectable && selectedStates[state.id]"
             #content-right
           >
             <i class="icon icon-close ml-5" />
