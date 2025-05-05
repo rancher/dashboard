@@ -74,6 +74,7 @@ export default {
       const container = document.getElementById(`${ this.chartId }-container`);
 
       const canvas = document.createElement('canvas');
+
       canvas.id = this.chartId;
 
       container.append(canvas);

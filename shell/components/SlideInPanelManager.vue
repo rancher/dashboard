@@ -29,7 +29,7 @@ const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
 
 watch(
-  () => (store as any).$router.currentRoute,
+  () => (store as any).$router?.currentRoute,
   () => {
     if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
       closePanel();
