@@ -7,6 +7,8 @@ import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth'
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
+import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FleetUtils from '@shell/utils/fleet';
@@ -16,8 +18,10 @@ export default {
   components: {
     ButtonGroup,
     Checkbox,
+    EmptyDashboard,
     Loading,
     NoWorkspaces,
+    ResourcePanel,
   },
 
   async fetch() {
@@ -347,14 +351,44 @@ export default {
               </router-link>
             </h2>
             <div class="body">
-              <div>{{ workspace.repos.length }}</div>
-              <div>{{ workspace.helmOps.length }}</div>
+              <ResourcePanel
+                v-if="workspace.repos.length"
+                class="git-repo"
+                :resources="workspace.repos"
+                :type="FLEET.GIT_REPO"
+                :selectable="!isWorkspaceCollapsed[workspace.id]"
+                @select:states="selectStates(workspace.id, FLEET.GIT_REPO, $event)"
+              />
+              <ResourcePanel
+                v-if="workspace.helmOps.length"
+                class="helm-ops"
+                :resources="workspace.helmOps"
+                :type="FLEET.HELM_OP"
+                :selectable="!isWorkspaceCollapsed[workspace.id]"
+                @select:states="selectStates(workspace.id, FLEET.HELM_OP, $event)"
+              />
               <div
                 v-if="showPanelSpacer(workspace)"
                 class="spacer"
               />
-              <div>{{ workspace.clusters.length }}</div>
-              <div>{{ workspace.clusterGroups.length }}</div>
+              <ResourcePanel
+                v-if="workspace.clusters.length"
+                class="clusters"
+                :resources="workspace.clusters"
+                :type="FLEET.CLUSTER"
+                :clickable-states="false"
+                :show-chart="false"
+                :selectable="false"
+              />
+              <ResourcePanel
+                v-if="workspace.clusterGroups.length"
+                class="cluster-groups"
+                :resources="workspace.clusterGroups"
+                :type="FLEET.CLUSTER_GROUP"
+                :clickable-states="false"
+                :show-chart="false"
+                :selectable="false"
+              />
             </div>
           </div>
           <div class="card-panel-main-actions">
