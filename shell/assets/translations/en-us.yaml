@@ -2558,6 +2558,11 @@ fleet:
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
+      validation:
+        required: repository is required
+    branchOrRevision:
+      validation:
+        required: branch or revision is required
     resources:
       label: 'Resource Handling'
       keepResources: Always keep resources
@@ -2572,6 +2577,9 @@ fleet:
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
         minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        validation:
+          positive: pollingInterval must be greater than 0
+          format: pollingInterval must be in duration format
     add:
       steps:
         metadata:

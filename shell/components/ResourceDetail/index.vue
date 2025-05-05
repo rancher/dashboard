@@ -400,6 +400,17 @@ export default {
         m[act]();
       }
     },
+
+    onYamlError(err) {
+      const errors = Array.isArray(err) ? err : [err];
+
+      errors.forEach((e) => {
+        if (this.errors.indexOf(e) === -1) {
+          this.errors.push(e);
+        }
+      });
+    },
+
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
     },
@@ -507,8 +518,9 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value ? value.doneOverride : null"
+      :show-errors="false"
       @update:value="$emit('input', $event)"
-      @error="e=>errors.push(e)"
+      @error="onYamlError"
     />
 
     <component
@@ -561,6 +573,12 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+.cru__errors {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--header-bg);
+}
 .flex-content {
   display: flex;
   flex-direction: column;

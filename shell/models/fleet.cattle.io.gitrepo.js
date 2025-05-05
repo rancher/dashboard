@@ -1,7 +1,10 @@
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
+import { toSeconds } from '@shell/utils/duration';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 import { escapeHtml } from '@shell/utils/string';
+import FleetUtils from '@shell/utils/fleet';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
@@ -11,7 +14,6 @@ import {
   colorForState, mapStateToEnum, primaryDisplayStatusFromCount, stateDisplay, STATES_ENUM, stateSort,
 } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME } from '@shell/config/product/explorer';
-import FleetUtils from '@shell/utils/fleet';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
@@ -160,6 +162,46 @@ export default class GitRepo extends SteveModel {
       componentProps: { repositories: resources },
       component:      'GitRepoForceUpdateDialog'
     });
+  }
+
+  saveYaml(yaml) {
+    const parsed = jsyaml.load(yaml);
+
+    Object.assign(this, parsed);
+
+    const errors = this.validate();
+
+    if (errors.length) {
+      throw errors;
+    }
+
+    return this.save();
+  }
+
+  validate() {
+    const errors = [];
+
+    if (!this.spec.repo) {
+      errors.push(this.$rootGetters['i18n/t']('fleet.gitRepo.repo.validation.required'));
+    } else {
+      const repoFormatError = formRulesGenerator(this.$rootGetters['i18n/t'], {}).gitRepository(this.spec.repo);
+
+      if (repoFormatError) {
+        errors.push(repoFormatError);
+      }
+    }
+
+    if (!this.spec.branch && !this.spec.revision) {
+      errors.push(this.$rootGetters['i18n/t']('fleet.gitRepo.branchOrRevision.validation.required'));
+    }
+
+    if (this.spec.pollingInterval === '0s') {
+      errors.push(this.$rootGetters['i18n/t']('fleet.gitRepo.polling.pollingInterval.validation.positive'));
+    } else if (this.spec.pollingInterval && !toSeconds(this.spec.pollingInterval)) {
+      errors.push(this.$rootGetters['i18n/t']('fleet.gitRepo.polling.pollingInterval.validation.format'));
+    }
+
+    return errors;
   }
 
   get state() {
