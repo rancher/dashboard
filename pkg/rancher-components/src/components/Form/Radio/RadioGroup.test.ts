@@ -65,18 +65,23 @@ describe('component: RadioGroup', () => {
 
     const wrapper = mount(RadioGroup, {
       propsData: {
-        name:    'some-name',
-        label:   inputLabel,
-        value:   currValue,
-        options: [{ label: currValue, value: currValue }]
+        name:     'some-name',
+        label:    inputLabel,
+        value:    currValue,
+        disabled: true,
+        options:  [{ label: currValue, value: currValue }]
       },
       attrs: { 'aria-label': overrideLabel }
     });
 
     const field = wrapper.find('[role="radiogroup"]');
     const ariaLabel = field.attributes('aria-label');
+    const ariaDisabled = field.attributes('aria-disabled');
+    const tabIndex = field.attributes('tabindex');
 
     expect(ariaLabel).toBe(overrideLabel);
     expect(ariaLabel).not.toBe(inputLabel);
+    expect(ariaDisabled).toBe('true');
+    expect(tabIndex).toBe('-1');
   });
 });

@@ -99,13 +99,19 @@ describe('checkbox.vue', () => {
 
     const wrapper: Wrapper<InstanceType<typeof Checkbox>> = mount(
       Checkbox,
-      { propsData: { value: true, label } }
+      {
+        propsData: {
+          value: true, label, disabled: true
+        }
+      }
     );
 
     const field = wrapper.find('.checkbox-custom');
     const ariaChecked = field.attributes('aria-checked');
     const ariaLabel = field.attributes('aria-label');
     const ariaLabelledBy = field.attributes('aria-labelledby');
+    const ariaDisabled = field.attributes('aria-disabled');
+    const tabIndex = field.attributes('tabindex');
 
     // validates type of input rendered
     expect(field.exists()).toBe(true);
@@ -113,5 +119,8 @@ describe('checkbox.vue', () => {
     expect(ariaLabelledBy).toBe(wrapper.vm.idForLabel);
     expect(ariaLabel).toBeUndefined();
     expect(wrapper.find(`#${ wrapper.vm.idForLabel }`).text()).toBe(label);
+
+    expect(ariaDisabled).toBe('true');
+    expect(tabIndex).toBe('-1');
   });
 });
