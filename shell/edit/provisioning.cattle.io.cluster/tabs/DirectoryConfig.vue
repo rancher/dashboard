@@ -78,8 +78,8 @@ export default {
           this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
         }
 
-        if (this.value.k8sDistro) {
-          this.value.k8sDistro = `${ neu }/${ this.k8sDistroSubDir }`;
+        if (this.dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.COMMON && this.commonConfig) {
+          this.value.k8sDistro = `${ this.commonConfig }/${ this.k8sDistroSubDir }`;
         }
       }
     }
