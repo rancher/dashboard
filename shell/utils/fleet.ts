@@ -5,7 +5,7 @@ import {
   BundleDeploymentStatus,
   Condition,
 } from '@shell/types/resources/fleet';
-import { mapStateToEnum, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 
@@ -30,6 +30,37 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Fleet {
+  dashboardStates = [
+    {
+      id:              'error',
+      label:           'Error',
+      color:           '#F64747',
+      icon:            'icon icon-error',
+      stateBackground: 'bg-error'
+    },
+    {
+      id:              'warning',
+      label:           'Warning',
+      color:           '#DAC342',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-warning'
+    },
+    {
+      id:              'success',
+      label:           'Active',
+      color:           '#5D995D',
+      icon:            'icon icon-checkmark',
+      stateBackground: 'bg-success'
+    },
+    {
+      id:              'info',
+      label:           'InProgress',
+      color:           '#3d98d3',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-info'
+    },
+  ];
+
   resourceId(r: BundleResourceKey): string {
     return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
   }
@@ -125,6 +156,14 @@ class Fleet {
     } else {
       return STATES_ENUM.READY;
     }
+  }
+
+  getDashboardStateId(state: string): string {
+    return STATES[state]?.color || '';
+  }
+
+  getDashboardState(stateId: string) {
+    return this.dashboardStates.find(({ id }) => stateId === id) || {};
   }
 }
 

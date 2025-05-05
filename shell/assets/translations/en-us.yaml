@@ -2498,8 +2498,27 @@ fleet:
       =1 { There is one other workspace with no repositories}
       other { There are { count } other workspaces with no repositories}
       }
+    workspace: Workspace
+    expand: Expand
+    collapse: Collapse
     expandAll: Expand All
     collapseAll: Collapse All
+    viewMode:
+      table: Show table
+      cards: Show cards
+    cards:
+      filters:
+        gitRepos: Show Git Repos
+        helmOps: Show Helm Ops
+      resourceSummary:
+        part1: in
+        part2: |-
+          {count, plural,
+          =1 { cluster }
+          other { clusters }
+          }
+
+    resources: Resources
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -7134,6 +7153,11 @@ typeLabel:
     {count, plural,
       one { Git Repo }
       other {Git Repos }
+    }
+  fleet.cattle.io.helmapp: |-
+    {count, plural,
+      one { Helm Op }
+      other { Helm Ops }
     }
   management.cattle.io.authconfig: |-
     {count, plural,
