@@ -302,14 +302,14 @@ export default {
     },
 
     rke2Charts() {
-      const rke2Versions = this.rke2Versions;
+      const rke2Versions = this.rke2Versions || [];
       const kubernetesVersion = this.kubernetesVersion;
 
-      return Object.keys(
-        rke2Versions
-          .find((version) => version.id === kubernetesVersion)
-          ?.charts
-      );
+      const charts = rke2Versions
+        .find((version) => version.id === kubernetesVersion)
+        ?.charts ?? {};
+
+      return Object.keys(charts);
     },
 
     serverConfig() {
