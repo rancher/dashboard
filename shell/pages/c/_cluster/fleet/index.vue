@@ -8,6 +8,7 @@ import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
+import ResourceCard from '@shell/components/fleet/dashboard/ResourceCard.vue';
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -21,6 +22,7 @@ export default {
     EmptyDashboard,
     Loading,
     NoWorkspaces,
+    ResourceCard,
     ResourcePanel,
   },
 
@@ -473,12 +475,15 @@ export default {
                   v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
                   class="card-panel-body"
                 >
-                  <div
+                  <ResourceCard
                     v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
                     :key="y"
-                  >
-                    {{ item.id }}
-                  </div>
+                    class="resource-card"
+                    :value="item"
+                    :state-panel="state.statePanel"
+                    :selected="selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel"
+                    @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
+                  />
                 </div>
               </template>
             </div>
