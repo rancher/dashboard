@@ -702,7 +702,7 @@ export default {
     data-testid="namespaces-filter"
     tabindex="0"
     @mousedown.prevent
-    @keydown.down.enter.space="open"
+    @keydown.down.enter.space.prevent="open"
   >
     <div
       v-if="isOpen"
