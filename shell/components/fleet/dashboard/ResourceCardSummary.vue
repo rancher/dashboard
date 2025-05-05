@@ -75,7 +75,12 @@ export default {
     </div>
     <div class="mt-5 summary">
       <div v-if="value.stateDescription">
-        <span :class="{ 'text-error' : value.stateObj.error }">{{ value.stateDescription }}</span>
+        <span
+          class="msg"
+          :class="{ 'text-error' : value.stateObj.error }"
+        >
+          {{ value.stateDescription }}
+        </span>
       </div>
       <div
         v-else
@@ -102,6 +107,7 @@ export default {
 
 <style lang="scss" scoped>
   .summary-panel {
+    max-width: 300px;
     .details {
       display: flex;
       align-items: center;
@@ -114,6 +120,10 @@ export default {
 
     .summary {
       margin-top: 5px;
+
+      .msg {
+        overflow-wrap: break-word;
+      }
 
       .description {
         display: flex;

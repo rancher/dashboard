@@ -42,7 +42,7 @@ export default {
 
 <template>
   <div
-    class="panel"
+    class="resource-card-panel"
     :class="{
       ['selected']: selected
     }"
@@ -69,13 +69,15 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .panel {
+  .resource-card-panel {
     border: 1px solid var(--modal-border);
     border-radius: 10px;
     padding: 10px;
+    margin: 10px;
 
     &.selected {
       border: 2px solid var(--primary);
+      margin: 9px;
     }
 
     .title {

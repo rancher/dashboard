@@ -414,7 +414,10 @@ export default {
             </div>
           </div>
           <div class="card-panel-main-actions">
-            <div class="expand-button">
+            <div
+              v-if="workspace.repos.length || workspace.helmOps.length"
+              class="expand-button"
+            >
               <i
                 :class="{
                   ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
@@ -553,17 +556,23 @@ export default {
   border-radius: 10px;
   background-color: var(--body-bg);
   min-width: 550px;
+  padding-left: 15px;
+  padding-right: 15px;
 
   .card-panel-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: auto;
+    margin-bottom: auto;
 
     .card-panel-main-details {
       display: flex;
       align-items: center;
 
       .title {
+        margin: 0;
+
         .label {
           display: flex;
           align-items: center;
@@ -591,6 +600,10 @@ export default {
 
         .title {
           display: flex;
+        }
+
+        .body {
+          margin-top: 10px;
         }
       }
     }
@@ -674,7 +687,6 @@ export default {
           flex-wrap: wrap;
 
           .resource-card {
-            margin: 10px;
             cursor: pointer;
           }
         }

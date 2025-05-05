@@ -42,6 +42,14 @@ export default {
         value: cluster.id
       }));
     },
+
+    noResources() {
+      return !this.value.resourcesStatuses?.length;
+    },
+
+    showClusterSelector() {
+      return this.workspace.id !== 'fleet-local' && !this.noResources;
+    }
   },
 
   methods: {
@@ -53,7 +61,7 @@ export default {
 </script>
 
 <template>
-  <div class="panel">
+  <div class="details-panel">
     <div class="header">
       <div class="title">
         <i :class="value.dashboardIcon" />
@@ -77,12 +85,16 @@ export default {
         @click="closePanel"
       />
     </div>
+    <h3>
+      {{ t('fleet.dashboard.resources') }}
+    </h3>
     <FleetResources
       :rows=value.resourcesStatuses
       :cluster-id="cluster"
+      :search="!noResources"
     >
       <template
-        v-if="workspace.id !== 'fleet-local'"
+        v-if="showClusterSelector"
         #header-left
       >
         <div class="row">
@@ -101,18 +113,19 @@ export default {
 </template>
 
 <style lang="scss">
-  .panel {
+  .details-panel {
+    padding: 10px;
+
     .header {
       display: flex;
       align-items: center;
-      padding: 4px 0;
-      margin-bottom: 10px;
+      padding: 0;
+      margin: 0 0 20px 0;
 
       .title {
         display: flex;
         align-items: center;
         flex: 1;
-        margin: 10px 0;
         font-style: normal;
         font-weight: 400;
         font-size: 18px;
