@@ -39,7 +39,6 @@ export default {
         {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
       </a>
     </p>
-    <!-- TODO -add helm Ops -->
     <template v-if="permissions.gitRepos">
       <h3 class="mb-30">
         {{ t('fleet.dashboard.noRepo', null, true) }}

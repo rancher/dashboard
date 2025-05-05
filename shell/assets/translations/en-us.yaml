@@ -2493,11 +2493,6 @@ fleet:
     learnMoreLink: https://fleet.rancher.io
     noRepo: "You don't have any Git Repositories in your Workspaces"
     getStarted: Get started
-    thereIsMore: |-
-      {count, plural,
-      =1 { There is one other workspace with no repositories}
-      other { There are { count } other workspaces with no repositories}
-      }
     workspace: Workspace
     expand: Expand
     collapse: Collapse
@@ -2597,7 +2592,7 @@ fleet:
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
-      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
+      noWorkspaces: There are no workspaces.
     resources:
       label: 'Resource Handling'
       keepResources: Always keep resources
