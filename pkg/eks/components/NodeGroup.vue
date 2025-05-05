@@ -561,6 +561,7 @@ export default defineComponent({
         <LabeledSelect
           v-model:value="displayNodeRole"
           :mode="mode"
+          data-testid="eks-noderole"
           label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"

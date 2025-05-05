@@ -38,6 +38,12 @@ export default class LabeledSelectPo extends ComponentPo {
     });
   }
 
+  checkContainsOptionSelected(label: string): Cypress.Chainable {
+    return this.self().find('.vs__selected-options > span.vs__selected').should((elm) => {
+      expect(elm.text().trim()).to.include(label);
+    });
+  }
+
   /**
    * Get dropdown options
    * @returns
@@ -68,5 +74,9 @@ export default class LabeledSelectPo extends ComponentPo {
    */
   filterByName(name: string) {
     return this.self().type(name);
+  }
+
+  static bySelector(selector: string): LabeledSelectPo {
+    return new LabeledSelectPo(selector);
   }
 }

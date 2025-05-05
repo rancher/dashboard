@@ -30,17 +30,17 @@ export const DEFAULT__IMPORT_CLUSTER = {
 export const DEFAULT_REGION = 'us-west-2';
 
 export const DEFAULT_NODE_GROUP_CONFIG = {
-  desiredSize:          2,
-  diskSize:             20,
+  desiredSize:          '2',
+  diskSize:             '20',
   ec2SshKey:            '',
   gpu:                  false,
   imageId:              null,
   instanceType:         't3.medium',
   labels:               {},
-  maxSize:              2,
-  minSize:              2,
-  nodegroupName:        '',
-  nodeRole:             '',
+  maxSize:              '2',
+  minSize:              '2',
+  nodegroupName:        'group1',
+  nodeRole:             'Default (One will be created automatically)',
   requestSpotInstances: false,
   resourceTags:         {},
   spotInstanceTypes:    [],

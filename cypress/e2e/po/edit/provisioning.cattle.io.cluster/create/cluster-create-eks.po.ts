@@ -5,6 +5,8 @@ import EKSCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credent
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import eksVersions from '@/pkg/eks/assets/data/eks-versions.js';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 /**
  * Create page for an EKS cluster
@@ -34,16 +36,56 @@ export default class ClusterManagerCreateEKSPagePo extends ClusterManagerCreateR
     return new LabeledInputPo('[placeholder*="better describes this resource"]');
   }
 
-  getEKSzoneSelect() {
-    return new LabeledSelectPo('[id="vs1__combobox"]');
+  getRegion() {
+    return new LabeledSelectPo('[id="vs10__combobox"]');
   }
 
-  getEKSversionSelect() {
-    return new LabeledSelectPo('[id="vs9__combobox"]');
+  getVersion() {
+    return new LabeledSelectPo('[data-testid="eks-version-dropdown"]');
   }
 
-  getEKSnodeGroup() {
-    return new LabeledSelectPo('[data-testid="eks-nodegroup-name"]');
+  getNodeGroup() {
+    return new LabeledInputPo('[data-testid="eks-nodegroup-name"]');
+  }
+
+  getNodeRole() {
+    return new LabeledSelectPo('[data-testid="eks-noderole"]');
+  }
+
+  getLauchTemplate() {
+    return new LabeledSelectPo('[data-testid="eks-launch-template-dropdown"]');
+  }
+
+  getDesiredASGSize() {
+    return LabeledInputPo.byLabel(cy.get('[data-testid="cru-form"]'), 'Desired ASG Size');
+  }
+
+  getMinASGSize() {
+    return LabeledInputPo.byLabel(cy.get('[data-testid="cru-form"]'), 'Minimum ASG Size');
+  }
+
+  getMaxASGSize() {
+    return LabeledInputPo.byLabel(cy.get('[data-testid="cru-form"]'), 'Maximum ASG Size');
+  }
+
+  getInstanceType() {
+    return new LabeledSelectPo('[data-testid="eks-instance-type-dropdown"]');
+  }
+
+  getDiskSize() {
+    return new LabeledInputPo('[data-testid="eks-disksize-input"]');
+  }
+
+  getServiceRole() {
+    return new RadioGroupInputPo('[data-testid="radio-button-0"]');
+  }
+
+  getPublicAccess() {
+    return CheckboxInputPo.byLabel(this.self(), 'Public Access');
+  }
+
+  getPrivateAccess() {
+    return CheckboxInputPo.byLabel(this.self(), 'Private Access');
   }
 
   getLatestEKSversion() {
