@@ -41,7 +41,7 @@ export default {
       const allTypes = allTypesByMode[TYPE_MODES.ALL];
       const out = this.$store.getters['type-map/getTree'](productId, TYPE_MODES.ALL, allTypes, clusterId, BOTH, null, this.value);
 
-      // Suplement the output with count info. Usualy the `Type` component would handle this individualy... but scales real bad so give it
+      // Supplement the output with count info. Usually the `Type` component would handle this individually... but scales real bad so give it
       // some help
       const counts = this.$store.getters[`${ product.inStore }/all`](COUNT)?.[0]?.counts || {};
 
@@ -77,16 +77,22 @@ export default {
     >
       {{ t('nav.resourceSearch.filteringDescription') }}
     </p>
-    <input
-      ref="input"
-      v-model="value"
-      :placeholder="t('nav.resourceSearch.placeholder')"
-      class="search"
-      role="textbox"
-      :aria-label="t('nav.resourceSearch.label')"
-      aria-describedby="describe-filter-resource-search"
-      @keyup.esc="$emit('closeSearch')"
-    >
+    <div class="dialog-title">
+      <div>{{ t('nav.resourceSearch.label') }}</div>
+      <p>{{ t('nav.resourceSearch.prompt') }}</p>
+    </div>
+    <div class="search-box">
+      <input
+        ref="input"
+        v-model="value"
+        :placeholder="t('nav.resourceSearch.placeholder')"
+        class="search"
+        role="textbox"
+        :aria-label="t('nav.resourceSearch.label')"
+        aria-describedby="describe-filter-resource-search"
+        @keyup.esc="$emit('closeSearch')"
+      >
+    </div>
     <div class="results">
       <div
         v-for="g in groups"
@@ -119,8 +125,22 @@ export default {
     box-shadow: none;
   }
 
+  .search-box {
+    margin: 8px;
+  }
+
   .search:focus-visible {
     outline-offset: -2px;
+  }
+
+  .dialog-title {
+    padding: 8px;
+
+    > div {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
   }
 
   .results {
@@ -129,7 +149,7 @@ export default {
     padding: 10px;
     color: var(--dropdown-text);
     background-color: var(--dropdown-bg);
-    border: 1px solid var(--dropdown-border);
+    border-top: 1px solid var(--dropdown-border);
     height: 75vh;
   }
 </style>

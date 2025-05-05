@@ -21,7 +21,12 @@ export default ({
         return [_EDIT, _VIEW].includes(value);
       },
       default: _EDIT,
-    }
+    },
+
+    hiddenAriaDescribedLabel: {
+      type:    String,
+      default: ''
+    },
   },
 
 });
@@ -29,12 +34,20 @@ export default ({
 
 <template>
   <div>
+    <p
+      v-if="hiddenAriaDescribedLabel"
+      id="hidden-label-notification-settings"
+      class="sr-only"
+    >
+      {{ hiddenAriaDescribedLabel }}
+    </p>
     <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
           :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
+          aria-describedby="hidden-label-notification-settings"
           @update:value="value.showMessage = $event.toString()"
         />
       </div>
@@ -48,6 +61,7 @@ export default ({
               :mode="mode"
               :disabled="value.showMessage === 'false'"
               :label="t('notifications.loginError.messageLabel')"
+              aria-describedby="hidden-label-notification-settings"
             />
           </div>
         </div>
