@@ -309,7 +309,15 @@ BODY, .theme-light {
   --warning-light-bg           : #{rgba($warning, 0.05)};
 
   .text-warning {
-    color: var(--warning) !important;
+    color: #CC6600;
+
+    &::before {
+      position: relative;
+      top: 1px;
+      content: '\ea72';
+      font-family: "icons" !important;
+      margin-right: 4px;
+    }
   }
 
   .bg-warning {
@@ -340,7 +348,15 @@ BODY, .theme-light {
   --error-light-bg           : #{rgba($error, 0.05)};
 
   .text-error {
-    color: var(--error) !important;
+    color: var(--error);
+
+    &::before {
+      position: relative;
+      top: 1px;
+      content: '\ea28';
+      font-family: "icons" !important;
+      margin-right: 4px;
+    }
   }
 
   .bg-error {
