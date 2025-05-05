@@ -8,33 +8,26 @@ export default meta;
 type Story = StoryObj;
 
 export const Default: Story = {
-  render: (args: any) => ({
+  render: () => ({
     components: {
       Form, Field, LabeledInput
     },
+    data:     () => ({ value: '' }),
     template: `
-      <Form>
-        <Field
-          name="field"
-          value=""
-          :rules="(value) => value && value.trim() ? true : 'This is required'"
-          v-slot="{ field, meta }"
-        >
-          <LabeledInput
-            name="field"
-            v-bind="field"
-            placeholder="Keep it empty and blur this field"
-            :subLabel="meta.errors.join(', ')"
-            :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
-            :tooltipKey="!!meta.errors.length ? meta.errors.join(', ') : meta.touched ? 'Input correct' : undefined"
-          />
-          <br />
-          <br />
-          <details>
-            <summary>Meta</summary>
-            <pre>Meta: {{ meta }}</pre>
-          </details>
-        </Field>
+      <Form v-slot="{ errors, meta: formMeta }">
+        <LabeledInput
+          v-model:value="value"
+          :veerules="(value) => value && value.trim() ? true : 'This is required'"
+          placeholder="Keep it empty and blur this field"
+        />
+        <br />
+        <br />
+        <details>
+          <summary>Meta</summary>
+          <pre>Value: {{ value }}</pre>
+          <pre>Meta: {{ formMeta }}</pre>
+          <pre>Errors: {{ errors }}</pre>
+        </details>
       </Form>
     `,
   }),

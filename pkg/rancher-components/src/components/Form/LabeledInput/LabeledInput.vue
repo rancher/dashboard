@@ -8,6 +8,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { Field } from 'vee-validate';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -20,7 +21,9 @@ const provideProps: NonReactiveProps = {
 };
 
 export default defineComponent({
-  components: { LabeledTooltip, TextAreaAutoGrow },
+  components: {
+    LabeledTooltip, TextAreaAutoGrow, Field
+  },
 
   inheritAttrs: false,
 
@@ -149,6 +152,7 @@ export default defineComponent({
       updated:          false,
       validationErrors: '',
       inputId:          `input-${ generateRandomAlphaString(12) }`,
+      fieldName:        `field-${ generateRandomAlphaString(12) }`,
       describedById:    `described-by-${ generateRandomAlphaString(12) }`
     };
   },
@@ -270,6 +274,8 @@ export default defineComponent({
     if (id) {
       this.inputId = id;
     }
+
+    this.fieldName = this.$attrs?.name as string || this.fieldName;
   },
 
   created() {
@@ -347,121 +353,136 @@ export default defineComponent({
 </script>
 
 <template>
-  <div
-    :class="{
-      'labeled-input': true,
-      focused,
-      [mode]: true,
-      disabled: isDisabled,
-      [status]: status,
-      suffix: hasSuffix,
-      'v-popper--has-tooltip': hasTooltip,
-      'compact-input': isCompact,
-      hideArrows,
-      [className]: true
-    }"
+  <Field
+    v-slot="{ field, meta }"
+    :rules="value => veerules ? veerules(value) : true"
+    :name="fieldName"
   >
-    <slot name="label">
-      <label
-        v-if="hasLabel"
-        :for="inputId"
-      >
-        <t
-          v-if="labelKey"
-          :k="labelKey"
-        />
-        <template v-else-if="label">{{ label }}</template>
-
-        <span
-          v-if="requiredField"
-          class="required"
-          :aria-hidden="true"
-        >*</span>
-      </label>
-    </slot>
-
-    <slot name="prefix" />
-
-    <slot name="field">
-      <TextAreaAutoGrow
-        v-if="type === 'multiline' || type === 'multiline-password'"
-        :id="inputId"
-        ref="value"
-        v-bind="$attrs"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :aria-disabled="isDisabled"
-        :value="value || ''"
-        :placeholder="_placeholder"
-        autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
-        :aria-describedby="ariaDescribedBy"
-        :aria-required="requiredField"
-        @update:value="onInput"
-        @focus="onFocus"
-        @blur="onBlur"
-      />
-      <input
-        v-else
-        :id="inputId"
-        ref="value"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :role="type === 'number' ? undefined : 'textbox'"
-        :class="{ 'no-label': !hasLabel }"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :aria-disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
-        :value="value"
-        :placeholder="_placeholder"
-        autocomplete="off"
-        autocapitalize="off"
-        :data-lpignore="ignorePasswordManagers"
-        :aria-describedby="ariaDescribedBy"
-        :aria-required="requiredField"
-        @input="onInput"
-        @focus="onFocus"
-        @blur="onBlur"
-        @change="onChange"
-      >
-    </slot>
-
-    <slot name="suffix" />
-    <!-- informational tooltip about field -->
-    <LabeledTooltip
-      v-if="hasTooltip"
-      :hover="hoverTooltip"
-      :value="tooltipValue"
-      :status="status"
-    />
-    <!-- validation tooltip -->
-    <LabeledTooltip
-      v-if="!!validationMessage"
-      :hover="hoverTooltip"
-      :value="validationMessage"
-    />
     <div
-      v-if="cronHint || subLabel"
-      class="sub-label"
-      data-testid="sub-label"
+      :class="{
+        'error': meta.errors && !!meta.errors.length,
+        'success': veerules && meta.touched && meta.errors && !meta.errors.length,
+        'labeled-input': true,
+        focused,
+        [mode]: true,
+        disabled: isDisabled,
+        [status]: status,
+        suffix: hasSuffix,
+        'v-popper--has-tooltip': hasTooltip,
+        'compact-input': isCompact,
+        hideArrows,
+        [className]: true
+      }"
     >
-      <div
-        v-if="cronHint"
-        :id="describedById"
-        role="alert"
-        :aria-label="cronHint"
-      >
-        {{ cronHint }}
-      </div>
-      <div
-        v-else-if="subLabel"
-        :id="describedById"
-        v-clean-html="subLabel"
+      <slot name="label">
+        <label
+          v-if="hasLabel"
+          :for="inputId"
+        >
+          <t
+            v-if="labelKey"
+            :k="labelKey"
+          />
+          <template v-else-if="label">{{ label }}</template>
+
+          <span
+            v-if="requiredField"
+            class="required"
+            :aria-hidden="true"
+          >*</span>
+        </label>
+      </slot>
+
+      <slot name="prefix" />
+
+      <slot name="field">
+        <TextAreaAutoGrow
+          v-if="type === 'multiline' || type === 'multiline-password'"
+          :id="inputId"
+          ref="value"
+          v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+          :name="field"
+          v-bind="field"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :aria-disabled="isDisabled"
+          :value="value || ''"
+          :placeholder="_placeholder"
+          autocapitalize="off"
+          :class="{ conceal: type === 'multiline-password' }"
+          :aria-describedby="ariaDescribedBy"
+          :aria-required="requiredField"
+          @update:value="onInput"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+        <input
+          v-else
+          :id="inputId"
+          ref="value"
+          v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+          role="textbox"
+          :class="{ 'no-label': !hasLabel }"
+          v-bind="field"
+          :name="field"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :aria-disabled="isDisabled"
+          :type="type === 'cron' ? 'text' : type"
+          :value="value"
+          :placeholder="_placeholder"
+          autocomplete="off"
+          autocapitalize="off"
+          :data-lpignore="ignorePasswordManagers"
+          :aria-describedby="ariaDescribedBy"
+          :aria-required="requiredField"
+          @input="onInput"
+          @focus="onFocus"
+          @blur="onBlur"
+          @change="onChange"
+        >
+      </slot>
+
+      <slot name="suffix" />
+      <!-- informational tooltip about field -->
+      <LabeledTooltip
+        v-if="hasTooltip || (veerules && meta.touched && meta.errors && !meta.errors.length)"
+        :hover="hoverTooltip"
+        :value="tooltipValue || 'Input correct'"
+        :status="(veerules && meta.touched && meta.errors && !meta.errors.length) ? 'success' : status"
       />
+      <!-- validation tooltip -->
+      <LabeledTooltip
+        v-if="!!validationMessage || (meta.errors && meta.errors.length)"
+        :hover="hoverTooltip"
+        :value="validationMessage || meta.errors.join(', ')"
+      />
+      <div
+        v-if="cronHint || subLabel || (meta.errors && meta.errors.length)"
+        class="sub-label"
+        data-testid="sub-label"
+      >
+        <div
+          v-if="cronHint"
+          :id="describedById"
+          role="alert"
+          :aria-label="cronHint"
+        >
+          {{ cronHint }}
+        </div>
+        <div
+          v-else-if="subLabel"
+          :id="describedById"
+          v-clean-html="subLabel"
+        />
+        <div
+          v-else-if="meta && meta.errors && meta.errors.length"
+          :id="describedById"
+          v-clean-html="meta.errors.join(', ')"
+        />
+      </div>
     </div>
-  </div>
+  </Field>
 </template>
 <style scoped lang="scss">
 .labeled-input.view {
