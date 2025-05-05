@@ -25,7 +25,6 @@ export default {
       type:    Array,
       default: () => []
     },
-    // TODO: handle console warns if we remove this prop...
     registerBackgroundClosing: {
       type:    Function,
       default: () => {}
