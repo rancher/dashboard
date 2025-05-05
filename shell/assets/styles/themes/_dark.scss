@@ -78,6 +78,9 @@
   $error           : #B13333;
   $info            : #1F67DB;
 
+  --error-text    : #FFAC99;
+  --warning-text  : #{$warning};
+
   --success-banner    : #{rgba($success, 10%)};
   --on-success-banner : #{$success};
 
@@ -320,4 +323,11 @@
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
   --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
   --sortable-table-group-label  : #{$grey-30};
+
+  .text-error {
+    color: var(--error-text);
+  }
+  .text-warning {
+    color: var(--warning-text);
+  }
 }
