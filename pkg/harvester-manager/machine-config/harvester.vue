@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import YAML from 'yaml';
 import { isBase64 } from '@shell/utils/string';
-
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
@@ -944,27 +943,10 @@ export default {
     },
 
     updateUserData(templateValue) {
-      try {
-        const templateJsonData = this.convertToJson(templateValue);
+      this.installAgent = false;
 
-        let userDataYaml;
-
-        if (this.installAgent) {
-          const mergedObj = Object.assign(templateJsonData, { ...QGA_JSON });
-
-          userDataYaml = this.addCloudConfigComment(mergedObj);
-        } else {
-          userDataYaml = templateValue;
-        }
-
-        this.$refs.userDataYamlEditor.updateValue(userDataYaml);
-        this.userData = userDataYaml;
-      } catch (e) {
-        this.$store.dispatch('growl/error', {
-          title:   this.t('generic.notification.title.error'),
-          message: this.t('harvesterManager.rke.templateError')
-        }, { root: true });
-      }
+      this.$refs.userDataYamlEditor.updateValue(templateValue);
+      this.userData = templateValue;
     },
 
     updateVGpu() {

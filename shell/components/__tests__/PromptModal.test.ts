@@ -21,6 +21,8 @@ import SloDialog from '@shell/dialog/SloDialog.vue';
 
 import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
+import ImportDialog from '@shell/dialog/ImportDialog.vue';
+import SearchDialog from '@shell/dialog/SearchDialog.vue';
 import { createStore } from 'vuex';
 
 jest.mock('@shell/utils/clipboard', () => {
@@ -93,7 +95,9 @@ describe('component: PromptModal', () => {
     ['ScalePoolDownDialog', ScalePoolDownDialog],
     // new modals created/moved
     ['DisableAuthProviderDialog', DisableAuthProviderDialog],
-    ['WechatDialog', WechatDialog]
+    ['WechatDialog', WechatDialog],
+    ['ImportDialog', ImportDialog],
+    ['SearchDialog', SearchDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,
