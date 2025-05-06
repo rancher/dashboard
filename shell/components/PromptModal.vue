@@ -86,13 +86,13 @@ export default {
       // so that we know when the component is rendered
       this.componentRendered = true;
     },
-    close() {
+    close(data) {
       if (!this.opened) {
         return;
       }
 
       this.errors = [];
-      this.$store.commit('action-menu/togglePromptModal');
+      this.$store.commit('action-menu/togglePromptModal', data);
       if (this.backgroundClosing) {
         this.backgroundClosing();
       }
@@ -123,7 +123,7 @@ export default {
     :return-focus-selector="returnFocusSelector"
     :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
     :focus-trap-watcher-based-variable="componentRendered"
-    @close="close()"
+    @close="close"
   >
     <component
       v-bind="modalData.componentProps || {}"
@@ -131,7 +131,7 @@ export default {
       :resources="resources"
       :register-background-closing="registerBackgroundClosing"
       @vue:mounted="onSlotComponentMounted"
-      @close="close()"
+      @close="close"
     />
   </app-modal>
 </template>

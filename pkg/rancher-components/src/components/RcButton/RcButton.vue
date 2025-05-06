@@ -51,7 +51,7 @@ defineExpose({ focus });
   <button
     ref="RcFocusTarget"
     role="button"
-    :class="{ ...buttonClass, ...($attrs.class || { }) }"
+    :class="{ ...buttonClass }"
   >
     <slot name="before">
       <!-- Empty Content -->
