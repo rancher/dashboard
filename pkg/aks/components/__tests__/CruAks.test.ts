@@ -19,7 +19,9 @@ const mockedStore = (versionSetting: any) => {
       'management/schemaFor': jest.fn(),
       'rancher/create':       () => {}
     },
-    dispatch: jest.fn()
+    dispatch: (cmd, args) => {
+      return cmd === 'rancher/clone' ? args?.resource : null;
+    }
   };
 };
 
@@ -124,5 +126,31 @@ describe('aks provisioning form', () => {
     expect(clusterDropdown.exists()).toBe(false);
 
     expect(wrapper.vm.fvUnreportedValidationErrors).toHaveLength(0);
+  });
+
+  it.each([
+    ['1.26', '1.26.3', '1.26.3'],
+    ['1.26.2', '1.26.3', '1.26.2'],
+    ['1.28.2', '1.26.3', '1.28.2'],
+
+  ])('should fall back to using the management cluster status.version.gitVersion when the version in spec is missing a patch', async(specVersion, statusVersion, expected) => {
+    const mockValue = {
+      id:                'test',
+      waitForMgmt:       () => {},
+      findNormanCluster: () => {
+        return { aksConfig: { kubernetesVersion: specVersion } };
+      },
+      mgmt: { status: { version: { gitVersion: statusVersion } } }
+    };
+
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: mockValue, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+
+    await (CruAks as any).fetch.call(wrapper.vm);
+    expect(wrapper.vm.originalVersion).toBe(expected);
   });
 });
