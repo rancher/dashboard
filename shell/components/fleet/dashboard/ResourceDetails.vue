@@ -1,13 +1,16 @@
 <script>
+import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources';
+import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
 
 export default {
   name: 'FleetDashboardResourceDetails',
 
   components: {
-    FleetResources,
-    LabeledSelect
+    LabeledSelect,
+    FleetRepo,
+    FleetResources
   },
 
   props: {
@@ -28,7 +31,10 @@ export default {
   },
 
   data() {
-    return { cluster: null };
+    return {
+      FLEET,
+      cluster: null
+    };
   },
 
   mounted() {
@@ -64,7 +70,7 @@ export default {
         <router-link
           :to="value.detailLocation"
         >
-          {{ value.nameDisplay }}
+          {{ value.id }}
         </router-link>
         <i
           v-if="statePanel.id !== 'success'"
@@ -81,6 +87,16 @@ export default {
         @click="closePanel"
       />
     </div>
+
+    <template v-if="value.type === FLEET.GIT_REPO">
+      <h3>
+        {{ t('fleet.dashboard.source') }}
+      </h3>
+      <div class="mb-15">
+        <FleetRepo :row="value" />
+      </div>
+    </template>
+
     <h3>
       {{ t('fleet.dashboard.resources') }}
     </h3>
