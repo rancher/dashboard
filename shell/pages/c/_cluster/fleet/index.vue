@@ -83,6 +83,10 @@ export default {
           type:            FLEET.GIT_REPO,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
         },
+        helmOps: {
+          type:            FLEET.HELM_OP,
+          schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
+        },
       };
 
       const permissions = await checkPermissions(permissionsSchemas, this.$store.getters);
@@ -173,7 +177,7 @@ export default {
     },
 
     applicationStates() {
-      return this._groupByWorkspace((ws) => this._resourceStates(ws.repos));
+      return this._groupByWorkspace((ws) => this._resourceStates([ ...ws.repos, ...ws.helmOps ]));
     },
 
     clusterStates() {
@@ -499,7 +503,7 @@ export default {
             </div>
             <div class="body">
               <ResourcePanel
-                v-if="workspace.repos?.length"
+                v-if="workspace.repos?.length || workspace.helmOps?.length"
                 :data-testid="'resource-panel-applications'"
                 :states="applicationStates[workspace.id]"
                 :workspace="workspace.id"
@@ -528,7 +532,7 @@ export default {
           </div>
           <div class="card-panel-main-actions">
             <div
-              v-if="workspace.repos?.length"
+              v-if="workspace.repos?.length || workspace.helmOps?.length"
               class="expand-button"
               :data-testid="'expand-button'"
             >
@@ -628,7 +632,7 @@ export default {
                     <span class="partial">
                       {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
-                    <span class="total label-secondary">/{{ workspace.repos.length }}</span>
+                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...workspace.helmOps ].length }}</span>
                   </div>
                 </div>
                 <div
