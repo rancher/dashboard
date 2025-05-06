@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
+import { IPlugin, PanelLocation } from '@shell/core/types';
 import { installDocHandler } from './docs';
 
 import routing from './routing/index';
@@ -27,4 +27,7 @@ export default function(plugin: IPlugin) {
 
   // Add routes
   plugin.addRoutes(routing);
+
+  // About page panel
+  plugin.addPanel(PanelLocation.ABOUT_TOP, {}, { component: () => import('./components/AboutPanel.vue') });
 }
