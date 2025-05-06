@@ -2,22 +2,21 @@
 /**
  * An item for a dropdown menu. Used in conjunction with RcDropdown.
  */
+import { Checkbox as RcCheckbox } from '@components/Form/Checkbox';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
-const props = defineProps({ disabled: Boolean });
+const props = defineProps({ modelValue: Boolean, disabled: Boolean });
 const emits = defineEmits(['click']);
 
-const { handleKeydown, close, handleActivate } = useDropdownItem();
+const { handleKeydown, handleActivate } = useDropdownItem();
 
-const handleClick = (e: MouseEvent) => {
+const handleClick = () => {
   if (props.disabled) {
     return;
   }
 
-  emits('click', e);
-  close();
+  emits('click', !props.modelValue);
 };
-
 </script>
 
 <template>
@@ -25,19 +24,20 @@ const handleClick = (e: MouseEvent) => {
     ref="dropdownMenuItem"
     dropdown-menu-item
     tabindex="-1"
-    role="menuitem"
+    role="menuitemcheckbox"
     :disabled="disabled || null"
     :aria-disabled="disabled || false"
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
   >
-    <slot name="before">
-      <!--Empty slot content-->
-    </slot>
-    <slot name="default">
-      <!--Empty slot content-->
-    </slot>
+    <rc-checkbox :value="modelValue">
+      <template #label>
+        <slot name="default">
+          <!--Empty slot content-->
+        </slot>
+      </template>
+    </rc-checkbox>
   </div>
 </template>
 

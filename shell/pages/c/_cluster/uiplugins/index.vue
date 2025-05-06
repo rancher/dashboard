@@ -15,8 +15,6 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import LazyImage from '@shell/components/LazyImage';
 import { BadgeState } from '@components/BadgeState';
-import UninstallDialog from './UninstallDialog.vue';
-import InstallDialog from './InstallDialog.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
@@ -56,12 +54,10 @@ export default {
     Banner,
     CatalogLoadDialog,
     CatalogUninstallDialog,
-    InstallDialog,
     LazyImage,
     PluginInfoPanel,
     Tab,
     Tabbed,
-    UninstallDialog,
     SetupUIPlugins,
     TabTitle
   },
@@ -575,7 +571,22 @@ export default {
       ev.preventDefault();
       ev.stopPropagation();
 
-      this.$refs.installDialog.showDialog(plugin, mode);
+      this.$store.dispatch('management/promptModal', {
+        component:                            'InstallExtensionDialog',
+        testId:                               'install-extension-modal',
+        returnFocusSelector:                  `[data-testid="extension-card-${ mode }-btn-${ plugin?.name }"]`,
+        returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+        componentProps:                       {
+          plugin,
+          mode,
+          updateStatus: (pluginName, type) => {
+            this.updatePluginInstallStatus(pluginName, type);
+          },
+          closed: (res) => {
+            this.didInstall(res);
+          }
+        }
+      });
     },
 
     showUninstallDialog(plugin, ev) {
@@ -583,7 +594,21 @@ export default {
       ev.preventDefault();
       ev.stopPropagation();
 
-      this.$refs.uninstallDialog.showDialog(plugin);
+      this.$store.dispatch('management/promptModal', {
+        component:                            'UninstallExtensionDialog',
+        testId:                               'uninstall-extension-modal',
+        returnFocusSelector:                  `[data-testid="extension-card-uninstall-btn-${ plugin.name }"]`,
+        returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+        componentProps:                       {
+          plugin,
+          updateStatus: (pluginName, type) => {
+            this.updatePluginInstallStatus(pluginName, type);
+          },
+          closed: (res) => {
+            this.didUninstall(res);
+          }
+        }
+      });
     },
 
     didUninstall(plugin) {
@@ -1025,16 +1050,6 @@ export default {
       </template>
     </div>
 
-    <InstallDialog
-      ref="installDialog"
-      @closed="didInstall"
-      @update="updatePluginInstallStatus"
-    />
-    <UninstallDialog
-      ref="uninstallDialog"
-      @closed="didUninstall"
-      @update="updatePluginInstallStatus"
-    />
     <CatalogLoadDialog
       ref="catalogLoadDialog"
       @closed="didInstall"

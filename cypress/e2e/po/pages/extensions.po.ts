@@ -151,7 +151,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
-    return this.self().get('[data-modal="installPluginDialog"]');
+    return this.self().get('[data-testid="install-extension-modal"]');
   }
 
   installModalSelectVersionLabel(label: string): Cypress.Chainable {
@@ -180,7 +180,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension uninstall modal ------------------
   extensionUninstallModal() {
-    return this.self().get('[data-modal="uninstallPluginDialog"]');
+    return this.self().get('[data-testid="uninstall-extension-modal"]');
   }
 
   uninstallModalCancelClick(): Cypress.Chainable {
