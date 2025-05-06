@@ -48,6 +48,7 @@
     "sass": "1.83.1",
     "typescript": "5.6.3",
     "vue": "^3.2.13",
+    "vee-validate": "4.15.0",
     "eslint-plugin-local-rules": "link:../../eslint-plugin-local-rules"
   },
   "peerDependencies": {

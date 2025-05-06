@@ -22,6 +22,9 @@ import SloDialog from '@shell/dialog/SloDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
 import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
 import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
+import ImportDialog from '@shell/dialog/ImportDialog.vue';
+import SearchDialog from '@shell/dialog/SearchDialog.vue';
+
 import { createStore } from 'vuex';
 
 jest.mock('@shell/utils/clipboard', () => {
@@ -96,6 +99,8 @@ describe('component: PromptModal', () => {
     ['WechatDialog', WechatDialog],
     ['InstallExtensionDialog', InstallExtensionDialog],
     ['UninstallExtensionDialog', UninstallExtensionDialog],
+    ['ImportDialog', ImportDialog],
+    ['SearchDialog', SearchDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,
