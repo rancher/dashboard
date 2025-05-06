@@ -21,6 +21,8 @@ import SloDialog from '@shell/dialog/SloDialog.vue';
 
 import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
+import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
+import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import SearchDialog from '@shell/dialog/SearchDialog.vue';
@@ -102,6 +104,8 @@ describe('component: PromptModal', () => {
     // new modals created/moved
     ['DisableAuthProviderDialog', DisableAuthProviderDialog],
     ['WechatDialog', WechatDialog],
+    ['InstallExtensionDialog', InstallExtensionDialog],
+    ['UninstallExtensionDialog', UninstallExtensionDialog],
     ['KnownHostsEditDialog', KnownHostsEditDialog],
     ['ImportDialog', ImportDialog],
     ['SearchDialog', SearchDialog],
