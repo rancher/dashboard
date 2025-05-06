@@ -8,10 +8,12 @@ import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
 import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
   components: {
-    BackLink, Loading, TabTitle
+    BackLink, ExtensionPanel, Loading, TabTitle
   },
   mixins: [BackRoute],
   async fetch() {
@@ -19,8 +21,10 @@ export default {
   },
   data() {
     return {
-      dashboardVersion: this.$config.dashboardVersion,
-      settings:         null,
+      extensionType:     ExtensionPoint.PANEL,
+      extensionLocation: PanelLocation.ABOUT_TOP,
+      dashboardVersion:  this.$config.dashboardVersion,
+      settings:          null,
       SETTING
     };
   },
@@ -115,6 +119,12 @@ export default {
         {{ t('about.diagnostic.title') }}
       </router-link>
     </div>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="{}"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
     <h3>{{ t('about.versions.title') }}</h3>
     <table>
       <thead>

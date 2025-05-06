@@ -13,7 +13,6 @@ import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
-import AssignTo from '@shell/components/AssignTo';
 import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
@@ -36,7 +35,6 @@ export default {
   components: {
     PromptRemove,
     PromptRestore,
-    AssignTo,
     PromptModal,
     Header,
     ActionMenu,
@@ -211,7 +209,6 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
-        <AssignTo />
         <PromptModal />
         <ModalManager />
         <button
