@@ -97,7 +97,6 @@ export default {
   >
     <template #title>
       <h4 class="text-default-text">
-        NEW!!!
         {{ t('moveModal.title') }}
       </h4>
     </template>
