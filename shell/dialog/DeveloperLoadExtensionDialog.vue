@@ -163,15 +163,6 @@ export default {
 </script>
 
 <template>
-  <!-- <app-modal
-    v-if="showModal"
-    name="developerInstallPluginDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    @close="closeDialog()"
-  > -->
   <div class="plugin-install-dialog">
     <h4>
       {{ t('plugins.developer.title') }}
