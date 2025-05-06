@@ -21,7 +21,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     cy.createE2EResourceName('repo').as('repoName');
   });
 
-  it.only('can create a repository', function() {
+  it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
