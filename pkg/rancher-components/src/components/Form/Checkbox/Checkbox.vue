@@ -142,6 +142,18 @@ export default defineComponent({
   },
 
   computed: {
+    ariaDescribedBy(): string | undefined {
+      const inheritedDescribedBy = this.$attrs['aria-describedby'];
+      const internalDescribedBy = this.descriptionKey || this.description ? this.describedById : undefined;
+
+      if (inheritedDescribedBy && internalDescribedBy) {
+        return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
+      } else if (inheritedDescribedBy || internalDescribedBy) {
+        return `${ inheritedDescribedBy || internalDescribedBy }`;
+      }
+
+      return undefined;
+    },
     /**
      * Determines if the checkbox is disabled.
      * @returns boolean: True when the disabled prop is true or when mode is
@@ -176,7 +188,7 @@ export default defineComponent({
     },
 
     idForLabel():string {
-      return `${ this.id }-label`;
+      return `${ generateRandomAlphaString(12) }-checkbox-label`;
     }
   },
 
@@ -283,7 +295,7 @@ export default defineComponent({
         :aria-label="replacementLabel"
         :aria-checked="!!value"
         :aria-labelledby="labelKey || label ? idForLabel : undefined"
-        :aria-describedby="descriptionKey || description ? describedById : undefined"
+        :aria-describedby="ariaDescribedBy"
         role="checkbox"
       />
       <span

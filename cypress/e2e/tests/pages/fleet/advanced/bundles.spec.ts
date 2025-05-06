@@ -62,7 +62,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundleeDetailsPage.waitForPage();
 
       // check table headers
-      const expectedHeadersDetailsViewEvents = ['State', 'API Version', 'Kind', 'Name', 'Namespace'];
+      const expectedHeadersDetailsViewEvents = ['State', 'Cluster', 'API Version', 'Kind', 'Name', 'Namespace'];
 
       fleetBundleeDetailsPage.list().resourceTable().sortableTable()
         .tableHeaderRow()

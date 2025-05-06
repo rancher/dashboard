@@ -51,6 +51,12 @@ export default class Feature extends HybridModel {
   }
 
   toggleFeatureFlag(resources = this) {
-    this.$dispatch('promptUpdate', resources);
+    this.$dispatch('promptModal', {
+      component:  'FeatureFlagListDialog',
+      resources:  !Array.isArray(resources) ? [resources] : resources,
+      modalWidth: '450',
+      height:     'auto',
+      styles:     'max-height: 100vh;'
+    });
   }
 }

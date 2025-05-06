@@ -196,16 +196,8 @@ export default {
     }
   },
 
-  promptMove({ commit, state }, resources) {
-    commit('action-menu/togglePromptMove', resources, { root: true });
-  },
-
   promptRestore({ commit, state }, resources ) {
     commit('action-menu/togglePromptRestore', resources, { root: true });
-  },
-
-  assignTo({ commit, state }, resources = []) {
-    commit('action-menu/toggleAssignTo', resources, { root: true });
   },
 
   async resourceAction({ getters, dispatch }, {
@@ -232,10 +224,6 @@ export default {
     } else {
       return res;
     }
-  },
-
-  promptUpdate({ commit, state }, resources = []) {
-    commit('action-menu/togglePromptUpdate', resources, { root: true });
   },
 
   async collectionAction({ getters, dispatch }, {

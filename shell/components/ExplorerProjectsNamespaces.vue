@@ -9,7 +9,6 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
-import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
@@ -24,7 +23,6 @@ export default {
   components: {
     ExtensionPanel,
     Masthead,
-    MoveModal,
     ResourceTable,
     ButtonMultiAction,
     ActionMenu,
@@ -89,9 +87,20 @@ export default {
       }
     };
   },
-
+  watch: {
+    actionCb: {
+      handler(neu) {
+        if (neu?.moveNamespaceCb) {
+          this.clearSelection();
+          this.$store.dispatch('action-menu/clearCallbackData');
+        }
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters({ actionCb: 'action-menu/performCallbackData' }),
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -569,7 +578,6 @@ export default {
         </tr>
       </template>
     </ResourceTable>
-    <MoveModal @moving="clearSelection" />
   </div>
 </template>
 <style lang="scss" scoped>

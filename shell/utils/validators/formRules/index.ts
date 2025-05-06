@@ -62,8 +62,21 @@ export interface ValidationOptions {
   key?: string,
 }
 
-// "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions): { [key:string]: Validator<any> | ValidatorFactory } {
+/**
+ * @param t the function name we use for getting a translated string
+ * @param key the argument passed to the translation to reference the label
+ * @returns { Validator<any> | ValidatorFactory } A dictionary of actual validation functions or factories (require parameter)
+ * @description
+ * This function returns a set of validators that can be used in the form validation process.
+ * @example
+ * const validators = formRulesGenerator(t, { key: 'MyLabel' });
+ * validators.required(); // '"MyLabel" is required'
+ * validators.minLength(5)('123'); // '"MyLabel" must contain more than 5 characters'
+ */
+export default function(
+  t: Translation,
+  { key = 'MyLabel' }: ValidationOptions
+): { [key: string]: Validator<any> | ValidatorFactory } {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
