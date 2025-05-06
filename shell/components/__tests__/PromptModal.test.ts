@@ -23,9 +23,11 @@ import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.v
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import SearchDialog from '@shell/dialog/SearchDialog.vue';
+import ChangePasswordDialog from '@shell/dialog/ChangePasswordDialog.vue';
 import AssignToDialog from '@shell/dialog/AssignToDialog.vue';
 import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
+
 import { createStore } from 'vuex';
 
 jest.mock('@shell/utils/clipboard', () => {
@@ -101,6 +103,7 @@ describe('component: PromptModal', () => {
     ['WechatDialog', WechatDialog],
     ['ImportDialog', ImportDialog],
     ['SearchDialog', SearchDialog],
+    ['ChangePasswordDialog', ChangePasswordDialog],
     ['AssignToDialog', AssignToDialog],
     ['FeatureFlagListDialog', FeatureFlagListDialog],
     ['MoveNamespaceDialog', MoveNamespaceDialog],
