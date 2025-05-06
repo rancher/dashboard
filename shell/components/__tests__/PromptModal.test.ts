@@ -23,8 +23,10 @@ import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.v
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
 import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
 import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
+import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import SearchDialog from '@shell/dialog/SearchDialog.vue';
+import ChangePasswordDialog from '@shell/dialog/ChangePasswordDialog.vue';
 import AssignToDialog from '@shell/dialog/AssignToDialog.vue';
 import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
@@ -104,8 +106,10 @@ describe('component: PromptModal', () => {
     ['WechatDialog', WechatDialog],
     ['InstallExtensionDialog', InstallExtensionDialog],
     ['UninstallExtensionDialog', UninstallExtensionDialog],
+    ['KnownHostsEditDialog', KnownHostsEditDialog],
     ['ImportDialog', ImportDialog],
     ['SearchDialog', SearchDialog],
+    ['ChangePasswordDialog', ChangePasswordDialog],
     ['AssignToDialog', AssignToDialog],
     ['FeatureFlagListDialog', FeatureFlagListDialog],
     ['MoveNamespaceDialog', MoveNamespaceDialog],
