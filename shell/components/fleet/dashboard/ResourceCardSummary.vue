@@ -21,6 +21,10 @@ export default {
     },
   },
 
+  data() {
+    return { typeLabel: this.t(`typeLabel."${ this.value.type }"`, { count: 1 }) };
+  },
+
   computed: {
     counts() {
       return this.value.status?.resourceCounts || {};
@@ -60,6 +64,13 @@ export default {
       return sortBy(out, 'sort:desc');
     },
 
+    noClustersWarning() {
+      if (!this.value.status?.desiredReadyClusters) {
+        return this.t('fleet.dashboard.cards.noClusters', { type: this.typeLabel });
+      }
+
+      return null;
+    },
   },
 };
 </script>
@@ -86,20 +97,26 @@ export default {
         v-else
         class="description"
       >
-        <i
-          v-if="statePanel.id !== 'success'"
-          class="icon-lg"
-          :class="statePanel.icon"
-          :style="{ color: statePanel.color }"
-        />
-        <div class="label">
-          <span class="large">{{ summary.partial }}</span>
-          <span v-if="summary.partial !== summary.total && summary.total !== 0">/{{ summary.total }}</span>
-          &nbsp;
-          <span>{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
-          <span class="large">{{ summary.clusters }}</span>
-          <span>{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
-        </div>
+        <template v-if="noClustersWarning">
+          <i class="icon icon-lg icon-warning text-warning" />
+          <span>{{ noClustersWarning }}</span>
+        </template>
+        <template v-else>
+          <i
+            v-if="statePanel.id !== 'success'"
+            class="icon-lg"
+            :class="statePanel.icon"
+            :style="{ color: statePanel.color }"
+          />
+          <div class="label">
+            <span class="large">{{ summary.partial }}</span>
+            <span v-if="summary.partial !== summary.total && summary.total !== 0">/{{ summary.total }}</span>
+            &nbsp;
+            <span>{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
+            <span class="large">{{ summary.clusters }}</span>
+            <span>{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
+          </div>
+        </template>
       </div>
     </div>
   </div>
