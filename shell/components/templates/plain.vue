@@ -3,7 +3,6 @@ import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import Header from '@shell/components/nav/Header';
 import PromptRemove from '@shell/components/PromptRemove';
-import AssignTo from '@shell/components/AssignTo';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
@@ -21,7 +20,6 @@ export default {
 
   components: {
     ActionMenu,
-    AssignTo,
     Header,
     IndentedPanel,
     PromptRemove,
@@ -86,7 +84,6 @@ export default {
         <PromptRemove />
         <PromptModal />
         <ModalManager />
-        <AssignTo />
         <button
           v-if="themeShortcut"
           v-shortkey.once="['shift','t']"
