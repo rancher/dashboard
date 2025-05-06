@@ -180,7 +180,7 @@ export default {
       </div>
     </div>
 
-    <hr>
+    <hr role="none">
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
