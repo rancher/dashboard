@@ -49,7 +49,6 @@ describe('RKE2 Cilium CNI', () => {
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.goToDigitalOceanCreation('_');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);
@@ -105,7 +104,6 @@ describe('RKE2 Cilium CNI', () => {
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.goToDigitalOceanCreation('_');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);

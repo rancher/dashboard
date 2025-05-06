@@ -39,7 +39,6 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
 
     clusterList.createCluster();
     createRKE2ClusterPage.waitForPage();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCustom(0);
     createRKE2ClusterPage.title().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain('Cluster: Create Custom');
