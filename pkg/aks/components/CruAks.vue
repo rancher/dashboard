@@ -152,8 +152,7 @@ export default defineComponent({
       }
 
       // track original version on edit to ensure we don't offer k8s downgrades
-      // const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion)?.version;
-      const kubernetesVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
+      const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion)?.version;
 
       this.originalVersion = kubernetesVersion || '';
       // cluster spec version may not include a patch version if the cluster was created via terraform
