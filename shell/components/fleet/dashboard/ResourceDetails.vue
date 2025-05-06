@@ -64,7 +64,10 @@ export default {
 
 <template>
   <div class="details-panel">
-    <div class="header">
+    <div
+      class="header"
+      :data-testid="'fleet-dashboard-resource-details-header'"
+    >
       <div class="title">
         <i :class="value.dashboardIcon" />
         <router-link

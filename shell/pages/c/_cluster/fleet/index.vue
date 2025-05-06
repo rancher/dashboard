@@ -353,6 +353,7 @@ export default {
         v-for="(workspace, i) in workspaces"
         :key="i"
         class="card-container m-0 mt-20"
+        :data-testid="`fleet-dashboard-workspace-card-${ workspace.id }`"
         :show-actions="false"
         :show-separator="false"
         :show-highlight-border="false"
@@ -376,7 +377,7 @@ export default {
             <div class="body">
               <ResourcePanel
                 v-if="workspace.repos.length"
-                class="git-repo"
+                :data-testid="'resource-panel-git-repos'"
                 :resources="workspace.repos"
                 :workspace="workspace.id"
                 :type="FLEET.GIT_REPO"
@@ -385,7 +386,7 @@ export default {
               />
               <ResourcePanel
                 v-if="workspace.helmOps.length"
-                class="helm-ops"
+                :data-testid="'resource-panel-helm-ops'"
                 :resources="workspace.helmOps"
                 :workspace="workspace.id"
                 :type="FLEET.HELM_OP"
@@ -398,7 +399,7 @@ export default {
               />
               <ResourcePanel
                 v-if="workspace.clusters.length"
-                class="clusters"
+                :data-testid="'resource-panel-clusters'"
                 :resources="workspace.clusters"
                 :workspace="workspace.id"
                 :type="FLEET.CLUSTER"
@@ -408,7 +409,7 @@ export default {
               />
               <ResourcePanel
                 v-if="workspace.clusterGroups.length"
-                class="cluster-groups"
+                :data-testid="'resource-panel-cluster-groups'"
                 :resources="workspace.clusterGroups"
                 :workspace="workspace.id"
                 :type="FLEET.CLUSTER_GROUP"
@@ -422,6 +423,7 @@ export default {
             <div
               v-if="workspace.repos.length || workspace.helmOps.length"
               class="expand-button"
+              :data-testid="'expand-button'"
             >
               <i
                 :class="{
@@ -436,6 +438,7 @@ export default {
         <div
           v-if="!isWorkspaceCollapsed[workspace.id]"
           class="card-panel-expand mt-20"
+          :data-testid="'expanded-panel'"
         >
           <div
             v-if="!viewMode[workspace.id] || viewMode[workspace.id] === 'cards'"
@@ -464,6 +467,7 @@ export default {
               </div>
               <div class="cards-panel-view-buttons">
                 <ButtonGroup
+                  :data-testid="'view-button'"
                   :value="viewMode[workspace.id] || 'cards'"
                   :options="viewModeOptions"
                   @update:value="viewMode[workspace.id] = $event"
@@ -473,6 +477,7 @@ export default {
             <div
               v-for="(state, j) in cardStates"
               :key="j"
+              :data-testid="`state-panel-${ state.stateDisplay }`"
               class="card-panel mt-20"
             >
               <template v-if="cardResources[workspace.id][state.stateDisplay].length">
@@ -507,6 +512,7 @@ export default {
                     v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
                     :key="y"
                     class="resource-card"
+                    :data-testid="`card-${ item.id }`"
                     :value="item"
                     :state-panel="state.statePanel"
                     :selected="selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel"

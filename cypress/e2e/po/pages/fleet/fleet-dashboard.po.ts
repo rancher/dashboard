@@ -1,5 +1,5 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import FleetDashboardWorkspaceCardPo from '@/cypress/e2e/po/components/fleet/fleet-dashboard-workspace-card.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
@@ -35,12 +35,12 @@ export class FleetDashboardListPagePo extends BaseListPagePo {
       super(FleetDashboardListPagePo.createPath(clusterId));
     }
 
-    collapsibleTable(name: string) {
-      return new ResourceTablePo(this.self().find(`[data-testid="collapsible-card-${ name }"]`));
+    workspaceCard(name) {
+      return new FleetDashboardWorkspaceCardPo(name);
     }
 
-    goToGitRepoListLink(name: 'fleet-local' | 'fleet-default') {
-      return this.self().find(`[data-testid="collapsible-card-${ name }"] h2 span` );
+    slideInPanel() {
+      return cy.get('[data-testid="slide-in-panel-component"] [data-testid="fleet-dashboard-resource-details-header"]');
     }
 
     fleetDashboardEmptyState() {

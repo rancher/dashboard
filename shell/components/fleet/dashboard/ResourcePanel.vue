@@ -76,6 +76,7 @@ export default {
       const canvas = document.createElement('canvas');
 
       canvas.id = this.chartId;
+      canvas.className = 'chart';
 
       container.append(canvas);
 
@@ -186,10 +187,14 @@ export default {
     <div
       v-if="showChart"
       :id="chartId + '-container'"
-      class="chart"
+      :data-testid="'chart-container'"
+      class="panel-chart-container"
     />
     <div class="details">
-      <div class="description">
+      <div
+        class="description"
+        :data-testid="'description'"
+      >
         <span class="count">{{ resources.length }}</span>
         <span class="label">{{ typeLabel }}</span>
       </div>
@@ -225,7 +230,7 @@ export default {
     align-items: center;
     gap: 5px;
 
-    .chart {
+    .panel-chart-container {
       padding: 5px;
       min-width: 80px;
       width: 80px;
