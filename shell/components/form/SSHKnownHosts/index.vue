@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import KnownHostsEditDialog from './KnownHostsEditDialog.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default defineComponent({
@@ -20,8 +19,6 @@ export default defineComponent({
     },
   },
 
-  components: { KnownHostsEditDialog },
-
   computed: {
     isViewMode() {
       return this.mode === _VIEW;
@@ -40,7 +37,20 @@ export default defineComponent({
   methods: {
     openDialog() {
       (this.$refs.button as HTMLInputElement)?.blur();
-      (this.$refs.editDialog as any).showDialog();
+
+      this.$store.dispatch('management/promptModal', {
+        component:           'KnownHostsEditDialog',
+        returnFocusSelector: '#known-ssh-hosts-trigger',
+        testId:              'sshKnownHostsDialog',
+        height:              'auto',
+        componentProps:      {
+          mode:   this.mode,
+          value:  this.value,
+          closed: (res: any) => {
+            this.dialogClosed(res);
+          }
+        }
+      });
     },
 
     dialogClosed(result: any) {
@@ -78,13 +88,6 @@ export default defineComponent({
           :alt="t('secret.ssh.editKnownHosts.title')"
         />
       </button>
-
-      <KnownHostsEditDialog
-        ref="editDialog"
-        :value="value"
-        :mode="mode"
-        @closed="dialogClosed"
-      />
     </template>
   </div>
 </template>
