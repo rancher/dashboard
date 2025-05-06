@@ -6,7 +6,7 @@ import { BOTH, TYPE_MODES } from '@shell/store/type-map';
 import { COUNT } from '@shell/config/types';
 
 export default {
-  emits: ['closeSearch'],
+  emits: ['close'],
 
   components: { Group },
 
@@ -90,7 +90,7 @@ export default {
         role="textbox"
         :aria-label="t('nav.resourceSearch.label')"
         aria-describedby="describe-filter-resource-search"
-        @keyup.esc="$emit('closeSearch')"
+        @keyup.esc="$emit('close')"
       >
     </div>
     <div class="results">
@@ -106,7 +106,7 @@ export default {
           :group="g"
           :can-collapse="false"
           :fixed-open="true"
-          @close="$emit('closeSearch')"
+          @close="$emit('close')"
         >
           <template #accordion>
             <h6>{{ g.label }}</h6>

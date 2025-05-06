@@ -5,7 +5,6 @@ import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
-import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
@@ -16,7 +15,6 @@ import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 
-import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
@@ -36,9 +34,7 @@ export default {
   components: {
     NamespaceFilter,
     WorkspaceSwitcher,
-    Import,
     TopLevelMenu,
-    Jump,
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
@@ -79,9 +75,7 @@ export default {
       LOGGED_OUT,
       navHeaderRight:         null,
       extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this,
-      showImportModal:        false,
-      showSearchModal:        false
+      ctx:                    this
     };
   },
 
@@ -316,19 +310,24 @@ export default {
     },
 
     openImport() {
-      this.showImportModal = true;
-    },
-
-    closeImport() {
-      this.showImportModal = false;
+      this.$store.dispatch('cluster/promptModal', {
+        component:      'ImportDialog',
+        modalWidth:     '75%',
+        height:         'auto',
+        styles:         'max-height: 90vh;',
+        componentProps: { cluster: this.currentCluster }
+      });
     },
 
     openSearch() {
-      this.showSearchModal = true;
-    },
-
-    hideSearch() {
-      this.showSearchModal = false;
+      this.$store.dispatch('cluster/promptModal', {
+        component:           'SearchDialog',
+        testId:              'search-modal',
+        modalWidth:          '50%',
+        height:              'auto',
+        styles:              'max-height: 90vh;',
+        returnFocusSelector: '#header-btn-search'
+      });
     },
 
     checkClusterName() {
@@ -555,20 +554,6 @@ export default {
           >
             <i class="icon icon-upload icon-lg" />
           </button>
-          <app-modal
-            v-if="showImportModal"
-            class="import-modal"
-            name="importModal"
-            width="75%"
-            height="auto"
-            styles="max-height: 90vh;"
-            @close="closeImport"
-          >
-            <Import
-              :cluster="currentCluster"
-              @close="closeImport"
-            />
-          </app-modal>
 
           <button
             v-if="showKubeShell"
@@ -641,18 +626,6 @@ export default {
         >
           <i class="icon icon-search icon-lg" />
         </button>
-        <app-modal
-          v-if="showSearch && showSearchModal"
-          class="search-modal"
-          name="searchModal"
-          width="50%"
-          height="auto"
-          :trigger-focus-trap="true"
-          return-focus-selector="#header-btn-search"
-          @close="hideSearch()"
-        >
-          <Jump @closeSearch="hideSearch()" />
-        </app-modal>
       </div>
 
       <!-- Extension header actions -->
