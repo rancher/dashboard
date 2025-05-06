@@ -2,7 +2,6 @@
 import { mapGetters } from 'vuex';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
-import Loading from '@shell/components/Loading';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -20,7 +19,6 @@ export default {
     AsyncButton,
     Banner,
     Card,
-    Loading,
     YamlEditor,
     FileSelector,
     LabeledSelect,
@@ -120,12 +118,9 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <Card
-    v-else
     :show-highlight-border="false"
     data-testid="import-yaml"
-    :trigger-focus-trap="true"
   >
     <template #title>
       <div style="display: block; width: 100%;">
