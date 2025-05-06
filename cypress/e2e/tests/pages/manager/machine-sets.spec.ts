@@ -24,6 +24,10 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
   it('can create a MachineSet', function() {
     MachineSetsPagePo.goTo();
     machineSetsPage.waitForPage();
+
+    // #takes percy snapshot.
+    cy.percySnapshot('machineSets Page');
+
     machineSetsPage.create();
 
     machineSetsPage.createEditMachineSet().waitForPage('as=yaml');

@@ -21,6 +21,10 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
   it('can open "Edit as YAML"', () => {
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
+
+    // #takes percy snapshot.
+    cy.percySnapshot('pod security Page');
+
     podSecurityAdmissionsPage.create();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().editAsYaml().click();
     podSecurityAdmissionsPage.createPodSecurityAdmissionForm().yamlEditor().checkExists();

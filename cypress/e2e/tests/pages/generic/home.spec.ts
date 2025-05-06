@@ -5,11 +5,14 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
+import ClusterManagerDetailPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail.po';
+import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
+const driversPage = new KontainerDriversPagePo();
 
 // Reset the home page card prefs, go the home page and ensure the page is fully loaded
 function goToHomePageAndSettle() {
@@ -83,6 +86,9 @@ describe('Home Page', () => {
 
       provClusterList.goTo();
       provClusterList.waitForPage();
+
+      // #takes percy snapshot.
+      cy.percySnapshot('cluster management Page');
 
       cy.get('@stateText').then((state) => {
         provClusterList.list().details(clusterName, 1).should('contain.text', state);

@@ -63,6 +63,10 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   it('should show the JWT Authentication list page', () => {
     JWTAuthenticationPagePo.navTo();
     jwtAuthenticationPage.waitForPage();
+
+    // #takes percy snapshot.
+    cy.percySnapshot('JWT Authentication Page');
+
     jwtAuthenticationPage.title().should('be.visible');
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();

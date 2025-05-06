@@ -25,6 +25,9 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     MachineDeploymentsPagePo.goTo();
     machineDeploymentsPage.waitForPage();
 
+    // #takes percy snapshot.
+    cy.percySnapshot('machine deployments Page');
+
     machineDeploymentsPage.create();
 
     machineDeploymentsPage.createEditMachineDeployment().waitForPage('as=yaml');
