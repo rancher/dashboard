@@ -1,13 +1,9 @@
 
 <script>
 import { Banner } from '@components/Banner';
-import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
 
 export default {
-  components: {
-    Banner,
-    DisableAuthProviderModal
-  },
+  components: { Banner },
 
   props: {
     tArgs: {
@@ -35,7 +31,18 @@ export default {
 
   methods: {
     showDisableModal() {
-      this.$refs.disableAuthProviderModal.show();
+      this.$store.dispatch('management/promptModal', {
+        component:      'DisableAuthProviderDialog',
+        customClass:    'remove-modal',
+        modalWidth:     '400',
+        height:         'auto',
+        styles:         'max-height: 100vh;',
+        componentProps: {
+          disableCb: () => {
+            this.disable();
+          }
+        }
+      });
     }
   },
 };
@@ -77,11 +84,6 @@ export default {
     <slot
       v-if="$slots.footer"
       name="footer"
-    />
-
-    <DisableAuthProviderModal
-      ref="disableAuthProviderModal"
-      @disable="disable"
     />
   </div>
 </template>

@@ -19,6 +19,7 @@ import ScaleMachineDownDialog from '@shell/dialog/ScaleMachineDownDialog.vue';
 import ScalePoolDownDialog from '@shell/dialog/ScalePoolDownDialog.vue';
 import SloDialog from '@shell/dialog/SloDialog.vue';
 
+import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import SearchDialog from '@shell/dialog/SearchDialog.vue';
@@ -93,6 +94,7 @@ describe('component: PromptModal', () => {
     ['ScaleMachineDownDialog', ScaleMachineDownDialog],
     ['ScalePoolDownDialog', ScalePoolDownDialog],
     // new modals created/moved
+    ['DisableAuthProviderDialog', DisableAuthProviderDialog],
     ['WechatDialog', WechatDialog],
     ['ImportDialog', ImportDialog],
     ['SearchDialog', SearchDialog],
@@ -102,7 +104,7 @@ describe('component: PromptModal', () => {
       {
         attachTo: document.body,
         data() {
-          return { opened: true }; // this controls modal content visibility //
+          return { opened: true }; // this controls modal content visibility
         },
         global: {
           mocks: {
