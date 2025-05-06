@@ -76,9 +76,9 @@ const DEFAULT_REPO = {
 };
 
 const initialState = () => {
-  const deploymentValues = JSON.parse(JSON.stringify(DEFAULT_DEPLOYMENT));
-  const serviceValues = JSON.parse(JSON.stringify(DEFAULT_SERVICE));
-  const repoValues = JSON.parse(JSON.stringify(DEFAULT_REPO));
+  const deploymentValues = structuredClone(DEFAULT_DEPLOYMENT);
+  const serviceValues = structuredClone(DEFAULT_SERVICE);
+  const repoValues = structuredClone(DEFAULT_REPO);
 
   return {
     deploymentValues,

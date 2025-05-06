@@ -122,6 +122,9 @@ describe('component: PromptModal', () => {
     ['ExtensionCatalogInstallDialog', ExtensionCatalogInstallDialog],
     ['ExtensionCatalogUninstallDialog', ExtensionCatalogUninstallDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
+    // mock structuredClone
+    window.structuredClone = (arg) => JSON.parse(JSON.stringify(arg));
+
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,
       {
