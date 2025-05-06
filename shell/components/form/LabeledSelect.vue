@@ -162,21 +162,6 @@ export default {
         return;
       }
 
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
-        return;
-      }
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -361,6 +346,7 @@ export default {
       @close="onClose"
       @option:selecting="$emit('selecting', $event)"
       @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
         <template v-if="showTagPrompts">

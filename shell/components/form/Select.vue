@@ -125,21 +125,6 @@ export default {
     },
 
     focusSearch() {
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
-        return;
-      }
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -317,6 +302,7 @@ export default {
       @open="onOpen"
       @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
+      @keydown.enter.stop
     >
       <template
         #option="option"

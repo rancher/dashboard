@@ -10,8 +10,11 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
+import ContainerLogsActions from '@shell/components/nav/WindowManager/ContainerLogsActions.vue';
 import { shallowRef } from 'vue';
+import { useStore } from 'vuex';
 import { debounce } from 'lodash';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
@@ -91,6 +94,7 @@ export default {
     Checkbox,
     AsyncButton,
     VirtualList,
+    ContainerLogsActions,
   },
 
   props: {
@@ -130,6 +134,13 @@ export default {
     }
   },
 
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
+  },
+
   data() {
     return {
       container:           this.initialContainer || this.pod?.defaultContainerName,
@@ -145,7 +156,8 @@ export default {
       lines:               [],
       now:                 new Date(),
       logItem:             shallowRef(LogItem),
-      isContainerMenuOpen: false
+      isContainerMenuOpen: false,
+      range:               '',
     };
   },
 
@@ -636,72 +648,85 @@ export default {
         </div>
 
         <div class="log-action log-action-group ml-5">
-          <div
-            role="menu"
-            tabindex="0"
-            :aria-label="t('wm.containerLogs.logActionMenu')"
-            @click="openContainerMenu"
-            @blur.capture="closeContainerMenu"
-            @keyup.enter="openContainerMenu"
-            @keyup.space="openContainerMenu"
-          >
-            <v-dropdown
-              :triggers="[]"
-              :shown="isContainerMenuOpen"
-              placement="top"
-              popperClass="containerLogsDropdown"
-              :autoHide="false"
-              :flip="false"
-              :container="false"
-              @focus.capture="openContainerMenu"
+          <template v-if="featureDropdownMenu">
+            <ContainerLogsActions
+              :range="range"
+              :range-options="rangeOptions"
+              :wrap="wrap"
+              :timestamps="timestamps"
+              @toggle-range="toggleRange"
+              @toggle-wrap="toggleWrap"
+              @toggle-timestamps="toggleTimestamps"
+            />
+          </template>
+          <template v-else>
+            <div
+              role="menu"
+              tabindex="0"
+              :aria-label="t('wm.containerLogs.logActionMenu')"
+              @click="openContainerMenu"
+              @blur.capture="closeContainerMenu"
+              @keyup.enter="openContainerMenu"
+              @keyup.space="openContainerMenu"
             >
-              <button
-                class="btn role-primary btn-cog"
-                role="button"
-                :aria-label="t('wm.containerLogs.options')"
+              <v-dropdown
+                :triggers="[]"
+                :shown="isContainerMenuOpen"
+                placement="top"
+                popperClass="containerLogsDropdown"
+                :autoHide="false"
+                :flip="false"
+                :container="false"
+                @focus.capture="openContainerMenu"
               >
-                <i
-                  class="icon icon-gear"
-                  :alt="t('wm.containerLogs.options')"
-                />
-                <i
-                  class="icon icon-chevron-up"
-                  :alt="t('wm.containerLogs.expand')"
-                />
-              </button>
-
-              <template #popper>
-                <div class="filter-popup">
-                  <LabeledSelect
-                    v-model:value="range"
-                    class="range"
-                    :label="t('wm.containerLogs.range.label')"
-                    :options="rangeOptions"
-                    :clearable="false"
-                    placement="top"
-                    role="menuitem"
-                    @update:value="toggleRange($event)"
+                <button
+                  class="btn role-primary btn-cog"
+                  role="button"
+                  :aria-label="t('wm.containerLogs.options')"
+                >
+                  <i
+                    class="icon icon-gear"
+                    :alt="t('wm.containerLogs.options')"
                   />
-                  <div>
-                    <Checkbox
-                      :label="t('wm.containerLogs.wrap')"
-                      :value="wrap"
+                  <i
+                    class="icon icon-chevron-up"
+                    :alt="t('wm.containerLogs.expand')"
+                  />
+                </button>
+
+                <template #popper>
+                  <div class="filter-popup">
+                    <LabeledSelect
+                      v-model:value="range"
+                      class="range"
+                      :label="t('wm.containerLogs.range.label')"
+                      :options="rangeOptions"
+                      :clearable="false"
+                      placement="top"
                       role="menuitem"
-                      @update:value="toggleWrap"
+                      @update:value="toggleRange($event)"
                     />
+                    <div>
+                      <Checkbox
+                        :label="t('wm.containerLogs.wrap')"
+                        :value="wrap"
+                        role="menuitem"
+                        @update:value="toggleWrap"
+                      />
+                    </div>
+                    <div>
+                      <Checkbox
+                        :label="t('wm.containerLogs.timestamps')"
+                        :value="timestamps"
+                        role="menuitem"
+                        @update:value="toggleTimestamps"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Checkbox
-                      :label="t('wm.containerLogs.timestamps')"
-                      :value="timestamps"
-                      role="menuitem"
-                      @update:value="toggleTimestamps"
-                    />
-                  </div>
-                </div>
-              </template>
-            </v-dropdown>
-          </div>
+                </template>
+              </v-dropdown>
+            </div>
+          </template>
         </div>
 
         <div class="log-action log-action-group ml-5">
@@ -874,4 +899,5 @@ export default {
       }
     }
   }
+
 </style>
