@@ -162,7 +162,19 @@ export default defineComponent({
       // track original version on edit to ensure we don't offer k8s downgrades
       const kubernetesVersion = semver.coerce(this.normanCluster?.aksConfig?.kubernetesVersion)?.version;
 
-      this.originalVersion = kubernetesVersion;
+      this.originalVersion = kubernetesVersion || '';
+      // cluster spec version may not include a patch version if the cluster was created via terraform
+      // use the more specific version in the cluster status to filter the list of upgrade choices
+      // this will NOT automatically alter the cluster spec - if the user does not select a new k8s version the patch-less version in the cluster's spec will be preserved
+      if (!semver.valid(this.normanCluster?.aksConfig?.kubernetesVersion)) {
+        await this.value.waitForMgmt();
+        const mgmtCluster = this.value.mgmt;
+        const statusVersion = mgmtCluster?.status?.version?.gitVersion;
+
+        if (statusVersion) {
+          this.originalVersion = statusVersion;
+        }
+      }
     } else {
       this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
 

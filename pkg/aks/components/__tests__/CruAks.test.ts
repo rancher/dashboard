@@ -7,6 +7,7 @@ import { mockRegions, mockVersionsSorted } from '../../util/__mocks__/aks';
 import { AKSNodePool } from 'types';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import { nodePoolNames } from '../../util/validators';
+import { difference, isEqual } from 'lodash';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -22,7 +23,9 @@ const mockedStore = (versionSetting: any) => {
       'management/schemaFor': jest.fn(),
       'rancher/create':       () => {}
     },
-    dispatch: jest.fn()
+    dispatch: (cmd, args) => {
+      return cmd === 'rancher/clone' ? args?.resource : null;
+    }
   };
 };
 
@@ -487,5 +490,31 @@ describe('aks provisioning form', () => {
     const nodeName = wrapper.vm.nodePools[0].name;
 
     expect(nodePoolNames({ t: (str:string) => str })(nodeName)).toBeUndefined();
+  });
+
+  it.each([
+    ['1.26', '1.26.3', '1.26.3'],
+    ['1.26.2', '1.26.3', '1.26.2'],
+    ['1.28.2', '1.26.3', '1.28.2'],
+
+  ])('should fall back to using the management cluster status.version.gitVersion when the version in spec is missing a patch', async(specVersion, statusVersion, expected) => {
+    const mockValue = {
+      id:                'test',
+      waitForMgmt:       () => {},
+      findNormanCluster: () => {
+        return { aksConfig: { kubernetesVersion: specVersion } };
+      },
+      mgmt: { status: { version: { gitVersion: statusVersion } } }
+    };
+
+    const wrapper = shallowMount(CruAks, {
+      propsData: { value: mockValue, mode: 'edit' },
+      ...requiredSetup()
+    });
+
+    await setCredential(wrapper);
+
+    await (CruAks as any).fetch.call(wrapper.vm);
+    expect(wrapper.vm.originalVersion).toBe(expected);
   });
 });
