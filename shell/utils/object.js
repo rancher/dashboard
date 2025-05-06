@@ -8,6 +8,7 @@ import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
+import mergeWith from 'lodash/mergeWith';
 import { splitObjectPath, joinObjectPath } from '@shell/utils/string';
 import { addObject } from '@shell/utils/array';
 
@@ -470,4 +471,71 @@ export function deepToRaw(obj, cache = new WeakSet()) {
 
     return result;
   }
+}
+
+/**
+ * Helper function to alter Lodash merge function default behaviour on merging
+ * arrays and objects.
+ *
+ * In rke2.vue, the syncMachineConfigWithLatest function updates machine pool configuration by
+ * merging the latest configuration received from the backend with the current configuration updated by the user.
+ * However, Lodash's merge function treats arrays like object so index values are merged and not appended to arrays
+ * resulting in undesired outcomes for us, Example:
+ *
+ * const lastSavedConfigFromBE = { a: ["test"] };
+ * const currentConfigByUser = { a: [] };
+ * merge(lastSavedConfigFromBE, currentConfigByUser); // returns { a: ["test"] }; but we expect { a: [] };
+ *
+ * More info: https://github.com/lodash/lodash/issues/1313
+ *
+ * This helper function addresses the issue by always replacing the old array with the new array during the merge process.
+ *
+ * This helper is also used for another case in rke2.vue to handle merging addon chart default values with the user's current values.
+ * It fixed https://github.com/rancher/dashboard/issues/12418
+ *
+ * If `mutateOriginal` is true, the merge is done directly into `obj1` (mutating it).
+ * This is useful in cases like:
+ *   machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true })
+ * where merging into a new empty object may lead to incomplete structure.
+ *
+ * Use `mutateOriginal` when you want to preserve obj1’s original shape, references,
+ * or when assigning the result directly to an existing object.
+ *
+ * @param {Object} [obj1={}] - The first object to merge
+ * @param {Object} [obj2={}] - The second object to merge
+ * @param {Object} [options={}] - Options for customizing merge behavior
+ * @param {boolean} [options.mutateOriginal=false] - true: mutates obj1
+ *                  directly. false: returns a new object
+ * @param {boolean} [options.replaceArray=true] - true: replaces arrays in obj1
+ *                  with arrays in obj2 when both properties are arrays
+ *                  false: default lodash merge behavior - recursively merges
+ *                  array members
+ * @param {boolean} [options.replaceObjectProps=false] - true: merges objects in
+ *                  obj1 with objects in obj2, overwriting duplicate props
+ *                  false: default lodash merge behavior - recursively merges
+ *                  object props
+ */
+export function mergeWithReplace(
+  obj1 = {},
+  obj2 = {},
+  {
+    mutateOriginal = false,
+    replaceArray = true,
+    replaceObjectProps = false,
+  } = {}
+) {
+  const destination = mutateOriginal ? obj1 : {};
+
+  return mergeWith(destination, obj1, obj2, (obj1Value, obj2Value) => {
+    if (replaceArray && Array.isArray(obj1Value) && Array.isArray(obj2Value)) {
+      return obj2Value;
+    }
+
+    if (replaceObjectProps && isObject(obj1Value) && isObject(obj2Value)) {
+      return {
+        ...obj1Value,
+        ...obj2Value,
+      };
+    }
+  });
 }
