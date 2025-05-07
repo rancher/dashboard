@@ -375,6 +375,7 @@ export default defineComponent({
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </slot>
@@ -390,11 +391,13 @@ export default defineComponent({
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
         :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -409,6 +412,7 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
         :value="value"
         :placeholder="_placeholder"
@@ -416,6 +420,7 @@ export default defineComponent({
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
         :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
