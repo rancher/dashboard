@@ -7,7 +7,9 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image version
-RANCHER_IMG_VERSION=head
+# RANCHER_IMG_VERSION=head
+# Pinned version to work around issue on head - remove when fixied
+ RANCHER_IMG_VERSION=v2.12-733fda1f8d80127b7afb834c938cb754dc8e1894-head-amd64
 
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
