@@ -1,8 +1,8 @@
 export const mockRegions = [{ name: 'a' }, { name: 'b' }];
 
-export const mockVersions = ['1.25.0', '1.26.0', '1.27.0', '1.24.0'];
+export const mockVersions = ['1.25.0', '1.26.0', '1.27.0', '1.24.0', '1.26.1', '1.26.3', '1.26.5'];
 
-export const mockVersionsSorted = ['1.27.0', '1.26.0', '1.25.0', '1.24.0'];
+export const mockVersionsSorted = ['1.27.0', '1.26.5', '1.26.3', '1.26.1', '1.26.0', '1.25.0', '1.24.0'];
 
 export const mockSizes = ['size1', 'size2', 'size3'];
 
