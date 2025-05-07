@@ -1,20 +1,22 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import {
+  SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS,
+  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
+} from '@shell/config/query-params';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { PROJECT, CAPI } from '@shell/config/labels-annotations';
+import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
-import {
-  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
-} from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
-import { CAPI } from '@shell/config/labels-annotations';
 import { clear, uniq } from '@shell/utils/array';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
@@ -46,7 +48,7 @@ export default {
     SelectIconGrid
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     if ( this.isCloud ) {
@@ -87,16 +89,50 @@ export default {
       });
     });
 
+    const projectName = this.value?.metadata?.annotations?.[PROJECT]?.split(':')[1];
+    const isProjectScoped = !!projectName || (this.mode === _CREATE && this.$route.query[SECRET_SCOPE] === SECRET_SCOPED_TABS.PROJECT_SCOPED);
+
     return {
       isCloud,
+      isProjectScoped,
       nodeDrivers:       null,
       secretTypes,
       secretType:        this.value._type,
-      initialSecretType: this.value._type
+      initialSecretType: this.value._type,
+      projectName,
+      fvFormRuleSets:    [
+        {
+          path:  'metadata.name',
+          rules: ['required'],
+        },
+        {
+          path:  'metadata.namespace',
+          rules: ['required'],
+        },
+      ],
     };
   },
 
   computed: {
+    projectOpts() {
+      const clusterId = this.$store.getters['currentCluster'].id;
+      let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      // Filter out projects not for the current cluster
+      projects = projects.filter((c) => c.spec?.clusterName === clusterId);
+      const out = projects.map((project) => {
+        return {
+          label: project.nameDisplay,
+          value: project.metadata.name,
+        };
+      });
+
+      if (this.isProjectScoped && !this.projectName) {
+        this.projectName = out[0];
+      }
+
+      return out;
+    },
     isCustomSecretCreate() {
       return this.mode === _CREATE && this.$route.query.type === 'custom';
     },
@@ -301,6 +337,10 @@ export default {
       if (type !== 'custom') {
         this.value['_type'] = type;
       }
+    },
+
+    selectProject(project) {
+      this.value.metadata.namespace = project;
     }
   },
 };
@@ -312,7 +352,7 @@ export default {
     <CruResource
       v-else
       :mode="mode"
-      :validation-passed="true"
+      :validation-passed="fvFormIsValid"
       :selected-subtype="value._type"
       :resource="value"
       :errors="errors"
@@ -323,6 +363,30 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
+        v-if="isProjectScoped"
+        :value="value"
+        :namespaced="false"
+        :mode="mode"
+        :rules="{
+          name: fvGetAndReportPathRules('metadata.name'),
+          namespace: fvGetAndReportPathRules('metadata.namespace'),
+        }"
+      >
+        <template #project-selector>
+          <LabeledSelect
+            v-model:value="projectName"
+            class="mr-20"
+            :disabled="!isCreate"
+            :label="t('namespace.project.label')"
+            :options="projectOpts"
+            required
+            @update:value="selectProject"
+          />
+        </template>
+      </NameNsDescription>
+
+      <NameNsDescription
+        v-if="!isProjectScoped"
         :value="value"
         :mode="mode"
         :namespaced="!isCloud"
