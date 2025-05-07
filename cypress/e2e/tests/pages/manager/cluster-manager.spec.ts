@@ -137,12 +137,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       it(`should be able to access RKE2 cluster creation for provider ${ prov.label } via url`, () => {
         const clusterCreate = new ClusterManagerCreatePagePo();
 
-        clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
+        clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=rke2`);
         clusterCreate.waitForPage();
 
         loadingPo.checkNotExists();
 
-        clusterCreate.rke2PageTitle().should('contain', `Create ${prov.label}`);
+        clusterCreate.rke2PageTitle().should('contain', `Create ${ prov.label }`);
       });
     });
   });
