@@ -6,9 +6,7 @@ import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import {
-  mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM,
-} from '@shell/plugins/dashboard-store/resource-class';
+import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
 
 function normalizeStateCounts(data) {

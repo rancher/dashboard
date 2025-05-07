@@ -41,6 +41,7 @@ export default {
 
 <template>
   <Link
+    class="repo-link"
     :row="row"
     :value="row.spec.repo || ''"
     label-key="repoDisplay"
@@ -58,3 +59,9 @@ export default {
     </div>
   </template>
 </template>
+
+<style lang="scss" scoped>
+.repo-link {
+  width: fit-content;
+}
+</style>

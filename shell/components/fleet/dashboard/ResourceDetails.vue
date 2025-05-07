@@ -85,9 +85,11 @@ export default {
       <i
         class="icon icon-close"
         data-testid="slide-in-close"
+        :aria-label="'slide-in-close'"
         :trigger-focus-trap="true"
         tabindex="0"
         @click="closePanel"
+        @keydown.space.enter.stop.prevent="closePanel"
       />
     </div>
 
@@ -104,7 +106,7 @@ export default {
       {{ t('fleet.dashboard.resources') }}
     </h3>
     <FleetResources
-      :rows=value.resourcesStatuses
+      :rows="value.resourcesStatuses"
       :cluster-id="cluster"
       :search="!noResources"
     >
