@@ -64,6 +64,7 @@ export default {
     ActionMenu,
     ActionDropdownShell,
   },
+
   mixins: [
     filtering,
     sorting,
@@ -1196,9 +1197,11 @@ export default {
               <div class="bg" />
             </li>
           </ul>
+          <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
+            class="refresh-button"
             mode="manual-refresh"
             :size="manualRefreshButtonSize"
             :current-phase="refreshButtonPhase"
@@ -1821,6 +1824,12 @@ export default {
     height: 40px;
     margin-left: 10px;
     min-width: 180px;
+  }
+
+  .sortable-table-header {
+    .refresh-button {
+      height: $btn-height;
+    }
   }
 </style>
 

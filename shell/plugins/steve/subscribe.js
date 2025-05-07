@@ -34,7 +34,8 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
-import paginationUtils from '@shell/utils/pagination-utils';
+import { _MERGE } from '@shell/plugins/dashboard-store/actions';
+import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -192,6 +193,10 @@ export function equivalentWatch(a, b) {
     return false;
   }
 
+  if (a.mode !== b.mode && (a.mode || b.mode)) {
+    return false;
+  }
+
   if ( a.id !== b.id && (a.id || b.id) ) {
     return false;
   }
@@ -255,6 +260,13 @@ function queueChange({ getters, state, rootGetters }, { data, revision }, load, 
 function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
+
+/**
+ * Supported events are listed
+ *
+ * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
+ */
+const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
 
 /**
  * Actions that cover all cases (see file description)
@@ -354,6 +366,74 @@ const sharedActions = {
     return Promise.all(cleanupTasks);
   },
 
+  // TODO: RC bug - create imported cluster.... no mgmt cluster received....
+  /**
+   * Create a trigger for a specific type of watch event
+   *
+   * For example if a watch on mgmt clusters exists and a page wants to know when any changes occur
+   * @param {} ctx
+   * @param {STEVE_WATCH_EVENT_PARAMS} event
+   */
+  watchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
+    id,
+    callback,
+    /**
+     * of type @STEVE_WATCH_PARAMS
+     */
+    params
+  }) {
+    if (!listeners[event]) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    // STEVE_WATCH_EVENT_LISTENER | undefined
+    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
+
+    if (!listener) {
+      listener = {
+        params,
+        callbacks: { }
+      };
+      listeners[event].push(listener);
+    }
+
+    if (!listener.callbacks[id]) {
+      listener.callbacks[id] = callback;
+      ctx.dispatch('watch', params);
+    }
+  },
+
+  /**
+   * @param {} ctx
+   * @param {STEVE_UNWATCH_EVENT_PARAMS} event
+   */
+  unwatchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
+    id,
+    /**
+     * of type @STEVE_WATCH_PARAMS
+     */
+    params
+  }) {
+    if (!listeners[event]) {
+      console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
+
+    if (existing) {
+      delete existing.callbacks[id];
+    }
+  },
+
+  /**
+   * @param {STEVE_WATCH_PARAMS} params
+   */
   watch({
     state, dispatch, getters, rootGetters
   }, params) {
@@ -361,7 +441,7 @@ const sharedActions = {
 
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force
+      type, selector, id, revision, namespace, stop, force, mode
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -394,11 +474,11 @@ const sharedActions = {
     }
 
     if ( !stop && getters.watchStarted({
-      type, id, selector, namespace
+      type, id, selector, namespace, mode
     }) ) {
       // eslint-disable-next-line no-console
       state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, {
-        type, id, selector, namespace
+        type, id, selector, namespace, mode
       });
 
       return;
@@ -410,11 +490,24 @@ const sharedActions = {
     // That revision is probably too old and results in a watch error
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+    // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+    if (typeof revision === 'undefined') { // TODO: RC DEBUG --> REMOVE
       revision = getters.nextResourceVersion(type, id);
     }
 
+    // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
+    if (type === 'pod') {
+      console.info('!!!!!!!!!!!!!!revision', revision);
+      // revision = 155770;// Number.MAX_SAFE_INTEGER; // 155770 from resource
+      // revision = 1;// Number.MAX_SAFE_INTEGER;
+      // revision = Number.MAX_SAFE_INTEGER;
+    }
+
     const msg = { resourceType: type };
+
+    if (mode) {
+      msg.mode = mode;
+    }
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
@@ -452,7 +545,7 @@ const sharedActions = {
   },
 
   unwatch(ctx, {
-    type, id, namespace, selector, all
+    type, id, namespace, selector, all, mode
   }) {
     const { commit, getters, dispatch } = ctx;
 
@@ -464,6 +557,7 @@ const sharedActions = {
         id,
         namespace,
         selector,
+        mode,
         stop: true, // Stops the watch on a type
       };
 
@@ -587,16 +681,30 @@ const defaultActions = {
     return Promise.all(promises);
   },
 
-  async resyncWatch({
-    state, getters, dispatch, commit
-  }, params) {
-    const {
-      resourceType, namespace, id, selector
-    } = params;
-
+  /**
+   * Socket has been closed, restart afresh (make http request, ensure we re-watch)
+   */
+  async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
-    const opt = { force: true, forceWatch: true };
+    await dispatch('fetchResources', {
+      ...params,
+      opt: { force: true, forceWatch: true }
+    });
+  },
+
+  async fetchResources({
+    state, getters, dispatch, commit
+  }, { opt, ...params }) {
+    const {
+      resourceType, namespace, id, selector, mode
+    } = params;
+
+    if (!resourceType) {
+      console.error(`A socket message has prompted a request to fetch a resource but no resource type was supplied`); // eslint-disable-line no-console
+
+      return;
+    }
 
     if ( id ) {
       await dispatch('find', {
@@ -613,7 +721,7 @@ const defaultActions = {
 
       return;
     }
-    let have, want;
+    let have = []; let want = [];
 
     if ( selector ) {
       have = getters['matching'](resourceType, selector).slice();
@@ -623,17 +731,49 @@ const defaultActions = {
         opt,
       });
     } else {
-      have = getters['all'](resourceType).slice();
+      if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // Other findX use options (id/ns/selector) from the messages received over socket.
+        // However paginated requests have more complex params so grab them from store from the store.
+        const storePagination = getters['havePage'](resourceType);
 
-      if ( namespace ) {
-        have = have.filter((x) => x.metadata?.namespace === namespace);
+        if (!!storePagination) {
+          have = []; // TODO: RC ensure we don't supplement store / leave stale entries
+
+          // This could have been kicked off given a resource.changes message
+          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
+          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
+          // (see deferred process - `waiting.push(later);` - in request action).
+          //
+          // If this becomes an issue we need to debounce and work around the deferred issue within request
+          want = await dispatch('findPage', {
+            type: resourceType,
+            opt:  {
+              ...opt,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request
+            }
+          });
+        }
+
+        // Should any listeners be notified of this request for them to kick off their own event handling?
+        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
+
+        if (listener) {
+          Object.values(listener.callbacks).forEach((cb) => cb());
+        }
+      } else {
+        have = getters['all'](resourceType).slice();
+
+        if ( namespace ) {
+          have = have.filter((x) => x.metadata?.namespace === namespace);
+        }
+
+        want = await dispatch('findAll', {
+          type:           resourceType,
+          watchNamespace: namespace,
+          opt
+        });
       }
-
-      want = await dispatch('findAll', {
-        type:           resourceType,
-        watchNamespace: namespace,
-        opt
-      });
     }
 
     const wantMap = {};
@@ -792,7 +932,8 @@ const defaultActions = {
       type:      msg.resourceType,
       namespace: msg.namespace,
       id:        msg.id,
-      selector:  msg.selector
+      selector:  msg.selector,
+      mode:      msg.mode,
     };
 
     state.started.filter((entry) => {
@@ -846,7 +987,8 @@ const defaultActions = {
       type,
       id:        msg.id,
       namespace: msg.namespace,
-      selector:  msg.selector
+      selector:  msg.selector,
+      mode:      msg.mode
     };
 
     state.debugSocket && console.info(`Resource Stop [${ getters.storeName }]`, type, msg); // eslint-disable-line no-console
@@ -920,6 +1062,13 @@ const defaultActions = {
         });
       });
     }
+  },
+
+  'ws.resource.changes'({ dispatch }, msg) {
+    dispatch('fetchResources', {
+      ...msg,
+      opt: { force: true, load: _MERGE }
+    } );
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1040,7 +1189,9 @@ const defaultGetters = {
   },
 
   watchStarted: (state) => (obj) => {
-    return !!state.started.find((entry) => equivalentWatch(obj, entry));
+    const existing = state.started.find((entry) => equivalentWatch(obj, entry));
+
+    return !!existing;
   },
 
   nextResourceVersion: (state, getters) => (type, id) => {

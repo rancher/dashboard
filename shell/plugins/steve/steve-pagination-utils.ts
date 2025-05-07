@@ -15,7 +15,7 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, DEFAULT_PROJECT } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
 
@@ -25,19 +25,63 @@ import { PaginationSettingsStore } from '@shell/types/resources/settings';
  * The build would error on <ns>.name, it somehow doesn't know about the steve model's properties (they are included in typegen)
  */
 interface Namespace extends ModelNamespace {
+  id: string;
   name: string;
+  metadata: {
+    name: string
+  }
 }
 
+type GetProject = (id: string) => any
+
 class NamespaceProjectFilters {
+  protected isNamespaceLocalProject(ns: Namespace, getProject: GetProject, isLocalCluster: boolean): boolean {
+    // Are we in the local cluster? If not we can skip everything
+    if (!isLocalCluster) {
+      return false;
+    }
+
+    // Is this a upstream namespace for a downstream cluster?
+    if (ns.id.startsWith('local-p')) {
+      return true;
+    }
+
+    // Is this the upstream namespace for the `Default` project
+    if (getProject(`local/${ ns.id }`)?.metadata.labels[DEFAULT_PROJECT] === 'true') {
+      return true;
+    }
+
+    return false;
+  }
+
   /**
    * User needs all resources.... except if there's some settings which should remove resources in specific circumstances
    */
-  protected handlePrefAndSettingFilter(allNamespaces: Namespace[], showDynamicRancherNamespaces: boolean, productHidesSystemNamespaces: boolean): PaginationParamFilter[] {
+  protected handlePrefAndSettingFilter(args: {
+    allNamespaces: Namespace[],
+    showDynamicRancherNamespaces: boolean,
+    productHidesSystemNamespaces: boolean,
+    getProject: GetProject,
+    isLocalCluster: boolean,
+  }): PaginationParamFilter[] {
+    const {
+      allNamespaces, showDynamicRancherNamespaces, productHidesSystemNamespaces, getProject, isLocalCluster
+    } = args;
+
     // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
-      const hideObscure = showDynamicRancherNamespaces ? false : ns.isObscure;
+      let hideObscure = false;
+
+      if (!showDynamicRancherNamespaces) {
+        // if we are to hide dynamic rancher namespaces ... then hide obscure namespaces
+        if (ns.isObscure) {
+          // don't count local cluster ns's that are local cluster projects
+          hideObscure = !this.isNamespaceLocalProject(ns, getProject, isLocalCluster);
+        }
+      }
+
       // Links to ns.isSystem and covers things like ns with system annotation, hardcoded list, etc
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
@@ -58,8 +102,20 @@ class NamespaceProjectFilters {
    *
    * Users resources are those not in system namespaces
    */
-  protected handleSystemOrUserFilter(allNamespaces: Namespace[], isAllSystem: boolean, isAllUser: boolean) {
-    const allSystem = allNamespaces.filter((ns) => ns.isSystem);
+  protected handleSystemOrUserFilter(args: {
+    allNamespaces: Namespace[],
+    isAllSystem: boolean,
+    isAllUser: boolean,
+    getProject: GetProject,
+    isLocalCluster: boolean,
+  }) {
+    const {
+      allNamespaces, isAllSystem, getProject, isLocalCluster
+    } = args;
+    const allSystem = allNamespaces.filter((ns) => {
+      // don't count local cluster ns's that are local cluster projects as system projects (we want their resources to show)
+      return ns.isSystem && !this.isNamespaceLocalProject(ns, getProject, isLocalCluster);
+    });
 
     // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has
     // > a matching project... which could lead to results in the user project resource being included in the system filter
@@ -250,6 +306,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    */
   public createParamsFromNsFilter({
     allNamespaces,
+    getProject,
     selection,
     isAllNamespaces,
     isLocalCluster,
@@ -257,6 +314,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     productHidesSystemNamespaces,
   }: {
     allNamespaces: Namespace[],
+    getProject: GetProject,
     selection: string[],
     /**
      * There is no user provided filter
@@ -304,8 +362,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     let filters: PaginationParamFilter[] = [];
 
     if (!showDynamicRancherNamespaces || productHidesSystemNamespaces) {
-      // We need to hide dynamic namespaces ('c-', 'p-', etc) OR system namespaces
-      filters = this.handlePrefAndSettingFilter(allNamespaces, showDynamicRancherNamespaces, productHidesSystemNamespaces);
+      // We need to hide dynamic namespaces ('c-', 'user-', etc) OR system namespaces
+      filters = this.handlePrefAndSettingFilter({
+        allNamespaces,
+        showDynamicRancherNamespaces,
+        productHidesSystemNamespaces,
+        getProject,
+        isLocalCluster
+      });
     }
 
     const isAllSystem = selection[0] === NAMESPACE_FILTER_ALL_SYSTEM;
@@ -313,7 +377,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     if (selection.length === 1 && (isAllSystem || isAllUser)) {
       // Filter by resources either in or not in system namespaces
-      filters.push(...this.handleSystemOrUserFilter(allNamespaces, isAllSystem, isAllUser ));
+      filters.push(...this.handleSystemOrUserFilter({
+        allNamespaces,
+        isAllSystem,
+        isAllUser,
+        getProject,
+        isLocalCluster,
+      }));
     } else {
       // User has one or more projects or namespaces
       const res = this.handleSelectionFilter(selection, isLocalCluster);

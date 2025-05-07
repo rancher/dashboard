@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -155,7 +156,6 @@ export default {
 
     opt = opt || {};
     type = getters.normalizeType(type);
-
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
@@ -284,6 +284,15 @@ export default {
       return Promise.reject(e);
     }
 
+    // TODO: RC DEBUG --> REMOVE
+    // if (type.indexOf('clusterrepo') >= 0) {
+    //   const a = out.data.find((a) => a.id === 'harvester');
+
+    //   console.warn('findAll', 'raw from response', a.id, a.metadata.state.name);
+
+    //   debugger;
+    // }
+
     if ( load === _NONE ) {
       if (!opt.incremental && opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
@@ -383,8 +392,20 @@ export default {
       commit('registerType', type);
     }
 
+    // of type @STEVE_WATCH_PARAMS
+    const watchArgs = {
+      type,
+      namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+      force:     opt.forceWatch === true,
+      mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
+    };
+
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
+      if (opt.watch !== false ) {
+        dispatch('watch', watchArgs);
+      }
+
       return findAllGetter(getters, type, opt);
     }
 
@@ -408,11 +429,10 @@ export default {
       return Promise.reject(e);
     }
 
-    await dispatch('unwatch', {
-      type,
-      all: true,
-    });
+    // TODO: RC this should be done to catch watch all --> watch some
+    // await dispatch('unwatch', { type });
 
+    // Of type @StorePagination
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,
@@ -426,12 +446,18 @@ export default {
     } : undefined;
 
     if (!opt.transient) {
+      // TODO: RC watching resource for changes --> resource.changes kicks this off --> loadPage clears store --> watch resource is stale / never changes
       commit('loadPage', {
         ctx,
         type,
-        data: out.data,
+        data:     out.data,
         pagination,
+        revision: out.revision,
       });
+    }
+
+    if ( !opt.transient && opt.watch !== false ) {
+      dispatch('watch', watchArgs);
     }
 
     if (opt.hasManualRefresh) {
@@ -570,7 +596,7 @@ export default {
     return out;
   },
 
-  load(ctx, { data, existing }) {
+  load(ctx, { data, existing, invalidatePageCache }) {
     const { getters, commit } = ctx;
 
     let type = normalizeType(data.type);
@@ -603,7 +629,8 @@ export default {
     commit('load', {
       ctx,
       data,
-      existing
+      existing,
+      invalidatePageCache // Avoid havePage invalidation
     });
 
     if ( type === SCHEMA ) {

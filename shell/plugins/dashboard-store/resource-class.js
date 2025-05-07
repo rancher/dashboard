@@ -34,6 +34,7 @@ import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import myLogger from '@shell/utils/my-logger';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -794,6 +795,8 @@ export default class Resource {
 
   waitForState(state, timeout, interval) {
     return this.waitForTestFn(() => {
+      console.warn('waitForState', this.nameDisplay, this.state);
+
       return (this.state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
   }
@@ -1179,7 +1182,7 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = this.toSave() || { ...this };
+    opt.data = this.toSave() || JSON.parse(JSON.stringify(this)); // Needs to completely dereference self to ensure properties that are cleaned are not removed from cache
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;
@@ -1246,7 +1249,20 @@ export default class Resource {
 
     const res = await this.$dispatch('request', { opt, type: this.type } );
 
-    if ( res?._status === 204 ) {
+    myLogger.warn('mode', 'pod', res, res?._status === 204);
+
+    // In theory...
+    // 200 - resource could have finalizer (could hang around, keep resource to show deleting state)
+    // 204 - resource should be gone gone (so remove immediately)
+    // However...
+    // 200 - this is the only status code returned
+    if ( res?._status === 200 ) {
+      // Show state (probably terminating) immediately, don't wait for resource.change or debounced resource.changes update
+      // It would be neater to only do this in the debounced resource.changes world, but there's no neat / complete way to do this (paginationUtils will cause dep issues if imported)
+      await this.$dispatch('load', {
+        data: res, existing: this, invalidatePageCache: false
+      });
+    } else if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
       // and drop it from the store as if a remove event happened.
       await this.$dispatch('ws.resource.remove', { data: this });

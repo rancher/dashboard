@@ -8,6 +8,8 @@ import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -43,7 +45,13 @@ export default {
 
   emits: ['clickedActionButton'],
 
-  components: { ButtonGroup, SortableTable },
+  components: {
+    ButtonGroup, SortableTable, ToggleSwitch
+  },
+
+  mixins: [
+    ResourceTableWatch
+  ],
 
   props: {
     schema: {
@@ -222,7 +230,7 @@ export default {
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration: undefined
+      sortGeneration: undefined,
     };
   },
 
@@ -238,7 +246,8 @@ export default {
         }
       },
       immediate: true
-    }
+    },
+
   },
 
   computed: {
@@ -528,7 +537,6 @@ export default {
         pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
       };
     },
-
   },
 
   methods: {
@@ -589,8 +597,9 @@ export default {
       if (event.key === 'Enter') {
         this.keyAction('detail');
       }
-    }
-  },
+    },
+
+  }
 };
 </script>
 
@@ -646,7 +655,27 @@ export default {
       v-if="showGrouping"
       #header-right
     >
-      <slot name="header-right" />
+      <slot
+        name="header-right"
+      />
+    </template>
+
+    <template
+      v-if="externalPaginationEnabled"
+      #watch-controls
+    >
+      <!-- TODO: RC Refresh Toggle Agreed UX REVIEW! -->
+      <!-- TODO: RC Refresh Toggle Agreed inline style $btn-height-->
+      <!-- TODO: RC Refresh Toggle Agreed BUG setting fixed height breaks height in home page. fixed because thin browser and select rows causes height to grow. see also class="refresh-button" -->
+      <!-- TODO: RC Refresh Toggle Agreed  l10n-->
+      <!-- This and mixing 'TODO' should be moved out to PaginatedResourceTable.... but there's far too many places where ResourceTable is used  -->
+      <ToggleSwitch
+        :value="watching"
+        name="label-system-toggle"
+        :on-label="'Auto Update'"
+        style="min-width: 150px; height: 40px"
+        @update:value="toggleWatch"
+      />
     </template>
 
     <template #group-by="{group: thisGroup}">
