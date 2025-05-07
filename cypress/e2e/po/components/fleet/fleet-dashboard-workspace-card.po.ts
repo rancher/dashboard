@@ -20,8 +20,8 @@ class ResourcePanelPo extends ComponentPo {
 class CardsPanelPo extends ComponentPo {
   workspace: string;
 
-  constructor(selector: string, parent: CypressChainable, workspace: string) {
-    super(selector, parent);
+  constructor(parent: CypressChainable, workspace: string) {
+    super(`[data-testid="fleet-dashboard-expanded-panel-${ workspace }"] .cards-panel`, parent);
 
     this.workspace = workspace;
   }
@@ -79,7 +79,7 @@ export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
   }
 
   cardsPanel() {
-    return new CardsPanelPo('[data-testid="expanded-panel"] .cards-panel', this.self(), this.workspace);
+    return new CardsPanelPo(this.self(), this.workspace);
   }
 
   tablePanel() {

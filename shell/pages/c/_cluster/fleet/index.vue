@@ -191,7 +191,7 @@ export default {
     },
 
     isEmptyDashboard() {
-      return this[FLEET.GIT_REPO].length === 0 && this[FLEET.HELM_OP].length === 0;
+      return this[FLEET.GIT_REPO]?.length === 0 && this[FLEET.HELM_OP]?.length === 0;
     },
 
     allCardsExpanded() {
@@ -202,8 +202,8 @@ export default {
   methods: {
     filterByType(workspace) {
       return [
-        ...(this.typeFilter[workspace.id][FLEET.GIT_REPO] ? workspace.repos : []),
-        ...(this.typeFilter[workspace.id][FLEET.HELM_OP] ? workspace.helmOps : []),
+        ...(this.typeFilter[workspace.id]?.[FLEET.GIT_REPO] ? workspace.repos : []),
+        ...(this.typeFilter[workspace.id]?.[FLEET.HELM_OP] ? workspace.helmOps : []),
       ];
     },
 
@@ -231,16 +231,16 @@ export default {
     },
 
     showPanelSpacer(workspace) {
-      return (workspace.clusters.length !== 0 || workspace.clusterGroups.length !== 0) &&
-        (workspace.repos.length !== 0 || workspace.helmOps.length !== 0);
+      return (workspace.clusters?.length !== 0 || workspace.clusterGroups?.length !== 0) &&
+        (workspace.repos?.length !== 0 || workspace.helmOps?.length !== 0);
     },
 
     partialStateCount(workspace, state) {
-      return this.cardResources[workspace][state.stateDisplay].length;
+      return this.cardResources[workspace][state.stateDisplay]?.length;
     },
 
     totaleStateCount(workspace) {
-      return this.filterByType(workspace).length;
+      return this.filterByType(workspace)?.length;
     },
 
     toggleState(workspace, state) {
@@ -321,7 +321,7 @@ export default {
   <div>
     <Loading v-if="$fetchState.pending" />
     <NoWorkspaces
-      v-else-if="!workspaces.length"
+      v-else-if="!workspaces?.length"
       :can-view="permissions.workspaces"
     />
     <EmptyDashboard
@@ -331,12 +331,13 @@ export default {
     <div
       v-else
       class="dashboard"
+      :data-testid="'fleet-dashboard-workspace-cards'"
     >
       <div class="dashboard-header">
         <h1>
           <t k="fleet.dashboard.pageTitle" />
         </h1>
-        <div>
+        <div :data-testid="'fleet-dashboard-expand-all'">
           <p
             v-if="allCardsExpanded"
             @click="toggleCardAll('collapse')"
@@ -374,14 +375,14 @@ export default {
                 role="link"
                 tabindex="0"
                 :aria-label="workspace.nameDisplay"
-                :to="workspace.detailLocation"
+                :to="workspace.detailLocation || {}"
               >
                 {{ workspace.nameDisplay }}
               </router-link>
             </h2>
             <div class="body">
               <ResourcePanel
-                v-if="workspace.repos.length"
+                v-if="workspace.repos?.length"
                 :data-testid="'resource-panel-git-repos'"
                 :resources="workspace.repos"
                 :workspace="workspace.id"
@@ -390,7 +391,7 @@ export default {
                 @select:states="selectStates(workspace.id, FLEET.GIT_REPO, $event)"
               />
               <ResourcePanel
-                v-if="workspace.helmOps.length"
+                v-if="workspace.helmOps?.length"
                 :data-testid="'resource-panel-helm-ops'"
                 :resources="workspace.helmOps"
                 :workspace="workspace.id"
@@ -403,7 +404,7 @@ export default {
                 class="spacer"
               />
               <ResourcePanel
-                v-if="workspace.clusters.length"
+                v-if="workspace.clusters?.length"
                 :data-testid="'resource-panel-clusters'"
                 :resources="workspace.clusters"
                 :workspace="workspace.id"
@@ -413,7 +414,7 @@ export default {
                 :selectable="false"
               />
               <ResourcePanel
-                v-if="workspace.clusterGroups.length"
+                v-if="workspace.clusterGroups?.length"
                 :data-testid="'resource-panel-cluster-groups'"
                 :resources="workspace.clusterGroups"
                 :workspace="workspace.id"
@@ -426,7 +427,7 @@ export default {
           </div>
           <div class="card-panel-main-actions">
             <div
-              v-if="workspace.repos.length || workspace.helmOps.length"
+              v-if="workspace.repos?.length || workspace.helmOps?.length"
               class="expand-button"
               :data-testid="'expand-button'"
             >
@@ -447,7 +448,7 @@ export default {
         <div
           v-if="!isWorkspaceCollapsed[workspace.id]"
           class="card-panel-expand mt-20"
-          :data-testid="'expanded-panel'"
+          :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div
             v-if="!viewMode[workspace.id] || viewMode[workspace.id] === 'cards'"
@@ -456,7 +457,8 @@ export default {
             <div class="cards-panel-actions">
               <div class="cards-panel-filters">
                 <Checkbox
-                  :value="typeFilter[workspace.id][FLEET.GIT_REPO]"
+                  :data-testid="'fleet-dashboard-filter-git-repos'"
+                  :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
                   @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
                 >
                   <template #label>
@@ -465,7 +467,8 @@ export default {
                   </template>
                 </Checkbox>
                 <Checkbox
-                  :value="typeFilter[workspace.id][FLEET.HELM_OP]"
+                  :data-testid="'fleet-dashboard-filter-helm-ops'"
+                  :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
                   @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
                 >
                   <template #label>
@@ -489,7 +492,7 @@ export default {
               :data-testid="`state-panel-${ state.stateDisplay }`"
               class="card-panel mt-20"
             >
-              <template v-if="cardResources[workspace.id][state.stateDisplay].length">
+              <template v-if="cardResources[workspace.id][state.stateDisplay]?.length">
                 <div
                   role="button"
                   tabindex="0"

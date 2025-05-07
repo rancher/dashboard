@@ -44,7 +44,7 @@ watch(
 
           if (returnFocusSelector && !document.querySelector(returnFocusSelector)) {
             console.warn('SlideInPanelManager: cannot find elem with "returnFocusSelector", returning focus to main view'); // eslint-disable-line no-console
-          
+
             return '.dashboard-root';
           }
 

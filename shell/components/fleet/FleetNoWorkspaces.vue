@@ -22,7 +22,10 @@ export default {
 };
 </script>
 <template>
-  <div class="intro-box">
+  <div
+    class="intro-box"
+    :data-testid="'fleet-no-workspaces'"
+  >
     <i class="icon icon-repository" />
     <div class="title">
       <span v-clean-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
