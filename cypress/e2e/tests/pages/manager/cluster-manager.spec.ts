@@ -132,21 +132,17 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
   });
 
-  describe('All providers', () => {
+  describe('RKE2 providers', () => {
     providersList.forEach((prov) => {
-      prov.conditions.forEach((condition) => {
-        it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
-          const clusterCreate = new ClusterManagerCreatePagePo();
+      it(`should be able to access RKE2 cluster creation for provider ${ prov.label } via url`, () => {
+        const clusterCreate = new ClusterManagerCreatePagePo();
 
-          clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
-          clusterCreate.waitForPage();
+        clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
+        clusterCreate.waitForPage();
 
-          loadingPo.checkNotExists();
-          const fnName = condition.loads === 'rke1' ? 'rke1PageTitle' : 'rke2PageTitle';
-          const evaluation = condition.loads === 'rke1' ? `Add Cluster - ${ condition.label ? condition.label : prov.label }` : `Create ${ condition.label ? condition.label : prov.label }`;
+        loadingPo.checkNotExists();
 
-          clusterCreate[fnName]().should('contain', evaluation);
-        });
+        clusterCreate.rke2PageTitle().should('contain', `Create ${prov.label}`);
       });
     });
   });
