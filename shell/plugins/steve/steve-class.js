@@ -11,6 +11,7 @@ const STEVE_ADD = [
   'metadata.clusterName',
   'metadata.deletionGracePeriodSeconds',
   'metadata.generateName',
+  'metadata.ownerReferences',
 ];
 const STEVE_NEVER_SAVE = NEVER_ADD.filter((na) => !STEVE_ADD.includes(na));
 
