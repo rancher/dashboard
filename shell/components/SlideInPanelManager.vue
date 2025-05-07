@@ -1,11 +1,16 @@
 <script lang="ts" setup>
 import { computed, watch } from 'vue';
 import { useStore } from 'vuex';
+import {
+  DEFAULT_FOCUS_TRAP_OPTS,
+  useWatcherBasedSetupFocusTrapWithDestroyIncluded
+} from '@shell/composables/focusTrap';
 
 const HEADER_HEIGHT = 55;
 
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
+const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
@@ -29,6 +34,30 @@ const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
 
 watch(
+  () => currentProps?.value?.triggerFocusTrap,
+  (neu) => {
+    if (neu) {
+      const opts = {
+        ...DEFAULT_FOCUS_TRAP_OPTS,
+        setReturnFocus: () => {
+          const returnFocusSelector = currentProps?.value?.returnFocusSelector;
+
+          if (returnFocusSelector && !document.querySelector(returnFocusSelector)) {
+            console.warn('SlideInPanelManager: cannot find elem with "returnFocusSelector", returning focus to main view'); // eslint-disable-line no-console
+          
+            return '.dashboard-root';
+          }
+
+          return returnFocusSelector || '.dashboard-root';
+        }
+      };
+
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => isOpen?.value && !isClosing?.value, '#slide-in-panel-manager', opts, false);
+    }
+  }
+);
+
+watch(
   () => (store as any).$router?.currentRoute,
   () => {
     if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
@@ -45,7 +74,10 @@ function closePanel() {
 
 <template>
   <Teleport to="#slides">
-    <div id="slide-in-panel-manager">
+    <div
+      id="slide-in-panel-manager"
+      @keydown.escape="closePanel"
+    >
       <div
         v-show="isOpen"
         data-testid="slide-in-glass"

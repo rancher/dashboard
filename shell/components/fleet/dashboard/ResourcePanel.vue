@@ -203,6 +203,9 @@ export default {
           v-for="(state, i) in states"
           :key="i"
           class="badge"
+          :tabindex="selectable ? 0 : undefined"
+          :role="selectable ? 'button' : undefined"
+          :aria-label="selectable ? t('fleet.dashboard.state') + '-' + state.id : undefined"
           :class="{
             ['selectable']: selectable,
             ['selected']: selectable && selectedStates[state.id]
@@ -211,6 +214,7 @@ export default {
           :label="` ${ state.count } `"
           :icon="state.icon"
           @click="onClickBadge(state)"
+          @keydown.space.enter.stop.prevent="onClickBadge(state)"
         >
           <template
             v-if="selectable && selectedStates[state.id]"

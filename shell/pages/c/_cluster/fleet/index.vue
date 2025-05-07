@@ -284,8 +284,10 @@ export default {
           value,
           statePanel,
           workspace,
-          showHeader: false,
-          zIndex:     1
+          showHeader:          false,
+          zIndex:              1,
+          triggerFocusTrap:    true,
+          returnFocusSelector: `[data-testid="card-${ value.id }"]`
         }
       });
     },
@@ -369,6 +371,9 @@ export default {
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
               </div>
               <router-link
+                role="link"
+                tabindex="0"
+                :aria-label="workspace.nameDisplay"
                 :to="workspace.detailLocation"
               >
                 {{ workspace.nameDisplay }}
@@ -426,11 +431,15 @@ export default {
               :data-testid="'expand-button'"
             >
               <i
+                role="button"
+                tabindex="0"
+                :aria-label="t(`${ isWorkspaceCollapsed[workspace.id] ? 'expand': 'collapse' }-${ workspace.id }`)"
                 :class="{
                   ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
                   ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
                 }"
                 @click="toggleCard(workspace.id)"
+                @keydown.space.enter.stop.prevent="toggleCard(workspace.id)"
               />
             </div>
           </div>
@@ -482,8 +491,12 @@ export default {
             >
               <template v-if="cardResources[workspace.id][state.stateDisplay].length">
                 <div
+                  role="button"
+                  tabindex="0"
                   class="title"
+                  :aria-label="t(`${ isStateCollapsed[workspace.id]?.[state.stateDisplay] ? 'expand': 'collapse' }-${ state.stateDisplay }`)"
                   @click="toggleState(workspace.id, state.stateDisplay)"
+                  @keydown.space.enter.stop.prevent="toggleState(workspace.id, state.stateDisplay)"
                 >
                   <i
                     :class="{

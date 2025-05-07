@@ -27,7 +27,7 @@ export default {
   },
 
   methods: {
-    onClick(value) {
+    select(value) {
       const tagName = value?.srcElement?.tagName;
 
       if (tagName === 'A' || tagName === 'BUTTON') {
@@ -42,11 +42,16 @@ export default {
 
 <template>
   <div
+    role="button"
+    tabindex="0"
+    :aria-label="t(`card-${ value.id }`)"
     class="resource-card-panel"
     :class="{
       ['selected']: selected
     }"
-    @click="onClick"
+    @click="select"
+    @keydown.enter.stop.prevent="select"
+    @keydown.space.stop.prevent="$router.push(value.detailLocation)"
   >
     <div class="title">
       <i
@@ -54,6 +59,9 @@ export default {
         :class="value.dashboardIcon"
       />
       <router-link
+        role="link"
+        tabindex="-1"
+        :aria-label="value.nameDisplay"
         :to="value.detailLocation"
       >
         {{ value.nameDisplay }}
