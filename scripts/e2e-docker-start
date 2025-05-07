@@ -8,7 +8,7 @@ EMBER_DIST=${DIR}/dist_ember
 
 # Image version
 # RANCHER_IMG_VERSION=head
-# Pinned version to work around issue on head - remove when fixied
+# Pinned version to work around issue on head - remove when fixed
  RANCHER_IMG_VERSION=v2.12-733fda1f8d80127b7afb834c938cb754dc8e1894-head-amd64
 
 # Docker volume args when mounting the locally-built UI into the container
