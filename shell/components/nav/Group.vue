@@ -409,6 +409,10 @@ export default {
         margin-left: 0;
       }
 
+      .child:hover {
+        background: var(--nav--hover);
+      }
+
       &.group-highlight {
         background: var(--category--active);
 
