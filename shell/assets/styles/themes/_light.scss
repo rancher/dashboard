@@ -26,7 +26,7 @@ $primary        : #2F68DF;
 $primary-150    : #1A2A4D;
 $primary-140    : #304778; // Active light
 $primary-120    : #3459A8;
-$primary-110    : #265FD9;
+$primary-110    : #496192;
 $primary-80     : #4871C7;
 $primary-75     : #454968; // Category active dark
 $primary-60     : #75A1FF;
@@ -74,9 +74,9 @@ BODY, .theme-light {
   --on-tertiary: var(--link);
   --tertiary--hover: var(--non-primary-hover);
   
-  --active: #{$primary-140};
+  --active: #{$primary-110};
   --on-active: #{$grey-0};
-  --active--hover: #{lighten($primary-140, 5%)};
+  --active--hover: #{lighten($primary-110, 5%)};
   --category--active: #{$primary-15};
   --category--active--hover: #{$grey-20};
 
