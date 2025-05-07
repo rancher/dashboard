@@ -41,7 +41,7 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
   it('can create aws cloud credentials', function() {
     CloudCredentialsPagePo.navTo();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('empty cloud credentials Page');
 
     cloudCredentialsPage.create();

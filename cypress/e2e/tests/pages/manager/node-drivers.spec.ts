@@ -36,7 +36,7 @@ describe.skip('Node Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('node drivers Page');
   });
 

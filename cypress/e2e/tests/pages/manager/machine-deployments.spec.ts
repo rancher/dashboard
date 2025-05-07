@@ -25,7 +25,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     MachineDeploymentsPagePo.goTo();
     machineDeploymentsPage.waitForPage();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('machine deployments Page');
 
     machineDeploymentsPage.create();

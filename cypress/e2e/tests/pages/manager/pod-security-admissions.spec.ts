@@ -22,7 +22,7 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('pod security Page');
 
     podSecurityAdmissionsPage.create();

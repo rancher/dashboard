@@ -25,7 +25,7 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     MachineSetsPagePo.goTo();
     machineSetsPage.waitForPage();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('machineSets Page');
 
     machineSetsPage.create();

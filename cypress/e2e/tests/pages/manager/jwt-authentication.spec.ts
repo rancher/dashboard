@@ -64,7 +64,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     JWTAuthenticationPagePo.navTo();
     jwtAuthenticationPage.waitForPage();
 
-    // #takes percy snapshot.
+    // takes percy snapshot.
     cy.percySnapshot('JWT Authentication Page');
 
     jwtAuthenticationPage.title().should('be.visible');
