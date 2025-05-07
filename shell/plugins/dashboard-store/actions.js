@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { STORE } from '@shell/store/store-types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -236,7 +237,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.incremental.pageByNumber) {
+      if (opt.incremental.pageByNumber && ctx.state.config.namespace !== STORE.RANCHER) {
         pageByNumber = {
           url:      opt.url,
           page:     1,
