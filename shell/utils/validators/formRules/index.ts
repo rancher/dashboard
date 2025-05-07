@@ -75,7 +75,7 @@ export interface ValidationOptions {
  */
 export default function(
   t: Translation,
-  { key = 'MyLabel' }: ValidationOptions
+  { key = 'Value' }: ValidationOptions
 ): { [key: string]: Validator<any> | ValidatorFactory } {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
