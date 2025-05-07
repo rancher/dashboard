@@ -157,7 +157,18 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-  const gitRepository: Validator = (val: string) => val && !/^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(val) ? t('validation.git.repository') : undefined;
+  const gitRepository: Validator = (url: string) => {
+    const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
+    const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
+
+    if (url) {
+      const urlPart2 = url.replaceAll(regexPart1, '');
+
+      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.repository') : undefined;
+    }
+
+    return undefined;
+  };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
 
