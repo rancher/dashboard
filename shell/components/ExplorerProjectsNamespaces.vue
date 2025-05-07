@@ -1,5 +1,5 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME, NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
@@ -9,7 +9,6 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
-import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
@@ -17,15 +16,17 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 export default {
   name:       'ListProjectNamespace',
   components: {
     ExtensionPanel,
     Masthead,
-    MoveModal,
     ResourceTable,
     ButtonMultiAction,
+    ActionMenu,
   },
   mixins: [ResourceFetch],
 
@@ -59,6 +60,13 @@ export default {
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
   },
 
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
+  },
+
   data() {
     return {
       loadResources:                [NAMESPACE],
@@ -80,9 +88,20 @@ export default {
       }
     };
   },
-
+  watch: {
+    actionCb: {
+      handler(neu) {
+        if (neu?.moveNamespaceCb) {
+          this.clearSelection();
+          this.$store.dispatch('action-menu/clearCallbackData');
+        }
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters({ actionCb: 'action-menu/performCallbackData' }),
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -340,6 +359,10 @@ export default {
       return location;
     },
 
+    getProjectActions(group) {
+      return group.rows[0].project;
+    },
+
     showProjectAction(event, group) {
       const project = group.rows[0].project;
 
@@ -468,7 +491,7 @@ export default {
               {{ projectDescription(group.group) }}
             </div>
           </div>
-          <div class="right">
+          <div class="right mr-10">
             <router-link
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
@@ -476,13 +499,26 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </router-link>
-            <ButtonMultiAction
-              class="project-action mr-10"
-              :borderless="true"
-              :aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
-              :invisible="!showProjectActionButton(group.group)"
-              @click="showProjectAction($event, group.group)"
-            />
+            <template v-if="featureDropdownMenu">
+              <ActionMenu
+                v-if="showProjectActionButton(group.group)"
+                :resource="getProjectActions(group.group)"
+                :button-aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
+              />
+              <div
+                v-else
+                class="invisible"
+              />
+            </template>
+            <template v-else>
+              <ButtonMultiAction
+                class="project-action"
+                :borderless="true"
+                :aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
+                :invisible="!showProjectActionButton(group.group)"
+                @click="showProjectAction($event, group.group)"
+              />
+            </template>
           </div>
         </div>
       </template>
@@ -543,10 +579,14 @@ export default {
         </tr>
       </template>
     </ResourceTable>
-    <MoveModal @moving="clearSelection" />
   </div>
 </template>
 <style lang="scss" scoped>
+.invisible {
+  display: inline-block;
+  min-width: 28px;
+}
+
 .project-namespaces {
   & :deep() {
     .project-namespaces-table table {

@@ -116,9 +116,11 @@ export default {
 
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true,
-      uid:                generateRandomAlphaString(10)
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      isOpen:               false,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -160,21 +162,6 @@ export default {
         return;
       }
 
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
-        return;
-      }
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -197,11 +184,13 @@ export default {
     },
 
     onOpen() {
+      this.isOpen = true;
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
+      this.isOpen = false;
       this.$emit('on-close');
     },
 
@@ -279,6 +268,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -296,7 +286,10 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
-    role="listbox"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -308,7 +301,7 @@ export default {
     >
       <label
         v-if="hasLabel"
-        :id="`labeled-select-uid-${uid}`"
+        :for="labeledSelectLabelId"
       >
         <t
           v-if="labelKey"
@@ -319,12 +312,12 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
     <v-select
       ref="select-input"
-      :aria-labelledby="hasLabel ? `labeled-select-uid-${uid}` : ''"
       v-bind="filteredAttrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -345,7 +338,8 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
-      role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -354,6 +348,7 @@ export default {
       @close="onClose"
       @option:selecting="$emit('selecting', $event)"
       @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
         <template v-if="showTagPrompts">
@@ -375,7 +370,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">

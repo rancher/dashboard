@@ -89,7 +89,7 @@ export default defineComponent({
           {{ title }}
         </slot>
       </div>
-      <hr>
+      <hr role="none">
       <div
         class="card-body"
         data-testid="card-body-slot"

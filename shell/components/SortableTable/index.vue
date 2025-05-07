@@ -1,8 +1,7 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
-import semver from 'semver';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -25,7 +24,8 @@ import { getParent } from '@shell/utils/dom';
 import { FORMATTERS } from '@shell/components/SortableTable/sortable-config';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { getVersionInfo } from '@shell/utils/version';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -62,6 +62,7 @@ export default {
     LabeledSelect,
     ButtonMultiAction,
     ActionMenu,
+    ActionDropdownShell,
   },
   mixins: [
     filtering,
@@ -546,7 +547,13 @@ export default {
       table.value?.removeEventListener('keyup', handleEnterKey);
     });
 
-    return { table };
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return {
+      table,
+      featureDropdownMenu,
+    };
   },
 
   created() {
@@ -768,12 +775,6 @@ export default {
 
       return rows;
     },
-
-    featureDropdownMenu() {
-      const { fullVersion } = getVersionInfo(this.$store);
-
-      return semver.gte(semver.coerce(fullVersion).version, '2.11.0');
-    }
   },
 
   methods: {
@@ -1104,47 +1105,59 @@ export default {
                 />
                 <span v-clean-html="act.label" />
               </button>
-              <ActionDropdown
-                :class="bulkActionsDropdownClass"
-                class="bulk-actions-dropdown"
-                :disable-button="!selectedRows.length"
-                size="sm"
-              >
-                <template #button-content>
-                  <button
-                    ref="actionDropDown"
-                    class="btn bg-primary mr-0"
-                    :disabled="!selectedRows.length"
-                  >
-                    <i class="icon icon-gear" />
-                    <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
-                    <i class="ml-10 icon icon-chevron-down" />
-                  </button>
-                </template>
-                <template #popover-content>
-                  <ul class="list-unstyled menu">
-                    <li
-                      v-for="(act, i) in hiddenActions"
-                      :key="i"
-                      v-close-popper
-                      v-clean-tooltip="{
-                        content: actionTooltip,
-                        placement: 'right'
-                      }"
-                      :class="{ disabled: !act.enabled }"
-                      @click="applyTableAction(act, null, $event)"
-                      @mouseover="setBulkActionOfInterest(act)"
-                      @mouseleave="setBulkActionOfInterest(null)"
+              <template v-if="featureDropdownMenu">
+                <ActionDropdownShell
+                  :disabled="!selectedRows.length"
+                  :hidden-actions="hiddenActions"
+                  :action-tooltip="actionTooltip"
+                  @click="applyTableAction"
+                  @mouseover="setBulkActionOfInterest"
+                  @mouseleave="setBulkActionOfInterest"
+                />
+              </template>
+              <template v-else>
+                <ActionDropdown
+                  :class="bulkActionsDropdownClass"
+                  class="bulk-actions-dropdown"
+                  :disable-button="!selectedRows.length"
+                  size="sm"
+                >
+                  <template #button-content>
+                    <button
+                      ref="actionDropDown"
+                      class="btn bg-primary mr-0"
+                      :disabled="!selectedRows.length"
                     >
-                      <i
-                        v-if="act.icon"
-                        :class="act.icon"
-                      />
-                      <span v-clean-html="act.label" />
-                    </li>
-                  </ul>
-                </template>
-              </ActionDropdown>
+                      <i class="icon icon-gear" />
+                      <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
+                      <i class="ml-10 icon icon-chevron-down" />
+                    </button>
+                  </template>
+                  <template #popover-content>
+                    <ul class="list-unstyled menu">
+                      <li
+                        v-for="(act, i) in hiddenActions"
+                        :key="i"
+                        v-close-popper
+                        v-clean-tooltip="{
+                          content: actionTooltip,
+                          placement: 'right'
+                        }"
+                        :class="{ disabled: !act.enabled }"
+                        @click="applyTableAction(act, null, $event)"
+                        @mouseover="setBulkActionOfInterest(act)"
+                        @mouseleave="setBulkActionOfInterest(null)"
+                      >
+                        <i
+                          v-if="act.icon"
+                          :class="act.icon"
+                        />
+                        <span v-clean-html="act.label" />
+                      </li>
+                    </ul>
+                  </template>
+                </ActionDropdown>
+              </template>
               <label
                 v-if="selectedRowsText"
                 :class="bulkActionAvailabilityClass"

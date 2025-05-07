@@ -15,14 +15,10 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import LazyImage from '@shell/components/LazyImage';
 import { BadgeState } from '@components/BadgeState';
-import UninstallDialog from './UninstallDialog.vue';
-import InstallDialog from './InstallDialog.vue';
 import CatalogLoadDialog from './CatalogList/CatalogLoadDialog.vue';
 import CatalogUninstallDialog from './CatalogList/CatalogUninstallDialog.vue';
-import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
-import AddExtensionRepos from './AddExtensionRepos';
 import CatalogList from './CatalogList/index.vue';
 import Banner from '@components/Banner/Banner.vue';
 import {
@@ -53,20 +49,16 @@ export default {
   components: {
     ActionMenu,
     BadgeState,
-    DeveloperInstallDialog,
     IconMessage,
     CatalogList,
     Banner,
     CatalogLoadDialog,
     CatalogUninstallDialog,
-    InstallDialog,
     LazyImage,
     PluginInfoPanel,
     Tab,
     Tabbed,
-    UninstallDialog,
     SetupUIPlugins,
-    AddExtensionRepos,
     TabTitle
   },
 
@@ -253,15 +245,13 @@ export default {
         // Label can be overridden by chart annotation
         const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:         chart.chartName,
+          name:        chart.chartName,
           label,
-          description:  chart.chartDescription,
-          id:           chart.id,
-          versions:     [],
-          installed:    false,
-          builtin:      false,
-          experimental: uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
-          certified:    uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER)
+          description: chart.chartDescription,
+          id:          chart.id,
+          versions:    [],
+          installed:   false,
+          builtin:     false,
         };
 
         item.versions = [...chart.versions];
@@ -282,9 +272,15 @@ export default {
         const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
+          item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
+          item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
+
           item.displayVersion = latestCompatible.version;
           item.icon = latestCompatible.icon;
         } else {
+          item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
+          item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
+
           item.displayVersion = item.versions?.[0]?.version;
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
@@ -323,6 +319,7 @@ export default {
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
           const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
+
           const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
@@ -334,6 +331,8 @@ export default {
             displayVersion: p.metadata?.version || '-',
             installed:      true,
             builtin:        !!p.builtin,
+            experimental:   rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:      rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
           };
 
           // Built-in plugins can chose to be hidden - used where we implement as extensions
@@ -357,7 +356,15 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
+          // Use the currently installed version's metadata to show/hide the experimental and certified labels
           if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
+            const installedVersion = (chart.installableVersions || []).find((v) => v?.version === p.version);
+
+            if (installedVersion) {
+              chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
+              chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
+            }
+
             chart.upgrade = chart.installableVersions[0].version;
           }
         } else {
@@ -525,13 +532,30 @@ export default {
 
     // Developer Load is in the action menu
     showDeveloperLoadDialog() {
-      this.$refs.developerInstallDialog.showDialog();
+      this.$store.dispatch('management/promptModal', {
+        component:           'DeveloperLoadExtensionDialog',
+        returnFocusSelector: '[data-testid="extensions-page-menu"]',
+        componentProps:      {
+          closed: (res) => {
+            this.didInstall(res);
+          }
+        }
+      });
     },
 
     showAddExtensionReposDialog() {
       this.updateAddReposSetting();
       this.refreshCharts(true);
-      this.$refs.addExtensionReposDialog.showDialog();
+
+      this.$store.dispatch('management/promptModal', {
+        component:      'AddExtensionReposDialog',
+        testId:         'add-extensions-repos-modal',
+        componentProps: {
+          done: () => {
+            this.updateInstallStatus(true);
+          }
+        }
+      });
     },
 
     showCatalogLoadDialog() {
@@ -547,7 +571,22 @@ export default {
       ev.preventDefault();
       ev.stopPropagation();
 
-      this.$refs.installDialog.showDialog(plugin, mode);
+      this.$store.dispatch('management/promptModal', {
+        component:                            'InstallExtensionDialog',
+        testId:                               'install-extension-modal',
+        returnFocusSelector:                  `[data-testid="extension-card-${ mode }-btn-${ plugin?.name }"]`,
+        returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+        componentProps:                       {
+          plugin,
+          mode,
+          updateStatus: (pluginName, type) => {
+            this.updatePluginInstallStatus(pluginName, type);
+          },
+          closed: (res) => {
+            this.didInstall(res);
+          }
+        }
+      });
     },
 
     showUninstallDialog(plugin, ev) {
@@ -555,7 +594,21 @@ export default {
       ev.preventDefault();
       ev.stopPropagation();
 
-      this.$refs.uninstallDialog.showDialog(plugin);
+      this.$store.dispatch('management/promptModal', {
+        component:                            'UninstallExtensionDialog',
+        testId:                               'uninstall-extension-modal',
+        returnFocusSelector:                  `[data-testid="extension-card-uninstall-btn-${ plugin.name }"]`,
+        returnFocusFirstIterableNodeSelector: '#extensions-main-page',
+        componentProps:                       {
+          plugin,
+          updateStatus: (pluginName, type) => {
+            this.updatePluginInstallStatus(pluginName, type);
+          },
+          closed: (res) => {
+            this.didUninstall(res);
+          }
+        }
+      });
     },
 
     didUninstall(plugin) {
@@ -997,16 +1050,6 @@ export default {
       </template>
     </div>
 
-    <InstallDialog
-      ref="installDialog"
-      @closed="didInstall"
-      @update="updatePluginInstallStatus"
-    />
-    <UninstallDialog
-      ref="uninstallDialog"
-      @closed="didUninstall"
-      @update="updatePluginInstallStatus"
-    />
     <CatalogLoadDialog
       ref="catalogLoadDialog"
       @closed="didInstall"
@@ -1016,14 +1059,6 @@ export default {
       ref="catalogUninstallDialog"
       @closed="didUninstall"
       @refresh="() => reloadRequired = true"
-    />
-    <DeveloperInstallDialog
-      ref="developerInstallDialog"
-      @closed="didInstall"
-    />
-    <AddExtensionRepos
-      ref="addExtensionReposDialog"
-      @done="updateInstallStatus(true)"
     />
   </div>
 </template>

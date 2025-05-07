@@ -20,7 +20,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   const oracleDriver = 'Oracle OKE';
   const googleDriver = 'Google GKE';
   const linodeDriver = 'Linode LKE';
-  const tencentDriver = 'Tencent TKE';
   const exampleDriver = 'Example';
   const amazonDriver = 'Amazon EKS';
   const azureDriver = 'Azure AKS';
@@ -154,16 +153,16 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('will show error if could not activate driver', () => {
-    cy.intercept('POST', '/v3/kontainerDrivers/tencentkubernetesengine?action=activate', {
+    cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate', {
       statusCode: 500,
       body:       { message: `Could not activate driver` }
     }).as('activationError');
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().details(tencentDriver, 1).should('contain', 'Inactive');
+    driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
 
-    driversPage.list().actionMenu(tencentDriver).getMenuItem('Activate').click();
+    driversPage.list().actionMenu(linodeDriver).getMenuItem('Activate').click();
 
     cy.wait('@activationError').then(() => {
       cy.get('.growl-text').contains('Could not activate driver').should('be.visible');

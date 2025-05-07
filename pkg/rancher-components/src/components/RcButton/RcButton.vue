@@ -15,6 +15,7 @@ const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'secondary', className: 'role-secondary' },
   { role: 'tertiary', className: 'role-tertiary' },
   { role: 'link', className: 'role-link' },
+  { role: 'multiAction', className: 'role-multi-action' },
   { role: 'ghost', className: 'role-ghost' },
 ];
 
@@ -50,7 +51,7 @@ defineExpose({ focus });
   <button
     ref="RcFocusTarget"
     role="button"
-    :class="{ ...buttonClass, ...($attrs.class || { }) }"
+    :class="{ ...buttonClass }"
   >
     <slot name="before">
       <!-- Empty Content -->

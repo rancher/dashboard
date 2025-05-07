@@ -144,6 +144,7 @@ nav:
     localClusterIcon: Local Cluster icon
     clusterProvIcon: Cluster {cluster} provider icon
     topLevelMenu: Main menu
+    sideNav: Secondary menu
     homePage: Home page navigation menu
     cluster: Cluster menu item
     harvesterCluster: Harvester cluster menu item
@@ -237,9 +238,10 @@ nav:
     clusters: clusters
     ariaLabel: Filter clusters on main menu
   resourceSearch:
-    label: Resource Search
-    toolTip: Resource Search {key}
-    placeholder: Type to search for a resource...
+    label: Resource Type Search
+    prompt: Search for a Kubernetes Resource/Custom Resource type
+    toolTip: Resource Type Search {key}
+    placeholder: Type to search for a resource type...
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
@@ -328,7 +330,7 @@ layouts:
   unauthenticated: unauthenticated layout
   logout: logout layout
   verify: verify layout
-  
+
 windowmanager:
   closeTab: Close tab {tabId}
 about:
@@ -395,6 +397,9 @@ accountAndKeys:
         label: Description
         placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
+      ariaLabel:
+        expiration: Expiration duration - number input
+        expirationUnits: Expiration unit - time unit
       expiry:
         label: Automatically expire
         options:
@@ -494,7 +499,7 @@ authConfig:
          4: 'Under Scopes for Google APIs, enable "email", "profile", and "openid".'
          5: 'Click on "Save".'
         topPrivateDomain: 'Top private domain of:'
-        ariaLabel: 
+        ariaLabel:
           hostname: Copy Hostname to clipboard
           serverUrl: Copy Server URL to clipboard
       2:
@@ -505,7 +510,7 @@ authConfig:
           3: 'Authorized redirect URIs:'
           4: 'Click "Create", and then click on the "Download JSON" button.'
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
-        ariaLabel: 
+        ariaLabel:
           serverUrlVerify: Copy Server Auth Verfication URL to clipboard
       3:
         title: 'Create Service Account credentials'
@@ -868,13 +873,13 @@ asyncButton:
     success: Generated
     waiting: Generating&hellip;
 
-backupRestoreOperator: 
+backupRestoreOperator:
   backup:
     label: Resource Set
     description: The Resource Set determines which resources the backup-restore-operator collects in a backup
     enableEncryptionWarning: 'Enabling encryption is highly recommended when using <b><i>Full Rancher backup resource set</i></b>, otherwise sensitive information will be backed up as plain-text. <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/reference-guides/backup-restore-configuration/backup-configuration#resourcesets">Read more</a>.'
     missingResourceSetWarning: The <b><i>{resourceSet}</i></b> resource set doesn't exist, it's possible it has been deleted. Please select a different option.
-    resourceSetOptions: 
+    resourceSetOptions:
       'rancher-resource-set-basic': 'Basic Rancher backup resource set'
       'rancher-resource-set-full': 'Full Rancher backup resource set'
       custom: Custom
@@ -1362,7 +1367,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. 
+      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register.
       windowsWorkersOnly: <b>Windows nodes can only be workers.</b>
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.<br /> <br /><b>Windows nodes can only be workers.</b>
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
@@ -1880,11 +1885,11 @@ cluster:
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
-      schedulingCustomization: 
+      schedulingCustomization:
         label: Prevent Rancher cluster agent pod eviction
         description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
         banner: This feature has been enabled with settings that are different from the global default settings.
-        innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget  
+        innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
       tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
@@ -2211,7 +2216,7 @@ cluster:
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Snapshot retention count 
+        label: Snapshot retention count
         tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
@@ -2752,6 +2757,7 @@ clusterBadge:
     iconText: Icon Text
     buttonAction: Apply
     badgeBgColor: Badge background color
+    badgeBgColorInput: Badge background color selector input
     badgeTextColor: Badge text color
     badgeAsIcon: Use custom badge
     maxCharsTooltip: Overwrites the default cluster name abbreviation.
@@ -3939,6 +3945,10 @@ namespaceFilter:
       one {1 item selected}
       other {{total} items selected}
       }
+  input: Filter namespace options
+  button:
+    clear: Remove applied namespace filters
+    clearFilter: Clear namespace options filter 
 
 namespaceList:
   selectLabel: Namespace
@@ -4755,6 +4765,8 @@ principal:
   name: Name
   loginName: Username
   type: Type
+  alt:
+    avatar: User avatar image
 
 probe:
   checkInterval:
@@ -5134,6 +5146,8 @@ rbac:
         label: Login Access
       clustertemplaterevisions-create:
         label: Create RKE Template Revisions
+  errors:
+    escalation: You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.
 
 resourceDetail:
   detailTop:
@@ -5210,6 +5224,7 @@ resourceTable:
     role: Group by Role
     cluster: Group by Cluster
     device: Group by Device
+    pool: Group by Pool
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     notInACluster: Not in a Cluster
@@ -7567,6 +7582,9 @@ typeLabel:
     }
 
 action:
+  ariaLabel:
+    hidePass: Hide {area}
+    showPass: Reveal {area}
   clone: Clone
   disable: Disable
   download: Download YAML
@@ -7815,9 +7833,9 @@ performance:
 banner:
   label: Fixed Banners
   settingName: Banners
-  headerBanner: Header Banner
-  footerBanner: Footer Banner
-  loginScreenBanner: Login Screen Banner
+  bannerHeader: Header Banner
+  bannerFooter: Footer Banner
+  bannerConsent: Login Screen Banner
   text: Text
   buttonText: Accept Button Text
   textColor: Text Color

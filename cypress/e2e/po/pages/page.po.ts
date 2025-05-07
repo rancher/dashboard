@@ -39,8 +39,8 @@ export default class PagePo extends ComponentPo {
     return PagePo.goTo(`${ this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
-  waitForPage(params?: string, fragment?: string) {
-    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  waitForPage(params?: string, fragment?: string, options?: any) {
+    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`, options);
   }
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {

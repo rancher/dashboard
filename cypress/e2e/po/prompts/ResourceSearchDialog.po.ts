@@ -15,7 +15,7 @@ const CMD_K_KEY = {
 
 export default class ResourceSearchDialog extends ComponentPo {
   constructor() {
-    super('[data-modal="searchModal"]');
+    super('[data-testid="search-modal"]');
   }
 
   open() {

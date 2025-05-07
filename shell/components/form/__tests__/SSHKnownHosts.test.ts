@@ -1,6 +1,18 @@
 import { mount } from '@vue/test-utils';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts/index.vue';
+import { createStore } from 'vuex';
+
+jest.mock('focus-trap', () => {
+  return {
+    createFocusTrap: jest.fn().mockImplementation(() => {
+      return {
+        activate:   jest.fn(),
+        deactivate: jest.fn(),
+      };
+    }),
+  };
+});
 
 describe('component: SSHKnownHosts', () => {
   it.each([
@@ -42,18 +54,26 @@ describe('component: SSHKnownHosts', () => {
   });
 
   it('mode edit: should open edit dialog', async() => {
+    const actions = { 'management/promptModal': jest.fn() };
+
     const wrapper = mount(SSHKnownHosts, {
       props: {
         mode:  _EDIT,
         value: '',
+      },
+      global: {
+        mocks: {
+          $store:      createStore({ actions }),
+          $fetchState: {}
+        },
+        stubs: { transition: false }
       }
     });
 
     const knownSshHostsOpenDialog = wrapper.find('[data-testid="input-known-ssh-hosts_open-dialog"]');
-    const editDialog = wrapper.vm.$refs['editDialog'] as any;
 
     await knownSshHostsOpenDialog.trigger('click');
 
-    expect(editDialog.showModal).toBe(true);
+    expect(actions['management/promptModal']).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ component: 'KnownHostsEditDialog' }));
   });
 });

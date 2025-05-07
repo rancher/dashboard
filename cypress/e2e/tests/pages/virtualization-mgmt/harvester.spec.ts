@@ -6,6 +6,8 @@ import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const extensionsPo = new ExtensionsPagePo();
 const harvesterPo = new HarvesterClusterPagePo();
+const appRepoList = new RepositoriesPagePo(undefined, 'manager');
+
 let harvesterClusterName = '';
 const harvesterGitRepoName = 'harvester';
 const branchName = 'gh-pages';
@@ -47,11 +49,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.extensionCard(harvesterGitRepoName).should('be.visible');
 
     // verify harvester repo is added to repos list page
-    const appRepoList = new RepositoriesPagePo(undefined, 'manager');
-
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
+    appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
 
     // begin process of importing harvester cluster
     harvesterPo.goTo();
@@ -96,8 +97,14 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       }
     });
 
+    // verify harvester repo is added to repos list page
+    appRepoList.goTo();
+    appRepoList.waitForPage();
+    appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
+    appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
+
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(null, 'available', MEDIUM_TIMEOUT_OPT);
     extensionsPo.loading().should('not.exist');
 
     // click on install button on card
@@ -149,7 +156,6 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=install`).as('installHarvesterExtension');
     cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?action=upgrade`).as('upgradeHarvesterExtension');
     cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }`).as('updateHarvesterChart');
-    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/${ harvesterGitRepoName }?link=index`).as('getHarvesterVersions');
 
     // add harvester repo
     cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
@@ -160,14 +166,19 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       }
     });
 
+    // verify harvester repo is added to repos list page
+    appRepoList.goTo();
+    appRepoList.waitForPage();
+    appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
+    appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
+
     extensionsPo.goTo();
-    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.waitForPage(null, 'available', MEDIUM_TIMEOUT_OPT);
     extensionsPo.loading().should('not.exist');
 
     // get harvester extension versions
-    cy.wait('@getHarvesterVersions').then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
-      const fetchedVersions = response?.body.entries.harvester.map((item: any) => item.version);
+    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos/harvester?link=index').then((resp: Cypress.Response<any>) => {
+      const fetchedVersions = resp?.body.entries.harvester.map((item: any) => item.version);
 
       cy.wrap(fetchedVersions).as('harvesterVersions');
     });

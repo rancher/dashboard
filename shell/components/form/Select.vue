@@ -2,11 +2,12 @@
 import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {
-  emits: ['update:value', 'createdListItem'],
+  emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
 
   components: { LabeledTooltip },
   mixins:     [
@@ -90,9 +91,14 @@ export default {
     isLangSelect: {
       type:    Boolean,
       default: false
-    },
+    }
   },
-
+  data() {
+    return {
+      isOpen:       false,
+      generatedUid: `s-uid-${ generateRandomAlphaString(12) }`
+    };
+  },
   methods: {
     // resizeHandler = in mixin
     getOptionLabel(option) {
@@ -119,21 +125,6 @@ export default {
     },
 
     focusSearch() {
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
-        return;
-      }
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -191,14 +182,26 @@ export default {
         return Math.random(100000);
       }
     },
+
     report(e) {
       alert(e);
     },
+
     handleDropdownOpen(args) {
       // function that prevents the "opening dropdown on focus"
       // default behaviour of v-select
       return args.noDrop || args.disabled ? false : args.open;
-    }
+    },
+    onOpen() {
+      this.isOpen = true;
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
+    onClose() {
+      this.isOpen = false;
+      this.$emit('on-close');
+    },
   },
   computed: {
     requiredField() {
@@ -259,7 +262,10 @@ export default {
       [$attrs.class]: $attrs.class
     }"
     :tabindex="disabled || isView ? -1 : 0"
-    role="listbox"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
@@ -288,11 +294,15 @@ export default {
       :dropdownShouldOpen="handleDropdownOpen"
       :tabindex="-1"
       role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
-      @open="resizeHandler"
+      @open="onOpen"
+      @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
+      @keydown.enter.stop
     >
       <template
         #option="option"

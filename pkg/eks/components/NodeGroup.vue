@@ -640,7 +640,10 @@ export default defineComponent({
         </KeyValue>
       </div>
     </div>
-    <hr class="mb-20">
+    <hr
+      class="mb-20"
+      role="none"
+    >
     <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"

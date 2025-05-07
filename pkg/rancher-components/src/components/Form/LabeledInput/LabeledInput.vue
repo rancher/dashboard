@@ -161,6 +161,19 @@ export default defineComponent({
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
+    ariaDescribedBy(): string | undefined {
+      const inheritedDescribedBy = this.$attrs['aria-describedby'];
+      const internalDescribedBy = this.cronHint || this.subLabel ? this.describedById : undefined;
+
+      if (inheritedDescribedBy && internalDescribedBy) {
+        return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
+      } else if (inheritedDescribedBy || internalDescribedBy) {
+        return `${ inheritedDescribedBy || internalDescribedBy }`;
+      }
+
+      return undefined;
+    },
+
     /**
      * Determines if the Labeled Input should display a tooltip.
      */
@@ -362,6 +375,7 @@ export default defineComponent({
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </slot>
@@ -377,11 +391,13 @@ export default defineComponent({
         v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        :aria-describedby="cronHint || subLabel ? describedById : undefined"
+        :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -396,13 +412,15 @@ export default defineComponent({
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
         :value="value"
         :placeholder="_placeholder"
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        :aria-describedby="cronHint || subLabel ? describedById : undefined"
+        :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"

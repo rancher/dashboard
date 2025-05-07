@@ -13,12 +13,15 @@ export default {
   components: { AppModal },
 
   data() {
-    return { opened: false, backgroundClosing: null };
+    return {
+      opened:            false,
+      backgroundClosing: null,
+      componentRendered: false
+    };
   },
 
   computed: {
     ...mapState('action-menu', ['showModal', 'modalData']),
-
     resources() {
       let resources = this.modalData?.resources;
 
@@ -28,10 +31,27 @@ export default {
 
       return resources || [];
     },
-
+    testId() {
+      return this.modalData?.testId || 'prompt-modal-generic-testid';
+    },
+    returnFocusSelector() {
+      return this.modalData?.returnFocusSelector || undefined;
+    },
+    returnFocusFirstIterableNodeSelector() {
+      return this.modalData?.returnFocusFirstIterableNodeSelector || undefined;
+    },
     modalWidth() {
       // property set from workload.js to overwrite modal default width of 600px, with fallback value as well
       return this.modalData?.modalWidth || '600px';
+    },
+    customClass() {
+      return this.modalData?.customClass || undefined;
+    },
+    styles() {
+      return this.modalData?.styles || undefined;
+    },
+    height() {
+      return this.modalData?.height || undefined;
     },
     component() {
       // Looks for a dialog component by looking up in plugins and @shell/dialog/${name}.
@@ -48,27 +68,36 @@ export default {
     },
     closeOnClickOutside() {
       return this.modalData?.closeOnClickOutside;
+    },
+    modalName() {
+      return this.modalData?.modalName;
     }
   },
 
   watch: {
     showModal(show) {
       this.opened = show;
-    },
+    }
   },
 
   methods: {
-    close() {
+    onSlotComponentMounted() {
+      // variable for the watcher based focus-trap
+      // so that we know when the component is rendered
+      this.componentRendered = true;
+    },
+    close(data) {
       if (!this.opened) {
         return;
       }
 
       this.errors = [];
-      this.$store.commit('action-menu/togglePromptModal');
+      this.$store.commit('action-menu/togglePromptModal', data);
       if (this.backgroundClosing) {
         this.backgroundClosing();
       }
 
+      this.componentRendered = false;
       this.opened = false;
     },
 
@@ -83,16 +112,26 @@ export default {
 <template>
   <app-modal
     v-if="opened && component"
+    :name="modalName"
     :click-to-close="closeOnClickOutside"
     :width="modalWidth"
-    @close="close()"
+    :data-testid="testId"
+    :custom-class="customClass"
+    :styles="styles"
+    :height="height"
+    :trigger-focus-trap="true"
+    :return-focus-selector="returnFocusSelector"
+    :return-focus-first-iterable-node-selector="returnFocusFirstIterableNodeSelector"
+    :focus-trap-watcher-based-variable="componentRendered"
+    @close="close"
   >
     <component
       v-bind="modalData.componentProps || {}"
       :is="component"
       :resources="resources"
       :register-background-closing="registerBackgroundClosing"
-      @close="close()"
+      @vue:mounted="onSlotComponentMounted"
+      @close="close"
     />
   </app-modal>
 </template>

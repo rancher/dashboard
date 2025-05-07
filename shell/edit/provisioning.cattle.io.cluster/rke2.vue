@@ -22,10 +22,12 @@ import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { findBy, removeObject, clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
-  clone, diff, set, get, isEmpty, mergeWithReplaceArrays
+  clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
+import {
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+} from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -63,7 +65,6 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
-import { SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -149,7 +150,13 @@ export default {
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
-    await this.initSchedulingCustomization();
+    const sc = await initSchedulingCustomization(this.value.spec, this.features, this.$store, this.mode);
+
+    this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+    this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+    this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+    this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+    this.errors = this.errors.concat(sc.errors);
 
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
@@ -243,20 +250,21 @@ export default {
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
-      harvesterVersionRange:                 {},
-      cisOverride:                           false,
+      harvesterVersionRange:                    {},
+      cisOverride:                              false,
       truncateLimit,
-      busy:                                  false,
-      machinePoolValidation:                 {}, // map of validation states for each machine pool
-      machinePoolErrors:                     {},
-      addonConfigValidation:                 {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      allNamespaces:                         [],
-      extensionTabs:                         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
-      clusterAgentDeploymentCustomization:   null,
-      schedulingCustomizationFeatureEnabled: false,
-      clusterAgentDefaultPC:                 null,
-      clusterAgentDefaultPDB:                null,
-      activeTab:                             null,
+      busy:                                     false,
+      machinePoolValidation:                    {}, // map of validation states for each machine pool
+      machinePoolErrors:                        {},
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      allNamespaces:                            [],
+      extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      clusterAgentDeploymentCustomization:      null,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
+      activeTab:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon
 
@@ -568,7 +576,7 @@ export default {
         out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
       }
 
-      if (counts.etcd === 0) {
+      if (counts.etcd <= 0) {
         out.color.etcd = NODE_TOTAL.error.color;
         out.icon.etcd = NODE_TOTAL.error.icon;
       } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
@@ -576,7 +584,7 @@ export default {
         out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.controlPlane === 0) {
+      if (counts.controlPlane <= 0) {
         out.color.controlPlane = NODE_TOTAL.error.color;
         out.icon.controlPlane = NODE_TOTAL.error.icon;
       } else if (counts.controlPlane === 1) {
@@ -584,7 +592,7 @@ export default {
         out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.worker === 0) {
+      if (counts.worker <= 0) {
         out.color.worker = NODE_TOTAL.error.color;
         out.icon.worker = NODE_TOTAL.error.icon;
       } else if (counts.worker === 1) {
@@ -1062,24 +1070,6 @@ export default {
       }
     },
 
-    async initSchedulingCustomization() {
-      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      try {
-        this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-      try {
-        this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
-      } catch (e) {
-        this.errors.push(e);
-      }
-
-      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.value?.spec?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
-        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
-      }
-    },
-
     setSchedulingCustomization(val) {
       if (val) {
         set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
@@ -1315,7 +1305,7 @@ export default {
         delete clonedCurrentConfig.metadata;
 
         if (this.provider === VMWARE_VSPHERE) {
-          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig);
+          machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true });
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
         }
@@ -1701,7 +1691,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+      return mergeWithReplace(defaultChartValue?.values, this.userChartValues[key]);
     },
 
     initServerAgentArgs() {
@@ -2450,6 +2440,7 @@ export default {
             :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
             :default-p-c="clusterAgentDefaultPC"
             :default-p-d-b="clusterAgentDefaultPDB"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
             @scheduling-customization-changed="setSchedulingCustomization"
           />
         </Tab>

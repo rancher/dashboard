@@ -31,6 +31,14 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
     return this;
   }
 
+  editClusterAsYaml() {
+    return this.resourceDetail().createEditView().editClusterAsYaml();
+  }
+
+  saveClusterAsYaml() {
+    return this.resourceDetail().createEditView().saveClusterAsYaml();
+  }
+
   create() {
     return this.resourceDetail().createEditView().create();
   }
@@ -45,5 +53,13 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
 
   basicsTab(): BasicsRke2 {
     return new BasicsRke2();
+  }
+
+  accordion(index: number, label: string) {
+    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
+  }
+
+  toggleAccordion(index: number, label: string) {
+    return this.accordion(index, label).click();
   }
 }

@@ -544,7 +544,10 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr v-if="subtype.description">
+                  <hr
+                    v-if="subtype.description"
+                    role="none"
+                  >
                   <div
                     v-if="subtype.description"
                     class="description"
@@ -906,6 +909,8 @@ form.create-resource-container .cru {
     position: sticky;
     bottom: 0;
     background-color: var(--header-bg);
+    height: $footer-height;
+    box-sizing: border-box;
 
     // Overrides outlet padding
     margin-left: -$space-m;

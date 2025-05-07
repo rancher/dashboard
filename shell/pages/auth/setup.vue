@@ -362,6 +362,7 @@ export default {
               <hr
                 v-if="mustChangePassword"
                 class="mt-20 mb-20"
+                role="none"
               >
               <p>
                 <t

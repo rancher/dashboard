@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 /* eslint-disable jest/no-hooks */
 import { mount, Wrapper } from '@vue/test-utils';
-import DirectoryConfig, { DATA_DIR_RADIO_OPTIONS, DEFAULT_SUBDIRS } from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
+import DirectoryConfig, { DATA_DIR_RADIO_OPTIONS, DEFAULT_SUBDIRS, DEFAULT_COMMON_BASE_PATH } from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 
@@ -54,7 +54,7 @@ describe('component: DirectoryConfig', () => {
     expect(k8sDistroInput.exists()).toBe(false);
   });
 
-  it('updating common base directory should set the correct values on each data dir variable', async() => {
+  it('setting the radio option to "common" should set the correct values on each data dir variable', async() => {
     const newMountOptions = clone(mountOptions);
 
     wrapper = mount(
@@ -68,17 +68,12 @@ describe('component: DirectoryConfig', () => {
       }
     );
 
-    const inputPath = 'some-data-dir';
-    const commonInput = wrapper.find('[data-testid="rke2-directory-config-common-data-dir"]');
+    // update radio to the "common" option
+    await wrapper.vm.handleRadioInput(DATA_DIR_RADIO_OPTIONS.COMMON);
 
-    // update base dir value
-    expect(commonInput.exists()).toBe(true);
-    commonInput.setValue(inputPath);
-    await nextTick();
-
-    expect(wrapper.vm.value.systemAgent).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.AGENT }`);
-    expect(wrapper.vm.value.provisioning).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.PROVISIONING }`);
-    expect(wrapper.vm.value.k8sDistro).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`);
+    expect(wrapper.vm.value.systemAgent).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.AGENT }`);
+    expect(wrapper.vm.value.provisioning).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.PROVISIONING }`);
+    expect(wrapper.vm.value.k8sDistro).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`);
   });
 
   it('updating each individual data dir should set the correct values on each data dir variable', async() => {
@@ -178,5 +173,24 @@ describe('component: DirectoryConfig', () => {
     expect(wrapper.vm.value.systemAgent).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.AGENT }`);
     expect(wrapper.vm.value.provisioning).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.PROVISIONING }`);
     expect(wrapper.vm.value.k8sDistro).toStrictEqual(`${ inputPath }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`);
+  });
+
+  it('updating the k8s version for the "common" config should only update the sub dir for the k8sDistro value', async() => {
+    wrapper = mount(
+      DirectoryConfig,
+      mountOptions
+    );
+
+    // update radio to the "common" option
+    await wrapper.vm.handleRadioInput(DATA_DIR_RADIO_OPTIONS.COMMON);
+
+    expect(wrapper.vm.value.systemAgent).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.AGENT }`);
+    expect(wrapper.vm.value.provisioning).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.PROVISIONING }`);
+    expect(wrapper.vm.value.k8sDistro).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.K8S_DISTRO_K3S }`);
+
+    // let's update the k8s version
+    await wrapper.setProps({ k8sVersion: 'v1.32.4+rke2r1' });
+
+    expect(wrapper.vm.value.k8sDistro).toStrictEqual(`${ DEFAULT_COMMON_BASE_PATH }/${ DEFAULT_SUBDIRS.K8S_DISTRO_RKE2 }`);
   });
 });

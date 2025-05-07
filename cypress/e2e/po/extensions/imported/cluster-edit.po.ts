@@ -29,12 +29,12 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return new ACE();
   }
 
-  enableNetworkAccordion() {
-    return this.self().find('[data-testid="network-accordion"]').click();
+  accordion(index: number, label: string) {
+    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
   }
 
-  enableRepositoriesAccordion() {
-    return this.self().find('[data-testid="repositories-accordion"]').click();
+  toggleAccordion(index: number, label: string) {
+    return this.accordion(index, label).click();
   }
 
   privateRegistryCheckbox() {
