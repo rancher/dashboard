@@ -119,12 +119,20 @@ export default {
     }
   },
 
+  data() {
+    return { showEnablingCisWarningBanner: false };
+  },
+
   watch: {
     selectedVersion(neu, old) {
       if (neu?.value !== old?.value && this.ciliumIpv6) {
         // Re-assign so that the setter updates the structure for the new k8s version if needed
         this.ciliumIpv6 = !!this.ciliumIpv6;
       }
+    },
+
+    'agentConfig.profile'(newValue) {
+      this.showEnablingCisWarningBanner = this.provider === 'custom' && this.mode === _EDIT && !!newValue;
     }
   },
 
@@ -579,11 +587,8 @@ export default {
       <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
     </Banner>
 
-    <div class="row mb-10">
-      <div
-        v-if="showCisProfile"
-        class="col span-6"
-      >
+    <div v-if="showCisProfile">
+      <div class="col span-6">
         <LabeledSelect
           v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model:value="serverConfig.profile"
@@ -600,6 +605,13 @@ export default {
           :options="profileOptions"
           :label="t('cluster.rke2.cis.agent')"
           @update:value="$emit('cis-changed')"
+        />
+      </div>
+      <div class="row mb-10">
+        <Banner
+          v-if="showEnablingCisWarningBanner"
+          color="warning"
+          label-key="cluster.rke2.cisProfile.warning"
         />
       </div>
     </div>
