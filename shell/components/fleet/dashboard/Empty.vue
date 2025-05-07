@@ -26,7 +26,10 @@ export default {
 };
 </script>
 <template>
-  <div class="fleet-empty-dashboard">
+  <div
+    class="fleet-empty-dashboard"
+    :data-testid="'fleet-empty-dashboard'"
+  >
     <i class="icon-fleet mb-30" />
     <h1>{{ t('fleet.dashboard.welcome') }}</h1>
     <p class="mb-30">
