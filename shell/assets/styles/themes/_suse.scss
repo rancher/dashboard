@@ -22,7 +22,7 @@
     $super-light-green: #F4F6F5;
     --active: #{$green-140};
     --on-active: #{$grey-0};
-    --active--hover: #{$green-120};
+    --active--hover: #{lighten($green-140, 5%)};
     --category--active: #{$super-light-green};
     --category--active--hover: #e8eeeb;
 
