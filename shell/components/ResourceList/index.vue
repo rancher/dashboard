@@ -139,7 +139,7 @@ export default {
     },
 
     showIncrementalLoadingIndicator() {
-      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.canPaginate, this.perfConfig);
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
 
   },

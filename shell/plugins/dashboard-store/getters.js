@@ -445,7 +445,17 @@ export default {
     return undefined;
   },
 
+  /**
+   * Determine if server-side pagination (SSP) is enabled
+   *
+   * If args is falsy just check the Feature Flag
+   *
+   * Otherwise args should reference a resource who's compatibility with SSP will also be checked
+   */
   paginationEnabled: (state, getters, rootState, rootGetters) => (args) => {
+    if (!args) {
+      return paginationUtils.isSteveCacheEnabled({ rootGetters });
+    }
     const id = typeof args === 'object' ? args.id : args;
     const context = typeof args === 'object' ? args.context : undefined;
 

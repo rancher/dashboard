@@ -92,7 +92,7 @@ export default {
       return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
     },
     showIncrementalLoadingIndicator() {
-      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.canPaginate, this.perfConfig);
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');

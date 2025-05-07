@@ -83,9 +83,17 @@ export default {
 
   loadSchemas,
 
-  // Load a page of data for a given type
-  // Used for incremental loading when enabled
-  async loadDataPage(ctx, { type, opt }) {
+  /**
+   * Load a page of data for a given type. Given the response will continue until there are no pages left to fetch
+   *
+   * Used for incremental loading when enabled
+   *
+   * If we're in the non-vai world paginate via native limit/next
+   * If we're in the vai world paginate via page number
+   */
+  async loadDataPage(ctx, {
+    type, opt, pageByLimit, pageByNumber
+  }) {
     const { getters, commit, dispatch } = ctx;
 
     type = getters.normalizeType(type);
@@ -99,6 +107,15 @@ export default {
     const loadCount = getters['loadCounter'](type);
 
     try {
+      if (pageByLimit) {
+        opt.url = pageByLimit.next;
+      } else {
+        const { url, page, pageSize } = pageByNumber;
+
+        opt.url = addParam(url, 'page', `${ page }`);
+        opt.url = addParam(opt.url, 'pagesize', `${ pageSize }`);
+      }
+
       const res = await dispatch('request', { opt, type });
 
       const newLoadCount = getters['loadCounter'](type);
@@ -115,12 +132,19 @@ export default {
         data: res.data,
       });
 
-      if (res.pagination?.next) {
+      if (pageByLimit && res.pagination?.next) {
         dispatch('loadDataPage', {
           type,
-          opt: {
-            ...opt,
-            url: res.pagination?.next
+          opt,
+          pageByLimit: { next: res.pagination.next },
+        });
+      } else if (pageByNumber && pageByNumber.page !== pageByNumber.pages) {
+        dispatch('loadDataPage', {
+          type,
+          opt,
+          pageByNumber: {
+            ...pageByNumber,
+            page: pageByNumber.page + 1,
           }
         });
       } else {
@@ -199,16 +223,11 @@ export default {
 
     let skipHaveAll = false;
 
-    // TODO: RC debug
-    if (type === 'pod') {
-      debugger;
-    }
-
     // if it's incremental loading, we do two parallel requests
     // one for a limit of 100, to quickly show data
     // another one with 1st page of the subset of the resource we are fetching
     // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
-    let pageFetchOpts;
+    let pageByLimit, pageByNumber;
 
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
@@ -217,14 +236,20 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      pageFetchOpts = {
-        ...opt,
-        url: addParam(opt.url, 'limit', `${ opt.incremental.limit }`), // TODO: RC debug
-      };
+      if (opt.incremental.pageByNumber) {
+        pageByNumber = {
+          url:      opt.url,
+          page:     1,
+          pages:    opt.incremental.chunks,
+          pageSize: opt.incremental.chunkCount,
+        };
+      } else {
+        pageByLimit = { next: addParam(opt.url, 'limit', `${ opt.incremental.chunkCount }`) };
+      }
 
       // this is where we "hijack" the limit for the dispatch('request') some lines below
       // and therefore have 2 initial requests in parallel
-      opt.url = addParam(opt.url, 'limit', '5'); // TODO: RC debug
+      opt.url = addParam(opt.url, 'limit', `${ opt.incremental.quickLoadCount }`);
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll
@@ -338,7 +363,9 @@ export default {
 
       if (opt.incremental) {
         // This needs to come after the loadAll (which resets state) so supplements via loadDataPage aren't lost
-        dispatch('loadDataPage', { type, opt: pageFetchOpts });
+        dispatch('loadDataPage', {
+          type, opt, pageByLimit, pageByNumber
+        });
       }
     }
 

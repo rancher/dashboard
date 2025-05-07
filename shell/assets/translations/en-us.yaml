@@ -7806,7 +7806,7 @@ performance:
     authUserTTL: This timeout cannot be higher than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
   serverPagination:
     label: Server-side Pagination
-    description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Server-Side Pagination helps the responsiveness of the UI in systems with a lot of resources.
+    description: By default Lists will fetch all resources and paginate (create the page given sort and filter settings) locally in the browser. Server-Side Pagination moves this out from the browser to the server. This improves performance of the UI, especially in systems with lots of resources.
     applicable: "Server-side pagination applies to Resource Types"
     featureFlag: This setting is now soley controlled by the&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache`
     resources:
