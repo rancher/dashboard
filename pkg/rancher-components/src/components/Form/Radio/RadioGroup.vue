@@ -275,7 +275,8 @@ export default defineComponent({
       :aria-activedescendant="ariaActiveDescendant"
       class="radio-group"
       :class="{'row':row}"
-      tabindex="0"
+      :tabindex="isDisabled ? -1 : 0"
+      :aria-disabled="isDisabled"
       @keydown.down.prevent.stop="clickNext(1)"
       @keydown.up.prevent.stop="clickNext(-1)"
       @keydown.space.enter.stop.prevent
