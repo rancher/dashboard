@@ -103,7 +103,7 @@ button,
     line-height: $btn-sm-height - 2px;
 
     &:focus, &.focused {
-      border: 0;
+      border-color: transparent;
     }
   }
 }
