@@ -81,17 +81,22 @@
   --error-text    : #FFAC99;
   --warning-text  : #{$warning};
 
-  --success-banner    : #{rgba($success, 10%)};
+  --success-badge    : #{rgba($success, 10%)};
   --on-success-banner : #{$success};
 
-  --warning-banner    : #{$warning};
+  --warning-badge    : #ffcc00;
   --on-warning-banner : #{darken($warning, 60%)};
 
-  --info-banner    : #{rgba($info, 30%)};
+  --info-badge    : #{rgba($info, 30%)};
   --on-info-banner : #{lighten($info, 50%)};
 
-  --error-banner    :  #{$error};
+  --error-badge    :  #{$error};
   --on-error-banner : #FFFFFF;
+
+  --error-banner-bg: #301D1D;
+
+  --warning-banner-text: var(--warning-text);
+  --error-banner-text: var(--error-text);
 
   /*********************/
 
@@ -128,6 +133,8 @@
 
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$grey-0};
+
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
   --nav-bg                     : var(--body__bg);
   --nav-active                 : #333;

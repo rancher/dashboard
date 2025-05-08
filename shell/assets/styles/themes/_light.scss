@@ -675,15 +675,18 @@ BODY, .theme-light {
   
   /* Semantics */
 
-  --warning-banner    : #{$warning};
+  --warning-badge    : #{$warning};
   --on-warning-banner : #{darken($warning, 60%)};
 
-  --success-banner    : #{rgba($success, 0.10)};
-  --on-success-banner : $success;
+  --success-badge    : #{rgba($success, 0.10)};
+  --on-success-banner : #{$success};
 
-  --info-banner    : #{rgba($info, 0.10)};
+  --info-badge    : #{rgba($info, 0.10)};
   --on-info-banner : #{$info};
   
-  --error-banner    :  #{$error};
+  --error-badge    :  #{$error};
   --on-error-banner : #FFFFFF;
+
+  --error-banner-text: #{$error};
+  --warning-banner-text: var(--warning-text);
 }
