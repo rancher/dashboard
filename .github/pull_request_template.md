@@ -28,4 +28,4 @@ Fixes #
 - [ ] The PR has a reviewer assigned
 - [ ] The PR has automated tests or clear instructions for manual tests and the linked issue has appropriate QA labels, or tests are not needed
 - [ ] The PR has reviewed with UX and tested in light and dark mode, or there are no UX changes
-- [ ] The PR has been reviewed in terms of Accessibility (test keyboard navigation, use screen reader, check ARIA roles and attributes)
+- [ ] The PR has been reviewed in terms of Accessibility
