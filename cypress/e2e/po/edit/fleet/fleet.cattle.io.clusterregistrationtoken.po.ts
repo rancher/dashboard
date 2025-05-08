@@ -1,6 +1,6 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export default class FleetTokensCreateEditPo extends PagePo {
+export default class FleetTokensCreateEditPo extends BaseDetailPagePo {
   private static createPath(workspace?: string, id?: string ) {
     const root = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`;
 

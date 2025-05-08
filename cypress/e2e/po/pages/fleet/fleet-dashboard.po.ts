@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitrepo.po';
 
 export class FleetDashboardPagePo extends PagePo {
     static url: string;
@@ -36,10 +36,6 @@ export class FleetDashboardPagePo extends PagePo {
       super(FleetDashboardPagePo.createPath(clusterId));
     }
 
-    sharedComponents() {
-      return new SharedComponentsPo(this.self());
-    }
-
     collapsibleTable(name: string) {
       return new ResourceTablePo(this.self().find(`[data-testid="collapsible-card-${ name }"]`));
     }
@@ -54,5 +50,9 @@ export class FleetDashboardPagePo extends PagePo {
 
     getStartedButton() {
       return this.self().get('.btn').contains('Get started');
+    }
+
+    gitReposList(): FleetGitRepoList {
+      return new FleetGitRepoList(this.path);
     }
 }

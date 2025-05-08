@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetClusterGroupsCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clustergroup.po';
+import FleetClusterGroupsList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clustergroup';
 
 export class FleetClusterGroupsListPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -28,8 +28,8 @@ export class FleetClusterGroupsListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Cluster Groups');
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  clusterGroupsList() {
+    return new FleetClusterGroupsList(this.path);
   }
 
   createFleetClusterGroupsForm(workspace?: string, id? : string): FleetClusterGroupsCreateEditPo {

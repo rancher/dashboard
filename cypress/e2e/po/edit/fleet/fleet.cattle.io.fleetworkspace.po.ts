@@ -1,9 +1,8 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
 
-export default class FleetWorkspaceCreateEditPo extends PagePo {
+export default class FleetWorkspaceCreateEditPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string) {
     const root = '/c/_/fleet/management.cattle.io.fleetworkspace';
 
@@ -16,10 +15,6 @@ export default class FleetWorkspaceCreateEditPo extends PagePo {
 
   constructor(fleetWorkspace: string) {
     super(FleetWorkspaceCreateEditPo.createPath(fleetWorkspace));
-  }
-
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
   }
 
   allowTargetNsTabList() {

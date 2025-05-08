@@ -1,18 +1,18 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetRestrictionCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.gitreporestriction.po';
+import FleetGitRepoRestrictionList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitreporestriction.po';
 
-export class FleetGitRepoRestrictionListPagePo extends PagePo {
+export class FleetGitRepoRestrictionPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.gitreporestriction`
 
   constructor() {
-    super(FleetGitRepoRestrictionListPagePo.url);
+    super(FleetGitRepoRestrictionPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetGitRepoRestrictionListPagePo.url);
+    return cy.visit(FleetGitRepoRestrictionPagePo.url);
   }
 
   static navTo() {
@@ -27,8 +27,8 @@ export class FleetGitRepoRestrictionListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('GitRepoRestrictions');
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  restrictionList() {
+    return new FleetGitRepoRestrictionList(this.path);
   }
 
   createRestrictionForm(fleetWorkspace?: string, id?: string): FleetRestrictionCreateEditPo {

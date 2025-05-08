@@ -1,7 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
-import { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import InstalledAppsList from '@/cypress/e2e/po/lists/catalog.cattle.io.app.po';
 
 const terminal = new Kubectl();
 
@@ -25,8 +24,8 @@ export default class ChartInstalledAppsPagePo extends PagePo {
     this.self().get('.input-sm.search-box').type(key);
   }
 
-  sharedComponents(options?: GetOptions) {
-    return new SharedComponentsPo('[data-testid="installed-app-catalog-list"]', this.self(options));
+  appsList() {
+    return new InstalledAppsList(this.path, '[data-testid="installed-app-catalog-list"]');
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
@@ -37,7 +36,7 @@ export default class ChartInstalledAppsPagePo extends PagePo {
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
-      this.sharedComponents().resourceTableDetails(item, 0).should('contain', 'Deployed');
+      this.appsList().resourceTableDetails(item, 0).should('contain', 'Deployed');
     });
 
     // timeout to give time for everything to be setup, otherwise the extension

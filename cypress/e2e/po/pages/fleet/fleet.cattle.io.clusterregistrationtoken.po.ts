@@ -1,18 +1,18 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetTokensCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import FleetClusterRegistrationTokensList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.clusterregistrationtoken.po';
 
-export class FleetClusterRegistrationTokenListPagePo extends PagePo {
+export class FleetClusterRegistrationTokenPagePo extends PagePo {
   static url = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`
 
   constructor() {
-    super(FleetClusterRegistrationTokenListPagePo.url);
+    super(FleetClusterRegistrationTokenPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetClusterRegistrationTokenListPagePo.url);
+    return cy.visit(FleetClusterRegistrationTokenPagePo.url);
   }
 
   static navTo() {
@@ -27,8 +27,8 @@ export class FleetClusterRegistrationTokenListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Cluster Registration Tokens');
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  tokenList() {
+    return new FleetClusterRegistrationTokensList(this.path);
   }
 
   createTokenForm(fleetWorkspace?: string, id?: string): FleetTokensCreateEditPo {

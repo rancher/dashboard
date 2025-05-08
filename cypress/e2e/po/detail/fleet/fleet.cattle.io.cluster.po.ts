@@ -1,4 +1,4 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitrepo.po';
 import GitReposTab from '@/cypress/e2e/po/detail/fleet/tabs/git-repos-tab.po';
@@ -6,7 +6,7 @@ import GitReposTab from '@/cypress/e2e/po/detail/fleet/tabs/git-repos-tab.po';
 /**
  * Details component for fleet.cattle.io.gitrepo resources
  */
-export default class FleetClusterDetailsPo extends PagePo {
+export default class FleetClusterDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, clusterName: string) {
     return `/c/_/fleet/fleet.cattle.io.cluster/${ fleetWorkspace }/${ clusterName }`;
   }
@@ -24,7 +24,7 @@ export default class FleetClusterDetailsPo extends PagePo {
   }
 
   gitReposList(): FleetGitRepoList {
-    return new FleetGitRepoList(this.self());
+    return new FleetGitRepoList(this.path);
   }
 
   gitReposTab() {

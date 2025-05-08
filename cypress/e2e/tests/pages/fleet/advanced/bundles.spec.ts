@@ -1,4 +1,4 @@
-import { FleetBundlesListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.bundle.po';
+import { FleetBundlesPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.bundle.po';
 import FleetBundleDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.bundle.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
@@ -15,7 +15,7 @@ const bundlesNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  const fleetBundles = new FleetBundlesListPagePo();
+  const fleetBundles = new FleetBundlesPagePo();
   const headerPo = new HeaderPo();
 
   describe('List', { tags: ['@vai', '@adminUser'] }, () => {
@@ -24,14 +24,14 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
     });
 
     it('validate bundles table in empty state', () => {
-      FleetBundlesListPagePo.navTo();
+      FleetBundlesPagePo.navTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(defaultWorkspace);
 
       // check table headers
       const expectedHeaders = ['State', 'Name', 'Deployments', 'Age'];
 
-      fleetBundles.sharedComponents().list().resourceTable().sortableTable()
+      fleetBundles.bundlesList().list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
@@ -40,14 +40,14 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
     });
 
     it('check table headers are available in list and details view', () => {
-      FleetBundlesListPagePo.navTo();
+      FleetBundlesPagePo.navTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
 
       // check table headers
       const expectedHeaders = ['State', 'Name', 'Deployments', 'Age'];
 
-      fleetBundles.sharedComponents().list().resourceTable().sortableTable()
+      fleetBundles.bundlesList().list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
@@ -55,7 +55,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
         });
 
       // go to fleet bundle details
-      fleetBundles.sharedComponents().goToDetailsPage(bundle);
+      fleetBundles.bundlesList().goToDetailsPage(bundle);
 
       const fleetBundleeDetailsPage = new FleetBundleDetailsPo(localWorkspace, bundle);
 
@@ -86,15 +86,15 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
 
       fleetBundles.goTo();
       fleetBundles.waitForPage();
-      fleetBundles.sharedComponents().baseResourceList().masthead().title()
+      fleetBundles.bundlesList().baseResourceList().masthead().title()
         .should('contain', 'Bundles');
       headerPo.selectWorkspace(localWorkspace);
-      fleetBundles.sharedComponents().baseResourceList().masthead().createYaml();
+      fleetBundles.bundlesList().baseResourceList().masthead().createYaml();
       fleetBundles.createBundlesForm().waitForPage('as=yaml');
       fleetBundles.createBundlesForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Bundle: Create');
       });
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
         // convert yaml into json to update values
@@ -120,11 +120,11 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
             }
           ];
 
-          fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@createBundle').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
@@ -132,9 +132,9 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
         bundlesNameList.push(customBundleName);
       });
       fleetBundles.waitForPage();
-      fleetBundles.sharedComponents().list().rowWithName(customBundleName).checkVisible();
+      fleetBundles.bundlesList().list().rowWithName(customBundleName).checkVisible();
       // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundles.sharedComponents().resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      // fleetBundles.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
@@ -144,13 +144,13 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundles.goTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
-      fleetBundles.sharedComponents().list().actionMenu(customBundleName).getMenuItem('Edit YAML')
+      fleetBundles.bundlesList().list().actionMenu(customBundleName).getMenuItem('Edit YAML')
         .click();
       fleetBundles.createBundlesForm(localWorkspace, customBundleName).waitForPage('mode=edit&as=yaml');
       fleetBundles.createBundlesForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: ${ customBundleName }`);
       });
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -158,10 +158,10 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
 
           json.metadata.namespace = localWorkspace;
 
-          fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@editBundle').then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -176,13 +176,13 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundles.goTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
-      fleetBundles.sharedComponents().list().actionMenu(customBundleName).getMenuItem('Clone')
+      fleetBundles.bundlesList().list().actionMenu(customBundleName).getMenuItem('Clone')
         .click();
       fleetBundles.createBundlesForm(localWorkspace, customBundleName).waitForPage('mode=clone&as=yaml');
       fleetBundles.createBundlesForm().mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: Clone from ${ customBundleName }`);
       });
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -190,19 +190,19 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
 
           json.metadata.name = `${ customBundleName }-clone`;
 
-          fleetBundles.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetBundles.createBundlesForm().resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetBundles.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetBundles.createBundlesForm().resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@cloneBundle').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
       });
       fleetBundles.waitForPage();
-      fleetBundles.sharedComponents().list().rowWithName(`${ customBundleName }-clone`).checkVisible();
+      fleetBundles.bundlesList().list().rowWithName(`${ customBundleName }-clone`).checkVisible();
       // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundles.sharedComponents().resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      // fleetBundles.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     it('can Download YAML', () => {
@@ -211,7 +211,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundles.goTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
-      fleetBundles.sharedComponents().list().actionMenu(customBundleName).getMenuItem('Download YAML')
+      fleetBundles.bundlesList().list().actionMenu(customBundleName).getMenuItem('Download YAML')
         .click();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customBundleName }.yaml`);
@@ -229,9 +229,9 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundles.goTo();
       fleetBundles.waitForPage();
       headerPo.selectWorkspace(localWorkspace);
-      fleetBundles.sharedComponents().list().actionMenu(`${ customBundleName }-clone`).getMenuItem('Delete')
+      fleetBundles.bundlesList().list().actionMenu(`${ customBundleName }-clone`).getMenuItem('Delete')
         .click();
-      fleetBundles.sharedComponents().list().resourceTable().sortableTable()
+      fleetBundles.bundlesList().list().resourceTable().sortableTable()
         .rowNames('.col-link-detail')
         .then((rows: any) => {
           const promptRemove = new PromptRemove();
@@ -241,9 +241,9 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
           promptRemove.remove();
           cy.wait('@deleteBundle');
           fleetBundles.waitForPage();
-          fleetBundles.sharedComponents().list().resourceTable().sortableTable()
+          fleetBundles.bundlesList().list().resourceTable().sortableTable()
             .checkRowCount(false, rows.length - 1);
-          fleetBundles.sharedComponents().list().resourceTable().sortableTable()
+          fleetBundles.bundlesList().list().resourceTable().sortableTable()
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customBundleName }-clone`);
         });

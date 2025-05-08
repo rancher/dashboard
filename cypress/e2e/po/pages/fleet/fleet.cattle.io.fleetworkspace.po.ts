@@ -1,18 +1,18 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import FleetWorkspaceCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.fleetworkspace.po';
+import FleetWorkspaceList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.workspace.po';
 
-export class FleetWorkspaceListPagePo extends PagePo {
+export class FleetWorkspacePagePo extends PagePo {
   static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
 
   constructor() {
-    super(FleetWorkspaceListPagePo.url);
+    super(FleetWorkspacePagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetWorkspaceListPagePo.url);
+    return cy.visit(FleetWorkspacePagePo.url);
   }
 
   static navTo() {
@@ -27,8 +27,8 @@ export class FleetWorkspaceListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Workspaces');
   }
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+  workspaceList() {
+    return new FleetWorkspaceList(this.path);
   }
 
   createWorkspaceForm(fleetWorkspace?: string): FleetWorkspaceCreateEditPo {
