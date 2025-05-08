@@ -47,22 +47,18 @@ export default {
       chart:        null,
       chartOptions: {
         responsive: true,
-        plugins:    {
+        elements:   {
+          arc: {
+            borderWidth: 4,
+            borderColor: getComputedStyle(document.body).getPropertyValue('--body-bg')
+          }
+        },
+        plugins: {
           legend: { display: false },
           title:  { display: false },
         },
-        // scales: {
-        //   myScale: {
-        //     type: "logarithmic",
-        //     position: 'left',
-        //   },
-        // },
+        cutout: 13,
         // onClick: (_, value) => {
-        //   const index = value[0]?.index;
-
-        //   const id = panelStates[index]?.id;
-
-        //   this.filterRepos(id);
         // }
       },
       selectedStates: {},
@@ -235,7 +231,7 @@ export default {
     gap: 5px;
 
     .panel-chart-container {
-      padding: 5px;
+      padding: 3px;
       min-width: 80px;
       width: 80px;
     }
@@ -245,8 +241,12 @@ export default {
 
       .description {
         .count {
-          font-size: 20px;
+          font-size: 25px;
           font-weight: bold;
+        }
+
+        .label {
+          font-size: 20px;
         }
       }
 

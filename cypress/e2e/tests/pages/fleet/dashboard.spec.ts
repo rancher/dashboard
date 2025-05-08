@@ -111,7 +111,9 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
-    activeStatePanel.title().should('contain.text', 'Active 1');
+    activeStatePanel.title().should('contain.text', 'Active');
+    activeStatePanel.title().should('contain.text', '1');
+    activeStatePanel.title().should('contain.text', '/1');
     activeStatePanel.title().click();
 
     const card = activeStatePanel.card(repoName);
