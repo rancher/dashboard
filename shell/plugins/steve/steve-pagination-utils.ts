@@ -18,13 +18,14 @@ import {
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
  *
  * The build would error on <ns>.name, it somehow doesn't know about the steve model's properties (they are included in typegen)
  */
-interface Namespace extends ModelNamespace {
+interface NamespaceWithName extends ModelNamespace {
   name: string;
 }
 
@@ -32,7 +33,7 @@ class NamespaceProjectFilters {
   /**
    * User needs all resources.... except if there's some settings which should remove resources in specific circumstances
    */
-  protected handlePrefAndSettingFilter(allNamespaces: Namespace[], showDynamicRancherNamespaces: boolean, productHidesSystemNamespaces: boolean): PaginationParamFilter[] {
+  protected handlePrefAndSettingFilter(allNamespaces: NamespaceWithName[], showDynamicRancherNamespaces: boolean, productHidesSystemNamespaces: boolean): PaginationParamFilter[] {
     // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
@@ -58,7 +59,7 @@ class NamespaceProjectFilters {
    *
    * Users resources are those not in system namespaces
    */
-  protected handleSystemOrUserFilter(allNamespaces: Namespace[], isAllSystem: boolean, isAllUser: boolean) {
+  protected handleSystemOrUserFilter(allNamespaces: NamespaceWithName[], isAllSystem: boolean, isAllUser: boolean) {
     const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
     // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has
@@ -256,7 +257,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     showDynamicRancherNamespaces,
     productHidesSystemNamespaces,
   }: {
-    allNamespaces: Namespace[],
+    allNamespaces: NamespaceWithName[],
     selection: string[],
     /**
      * There is no user provided filter
@@ -377,6 +378,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       }
     }
 
+    if (opt.pagination.labelSelector) {
+      const filters = this.convertLabelSelectorPaginationParams(schema, opt.pagination.labelSelector);
+
+      if (filters) {
+        params.push(filters);
+      }
+    }
+
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
@@ -474,6 +483,111 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     return res;
+  }
+
+  /**
+   * Convert kube labelSelector object into steve filter params
+   *
+   * A lot of the requirements and details are taken directly from
+   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+   */
+  private convertLabelSelectorPaginationParams(schema: Schema, labelSelector: KubeLabelSelector): string {
+    // Get a list of matchExpressions
+    const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
+
+    // matchLabels are just simpler versions of matchExpressions, for ease convert them
+    if (labelSelector.matchLabels) {
+      Object.entries(labelSelector.matchLabels).forEach(([key, value]) => {
+        const expression: KubeLabelSelectorExpression = {
+          key,
+          values:   [value],
+          operator: 'In'
+        };
+
+        expressions.push(expression);
+      });
+    }
+
+    // concert all matchExpressions into string params
+    const filters: string[] = expressions.reduce((res, exp) => {
+      const labelKey = `metadata.labels[${ exp.key }]`;
+
+      switch (exp.operator) {
+      case 'In':
+        if (!exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(IN) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // foo IN [bar] => ?filter=foo+IN+(bar)
+        // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
+        res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
+        break;
+      case 'NotIn':
+
+        if (!exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(NOTIN) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
+        res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
+        break;
+      case 'Exists':
+
+        if (exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Exists) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // bbb Exists=> ?filter=bbb
+        res.push(`filter=${ labelKey }`);
+        break;
+      case 'DoesNotExist':
+        if (exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(DoesNotExist) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // ccc DoesNotExist ?filter=!bbb. # or %21bbb
+        res.push(`filter=!${ labelKey }`);
+        break;
+      case 'Gt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+
+        if (typeof exp.values !== 'string') {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Gt) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // ddd Gt 1=> ?filter=ddd+>+1
+        res.push(`filter=${ labelKey } > (${ exp.values })`);
+        break;
+      case 'Lt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+        if (typeof exp.values !== 'string') {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // eee Lt 2=> ?filter=eee+<+2
+        res.push(`filter=${ labelKey } < (${ exp.values })`);
+        break;
+      }
+
+      return res;
+    }, [] as string[]);
+
+    // "All of the requirements, from both matchLabels and matchExpressions are ANDed together -- they must all be satisfied in order to match"
+    return filters.join('&');
   }
 }
 

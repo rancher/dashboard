@@ -4,12 +4,13 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import { convert, matching, simplify } from '@shell/utils/selector';
-import { POD } from '@shell/config/types';
+import { convert, simplify } from '@shell/utils/selector';
+import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
-import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
+import { matching } from '@shell/utils/selector-typed';
 
 const TARGET_OPTIONS = {
   IP_BLOCK:                   'ipBlock',
@@ -17,6 +18,9 @@ const TARGET_OPTIONS = {
   POD_SELECTOR:               'podSelector',
   NAMESPACE_AND_POD_SELECTOR: 'namespaceAndPodSelector',
 };
+
+// Components shown for Network Policy --> Ingress/Egress Rules --> Rule Type are...
+// Edit Network Policy --> `PolicyRules` 1 --> M `PolicyRule` 1 --> M `PolicyRuleTarget`
 
 export default {
   components: {
@@ -41,18 +45,6 @@ export default {
       type:    String,
       default: ''
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
   },
   data() {
     if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
@@ -66,18 +58,26 @@ export default {
     }
 
     return {
-      portOptions:        ['TCP', 'UDP'],
-      matchingPods:       {},
-      matchingNamespaces: {},
-      invalidCidr:        null,
-      invalidCidrs:       [],
+      portOptions:  ['TCP', 'UDP'],
+      matchingPods: {
+        matches: [], matched: 0, total: 0
+      },
+      matchingNamespaces: {
+        matches: [], matched: 0, total: 0
+      },
+      invalidCidr:            null,
+      invalidCidrs:           [],
       POD,
       TARGET_OPTIONS,
-      targetOptions:      Object.values(TARGET_OPTIONS),
-      throttleTime:       250,
+      targetOptions:          Object.values(TARGET_OPTIONS),
+      inStore:                this.$store.getters['currentProduct'].inStore,
+      debouncedUpdateMatches: debounce(this.updateMatches, 500)
     };
   },
   computed: {
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     podSelectorExpressions: {
       get() {
         return convert(
@@ -89,6 +89,9 @@ export default {
         this.value[TARGET_OPTIONS.POD_SELECTOR] = simplify(podSelectorExpressions);
       }
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     namespaceSelectorExpressions: {
       get() {
         return convert(
@@ -145,39 +148,40 @@ export default {
   },
   watch: {
     namespace: {
-      handler:   'updateMatches',
-      immediate: true
-    },
-    allNamespaces: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.podSelector': {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.namespaceSelector': {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     'value.ipBlock.cidr':   'validateCIDR',
     'value.ipBlock.except': 'validateCIDR',
     podSelectorExpressions: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     },
     namespaceSelectorExpressions: {
-      handler:   'updateMatches',
+      handler:   'debouncedUpdateMatches',
       immediate: true
     }
   },
+
+  fetch() {
+    this.debouncedUpdateMatches();
+  },
+
   methods: {
-    updateMatches() {
-      throttle(() => {
-        this.matchingNamespaces = this.getMatchingNamespaces();
-        this.matchingPods = this.getMatchingPods();
-      }, this.throttle, { leading: true })();
+    async updateMatches() {
+      // Note - needs to be sequential as getMatchingPods requires matchingNamespaces to be up-to-date
+      this.matchingNamespaces = await this.getMatchingNamespaces();
+      this.matchingPods = await this.getMatchingPods();
     },
+
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 
@@ -191,34 +195,25 @@ export default {
         this.invalidCidr = null;
       }
     },
-    getMatchingPods() {
-      const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
-      const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
-      const match = matching(allInNamespace, this.podSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
 
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allInNamespace.length,
-      };
+    async getMatchingPods() {
+      return await matching({
+        labelSelector: { matchExpressions: this.podSelectorExpressions },
+        type:          POD,
+        $store:        this.$store,
+        inStore:       this.inStore,
+        namespace:     this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches.map((ns) => ns.id) : this.namespace,
+        transient:     true,
+      });
     },
-    getMatchingNamespaces() {
-      const allNamespaces = this.allNamespaces;
-      const match = matching(allNamespaces, this.namespaceSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
-
-      return {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allNamespaces.length,
-      };
+    async getMatchingNamespaces() {
+      return await matching({
+        labelSelector: { matchExpressions: this.namespaceSelectorExpressions },
+        type:          NAMESPACE,
+        $store:        this.$store,
+        inStore:       this.inStore,
+        transient:     true,
+      });
     },
   }
 };

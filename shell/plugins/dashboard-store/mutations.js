@@ -413,13 +413,18 @@ export default {
   loadSelector(state, {
     type, entries, ctx, selector, revision
   }) {
+    const keyField = ctx.getters.keyFieldForType(type);
     const cache = registerType(state, type);
-    const cachedArgs = createLoadArgs(ctx, entries?.[0]?.type);
+    const proxies = reactive(entries.map((x) => classify(ctx, x)));
 
-    for ( const data of entries ) {
-      load(state, {
-        data, ctx, cachedArgs
-      });
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+
+    addObjects(cache.list, proxies);
+
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
     }
 
     cache.haveSelector[selector] = true;
