@@ -162,7 +162,7 @@ export default {
           } = obj;
 
           if (!out.find((s) => s.stateDisplay === stateDisplay)) {
-            const id = FleetUtils.getDashboardStateId(obj.state);
+            const id = FleetUtils.getDashboardStateId(obj);
 
             out.push({
               stateDisplay,
@@ -210,7 +210,7 @@ export default {
     filterByState(workspace, state) {
       return this.filterByType(workspace).filter((item) => {
         const filterStates = this.stateFilter[workspace.id][item.type];
-        const id = FleetUtils.getDashboardStateId(item.state);
+        const id = FleetUtils.getDashboardStateId(item);
 
         const toShow = !filterStates?.length || !!filterStates.find((f) => f === id);
 
