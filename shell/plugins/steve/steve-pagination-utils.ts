@@ -18,6 +18,7 @@ import {
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -344,8 +345,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       params.push(`page=${ opt.pagination.page }`);
     }
 
-    if (opt.pagination.pageSize) {
+    if (opt.pagination.pageSize !== null) {
       params.push(`pagesize=${ opt.pagination.pageSize }`);
+    } else {
+      // Prevent unlimited resources in response
+      params.push(`pagesize=${paginationUtils.defaultPageSize}`);
     }
 
     if (opt.pagination.sort?.length) {
