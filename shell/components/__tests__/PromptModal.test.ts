@@ -21,6 +21,8 @@ import SloDialog from '@shell/dialog/SloDialog.vue';
 
 import DisableAuthProviderDialog from '@shell/dialog/DisableAuthProviderDialog.vue';
 import WechatDialog from '@shell/dialog/WechatDialog.vue';
+import DeveloperLoadExtensionDialog from '@shell/dialog/DeveloperLoadExtensionDialog.vue';
+import AddExtensionReposDialog from '@shell/dialog/AddExtensionReposDialog.vue';
 import InstallExtensionDialog from '@shell/dialog/InstallExtensionDialog.vue';
 import UninstallExtensionDialog from '@shell/dialog/UninstallExtensionDialog.vue';
 import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
@@ -30,6 +32,8 @@ import ChangePasswordDialog from '@shell/dialog/ChangePasswordDialog.vue';
 import AssignToDialog from '@shell/dialog/AssignToDialog.vue';
 import FeatureFlagListDialog from '@shell/dialog/FeatureFlagListDialog.vue';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
+import ExtensionCatalogInstallDialog from '@shell/dialog/ExtensionCatalogInstallDialog.vue';
+import ExtensionCatalogUninstallDialog from '@shell/dialog/ExtensionCatalogUninstallDialog.vue';
 
 import { createStore } from 'vuex';
 
@@ -104,6 +108,8 @@ describe('component: PromptModal', () => {
     // new modals created/moved
     ['DisableAuthProviderDialog', DisableAuthProviderDialog],
     ['WechatDialog', WechatDialog],
+    ['DeveloperLoadExtensionDialog', DeveloperLoadExtensionDialog],
+    ['AddExtensionReposDialog', AddExtensionReposDialog],
     ['InstallExtensionDialog', InstallExtensionDialog],
     ['UninstallExtensionDialog', UninstallExtensionDialog],
     ['KnownHostsEditDialog', KnownHostsEditDialog],
@@ -113,7 +119,12 @@ describe('component: PromptModal', () => {
     ['AssignToDialog', AssignToDialog],
     ['FeatureFlagListDialog', FeatureFlagListDialog],
     ['MoveNamespaceDialog', MoveNamespaceDialog],
+    ['ExtensionCatalogInstallDialog', ExtensionCatalogInstallDialog],
+    ['ExtensionCatalogUninstallDialog', ExtensionCatalogUninstallDialog],
   ])('prompt Modal should render modal %p', (modalName, component) => {
+    // mock structuredClone
+    window.structuredClone = (arg) => JSON.parse(JSON.stringify(arg));
+
     document.body.innerHTML = '<div id="modals"></div>';
     const wrapper = mount(PromptModal,
       {

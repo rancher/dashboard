@@ -292,6 +292,7 @@ export default defineComponent({
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
+        :aria-disabled="isDisabled"
         :aria-label="replacementLabel"
         :aria-checked="!!value"
         :aria-labelledby="labelKey || label ? idForLabel : undefined"

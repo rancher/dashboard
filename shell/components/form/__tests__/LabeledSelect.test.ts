@@ -228,6 +228,7 @@ describe('component: LabeledSelect', () => {
         options: [
           { label, value },
         ],
+        required: true
       },
       attrs: { 'aria-describedby': ariaDescribedById }
     });
@@ -235,6 +236,7 @@ describe('component: LabeledSelect', () => {
     const labeledSelectContainer = wrapper.find('.labeled-select');
     const ariaExpanded = labeledSelectContainer.attributes('aria-expanded');
     const ariaDescribedBy = labeledSelectContainer.attributes('aria-describedby');
+    const ariaRequired = labeledSelectContainer.attributes('aria-required');
     const containerId = labeledSelectContainer.attributes('id');
     const labelFor = wrapper.find('label').attributes('for');
 
@@ -242,6 +244,7 @@ describe('component: LabeledSelect', () => {
 
     expect(ariaExpanded).toBe('false');
     expect(ariaDescribedBy).toBe(ariaDescribedById);
+    expect(ariaRequired).toBe('true');
     expect(containerId).toBe(wrapper.vm.labeledSelectLabelId);
     expect(labelFor).toBe(wrapper.vm.labeledSelectLabelId);
 

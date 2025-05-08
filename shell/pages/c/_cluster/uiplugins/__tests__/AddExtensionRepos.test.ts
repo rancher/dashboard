@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
-import AddExtensionRepos from '@shell/pages/c/_cluster/uiplugins/AddExtensionRepos.vue';
+import AddExtensionReposDialog from '@shell/dialog/AddExtensionReposDialog.vue';
 const mockedStore = () => {
   return {
     getters: {
@@ -26,18 +26,16 @@ const requiredSetup = () => {
   };
 };
 
-describe('component: AddExtensionRepos', () => {
+describe('component: AddExtensionReposDialog', () => {
   it('should NOT SHOW a checkbox to install official Rancher repo if NOT prime', async() => {
     jest.useFakeTimers();
 
-    const wrapper = mount(AddExtensionRepos, {
+    const wrapper = mount(AddExtensionReposDialog, {
       global: {
         ...requiredSetup(),
         stubs: { Dialog: { template: '<span><slot/></span>' } },
       }
     });
-
-    wrapper.vm.showDialog();
 
     await nextTick();
 
@@ -53,7 +51,7 @@ describe('component: AddExtensionRepos', () => {
   it('should SHOW a checkbox to install official Rancher repo if IS prime', async() => {
     jest.useFakeTimers();
 
-    const wrapper = mount(AddExtensionRepos, {
+    const wrapper = mount(AddExtensionReposDialog, {
       global: {
         ...requiredSetup(),
         stubs: { Dialog: { template: '<span><slot/></span>' } },
@@ -61,7 +59,6 @@ describe('component: AddExtensionRepos', () => {
     });
 
     wrapper.vm.prime = true;
-    wrapper.vm.showDialog();
 
     await nextTick();
 

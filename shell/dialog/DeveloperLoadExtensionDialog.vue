@@ -1,30 +1,44 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_CHART_ANNOTATIONS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
-  emits: ['closed'],
+  emits: ['close'],
 
   components: {
     AsyncButton,
     Checkbox,
-    LabeledInput,
-    AppModal,
+    LabeledInput
+  },
+  props: {
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    resources: {
+      type:    Array,
+      default: () => []
+    },
+    registerBackgroundClosing: {
+      type:    Function,
+      default: () => {}
+    }
   },
 
   data() {
     return {
-      name:                '',
-      location:            '',
-      persist:             false,
-      canModifyName:       true,
-      canModifyLocation:   true,
-      showModal:           false,
-      returnFocusSelector: '[data-testid="extensions-page-menu"]'
+      name:              '',
+      location:          '',
+      persist:           false,
+      canModifyName:     true,
+      canModifyLocation: true
     };
   },
 
@@ -55,12 +69,9 @@ export default {
   },
 
   methods: {
-    showDialog() {
-      this.showModal = true;
-    },
     closeDialog(result) {
-      this.showModal = false;
-      this.$emit('closed', result);
+      this.closed(result);
+      this.$emit('close');
     },
 
     updateName(v) {
@@ -127,15 +138,17 @@ export default {
 
       this.$plugin.loadAsync(name, url).then(() => {
         this.closeDialog(true);
+
         this.$store.dispatch('growl/success', {
           title:   this.t('plugins.success.title', { name }),
           message: this.t('plugins.success.message'),
           timeout: 3000,
         }, { root: true });
+
         btnCb(true);
       }).catch((error) => {
         btnCb(false);
-        // this.closeDialog(false);
+
         const message = typeof error === 'object' ? this.t('plugins.error.message') : error;
 
         this.$store.dispatch('growl/error', {
@@ -150,63 +163,53 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    name="developerInstallPluginDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    @close="closeDialog()"
-  >
-    <div class="plugin-install-dialog">
-      <h4>
-        {{ t('plugins.developer.title') }}
-      </h4>
-      <p>
-        {{ t('plugins.developer.prompt') }}
-      </p>
-      <div class="custom mt-10">
-        <div class="fields">
-          <LabeledInput
-            v-model:value="location"
-            v-focus
-            label-key="plugins.developer.fields.url"
-            @update:value="updateLocation"
-          />
-        </div>
-      </div>
-      <div class="custom mt-10">
-        <div class="fields">
-          <LabeledInput
-            v-model:value="name"
-            label-key="plugins.developer.fields.name"
-            @update:value="updateName"
-          />
-        </div>
-        <div class="fields mt-10">
-          <Checkbox
-            v-model:value="persist"
-            label-key="plugins.developer.fields.persist"
-          />
-        </div>
-        <div class="dialog-buttons mt-20">
-          <button
-            class="btn role-secondary"
-            data-testid="dev-install-ext-modal-cancel-btn"
-            @click="closeDialog()"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <AsyncButton
-            mode="load"
-            data-testid="dev-install-ext-modal-install-btn"
-            @click="loadPlugin"
-          />
-        </div>
+  <div class="plugin-install-dialog">
+    <h4>
+      {{ t('plugins.developer.title') }}
+    </h4>
+    <p>
+      {{ t('plugins.developer.prompt') }}
+    </p>
+    <div class="custom mt-10">
+      <div class="fields">
+        <LabeledInput
+          v-model:value="location"
+          v-focus
+          label-key="plugins.developer.fields.url"
+          @update:value="updateLocation"
+        />
       </div>
     </div>
-  </app-modal>
+    <div class="custom mt-10">
+      <div class="fields">
+        <LabeledInput
+          v-model:value="name"
+          label-key="plugins.developer.fields.name"
+          @update:value="updateName"
+        />
+      </div>
+      <div class="fields mt-10">
+        <Checkbox
+          v-model:value="persist"
+          label-key="plugins.developer.fields.persist"
+        />
+      </div>
+      <div class="dialog-buttons mt-20">
+        <button
+          class="btn role-secondary"
+          data-testid="dev-install-ext-modal-cancel-btn"
+          @click="closeDialog()"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          mode="load"
+          data-testid="dev-install-ext-modal-install-btn"
+          @click="loadPlugin"
+        />
+      </div>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
