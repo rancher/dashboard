@@ -10,7 +10,7 @@ import {
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
-import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
+import { PROVISIONER, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
@@ -297,7 +297,7 @@ export default {
     },
 
     isRke1() {
-      return this.provisioner === _RKE1;
+      return this.value.isRke1;
     },
 
     isRke2() {
