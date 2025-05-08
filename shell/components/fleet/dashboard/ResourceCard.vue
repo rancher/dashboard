@@ -78,7 +78,7 @@ export default {
 
 <style lang="scss" scoped>
   .resource-card-panel {
-    border: 1px solid var(--modal-border);
+    border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px;
     margin: 10px;

@@ -285,6 +285,7 @@ export default {
           statePanel,
           workspace,
           showHeader:          false,
+          width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
           zIndex:              1,
           triggerFocusTrap:    true,
           returnFocusSelector: `[data-testid="card-${ value.id }"]`
@@ -366,12 +367,13 @@ export default {
             class="card-panel-main-details"
             :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
-            <h2 class="title">
-              <div class="label">
+            <div class="title">
+              <h3 class="label">
                 <i class="icon icon-folder" />
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
-              </div>
+              </h3>
               <router-link
+                class="name"
                 role="link"
                 tabindex="0"
                 :aria-label="workspace.nameDisplay"
@@ -379,7 +381,7 @@ export default {
               >
                 {{ workspace.nameDisplay }}
               </router-link>
-            </h2>
+            </div>
             <div class="body">
               <ResourcePanel
                 v-if="workspace.repos?.length"
@@ -507,18 +509,18 @@ export default {
                       ['icon icon-chevron-down']: !isStateCollapsed[workspace.id]?.[state.stateDisplay],
                     }"
                   />
-                  <div class="label">
-                    <h3>
-                      {{ state.stateDisplay }} {{ partialStateCount(workspace.id, state) }}
-                    </h3>
-                    <span>/{{ totaleStateCount(workspace) }}</span>
-                  </div>
                   <i
                     v-if="state.statePanel.id !== 'success'"
                     class="ml-5 state-icon"
                     :class="state.statePanel.icon"
                     :style="{ color: state.statePanel.color }"
                   />
+                  <div class="label">
+                    <span class="partial">
+                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ partialStateCount(workspace.id, state) }}
+                    </span>
+                    <span lass="total">/{{ totaleStateCount(workspace) }}</span>
+                  </div>
                 </div>
                 <div
                   v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
@@ -579,12 +581,11 @@ export default {
 .card-container {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--modal-border);
+  border: 1px solid var(--border);
   border-radius: 10px;
   background-color: var(--body-bg);
-  min-width: 550px;
-  padding-left: 15px;
-  padding-right: 15px;
+  min-width: 500px;
+  padding: 16px;
 
   .card-panel-main {
     display: flex;
@@ -598,12 +599,17 @@ export default {
       align-items: center;
 
       .title {
-        margin: 0;
+        margin: 0 20px 0 0;
+
+        .name {
+          font-size: 25px;
+        }
 
         .label {
           display: flex;
           align-items: center;
           min-width: 150px;
+          margin: 0 0 5px 0;
 
           .icon {
             margin-right: 5px;
@@ -622,17 +628,17 @@ export default {
         }
       }
 
-      &.expand {
-        display: block;
+      // &.expand {
+      //   display: block;
 
-        .title {
-          display: flex;
-        }
+      //   .title {
+      //     display: flex;
+      //   }
 
-        .body {
-          margin-top: 10px;
-        }
-      }
+      //   .body {
+      //     margin-top: 10px;
+      //   }
+      // }
     }
 
     .card-panel-main-actions {
@@ -666,11 +672,13 @@ export default {
           margin-right: 30px;
 
           .label {
+            margin-top: 2px;
             line-height: 20px;
           }
 
           .icon {
             padding: 2px;
+            font-size: 25px;
           }
         }
       }
@@ -689,10 +697,12 @@ export default {
           .label {
             display: flex;
             align-items: baseline;
+            margin-left: 2px;
 
-            h3 {
+            .partial {
               margin: 0;
-              margin-right: 3px;
+              margin-right: 2px;
+              font-size: 22px;
             }
 
             p {

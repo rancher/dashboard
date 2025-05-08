@@ -115,7 +115,7 @@ export default {
         #header-left
       >
         <div class="row">
-          <div class="col span-6">
+          <div class="col span-10">
             <LabeledSelect
               v-model:value="cluster"
               :label="'Cluster'"
@@ -133,6 +133,12 @@ export default {
 <style lang="scss">
   .details-panel {
     padding: 10px;
+
+    .sortable-table-header {
+      .fixed-header-actions {
+        align-items: center;
+      }
+    }
 
     .header {
       display: flex;
@@ -161,6 +167,12 @@ export default {
       .icon-close {
         cursor: pointer;
       }
+    }
+  }
+
+  .col {
+    .labeled-select {
+      min-width: 250px;
     }
   }
 </style>
