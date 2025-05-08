@@ -951,6 +951,10 @@ export default {
     display: inline-block;
     border-radius: var(--border-radius);
 
+    &:focus-visible {
+      @include focus-outline;
+    }
+
     .ns-glass {
       top: 0;
       bottom: 0;
