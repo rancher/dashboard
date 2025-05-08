@@ -84,6 +84,9 @@ describe('Home Page', () => {
       provClusterList.goTo();
       provClusterList.waitForPage();
 
+      // takes percy snapshot.
+      cy.percySnapshot('cluster management Page');
+
       cy.get('@stateText').then((state) => {
         provClusterList.list().details(clusterName, 1).should('contain.text', state);
       });

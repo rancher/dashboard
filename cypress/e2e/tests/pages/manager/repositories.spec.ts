@@ -24,6 +24,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+
+    // takes percy snapshot.
+    cy.percySnapshot('repository Page');
+
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
