@@ -18,6 +18,7 @@ import {
   STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 import { createHeaders } from '@shell/store/type-map.utils';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -36,7 +37,7 @@ const GC_IGNORE_TYPES = {
 const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
 
 export default {
-  urlOptions: () => (url, opt, schema) => {
+  urlOptions: (state, getters, rootState, rootGetters) => (url, opt, schema) => {
     opt = opt || {};
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
@@ -54,8 +55,11 @@ export default {
 
       // Filter
       if ( opt.filter ) {
+        // When ui-sql-cache is always on we should look to replace the usages of this with findPage (basically using the new filter definitions)
         url += `${ (url.includes('?') ? '&' : '?') }`;
         const keys = Object.keys(opt.filter);
+
+        const partialEquality = isSteve && paginationUtils.isSteveCacheEnabled({ rootGetters }) ? '~' : '=';
 
         keys.forEach((key) => {
           let vals = opt.filter[key];
@@ -64,13 +68,12 @@ export default {
             vals = [vals];
           }
 
-          // Steve's filter options now support more complex filtering not yet implemented here #9341
           if (isSteve) {
             url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
           }
 
           const filterStrings = vals.map((val) => {
-            return `${ encodeURI(key) }=${ encodeURI(val) }`;
+            return `${ encodeURI(key) }${ partialEquality }${ encodeURI(val) }`;
           });
           const urlEnding = url.charAt(url.length - 1);
           const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
