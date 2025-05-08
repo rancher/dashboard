@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -9,32 +9,21 @@ import AsyncButton from '@shell/components/AsyncButton';
 import StatusBadge from '@shell/components/StatusBadge';
 import Banner from '@components/Banner/Banner.vue';
 import FileSelector from '@shell/components/form/FileSelector';
-import { downloadFile } from '@shell/utils/download';
+import { usePrimeRegistration } from './registration.composable';
 
 const store = useStore();
 const { t } = useI18n(store);
-
-type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
-
-/**
- * Registration code for online registration; empty if none or offline
- */
-const registrationCode = ref('');
-
-/**
- * Certificate for offline registration; empty if none or online
- */
-const offlineRegistrationCertificate = ref('');
-
-/**
- * Single source for the registration status, used to define other computed properties
- */
-const registrationStatus = ref(null as RegistrationStatus);
-
-/**
- * Expiration status for the registration, both online and offline
- */
-const expirationStatus = ref(null as 'success' | 'warning' | null);
+const {
+  downloadOfflineRequest,
+  registration,
+  registrationStatus,
+  registerOnline,
+  registerOffline,
+  deregister,
+  errors,
+  registrationCode,
+  expirationStatus
+} = usePrimeRegistration();
 
 /**
  * Track both registration types
@@ -55,105 +44,10 @@ const isRegisteredOffline = computed(() => registrationStatus.value === 'registe
 const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
 
 /**
- * Current error list, displayed in the banner
- */
-const errors = ref([] as string[]);
-
-/**
  * Stored expiration date, retrieved from CRD
  */
 const expirationDate = computed(() => 'XX/XX/XXXX');
 
-/**
- * Reset other inputs and errors, set current state then patch the registration
- * @param type 'online' | 'offline' | 'deregister'
- * @param asyncButtonResolution Async button callback
- */
-const patchRegistration = (type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
-  errors.value = [];
-  setTimeout(() => {
-    switch (type) {
-    case 'online':
-      offlineRegistrationCertificate.value = '';
-      registrationStatus.value = 'registered-online';
-      expirationStatus.value = 'success';
-      break;
-    case 'offline':
-      registrationCode.value = '';
-      registrationStatus.value = 'registered-offline';
-      expirationStatus.value = 'warning';
-      break;
-    case 'deregister':
-      registrationStatus.value = null;
-      registrationCode.value = '';
-      offlineRegistrationCertificate.value = '';
-      break;
-    }
-    asyncButtonResolution();
-  }, 2000);
-};
-
-/**
- * Handle error
- */
-const onError = () => {
-  errors.value.push('An error occurred');
-};
-
-/**
- * Patch CRD for online registration
- * @param asyncButtonResolution Async button callback
- */
-const registerOnline = (asyncButtonResolution: () => void) => {
-  registrationStatus.value = 'registering-online';
-  patchRegistration('online', asyncButtonResolution);
-};
-
-/**
- * Handle download offline registration request
- * @param asyncButtonResolution Async button callback
- */
-const downloadOfflineRequest = (asyncButtonResolution: (status: boolean) => void) => {
-  const fileName = 'rancher-offline-registration-request.json';
-  const data = '';
-
-  setTimeout(() => {
-    downloadFile(fileName, JSON.stringify(data), 'application/json')
-      .then(() => asyncButtonResolution(true))
-      .catch(() => asyncButtonResolution(false));
-  }, 1000);
-};
-
-/**
- * Set certificate from file, then patch the registration for offline
- * @param certificate base64 encoded certificate from SCC
- */
-const registerOffline = (certificate: string) => {
-  registrationStatus.value = 'registering-offline';
-  offlineRegistrationCertificate.value = certificate;
-  patchRegistration('offline', () => {});
-};
-
-/**
- * TODO - #13387: Remove after implementing the real error handling
- * @param asyncButtonResolution Async button callback
- */
-// eslint-disable-next-line no-unused-vars
-const registerWithError = (asyncButtonResolution: () => void) => {
-  errors.value = [];
-  setTimeout(() => {
-    onError();
-    asyncButtonResolution();
-  }, 1000);
-};
-
-/**
- * De-register handler
- * @param asyncButtonResolution Async button callback
- */
-const deregister = (asyncButtonResolution: () => void) => {
-  patchRegistration('deregister', asyncButtonResolution);
-};
 </script>
 
 <template>
