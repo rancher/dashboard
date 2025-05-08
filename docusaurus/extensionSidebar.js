@@ -21,7 +21,9 @@ const sidebars = {
         },
         'support-matrix',
         'extensions-getting-started',
-        'extensions-configuration',
+        'folder-structure',
+        'configuration',
+        'performance',
         {
           type:  'category',
           label: 'Extensions API',
