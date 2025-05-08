@@ -1,5 +1,9 @@
+import { onMounted, computed, ref } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+
 import { downloadFile } from '@shell/utils/download';
-import { computed, ref } from 'vue';
+import { K8S_RESOURCE_NAME, REGISTRATION_CRD } from '../config/constants';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
 
@@ -42,6 +46,12 @@ const registrationBannerCases = {
 };
 
 export const usePrimeRegistration = () => {
+  const store = useStore();
+  const { t } = useI18n(store);
+
+  /**
+   * Registration from CRD
+   */
   const registration = ref(registrationMock.none);
 
   /**
@@ -102,8 +112,8 @@ export const usePrimeRegistration = () => {
   /**
    * Handle error
    */
-  const onError = () => {
-    errors.value.push('An error occurred');
+  const onError = (message: string, payload: unknown) => {
+    errors.value.push(message, payload as string);
   };
 
   /**
@@ -133,7 +143,7 @@ export const usePrimeRegistration = () => {
   const registerWithError = (asyncButtonResolution: () => void) => {
     errors.value = [];
     setTimeout(() => {
-      onError();
+      onError(t('registration.error.submission'), {});
       asyncButtonResolution();
     }, 1000);
   };
@@ -160,6 +170,32 @@ export const usePrimeRegistration = () => {
         .catch(() => asyncButtonResolution(false));
     }, 1000);
   };
+
+  /**
+   * Initialize the CRD for registration if missing
+   */
+  const registerSchema = async() => {
+    try {
+      await store.dispatch('management/request', {
+        url:    '/v1/apiextensions.k8s.io.customresourcedefinitions',
+        method: 'POST',
+        data:   REGISTRATION_CRD,
+      });
+    } catch (err) {
+      onError(t('registration.error.schema'), err as string);
+    }
+  };
+
+  // Fetch data when the component is mounted
+  onMounted(async() => {
+    const schema = store.getters['management/schemaFor'](K8S_RESOURCE_NAME);
+
+    if (!schema) {
+      await registerSchema();
+    }
+
+    registration.value = await store.dispatch('management/findAll', { type: K8S_RESOURCE_NAME });
+  });
 
   return {
     downloadOfflineRequest,
