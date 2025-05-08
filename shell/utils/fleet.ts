@@ -5,7 +5,7 @@ import {
   BundleDeploymentStatus,
   Condition,
 } from '@shell/types/resources/fleet';
-import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { mapStateToEnum, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 
@@ -158,8 +158,8 @@ class Fleet {
     }
   }
 
-  getDashboardStateId(state: string): string {
-    return STATES[state]?.color || '';
+  getDashboardStateId(resource: { stateColor: string }): string {
+    return resource.stateColor?.replace('text-', '') || 'warning';
   }
 
   getDashboardState(stateId: string) {
