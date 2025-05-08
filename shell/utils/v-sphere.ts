@@ -40,7 +40,11 @@ class VSphereUtils {
       generateName, upstreamClusterName, upstreamNamespace, downstreamName, downstreamNamespace
     }: SecretDetails): Promise<SecretJson | undefined> {
     // Fetch secrets in a specific namespace and partially matching the name to the generate name
-    const secrets = await $store.dispatch('management/request', { url: `/v1/${ SECRET }/${ upstreamNamespace }?filter=metadata.name=${ generateName }` });
+    const url = $store.getters['management/urlOptions'](
+      `/v1/${ SECRET }/${ upstreamNamespace }`,
+      { filter: { 'metadata.name': generateName } }
+    );
+    const secrets = await $store.dispatch('management/request', { url });
 
     // Filter by specific annotations
     const applicableSecret = secrets.data?.filter((s: any) => {
