@@ -669,7 +669,6 @@ export default {
         >
           <rc-dropdown-trigger
             ghost
-            small
             data-testid="nav_header_showUserMenu"
             :aria-label="t('nav.userMenu.button.label')"
           >
