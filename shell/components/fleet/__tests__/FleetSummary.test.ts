@@ -340,7 +340,7 @@ describe('component: FleetSummary', () => {
       global: { mocks: { $store: mockStore } }
     });
 
-    const bundleCountEl = wrapper.find('[data-testid="gitrepo-bundle-summary"] .count');
+    const bundleCountEl = wrapper.find('[data-testid="resource-bundle-summary"] .count');
 
     expect(bundleCountEl.text()).toBe(bundleCount);
   });
@@ -355,7 +355,7 @@ describe('component: FleetSummary', () => {
       global: { mocks: { $store: mockStore } }
     });
 
-    const bundleCountEl = wrapper.find('[data-testid="gitrepo-deployment-summary"] .count');
+    const bundleCountEl = wrapper.find('[data-testid="resource-deployment-summary"] .count');
 
     expect(bundleCountEl.text()).toBe(bundleCount);
   });
