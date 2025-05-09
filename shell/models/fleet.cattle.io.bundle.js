@@ -16,13 +16,23 @@ export default class FleetBundle extends SteveModel {
       return 'helm';
     }
 
-    return '';
+    return 'repo';
   }
 
   get repoName() {
     const labels = this.metadata?.labels || {};
 
     return labels[FLEET_ANNOTATIONS.REPO_NAME];
+  }
+
+  get helmName() {
+    const labels = this.metadata?.labels || {};
+
+    return labels[FLEET_ANNOTATIONS.HELM_NAME];
+  }
+
+  get sourceAppName() {
+    return this.bundleType === 'helm' ? this.helmName : this.repoName;
   }
 
   get targetClusters() {
