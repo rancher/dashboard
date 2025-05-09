@@ -97,6 +97,7 @@ describe('formRules', () => {
   });
 
   describe('gitRepository', () => {
+    // todo
     const message = JSON.stringify({ message: 'validation.git.repository' });
     const testCases = [
       // Valid HTTP(s)

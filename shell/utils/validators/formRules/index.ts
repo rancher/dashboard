@@ -170,7 +170,7 @@ export default function(
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-  const gitRepository: Validator = (val: string) => val && !/^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(val) ? t('validation.git.repository') : undefined;
+  const gitRepository: Validator = (val: string) => val && !/^(https?:\/\/|ftp:\/\/)(%20)?([a-zA-Z0-9.-]+(:[a-zA-Z0-9.&%$-]+)*@)*((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|([a-zA-Z0-9-]*[a-zA-Z0-9]:[a-zA-Z0-9-]*[a-zA-Z0-9]|[a-zA-Z0-9-]*[a-zA-Z0-9]))(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]?|([a-zA-Z0-9-]*[a-zA-Z0-9]:[a-zA-Z0-9-]*[a-zA-Z0-9]|[a-zA-Z0-9-]*[a-zA-Z0-9])))*|([a-zA-Z0-9-]*[a-zA-Z0-9]:[a-zA-Z0-9-]*[a-zA-Z0-9]|([a-zA-Z0-9]+[\-]*)+([a-zA-Z0-9]+[\-]*)*[a-zA-Z0-9]+)(\.([a-zA-Z]{2,})))(:[0-9]+)*(\/($|[a-zA-Z0-9.,?'\\+&%$#=~_-]+))*$/gm.test(val) ? t('validation.git.repository') : undefined;
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
 
