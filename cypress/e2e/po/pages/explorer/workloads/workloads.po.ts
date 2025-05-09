@@ -9,6 +9,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
@@ -91,6 +92,12 @@ export class WorkloadsListPageBasePo extends PagePo {
 
   constructor(clusterId = 'local', workloadType: WorkloadType, queryParams?: Record<string, string>) {
     super(WorkloadsListPageBasePo.createPath(clusterId, workloadType, queryParams));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuGroupByLabel('Workloads');
   }
 
   navigateToCreatePage() {

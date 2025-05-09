@@ -2,7 +2,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
-import { promptModal } from '@/cypress/e2e/po/prompts/shared/promptInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 
 const performancePage = new PerformancePagePo('local');
 const featureFlagsPage = new FeatureFlagsPagePo('local');
@@ -35,7 +35,7 @@ describe('Setup Vai', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, ()
     performancePage.serverSidePaginationCheckbox().set();
 
     promptModal().checkVisible();
-    promptModal().submit('Continue');
+    promptModal().clickActionButton('Continue');
 
     performancePage.serverSidePaginationCheckbox().isChecked();
 

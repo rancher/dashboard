@@ -1,5 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import CardPo from '@/cypress/e2e/po/components/card.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class GenericPrompt extends ComponentPo {
   card = new CardPo();
@@ -12,11 +13,11 @@ export default class GenericPrompt extends ComponentPo {
     return this.card.getBody();
   }
 
-  cancel() {
-    return this.self().find('.btn role-secondary');
+  labeledSelect(selector = '.labeled-select'): LabeledSelectPo {
+    return new LabeledSelectPo(selector);
   }
 
-  submit(text: string) {
+  clickActionButton(text: string) {
     return this.card.getActionButton().contains(text).click();
   }
 }

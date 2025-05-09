@@ -2,6 +2,8 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import KontainerDriversListPo from '~/cypress/e2e/po/lists/kontainer-drivers-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+
 /**
  * List page for kontainerDriver resources
  */
@@ -53,6 +55,10 @@ export default class KontainerDriversPagePo extends PagePo {
   createDriver() {
     return this.list().masthead().actions().eq(1)
       .click();
+  }
+
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
   list(): KontainerDriversListPo {

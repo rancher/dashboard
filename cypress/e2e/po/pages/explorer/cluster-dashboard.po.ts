@@ -1,11 +1,11 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog.po';
-import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -30,16 +30,16 @@ export default class ClusterDashboardPagePo extends PagePo {
     burgerMenu.goToCluster(clusterId);
   }
 
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
+  }
+
   customizeAppearanceButton() {
     return cy.getId('add-custom-cluster-badge');
   }
 
   customBadge(): CustomBadgeDialogPo {
     return new CustomBadgeDialogPo();
-  }
-
-  eventsList(): EventsListPo {
-    return new EventsListPo('[data-testid="sortable-table-list-container"]');
   }
 
   certificates(): CertificatesPo {

@@ -1,4 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class ClusterToolsPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -11,6 +12,12 @@ export default class ClusterToolsPagePo extends PagePo {
 
   constructor(clusterId: string) {
     super(ClusterToolsPagePo.createPath(clusterId));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuEntryByLabel('Tools');
   }
 
   featureChartCards(): Cypress.Chainable {

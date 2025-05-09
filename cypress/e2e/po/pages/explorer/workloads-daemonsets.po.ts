@@ -1,11 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 
 export class WorkloadsDaemonsetsListPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -20,24 +17,38 @@ export class WorkloadsDaemonsetsListPagePo extends PagePo {
     super(WorkloadsDaemonsetsListPagePo.createPath(clusterId));
   }
 
-  masthead() {
-    return new ResourceListMastheadPo(this.self());
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
+  }
+}
+
+export class WorkLoadsDaemonsetsCreatePagePo extends PagePo {
+  static url: string;
+
+  private static createPath(clusterId: string, queryParams?: Record<string, string>) {
+    const urlStr = `/c/${ clusterId }/explorer/apps.daemonset/create`;
+
+    if (!queryParams) {
+      return urlStr;
+    }
+
+    const params = new URLSearchParams(queryParams);
+
+    return `${ urlStr }?${ params.toString() }`;
   }
 
-  createDaemonset() {
-    return this.masthead().create();
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(this.url);
   }
 
-  goToeditItemWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
+  constructor(clusterId = 'local', queryParams?: Record<string, string>) {
+    super(WorkLoadsDaemonsetsCreatePagePo.createPath(clusterId, queryParams));
 
-    return baseResourceList.actionMenu(name).getMenuItem('Edit Config').click();
+    WorkLoadsDaemonsetsCreatePagePo.url = WorkLoadsDaemonsetsCreatePagePo.createPath(clusterId, queryParams);
   }
 
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 }
 
@@ -66,8 +77,8 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
     WorkLoadsDaemonsetsEditPagePo.url = WorkLoadsDaemonsetsEditPagePo.createPath(daemonsetId, clusterId, namespaceId, queryParams);
   }
 
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
+  sharedComponents() {
+    return new SharedComponentsPo(this.self());
   }
 
   containerImageInput(): LabeledInputPo {
@@ -80,9 +91,5 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
 
   ScalingUpgradePolicyRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="input-policy-strategy"]');
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 }
