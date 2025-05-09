@@ -23,7 +23,7 @@ export default class FleetGitRepoDetailsPo extends PagePo {
   }
 
   bundlesCount(): Cypress.Chainable {
-    return this.self().find('[data-testid="gitrepo-bundle-summary"] .count').invoke('text');
+    return this.self().find('[data-testid="resource-bundle-summary"] .count').invoke('text');
   }
 
   bundlesTab() {
