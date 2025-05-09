@@ -132,7 +132,7 @@ export default {
     :value="value"
     @click="select"
     @keydown.enter.stop.prevent="select"
-    @keydown.space.stop.prevent="$router.push(value.detailLocation)"
+    @keydown.space.stop.prevent="$router.push(detailLocation)"
   >
     <template #item-card-image>
       <i

@@ -2120,7 +2120,9 @@ fleet:
       other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
       }
   fleetSummary:
-    noClustersGitRepo: 这个 Git 仓库不针对任何集群
+    noClusters:
+      gitRepo: 这个 Git 仓库不针对任何集群
+      helmOp: ''
     state:
       ready: '就绪'
       info: '转换中'
