@@ -4,30 +4,26 @@ import FleetIntro from '@shell/components/fleet/FleetIntro';
 
 import {
   AGE,
-  FLEET_REPO,
-  FLEET_REPO_CLUSTER_SUMMARY,
-  FLEET_APPLICATION_CLUSTERS_READY,
-  FLEET_REPO_PER_CLUSTER_STATE,
-  FLEET_REPO_TARGET,
-  FLEET_SUMMARY,
   NAME,
   STATE,
 } from '@shell/config/table-headers';
 
 export default {
 
-  name: 'FleetRepos',
+  name: 'FleetHelmOps',
 
   components: {
-    FleetIntro,
     ResourceTable,
+    FleetIntro,
   },
+
   props: {
     clusterId: {
       type:     String,
       required: false,
       default:  null,
     },
+
     rows: {
       type:     Array,
       required: true,
@@ -72,33 +68,15 @@ export default {
     },
 
     headers() {
-      // Cluster summary is only shown in the cluster view
-      const summary = this.isClusterView ? [{
-        ...FLEET_REPO_CLUSTER_SUMMARY,
-        formatterOpts: { clusterId: this.clusterId },
-      }] : [FLEET_APPLICATION_CLUSTERS_READY, FLEET_SUMMARY];
-
-      // if hasPerClusterState then use the repo state
-      const state = this.isClusterView ? {
-        ...FLEET_REPO_PER_CLUSTER_STATE,
-        value: (repo) => repo.clusterState(this.clusterId),
-      } : STATE;
-
       return [
-        state,
+        STATE,
         NAME,
-        FLEET_REPO,
-        FLEET_REPO_TARGET,
-        ...summary,
         AGE
       ];
     },
   },
-  methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
-    },
-  },
+
+  methods: {},
 };
 </script>
 
@@ -107,8 +85,8 @@ export default {
     <FleetIntro
       v-if="noRows && !loading"
       :schema="schema"
-      :labelKey="'gitRepo'"
-      :icon="'icon-repository'"
+      :labelKey="'helmOp'"
+      :icon="'icon-linux'"
     />
     <ResourceTable
       v-if="!noRows"
@@ -124,4 +102,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.cluster-count-info {
+  display: flex;
+  align-items: center;
+
+  i {
+    margin-left: 5px;
+    font-size: 22px;
+    color: var(--warning);
+  }
+}
 </style>

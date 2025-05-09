@@ -22,7 +22,10 @@ export default {
 };
 </script>
 <template>
-  <div class="intro-box">
+  <div
+    class="intro-box"
+    :data-testid="'fleet-no-workspaces'"
+  >
     <i class="icon icon-repository" />
     <div class="title">
       <span v-clean-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
@@ -55,6 +58,7 @@ export default {
   text-align: center;
   max-width: 600px;
 }
+
 .icon-repository {
   font-size: 96px;
   margin-bottom: 32px;
