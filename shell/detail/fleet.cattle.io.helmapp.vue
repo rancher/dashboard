@@ -1,5 +1,4 @@
 <script>
-import { mapState } from 'vuex';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
@@ -12,7 +11,7 @@ import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
-  name: 'DetailGitRepo',
+  name: 'DetailhelmOp',
 
   emits: ['input'],
 
@@ -39,16 +38,8 @@ export default {
       allBundles:       [],
     };
   },
-
-  created() {
-    if (this.workspace !== this.value.namespace) {
-      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
-    }
-  },
-
   computed: {
-    ...mapState(['workspace']),
-    gitRepoHasClusters() {
+    helmOpHasClusters() {
       return this.value.status?.desiredReadyClusters;
     },
     clusterSchema() {
@@ -118,7 +109,7 @@ export default {
     class="mt-20"
   >
     <FleetSummary
-      v-if="gitRepoHasClusters"
+      v-if="helmOpHasClusters"
       :value="value"
       :bundles="bundles"
       class="mb-20"
@@ -128,7 +119,7 @@ export default {
       color="info"
       class="mb-20"
     >
-      {{ t('fleet.fleetSummary.noClusters.gitRepo') }}
+      {{ t('fleet.fleetSummary.noClusters.helmOp') }}
     </Banner>
     <ResourceTabs
       :value="value"

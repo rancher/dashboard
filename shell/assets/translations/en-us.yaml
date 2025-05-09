@@ -236,6 +236,7 @@ nav:
     Scheduling: Scheduling
     Storage: Storage
     Project: Project
+    resources: Resources
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -2497,6 +2498,12 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  tableHeaders:
+    applicationType: Type
+    applicationSource: Source
+    applicationTarget: Target
+    applicationClustersReady: Clusters Ready
+    applicationResourcesSummary: Resources
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
@@ -2555,7 +2562,9 @@ fleet:
       other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   fleetSummary:
-    noClustersGitRepo: This git repo is not targeting any clusters
+    noClusters:
+      gitRepo: This GitRepo is not targeting any clusters
+      helmOp: This HelmOp is not targeting any clusters
     state:
       ready: 'Ready'
       info: 'Transitioning'
@@ -2564,6 +2573,23 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+  application:
+    pageTitle: App Bundles
+    menuLabel: App Bundles
+    intro:
+      add: Create App Bundle
+      empty: No App Bundles have been created
+    actions:
+      create: Create App Bundle
+    groupBy: Group By Type
+    subTypes:
+      fleet.cattle.io.gitrepo:
+        description: GitRepos text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+      fleet.cattle.io.helmapp:
+        description: HelmOps text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+    warningTooltip:
+      clusterGroup: There are no clusters in this Cluster Group
+      cluster: There are no clusters available
   gitRepo:
     intro:
       add: Add Repository
@@ -2687,13 +2713,141 @@ fleet:
       verify: Require a valid certificate
       specify: Specify additional certificates to be accepted
       skip: Accept any certificate (insecure)
-    warningTooltip:
-      clusterGroup: There are no clusters in this Cluster Group
-      cluster: There are no clusters available
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+  helmOp:
+    intro:
+      add: Add Helm Application
+      empty: No applications have been added
+    actions:
+      add: Add Helm Application
+      forceUpdate:
+        label: Force Update
+        promptTitle: Force Update
+        promptNames: 'You are attempting to update: '
+        promptWarning: |-
+          {
+            count, plural,
+            =1 {Force update could be a long running process.}
+            other {Force update could be a long running process.}
+          }
+      unpause:
+        label: Unpause
+      pause:
+        label: Pause
+    add:
+      steps:
+        metadata:
+          label: Metadata
+          title: Specify the Helm App name and labels/annotations
+          subtext: 'Define metadata details'
+          description: Helm App basic info
+        chart:
+          label: Chart
+          title: chart
+          subtext: 'chart'
+          description: chart
+        values:
+          label: Values
+          title: values
+          subtext: 'values'
+          description: values
+        targetInfo:
+          label: Target details
+          title: Target
+          subtext: 'Target'
+          description: Target.
+        advanced:
+          label: Advanced
+          title: Specify advanced settings.
+          subtext: 'Define advanced settings'
+          description: Advanced.
+          info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
+    source:
+      title: Source
+      selectLabel: Source
+      types:
+        tarball: Tarball
+        repo: Repository
+        oci: OCI Registry
+      tarball:
+        label: Absolute URL
+        placeholder: placeholder
+      repo:
+        label: URL
+        placeholder: placeholder
+      oci:
+        label: OCI Registry
+        placeholder: placeholder
+      chart:
+        label: Chart
+        placeholder: placeholder
+      version:
+        label: Version
+        placeholder: placeholder
+      release:
+        title: Release
+        label: Name
+        placeholder: placeholder
+    values:
+      title: Values
+      selectLabel: Values
+      description: Configure Values used by Helm that help define the App.
+      types:
+        values: Values
+        valuesFiles: Values Files
+        valuesFrom: Values From
+      yaml:
+        options:
+          edit: Edit YAML
+          diff: Compare Changes
+      values:
+        selectLabel: YAML
+      valuesFiles:
+        selectLabel: Files
+        ariaLabel: Enter path for value File
+        placeholder: ''
+        addLabel: Add File path
+        empty: empty
+      valuesFrom:
+        selectLabel: Values From
+    serviceAccount:
+      label: Service Account Name
+      placeholder: "Optional: Use a service account in the target clusters"
+    targetNamespace:
+      label: Target Namespace
+      placeholder: "Optional: Require all resources to be in this namespace"
+    target:
+      selectLabel: Target
+      advanced: Advanced
+      cluster: Cluster
+      clusterGroup: Cluster Group
+      label: Deploy To
+      labelLocal: Deploy With
+    targetDisplay:
+      advanced: Advanced
+      cluster: "Cluster"
+      clusterGroup: "Group"
+      all: All
+      none: None
+      local: Local
+    resources:
+      label: 'Resource Handling'
+      keepResources: Always keep resources
+      keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable self-healing
+      correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the HelmOp. All resource changes made on the cluster will be lost.
+    tls:
+      insecure: Accept any certificate (insecure)
+    auth:
+      title: Authentication
+      label: Authentication
+      helm: Helm Authentication
+    caBundle:
+      label: Certificates
+      placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -7179,6 +7333,11 @@ typeLabel:
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
+    }
+  fleet.cattle.io.application: |-
+    {count, plural,
+      one { App Bundle }
+      other { App Bundles }
     }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
