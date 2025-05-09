@@ -3,6 +3,7 @@ import { insertAt } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
+import FleetUtils from '@shell/utils/fleet';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
@@ -93,6 +94,20 @@ export default class GitRepo extends FleetApplication {
     this.save();
   }
 
+  forceUpdate(resources = [this]) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
+  }
+
+  forceUpdateBulk(resources) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
+  }
+
   get github() {
     const match = (this.spec.repo || '').match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
@@ -103,9 +118,13 @@ export default class GitRepo extends FleetApplication {
     return false;
   }
 
-  get repoIcon() {
+  get dashboardIcon() {
+    return FleetUtils.dashboardIcons[FLEET.GIT_REPO];
+  }
+
+  get resourceIcon() {
     if (this.github) {
-      return 'icon icon-github';
+      return FleetUtils.resourceIcons[FLEET.GIT_REPO];
     }
 
     return '';
@@ -156,7 +175,18 @@ export default class GitRepo extends FleetApplication {
     return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 
-  get dashboardIcon() {
-    return 'icon icon-git';
+  get source() {
+    return {
+      value:   this.spec.repo || '',
+      display: this.repoDisplay,
+      icon:    this.resourceIcon,
+    };
+  }
+
+  get sourceSub() {
+    return {
+      value:   this.status.commit,
+      display: this.commitDisplay
+    };
   }
 }

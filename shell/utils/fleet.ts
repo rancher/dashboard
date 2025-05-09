@@ -9,6 +9,7 @@ import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-st
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 import { FleetDashboardState, FleetResourceState } from '@shell/utils/fleet-types';
+import { FLEET } from '@shell/config/types';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -31,6 +32,16 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Fleet {
+  resourceIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-github',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
+  dashboardIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-git',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
   dashboardStates: FleetDashboardState[] = [
     {
       index:           0,

@@ -56,20 +56,6 @@ export default class FleetApplication extends SteveModel {
     super.goToClone();
   }
 
-  forceUpdate(resources = [this]) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
-  }
-
-  forceUpdateBulk(resources) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
-  }
-
   get state() {
     if (this.spec?.paused === true) {
       return 'paused';
@@ -250,6 +236,7 @@ export default class FleetApplication extends SteveModel {
 
       return res;
     }, {});
+
     const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
       const { perClusterState, ...resource } = resourceInfo;
 
@@ -312,10 +299,6 @@ export default class FleetApplication extends SteveModel {
     return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
   }
 
-  get clustersList() {
-    return this.$getters['all'](FLEET.CLUSTER);
-  }
-
   get authorId() {
     return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
@@ -351,5 +334,50 @@ export default class FleetApplication extends SteveModel {
 
   get showCreatedBy() {
     return !!this.createdBy;
+  }
+
+  get clustersList() {
+    return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get readyClusters() {
+    return this.status?.readyClusters || 0;
+  }
+
+  get _detailLocation() {
+    // TODO fix
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return {
+        ...super._detailLocation,
+        name: 'c-cluster-fleet-application-resource-namespace-id'
+      };
+    }
+
+    return super._detailLocation;
+  }
+
+  get doneOverride() {
+    // TODO fix
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return {
+        ...super.listLocation,
+        name: 'c-cluster-fleet-application'
+      };
+    }
+
+    return super.listLocation;
+  }
+
+  get doneRoute() {
+    return this.doneOverride?.name;
+  }
+
+  get parentNameOverride() {
+    // TODO fix
+    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
+      return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
+    }
+
+    return null;
   }
 }
