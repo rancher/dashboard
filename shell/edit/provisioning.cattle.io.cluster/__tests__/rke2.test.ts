@@ -3,6 +3,7 @@ import { SECRET } from '@shell/config/types';
 import { _CREATE } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 import { get } from '@shell/utils/object';
+import { rke2TestTable } from './utils/rke2-test-data';
 
 /**
  * DISCLAIMER ***************************************************************************************
@@ -542,5 +543,70 @@ describe('component: rke2', () => {
     const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);
 
     expect(azureOption.disabled).toBe(value);
+  });
+
+  it.each(rke2TestTable)('should preserve valid user-supplied chart values', (chartValues, expected) => {
+    const wrapper = mount(rke2, {
+      props: {
+        mode:  _CREATE,
+        value: {
+          spec: {
+            ...defaultSpec,
+            chartValues,
+            kubernetesVersion: 'v1.32.3+rke2r1',
+            rkeConfig:         {
+              machineGlobalConfig: {
+                cni:                   'calico',
+                'disable-kube-proxy':  false,
+                'etcd-expose-metrics': false
+              },
+            }
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
+        },
+        provider: 'custom'
+      },
+      data: () => ({
+        credentialId:    'I am authenticated',
+        userChartValues: chartValues,
+        rke2Versions:    [
+          {
+            id:                      'v1.32.3+rke2r1',
+            type:                    'release',
+            links:                   { self: 'https://127.0.0.1:8005/v1-rke2-release/releases/v1.32.3+rke2r1' },
+            version:                 'v1.32.3+rke2r1',
+            minChannelServerVersion: 'v2.11.0-alpha1',
+            maxChannelServerVersion: 'v2.11.99',
+            serverArgs:              {},
+            agentArgs:               {},
+            featureVersions:         { 'encryption-key-rotation': '2.0.0' },
+            charts:                  {
+              'rke2-ingress-nginx': {
+                repo:    'rancher-rke2-charts',
+                version: '4.12.100'
+              },
+              'rke2-metrics-server': {
+                repo:    'rancher-rke2-charts',
+                version: '3.12.200'
+              },
+            }
+          }
+        ]
+      }),
+
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store:  { dispatch: () => jest.fn(), getters: defaultGetters },
+          $plugin: { getDynamic: jest.fn(() => undefined ) },
+        },
+
+        stubs: defaultStubs,
+      },
+    });
+
+    wrapper.vm.applyChartValues(wrapper.vm.value.spec.rkeConfig);
+
+    expect(wrapper.vm.value.spec.rkeConfig.chartValues).toStrictEqual(expected);
   });
 });
