@@ -229,6 +229,7 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  APPLICATION:              'fleet.cattle.io.application',
   BUNDLE:                   'fleet.cattle.io.bundle',
   BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
   CLUSTER:                  'fleet.cattle.io.cluster',
