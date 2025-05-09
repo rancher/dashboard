@@ -123,6 +123,19 @@ export default {
       }
 
       return false;
+    },
+
+    calcCanPaginate() {
+      if (!this.resource) {
+        return false;
+      }
+
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -181,16 +194,7 @@ export default {
         return;
       }
 
-      if (!this.resource) {
-        return false;
-      }
-
-      const args = {
-        id:      this.resource.id || this.resource,
-        context: this.context,
-      };
-
-      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.calcCanPaginate();
     },
 
     paginationResult() {

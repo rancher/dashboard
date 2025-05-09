@@ -14,12 +14,10 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import Collapse from '@shell/components/Collapse';
 
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
-  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
-  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
-
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',
@@ -95,10 +93,6 @@ export default {
 
     steveCacheEnabled() {
       return this.$store.getters['features/get'](STEVE_CACHE);
-    },
-
-    steveCacheAndSSPEnabled() {
-      return this.steveCacheEnabled && this.value.serverPagination.enabled;
     },
 
     sspApplicableResources() {
@@ -257,27 +251,14 @@ export default {
           </h2>
           <p>{{ t('performance.serverPagination.description') }}</p>
           <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
             color="warning"
-          />
-          <Banner
-            color="error"
-            label-key="performance.serverPagination.experimental"
-          />
-          <Checkbox
-            v-model:value="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-10"
-            :primary="true"
-            :disabled="!steveCacheEnabled"
-            @update:value="compatibleWarning('serverPagination', $event)"
-          />
+          >
+            <div v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
+          </Banner>
           <Collapse
             :title="t('performance.serverPagination.applicable')"
-            :open="steveCacheAndSSPEnabled && ssPApplicableTypesOpen"
-            :isDisabled="!steveCacheAndSSPEnabled"
+            :open="steveCacheEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheEnabled"
             @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
           >
             <p
