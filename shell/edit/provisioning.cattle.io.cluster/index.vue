@@ -689,7 +689,7 @@ export default {
     <template v-if="subType">
       <!-- allow extensions to provide their own cluster provisioning form -->
       <component
-        :is="selectedSubType.component"
+        :is="selectedSubType?.component"
         v-if="selectedSubType && selectedSubType.component"
         v-model:value="localValue"
         :initial-value="initialValue"
@@ -706,7 +706,7 @@ export default {
         :live-value="liveValue"
         :mode="mode"
         :provider="subType"
-        :provider-config="selectedSubType.providerConfig"
+        :provider-config="selectedSubType?.providerConfig"
         @update:value="$emit('input', $event)"
       />
     </template>
