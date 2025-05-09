@@ -6,6 +6,7 @@ import FleetResources from '@shell/components/fleet/FleetResources.vue';
 import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
 import { RcButton } from '@components/RcButton';
 import { FleetDashboardState } from '@shell/utils/fleet-types';
+import FleetApplicationSource from '@shell/components/formatter/FleetApplicationSource.vue';
 
 export default {
   name: 'FleetDashboardResourceDetails',
@@ -14,7 +15,8 @@ export default {
     LabeledSelect,
     FleetRepo,
     FleetResources,
-    RcButton
+    FleetApplicationSource,
+    RcButton,
   },
 
   props: {
@@ -37,7 +39,11 @@ export default {
   data() {
     return {
       FLEET,
-      clusterId: ''
+      clusterId: '',
+      detailLocation: {
+        ...this.value._detailLocation,
+        name: 'c-cluster-fleet-application-resource-namespace-id'
+      }
     };
   },
 
@@ -76,7 +82,7 @@ export default {
         <i :class="value.dashboardIcon" />
         <router-link
           class="label"
-          :to="value.detailLocation"
+          :to="detailLocation"
         >
           {{ value.id }}
         </router-link>
@@ -100,14 +106,21 @@ export default {
       </RcButton>
     </div>
 
-    <template v-if="value.type === FLEET.GIT_REPO">
-      <h3>
-        {{ t('fleet.dashboard.source') }}
-      </h3>
-      <div class="mb-15">
-        <FleetRepo :row="value" />
+    <h3>
+      {{ t('fleet.dashboard.source') }}
+    </h3>
+    <div class="mb-15">
+      <FleetApplicationSource
+        v-if="value.source.value"
+        :row="value"
+      />
+      <div
+        v-else
+        class="text-muted"
+      >
+        &mdash;
       </div>
-    </template>
+    </div>
 
     <h3>
       {{ t('fleet.dashboard.resources') }}
