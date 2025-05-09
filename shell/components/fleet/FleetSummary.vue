@@ -69,16 +69,16 @@ export default {
 
   computed: {
 
-    repoName() {
+    resourceName() {
       return this.value.metadata.name;
     },
 
-    repoNamespace() {
+    resourceNamespace() {
       return this.value.metadata.namespace;
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.resourceNamespace && item.sourceAppName === this.resourceName);
 
       if (!resources.length) {
         return [];
@@ -183,13 +183,13 @@ export default {
       title="Bundles"
       :values="bundleCounts"
       value-key="count"
-      data-testid="gitrepo-bundle-summary"
+      data-testid="resource-bundle-summary"
     />
     <FleetStatus
       title="Resources"
       :values="resourceCounts"
       value-key="count"
-      data-testid="gitrepo-deployment-summary"
+      data-testid="resource-deployment-summary"
     />
   </div>
 </template>
