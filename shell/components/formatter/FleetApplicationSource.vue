@@ -3,7 +3,7 @@ import Link from '@shell/components/formatter/Link';
 import Shortened from '@shell/components/formatter/Shortened';
 
 export default {
-  name: 'FleetRepo',
+  name: 'FleetApplicationSource',
 
   components: {
     Link,
@@ -41,27 +41,26 @@ export default {
 
 <template>
   <Link
-    class="repo-link"
+    class="source-link"
+    label-key="source.display"
+    before-icon-key="source.icon"
+    url-key="source.value"
     :row="row"
-    :value="row.spec.repo || ''"
-    label-key="repoDisplay"
-    before-icon-key="repoIcon"
-    url-key="spec.repo"
+    :value="row.source.value || ''"
   />
-  {{ row.cluster }}
-  <template v-if="row.commitDisplay">
+  <template v-if="row.source.value && row.sourceSub.value">
     <div class="text-muted">
       <Shortened
-        long-value-key="status.commit"
+        long-value-key="sourceSub.value"
         :row="row"
-        :value="row.commitDisplay"
+        :value="row.sourceSub.display"
       />
     </div>
   </template>
 </template>
 
 <style lang="scss" scoped>
-.repo-link {
+.source-link {
   width: fit-content;
 }
 </style>
