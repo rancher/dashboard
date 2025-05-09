@@ -6164,7 +6164,6 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
-  fleetBundleType: Type
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos

@@ -1098,14 +1098,6 @@ export const FLEET_BUNDLE_LAST_UPDATED = {
   sort:          ['lastUpdateTime']
 };
 
-export const FLEET_BUNDLE_TYPE = {
-  name:     'bundleType',
-  labelKey: 'tableHeaders.fleetBundleType',
-  value:    'bundleType',
-  sort:     ['bundleType'],
-  width:    100,
-};
-
 export const FLEET_REPO_TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',

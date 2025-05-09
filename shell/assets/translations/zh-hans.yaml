@@ -5347,7 +5347,6 @@ tableHeaders:
   effect: 效果
   endpoints: 端点
   firstSeen: 首次出现时间
-  fleetBundleType: 类型
   flow: Flow
   fingerprint: 唯一标识
   gitRepos: Git 仓库
