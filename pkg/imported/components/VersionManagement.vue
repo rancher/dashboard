@@ -28,7 +28,10 @@ export default defineComponent({
       type:     String,
       required: true
     },
-
+    isLocal: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   computed: {
@@ -80,6 +83,9 @@ export default defineComponent({
       }
 
       return !this.globalSetting ? this.t('imported.basics.versionManagement.summary.canEnable', {}, true) : '';
+    },
+    showVersionManagementBanner() {
+      return !this.isLocal && !(this.isEdit && this.value === this.oldValue);
     }
   }
 });
@@ -89,8 +95,9 @@ export default defineComponent({
     <t k="imported.basics.versionManagement.title" />
   </h3>
   <Banner
-    v-if="!(isEdit && value === oldValue)"
+    v-if="showVersionManagementBanner"
     color="info"
+    data-testid="version-management-banner"
   >
     {{ versionManagementInfo }}
   </Banner>

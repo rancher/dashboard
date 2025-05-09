@@ -78,6 +78,10 @@ export default defineComponent({
       type:     String,
       required: true
     },
+    isLocal: {
+      type:    Boolean,
+      default: false
+    },
     rules: {
       default: () => ({
         workerConcurrency:       [],
@@ -172,6 +176,7 @@ export default defineComponent({
     :global-setting="versionManagementGlobalSetting"
     :mode="mode"
     :old-value="versionManagementOld"
+    :is-local="isLocal"
     @version-management-changed="$emit('version-management-changed', $event)"
   />
   <div
