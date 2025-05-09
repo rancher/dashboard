@@ -26,6 +26,16 @@ export default {
     }
   },
 
+  data() {
+    return {
+      // TODO fix
+      detailLocation: {
+        ...this.value._detailLocation,
+        name: 'c-cluster-fleet-application-resource-namespace-id'
+      }
+    };
+  },
+
   methods: {
     select(value) {
       const tagName = value?.srcElement?.tagName;
@@ -51,7 +61,7 @@ export default {
     }"
     @click="select"
     @keydown.enter.stop.prevent="select"
-    @keydown.space.stop.prevent="$router.push(value.detailLocation)"
+    @keydown.space.stop.prevent="$router.push(detailLocation)"
   >
     <div class="title">
       <i
@@ -62,7 +72,7 @@ export default {
         role="link"
         tabindex="-1"
         :aria-label="value.nameDisplay"
-        :to="value.detailLocation"
+        :to="detailLocation"
       >
         {{ value.nameDisplay }}
       </router-link>
