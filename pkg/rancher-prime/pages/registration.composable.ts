@@ -1,10 +1,45 @@
 import { downloadFile } from '@shell/utils/download';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
 
+const registrationMock = {
+  none: {
+    product:    '--',
+    code:       '--',
+    expiration: '--',
+    color:      'error',
+    message:    'registration.list.table.badge.none'
+  },
+  expired: {
+    product:    'SUSE Rancher Manager Prime Suite',
+    code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
+    expiration: '12/12/2021',
+    color:      'error',
+    message:    'registration.list.table.badge.expired'
+  },
+  valid: {
+    product:    'SUSE Rancher Manager Prime Suite',
+    code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
+    expiration: '12/12/2021',
+    color:      'success',
+    message:    'registration.list.table.badge.valid'
+  }
+};
+
+const registrationBannerCases = {
+  none: {
+    message: 'registration.banner.status.error',
+    type:    'error',
+  },
+  valid: {
+    message: 'registration.banner.status.success',
+    type:    'success',
+  }
+};
+
 export const usePrimeRegistration = () => {
-  const registration = ref(null as any);
+  const registration = ref(registrationMock.none);
 
   /**
    * Single source for the registration status, used to define other computed properties
@@ -22,14 +57,14 @@ export const usePrimeRegistration = () => {
   const offlineRegistrationCertificate = ref('');
 
   /**
-   * Expiration status for the registration, both online and offline
-   */
-  const expirationStatus = ref(null as 'success' | 'warning' | null);
-
-  /**
    * Current error list, displayed in the banner
    */
   const errors = ref([] as string[]);
+
+  /**
+   * Displayed registration banner
+   */
+  const registrationBanner = ref(registrationBannerCases.none);
 
   /**
    * Reset other inputs and errors, set current state then patch the registration
@@ -43,17 +78,21 @@ export const usePrimeRegistration = () => {
       case 'online':
         offlineRegistrationCertificate.value = '';
         registrationStatus.value = 'registered-online';
-        expirationStatus.value = 'success';
+        registration.value = registrationMock.valid;
+        registrationBanner.value = registrationBannerCases.valid;
         break;
       case 'offline':
         registrationCode.value = '';
         registrationStatus.value = 'registered-offline';
-        expirationStatus.value = 'warning';
+        registration.value = registrationMock.expired;
+        registrationBanner.value = registrationBannerCases.valid;
         break;
       case 'deregister':
         registrationStatus.value = null;
         registrationCode.value = '';
         offlineRegistrationCertificate.value = '';
+        registration.value = registrationMock.none;
+        registrationBanner.value = registrationBannerCases.none;
         break;
       }
       asyncButtonResolution();
@@ -131,6 +170,6 @@ export const usePrimeRegistration = () => {
     deregister,
     errors,
     registrationCode,
-    expirationStatus
+    registrationBanner
   };
 };
