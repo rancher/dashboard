@@ -4,7 +4,6 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import Carousel from '@shell/components/Carousel';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
@@ -15,11 +14,14 @@ import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
-import { removeObject, addObject, findBy } from '@shell/utils/array';
+import { removeObject, addObject } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+import ItemCard from '@shell/components/cards/ItemCard';
+import { get } from '@shell/utils/object';
+import { CATALOG } from '@shell/config/types';
 
 export default {
   name:       'Charts',
@@ -31,9 +33,9 @@ export default {
     Loading,
     Checkbox,
     Select,
-    SelectIconGrid,
     TypeDescription,
-    TabTitle
+    TabTitle,
+    ItemCard
   },
 
   async fetch() {
@@ -46,6 +48,8 @@ export default {
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
     this.allRepos = this.areAllEnabled();
+
+    this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
   },
 
   data() {
@@ -67,7 +71,8 @@ export default {
           value:     'featured',
           ariaLabel: this.t('catalog.charts.featuredAriaLabel')
         }
-      ]
+      ],
+      installedApps: []
     };
   },
 
@@ -80,31 +85,16 @@ export default {
     hideRepos: mapPref(HIDE_REPOS),
 
     repoOptions() {
-      let nextColor = 0;
-      // Colors 3 and 4 match `rancher` and `partner` colors, so just avoid them
-      const colors = [1, 2, 5, 6, 7, 8];
-
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
           _key:    r._key,
           label:   r.nameDisplay,
-          color:   r.color,
           weight:  ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
           enabled: !this.hideRepos.includes(r._key),
         };
       });
 
       out = sortBy(out, ['weight', 'label']);
-
-      for ( const entry of out ) {
-        if ( !entry.color ) {
-          entry.color = `color${ colors[nextColor] }`;
-          nextColor++;
-          if ( nextColor >= colors.length ) {
-            nextColor = 0;
-          }
-        }
-      }
 
       return out;
     },
@@ -169,11 +159,13 @@ export default {
      * Filter enabled charts allll filters. These are what the user will see in the list
      */
     filteredCharts() {
-      return this.filterCharts({
+      const res = this.filterCharts({
         category:    this.category,
         searchQuery: this.searchQuery,
         hideRepos:   this.hideRepos
       });
+
+      return res;
     },
 
     /**
@@ -250,16 +242,7 @@ export default {
   },
 
   methods: {
-    colorForChart(chart) {
-      const repos = this.repoOptions;
-      const repo = findBy(repos, '_key', chart.repoKey);
-
-      if ( repo ) {
-        return repo.color;
-      }
-
-      return null;
-    },
+    get,
 
     toggleAll(on) {
       for ( const r of this.repoOptions ) {
@@ -333,6 +316,23 @@ export default {
       });
     },
 
+    handleRepoClick(repoLabel) {
+      // TODO
+      // console.log('Repo Clicked, ', repo);
+      // const repoKey = this.repoOptions.find((opt) => opt.label === repoLabel)._key;
+      // addObject(this.hideRepos, repoKey);
+    },
+
+    handleCategoryClick(category) {
+      // TODO
+      // this.category = category;
+    },
+
+    handleTagClick(tag) {
+      // TODO
+      // console.log('Tag Clicked, ', tag);
+    },
+
     focusSearch() {
       if ( this.$refs.searchQuery ) {
         this.$refs.searchQuery.focus();
@@ -361,7 +361,7 @@ export default {
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         hideRepos,
-        hideTypes:      [CATALOG._CLUSTER_TPL],
+        hideTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     }
@@ -419,15 +419,9 @@ export default {
             :value="repo.enabled"
             :label="repo.label"
             class="pull-left repo in-select"
-            :class="{ [repo.color]: true}"
-            :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i
-                v-if="!repo.all"
-                class=" pl-5 icon icon-dot icon-sm"
-                :class="{[repo.color]: true}"
-              />
+              <span>{{ repo.label }}</span>
             </template>
           </Checkbox>
         </template>
@@ -501,16 +495,27 @@ export default {
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
-      <SelectIconGrid
-        v-else
-        data-testid="chart-selection-grid"
-        component-test-id="chart-selection"
-        :rows="filteredCharts"
-        name-field="chartNameDisplay"
-        description-field="chartDescription"
-        :color-for="colorForChart"
-        @clicked="(row) => selectChart(row)"
-      />
+      <template v-else>
+        <div
+          class="apps-container"
+          data-testid="apps-container"
+        >
+          <ItemCard
+            v-for="(chart, i) in filteredCharts"
+            :id="chart.chartName"
+            :key="i"
+            :title="{ text: chart.chartNameDisplay }"
+            :sub-title-groups="chart.subTitleGroups"
+            :description="{ text: chart.chartDescription }"
+            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } }"
+            :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
+            :as-link="true"
+            :statuses="chart.statuses"
+            :bottom-groups="chart.bottomGroups"
+            @card-click="selectChart(chart)"
+          />
+        </div>
+      </template>
     </div>
     <div
       v-else
@@ -578,6 +583,13 @@ export default {
     display: inline-block;
     line-height: 2.4rem;
   }
+}
+
+.apps-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, max-content));
+  grid-gap: var(--gap-md);
+  overflow: hidden;
 }
 
 .checkbox-outer-container.in-select {

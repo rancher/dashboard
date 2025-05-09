@@ -116,6 +116,12 @@ generic:
   experimental: Experimental
 
   deprecated: Deprecated
+  upgradeable: Upgradeable
+  installed: Installed
+  featured: Featured
+  shortFeatured: Feat
+  category: Category
+  tags: Tags
   placeholder: "e.g. {text}"
   moreInfo: More Info
   selectors:

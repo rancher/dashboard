@@ -498,35 +498,51 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+    const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
+    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+    const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
+    const tags = [];
+
+    if (experimental) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
+    }
+    if (windowsIncompatible) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.windowsIncompatible'));
+    }
+    if (deploysOnWindows) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.deploysOnWindows'));
+    }
+
     obj = classify(ctx, {
       key,
-      type:                'chart',
-      id:                  key,
+      type:             'chart',
+      id:               key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:     ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
-      certifiedSort:       CERTIFIED_SORTS[certified] || 99,
-      icon:                chart.icon,
-      color:               repo.color,
-      chartType:           chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
-      chartName:           chart.name,
-      chartNameDisplay:    chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
-      chartDescription:    chart.description,
-      featured:            chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
-      repoKey:             repo._key,
-      versions:            [],
-      categories:          filterCategories(chart.keywords),
-      deprecated:          !!chart.deprecated,
-      experimental:        !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL],
-      hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:               chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:            [],
-      windowsIncompatible: !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
-      deploysOnWindows:    (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
+      icon:             chart.icon,
+      color:            repo.color,
+      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:        chart.name,
+      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription: chart.description,
+      featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      repoKey:          repo._key,
+      versions:         [],
+      categories:       filterCategories(chart.keywords),
+      deprecated:       !!chart.deprecated,
+      experimental,
+      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:         [],
+      windowsIncompatible,
+      deploysOnWindows,
+      tags
     });
 
     map[key] = obj;
