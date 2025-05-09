@@ -33,7 +33,7 @@ export default {
   data() {
     return {
       FLEET,
-      cluster: null,
+      cluster:        null,
       detailLocation: {
         ...this.value._detailLocation,
         name: 'c-cluster-fleet-application-resource-namespace-id'

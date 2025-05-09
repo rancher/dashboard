@@ -9,13 +9,13 @@ const REPO_NAME_VARIANT = 'testrepo-again';
 const CLUSTER_NAME = 'testcluster';
 
 const mockedBundlesInRepo = [{
-  id:         `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
-  type:       'fleet.cattle.io.bundle',
-  apiVersion: 'fleet.cattle.io/v1alpha1',
-  kind:       'Bundle',
-  repoName:   REPO_NAME,
-  namespace:  'fleet-default',
-  metadata:   {
+  id:            `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME,
+  namespace:     'fleet-default',
+  metadata:      {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME
@@ -49,13 +49,13 @@ const mockedBundlesInRepo = [{
   }
 },
 {
-  id:         `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-5678`,
-  type:       'fleet.cattle.io.bundle',
-  apiVersion: 'fleet.cattle.io/v1alpha1',
-  kind:       'Bundle',
-  repoName:   REPO_NAME,
-  namespace:  'fleet-default',
-  metadata:   {
+  id:            `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-5678`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME,
+  namespace:     'fleet-default',
+  metadata:      {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME
@@ -90,13 +90,13 @@ const mockedBundlesInRepo = [{
 }];
 
 const mockedBundlesOutOfRepo = [{
-  id:         `fleet-default/${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-1234`,
-  type:       'fleet.cattle.io.bundle',
-  apiVersion: 'fleet.cattle.io/v1alpha1',
-  kind:       'Bundle',
-  repoName:   REPO_NAME_VARIANT,
-  namespace:  'custom-namespace',
-  metadata:   {
+  id:            `fleet-default/${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-1234`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME_VARIANT,
+  namespace:     'custom-namespace',
+  metadata:      {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME_VARIANT
@@ -130,13 +130,13 @@ const mockedBundlesOutOfRepo = [{
   }
 },
 {
-  id:         `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
-  type:       'fleet.cattle.io.bundle',
-  apiVersion: 'fleet.cattle.io/v1alpha1',
-  kind:       'Bundle',
-  repoName:   REPO_NAME,
-  namespace:  'custom-namespace',
-  metadata:   {
+  id:            `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-1234`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME,
+  namespace:     'custom-namespace',
+  metadata:      {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME
@@ -170,13 +170,13 @@ const mockedBundlesOutOfRepo = [{
   }
 },
 {
-  id:         `fleet-default/${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-5678`,
-  type:       'fleet.cattle.io.bundle',
-  apiVersion: 'fleet.cattle.io/v1alpha1',
-  kind:       'Bundle',
-  repoName:   REPO_NAME_VARIANT,
-  namespace:  'custom-namespace',
-  metadata:   {
+  id:            `fleet-default/${ REPO_NAME_VARIANT }-${ CLUSTER_NAME }-5678`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME_VARIANT,
+  namespace:     'custom-namespace',
+  metadata:      {
     labels: {
       'fleet.cattle.io/commit':    '3640888439d1b7b6a53dbeee291a533eea2632ab',
       'fleet.cattle.io/repo-name': REPO_NAME_VARIANT
@@ -337,7 +337,7 @@ describe('component: FleetSummary', () => {
   ])('displays the number of bundles associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
       props:  { bundles, value: new GitRepo(mockRepo) },
-      global: { mocks: { $store: mockStore } }
+      global: { mocks: { $store: mockStore }, directives: { 'trim-whitespace': (id: any) => id } },
     });
 
     const bundleCountEl = wrapper.find('[data-testid="resource-bundle-summary"] .count');
@@ -352,7 +352,7 @@ describe('component: FleetSummary', () => {
   ])('displays the number of deployments associated with the current gitrepo', (bundles: any[], bundleCount: string) => {
     const wrapper = mount(FleetSummary, {
       props:  { bundles, value: new GitRepo(mockRepo) },
-      global: { mocks: { $store: mockStore } }
+      global: { mocks: { $store: mockStore }, directives: { 'trim-whitespace': (id: any) => id } }
     });
 
     const bundleCountEl = wrapper.find('[data-testid="resource-deployment-summary"] .count');
