@@ -526,6 +526,7 @@ export const getters = {
       customRoute:            undefined,
       resourceEditMasthead:   true,
       custom:                 {},
+      subTypes:               [],
     };
 
     return (schemaOrType, pagination) => {
