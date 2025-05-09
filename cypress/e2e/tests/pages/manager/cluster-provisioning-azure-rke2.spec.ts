@@ -52,7 +52,6 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(1);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
@@ -90,7 +89,6 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(1);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');

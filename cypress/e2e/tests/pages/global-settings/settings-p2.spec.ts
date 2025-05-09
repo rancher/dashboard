@@ -407,7 +407,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
     clusterList.createCluster();
 
     createRKE2ClusterPage.waitForPage();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
     createRKE2ClusterPage.selectCustom(0);
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');

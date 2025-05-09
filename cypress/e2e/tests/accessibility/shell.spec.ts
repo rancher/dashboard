@@ -151,17 +151,11 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         createClusterPage.waitForPage();
         loadingPo.checkNotExists();
 
-        createClusterPage.rkeToggle().checkVisible();
         cy.injectAxe();
 
         cy.checkPageAccessibility();
 
         cy.injectAxe();
-
-        // check rke toggle
-        createClusterPage.rkeToggle().get('.switch').then((el) => {
-          cy.checkElementAccessibility(el);
-        });
       });
 
       it('Pod Security Admissions - Create page', () => {
