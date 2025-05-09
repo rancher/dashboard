@@ -6,6 +6,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import day from 'dayjs';
 
 export default class Chart extends SteveModel {
   queryParams(from, hideSideNav) {
@@ -85,11 +86,67 @@ export default class Chart extends SteveModel {
     return this.matchingInstalledApps.length === 1;
   }
 
-  get versionDisplay() {
-    return this.isInstalled && this.upgradeable ? this.matchingInstalledApps[0].currentVersion : this.versions[0].version;
-  }
-
   get upgradeable() {
     return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+  }
+
+  get statuses() {
+    const res = [];
+
+    if (this.deprecated) {
+      res.push({
+        icon: 'icon-error', color: 'error', tooltip: { key: 'generic.deprecated' }, id: this.chartName
+      });
+    }
+
+    if (this.upgradeable) {
+      res.push({
+        icon: 'icon-error', color: 'info', tooltip: { key: 'generic.upgradeable' }, id: this.chartName
+      });
+    }
+
+    if (this.isInstalled) {
+      res.push({
+        icon: 'icon-error', color: 'success', tooltip: { key: 'generic.installed' }, id: this.chartName
+      });
+    }
+
+    return res;
+  }
+
+  get subTitleGroups() {
+    const version = {
+      icon:        'icon-error',
+      iconTooltip: { key: 'tableHeaders.version' },
+      labels:      [{ text: this.versions[0].version }]
+    };
+
+    const refresh = {
+      icon:        'icon-error',
+      iconTooltip: { key: 'generic.refresh' },
+      labels:      [{ text: day(this.versions[0].created).format('MMM D, YYYY') }]
+    };
+
+    return [version, refresh];
+  }
+
+  get bottomGroups() {
+    const repo = {
+      icon:        'icon-error',
+      iconTooltip: { key: 'tableHeaders.repoName' },
+      labels:      [{ text: this.repoNameDisplay }]
+    };
+    const categories = {
+      icon:        'icon-error',
+      iconTooltip: { key: 'generic.category' },
+      labels:      this.categories?.map((c) => ({ text: c }))
+    };
+    const tags = {
+      icon:        'icon-error',
+      iconTooltip: { key: 'generic.tags' },
+      labels:      this.tags?.map((t) => ({ text: t }))
+    };
+
+    return [repo, categories, tags];
   }
 }

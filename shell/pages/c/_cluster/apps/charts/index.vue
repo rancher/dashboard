@@ -19,7 +19,7 @@ import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/cata
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
-import AppCard from '@shell/components/cards/AppCard';
+import ItemCard from '@shell/components/cards/ItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG } from '@shell/config/types';
 
@@ -35,7 +35,7 @@ export default {
     Select,
     TypeDescription,
     TabTitle,
-    AppCard
+    ItemCard
   },
 
   async fetch() {
@@ -500,25 +500,19 @@ export default {
           class="apps-container"
           data-testid="apps-container"
         >
-          <AppCard
+          <ItemCard
             v-for="(chart, i) in filteredCharts"
+            :id="chart.chartName"
             :key="i"
-            :title="chart.chartNameDisplay"
-            :description="chart.chartDescription"
-            :logo="chart.versions[0].icon"
-            :logo-alt-text="t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') })"
-            :featured="chart.featured"
+            :title="{ text: chart.chartNameDisplay }"
+            :sub-title-groups="chart.subTitleGroups"
+            :description="{ text: chart.chartDescription }"
+            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } }"
+            :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
             :as-link="true"
-            :installed="chart.isInstalled"
-            :upgradable="chart.upgradeable"
-            :deprecated="chart.deprecated"
-            :version="chart.versionDisplay"
-            :repo="chart.repoNameDisplay"
-            :categories="chart.categories"
-            :tags="chart.tags"
+            :statuses="chart.statuses"
+            :bottom-groups="chart.bottomGroups"
             @card-click="selectChart(chart)"
-            @repo-click="handleRepoClick"
-            @category-click="handleCategoryClick"
           />
         </div>
       </template>
