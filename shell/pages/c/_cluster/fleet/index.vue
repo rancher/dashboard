@@ -1,4 +1,5 @@
 <script>
+import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
 import { FLEET } from '@shell/config/types';
@@ -16,6 +17,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FleetRepos from '@shell/components/fleet/FleetRepos';
 import FleetUtils from '@shell/utils/fleet';
+import Preset from '@shell/mixins/preset';
 
 const IS_HELM_OPS_ENABLED = false;
 
@@ -31,6 +33,8 @@ export default {
     ResourceCard,
     ResourcePanel,
   },
+
+  mixins: [Preset],
 
   async fetch() {
     const schemas = {
@@ -123,6 +127,7 @@ export default {
       typeFilter:           {},
       stateFilter:          {},
       selectedCard:         null,
+      presetVersion:        getVersionData()?.Version,
     };
   },
 
@@ -242,7 +247,7 @@ export default {
 
     selectStates(workspace, state) {
       if (!this.stateFilter[workspace]) {
-      this.stateFilter[workspace] = {};
+        this.stateFilter[workspace] = {};
       }
 
       this.stateFilter[workspace][state] = !this.stateFilter[workspace][state];
@@ -257,7 +262,7 @@ export default {
     },
 
     selectType(workspace, type, value) {
-if (!this.typeFilter[workspace]) {
+      if (!this.typeFilter[workspace]) {
         this.typeFilter[workspace] = {};
       }
 
@@ -327,20 +332,26 @@ if (!this.typeFilter[workspace]) {
 
   watch: {
     workspaces(neu) {
-      const collapsed = neu?.length > 1;
+      if (neu) {
+        neu?.forEach((ws) => {
+          this.isWorkspaceCollapsed[ws.id] = neu.length > 1;
 
-      neu?.forEach((ws) => {
-        this.isWorkspaceCollapsed[ws.id] = collapsed;
+          this.isStateCollapsed[ws.id] = { Active: true };
 
-        this.isStateCollapsed[ws.id] = { Active: true };
+          this.typeFilter[ws.id] = {
+            [FLEET.GIT_REPO]: true,
+            [FLEET.HELM_OP]:  true,
+          };
 
-        this.typeFilter[ws.id] = {
-          [FLEET.GIT_REPO]: true,
-          [FLEET.HELM_OP]:  true,
-        };
+          this.stateFilter[ws.id] = {};
+        });
 
-        this.stateFilter[ws.id] = [];
-      });
+        this.preset('isWorkspaceCollapsed', 'object');
+        this.preset('isStateCollapsed', 'object');
+        this.preset('typeFilter', 'object');
+        this.preset('stateFilter', 'object');
+        this.preset('viewMode', 'string');
+      }
     }
   }
 };
@@ -478,9 +489,9 @@ if (!this.typeFilter[workspace]) {
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div
-v-if="IS_HELM_OPS_ENABLED"
-class="cards-panel-actions"
->
+            v-if="IS_HELM_OPS_ENABLED"
+            class="cards-panel-actions"
+          >
             <div
               v-if="viewMode === 'cards'"
               class="cards-panel-filters"
