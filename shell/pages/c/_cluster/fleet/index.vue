@@ -121,6 +121,8 @@ export default {
           value:      'cards',
         },
       ],
+      CARDS_MIN:            1,
+      cardsLoadMore:        {},
       viewMode:             'cards',
       isWorkspaceCollapsed: {},
       isStateCollapsed:     {},
@@ -307,6 +309,16 @@ export default {
       });
     },
 
+    loadMore(workspace, state) {
+      if (!this.cardsLoadMore[workspace]) {
+        this.cardsLoadMore[workspace] = {};
+      }
+
+      const count = this.cardsLoadMore[workspace][state] || this.CARDS_MIN;
+
+      this.cardsLoadMore[workspace][state] = count + this.CARDS_MIN;
+    },
+
     showResourceDetails(value, statePanel, workspace, selected) {
       if (this.isClosingSlideInPanel) {
         return;
@@ -334,6 +346,8 @@ export default {
     workspaces(neu) {
       if (neu) {
         neu?.forEach((ws) => {
+          this.cardsLoadMore[ws.id] = {};
+
           this.isWorkspaceCollapsed[ws.id] = neu.length > 1;
 
           this.isStateCollapsed[ws.id] = { Active: true };
@@ -350,6 +364,7 @@ export default {
         this.preset('isStateCollapsed', 'object');
         this.preset('typeFilter', 'object');
         this.preset('stateFilter', 'object');
+        this.preset('cardsLoadMore', 'object');
         this.preset('viewMode', 'string');
       }
     }
@@ -561,21 +576,34 @@ export default {
                   v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
                   class="card-panel-body"
                 >
-                  <ResourceCard
-                    v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
-                    :key="y"
-                    class="resource-card"
-                    :data-testid="`card-${ item.id }`"
-                    :value="item"
-                    :state-panel="state.statePanel"
-                    :selected="selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel"
-                    @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
-                  />
+                  <div class="resource-cards-container">
+                    <div
+                      v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
+                      :key="y"
+                      class="resource-card"
+                    >
+                      <ResourceCard
+                        v-if="y < (cardsLoadMore[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                        :data-testid="`card-${ item.id }`"
+                        :value="item"
+                        :state-panel="state.statePanel"
+                        :selected="selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel"
+                        @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    v-if="cardResources[workspace.id][state.stateDisplay]?.length - (cardsLoadMore[workspace.id]?.[state.stateDisplay] || CARDS_MIN) > 0"
+                    class="resource-cards-action"
+                  >
+                    <p @click="loadMore(workspace.id, state.stateDisplay)">
+                      {{ t('labelSelect.pagination.more') }}
+                    </p>
+                  </div>
                 </div>
               </template>
             </div>
           </div>
-
           <div
             v-if="viewMode === 'flat'"
             class="table-panel"
@@ -615,16 +643,6 @@ export default {
   > div {
     display: flex;
     align-items: center;
-
-    p {
-      color: var(--primary);
-      margin-right: 2px;
-
-      &:hover {
-        text-decoration: underline;
-        cursor: pointer;
-      }
-    }
 
     i {
       color: var(--primary);
@@ -762,12 +780,21 @@ export default {
         }
 
         .card-panel-body {
-          display: flex;
-          justify-content: flex-start;
-          flex-wrap: wrap;
+          .resource-cards-container {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
 
-          .resource-card {
-            cursor: pointer;
+            .resource-card {
+              cursor: pointer;
+            }
+          }
+
+          .resource-cards-action {
+            p {
+              width: fit-content;
+              margin-left: 15px;
+            }
           }
         }
       }
@@ -776,6 +803,16 @@ export default {
     .table-panel {
       margin-top: 20px;
     }
+  }
+}
+
+p {
+  color: var(--primary);
+  margin-right: 2px;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
   }
 }
 
