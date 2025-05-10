@@ -32,6 +32,7 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 class Fleet {
   dashboardStates = [
     {
+      index:           0,
       id:              'error',
       label:           'Error',
       color:           '#F64747',
@@ -39,6 +40,7 @@ class Fleet {
       stateBackground: 'bg-error'
     },
     {
+      index:           1,
       id:              'warning',
       label:           'Warning',
       color:           '#DAC342',
@@ -46,6 +48,7 @@ class Fleet {
       stateBackground: 'bg-warning'
     },
     {
+      index:           2,
       id:              'success',
       label:           'Active',
       color:           '#5D995D',
@@ -53,6 +56,7 @@ class Fleet {
       stateBackground: 'bg-success'
     },
     {
+      index:           3,
       id:              'info',
       label:           'InProgress',
       color:           '#3d98d3',

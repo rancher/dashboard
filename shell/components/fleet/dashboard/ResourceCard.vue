@@ -1,4 +1,5 @@
 <script>
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import ResourceCardSummary from '@shell/components/fleet/dashboard/ResourceCardSummary.vue';
 
 export default {
@@ -7,7 +8,10 @@ export default {
 
   emits: ['click'],
 
-  components: { ResourceCardSummary },
+  components: {
+    ActionMenu,
+    ResourceCardSummary,
+  },
 
   props: {
     value: {
@@ -28,9 +32,9 @@ export default {
 
   methods: {
     select(value) {
-      const tagName = value?.srcElement?.tagName;
+      const elem = value?.srcElement;
 
-      if (tagName === 'A' || tagName === 'BUTTON') {
+      if (elem?.tagName === 'A' || elem?.tagName === 'BUTTON' || elem?.className.includes('icon icon-actions')) {
         return;
       }
 
@@ -54,18 +58,26 @@ export default {
     @keydown.space.stop.prevent="$router.push(value.detailLocation)"
   >
     <div class="title">
-      <i
-        class="icon-lg"
-        :class="value.dashboardIcon"
-      />
-      <router-link
-        role="link"
-        tabindex="-1"
-        :aria-label="value.nameDisplay"
-        :to="value.detailLocation"
-      >
-        {{ value.nameDisplay }}
-      </router-link>
+      <div class="label">
+        <i
+          class="icon-lg"
+          :class="value.dashboardIcon"
+        />
+        <router-link
+          role="link"
+          tabindex="-1"
+          :aria-label="value.nameDisplay"
+          :to="value.detailLocation"
+        >
+          {{ value.nameDisplay }}
+        </router-link>
+      </div>
+      <div class="actions">
+        <ActionMenu
+          :resource="value"
+          :button-aria-label="t('sortableTable.tableActionsLabel', { resource: value?.id || '' })"
+        />
+      </div>
     </div>
     <div class="body">
       <ResourceCardSummary
@@ -91,9 +103,15 @@ export default {
     .title {
       display: flex;
       align-items: center;
-      gap: 5px;
-      margin-bottom: 10px;
-      font-size: medium;
+      justify-content: space-between;
+      margin-bottom: 5px;
+
+      .label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: medium;
+      }
     }
   }
 </style>

@@ -57,28 +57,26 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     // check if burguer menu nav is highlighted correctly for Fleet
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
+    fleetDashboardPage.viewModeButton().checkVisible();
+
     const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
 
     workspaceCard.expandButton().should('be.visible');
 
+    // TODO change to fleet applications when HelmOps enabled
     const gitReposPanel = workspaceCard.resourcePanel('git-repos');
 
     gitReposPanel.chart().should('exist');
     gitReposPanel.stateBadge('success').should('exist');
     gitReposPanel.description().should('contain', '1');
 
-    const helmOpsPanel = workspaceCard.resourcePanel('helm-ops');
-
-    helmOpsPanel.self().should('not.exist');
-
     const clustersPanel = workspaceCard.resourcePanel('clusters');
 
-    clustersPanel.self().should('exist');
-    clustersPanel.chart().should('not.exist');
+    clustersPanel.chart().should('exist');
     clustersPanel.stateBadge('success').should('exist');
     clustersPanel.description().should('contain', '1');
 
-    const clusterGroupsPanel = workspaceCard.resourcePanel('clusters');
+    const clusterGroupsPanel = workspaceCard.resourcePanel('cluster-groups');
 
     clusterGroupsPanel.self().should('exist');
     clusterGroupsPanel.chart().should('not.exist');
@@ -101,13 +99,12 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     cardsPanel.self().should('be.visible');
 
-    cardsPanel.gitReposFilter().checkVisible();
-    cardsPanel.gitReposFilter().isChecked();
+    // TODO re-enabled when HelmOps available
+    // cardsPanel.gitReposFilter().checkVisible();
+    // cardsPanel.gitReposFilter().isChecked();
 
-    cardsPanel.helmOpsFilter().checkVisible();
-    cardsPanel.helmOpsFilter().isChecked();
-
-    cardsPanel.viewModeButton().checkVisible();
+    // cardsPanel.helmOpsFilter().checkVisible();
+    // cardsPanel.helmOpsFilter().isChecked();
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
@@ -122,7 +119,26 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     card.find('.title').should('contain.text', repoName);
   });
 
-  it('Should filter by GitRepo type', () => {
+  // TODO re-enabled when HelmOps available
+
+  // it('Should filter by GitRepo type', () => {
+  //   fleetDashboardPage.goTo();
+  //   fleetDashboardPage.waitForPage();
+
+  //   const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+  //   const expandButton = workspaceCard.expandButton();
+
+  //   expandButton.click();
+
+  //   const cardsPanel = workspaceCard.cardsPanel();
+
+  //   cardsPanel.gitReposFilter().set();
+  //   const activeStatePanel = cardsPanel.statePanel('Active');
+
+  //   activeStatePanel.self().should('not.be.visible');
+  // });
+
+  it('Should change ViewMode', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -133,10 +149,16 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     const cardsPanel = workspaceCard.cardsPanel();
 
-    cardsPanel.gitReposFilter().set();
-    const activeStatePanel = cardsPanel.statePanel('Active');
+    cardsPanel.checkExists();
 
-    activeStatePanel.self().should('not.be.visible');
+    // click 'card' mode
+    fleetDashboardPage.viewModeButton().self().find('[data-testid="button-group-child-0"]').click();
+
+    cardsPanel.checkNotExists();
+
+    const tablePanel = workspaceCard.tablePanel();
+
+    tablePanel.checkExists();
   });
 
   it('Should open slide-in panel', () => {

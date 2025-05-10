@@ -1,5 +1,4 @@
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
-import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
@@ -34,12 +33,18 @@ class CardsPanelPo extends ComponentPo {
     return CheckboxInputPo.byLabel(this.self(), 'Show Helm Ops');
   }
 
-  viewModeButton() {
-    return new ButtonGroupPo('[data-testid="view-button"]', this.self());
-  }
-
   statePanel(stateDisplay) {
     return new StatePanelPo(`[data-testid="state-panel-${ stateDisplay }"]`, this.self(), this.workspace);
+  }
+}
+
+class TablePanelPo extends ComponentPo {
+  workspace: string;
+
+  constructor(parent: CypressChainable, workspace: string) {
+    super(`[data-testid="fleet-dashboard-expanded-panel-${ workspace }"] .table-panel`, parent);
+
+    this.workspace = workspace;
   }
 }
 
@@ -83,6 +88,6 @@ export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
   }
 
   tablePanel() {
-    return null;
+    return new TablePanelPo(this.self(), this.workspace);
   }
 }

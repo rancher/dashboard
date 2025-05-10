@@ -1,6 +1,7 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import FleetDashboardWorkspaceCardPo from '@/cypress/e2e/po/components/fleet/fleet-dashboard-workspace-card.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FleetDashboardListPagePo extends BaseListPagePo {
@@ -49,5 +50,9 @@ export class FleetDashboardListPagePo extends BaseListPagePo {
 
     getStartedButton() {
       return this.self().get('.btn').contains('Get started');
+    }
+
+    viewModeButton() {
+      return new ButtonGroupPo('[data-testid="view-button"]', this.self());
     }
 }
