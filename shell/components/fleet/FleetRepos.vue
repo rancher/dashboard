@@ -1,7 +1,5 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Link from '@shell/components/formatter/Link';
-import Shortened from '@shell/components/formatter/Shortened';
 import FleetIntro from '@shell/components/fleet/FleetIntro';
 
 import {
@@ -22,7 +20,8 @@ export default {
   name: 'FleetRepos',
 
   components: {
-    ResourceTable, Link, Shortened, FleetIntro
+    FleetIntro,
+    ResourceTable,
   },
   props: {
     clusterId: {
@@ -117,26 +116,6 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
     >
-      <template #cell:repo="{ row }">
-        <Link
-          :row="row"
-          :value="row.spec.repo || ''"
-          label-key="repoDisplay"
-          before-icon-key="repoIcon"
-          url-key="spec.repo"
-        />
-        {{ row.cluster }}
-        <template v-if="row.commitDisplay">
-          <div class="text-muted">
-            <Shortened
-              long-value-key="status.commit"
-              :row="row"
-              :value="row.commitDisplay"
-            />
-          </div>
-        </template>
-      </template>
-
       <template
         v-if="!isClusterView"
         #cell:clustersReady="{ row }"
