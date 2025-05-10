@@ -1,5 +1,6 @@
 <script>
 import { markRaw } from 'vue';
+import { mapGetters } from 'vuex';
 import { Chart, registerables } from 'chart.js';
 import { BadgeState } from '@components/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
@@ -10,7 +11,7 @@ export default {
 
   name: 'FleetDashboardResourcePanel',
 
-  emits: ['select:states'],
+  emits: ['click:state'],
 
   components: { BadgeState },
 
@@ -39,6 +40,11 @@ export default {
       type:    Boolean,
       default: true
     },
+
+    selectedStates: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   data() {
@@ -50,18 +56,34 @@ export default {
         elements:   {
           arc: {
             borderWidth: 4,
-            borderColor: getComputedStyle(document.body).getPropertyValue('--body-bg')
+            borderColor: () => {
+              return getComputedStyle(document.body).getPropertyValue('--body-bg');
+            }
           }
         },
         plugins: {
           legend: { display: false },
           title:  { display: false },
         },
-        cutout: 13,
-        // onClick: (_, value) => {
-        // }
+        cutout:  13,
+        onHover: (event) => {
+          if (this.selectable) {
+            event.native.target.style.cursor = 'pointer';
+          }
+        },
+        onClick: (_, element) => {
+          const idx = element[0]?.index;
+
+          if (idx === undefined) {
+            return;
+          }
+
+          const state = this.states.find(({ index }) => idx === index);
+
+          this.selectState(state);
+        },
+        animations: { borderColor: { duration: 0 } }
       },
-      selectedStates: {},
     };
   },
 
@@ -90,6 +112,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
     states() {
       const out = [];
 
@@ -124,9 +147,14 @@ export default {
 
   watch: {
     states: {
-      handler: 'updateChart',
+      handler: 'updateStates',
       deep:    true,
-    }
+    },
+    theme() {
+      if (this.chart) {
+        this.chart.update();
+      }
+    },
   },
 
   methods: {
@@ -149,10 +177,10 @@ export default {
       };
     },
 
-    updateChart(states) {
+    updateStates(value) {
       if (this.chart) {
         this.chart.data.datasets.forEach((dataset) => {
-          dataset.data = this.getChartStates(states);
+          dataset.data = this.getChartStates(value);
         });
 
         this.chart.update();
@@ -163,16 +191,16 @@ export default {
       return FleetUtils.dashboardStates.map(({ id }) => states.find((s) => s.id === id)?.count || 0);
     },
 
-    onClickBadge(state) {
+    selectState(state) {
       if (!this.selectable) {
         return;
       }
 
-      this.selectedStates[state.id] = !this.selectedStates[state.id];
+      this.$emit('click:state', state.id);
+    },
 
-      const selected = Object.keys(this.selectedStates).filter((k) => this.selectedStates[k]);
-
-      this.$emit('select:states', selected);
+    onClickBadge(state) {
+      this.selectState(state);
     }
   }
 };
@@ -204,7 +232,7 @@ export default {
           :aria-label="selectable ? t('fleet.dashboard.state') + '-' + state.id : undefined"
           :class="{
             ['selectable']: selectable,
-            ['selected']: selectable && selectedStates[state.id]
+            ['selected']: selectable && selectedStates?.[state.id]
           }"
           :color="state.stateBackground"
           :label="` ${ state.count } `"
@@ -213,7 +241,7 @@ export default {
           @keydown.space.enter.stop.prevent="onClickBadge(state)"
         >
           <template
-            v-if="selectable && selectedStates[state.id]"
+            v-if="selectable && selectedStates?.[state.id]"
             #content-right
           >
             <i class="icon icon-close ml-5" />

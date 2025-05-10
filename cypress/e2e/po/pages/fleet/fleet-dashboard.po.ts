@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import FleetDashboardWorkspaceCardPo from '@/cypress/e2e/po/components/fleet/fleet-dashboard-workspace-card.po';
 import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FleetDashboardPagePo extends PagePo {
@@ -54,5 +55,9 @@ export class FleetDashboardPagePo extends PagePo {
 
     getStartedButton() {
       return this.self().get('.btn').contains('Get started');
+    }
+
+    viewModeButton() {
+      return new ButtonGroupPo('[data-testid="view-button"]', this.self());
     }
 }
