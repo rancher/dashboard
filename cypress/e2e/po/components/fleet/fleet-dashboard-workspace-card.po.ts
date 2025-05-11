@@ -16,11 +16,29 @@ class ResourcePanelPo extends ComponentPo {
   }
 }
 
-class CardsPanelPo extends ComponentPo {
+class ExpandedPanelPo extends ComponentPo {
   workspace: string;
 
   constructor(parent: CypressChainable, workspace: string) {
-    super(`[data-testid="fleet-dashboard-expanded-panel-${ workspace }"] .cards-panel`, parent);
+    super(`[data-testid="fleet-dashboard-expanded-panel-${ workspace }"]`, parent);
+
+    this.workspace = workspace;
+  }
+
+  cardsPanel() {
+    return new CardPanelPo(this.self(), this.workspace);
+  }
+
+  tablePanel() {
+    return new TablePanelPo(this.self(), this.workspace);
+  }
+}
+
+class CardPanelPo extends ComponentPo {
+  workspace: string;
+
+  constructor(parent: CypressChainable, workspace: string) {
+    super('.cards-panel', parent);
 
     this.workspace = workspace;
   }
@@ -75,19 +93,15 @@ export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
     this.workspace = workspace;
   }
 
-  resourcePanel(type: 'git-repos' | 'helm-ops' | 'clusters' | 'cluster-groups') {
+  resourcePanel(type: 'applications' | 'clusters' | 'cluster-groups') {
     return new ResourcePanelPo(`[data-testid="resource-panel-${ type }"]`, this.self());
+  }
+
+  expandedPanel() {
+    return new ExpandedPanelPo(this.self(), this.workspace);
   }
 
   expandButton() {
     return this.self().find('[data-testid="expand-button"]');
-  }
-
-  cardsPanel() {
-    return new CardsPanelPo(this.self(), this.workspace);
-  }
-
-  tablePanel() {
-    return new TablePanelPo(this.self(), this.workspace);
   }
 }

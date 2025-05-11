@@ -15,11 +15,9 @@ import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.v
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';
-
-const IS_HELM_OPS_ENABLED = false;
 
 export default {
   name:       'FleetDashboard',
@@ -27,7 +25,7 @@ export default {
     ButtonGroup,
     Checkbox,
     EmptyDashboard,
-    FleetRepos,
+    FleetApplications,
     Loading,
     NoWorkspaces,
     ResourceCard,
@@ -101,8 +99,6 @@ export default {
 
   data() {
     return {
-      IS_HELM_OPS_ENABLED,
-      repoSchema:      this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
@@ -510,11 +506,11 @@ export default {
             </div>
             <div class="body">
               <ResourcePanel
-                v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
+                v-if="workspace.repos?.length || workspace.helmOps?.length"
                 :data-testid="'resource-panel-applications'"
                 :states="applicationStates[workspace.id]"
                 :workspace="workspace.id"
-                :type="FLEET.GIT_REPO"
+                :type="FLEET.APPLICATION"
                 :selected-states="stateFilter[workspace.id] || {}"
                 @click:state="selectStates(workspace.id, $event)"
               />
@@ -559,12 +555,12 @@ export default {
         </div>
         <div
           v-if="!isWorkspaceCollapsed[workspace.id]"
-          class="card-panel-expand mt-10"
+          class="panel-expand mt-10"
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div
-            v-if="IS_HELM_OPS_ENABLED"
-            class="cards-panel-actions"
+            v-if="viewMode === 'cards'"
+            class="cards-panel"
           >
             <div
               v-if="viewMode === 'cards'"
@@ -591,12 +587,6 @@ export default {
                 </template>
               </Checkbox>
             </div>
-          </div>
-
-          <div
-            v-if="viewMode === 'cards'"
-            class="cards-panel"
-          >
             <div
               v-for="(state, j) in applicationStates[workspace.id]"
               :key="j"
@@ -678,10 +668,13 @@ export default {
             v-if="viewMode === 'flat'"
             class="table-panel"
           >
-            <FleetRepos
+            <FleetApplications
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
-              :schema="repoSchema"
+              :schema="{
+                id: FLEET.APPLICATION,
+                type: 'schema'
+              }"
               :loading="$fetchState.pending"
               :use-query-params-for-simple-filtering="true"
             />
@@ -788,14 +781,10 @@ export default {
     }
   }
 
-  .card-panel-expand {
+  .panel-expand {
     animation: slideInOut 0.5s ease-in-out;
 
-    .cards-panel-actions {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-
+    .cards-panel {
       .cards-panel-filters {
         display: flex;
         flex-direction: column;
@@ -815,9 +804,6 @@ export default {
           font-size: 25px;
         }
       }
-    }
-
-    .cards-panel {
       .card-panel {
         margin-top: 32px;
 
