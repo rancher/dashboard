@@ -1,8 +1,8 @@
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+import FleetApplicationDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.application.po';
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const fleetDashboardPage = new FleetDashboardPagePo('_');
@@ -24,7 +24,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     });
   });
 
-  it('has the correct title', () => {
+  it('Has the correct title', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -64,12 +64,11 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     workspaceCard.expandButton().should('be.visible');
 
-    // TODO change to fleet applications when HelmOps enabled
-    const gitReposPanel = workspaceCard.resourcePanel('git-repos');
+    const applicationsPanel = workspaceCard.resourcePanel('applications');
 
-    gitReposPanel.chart().should('exist');
-    gitReposPanel.stateBadge('success').should('exist');
-    gitReposPanel.description().should('contain', '1');
+    applicationsPanel.chart().should('exist');
+    applicationsPanel.stateBadge('success').should('exist');
+    applicationsPanel.description().should('contain', '1');
 
     const clustersPanel = workspaceCard.resourcePanel('clusters');
 
@@ -96,16 +95,15 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     expandButton.should('be.visible');
     expandButton.click();
 
-    const cardsPanel = workspaceCard.cardsPanel();
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
     cardsPanel.self().should('be.visible');
 
-    // TODO re-enabled when HelmOps available
-    // cardsPanel.gitReposFilter().checkVisible();
-    // cardsPanel.gitReposFilter().isChecked();
+    cardsPanel.gitReposFilter().checkVisible();
+    cardsPanel.gitReposFilter().isChecked();
 
-    // cardsPanel.helmOpsFilter().checkVisible();
-    // cardsPanel.helmOpsFilter().isChecked();
+    cardsPanel.helmOpsFilter().checkVisible();
+    cardsPanel.helmOpsFilter().isChecked();
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
@@ -120,24 +118,22 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     card.find('.title').should('contain.text', repoName);
   });
 
-  // TODO re-enabled when HelmOps available
+  it('Should filter by GitRepo type', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
 
-  // it('Should filter by GitRepo type', () => {
-  //   fleetDashboardPage.goTo();
-  //   fleetDashboardPage.waitForPage();
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
 
-  //   const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
-  //   const expandButton = workspaceCard.expandButton();
+    expandButton.click();
 
-  //   expandButton.click();
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
-  //   const cardsPanel = workspaceCard.cardsPanel();
+    cardsPanel.gitReposFilter().set();
+    const activeStatePanel = cardsPanel.statePanel('Active');
 
-  //   cardsPanel.gitReposFilter().set();
-  //   const activeStatePanel = cardsPanel.statePanel('Active');
-
-  //   activeStatePanel.self().should('not.be.visible');
-  // });
+    activeStatePanel.self().should('not.be.visible');
+  });
 
   it('Should change ViewMode', () => {
     fleetDashboardPage.goTo();
@@ -148,7 +144,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     expandButton.click();
 
-    const cardsPanel = workspaceCard.cardsPanel();
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
     cardsPanel.checkExists();
 
@@ -157,7 +153,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     cardsPanel.checkNotExists();
 
-    const tablePanel = workspaceCard.tablePanel();
+    const tablePanel = workspaceCard.expandedPanel().tablePanel();
 
     tablePanel.checkExists();
   });
@@ -171,7 +167,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     expandButton.click();
 
-    const cardsPanel = workspaceCard.cardsPanel();
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
@@ -185,8 +181,8 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     details.should('contain.text', repoName);
   });
 
-  it('Should navigate to Git Repo details page from Fleet Dashboard', () => {
-    const gitRepoDetails = new FleetGitRepoDetailsPo(localWorkspace, repoName);
+  it('Should navigate to App Bundles details page from Fleet Dashboard', () => {
+    const appDetails = new FleetApplicationDetailsPo(localWorkspace, repoName, 'fleet.cattle.io.gitrepo');
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
@@ -196,7 +192,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     expandButton.click();
 
-    const cardsPanel = workspaceCard.cardsPanel();
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
@@ -206,7 +202,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     card.find('.title a').click();
 
-    gitRepoDetails.waitForPage(null, 'bundles');
+    appDetails.waitForPage(null, 'bundles');
   });
 
   after(() => {
