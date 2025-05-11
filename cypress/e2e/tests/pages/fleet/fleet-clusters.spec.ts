@@ -158,7 +158,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.goToDetailsPage(clusterName);
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
-      const tabs = ['Git Repos', 'Conditions', 'Recent Events', 'Related Resources'];
+      const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
 
       fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
         expect(el).to.eq(tabs[i]);
