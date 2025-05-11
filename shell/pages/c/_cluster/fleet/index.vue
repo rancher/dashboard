@@ -2,7 +2,6 @@
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
-import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
 import Loading from '@shell/components/Loading';
@@ -17,7 +16,7 @@ import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.v
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';
 
@@ -27,7 +26,7 @@ export default {
     ButtonGroup,
     Checkbox,
     EmptyDashboard,
-    FleetRepos,
+    FleetApplications,
     Loading,
     NoWorkspaces,
     RcButton,
@@ -99,13 +98,7 @@ export default {
 
   data() {
     return {
-      createRoute: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  FLEET_NAME,
-          resource: FLEET.GIT_REPO
-        },
-      },
+      createRoute: { name:   'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
@@ -510,7 +503,7 @@ export default {
                 :data-testid="'resource-panel-applications'"
                 :states="applicationStates[workspace.id]"
                 :workspace="workspace.id"
-                :type="FLEET.GIT_REPO"
+                :type="FLEET.APPLICATION"
                 :selected-states="stateFilter[workspace.id] || {}"
                 @click:state="selectStates(workspace.id, $event)"
               />
@@ -556,15 +549,12 @@ export default {
           </div>
         </div>
         <div
-          v-if="!isWorkspaceCollapsed[workspace.id] && workspace.repos?.length"
-          class="card-panel-expand mt-10"
+          v-if="!isWorkspaceCollapsed[workspace.id] && (workspace.repos?.length || workspace.helmOps?.length)"
+          class="panel-expand mt-10"
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div class="actions">
-            <div
-              v-if="false"
-              class="type-filters"
-            >
+            <div class="type-filters">
               <Checkbox
                 :data-testid="'fleet-dashboard-filter-git-repos'"
                 :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
@@ -586,10 +576,7 @@ export default {
                 </template>
               </Checkbox>
             </div>
-            <div
-              v-if="viewMode === 'flat'"
-              class="create-button"
-            >
+            <div class="create-button">
               <router-link
                 :to="createRoute"
                 class="btn role-primary"
@@ -687,10 +674,13 @@ export default {
             v-if="viewMode === 'flat'"
             class="table-panel"
           >
-            <FleetRepos
+            <FleetApplications
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
-              :schema="repoSchema"
+              :schema="{
+                id: FLEET.APPLICATION,
+                type: 'schema'
+              }"
               :loading="$fetchState.pending"
               :use-query-params-for-simple-filtering="true"
               :show-intro="false"
@@ -802,7 +792,7 @@ export default {
     }
   }
 
-  .card-panel-expand {
+  .panel-expand {
     animation: slideInOut 0.5s ease-in-out;
 
     :focus-visible {
@@ -832,10 +822,6 @@ export default {
           padding: 2px;
           font-size: 25px;
         }
-      }
-
-      .create-button {
-        margin-left: auto;
       }
     }
 

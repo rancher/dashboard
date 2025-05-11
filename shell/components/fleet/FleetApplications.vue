@@ -26,6 +26,11 @@ export default {
       required: true,
     },
 
+    workspace: {
+      type:    String,
+      default: ''
+    },
+
     clusterId: {
       type:     String,
       required: false,
@@ -58,9 +63,15 @@ export default {
         return [];
       }
 
-      const selectedWorkspace = this.$store.getters['namespaces']();
+      const selectedNamespaces = this.$store.getters['namespaces']();
 
-      return this.rows.filter((row) => !!selectedWorkspace[row.metadata.namespace]);
+      return this.rows.filter((row) => {
+        if (this.workspace) {
+          return this.workspace === row.metadata.namespace;
+        }
+
+        return !!selectedNamespaces[row.metadata.namespace];
+      });
     },
 
     isClusterView() {
@@ -113,6 +124,7 @@ export default {
       :get-custom-detail-link="getDetailLocation"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :namespaced="!workspace"
     />
   </div>
 </template>
