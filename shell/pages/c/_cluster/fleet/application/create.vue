@@ -180,7 +180,7 @@ export default {
     </div>
   </div>
   <div v-else>
-    CREATE {{ selectedSubtype }}
+    empty
   </div>
 </template>
 
