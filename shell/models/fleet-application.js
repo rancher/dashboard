@@ -345,27 +345,17 @@ export default class FleetApplication extends SteveModel {
   }
 
   get _detailLocation() {
-    // TODO fix
-    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
-      return {
-        ...super._detailLocation,
-        name: 'c-cluster-fleet-application-resource-namespace-id'
-      };
-    }
-
-    return super._detailLocation;
+    return {
+      ...super._detailLocation,
+      name: 'c-cluster-fleet-application-resource-namespace-id'
+    };
   }
 
   get doneOverride() {
-    // TODO fix
-    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
-      return {
-        ...super.listLocation,
-        name: 'c-cluster-fleet-application'
-      };
-    }
-
-    return super.listLocation;
+    return {
+      ...super.listLocation,
+      name: 'c-cluster-fleet-application'
+    };
   }
 
   get doneRoute() {
@@ -373,11 +363,6 @@ export default class FleetApplication extends SteveModel {
   }
 
   get parentNameOverride() {
-    // TODO fix
-    if (this.currentRouter().currentRoute.value.path.includes('/fleet/application')) {
-      return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
-    }
-
-    return null;
+    return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
   }
 }
