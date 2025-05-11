@@ -1,5 +1,6 @@
 <script>
 import { set } from '@shell/utils/object';
+import { saferDump } from '@shell/utils/create-yaml';
 import jsyaml from 'js-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
@@ -7,7 +8,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import {
-  AUTH_TYPE, CONFIG_MAP, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
+  AUTH_TYPE, CATALOG as REPO_CATALOG, CONFIG_MAP, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
 } from '@shell/config/types';
 import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -28,6 +29,8 @@ import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { SECRET_TYPES } from '@shell/config/secret';
+
+const APP_CO_REGISTRY = 'oci://dp.apps.rancher.io/charts';
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -81,6 +84,8 @@ export default {
       }
     }, this.$store);
 
+    await this.$store.dispatch('catalog/load', { root: true });
+
     this.allClusters = hash.allClusters || [];
     this.allClusterGroups = hash.allClusterGroups || [];
     this.allSecrets = hash.allSecrets || [];
@@ -90,11 +95,6 @@ export default {
   },
 
   data() {
-    const sourceTypeOptions = Object.values(SOURCE_TYPE).map((value) => ({
-      value,
-      label: this.t(`fleet.helmOp.source.types.${ value }`)
-    }));
-
     const valueFromOptions = [
       {
         value: 'configMapKeyRef', label: 'ConfigMap Key', hideVariableName: true
@@ -173,7 +173,6 @@ export default {
       targetMode,
       targetAdvanced,
       targetAdvancedErrors: null,
-      sourceTypeOptions,
       sourceType,
       defaultYamlValues:    this.value.spec.helm.values,
       yamlForm:             VALUES_STATE.YAML,
@@ -182,6 +181,7 @@ export default {
       tempCachedValues:     {},
       valueFromOptions,
       doneRouteList:        'c-cluster-fleet-application',
+      chartValues:          {}
     };
   },
 
@@ -195,6 +195,93 @@ export default {
   },
 
   computed: {
+    registries() {
+      const all = [
+        APP_CO_REGISTRY
+      ];
+
+      const registries = this.$store.getters['catalog/repos'] || [];
+
+      return all.reduce((acc, id) => {
+        const registry = registries.find((repo) => repo.spec?.url === id);
+
+        if (!!registry) {
+          return [
+            ...acc,
+            registry
+          ];
+        }
+
+        return acc;
+      }, []);
+    },
+
+    charts() {
+      const charts = this.$store.getters['catalog/charts'];
+
+      return this.registries.reduce((acc, registry) => ({
+        ...acc,
+        [registry._key]: charts.filter((chart) => chart.repoKey === registry._key)
+      }), {});
+    },
+
+    // chartOptions() {
+    //   const all = this.$store.getters['catalog/charts'];
+
+    //   return this.registries.reduce((acc, registry) => {
+
+    //     const charts = all.reduce((acc, chart) => {
+    //       if (chart.repoKey === registry._key) {
+    //         return [
+    //           ...acc,
+    //           {
+    //             value: chart,
+    //             label: chart.chartNameDisplay
+    //           }
+    //         ];
+    //       }
+
+    //       return acc;
+    //     }, [])
+
+    //     return {
+    //       ...acc,
+    //       [registry._key]: charts
+    //     };
+    //   }, {});
+    // },
+
+    sourceTypeOptions() {
+      const out = [
+        ...Object.values(SOURCE_TYPE).map((value) => ({
+          value,
+          label: this.t(`fleet.helmOp.source.types.${ value }`)
+        })),
+        {
+          label:    'divider',
+          disabled: true,
+          kind:     'divider'
+        }
+      ];
+
+      if (this.registries.length) {
+        out.push({
+          disabled: true,
+          kind:     'title',
+          label:    this.t('fleet.helmOp.source.registryOption')
+        });
+      }
+
+      this.registries.forEach((registry) => {
+        out.push({
+          value: { key: registry._key, isClusterRegistry: true },
+          label: registry.name,
+        });
+      });
+
+      return out;
+    },
+
     ...mapGetters(['workspace']),
 
     steps() {
@@ -358,6 +445,56 @@ export default {
   },
 
   methods: {
+    onSourceTypeSelect(value) {
+      if (value.isClusterRegistry) {
+        const registry = this.registries.find((registry) => registry._key === value.key);
+
+        this.value.spec.helm.repo = registry.spec.url;
+      }
+    },
+
+    async onChartSelect(value) {
+      if (value) {
+        const chart = value.chartName;
+        const version = value.versions[0];
+
+        this.value.spec.helm.chart = chart;
+        this.value.spec.helm.version = version.version;
+
+        this.getChartValues(version);
+      }
+    },
+
+    chartOptions(registry) {
+      return this.charts[registry].map((chart) => ({
+        value: chart,
+        label: chart.chartNameDisplay
+      }));
+    },
+
+    async onVersionSelect(value) {
+      if (value) {
+        this.value.spec.helm.version = value.version;
+
+        this.getChartValues(value);
+      }
+    },
+
+    versionOptions(registry) {
+      const selectedChart = this.charts[registry].find((chart) => chart.chartName === this.value.spec?.helm?.chart) || {};
+
+      return (selectedChart.versions || []).map((version) => ({
+        label: version.version,
+        value: version
+      }));
+    },
+
+    async getChartValues(version) {
+      const res = await this.$store.dispatch('management/request', { url: `/v1/${ REPO_CATALOG.CLUSTER_REPO }/${ version.repoName }?link=info&chartName=${ version.name }&version=${ version.version }` });
+
+      this.value.spec.helm.values = saferDump(res?.values || {});
+    },
+
     updateTargets() {
       const spec = this.value.spec;
       const mode = this.targetMode;
@@ -615,6 +752,7 @@ export default {
             :mode="mode"
             :selectable="option => !option.disabled"
             :label="t('fleet.helmOp.source.selectLabel')"
+            @selecting="onSourceTypeSelect"
           />
         </div>
       </div>
@@ -663,6 +801,46 @@ export default {
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
               :required="true"
+            />
+          </div>
+        </div>
+      </template>
+
+      <template v-if="sourceType.isClusterRegistry">
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              :value="value.spec.helm.repo"
+              :mode="mode"
+              :label-key="'fleet.helmOp.source.oci.label'"
+              :placeholder="t('fleet.helmOp.source.oci.placeholder', null, true)"
+              :required="true"
+              :disabled="true"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              :value="value.spec.helm.chart"
+              :options="chartOptions(sourceType.key)"
+              option-key="value"
+              :mode="mode"
+              :selectable="option => !option.disabled"
+              :label="t('fleet.helmOp.source.chart.label')"
+              @selecting="onChartSelect($event.value)"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledSelect
+              :value="value.spec.helm.version"
+              :options="versionOptions(sourceType.key)"
+              option-key="value"
+              :mode="mode"
+              :selectable="option => !option.disabled"
+              :label="t('fleet.helmOp.source.version.label')"
+              @selecting="onVersionSelect($event.value)"
             />
           </div>
         </div>

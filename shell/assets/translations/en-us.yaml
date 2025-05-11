@@ -2751,6 +2751,7 @@ fleet:
         title: Release
         label: Name
         placeholder: placeholder
+      registryOption: Choose a Rancher Registry
     values:
       title: Values
       selectLabel: Values
