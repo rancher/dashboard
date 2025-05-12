@@ -540,11 +540,11 @@ export default {
     };
 
     onMounted(() => {
-      table.value?.addEventListener('keyup', handleEnterKey);
+      table.value.addEventListener('keyup', handleEnterKey);
     });
 
     onBeforeUnmount(() => {
-      table.value?.removeEventListener('keyup', handleEnterKey);
+      table.value.removeEventListener('keyup', handleEnterKey);
     });
 
     const store = useStore();

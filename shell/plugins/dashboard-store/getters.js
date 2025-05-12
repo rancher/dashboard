@@ -463,5 +463,19 @@ export default {
     const resource = id || context ? { id, context } : null;
 
     return paginationUtils.isEnabled({ rootGetters }, { store, resource });
-  }
+  },
+
+  /**
+   * Is the url path a rancher steve one?
+   *
+   * Can be used to change behaviour given steve api
+   */
+  isSteveUrl: (state) => () => false,
+
+  /**
+   * Is the url path a rancher steve one AND the steve cache is enabled?
+   *
+   * Can be used to change behaviour given steve cache api functionality
+   */
+  isSteveCacheUrl: (state) => () => false,
 };

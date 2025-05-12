@@ -208,14 +208,14 @@ export default {
         const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
 
         incremental = {
-          quickLoadCount: 100,
-          chunkCount:     Math.ceil(resourceCount / PAGES),
-          chunks:         PAGES,
-          pageByNumber:   this.$store.getters[`${ this.inStore }/paginationEnabled`]?.()
+          quickLoadCount:        100,
+          resourcesPerIncrement: Math.ceil(resourceCount / PAGES),
+          increments:            PAGES,
+          pageByNumber:          this.$store.getters[`${ this.inStore }/paginationEnabled`]?.()
         };
       }
 
-      const opt = {
+      const opt = { // Of type ActionFindAllArgs
         incremental,
         watch:            this.watch,
         force:            this.force,

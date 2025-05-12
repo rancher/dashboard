@@ -7,9 +7,8 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
-import { addParam } from '@shell/utils/url';
+import { addParam, parse } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
-import { STORE } from '@shell/store/store-types';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -89,8 +88,8 @@ export default {
    *
    * Used for incremental loading when enabled
    *
-   * If we're in the non-vai world paginate via native limit/next
-   * If we're in the vai world paginate via page number
+   * If we're in the non-vai world paginate via native limit/next (pageByLimit)
+   * If we're in the vai world paginate via page number (pageByNumber)
    */
   async loadDataPage(ctx, {
     type, opt, pageByLimit, pageByNumber
@@ -110,11 +109,13 @@ export default {
     try {
       if (pageByLimit) {
         opt.url = pageByLimit.next;
-      } else {
+      } else if (pageByNumber) {
         const { url, page, pageSize } = pageByNumber;
 
         opt.url = addParam(url, 'page', `${ page }`);
         opt.url = addParam(opt.url, 'pagesize', `${ pageSize }`);
+      } else {
+        throw Error('loadDataPage requires either pageByLimit or pageByNumber');
       }
 
       const res = await dispatch('request', { opt, type });
@@ -237,21 +238,21 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.incremental.pageByNumber && ctx.state.config.namespace !== STORE.RANCHER) {
-        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
-        opt.url = addParam(opt.url, 'pagesize', `${ opt.incremental.quickLoadCount }`);
-        // Set the configuration for the rest of the chuncked requests
+      if (opt.incremental.pageByNumber && getters.isSteveCacheUrl(parse(opt.url).path)) {
+        // Set the configuration for the rest of the incremental requests
         pageByNumber = {
           url:      opt.url,
           page:     1,
-          pages:    opt.incremental.chunks,
-          pageSize: opt.incremental.chunkCount,
+          pages:    opt.incremental.increments,
+          pageSize: opt.incremental.resourcesPerIncrement,
         };
+        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
+        opt.url = addParam(opt.url, 'pagesize', `${ opt.incremental.quickLoadCount }`);
       } else {
+        // Set the configuration for the rest of the incremental requests
+        pageByLimit = { next: addParam(opt.url, 'limit', `${ opt.incremental.resourcesPerIncrement }`) };
         // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
         opt.url = addParam(opt.url, 'limit', `${ opt.incremental.quickLoadCount }`);
-        // Set the configuration for the rest of the chuncked requests
-        pageByLimit = { next: addParam(opt.url, 'limit', `${ opt.incremental.chunkCount }`) };
       }
 
       skipHaveAll = true;
