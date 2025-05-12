@@ -1,6 +1,7 @@
+import { Translation } from '@shell/types/t';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-const mockT = (key: string, args: any) => {
+const mockT: Translation = (key: string, args: any) => {
   return JSON.stringify({
     message: key,
     ...args
@@ -8,6 +9,14 @@ const mockT = (key: string, args: any) => {
 };
 
 describe('formRules', () => {
+  it('should use "Value" as default label', () => {
+    const validators = formRulesGenerator(mockT, {});
+
+    const message = validators.required(null);
+
+    expect(message).toStrictEqual('{\"message\":\"validation.required\",\"key\":\"Value\"}');
+  });
+
   const formRules = formRulesGenerator(mockT, { key: 'testDisplayKey' });
 
   it('"required" : returns undefined when value supplied', () => {

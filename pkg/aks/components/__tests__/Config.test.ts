@@ -120,10 +120,10 @@ describe('aks provisioning form', () => {
 
   it.each([[
     '1.26.0',
-    mockVersionsSorted.filter((v: string) => semver.lte(v, '1.27.0') && semver.gte(v, '1.26.0'))
+    mockVersionsSorted.filter((v: string) => semver.lt(v, '1.28.0') && semver.gte(v, '1.26.0'))
   ],
   ['1.25.0',
-    mockVersionsSorted.filter((v: string) => semver.lte(v, '1.26.0') && semver.gte(v, '1.25.0'))
+    mockVersionsSorted.filter((v: string) => semver.lt(v, '1.27.0') && semver.gte(v, '1.25.0'))
   ],
   ])('should only allow upgrading one minor version at a time', async(originalVersion, validVersions) => {
     const wrapper = shallowMount(Config, {
