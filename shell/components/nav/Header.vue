@@ -863,6 +863,10 @@ export default {
       flex-direction: row;
       padding: 0;
 
+      :deep() .btn.role-tertiary {
+        width: 32px;
+      }
+
       > * {
         padding: 0 5px;
       }
