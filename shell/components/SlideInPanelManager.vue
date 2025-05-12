@@ -53,7 +53,6 @@ function closePanel() {
           <i
             class="icon icon-close"
             data-testid="slide-in-close"
-            :trigger-focus-trap="true"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
           />
