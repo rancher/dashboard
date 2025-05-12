@@ -238,6 +238,9 @@ export default {
       }
 
       if (opt.incremental.pageByNumber && ctx.state.config.namespace !== STORE.RANCHER) {
+        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
+        opt.url = addParam(opt.url, 'pagesize', `${ opt.incremental.quickLoadCount }`);
+        // Set the configuration for the rest of the chuncked requests
         pageByNumber = {
           url:      opt.url,
           page:     1,
@@ -245,12 +248,12 @@ export default {
           pageSize: opt.incremental.chunkCount,
         };
       } else {
+        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
+        opt.url = addParam(opt.url, 'limit', `${ opt.incremental.quickLoadCount }`);
+        // Set the configuration for the rest of the chuncked requests
         pageByLimit = { next: addParam(opt.url, 'limit', `${ opt.incremental.chunkCount }`) };
       }
 
-      // this is where we "hijack" the limit for the dispatch('request') some lines below
-      // and therefore have 2 initial requests in parallel
-      opt.url = addParam(opt.url, 'limit', `${ opt.incremental.quickLoadCount }`);
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll
