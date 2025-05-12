@@ -174,8 +174,8 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
         <div />
         <div>
           <BadgeState
-            :label="registration.message"
-            :color="registration.color"
+            :label="t(registration.message)"
+            :color="'bg-' + registration.color"
           />
         </div>
         <div>
