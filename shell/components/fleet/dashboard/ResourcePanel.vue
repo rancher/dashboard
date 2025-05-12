@@ -122,14 +122,13 @@ export default {
           stateSort
         } = obj;
 
-        const id = FleetUtils.getDashboardStateId(obj);
+        const statePanel = FleetUtils.getDashboardState(obj);
 
-        if (!out.find((s) => s.id === id)) {
-          const count = this.resources.filter((r) => FleetUtils.getDashboardStateId(r) === id).length;
-          const panelState = FleetUtils.getDashboardState(id);
+        if (!out.find((s) => s.id === statePanel.id)) {
+          const count = this.resources.filter((r) => FleetUtils.getDashboardStateId(r) === statePanel.id).length;
 
           out.push({
-            ...panelState,
+            ...statePanel,
             count,
             state,
             stateSort,

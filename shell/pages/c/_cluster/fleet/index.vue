@@ -178,12 +178,10 @@ export default {
           } = obj;
 
           if (!out.find((s) => s.stateDisplay === stateDisplay)) {
-            const id = FleetUtils.getDashboardStateId(obj);
-
             out.push({
               stateDisplay,
               stateSort,
-              statePanel: FleetUtils.getDashboardState(id)
+              statePanel: FleetUtils.getDashboardState(obj)
             });
           }
         });

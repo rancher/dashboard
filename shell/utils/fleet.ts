@@ -163,10 +163,12 @@ class Fleet {
   }
 
   getDashboardStateId(resource: { stateColor: string }): string {
-    return resource.stateColor?.replace('text-', '') || 'warning';
+    return resource?.stateColor?.replace('text-', '') || 'warning';
   }
 
-  getDashboardState(stateId: string) {
+  getDashboardState(resource: { stateColor: string }) {
+    const stateId = this.getDashboardStateId(resource);
+
     return this.dashboardStates.find(({ id }) => stateId === id) || {};
   }
 }
