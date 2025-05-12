@@ -122,7 +122,8 @@ export default {
         },
       ],
       CARDS_MIN:            50,
-      cardsLoadMore:        {},
+      CARDS_SIZE:           50,
+      cardsCount:           {},
       viewMode:             'cards',
       isWorkspaceCollapsed: {},
       isStateCollapsed:     {},
@@ -131,6 +132,11 @@ export default {
       selectedCard:         null,
       presetVersion:        getVersionData()?.Version,
     };
+  },
+
+  mounted() {
+    this.preset('cardsCount', 'object');
+    this.preset('viewMode', 'string');
   },
 
   computed: {
@@ -246,9 +252,7 @@ export default {
     },
 
     selectStates(workspace, state) {
-      if (!this.stateFilter[workspace]) {
-        this.stateFilter[workspace] = {};
-      }
+      this._checkInit(workspace, 'stateFilter');
 
       this.stateFilter[workspace][state] = !this.stateFilter[workspace][state];
 
@@ -262,9 +266,7 @@ export default {
     },
 
     selectType(workspace, type, value) {
-      if (!this.typeFilter[workspace]) {
-        this.typeFilter[workspace] = {};
-      }
+      this._checkInit(workspace, 'typeFilter');
 
       this.typeFilter[workspace][type] = value;
 
@@ -292,9 +294,7 @@ export default {
     },
 
     toggleState(workspace, state) {
-      if (!this.isStateCollapsed[workspace]) {
-        this.isStateCollapsed[workspace] = {};
-      }
+      this._checkInit(workspace, 'isStateCollapsed');
 
       this.isStateCollapsed[workspace][state] = !this.isStateCollapsed[workspace][state];
     },
@@ -308,13 +308,23 @@ export default {
     },
 
     loadMore(workspace, state) {
-      if (!this.cardsLoadMore[workspace]) {
-        this.cardsLoadMore[workspace] = {};
-      }
+      this._checkInit(workspace, 'cardsCount');
 
-      const count = this.cardsLoadMore[workspace][state] || this.CARDS_MIN;
+      const count = this.cardsCount[workspace][state] || this.CARDS_MIN;
 
-      this.cardsLoadMore[workspace][state] = count + this.CARDS_MIN;
+      const val = count + this.CARDS_SIZE;
+
+      this.cardsCount[workspace][state] = val;
+    },
+
+    loadLess(workspace, state) {
+      this._checkInit(workspace, 'cardsCount');
+
+      const count = this.cardsCount[workspace][state] || this.CARDS_MIN;
+
+      const val = count - this.CARDS_MIN < 0 ? this.CARDS_MIN : count - this.CARDS_SIZE;
+
+      this.cardsCount[workspace][state] = val;
     },
 
     showResourceDetails(value, statePanel, workspace, selected) {
@@ -338,14 +348,18 @@ export default {
         }
       });
     },
+
+    _checkInit(workspace, name) {
+      if (!this[name][workspace]) {
+        this[name][workspace] = {};
+      }
+    }
   },
 
   watch: {
     workspaces(neu) {
       if (neu) {
         neu?.forEach((ws) => {
-          this.cardsLoadMore[ws.id] = {};
-
           this.isWorkspaceCollapsed[ws.id] = neu.length > 1;
 
           this.isStateCollapsed[ws.id] = { Active: true };
@@ -362,8 +376,6 @@ export default {
         this.preset('isStateCollapsed', 'object');
         this.preset('typeFilter', 'object');
         this.preset('stateFilter', 'object');
-        this.preset('cardsLoadMore', 'object');
-        this.preset('viewMode', 'string');
       }
     }
   }
@@ -581,7 +593,7 @@ export default {
                       class="resource-card"
                     >
                       <ResourceCard
-                        v-if="y < (cardsLoadMore[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                        v-if="y < (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
                         :class="{
                           ['selected']: selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel
                         }"
@@ -592,12 +604,19 @@ export default {
                       />
                     </div>
                   </div>
-                  <div
-                    v-if="cardResources[workspace.id][state.stateDisplay]?.length - (cardsLoadMore[workspace.id]?.[state.stateDisplay] || CARDS_MIN) > 0"
-                    class="resource-cards-action"
-                  >
-                    <p @click="loadMore(workspace.id, state.stateDisplay)">
-                      {{ t('labelSelect.pagination.more') }}
+                  <div class="resource-cards-action">
+                    <p
+                      v-if="(cardsCount[workspace.id]?.[state.stateDisplay] || 0) > CARDS_MIN"
+                      @click="loadLess(workspace.id, state.stateDisplay)"
+                    >
+                      {{ t('generic.showLess') }}
+                    </p>
+                    <div />
+                    <p
+                      v-if="cardResources[workspace.id][state.stateDisplay]?.length > (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                      @click="loadMore(workspace.id, state.stateDisplay)"
+                    >
+                      {{ t('generic.showMore') }}
                     </p>
                   </div>
                 </div>
@@ -796,6 +815,9 @@ export default {
           }
 
           .resource-cards-action {
+            display: flex;
+            justify-content: space-between;
+
             p {
               width: fit-content;
               margin-left: 15px;

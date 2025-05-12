@@ -147,7 +147,8 @@ generic:
     genericAddRow: Add a new row
     arrayList: Array list input
     genericRow: row {index}
-  
+  showLess: Show less
+  showMore: Show more
 
 locale:
   menu: Locale selector menu
