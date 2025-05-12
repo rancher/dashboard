@@ -121,7 +121,7 @@ export default {
           value:      'cards',
         },
       ],
-      CARDS_MIN:            1,
+      CARDS_MIN:            50,
       cardsLoadMore:        {},
       viewMode:             'cards',
       isWorkspaceCollapsed: {},
