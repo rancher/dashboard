@@ -2,7 +2,7 @@ import { set } from '@shell/utils/object';
 import { insertAt } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
-import FleetApplication from '@/shell/models/fleet-application';
+import FleetApplication from '@shell/models/fleet-application';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
