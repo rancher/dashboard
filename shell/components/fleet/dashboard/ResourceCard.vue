@@ -23,11 +23,6 @@ export default {
       type:     Object,
       required: true
     },
-
-    selected: {
-      type:    Boolean,
-      default: true
-    }
   },
 
   methods: {
@@ -50,9 +45,6 @@ export default {
     tabindex="0"
     :aria-label="t(`card-${ value.id }`)"
     class="resource-card-panel"
-    :class="{
-      ['selected']: selected
-    }"
     @click="select"
     @keydown.enter.stop.prevent="select"
     @keydown.space.stop.prevent="$router.push(value.detailLocation)"
@@ -94,11 +86,6 @@ export default {
     border-radius: 10px;
     padding: 10px;
     margin: 10px;
-
-    &.selected {
-      border: 2px solid var(--primary);
-      margin: 9px;
-    }
 
     .title {
       display: flex;

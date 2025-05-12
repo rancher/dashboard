@@ -584,10 +584,12 @@ export default {
                     >
                       <ResourceCard
                         v-if="y < (cardsLoadMore[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                        :class="{
+                          ['selected']: selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel
+                        }"
                         :data-testid="`card-${ item.id }`"
                         :value="item"
                         :state-panel="state.statePanel"
-                        :selected="selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel"
                         @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
                       />
                     </div>
@@ -787,6 +789,11 @@ export default {
 
             .resource-card {
               cursor: pointer;
+
+              .selected {
+                border: 2px solid var(--primary);
+                margin: 9px;
+              }
             }
           }
 
