@@ -1,5 +1,5 @@
 import { watch } from 'vue';
-import { decamelize } from '@shell/utils/string';
+import { dasherize } from '@shell/utils/string';
 
 export default {
 
@@ -11,7 +11,7 @@ export default {
   },
 
   mounted() {
-    this.presetKey = `R_${ decamelize(this.$options.name || '').toUpperCase() }`;
+    this.presetKey = dasherize(this.$options.name || '');
 
     const version = this.presetVersion;
 
@@ -21,16 +21,22 @@ export default {
       return;
     }
 
-    const presets = this.$cookies.get(this.presetKey);
+    let presets = null;
+    try {
+      presets = JSON.parse(window.localStorage.getItem(this.presetKey));
+    } catch (error) {
+      console.warn(`Preset: load presets failed, invalid presets [${ this.presetKey }]`); // eslint-disable-line no-console
+    }
 
     if (presets?.data && presets?.version === version) {
       this.presets = presets;
-    } else {
-      this.presets = {
-        data: {},
-        version
-      };
+      return;
     }
+
+    this.presets = {
+      data: {},
+      version
+    };
   },
 
   methods: {
@@ -68,7 +74,13 @@ export default {
         (neu) => {
           this.presets.data[key] = neu;
 
-          this.$cookies.set(this.presetKey, this.presets);
+          try {
+            const presets = JSON.stringify(this.presets);
+
+            window.localStorage.setItem(this.presetKey, presets); 
+          } catch (error) {
+            console.warn(`Preset: save presets failed, invalid presets [${ this.presetKey }]`); // eslint-disable-line no-console
+          }
         },
         { deep: true }
       );
