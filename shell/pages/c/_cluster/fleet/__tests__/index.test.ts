@@ -274,9 +274,10 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
       mocks: {
         $store: {
           getters: {
-            currentProduct: { inStore: 'cluster' },
-            'i18n/t':       (text: string) => text,
-            t:              (text: string) => text,
+            currentProduct:         { inStore: 'cluster' },
+            'management/schemaFor': jest.fn(),
+            'i18n/t':               (text: string) => text,
+            t:                      (text: string) => text,
           }
         },
         $fetchState: {},
@@ -319,7 +320,7 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
       selectedCard:         null,
       ...dataProps
     })
-  };
+  } as any;
 };
 
 describe('component: FleetDashboard', () => {

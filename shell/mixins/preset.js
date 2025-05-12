@@ -22,6 +22,7 @@ export default {
     }
 
     let presets = null;
+
     try {
       presets = JSON.parse(window.localStorage.getItem(this.presetKey));
     } catch (error) {
@@ -30,6 +31,7 @@ export default {
 
     if (presets?.data && presets?.version === version) {
       this.presets = presets;
+
       return;
     }
 
@@ -77,7 +79,7 @@ export default {
           try {
             const presets = JSON.stringify(this.presets);
 
-            window.localStorage.setItem(this.presetKey, presets); 
+            window.localStorage.setItem(this.presetKey, presets);
           } catch (error) {
             console.warn(`Preset: save presets failed, invalid presets [${ this.presetKey }]`); // eslint-disable-line no-console
           }
