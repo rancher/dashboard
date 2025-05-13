@@ -9,26 +9,26 @@ type Label = {
 
 type Image = {
   src: string;
-  alt: Label;
+  alt?: Label;
 };
 
 type Pill = {
   label: Label;
-  tooltip: Label;
+  tooltip?: Label;
 };
 
 type Status = {
   icon: string;
-  color: string;
-  customColor: string;
-  tooltip: Label;
-  handleClick: () => void;
+  color?: string;
+  customColor?: string;
+  tooltip?: Label;
+  handleClick?: () => void;
 }
 
 type Header = {
-  image: Image;
-  title: Label;
-  statuses: Status[];
+  image?: Image;
+  title?: Label;
+  statuses?: Status[];
 }
 
 const props = defineProps({
@@ -52,7 +52,7 @@ const props = defineProps({
     type:    String,
     default: 'medium'
   },
-  pill: {
+  pill: { // can be visible only when the card's variant is NOT small
     type:    Object as PropType<Pill>,
     default: null
   },
@@ -77,7 +77,7 @@ function _handleCardClick(e) {
 
 <template>
   <div
-    class="item-card"
+    :class="['item-card', variant]"
     :role="cardClickable ? 'button' : undefined"
     :tabindex="cardClickable ? '0' : undefined"
     :data-testid="`item-card-${id}`"
@@ -93,7 +93,7 @@ function _handleCardClick(e) {
         v-if="header.image"
         class="item-card-image"
       >
-        <slot name="image">
+        <slot name="item-card-image">
           <LazyImage
             :src="header.image.src"
             :alt="header.image.alt.key ? t(header.image.alt.key) : header.image.alt.text"
@@ -108,20 +108,39 @@ function _handleCardClick(e) {
           class="item-card-pill"
           data-testid="item-card-pill"
         >
-          {{ pill.label.key ? t(pill.label.key) : pill.label.text }}
+          {{ pill.label.key ? t(pill.label.key).slice(0, 4) : pill.label.text.slice(0, 4) }}
         </div>
       </slot>
     </div>
 
     <div class="main-section">
-      <div class="item-card-header">
-        <h3
-          v-clean-tooltip="header.title.key ? t(header.title.key) : header.title.text"
-          class="item-card-header-title"
-          data-testid="item-card-header-title"
+      <div :class="['item-card-header', variant]">
+        <div
+          v-if="variant === 'small'"
+          data-testid="item-card-image-wrapper"
         >
-          {{ header.title.key ? t(header.title.key) : header.title.text }}
-        </h3>
+          <div
+            v-if="header.image"
+            class="item-card-header-image"
+          >
+            <slot name="item-card-header-image">
+              <LazyImage
+                :src="header.image.src"
+                :alt="header.image.alt.key ? t(header.image.alt.key) : header.image.alt.text"
+                data-testid="item-card-header-image"
+              />
+            </slot>
+          </div>
+        </div>
+        <slot name="item-card-header-title">
+          <h3
+            v-clean-tooltip="header.title.key ? t(header.title.key) : header.title.text"
+            :class="['item-card-header-title', variant]"
+            data-testid="item-card-header-title"
+          >
+            {{ header.title.key ? t(header.title.key) : header.title.text }}
+          </h3>
+        </slot>
         <div
           v-if="header.statuses"
           class="item-card-header-statuses"
@@ -134,7 +153,7 @@ function _handleCardClick(e) {
               v-clean-tooltip="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
               :class="['icon', status.icon, status.color]"
               :style="{color: status.customColor}"
-              :data-testid="`item-card-status-${status.id}`"
+              :data-testid="`item-card-header-status-${id}`"
             />
           </div>
         </div>
@@ -179,19 +198,48 @@ function _handleCardClick(e) {
     border-color: var(--primary);
   }
 
+  &.small {
+    min-width: 320px;
+  }
+
   &-header {
     display: flex;
     justify-content: space-between;
     width: 100%;
     color: var(--body-text);
 
+    &.small {
+      align-items: center;
+    }
+
+    &-image {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      background: #fff;
+      border-radius: var(--border-radius);
+
+      ::v-deep img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+    }
+
     &-title {
       max-width: 250px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 0px;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+
+      &.small {
+        max-width: 150px;
+      }
     }
 
     &-statuses {
@@ -242,11 +290,12 @@ function _handleCardClick(e) {
     text-overflow: ellipsis;
     line-height: 21px;
     word-break: break-word;
-    margin: 8px 0;
+    margin-top: 8px;
   }
 
   &-footer {
-    //
+    display: flex;
+    flex-wrap: wrap;
   }
 }
 
@@ -274,7 +323,8 @@ function _handleCardClick(e) {
 
   .item-card-pill {
     display: flex;
-    padding: 0 8px;
+    width: 48px;
+    padding: 4px 8px;
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
@@ -283,7 +333,6 @@ function _handleCardClick(e) {
     color: var(--disabled-text);
     font-size: 10px;
     font-weight: 600;
-    line-height: 19px;
   }
 }
 

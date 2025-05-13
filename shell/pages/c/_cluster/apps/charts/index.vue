@@ -519,8 +519,8 @@ export default {
               <div
                 v-for="subHeaderItem in chart.cardContent.subHeaderItems"
                 :key="subHeaderItem.text"
-                class="sub-header-item"
-                data-testid="item-card-version"
+                class="app-card-sub-header-item"
+                data-testid="app-card-version"
               >
                 <i
                   v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
@@ -535,25 +535,22 @@ export default {
               <div
                 v-for="(footerItem, i) in chart.cardContent.footerItems"
                 :key="i"
+                class="app-card-footer-item no-card-click"
+                data-testid="app-card-footer-item"
               >
-                <div
-                  class="app-footer-item no-card-click"
-                  data-testid="item-card-footer-item"
+                <i
+                  v-if="footerItem.icon"
+                  v-clean-tooltip="t(footerItem.iconTooltip.key)"
+                  :class="['icon', 'app-card-footer-item-icon', footerItem.icon]"
+                />
+                <p
+                  v-for="(label, j) in footerItem.labels"
+                  :key="j"
+                  class="app-card-footer-item-text secondary-text-link"
+                  data-testid="app-card-footer-item-text"
                 >
-                  <i
-                    v-if="footerItem.icon"
-                    v-clean-tooltip="t(footerItem.iconTooltip.key)"
-                    :class="['icon', 'footer-item-icon', footerItem.icon]"
-                  />
-                  <p
-                    v-for="(label, j) in footerItem.labels"
-                    :key="j"
-                    class="footer-item-text secondary-text-link"
-                    data-testid="item-card-footer-item-text"
-                  >
-                    {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
-                  </p>
-                </div>
+                  {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+                </p>
               </div>
             </template>
           </ItemCard>
@@ -634,7 +631,7 @@ export default {
   grid-gap: var(--gap-md);
   overflow: hidden;
 
-  .sub-header-item {
+  .app-card-sub-header-item {
     display: flex;
     align-items: center;
 
@@ -644,18 +641,18 @@ export default {
     }
   }
 
-  .footer-item {
+  .app-card-footer-item {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     color: var(--link-text-secondary);
-    gap: var(--gap) var(--gap-md);
+    margin-top: 8px;
+    margin-right: 16px;
 
-    .footer-item-icon {
+    .app-card-footer-item-icon {
       font-size: 16px;
     }
 
-    .footer-item-text {
+    .app-card-footer-item-text {
       margin-left: 8px;
       text-transform: capitalize;
     }
