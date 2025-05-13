@@ -85,7 +85,7 @@ function _handleCardClick(e) {
     @keydown.enter="_handleCardClick"
   >
     <div
-      v-if="variant === ItemCardVariant.MEDIUM"
+      v-if="variant === 'medium'"
       class="side-section"
       data-testid="item-card-image-wrapper"
     >
