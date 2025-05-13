@@ -93,19 +93,19 @@ export default class Chart extends SteveModel {
   get cardContent() {
     const subHeaderItems = [
       {
-        icon:        'icon-error',
+        icon:        'icon-version-alt-alt',
         iconTooltip: { key: 'tableHeaders.version' },
         label:       this.versions[0].version
       },
       {
-        icon:        'icon-error',
+        icon:        'icon-refresh-alt',
         iconTooltip: { key: 'generic.refresh' },
         label:       day(this.versions[0].created).format('MMM D, YYYY')
       }
     ];
     const footerItems = [
       {
-        icon:        'icon-error',
+        icon:        'icon-repository-alt',
         iconTooltip: { key: 'tableHeaders.repoName' },
         labels:      [this.repoNameDisplay]
       }
@@ -113,7 +113,7 @@ export default class Chart extends SteveModel {
 
     if (this.categories.length) {
       footerItems.push( {
-        icon:        'icon-error',
+        icon:        'icon-category-alt',
         iconTooltip: { key: 'generic.category' },
         labels:      this.categories
       });
@@ -121,7 +121,7 @@ export default class Chart extends SteveModel {
 
     if (this.tags.length) {
       footerItems.push({
-        icon:        'icon-error',
+        icon:        'icon-tag-alt',
         iconTooltip: { key: 'generic.tags' },
         labels:      this.tags
       });
@@ -131,19 +131,19 @@ export default class Chart extends SteveModel {
 
     if (this.deprecated) {
       statuses.push({
-        icon: 'icon-error', color: 'error', tooltip: { key: 'generic.deprecated' }
+        icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
       });
     }
 
     if (this.upgradeable) {
       statuses.push({
-        icon: 'icon-error', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
       });
     }
 
     if (this.isInstalled) {
       statuses.push({
-        icon: 'icon-error', color: 'success', tooltip: { key: 'generic.installed' }
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
       });
     }
 

@@ -159,13 +159,11 @@ export default {
      * Filter enabled charts allll filters. These are what the user will see in the list
      */
     filteredCharts() {
-      const res = this.filterCharts({
+      return this.filterCharts({
         category:    this.category,
         searchQuery: this.searchQuery,
         hideRepos:   this.hideRepos
       });
-
-      return res;
     },
 
     /**
