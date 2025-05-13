@@ -193,7 +193,7 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
             :waitingLabel="t('registration.list.table.button.progress')"
             :error-label="t('registration.list.table.button.label')"
             :action-label="t('registration.list.table.button.label')"
-            data-testid="registration-offline-deregister-cta"
+            data-testid="registration-deregister-cta"
             :disabled="isRegistering || !isRegistered"
             @click="deregister"
           />
