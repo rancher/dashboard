@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { PropType, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage';
+
+type ItemCardVariant = 'small' | 'medium';
 
 type Label = {
   key?: string;
@@ -31,13 +35,20 @@ type Header = {
   statuses?: Status[];
 }
 
+type ItemValue = Record<string, any>;
+
+const store = useStore();
+const { t } = useI18n(store);
+
+const emit = defineEmits<{( e: 'card-click', value: any): void; }>();
+
 const props = defineProps({
   id: {
     type:     String,
     required: true
   },
   value: {
-    type:     Object,
+    type:     Object as PropType<ItemValue>,
     required: true
   },
   header: {
@@ -45,41 +56,45 @@ const props = defineProps({
     required: true
   },
   content: {
-    type:    Object as PropType<Label>,
-    default: null
+    type:    Object as PropType<Label> | undefined,
+    default: undefined
   },
   variant: {
-    type:    String,
+    type:    String as PropType<ItemCardVariant>,
     default: 'medium'
   },
   pill: { // can be visible only when the card's variant is NOT small
-    type:    Object as PropType<Pill>,
-    default: null
+    type:    Object as PropType<Pill> | undefined,
+    default: undefined
   },
-  handleCardClick: {
-    type:    Function,
-    default: null
+  clickable: {
+    type:    Boolean,
+    default: false
   }
 });
 
-const cardClickable = computed(() => typeof props.handleCardClick === 'function');
-
-function _handleCardClick(e) {
+function _handleCardClick(e: MouseEvent | KeyboardEvent) {
   // Prevent card click if the user clicks on an inner actionable element like repo, category, or tag
-  if (e.target.closest('.no-card-click')) {
+  if ((e.target as HTMLElement).closest('.no-card-click')) {
     return;
   }
 
-  props.handleCardClick?.(props.value);
+  emit('card-click', props.value);
 }
+
+function labelText(label?: Label): string {
+  return label?.key ? t(label.key) : label?.text ?? '';
+}
+
+const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || []);
 
 </script>
 
 <template>
   <div
     :class="['item-card', variant]"
-    :role="cardClickable ? 'button' : undefined"
-    :tabindex="cardClickable ? '0' : undefined"
+    :role="clickable ? 'button' : undefined"
+    :tabindex="clickable ? '0' : undefined"
     :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
     @keydown.enter="_handleCardClick"
@@ -96,7 +111,7 @@ function _handleCardClick(e) {
         <slot name="item-card-image">
           <LazyImage
             :src="header.image.src"
-            :alt="header.image.alt.key ? t(header.image.alt.key) : header.image.alt.text"
+            :alt="labelText(header.image?.alt)"
             data-testid="item-card-image"
           />
         </slot>
@@ -104,11 +119,11 @@ function _handleCardClick(e) {
       <slot name="item-card-pill">
         <div
           v-if="pill"
-          v-clean-tooltip="pill.tooltip.key ? t(pill.tooltip.key) : pill.tooltip.text"
+          v-clean-tooltip="labelText(pill.tooltip)"
           class="item-card-pill"
           data-testid="item-card-pill"
         >
-          {{ pill.label.key ? t(pill.label.key).slice(0, 4) : pill.label.text.slice(0, 4) }}
+          {{ labelText(pill.label) }}
         </div>
       </slot>
     </div>
@@ -126,7 +141,7 @@ function _handleCardClick(e) {
             <slot name="item-card-header-image">
               <LazyImage
                 :src="header.image.src"
-                :alt="header.image.alt.key ? t(header.image.alt.key) : header.image.alt.text"
+                :alt="labelText(header.image?.alt)"
                 data-testid="item-card-header-image"
               />
             </slot>
@@ -134,11 +149,11 @@ function _handleCardClick(e) {
         </div>
         <slot name="item-card-header-title">
           <h3
-            v-clean-tooltip="header.title.key ? t(header.title.key) : header.title.text"
+            v-clean-tooltip="labelText(header.title)"
             :class="['item-card-header-title', variant]"
             data-testid="item-card-header-title"
           >
-            {{ header.title.key ? t(header.title.key) : header.title.text }}
+            {{ labelText(header.title) }}
           </h3>
         </slot>
         <div
@@ -146,11 +161,11 @@ function _handleCardClick(e) {
           class="item-card-header-statuses"
         >
           <div
-            v-for="(status, i) in header.statuses.slice(0, 3)"
+            v-for="(status, i) in visibleStatuses"
             :key="i"
           >
             <i
-              v-clean-tooltip="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
+              v-clean-tooltip="labelText(status.tooltip)"
               :class="['icon', status.icon, status.color]"
               :style="{color: status.customColor}"
               :data-testid="`item-card-header-status-${id}`"
@@ -171,7 +186,7 @@ function _handleCardClick(e) {
         data-testid="item-card-content"
       >
         <slot name="item-card-content">
-          <p>{{ content.key ? t(content.key) : content.text }}</p>
+          <p>{{ labelText(content) }}</p>
         </slot>
       </div>
 

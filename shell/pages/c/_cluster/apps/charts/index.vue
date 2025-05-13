@@ -513,7 +513,8 @@ export default {
             }"
             :content="{ text: chart.chartDescription }"
             :value="chart"
-            :handle-card-click="selectChart"
+            :clickable="true"
+            @card-click="selectChart"
           >
             <template #item-card-sub-header>
               <div
