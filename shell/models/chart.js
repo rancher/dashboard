@@ -90,63 +90,67 @@ export default class Chart extends SteveModel {
     return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
   }
 
-  get statuses() {
-    const res = [];
+  get cardContent() {
+    const subHeaderItems = [
+      {
+        icon:        'icon-error',
+        iconTooltip: { key: 'tableHeaders.version' },
+        label:       this.versions[0].version
+      },
+      {
+        icon:        'icon-error',
+        iconTooltip: { key: 'generic.refresh' },
+        label:       day(this.versions[0].created).format('MMM D, YYYY')
+      }
+    ];
+    const footerItems = [
+      {
+        icon:        'icon-error',
+        iconTooltip: { key: 'tableHeaders.repoName' },
+        labels:      [this.repoNameDisplay]
+      }
+    ];
+
+    if (this.categories.length) {
+      footerItems.push( {
+        icon:        'icon-error',
+        iconTooltip: { key: 'generic.category' },
+        labels:      this.categories
+      });
+    }
+
+    if (this.tags.length) {
+      footerItems.push({
+        icon:        'icon-error',
+        iconTooltip: { key: 'generic.tags' },
+        labels:      this.tags
+      });
+    }
+
+    const statuses = [];
 
     if (this.deprecated) {
-      res.push({
-        icon: 'icon-error', color: 'error', tooltip: { key: 'generic.deprecated' }, id: this.chartName
+      statuses.push({
+        icon: 'icon-error', color: 'error', tooltip: { key: 'generic.deprecated' }
       });
     }
 
     if (this.upgradeable) {
-      res.push({
-        icon: 'icon-error', color: 'info', tooltip: { key: 'generic.upgradeable' }, id: this.chartName
+      statuses.push({
+        icon: 'icon-error', color: 'info', tooltip: { key: 'generic.upgradeable' }
       });
     }
 
     if (this.isInstalled) {
-      res.push({
-        icon: 'icon-error', color: 'success', tooltip: { key: 'generic.installed' }, id: this.chartName
+      statuses.push({
+        icon: 'icon-error', color: 'success', tooltip: { key: 'generic.installed' }
       });
     }
 
-    return res;
-  }
-
-  get subTitleGroups() {
-    const version = {
-      icon:        'icon-error',
-      iconTooltip: { key: 'tableHeaders.version' },
-      labels:      [{ text: this.versions[0].version }]
+    return {
+      subHeaderItems,
+      footerItems,
+      statuses
     };
-
-    const refresh = {
-      icon:        'icon-error',
-      iconTooltip: { key: 'generic.refresh' },
-      labels:      [{ text: day(this.versions[0].created).format('MMM D, YYYY') }]
-    };
-
-    return [version, refresh];
-  }
-
-  get bottomGroups() {
-    const repo = {
-      icon:        'icon-error',
-      iconTooltip: { key: 'tableHeaders.repoName' },
-      labels:      [{ text: this.repoNameDisplay }]
-    };
-    const categories = {
-      icon:        'icon-error',
-      iconTooltip: { key: 'generic.category' },
-      labels:      this.categories?.map((c) => ({ text: c }))
-    };
-    const tags = {
-      icon:        'icon-error',
-      iconTooltip: { key: 'generic.tags' },
-      labels:      this.tags?.map((t) => ({ text: t }))
-    };
-
-    return [repo, categories, tags];
   }
 }

@@ -497,23 +497,66 @@ export default {
       </div>
       <template v-else>
         <div
-          class="apps-container"
-          data-testid="apps-container"
+          class="app-cards-container"
+          data-testid="app-cards-container"
         >
           <ItemCard
-            v-for="(chart, i) in filteredCharts"
+            v-for="chart in filteredCharts"
             :id="chart.chartName"
-            :key="i"
-            :title="{ text: chart.chartNameDisplay }"
-            :sub-title-groups="chart.subTitleGroups"
-            :description="{ text: chart.chartDescription }"
-            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } }"
+            :key="chart.chartName"
+            variant="medium"
             :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
-            :as-link="true"
-            :statuses="chart.statuses"
-            :bottom-groups="chart.bottomGroups"
-            @card-click="selectChart(chart)"
-          />
+            :header="{
+              image: { src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) }},
+              title: { text: chart.chartNameDisplay },
+              statuses: chart.cardContent.statuses
+            }"
+            :content="{ text: chart.chartDescription }"
+            :value="chart"
+            :handle-card-click="selectChart"
+          >
+            <template #item-card-sub-header>
+              <div
+                v-for="subHeaderItem in chart.cardContent.subHeaderItems"
+                :key="subHeaderItem.text"
+                class="sub-header-item"
+                data-testid="item-card-version"
+              >
+                <i
+                  v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
+                  :class="['icon', subHeaderItem.icon]"
+                />
+                <p>
+                  {{ subHeaderItem.label }}
+                </p>
+              </div>
+            </template>
+            <template #item-card-footer>
+              <div
+                v-for="(footerItem, i) in chart.cardContent.footerItems"
+                :key="i"
+              >
+                <div
+                  class="app-footer-item no-card-click"
+                  data-testid="item-card-footer-item"
+                >
+                  <i
+                    v-if="footerItem.icon"
+                    v-clean-tooltip="t(footerItem.iconTooltip.key)"
+                    :class="['icon', 'footer-item-icon', footerItem.icon]"
+                  />
+                  <p
+                    v-for="(label, j) in footerItem.labels"
+                    :key="j"
+                    class="footer-item-text secondary-text-link"
+                    data-testid="item-card-footer-item-text"
+                  >
+                    {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+                  </p>
+                </div>
+              </div>
+            </template>
+          </ItemCard>
         </div>
       </template>
     </div>
@@ -585,11 +628,38 @@ export default {
   }
 }
 
-.apps-container {
+.app-cards-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, max-content));
   grid-gap: var(--gap-md);
   overflow: hidden;
+
+  .sub-header-item {
+    display: flex;
+    align-items: center;
+
+    .icon {
+      font-size: 16px;
+      margin-right: 8px;
+    }
+  }
+
+  .footer-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    color: var(--link-text-secondary);
+    gap: var(--gap) var(--gap-md);
+
+    .footer-item-icon {
+      font-size: 16px;
+    }
+
+    .footer-item-text {
+      margin-left: 8px;
+      text-transform: capitalize;
+    }
+  }
 }
 
 .checkbox-outer-container.in-select {

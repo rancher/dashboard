@@ -3,7 +3,7 @@ import SelectPo from '@/cypress/e2e/po/components/select.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import AppCardPo from '@/cypress/e2e/po/components/app-card.po';
+import ItemCardPo from '@/cypress/e2e/po/components/item-card.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export class ChartsPage extends PagePo {
@@ -52,12 +52,12 @@ export class ChartsPage extends PagePo {
   }
 
   charts() {
-    return new AppCardPo('[data-testid="apps-container"] [data-testid="app-card"]');
+    return new ItemCardPo('[data-testid="apps-container"] [data-testid="item-card"]');
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
     const src = this.charts().getAppByName(name)
-      .get('[data-testid="app-card-logo-wrapper"] img')
+      .get('[data-testid="item-card-logo-wrapper"] img')
       .invoke('attr', 'src');
 
     if (isGeneric) {
