@@ -121,6 +121,7 @@ const applyShow = () => {
         }
 
         .v-popper__inner {
+          overflow: unset;
           padding: 10px 0 10px 0;
         }
       }

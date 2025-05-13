@@ -133,7 +133,6 @@ async function processClosedAction() {
     console.log('  This PR fixes issues: ' + issues.join(', '));
   } else {
     console.log("  This PR does not fix any issues");
-    return;
   }
 
   // Need to get all open PRs to see if any other references the same issues that this PR says it fixes

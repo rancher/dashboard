@@ -2,47 +2,70 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal.vue';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
-  emits: ['closed', 'update'],
+  emits: ['close'],
 
-  components: {
-    AsyncButton,
-    AppModal,
+  components: { AsyncButton },
+
+  props: {
+    /**
+     * Plugin object
+     */
+    plugin: {
+      type:     Object,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback to update install status on extensions main screen
+     */
+    updateStatus: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    resources: {
+      type:    Array,
+      default: () => []
+    },
+    registerBackgroundClosing: {
+      type:    Function,
+      default: () => {}
+    }
   },
 
   data() {
-    return {
-      plugin: undefined, busy: false, showModal: false
-    };
+    return { busy: false };
   },
 
-  computed: {
-    ...mapGetters({ allCharts: 'catalog/charts' }),
-    returnFocusSelector() {
-      return `[data-testid="extension-card-uninstall-btn-${ this.plugin?.name }"]`;
-    }
-  },
+  computed: { ...mapGetters({ allCharts: 'catalog/charts' }) },
 
   methods: {
     showDialog(plugin) {
       this.plugin = plugin;
       this.busy = false;
-      this.showModal = true;
     },
     closeDialog(result) {
-      this.showModal = false;
-      this.$emit('closed', result);
+      this.closed(result);
+      this.$emit('close');
     },
     async uninstall() {
       this.busy = true;
 
       const plugin = this.plugin;
 
-      this.$emit('update', plugin.name, 'uninstall');
+      this.updateStatus(plugin.name, 'uninstall');
 
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
@@ -78,47 +101,33 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    name="uninstallPluginDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    :return-focus-first-iterable-node-selector="'#extensions-main-page'"
-    @close="closeDialog(false)"
-  >
-    <div
-      v-if="plugin"
-      class="plugin-install-dialog"
-    >
-      <h4 class="mt-10">
-        {{ t('plugins.uninstall.title', { name: plugin.label }) }}
-      </h4>
-      <div class="mt-10 dialog-panel">
-        <div class="dialog-info">
-          <p>
-            {{ t('plugins.uninstall.prompt') }}
-          </p>
-        </div>
-        <div class="dialog-buttons">
-          <button
-            :disabled="busy"
-            class="btn role-secondary"
-            data-testid="uninstall-ext-modal-cancel-btn"
-            @click="closeDialog(false)"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <AsyncButton
-            mode="uninstall"
-            data-testid="uninstall-ext-modal-uninstall-btn"
-            @click="uninstall()"
-          />
-        </div>
+  <div class="plugin-install-dialog">
+    <h4 class="mt-10">
+      {{ t('plugins.uninstall.title', { name: plugin?.label }) }}
+    </h4>
+    <div class="mt-10 dialog-panel">
+      <div class="dialog-info">
+        <p>
+          {{ t('plugins.uninstall.prompt') }}
+        </p>
+      </div>
+      <div class="dialog-buttons">
+        <button
+          :disabled="busy"
+          class="btn role-secondary"
+          data-testid="uninstall-ext-modal-cancel-btn"
+          @click="closeDialog(false)"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          mode="uninstall"
+          data-testid="uninstall-ext-modal-uninstall-btn"
+          @click="uninstall()"
+        />
       </div>
     </div>
-  </app-modal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

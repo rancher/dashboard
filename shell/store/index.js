@@ -864,6 +864,11 @@ export const actions = {
       const isRancherInHarvester = (rancherManagerSupport?.value || rancherManagerSupport?.default) === 'true';
 
       commit('isRancherInHarvester', isRancherInHarvester);
+
+      if (getters['isSingleProduct']) {
+        console.log('Detect standalone harvester, subscribe Rancher socket'); // eslint-disable-line no-console
+        await dispatch('rancher/subscribe');
+      }
     }
 
     const pl = res[MANAGEMENT.SETTING]?.find((x) => x.id === 'ui-pl')?.value;

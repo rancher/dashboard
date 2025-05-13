@@ -42,7 +42,8 @@ export default ({
       themeVars:               {
         bannerBgColor:   getComputedStyle(document.body).getPropertyValue('--default'),
         bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color')
-      }
+      },
+      bannerTitleId: `describe-banners-${ this.bannerType }-id`
     };
   },
 
@@ -107,12 +108,19 @@ export default ({
   <div class="row mb-20">
     <div class="col span-12">
       <div class="row">
+        <p
+          :id="bannerTitleId"
+          class="sr-only"
+        >
+          {{ t(`banner.${bannerType}`) }}
+        </p>
         <div class="col span-6">
           <LabeledInput
             v-model:value="value[bannerType].text"
             :disabled="isUiDisabled"
             :label="t('banner.text')"
             type="multiline"
+            :aria-describedby="bannerTitleId"
           />
           <p
             v-if="isConsentBanner"
@@ -131,11 +139,13 @@ export default ({
               :mode="mode"
               :label="t('banner.showAsDialog.label')"
               :tooltip="t('banner.showAsDialog.tooltip')"
+              :aria-describedby="bannerTitleId"
             />
             <LabeledInput
               v-model:value="buttonText"
               :disabled="!showAsDialog || isUiDisabled"
               :label="t('banner.buttonText')"
+              :aria-describedby="bannerTitleId"
             />
           </div>
         </div>
@@ -148,10 +158,11 @@ export default ({
             :options="radioOptions.options"
             :labels="radioOptions.labels"
             :mode="mode"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.bannerAlignment.label')}`"
           />
         </div>
         <div class="col span-2">
-          <h3>
+          <h3 id="decoration-banner-title-id">
             {{ t('banner.bannerDecoration.label') }}
           </h3>
           <div
@@ -165,6 +176,7 @@ export default ({
               class="banner-decoration-checkbox"
               :mode="mode"
               :label="o.label"
+              :aria-describedby="`${bannerTitleId} decoration-banner-title-id`"
             />
           </div>
         </div>
@@ -175,6 +187,7 @@ export default ({
             :disabled="isUiDisabled"
             :label="t('banner.bannerFontSize.label')"
             :options="uiBannerFontSizeOptions"
+            :aria-describedby="bannerTitleId"
           />
         </div>
       </div>
@@ -185,6 +198,7 @@ export default ({
             :default-value="themeVars.bannerTextColor"
             :label="t('banner.textColor')"
             :mode="mode"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.textColor')}`"
           />
         </div>
         <div class="col span-6">
@@ -193,6 +207,7 @@ export default ({
             :default-value="themeVars.bannerBgColor"
             :label="t('banner.background')"
             :mode="mode"
+            :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.background')}`"
           />
         </div>
       </div>

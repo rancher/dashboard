@@ -62,12 +62,12 @@ export function createHeaders(
   } = columns;
   const { rootGetters } = ctx;
   const out = typeOptions.showState ? [stateColumn] : [];
-  const attributes = (schema.attributes as SchemaAttribute) || {};
-  const columnsFromSchema = attributes.columns || [];
+  const attributes = (schema?.attributes as SchemaAttribute) || {};
+  const columnsFromSchema = attributes?.columns || [];
 
   // A specific list has been provided
-  if ( headers?.[schema.id]?.length ) {
-    return headers[schema.id].map((entry: any) => {
+  if ( headers?.[schema?.id]?.length ) {
+    return headers[schema?.id].map((entry: any) => {
       if ( typeof entry === 'string' ) {
         const col = findBy(columnsFromSchema, 'name', entry);
 

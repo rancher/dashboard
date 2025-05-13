@@ -1,22 +1,32 @@
 <script>
-import { CATALOG } from '@shell/config/types';
-import Dialog from '@shell/components/Dialog.vue';
+import AsyncButton from '@shell/components/AsyncButton';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
 
 export default {
-  emits: ['done'],
+  emits: ['close'],
 
-  components: {
-    Checkbox,
-    Dialog,
+  components: { AsyncButton, Checkbox },
+
+  props: {
+    /**
+     * Callback to update install status on extensions main screen
+     */
+    done: {
+      type:    Function,
+      default: () => {}
+    },
   },
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
       this.repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
     }
+
+    this.addRepos.official = isRancherPrime() && !this.hasRancherUIPluginsRepo;
+    this.addRepos.partners = !this.hasRancherUIPartnersPluginsRepo;
   },
 
   data() {
@@ -25,8 +35,8 @@ export default {
       repos:    [],
       prime:    isRancherPrime(),
       addRepos: {
-        official: true,
-        partners: true
+        official: false,
+        partners: false
       },
       reposInfo: {
         official: {
@@ -57,14 +67,6 @@ export default {
   },
 
   methods: {
-    showDialog() {
-      this.addRepos = {
-        official: isRancherPrime() && !this.hasRancherUIPluginsRepo,
-        partners: !this.hasRancherUIPartnersPluginsRepo,
-      };
-      this.isDialogActive = true;
-    },
-
     async doAddRepos(btnCb) {
       this.errors = [];
       const promises = [];
@@ -96,24 +98,20 @@ export default {
         });
       }
 
-      this.$emit('done');
+      this.done();
+      this.$emit('close');
 
       btnCb(true);
     },
   }
 };
 </script>
+
 <template>
-  <Dialog
-    v-if="isDialogActive"
-    name="add-extensions-repos"
-    :title="t('plugins.addRepos.title')"
-    mode="add"
-    data-testid="add-extensions-repos-modal"
-    :return-focus-selector="returnFocusSelector"
-    @okay="doAddRepos"
-    @closed="isDialogActive = false"
-  >
+  <div class="modal-dialog">
+    <h4>
+      {{ t('plugins.addRepos.title') }}
+    </h4>
     <p class="mb-20">
       {{ t('plugins.addRepos.prompt', {}, true) }}
     </p>
@@ -124,7 +122,7 @@ export default {
     >
       <Checkbox
         v-model:value="addRepos.official"
-        :disabled="hasRancherUIPluginsRepo"
+        :disabled="$fetchState.pending || hasRancherUIPluginsRepo"
         :primary="true"
         label-key="plugins.setup.install.addRancherRepo"
         data-testid="add-extensions-repos-modal-add-official-repo"
@@ -142,7 +140,7 @@ export default {
     >
       <Checkbox
         v-model:value="addRepos.partners"
-        :disabled="hasRancherUIPartnersPluginsRepo"
+        :disabled="$fetchState.pending || hasRancherUIPartnersPluginsRepo"
         :primary="true"
         label-key="plugins.setup.install.addPartnersRancherRepo"
         data-testid="add-extensions-repos-modal-add-partners-repo"
@@ -154,22 +152,54 @@ export default {
         ({{ t('plugins.setup.installed') }})
       </div>
     </div>
-  </Dialog>
+    <div class="dialog-buttons mt-20">
+      <button
+        class="btn role-secondary"
+        @click="$emit('close')"
+      >
+        {{ t('generic.cancel') }}
+      </button>
+      <AsyncButton
+        mode="add"
+        class="ml-10"
+        @click="doAddRepos"
+      />
+    </div>
+  </div>
 </template>
+
 <style lang="scss" scoped>
-  .enable-plugin-support {
-    font-size: 14px;
-    margin-top: 20px;
-  }
+  .modal-dialog {
+    padding: 10px;
 
-  .plugin-setup-error {
-    font-size: 14px;
-    color: var(--error);
-    margin: 10px 0 0 0;
-  }
+    h4 {
+      font-weight: bold;
+    }
 
-  .checkbox-info {
-    margin-left: 20px;
-    opacity: 0.7;
+    .enable-plugin-support {
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    .plugin-setup-error {
+      font-size: 14px;
+      color: var(--error);
+      margin: 10px 0 0 0;
+    }
+
+    .checkbox-info {
+      margin-left: 20px;
+      opacity: 0.7;
+    }
+
+    .dialog-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+
+      > *:not(:last-child) {
+        margin-right: 10px;
+      }
+    }
   }
 </style>
