@@ -207,8 +207,10 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
 // TODO - #14338: Styles gets generated multiple times, but an utility should have been used
 .grid-5 {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, auto);
+  grid-template-rows: auto;
   gap: 16px;
+  align-items: center;
 }
 
 .color-disabled-text {
