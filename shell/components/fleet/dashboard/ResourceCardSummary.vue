@@ -14,11 +14,10 @@ export default {
       type:     Object,
       required: true
     },
-
-    statePanel: {
-      type:     Object,
-      required: true
-    },
+    noClusters: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -61,11 +60,11 @@ export default {
         };
       }).filter((x) => x.value > 0);
 
-      return sortBy(out, 'sort:desc');
+      return sortBy(out, 'sort:asc');
     },
 
     noClustersWarning() {
-      if (!this.value.status?.desiredReadyClusters) {
+      if (this.noClusters) {
         return this.t('fleet.dashboard.cards.noClusters', { type: this.typeLabel });
       }
 
@@ -78,7 +77,6 @@ export default {
 <template>
   <div class="summary-panel">
     <div class="details">
-      <span>{{ t('fleet.dashboard.resources') }}</span>
       <ProgressBarMulti
         class="state-parts"
         :values="stateParts"
@@ -98,10 +96,9 @@ export default {
         </span>
       </div>
       <div
-        v-else-if="noClustersWarning"
+        v-else-if="noClusters"
         class="no-clusters"
       >
-        <i class="icon icon-lg icon-warning text-warning" />
         <span
           v-clean-tooltip="noClustersWarning"
           class="wrap-text"
@@ -113,12 +110,6 @@ export default {
         v-else
         class="count"
       >
-        <i
-          v-if="statePanel.id !== 'success'"
-          class="icon-lg"
-          :class="statePanel.icon"
-          :style="{ color: statePanel.color }"
-        />
         <div class="label">
           <span class="large">{{ summary.partial }}</span>
           <span
@@ -137,6 +128,7 @@ export default {
 
 <style lang="scss" scoped>
   .summary-panel {
+    width: 100%;
 
     .progress {
       width: 100%;
@@ -151,8 +143,6 @@ export default {
     .details {
       display: flex;
       align-items: center;
-      gap: 5px;
-      max-width: 300px;
     }
 
     .summary {
