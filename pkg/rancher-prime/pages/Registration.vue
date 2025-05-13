@@ -202,3 +202,16 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+// TODO - #14338: Styles gets generated multiple times, but an utility should have been used
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.color-disabled-text {
+  color: var(--disabled-text);
+}
+</style>

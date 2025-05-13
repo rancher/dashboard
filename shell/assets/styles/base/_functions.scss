@@ -132,33 +132,3 @@
       #{rgba($color, $end)} #{$endPos}
   ) 0% 0% no-repeat padding-box;
 }
-
-// Generate grid classes to split in columns of 2 to 10
-@for $i from 2 through 10 {
-  .grid-#{$i} {
-    display: grid;
-    grid-template-columns: repeat($i, minmax(0, 1fr));
-    gap: 16px;
-  }
-}
-
-// Generate colors based on list of UI Kit colors
-$text-colors: (
-  "body-bg",
-  "body-text",
-  "primary",
-  "success",
-  "warning",
-  "info",
-  "error",
-  "link",
-  "border",
-  "disabled-bg",
-  "disabled-text"
-);
-
-@each $text-color in $text-colors {
-  .color-#{$text-color} {
-    color: var(--#{$text-color});
-  }
-}
