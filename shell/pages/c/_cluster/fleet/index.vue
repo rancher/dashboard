@@ -486,9 +486,9 @@ export default {
             :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
             <div class="title">
-              <h3 class="label">
+              <h3 class="label label-secondary">
                 <i class="icon icon-folder" />
-                <span class="label-secondary">{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
+                <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
               </h3>
               <router-link
                 class="name"
@@ -634,13 +634,13 @@ export default {
                       v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
                       :key="y"
                       class="resource-card"
+                      :class="{
+                        ['selected']: selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel
+                      }"
+                      :data-testid="`card-${ item.id }`"
                     >
                       <ResourceCard
                         v-if="y < (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
-                        :class="{
-                          ['selected']: selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel
-                        }"
-                        :data-testid="`card-${ item.id }`"
                         :value="item"
                         :state-panel="state.statePanel"
                         @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
@@ -853,15 +853,17 @@ export default {
           .resource-cards-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 16px 8px;
+            gap: 16px;
             min-height: 100%;
 
             .resource-card {
               cursor: pointer;
 
-              .selected {
-                border: 2px solid var(--primary);
-                margin: 0;
+              &.selected {
+                :deep() .item-card {
+                  border: 2px solid var(--primary);
+                  margin: 0;
+                }
               }
             }
           }

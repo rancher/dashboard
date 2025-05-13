@@ -5,7 +5,7 @@ import {
   BundleDeploymentStatus,
   Condition,
 } from '@shell/types/resources/fleet';
-import { mapStateToEnum, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 
@@ -160,6 +160,49 @@ class Fleet {
     } else {
       return STATES_ENUM.READY;
     }
+  }
+
+  getResourcesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string) {
+    return [
+      STATES_ENUM.READY,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.MISSING,
+      STATES_ENUM.ORPHANED,
+      STATES_ENUM.UNKNOWN,
+    ].reduce((acc: Record<string, any>, state) => {
+      acc[state] = {
+        count:  0,
+        color:  STATES[state].color,
+        label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+        status: state
+      };
+
+      return acc;
+    }, {});
+  }
+
+  getBundlesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string) {
+    return [
+      STATES_ENUM.READY,
+      STATES_ENUM.INFO,
+      STATES_ENUM.WARNING,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.ERROR,
+      STATES_ENUM.ERR_APPLIED,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.UNKNOWN,
+    ].reduce((acc: Record<string, any>, state) => {
+      acc[state] = {
+        count:  0,
+        color:  STATES[state].color,
+        label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+        status: state
+      };
+
+      return acc;
+    }, {});
   }
 
   getDashboardStateId(resource: { stateColor: string }): string {

@@ -1,6 +1,9 @@
 <script>
+import { clone } from '@shell/utils/object';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import RcItemCard from '@shell/components/cards/RcItemCard';
 import ResourceCardSummary from '@shell/components/fleet/dashboard/ResourceCardSummary.vue';
+import FleetUtils from '@shell/utils/fleet';
 
 export default {
 
@@ -10,6 +13,7 @@ export default {
 
   components: {
     ActionMenu,
+    RcItemCard,
     ResourceCardSummary,
   },
 
@@ -23,6 +27,81 @@ export default {
       type:     Object,
       required: true
     },
+  },
+
+  data() {
+    return { resourcesDefaultStates: FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], 'fleet.fleetSummary.state') };
+  },
+
+  computed: {
+    statuses() {
+      const state = this.statePanel;
+
+      if (state.id === 'success') {
+        if (this.noClusters) {
+          return [{
+            id:          state.id,
+            icon:        'icon-warning',
+            customColor: '#DAC342',
+            tooltip:     {},
+            handleClick: () => {},
+          }];
+        }
+
+        return [];
+      }
+
+      return [{
+        id:          state.id,
+        icon:        state.icon,
+        color:       '',
+        customColor: state.color,
+        tooltip:     {},
+        handleClick: () => {},
+      }];
+    },
+
+    resourceCounts() {
+      const out = clone(this.resourcesDefaultStates);
+
+      const resourceStatuses = this.value.allResourceStatuses;
+
+      Object.entries(resourceStatuses.states)
+        .filter(([_, count]) => count > 0)
+        .forEach(([state, count]) => {
+          const k = state?.toLowerCase();
+
+          if (out[k]) {
+            out[k].count += count;
+          } else {
+            out.unknown.count += count;
+          }
+        });
+
+      return Object.values(out).reduce((acc, { label, count }) => {
+        if (count > 0) {
+          return [...acc, { label, count }];
+        }
+
+        return acc;
+      }, []).reverse();
+    },
+
+    resourcesTooltip() {
+      return this.resourceCounts.reduce((acc, state, i) => `${ acc }${ i > 0 ? '<br>' : '' }${ state.label }: ${ state.count }`, '');
+    },
+
+    noClusters() {
+      return !this.value.status?.desiredReadyClusters;
+    },
+
+    nameTooltip() {
+      if (this.value.nameDisplay?.length >= 15) {
+        return this.value.nameDisplay;
+      }
+
+      return null;
+    }
   },
 
   methods: {
@@ -40,69 +119,81 @@ export default {
 </script>
 
 <template>
-  <div
-    role="button"
-    tabindex="0"
-    :aria-label="t(`card-${ value.id }`)"
-    class="resource-card-panel"
+  <RcItemCard
+    :id="`${ value.metadata.namespace }-${ value.type }-${ value.id }`"
+    class="dashboard-resource-card"
+    variant="small"
+    :header="{
+      image: {},
+      statuses,
+    }"
+    :content="{}"
+    :value="value"
+    :clickable="true"
     @click="select"
     @keydown.enter.stop.prevent="select"
     @keydown.space.stop.prevent="$router.push(value.detailLocation)"
   >
-    <div class="title">
-      <div class="label">
-        <i
-          class="icon-lg"
-          :class="value.dashboardIcon"
-        />
-        <router-link
-          role="link"
-          tabindex="-1"
-          :aria-label="value.nameDisplay"
-          :to="value.detailLocation"
-        >
-          {{ value.nameDisplay }}
-        </router-link>
-      </div>
-      <div class="actions">
-        <ActionMenu
-          :resource="value"
-          :button-aria-label="t('sortableTable.tableActionsLabel', { resource: value?.id || '' })"
-        />
-      </div>
-    </div>
-    <div class="body">
-      <ResourceCardSummary
-        :value="value"
-        :state-panel="statePanel"
+    <template #item-card-image>
+      <i
+        class="icon-lg"
+        :class="value.dashboardIcon"
       />
-    </div>
-  </div>
+    </template>
+    <template #item-card-header-title>
+      <router-link
+        v-clean-tooltip="{content: nameTooltip, triggers: ['hover']}"
+        class="resource-name ml-5"
+        role="link"
+        tabindex="-1"
+        :aria-label="value.nameDisplay"
+        :to="value.detailLocation"
+      >
+        {{ value.nameDisplay }}
+      </router-link>
+    </template>
+    <template #item-card-actions>
+      <ActionMenu
+        :resource="value"
+        :button-aria-label="t('sortableTable.tableActionsLabel', { resource: value?.id || '' })"
+      />
+    </template>
+    <template #item-card-content>
+      <ResourceCardSummary
+        v-clean-tooltip="{content: resourcesTooltip, triggers: ['hover']}"
+        :value="value"
+        :no-clusters="noClusters"
+      />
+    </template>
+  </RcItemCard>
 </template>
 
 <style lang="scss" scoped>
-  .resource-card-panel {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px;
+  .dashboard-resource-card {
     margin: 1px;
 
-    .title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 5px;
+    :deep() .item-card-body {
+      width: -webkit-fill-available;
 
-      .label {
-        display: flex;
-        align-items: center;
-        gap: 5px;
+      .item-card-header {
         font-size: medium;
+        margin-bottom: 5px;
       }
     }
 
-    .body {
-      padding-right: 10px;
+    .resource-name {
+      max-width: 150px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 0px;
+      line-height: 24px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
     }
+  }
+
+  .icon-lg {
+    font-size: 25px;
   }
 </style>
