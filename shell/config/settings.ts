@@ -153,9 +153,9 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.BRAND]:                        { canReset: true },
-  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
-  [SETTING.AGENT_TLS_MODE]:               {
+  [SETTING.BRAND]:              { canReset: true },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:     {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
