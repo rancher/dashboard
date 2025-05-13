@@ -9,21 +9,24 @@ const registrationMock = {
     code:       '--',
     expiration: '--',
     color:      'error',
-    message:    'registration.list.table.badge.none'
+    message:    'registration.list.table.badge.none',
+    status:     'none'
   },
   expired: {
     product:    'SUSE Rancher Manager Prime Suite',
     code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
     expiration: '12/12/2021',
     color:      'error',
-    message:    'registration.list.table.badge.expired'
+    message:    'registration.list.table.badge.expired',
+    status:     'expired'
   },
   valid: {
     product:    'SUSE Rancher Manager Prime Suite',
     code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
     expiration: '12/12/2021',
     color:      'success',
-    message:    'registration.list.table.badge.valid'
+    message:    'registration.list.table.badge.valid',
+    status:     'valid'
   }
 };
 
@@ -64,7 +67,7 @@ export const usePrimeRegistration = () => {
   /**
    * Displayed registration banner
    */
-  const registrationBanner = ref(registrationBannerCases.none);
+  const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
 
   /**
    * Reset other inputs and errors, set current state then patch the registration
@@ -79,20 +82,17 @@ export const usePrimeRegistration = () => {
         offlineRegistrationCertificate.value = '';
         registrationStatus.value = 'registered-online';
         registration.value = registrationMock.valid;
-        registrationBanner.value = registrationBannerCases.valid;
         break;
       case 'offline':
         registrationCode.value = '';
         registrationStatus.value = 'registered-offline';
         registration.value = registrationMock.expired;
-        registrationBanner.value = registrationBannerCases.valid;
         break;
       case 'deregister':
         registrationStatus.value = null;
         registrationCode.value = '';
         offlineRegistrationCertificate.value = '';
         registration.value = registrationMock.none;
-        registrationBanner.value = registrationBannerCases.none;
         break;
       }
       asyncButtonResolution();
