@@ -30,7 +30,7 @@ registration:
         label: Upload certificate and register
         progress: Registering
   list:
-    title: Product Registrations
+    title: Product Registration
     table:
       header:
         status: Status
