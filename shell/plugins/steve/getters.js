@@ -52,7 +52,7 @@ export default {
 
   urlOptions: (state, getters) => (url, opt, schema) => {
     opt = opt || {};
-    const parsedUrl = parse(url);
+    const parsedUrl = parse(url || '');
 
     const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
     const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
