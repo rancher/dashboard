@@ -19,6 +19,11 @@ import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';
 
+const VIEW_MODE = {
+  TABLE: 'flat',
+  CARDS: 'cards'
+};
+
 export default {
   name:       'FleetDashboard',
   components: {
@@ -105,22 +110,23 @@ export default {
       [FLEET.CLUSTER]:       [],
       [FLEET.CLUSTER_GROUP]: [],
       fleetWorkspaces:       [],
+      VIEW_MODE,
       viewModeOptions:       [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
-          value:      'flat',
+          value:      VIEW_MODE.TABLE,
         },
         {
           tooltipKey: 'fleet.dashboard.viewMode.cards',
           icon:       'icon-apps',
-          value:      'cards',
+          value:      VIEW_MODE.CARDS,
         },
       ],
       CARDS_MIN:            50,
       CARDS_SIZE:           50,
       cardsCount:           {},
-      viewMode:             'cards',
+      viewMode:             VIEW_MODE.CARDS,
       isWorkspaceCollapsed: {},
       isStateCollapsed:     {},
       typeFilter:           {},
@@ -236,9 +242,11 @@ export default {
 
   methods: {
     filterByType(workspace) {
+      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === VIEW_MODE.TABLE;
+
       return [
-        ...(isEmpty(this.typeFilter) || this.typeFilter[workspace.id]?.[FLEET.GIT_REPO] ? workspace.repos : []),
-        ...(isEmpty(this.typeFilter) || this.typeFilter[workspace.id]?.[FLEET.HELM_OP] ? workspace.helmOps : []),
+        ...(disabledFilter || this.typeFilter[workspace.id]?.[FLEET.GIT_REPO] ? workspace.repos : []),
+        ...(disabledFilter || this.typeFilter[workspace.id]?.[FLEET.HELM_OP] ? workspace.helmOps : []),
       ];
     },
 
@@ -511,13 +519,10 @@ export default {
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div
-            v-if="viewMode === 'cards'"
+            v-if="viewMode === VIEW_MODE.CARDS"
             class="cards-panel"
           >
-            <div
-              v-if="viewMode === 'cards'"
-              class="cards-panel-filters"
-            >
+            <div class="cards-panel-filters">
               <Checkbox
                 :data-testid="'fleet-dashboard-filter-git-repos'"
                 :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
@@ -617,7 +622,7 @@ export default {
             </div>
           </div>
           <div
-            v-if="viewMode === 'flat'"
+            v-if="viewMode === VIEW_MODE.TABLE"
             class="table-panel"
           >
             <FleetApplications
