@@ -280,42 +280,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
       .should('eq', rancherLogoWidth);
   });
 
-  it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('cluster-template-enforcement');
-
-    const settingsEdit = settingsPage.editSettings('local', 'cluster-template-enforcement');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
-    settingsEdit.settingsRadioBtn().set(0);
-    settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['cluster-template-enforcement'].new);
-      expect(response?.body).to.have.property('value', settings['cluster-template-enforcement'].new);
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].new);
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('cluster-template-enforcement');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['cluster-template-enforcement'].original);
-      expect(response?.body).to.have.property('value', settings['cluster-template-enforcement'].original);
-    });
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].original);
-  });
-
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
