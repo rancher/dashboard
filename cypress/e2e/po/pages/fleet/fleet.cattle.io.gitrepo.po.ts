@@ -4,7 +4,7 @@ import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboa
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export class FleetGitRepoListPagePo extends PagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.gitrepo`
+  static url = `/c/_/fleet/application`
 
   constructor() {
     super(FleetGitRepoListPagePo.url);

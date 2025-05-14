@@ -23,7 +23,7 @@ export class FleetBundleNamespaceMappingListPagePo extends PagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.navToSideMenuGroupByLabel('Resources');
     sideNav.navToSideMenuEntryByLabel('Bundle Namespace Mappings');
   }
 
