@@ -4,6 +4,36 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
 
+// describe('JWT Authentication visual testing', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+//   const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+//   before('clean up', () => {
+//     if (removeCluster0) {
+//       //  delete cluster
+//       cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance0);
+//     }
+
+//     if (removeCluster1) {
+//       //  delete cluster
+//       cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, instance1);
+
+//     }
+//   });
+//   it('should take snapshot of JWT Authentication page', () => {
+//     cy.login();
+//     HomePagePo.goTo();
+
+//     JWTAuthenticationPagePo.navTo();
+//     jwtAuthenticationPage.waitForPage();
+
+//     jwtAuthenticationPage.title().should('be.visible');
+//     jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
+//     jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+//     // takes percy snapshot.
+//     cy.percySnapshot('JWT Authentication list Page');
+//   });
+// });
+
 describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   const jwtAuthenticationPage = new JWTAuthenticationPagePo();
 
@@ -64,12 +94,19 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     JWTAuthenticationPagePo.navTo();
     jwtAuthenticationPage.waitForPage();
 
-    // takes percy snapshot.
-    cy.percySnapshot('JWT Authentication Page');
-
     jwtAuthenticationPage.title().should('be.visible');
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+    // takes percy snapshot.
+    cy.percySnapshot('JWT Authentication list Page', {
+      percyCSS: `
+        [data-testid^="sortable-table-"] {
+          display: none !important;
+        }
+      `
+    });
+
     jwtAuthenticationPage.list().state(instance0).should('contain', 'Disabled');
     jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
   });
@@ -153,7 +190,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
     }
   });
 });
-
 describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
   before(() => {
     cy.login();

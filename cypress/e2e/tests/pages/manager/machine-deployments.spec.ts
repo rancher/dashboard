@@ -25,9 +25,19 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     MachineDeploymentsPagePo.goTo();
     machineDeploymentsPage.waitForPage();
 
-    // takes percy snapshot.
-    cy.percySnapshot('machine deployments Page');
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkVisible();
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
+    // takes percy snapshot.
+    cy.percySnapshot('machineSets deployments Page');
+
+    // cy.percySnapshot('machine deployments Page', {
+    //   percyCSS: `
+    //     [data-testid^="sortable-table-"] {
+    //       display: none !important;
+    //     }
+    //   `
+    // });
     machineDeploymentsPage.create();
 
     machineDeploymentsPage.createEditMachineDeployment().waitForPage('as=yaml');

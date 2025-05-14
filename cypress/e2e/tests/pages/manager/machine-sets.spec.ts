@@ -25,6 +25,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
     MachineSetsPagePo.goTo();
     machineSetsPage.waitForPage();
 
+    machineSetsPage.list().resourceTable().sortableTable().checkVisible();
+    machineSetsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     // takes percy snapshot.
     cy.percySnapshot('machineSets Page');
 

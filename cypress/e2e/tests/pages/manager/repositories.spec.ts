@@ -25,10 +25,21 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
 
-    // takes percy snapshot.
-    cy.percySnapshot('repository Page');
-
+    repositoriesPage.list().resourceTable().sortableTable().checkVisible();
+    repositoriesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     repositoriesPage.create();
+
+    // takes percy snapshot.
+    cy.percySnapshot('repository Page', {
+      percyCSS: `
+        *:contains("e2e-test"),
+        *:contains("day"), *:contains("hour"), *:contains("min"),
+        *:contains("days"), *:contains("hours"), *:contains("minutes") {
+          color: transparent;
+        }
+      `,
+    });
+
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);

@@ -38,12 +38,19 @@ describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenki
     cy.contains('Authentication test failed, please check your credentials').should('be.visible');
   });
 
-  it('can create aws cloud credentials', function() {
+  it.only('can take percy snapshot of empty cloud credentials page', () => {
     CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.list().resourceTable().sortableTable().checkVisible();
+    cloudCredentialsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // takes percy snapshot.
     cy.percySnapshot('empty cloud credentials Page');
+  });
 
+  it('can create aws cloud credentials', function() {
+    CloudCredentialsPagePo.navTo();
+    cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();

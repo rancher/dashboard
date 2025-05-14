@@ -84,6 +84,12 @@ describe('Home Page', () => {
       provClusterList.goTo();
       provClusterList.waitForPage();
 
+      provClusterList.list().resourceTable().sortableTable().checkVisible();
+      provClusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      cy.get('[data-testid="sortable-table-downloadKubeConfig"]').should('be.visible');
+      cy.get('[data-testid="sortable-table-download"]').should('be.visible');
+
       // takes percy snapshot.
       cy.percySnapshot('cluster management Page');
 

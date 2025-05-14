@@ -22,6 +22,9 @@ describe('Pod Security Admissions', { testIsolation: 'off', tags: ['@manager', '
     PodSecurityAdmissionsPagePo.navTo();
     podSecurityAdmissionsPage.waitForPage();
 
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkVisible();
+    podSecurityAdmissionsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     // takes percy snapshot.
     cy.percySnapshot('pod security Page');
 
