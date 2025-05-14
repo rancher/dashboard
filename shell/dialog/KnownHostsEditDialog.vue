@@ -2,14 +2,12 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import CodeMirror from '@shell/components/CodeMirror';
 import FileSelector from '@shell/components/form/FileSelector.vue';
-import AppModal from '@shell/components/AppModal.vue';
 
 export default {
-  emits: ['closed'],
+  emits: ['close'],
 
   components: {
     FileSelector,
-    AppModal,
     CodeMirror,
   },
 
@@ -22,6 +20,15 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
+    },
+
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
     }
   },
 
@@ -40,9 +47,7 @@ export default {
 
     return {
       codeMirrorOptions,
-      text:                this.value,
-      showModal:           false,
-      returnFocusSelector: '#known-ssh-hosts-trigger'
+      text: this.value,
     };
   },
 
@@ -56,83 +61,68 @@ export default {
     onTextChange(value) {
       this.text = value?.trim();
     },
-
-    showDialog() {
-      this.showModal = true;
-    },
-
     closeDialog(result) {
       if (!result) {
         this.text = this.value;
       }
 
-      this.showModal = false;
-
-      this.$emit('closed', {
+      this.closed({
         success: result,
         value:   this.text,
       });
+
+      this.$emit('close');
     },
   }
 };
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
+  <div
     ref="sshKnownHostsDialog"
-    data-testid="sshKnownHostsDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    @close="closeDialog(false)"
+    class="ssh-known-hosts-dialog"
   >
-    <div
-      class="ssh-known-hosts-dialog"
-    >
-      <h4 class="mt-10">
-        {{ t('secret.ssh.editKnownHosts.title') }}
-      </h4>
-      <div class="custom mt-10">
-        <div class="dialog-panel">
-          <CodeMirror
-            :value="text"
-            data-testid="ssh-known-hosts-dialog_code-mirror"
-            :options="codeMirrorOptions"
-            :showKeyMapBox="true"
-            @onInput="onTextChange"
+    <h4 class="mt-10">
+      {{ t('secret.ssh.editKnownHosts.title') }}
+    </h4>
+    <div class="custom mt-10">
+      <div class="dialog-panel">
+        <CodeMirror
+          :value="text"
+          data-testid="ssh-known-hosts-dialog_code-mirror"
+          :options="codeMirrorOptions"
+          :showKeyMapBox="true"
+          @onInput="onTextChange"
+        />
+      </div>
+      <div class="dialog-actions">
+        <div class="action-pannel file-selector">
+          <FileSelector
+            class="btn role-secondary"
+            data-testid="ssh-known-hosts-dialog_file-selector"
+            :label="t('generic.readFromFile')"
+            @selected="onTextChange"
           />
         </div>
-        <div class="dialog-actions">
-          <div class="action-pannel file-selector">
-            <FileSelector
-              class="btn role-secondary"
-              data-testid="ssh-known-hosts-dialog_file-selector"
-              :label="t('generic.readFromFile')"
-              @selected="onTextChange"
-            />
-          </div>
-          <div class="action-pannel form-actions">
-            <button
-              class="btn role-secondary"
-              data-testid="ssh-known-hosts-dialog_cancel-btn"
-              @click="closeDialog(false)"
-            >
-              {{ t('generic.cancel') }}
-            </button>
-            <button
-              class="btn role-primary"
-              data-testid="ssh-known-hosts-dialog_save-btn"
-              @click="closeDialog(true)"
-            >
-              {{ t('generic.save') }}
-            </button>
-          </div>
+        <div class="action-pannel form-actions">
+          <button
+            class="btn role-secondary"
+            data-testid="ssh-known-hosts-dialog_cancel-btn"
+            @click="closeDialog(false)"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <button
+            class="btn role-primary"
+            data-testid="ssh-known-hosts-dialog_save-btn"
+            @click="closeDialog(true)"
+          >
+            {{ t('generic.save') }}
+          </button>
         </div>
       </div>
     </div>
-  </app-modal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

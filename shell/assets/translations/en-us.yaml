@@ -238,9 +238,10 @@ nav:
     clusters: clusters
     ariaLabel: Filter clusters on main menu
   resourceSearch:
-    label: Resource Search
-    toolTip: Resource Search {key}
-    placeholder: Type to search for a resource...
+    label: Resource Type Search
+    prompt: Search for a Kubernetes Resource/Custom Resource type
+    toolTip: Resource Type Search {key}
+    placeholder: Type to search for a resource type...
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
@@ -2057,6 +2058,7 @@ cluster:
     docker: Docker
     eks: Amazon EKS
     exoscale: Exoscale
+    sks: Exoscale SKS
     gcp: Google
     google: Google GCE
     googlegke: Google GKE
@@ -3944,6 +3946,10 @@ namespaceFilter:
       one {1 item selected}
       other {{total} items selected}
       }
+  input: Filter namespace options
+  button:
+    clear: Remove applied namespace filters
+    clearFilter: Clear namespace options filter 
 
 namespaceList:
   selectLabel: Namespace
@@ -4744,6 +4750,7 @@ prefs:
     allNamespaces: Show dynamic Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
     pluginDeveloper: Enable Extension developer features
+    pluginDeveloperTooltip: Enables the ability to perform a developer load of UI extensions
   hideDesc:
     label: Hide Type Description banners above resource lists
   helm:
@@ -7831,9 +7838,9 @@ performance:
 banner:
   label: Fixed Banners
   settingName: Banners
-  headerBanner: Header Banner
-  footerBanner: Footer Banner
-  loginScreenBanner: Login Screen Banner
+  bannerHeader: Header Banner
+  bannerFooter: Footer Banner
+  bannerConsent: Login Screen Banner
   text: Text
   buttonText: Accept Button Text
   textColor: Text Color

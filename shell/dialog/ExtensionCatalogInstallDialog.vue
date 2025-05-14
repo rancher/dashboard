@@ -10,7 +10,6 @@ import { allHash } from '@shell/utils/promise';
 import ResourceManager from '@shell/mixins/resource-manager';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import AppModal from '@shell/components/AppModal';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading.vue';
 import { Banner } from '@components/Banner';
@@ -98,13 +97,40 @@ const initialState = () => {
 };
 
 export default {
-  emits: ['closed', 'refresh'],
+  emits: ['close'],
 
   components: {
-    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect, AppModal,
+    AsyncButton, Banner, LabeledInput, Loading, LabeledSelect
   },
 
   mixins: [ResourceManager],
+
+  props: {
+    /**
+     * Callback to trigger refresh banner on extensions screen
+     */
+    refresh: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    resources: {
+      type:    Array,
+      default: () => []
+    },
+    registerBackgroundClosing: {
+      type:    Function,
+      default: () => {}
+    }
+  },
 
   async fetch() {
     const hash = {};
@@ -126,9 +152,7 @@ export default {
   data() {
     return {
       ...initialState(),
-      secondaryResourceData: null,
-      showModal:             false,
-      returnFocusSelector:   '[data-testid="extensions-catalog-load-dialog"]'
+      secondaryResourceData: null
     };
   },
 
@@ -163,18 +187,15 @@ export default {
       };
     },
 
-    showDialog() {
-      this.showModal = true;
-    },
-
     closeDialog(result) {
-      this.showModal = false;
-      this.$emit('closed', result);
+      this.closed(result);
 
       // Reset state
       Object.assign(this.$data, initialState());
       this.secondaryResourceData = this.secondaryResourceDataConfig();
       this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+
+      this.$emit('close');
     },
 
     async loadImage(btnCb) {
@@ -205,7 +226,8 @@ export default {
                 message: this.t('plugins.manageCatalog.imageLoad.success.message'),
                 timeout: 4000,
               }, { root: true });
-              this.$emit('refresh');
+
+              this.refresh();
             }
           } else {
             throw new Error('Unable to determine image name');
@@ -430,90 +452,80 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    name="catalogLoadDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    @close="closeDialog()"
+  <Loading
+    v-if="$fetchState.loading"
+    mode="relative"
+  />
+  <div
+    v-else
+    class="plugin-install-dialog"
   >
-    <Loading
-      v-if="$fetchState.loading"
-      mode="relative"
-    />
-    <div
-      v-else
-      class="plugin-install-dialog"
-    >
-      <div>
-        <h4>
-          {{ t('plugins.manageCatalog.imageLoad.load') }}
-        </h4>
-        <p>
-          {{ t('plugins.manageCatalog.imageLoad.prompt') }}
-        </p>
+    <div>
+      <h4>
+        {{ t('plugins.manageCatalog.imageLoad.load') }}
+      </h4>
+      <p>
+        {{ t('plugins.manageCatalog.imageLoad.prompt') }}
+      </p>
 
-        <div class="custom mt-10">
-          <Banner
-            color="info"
-            :label="t('plugins.manageCatalog.imageLoad.banner')"
-            class="mt-10"
-          />
-        </div>
-
-        <div class="custom mt-10">
-          <div class="fields">
-            <LabeledInput
-              v-model:value.trim="deploymentValues.spec.template.spec.containers[0].image"
-              label-key="plugins.manageCatalog.imageLoad.fields.image.label"
-              placeholder-key="plugins.manageCatalog.imageLoad.fields.image.placeholder"
-            />
-          </div>
-        </div>
-        <div class="custom mt-10">
-          <div class="fields">
-            <LabeledSelect
-              v-model:value="imagePullSecrets"
-              :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.label')"
-              :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.tooltip')"
-              :multiple="true"
-              :taggable="true"
-              :options="imagePullNamespacedSecrets"
-              option-label="metadata.name"
-              :reduce="service => service.metadata.name"
-            />
-            <Banner
-              color="warning"
-              class="mt-10"
-            >
-              <span v-clean-html="t('plugins.manageCatalog.imageLoad.fields.secrets.banner', {}, true)" />
-            </Banner>
-          </div>
-        </div>
+      <div class="custom mt-10">
+        <Banner
+          color="info"
+          :label="t('plugins.manageCatalog.imageLoad.banner')"
+          class="mt-10"
+        />
       </div>
 
       <div class="custom mt-10">
         <div class="fields">
-          <div class="dialog-buttons mt-20">
-            <button
-              class="btn role-secondary"
-              data-testid="image-load-ext-modal-cancel-btn"
-              @click="closeDialog()"
-            >
-              {{ t('generic.cancel') }}
-            </button>
-            <AsyncButton
-              mode="load"
-              data-testid="image-load-ext-modal-install-btn"
-              @click="loadImage"
-            />
-          </div>
+          <LabeledInput
+            v-model:value.trim="deploymentValues.spec.template.spec.containers[0].image"
+            label-key="plugins.manageCatalog.imageLoad.fields.image.label"
+            placeholder-key="plugins.manageCatalog.imageLoad.fields.image.placeholder"
+          />
+        </div>
+      </div>
+      <div class="custom mt-10">
+        <div class="fields">
+          <LabeledSelect
+            v-model:value="imagePullSecrets"
+            :label="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.label')"
+            :tooltip="t('plugins.manageCatalog.imageLoad.fields.imagePullSecrets.tooltip')"
+            :multiple="true"
+            :taggable="true"
+            :options="imagePullNamespacedSecrets"
+            option-label="metadata.name"
+            :reduce="service => service.metadata.name"
+          />
+          <Banner
+            color="warning"
+            class="mt-10"
+          >
+            <span v-clean-html="t('plugins.manageCatalog.imageLoad.fields.secrets.banner', {}, true)" />
+          </Banner>
         </div>
       </div>
     </div>
-  </app-modal>
+
+    <div class="custom mt-10">
+      <div class="fields">
+        <div class="dialog-buttons mt-20">
+          <button
+            class="btn role-secondary"
+            data-testid="image-load-ext-modal-cancel-btn"
+            @click="closeDialog()"
+          >
+            {{ t('generic.cancel') }}
+          </button>
+          <AsyncButton
+            mode="load"
+            data-testid="image-load-ext-modal-install-btn"
+            @click="loadImage"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>

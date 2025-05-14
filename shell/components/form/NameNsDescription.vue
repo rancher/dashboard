@@ -31,6 +31,10 @@ export default {
       type:     String,
       required: true,
     },
+    nameHidden: {
+      type:    Boolean,
+      default: false,
+    },
     nameNsHidden: {
       type:    Boolean,
       default: false,
@@ -474,7 +478,7 @@ export default {
     </div>
 
     <div
-      v-if="!nameNsHidden"
+      v-if="!nameHidden && !nameNsHidden"
       :data-testid="componentTestid + '-name'"
       class="col span-3"
     >

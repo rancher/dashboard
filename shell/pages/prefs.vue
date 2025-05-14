@@ -325,6 +325,7 @@ export default {
         <Checkbox
           v-model:value="pluginDeveloper"
           :label="t('prefs.advFeatures.pluginDeveloper', {}, true)"
+          :tooltip="t('prefs.advFeatures.pluginDeveloperTooltip')"
           class="mt-20"
         />
       </template>

@@ -1,7 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import AppModal from '@shell/components/AppModal.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
@@ -11,16 +10,89 @@ import { SETTING } from '@shell/config/settings';
 // Note: This dialog handles installation and update of a plugin
 
 export default {
-  emits: ['closed', 'update'],
+  emits: ['close'],
 
   components: {
     AsyncButton,
     Banner,
-    LabeledSelect,
-    AppModal,
+    LabeledSelect
+  },
+
+  props: {
+    /**
+     * Plugin object
+     */
+    plugin: {
+      type:     Object,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Modal mode
+     */
+    mode: {
+      type:     String,
+      default:  '',
+      required: true
+    },
+    /**
+     * Callback to update install status on extensions main screen
+     */
+    updateStatus: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    /**
+     * Callback when modal is closed
+     */
+    closed: {
+      type:     Function,
+      default:  () => {},
+      required: true
+    },
+    resources: {
+      type:    Array,
+      default: () => []
+    },
+    registerBackgroundClosing: {
+      type:    Function,
+      default: () => {}
+    }
   },
 
   async fetch() {
+    // Default to latest version on install (this is default on the plugin)
+    this.version = this.plugin?.displayVersion;
+
+    if (this.mode === 'update') {
+      this.currentVersion = this.plugin?.displayVersion;
+
+      // Update to latest version, so take the first version
+      if (this.plugin?.installableVersions?.length > 0) {
+        this.version = this.plugin?.installableVersions?.[0]?.version;
+      }
+    } else if (this.mode === 'rollback') {
+      // Find the newest version once we remove the current version
+      const versionNames = this.plugin?.installableVersions.filter((v) => v.version !== this.plugin?.displayVersion);
+
+      this.currentVersion = this.plugin?.displayVersion;
+
+      if (versionNames.length > 0) {
+        this.version = versionNames[0].version;
+      }
+    }
+
+    // Make sure we have the version available
+    const versionChart = this.plugin?.installableVersions?.find((v) => v.version === this.version);
+
+    if (!versionChart) {
+      this.version = this.plugin?.installableVersions?.[0]?.version;
+    }
+
+    this.busy = false;
+    this.update = this.mode !== 'install';
+
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
       id:   SETTING.SYSTEM_DEFAULT_REGISTRY,
@@ -31,12 +103,9 @@ export default {
     return {
       currentVersion:         '',
       defaultRegistrySetting: null,
-      plugin:                 undefined,
       busy:                   false,
       version:                '',
       update:                 false,
-      mode:                   '',
-      showModal:              false,
       chartVersionInfo:       null
     };
   },
@@ -82,43 +151,6 @@ export default {
   },
 
   methods: {
-    showDialog(plugin, mode) {
-      this.plugin = plugin;
-      this.mode = mode;
-
-      // Default to latest version on install (this is default on the plugin)
-      this.version = plugin.displayVersion;
-
-      if (mode === 'update') {
-        this.currentVersion = plugin.displayVersion;
-
-        // Update to latest version, so take the first version
-        if (plugin.installableVersions?.length > 0) {
-          this.version = plugin.installableVersions?.[0]?.version;
-        }
-      } else if (mode === 'rollback') {
-        // Find the newest version once we remove the current version
-        const versionNames = plugin.installableVersions.filter((v) => v.version !== plugin.displayVersion);
-
-        this.currentVersion = plugin.displayVersion;
-
-        if (versionNames.length > 0) {
-          this.version = versionNames[0].version;
-        }
-      }
-
-      // Make sure we have the version available
-      const versionChart = plugin.installableVersions?.find((v) => v.version === this.version);
-
-      if (!versionChart) {
-        this.version = plugin.installableVersions?.[0]?.version;
-      }
-
-      this.busy = false;
-      this.update = mode !== 'install';
-      this.showModal = true;
-    },
-
     async loadVersionInfo() {
       try {
         this.busy = true;
@@ -146,8 +178,8 @@ export default {
     },
 
     closeDialog(result) {
-      this.showModal = false;
-      this.$emit('closed', result);
+      this.closed(result);
+      this.$emit('close');
     },
 
     async install() {
@@ -155,7 +187,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.$emit('update', plugin.name, 'install');
+      this.updateStatus(plugin.name, 'install');
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find((v) => v.version === this.version);
@@ -250,68 +282,54 @@ export default {
 </script>
 
 <template>
-  <app-modal
-    v-if="showModal"
-    name="installPluginDialog"
-    height="auto"
-    :scrollable="true"
-    :trigger-focus-trap="true"
-    :return-focus-selector="returnFocusSelector"
-    :return-focus-first-iterable-node-selector="'#extensions-main-page'"
-    @close="closeDialog(false)"
-  >
-    <div
-      v-if="plugin"
-      class="plugin-install-dialog"
-    >
-      <h4 class="mt-10">
-        {{ t(`plugins.${ mode }.title`, { name: plugin.label }) }}
-      </h4>
-      <div class="custom mt-10">
-        <div class="dialog-panel">
-          <p>
-            {{ t(`plugins.${ mode }.prompt`) }}
-          </p>
-          <Banner
-            v-if="chartVersionLoadsWithoutAuth"
-            color="warning"
-            :label="t('plugins.warnNoAuth')"
-          />
-          <Banner
-            v-if="!plugin.certified"
-            color="warning"
-            :label="t('plugins.install.warnNotCertified')"
-          />
-          <LabeledSelect
-            v-if="showVersionSelector"
-            v-model:value="version"
-            label-key="plugins.install.version"
-            :options="versionOptions"
-            class="version-selector mt-10"
-            data-testid="install-ext-modal-select-version"
-          />
-          <div v-else>
-            {{ t('plugins.install.version') }} {{ version }}
-          </div>
-        </div>
-        <div class="dialog-buttons">
-          <button
-            :disabled="busy"
-            class="btn role-secondary"
-            data-testid="install-ext-modal-cancel-btn"
-            @click="closeDialog(false)"
-          >
-            {{ t('generic.cancel') }}
-          </button>
-          <AsyncButton
-            :mode="buttonMode"
-            data-testid="install-ext-modal-install-btn"
-            @click="install"
-          />
+  <div class="plugin-install-dialog">
+    <h4 class="mt-10">
+      {{ t(`plugins.${ mode }.title`, { name: plugin?.label }) }}
+    </h4>
+    <div class="custom mt-10">
+      <div class="dialog-panel">
+        <p>
+          {{ t(`plugins.${ mode }.prompt`) }}
+        </p>
+        <Banner
+          v-if="chartVersionLoadsWithoutAuth"
+          color="warning"
+          :label="t('plugins.warnNoAuth')"
+        />
+        <Banner
+          v-if="!plugin?.certified"
+          color="warning"
+          :label="t('plugins.install.warnNotCertified')"
+        />
+        <LabeledSelect
+          v-if="showVersionSelector"
+          v-model:value="version"
+          label-key="plugins.install.version"
+          :options="versionOptions"
+          class="version-selector mt-10"
+          data-testid="install-ext-modal-select-version"
+        />
+        <div v-else>
+          {{ t('plugins.install.version') }} {{ version }}
         </div>
       </div>
+      <div class="dialog-buttons">
+        <button
+          :disabled="busy"
+          class="btn role-secondary"
+          data-testid="install-ext-modal-cancel-btn"
+          @click="closeDialog(false)"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          :mode="buttonMode"
+          data-testid="install-ext-modal-install-btn"
+          @click="install"
+        />
+      </div>
     </div>
-  </app-modal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

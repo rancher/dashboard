@@ -17,6 +17,14 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     aboutPage.waitForPage();
   });
 
+  it('no Prime info when community', () => {
+    HomePagePo.goToAndWaitForGet();
+    AboutPagePo.navTo();
+    aboutPage.waitForPage();
+
+    aboutPage.rancherPrimeInfo().should('not.exist');
+  });
+
   it('can navigate to Diagnostics page', () => {
     AboutPagePo.navTo();
     aboutPage.waitForPage();
@@ -160,6 +168,28 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           expect(request.url).includes(windowsVersion);
         });
       });
+    });
+  });
+
+  describe('Rancher Prime', () => {
+    function interceptVersionAndSetToPrime() {
+      return cy.intercept('GET', '/rancherversion', {
+        statusCode: 200,
+        body:       {
+          Version:      '9bf6631da',
+          GitCommit:    '9bf6631da',
+          RancherPrime: 'true'
+        }
+      });
+    }
+
+    it('should show prime panel on about page', () => {
+      interceptVersionAndSetToPrime().as('rancherVersion');
+      cy.login();
+      aboutPage.goTo();
+      aboutPage.waitForPage();
+
+      aboutPage.rancherPrimeInfo().should('exist');
     });
   });
 });

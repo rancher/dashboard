@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import YAML from 'yaml';
 import { isBase64 } from '@shell/utils/string';
-
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
@@ -204,24 +203,7 @@ export default {
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
-          let value;
-          let label;
-
-          try {
-            const config = JSON.parse(O.spec.config);
-
-            const id = config.vlan;
-
-            value = O.id;
-            label = `${ value } (vlanId=${ id })`;
-          } catch (err) {}
-
-          return {
-            label,
-            value
-          };
-        });
+        this.networks = res.networks.value?.data;
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -391,7 +373,7 @@ export default {
       storageClass:       [],
       namespaces:         [],
       namespaceOptions:   [],
-      networkOptions:     [],
+      networks:           [],
       userDataOptions:    [],
       networkDataOptions: [],
       allNodeObjects:     [],
@@ -437,6 +419,31 @@ export default {
       },
       set(neu) {
         this.images = neu;
+      }
+    },
+
+    networkOptions: {
+      get() {
+        return (this.networks || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
+          let value;
+          let label;
+
+          try {
+            const config = JSON.parse(O.spec.config);
+            const id = config.vlan;
+
+            value = O.id;
+            label = `${ value } (vlanId=${ id })`;
+          } catch (err) {}
+
+          return {
+            label,
+            value
+          };
+        });
+      },
+      set(neu) {
+        this.networks = neu;
       }
     },
 
@@ -745,6 +752,21 @@ export default {
       }
     },
 
+    async getAvailableNetworks() {
+      try {
+        const clusterId = get(this.credential, 'decodedData.clusterId');
+
+        if (clusterId) {
+          const url = `/k8s/clusters/${ clusterId }/v1`;
+          const res = await this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` });
+
+          this.networks = res?.data;
+        }
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+    },
+
     async getAvailableVGpuDevices() {
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
@@ -921,27 +943,10 @@ export default {
     },
 
     updateUserData(templateValue) {
-      try {
-        const templateJsonData = this.convertToJson(templateValue);
+      this.installAgent = false;
 
-        let userDataYaml;
-
-        if (this.installAgent) {
-          const mergedObj = Object.assign(templateJsonData, { ...QGA_JSON });
-
-          userDataYaml = this.addCloudConfigComment(mergedObj);
-        } else {
-          userDataYaml = templateValue;
-        }
-
-        this.$refs.userDataYamlEditor.updateValue(userDataYaml);
-        this.userData = userDataYaml;
-      } catch (e) {
-        this.$store.dispatch('growl/error', {
-          title:   this.t('generic.notification.title.error'),
-          message: this.t('harvesterManager.rke.templateError')
-        }, { root: true });
-      }
+      this.$refs.userDataYamlEditor.updateValue(templateValue);
+      this.userData = templateValue;
     },
 
     updateVGpu() {
@@ -1414,6 +1419,7 @@ export default {
                 :required="true"
                 label-key="cluster.credential.harvester.network.networkName"
                 :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
+                @on-open="getAvailableNetworks"
                 @update:value="update"
               />
             </div>

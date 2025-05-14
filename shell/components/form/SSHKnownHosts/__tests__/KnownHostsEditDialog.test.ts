@@ -1,6 +1,6 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
-import KnownHostsEditDialog from '@shell/components/form/SSHKnownHosts/KnownHostsEditDialog.vue';
+import KnownHostsEditDialog from '@shell/dialog/KnownHostsEditDialog.vue';
 import CodeMirror from '@shell/components/CodeMirror.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 
@@ -13,17 +13,6 @@ const mockedStore = () => {
 const requiredSetup = () => {
   return { global: { mocks: { $store: mockedStore() } } };
 };
-
-jest.mock('focus-trap', () => {
-  return {
-    createFocusTrap: jest.fn().mockImplementation(() => {
-      return {
-        activate:   jest.fn(),
-        deactivate: jest.fn(),
-      };
-    }),
-  };
-});
 
 describe('component: KnownHostsEditDialog', () => {
   beforeEach(() => {
@@ -44,8 +33,6 @@ describe('component: KnownHostsEditDialog', () => {
   });
 
   it('should update text from CodeMirror', async() => {
-    await wrapper.setData({ showModal: true });
-
     expect(wrapper.vm.text).toBe('line1\nline2\n');
 
     const codeMirror = wrapper.getComponent(CodeMirror);
@@ -62,8 +49,6 @@ describe('component: KnownHostsEditDialog', () => {
   });
 
   it('should update text from FileSelector', async() => {
-    await wrapper.setData({ showModal: true });
-
     expect(wrapper.vm.text).toBe('line1\nline2\n');
 
     const fileSelector = wrapper.getComponent(FileSelector);
@@ -78,38 +63,34 @@ describe('component: KnownHostsEditDialog', () => {
   });
 
   it('should save changes and close dialog', async() => {
-    await wrapper.setData({
-      showModal: true,
-      text:      'foo',
-    });
+    const closed = jest.spyOn(wrapper.vm, 'closed');
+
+    await wrapper.setData({ text: 'foo' });
 
     expect(wrapper.vm.value).toBe('line1\nline2\n');
     expect(wrapper.vm.text).toBe('foo');
 
     await wrapper.vm.closeDialog(true);
 
-    expect((wrapper.emitted('closed') as any)[0][0].value).toBe('foo');
-
-    const dialog = wrapper.vm.$refs['sshKnownHostsDialog'];
-
-    expect(dialog).toBeNull();
+    expect(closed).toHaveBeenCalledWith({
+      success: true,
+      value:   'foo'
+    });
   });
 
   it('should discard changes and close dialog', async() => {
-    await wrapper.setData({
-      showModal: true,
-      text:      'foo',
-    });
+    const closed = jest.spyOn(wrapper.vm, 'closed');
+
+    await wrapper.setData({ text: 'foo' });
 
     expect(wrapper.vm.value).toBe('line1\nline2\n');
     expect(wrapper.vm.text).toBe('foo');
 
     await wrapper.vm.closeDialog(false);
 
-    expect((wrapper.emitted('closed') as any)[0][0].value).toBe('line1\nline2\n');
-
-    const dialog = wrapper.vm.$refs['sshKnownHostsDialog'];
-
-    expect(dialog).toBeNull();
+    expect(closed).toHaveBeenCalledWith({
+      success: false,
+      value:   'line1\nline2\n'
+    });
   });
 });
