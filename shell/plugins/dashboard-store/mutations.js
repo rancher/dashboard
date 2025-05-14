@@ -86,6 +86,14 @@ export function createLoadArgs(ctx, dataType) {
   };
 }
 
+/**
+ * Add or update the given resource in the store
+ *
+ * invalidatePageCache
+ * - if something calls `load` then the cache no longer has a page so we invalidate it
+ * - however on resource create or remove this can lead to lists showing nothing... before the new page is fetched
+ * - for those cases avoid invaliding the page cache
+ */
 export function load(state, {
   data, ctx, existing, cachedArgs, invalidatePageCache = true,
 }) {
@@ -168,7 +176,7 @@ export function load(state, {
     }
   }
 
-  // TODO: RC BUG this is called when resource.save --> load action is called
+  // see `invalidatePageCache` description above
   cache.havePage = invalidatePageCache ? false : cache.havePage;
 
   return entry;

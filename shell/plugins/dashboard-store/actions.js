@@ -429,9 +429,6 @@ export default {
       return Promise.reject(e);
     }
 
-    // TODO: RC this should be done to catch watch all --> watch some
-    // await dispatch('unwatch', { type });
-
     // Of type @StorePagination
     const pagination = opt.pagination ? {
       request: {
@@ -446,7 +443,6 @@ export default {
     } : undefined;
 
     if (!opt.transient) {
-      // TODO: RC watching resource for changes --> resource.changes kicks this off --> loadPage clears store --> watch resource is stale / never changes
       commit('loadPage', {
         ctx,
         type,
@@ -596,6 +592,14 @@ export default {
     return out;
   },
 
+  /**
+   * Add or update the given resource in the store
+   *
+   * invalidatePageCache
+   * - if something calls `load` then the cache no longer has a page so we invalidate it
+   * - however on resource create or remove this can lead to lists showing nothing... before the new page is fetched
+   * - for those cases avoid invaliding the page cache
+   */
   load(ctx, { data, existing, invalidatePageCache }) {
     const { getters, commit } = ctx;
 

@@ -39,6 +39,7 @@ import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
+import myLogger from '@shell/utils/my-logger';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -848,9 +849,7 @@ export const actions = {
 
     // See comment above. Now that we have feature flags we can watch resources
     toWatch.forEach((type) => {
-      const revision = getters['management/typeEntry'](type)?.revision;
-
-      dispatch('management/watch', { type, revision });
+      dispatch('management/watch', { type });
     });
 
     const isMultiCluster = getters['isMultiCluster'];
@@ -1076,8 +1075,7 @@ export const actions = {
       projects:   fetchProjects(),
       counts:     dispatch('cluster/findAll', { type: COUNT }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
-      // TODO: RC why is this commented out?
-      // navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     await dispatch('cleanNamespaces');

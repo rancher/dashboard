@@ -36,6 +36,7 @@ import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import myLogger from '@shell/utils/my-logger';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -186,10 +187,10 @@ export async function createWorker(store, ctx) {
 }
 
 export function equivalentWatch(a, b) {
-  const aresourceType = a.resourceType || a.type;
-  const bresourceType = b.resourceType || b.type;
+  const aResourceType = a.resourceType || a.type;
+  const bResourceType = b.resourceType || b.type;
 
-  if ( aresourceType !== bresourceType ) {
+  if ( aResourceType !== bResourceType ) {
     return false;
   }
 
@@ -366,7 +367,6 @@ const sharedActions = {
     return Promise.all(cleanupTasks);
   },
 
-  // TODO: RC bug - create imported cluster.... no mgmt cluster received....
   /**
    * Create a trigger for a specific type of watch event
    *
@@ -438,11 +438,12 @@ const sharedActions = {
     state, dispatch, getters, rootGetters
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
-
     let {
       // eslint-disable-next-line prefer-const
       type, selector, id, revision, namespace, stop, force, mode
     } = params;
+
+    myLogger.warn('watch', type, revision);
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
@@ -473,9 +474,11 @@ const sharedActions = {
       return;
     }
 
-    if ( !stop && getters.watchStarted({
+    const messageMeta = {
       type, id, selector, namespace, mode
-    }) ) {
+    };
+
+    if (!stop && getters.watchStarted(messageMeta)) {
       // eslint-disable-next-line no-console
       state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, {
         type, id, selector, namespace, mode
@@ -484,30 +487,41 @@ const sharedActions = {
       return;
     }
 
-    // isSteveCacheEnabled check is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
-    // Steve cache backed api does not return a revision, so `revision` here is always undefined
-    // Which means we find a revision within a resource itself and use it in the watch
-    // That revision is probably too old and results in a watch error
+    if (!stop) {
+      dispatch('unwatchIncompatible', messageMeta);
+    }
+
+    // TODO: RC DELETE ME
+    // xisSteveCacheEnabled check is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
+    // xSteve cache backed api does not return a revision, so `revision` here is always undefined
+    // xWhich means we find a revision within a resource itself and use it in the watch
+    // xThat revision is probably too old and results in a watch error
+
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
-    if (typeof revision === 'undefined') { // TODO: RC DEBUG --> REMOVE
+    // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) { // TODO: RC DEBUG --> REMOVE
+    if (typeof revision === 'undefined') {
       revision = getters.nextResourceVersion(type, id);
     }
 
     // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
-    if (type === 'pod') {
-      console.info('!!!!!!!!!!!!!!revision', revision);
-      // revision = 155770;// Number.MAX_SAFE_INTEGER; // 155770 from resource
-      // revision = 1;// Number.MAX_SAFE_INTEGER;
-      // revision = Number.MAX_SAFE_INTEGER;
-    }
+    // if (type === 'pod') {
+    //   myLogger.warn('!!!!!!!!!!!!!!revision', revision);
+    //   // revision = 50233;// Number.MAX_SAFE_INTEGER; // 155770 from resource
+    //   // revision = 1;// Number.MAX_SAFE_INTEGER;
+    //   // revision = Number.MAX_SAFE_INTEGER;
+    // }
 
     const msg = { resourceType: type };
 
     if (mode) {
       msg.mode = mode;
     }
+
+    // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
+    //   msg.namespace = 'default';
+    //   delete msg.mode;
+    // }
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
@@ -527,6 +541,8 @@ const sharedActions = {
 
     if ( selector ) {
       msg.selector = selector;
+      // msg.namespace = 'default'
+      // msg.mode = 'resource.changes'; // TODO: RC DEBUG --> REMOVE
     }
 
     const worker = this.$workers?.[getters.storeName] || {};
@@ -583,6 +599,24 @@ const sharedActions = {
         unwatch(obj);
       }
     }
+  },
+
+  /**
+   * Unwatch watches that are incompatible with the new type
+   */
+  unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
+    const watchesOfType = getters.watchesOfType(messageMeta.type);
+    let unwatch = [];
+
+    if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
+      // resource.changes should not be running when other types are, so unwatch
+      unwatch = watchesOfType.filter((entry) => entry.mode !== STEVE_WATCH_EVENT.CHANGES);
+    } else {
+      // all other modes of watches should not be running when resource.changes is, so unwatch
+      unwatch = watchesOfType.filter((entry) => entry.mode === STEVE_WATCH_EVENT.CHANGES);
+    }
+
+    unwatch.forEach((entry) => dispatch('unwatch', entry));
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -737,13 +771,12 @@ const defaultActions = {
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
-          have = []; // TODO: RC ensure we don't supplement store / leave stale entries
+          have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
 
           // This could have been kicked off given a resource.changes message
           // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
           // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
           // (see deferred process - `waiting.push(later);` - in request action).
-          //
           // If this becomes an issue we need to debounce and work around the deferred issue within request
           want = await dispatch('findPage', {
             type: resourceType,
@@ -1206,6 +1239,8 @@ const defaultGetters = {
 
     if ( !revision ) {
       const cache = state.types[type];
+
+      myLogger.warn('nextResourceVersion', type, cache?.revision);
 
       if ( !cache ) {
         return null;

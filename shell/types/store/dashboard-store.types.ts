@@ -50,7 +50,7 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   watch?: boolean,
   /**
-   * TODO: RC
+   * Does this request stem from a list with manual refresh?
    */
   hasManualRefresh?: boolean,
   /**
