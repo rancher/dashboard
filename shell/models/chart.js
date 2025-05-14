@@ -93,7 +93,7 @@ export default class Chart extends SteveModel {
   get cardContent() {
     const subHeaderItems = [
       {
-        icon:        'icon-version-alt-alt',
+        icon:        'icon-version-alt',
         iconTooltip: { key: 'tableHeaders.version' },
         label:       this.versions[0].version
       },

@@ -173,13 +173,19 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
           </div>
         </div>
 
-        <div class="item-card-header-action-menu no-card-click">
-          <slot name="item-card-actions" />
+        <template v-if="$slots['item-card-actions']">
+          <div class="item-card-header-action-menu no-card-click">
+            <slot name="item-card-actions" />
+          </div>
+        </template>
+      </div>
+
+      <template v-if="$slots['item-card-sub-header']">
+        <div class="item-card-sub-header">
+          <slot name="item-card-sub-header" />
         </div>
-      </div>
-      <div class="item-card-sub-header">
-        <slot name="item-card-sub-header" />
-      </div>
+      </template>
+
       <div
         v-if="content"
         class="item-card-content"
@@ -265,7 +271,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
       margin-right: 4px;
 
       .icon {
-        font-size: 21px;
+        font-size: 23px;
 
         &.error {
           color: var(--error);
@@ -281,7 +287,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
 
     &-action-menu {
       margin-top: -4px;
-      margin-right: -8px;
+      margin-right: -4px;
 
       ::v-deep .icon {
         font-size: 16px;
@@ -295,6 +301,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     justify-content: flex-start;
     gap: var(--gap-md);
     color: var(--link-text-secondary);
+    margin-bottom: 8px;
   }
 
   &-content {
@@ -305,7 +312,6 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     text-overflow: ellipsis;
     line-height: 21px;
     word-break: break-word;
-    margin-top: 8px;
   }
 
   &-footer {

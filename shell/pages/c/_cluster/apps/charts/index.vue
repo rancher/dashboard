@@ -635,7 +635,7 @@ export default {
     align-items: center;
 
     .icon {
-      font-size: 16px;
+      font-size: 18px;
       margin-right: 8px;
     }
   }
@@ -648,7 +648,7 @@ export default {
     margin-right: 16px;
 
     .app-card-footer-item-icon {
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .app-card-footer-item-text {
