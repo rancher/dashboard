@@ -274,7 +274,6 @@ export default {
           filters
         } = stevePaginationUtils.createParamsFromNsFilter({
           allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-          getProject:                   (id) => this.$store.getters[`management/byId`](MANAGEMENT.PROJECT, id),
           selection:                    neu,
           isAllNamespaces:              this.isAllNamespaces,
           isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
