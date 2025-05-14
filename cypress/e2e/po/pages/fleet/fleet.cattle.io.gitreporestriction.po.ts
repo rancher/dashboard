@@ -22,7 +22,7 @@ export class FleetGitRepoRestrictionListPagePo extends BaseListPagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.navToSideMenuGroupByLabel('Resources');
     sideNav.navToSideMenuEntryByLabel('GitRepoRestrictions');
   }
 }
