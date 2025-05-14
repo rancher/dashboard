@@ -7,6 +7,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { Banner } from '@components/Banner';
 
 export default ({
   name: 'BannerSettings',
@@ -30,7 +31,7 @@ export default ({
   },
 
   components: {
-    Checkbox, ColorInput, LabeledInput, LabeledSelect, RadioGroup, TextAreaAutoGrow, ToggleSwitch
+    Banner, Checkbox, ColorInput, LabeledInput, LabeledSelect, RadioGroup, TextAreaAutoGrow, ToggleSwitch
   },
 
   data() {
@@ -139,9 +140,10 @@ export default ({
     <div class="row pb-10">
       <ToggleSwitch
         v-model:value="isHtml"
+        :data-testid="`banner_content_type_toggle${bannerType}`"
         :disabled="isUiDisabled"
-        off-label="Text"
-        on-label="HTML"
+        :off-label="t('banner.type.text')"
+        :on-label="t('banner.type.html')"
       />
     </div>
     <div
@@ -215,10 +217,21 @@ export default ({
       v-else
       class="row"
     >
-      <TextAreaAutoGrow
-        v-model:value="value[bannerType].html"
-        :min-height="64"
-      />
+      <div class="col span-12">
+        <Banner
+          :disabled="isUiDisabled"
+          color="warning"
+        >
+          {{ t('banner.htmlWarning') }}
+        </Banner>
+        <TextAreaAutoGrow
+          v-model:value="value[bannerType].html"
+          :data-testid="`banner_html${bannerType}`"
+          :min-height="64"
+          :disabled="isUiDisabled"
+          :placeholder="t('banner.type.html')"
+        />
+      </div>
     </div>
     <div
       v-if="isConsentBanner"
@@ -228,8 +241,9 @@ export default ({
         <div class="mt-10">
           <Checkbox
             v-model:value="showAsDialog"
-            name="bannerDecoration"
+            name="bannerShowAsDialog"
             class="banner-decoration-checkbox"
+            :data-testid="`banner_show_as_dialog_checkbox${bannerType}`"
             :mode="mode"
             :label="t('banner.showAsDialog.label')"
             :tooltip="t('banner.showAsDialog.tooltip')"
@@ -237,6 +251,7 @@ export default ({
           />
           <LabeledInput
             v-model:value="buttonText"
+            :data-testid="`banner_accept_button${bannerType}`"
             :disabled="!showAsDialog || isUiDisabled"
             :label="t('banner.buttonText')"
             :aria-describedby="bannerTitleId"

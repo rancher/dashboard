@@ -73,7 +73,7 @@ declare global {
 
       state(state: any): any;
 
-      login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean): Chainable<Element>;
+      login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;

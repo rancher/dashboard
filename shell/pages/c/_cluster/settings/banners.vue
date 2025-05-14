@@ -74,6 +74,7 @@ export default {
     Object.assign(this, hash);
 
     this.uiBannerIndividual = getIndividualBanners(this.$store);
+    this.overlayDefaults(this.bannerVal);
   },
 
   data() {
@@ -130,12 +131,26 @@ export default {
           this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
 
           overlayIndividualBanners(this.bannerVal, this.uiBannerIndividual);
+          this.overlayDefaults(this.bannerVal);
         } catch {}
       }
     }
   },
 
   methods: {
+    // We remove some of the defaults (e.g. font size) when we save as HTML
+    // so add them back in so that if the user switches back to text, they have those defaults
+    overlayDefaults(value) {
+      Object.keys(value).forEach((key) => {
+        if (key.startsWith('banner')) {
+          value[key] = {
+            ...DEFAULT_BANNER_SETTING[key] || {},
+            ...value[key]
+          };
+        }
+      });
+    },
+
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
       const {
         bannerHeader, bannerFooter, bannerConsent, banner, loginError
@@ -182,9 +197,10 @@ export default {
       Object.keys(val).forEach((k) => {
         if (k.startsWith('banner')) {
           const banner = val[k];
-          const isHtml = banner.isHtml === undefined ? !banner.text : banner.isHtml;
+          const isHtml = banner.isHtml === undefined ? !!banner.html : banner.isHtml;
 
           if (isHtml) {
+            banner.html = banner.html?.trim(); // Remove any whitespace at start and end
             delete banner.text;
 
             // Remove all of the fields for text formatting (not needed for HTML)

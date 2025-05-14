@@ -210,13 +210,19 @@ export default {
               </div>
             </div>
             <div
-              v-else
+              v-else-if="banner.text"
               class="single-row"
             >
               {{ banner.text }}
             </div>
+            <div
+              v-else-if="banner.html"
+              v-clean-html="banner.html"
+              class="single-row"
+            />
           </div>
           <button
+            data-testid="login-confirmation-accept-button"
             class="btn role-primary"
             @click="hideDialog()"
           >
@@ -232,9 +238,9 @@ export default {
   .banner {
     line-height: 2em;
     width: 100%;
-    padding: 0 20px;
 
     &.banner-text {
+      padding: 0 20px;
       text-align: center;
     }
 

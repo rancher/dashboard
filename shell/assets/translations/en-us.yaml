@@ -7866,6 +7866,10 @@ banner:
   consent: Consent Banner
   consentFootnote: "Tip: Use \\n character for line break"
   individualSetting: 'This banner is managed by the setting "{name}" and can not be modified in the UI'
+  type:
+    html: HTML
+    text: Text
+  htmlWarning: 'Not all HTML elements or attributes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
 
 branding:
   label: Branding

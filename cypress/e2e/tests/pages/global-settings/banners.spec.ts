@@ -41,6 +41,11 @@ const settings = {
   }
 };
 
+const bannerHtml = `<div style="display: flex; align-items: center; padding: 0 10px"><img onload="alert('hello');" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg" height="24" style="margin-right: 10px; padding: 4px 0"/><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com">SUSE's Terms and Conditions</a></p></div>`;
+const bannerHtmlSanitized = `<div style="display: flex; align-items: center; padding: 0 10px"><img style="margin-right: 10px; padding: 4px 0" height="24" src="https://www.rancher.com/assets/img/logos/rancher-logo-horiz-color.svg"><p>Use of this system implies acceptance of <a target="_blank" href="https://www.suse.com" rel="noopener noreferrer nofollow">SUSE's Terms and Conditions</a></p></div>`;
+
+const acceptButtonText = 'Got it!';
+
 describe('Banners', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
@@ -298,7 +303,6 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.textAlignmentRadioGroup('bannerConsent').isChecked(2);
       bannersPage.textColorPicker(4).previewColor().should('eq', settings.bannerTextColor.newRGB);
       bannersPage.textColorPicker(5).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
-
       // Hide banner
       bannersPage.loginScreenBannerCheckbox().set();
       bannersPage.applyAndWait('**/ui-banners', 200);
@@ -364,6 +368,117 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.loginScreenBannerCheckbox().isDisabled();
       bannersPage.loginErrorCheckbox().isDisabled();
       bannersPage.applyButton().checkNotExists();
+    });
+
+    describe('HTML Banners', { tags: ['@globalSettings', '@adminUser'] }, () => {
+      it('can show and hide an HTML Header Banner', () => {
+        BannersPagePo.navTo();
+
+        // Show Banner
+        bannersPage.headerBannerCheckbox().set();
+        // to check custom box element width and height in order to prevent regression
+        // https://github.com/rancher/dashboard/issues/10000
+        bannersPage.headerBannerCheckbox().hasAppropriateWidth();
+        bannersPage.headerBannerCheckbox().hasAppropriateHeight();
+        bannersPage.contentTypeToggle('bannerHeader').set('HTML'); // Set content type as HTML
+        bannersPage.htmlTextArea('bannerHeader').set(bannerHtml);
+        bannersPage.textColorPicker(0).value().should('not.eq', settings.bannerTextColor.new);
+        bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
+        bannersPage.textColorPicker(1).value().should('not.eq', settings.bannerBackgroundColor.new);
+        bannersPage.textColorPicker(1).set(settings.bannerBackgroundColor.new);
+        bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          restoreSettings = true;
+        });
+
+        // Check the colors on the banner div
+        bannersPage.banner().should('be.visible').then((el) => {
+          expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+          expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+        });
+
+        // Check the content of the inner div
+        bannersPage.banner().find('div').then((el) => {
+          expect(el).to.have.html(bannerHtmlSanitized);
+        });
+
+        bannersPage.headerBannerCheckbox().isChecked();
+        bannersPage.textColorPicker(1).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+        bannersPage.contentTypeToggle('bannerHeader').shouldContainText('HTML');
+        bannersPage.htmlTextArea('bannerHeader').shouldHaveValue(bannerHtml);
+
+        // Check over reload
+        cy.reload();
+        bannersPage.banner().should('be.visible').then((el) => {
+          expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+        });
+
+        bannersPage.headerBannerCheckbox().isChecked();
+        // bannersPage.textAlignmentRadioGroup('bannerHeader').isChecked(2);
+        bannersPage.textColorPicker(0).previewColor().should('eq', settings.bannerTextColor.newRGB);
+        bannersPage.textColorPicker(1).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+        // Hide Banner
+        bannersPage.headerBannerCheckbox().set();
+        bannersPage.applyAndWait('**/ui-banners', 200);
+        bannersPage.banner().should('not.exist');
+      });
+
+      it('can show HTML banner in the login confirmation dialog', () => {
+        cy.login(undefined, undefined, false);
+        BannersPagePo.navTo();
+
+        // Show Banner
+        bannersPage.loginScreenBannerCheckbox().checkVisible();
+        bannersPage.loginScreenBannerCheckbox().set();
+        bannersPage.consentBannerShowAsDialogCheckbox().set();
+        bannersPage.contentTypeToggle('bannerConsent').set('HTML'); // Set content type as HTML
+        bannersPage.htmlTextArea('bannerConsent').set(bannerHtml);
+        bannersPage.acceptButtonInput('bannerConsent').set(acceptButtonText);
+        bannersPage.textColorPicker(4).value().should('not.eq', settings.bannerTextColor.new);
+        bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);
+        bannersPage.textColorPicker(5).value().should('not.eq', settings.bannerBackgroundColor.new);
+        bannersPage.textColorPicker(5).set(settings.bannerBackgroundColor.new);
+        bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          restoreSettings = true;
+        });
+
+        // Check login screen
+        cy.logout();
+        loginPage.waitForPage();
+        loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+        bannersPage.loadingConfirmationDialog().should('be.visible').then((el) => {
+          expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+          expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+        });
+
+        bannersPage.loadingConfirmationDialog().find('div > div').then((el) => {
+          expect(el).to.have.html(bannerHtmlSanitized);
+        });
+
+        // Check after login - need to accept login confirmation dialog
+        cy.login(undefined, undefined, false, false, acceptButtonText);
+
+        BannersPagePo.navTo();
+        bannersPage.loginScreenBannerCheckbox().isChecked();
+        bannersPage.textColorPicker(4).previewColor().should('eq', settings.bannerTextColor.newRGB);
+        bannersPage.textColorPicker(5).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+        bannersPage.consentBannerShowAsDialogCheckbox().isChecked();
+        bannersPage.contentTypeToggle('bannerConsent').shouldContainText('HTML');
+        bannersPage.htmlTextArea('bannerConsent').shouldHaveValue(bannerHtml);
+        bannersPage.acceptButtonInput('bannerConsent').shouldHaveValue(acceptButtonText);
+
+        // Hide banner
+        bannersPage.loginScreenBannerCheckbox().set();
+        bannersPage.applyAndWait('**/ui-banners', 200);
+
+        // Check login screen
+        cy.logout();
+        loginPage.waitForPage();
+        loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+        bannersPage.banner().should('not.exist');
+      });
     });
   });
 
