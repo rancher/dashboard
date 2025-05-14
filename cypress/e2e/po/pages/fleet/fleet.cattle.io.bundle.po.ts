@@ -23,8 +23,8 @@ export class FleetBundlesListPagePo extends PagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuGroupByLabel('Advanced');
-    sideNav.navToSideMenuEntryByLabel('Bundles');
+    sideNav.navToSideMenuGroupByLabel('Resources');
+    sideNav.navToSideMenuEntryByLabel(/^Bundles$/);
   }
 
   sharedComponents() {

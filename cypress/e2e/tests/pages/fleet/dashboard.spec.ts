@@ -41,7 +41,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     fleetDashboardPage.getStartedButton().click();
     gitRepoCreatePage.waitForPage();
     gitRepoCreatePage.mastheadTitle().then((title) => {
-      expect(title.replace(/\s+/g, ' ')).to.contain('Git Repo: Create');
+      expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
     });
   });
 

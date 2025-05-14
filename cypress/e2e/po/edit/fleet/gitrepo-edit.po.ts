@@ -7,7 +7,7 @@ import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-a
 
 export class GitRepoEditPo extends PagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {

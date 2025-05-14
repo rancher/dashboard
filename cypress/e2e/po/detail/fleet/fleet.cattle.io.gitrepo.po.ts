@@ -7,7 +7,7 @@ import BundlesTab from '@/cypress/e2e/po/detail/fleet/tabs/bundles-tab.po';
  */
 export default class FleetGitRepoDetailsPo extends PagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {

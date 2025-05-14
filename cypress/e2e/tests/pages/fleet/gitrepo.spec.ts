@@ -187,7 +187,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
         listPage.sharedComponents().goToDetailsPage('fleet-e2e-test-gitrepo');
         gitRepoCreatePage.mastheadTitle().then((title) => {
-          expect(title.replace(/\s+/g, ' ')).to.contain('Git 仓库: fleet-e2e-test-gitrepo');
+          expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
         });
         // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
         prefPage.goTo();
@@ -212,7 +212,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       headerPo.selectWorkspace(workspace);
 
       // check table headers
-      const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+      const expectedHeadersListView = ['State', 'Name', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
       listPage.sharedComponents().list().resourceTable().sortableTable()
         .tableHeaderRow()
@@ -334,7 +334,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoEditPage.waitForPage('mode=clone');
       gitRepoEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: Clone from ${ editRepoName }`);
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: Clone from ${ editRepoName }`);
       });
       gitRepoEditPage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
         .name()
@@ -363,7 +363,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoEditPage.waitForPage(`mode=edit&as=yaml`);
       gitRepoEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: ${ editRepoName }`);
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: ${ editRepoName }`);
       });
     });
 
