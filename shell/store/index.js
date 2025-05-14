@@ -39,7 +39,6 @@ import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
-import myLogger from '@shell/utils/my-logger';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.

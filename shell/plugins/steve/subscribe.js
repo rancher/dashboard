@@ -36,7 +36,6 @@ import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
-import myLogger from '@shell/utils/my-logger';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -443,8 +442,6 @@ const sharedActions = {
       type, selector, id, revision, namespace, stop, force, mode
     } = params;
 
-    myLogger.warn('watch', type, revision);
-
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
 
@@ -506,7 +503,6 @@ const sharedActions = {
 
     // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
     // if (type === 'pod') {
-    //   myLogger.warn('!!!!!!!!!!!!!!revision', revision);
     //   // revision = 50233;// Number.MAX_SAFE_INTEGER; // 155770 from resource
     //   // revision = 1;// Number.MAX_SAFE_INTEGER;
     //   // revision = Number.MAX_SAFE_INTEGER;
@@ -1239,8 +1235,6 @@ const defaultGetters = {
 
     if ( !revision ) {
       const cache = state.types[type];
-
-      myLogger.warn('nextResourceVersion', type, cache?.revision);
 
       if ( !cache ) {
         return null;

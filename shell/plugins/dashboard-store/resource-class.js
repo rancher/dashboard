@@ -34,7 +34,6 @@ import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
-import myLogger from '@shell/utils/my-logger';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1248,8 +1247,6 @@ export default class Resource {
     opt.method = 'delete';
 
     const res = await this.$dispatch('request', { opt, type: this.type } );
-
-    myLogger.warn('mode', 'pod', res, res?._status === 204);
 
     // In theory...
     // 200 - resource could have finalizer (could hang around, keep resource to show deleting state)

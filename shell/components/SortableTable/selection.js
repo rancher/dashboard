@@ -3,7 +3,6 @@ import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
 import { getParent } from '@shell/utils/dom';
-import myLogger from '@shell/utils/my-logger';
 
 export const ALL = 'all';
 export const SOME = 'some';
