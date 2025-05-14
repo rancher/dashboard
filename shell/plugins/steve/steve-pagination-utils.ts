@@ -38,16 +38,16 @@ class NamespaceProjectFilters {
    */
   protected handlePrefAndSettingFilter(args: {
     allNamespaces: Namespace[],
-    showDynamicRancherNamespaces: boolean,
+    showReservedRancherNamespaces: boolean,
     productHidesSystemNamespaces: boolean,
   }): PaginationParamFilter[] {
-    const { allNamespaces, showDynamicRancherNamespaces, productHidesSystemNamespaces } = args;
+    const { allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces } = args;
 
     // These are AND'd together
     // Not ns 1 AND ns 2
     return allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
-      const hideObscure = showDynamicRancherNamespaces ? false : ns.isObscure;
+      const hideObscure = showReservedRancherNamespaces ? false : ns.isObscure;
 
       // Links to ns.isSystem and covers things like ns with system annotation, hardcoded list, etc
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
@@ -269,7 +269,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     selection,
     isAllNamespaces,
     isLocalCluster,
-    showDynamicRancherNamespaces,
+    showReservedRancherNamespaces,
     productHidesSystemNamespaces,
   }: {
     allNamespaces: Namespace[],
@@ -283,11 +283,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
      */
     isLocalCluster: boolean,
     /**
-     * User preference states we should show dynamic rancher namespaces. Preference description "Show dynamic Namespaces managed by Rancher (not intended for editing or deletion)"
+     * User preference states we should show reserved rancher namespaces. Preference description "Show dynamic Namespaces managed by Rancher (not intended for editing or deletion)"
      *
      * Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
      */
-    showDynamicRancherNamespaces: boolean,
+    showReservedRancherNamespaces: boolean,
     /**
      * Product config states that system namespaces should be hidden
      *
@@ -308,7 +308,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     //   - Only System Namespaces - Gimme resources in the system namespaces (which shouldn't be many namespaces)
     //   - Only User Namespaces - Gimme resources NOT in system namespaces
     //   - User selection - Gimme resources in specific Projects or Namespaces
-    if (isAllNamespaces && (showDynamicRancherNamespaces && !productHidesSystemNamespaces)) {
+    if (isAllNamespaces && (showReservedRancherNamespaces && !productHidesSystemNamespaces)) {
       // No-op. Everything is returned
       return {
         projectsOrNamespaces: [],
@@ -323,10 +323,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     // &filter=metadata.namespace=abc
     let filters: PaginationParamFilter[] = [];
 
-    if (!showDynamicRancherNamespaces || productHidesSystemNamespaces) {
-      // We need to hide dynamic namespaces ('c-', 'user-', etc) OR system namespaces
+    if (!showReservedRancherNamespaces || productHidesSystemNamespaces) {
+      // We need to hide reserved namespaces ('c-', 'user-', etc) OR system namespaces
       filters = this.handlePrefAndSettingFilter({
-        allNamespaces, showDynamicRancherNamespaces, productHidesSystemNamespaces
+        allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces
       });
     }
 
