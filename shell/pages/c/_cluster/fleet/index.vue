@@ -20,6 +20,11 @@ import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';
 
+const VIEW_MODE = {
+  TABLE: 'flat',
+  CARDS: 'cards'
+};
+
 export default {
   name:       'FleetDashboard',
   components: {
@@ -101,25 +106,26 @@ export default {
       createRoute: { name:   'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
-      [FLEET.REPO]:    [],
-      [FLEET.HELM_OP]: [],
-      fleetWorkspaces: [],
-      viewModeOptions: [
+      [FLEET.REPO]:          [],
+      [FLEET.HELM_OP]:       [],
+      fleetWorkspaces:       [],
+      VIEW_MODE,
+      viewModeOptions:       [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
-          value:      'flat',
+          value:      VIEW_MODE.TABLE,
         },
         {
           tooltipKey: 'fleet.dashboard.viewMode.cards',
           icon:       'icon-apps',
-          value:      'cards',
+          value:      VIEW_MODE.CARDS,
         },
       ],
       CARDS_MIN:            50,
       CARDS_SIZE:           50,
       cardsCount:           {},
-      viewMode:             'cards',
+      viewMode:             VIEW_MODE.CARDS,
       isWorkspaceCollapsed: {},
       isStateCollapsed:     {},
       typeFilter:           {},
@@ -671,7 +677,7 @@ export default {
             </div>
           </div>
           <div
-            v-if="viewMode === 'flat'"
+            v-if="viewMode === VIEW_MODE.TABLE"
             class="table-panel"
           >
             <FleetApplications

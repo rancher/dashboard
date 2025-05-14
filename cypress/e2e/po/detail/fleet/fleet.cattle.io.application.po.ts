@@ -34,6 +34,6 @@ export default class FleetApplicationDetailsPo extends PagePo {
   }
 
   graph() {
-    return this.self().find('[data-testid="gitrepo_graph"]');
+    return this.self().find('[data-testid="resource-graph"]');
   }
 }

@@ -153,6 +153,11 @@ generic:
   opensInNewTab: Opens in a new tab
   
 
+graph:
+  noPermissions: You do not have permission to Graph view
+  loading: Loading chart data...
+  rendering: Rendering chart...
+
 locale:
   menu: Locale selector menu
   en-us: English
@@ -2791,7 +2796,9 @@ fleet:
         title: Release
         label: Name
         placeholder: placeholder
-      registryOption: Choose a Rancher Registry
+      registry:
+        option: Choose a Rancher Registry
+        error: The {registry} has errors, please try to update the registry in Rancher repository. 
     values:
       title: Values
       selectLabel: Values
@@ -2806,6 +2813,7 @@ fleet:
           diff: Compare Changes
       values:
         selectLabel: YAML
+        loading: Loading from chart
       valuesFiles:
         selectLabel: Files
         ariaLabel: Enter path for value File
@@ -2860,8 +2868,6 @@ fleet:
           other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
         }
   fdc:
-    loadingChart: Loading chart data...
-    renderingChart: Rendering chart...
     id: ID
     type: Type
     state: State
