@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { nlToBr } from '@shell/utils/string';
+import { nlToBr, generateRandomAlphaString } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
 export default defineComponent({
@@ -49,7 +49,10 @@ export default defineComponent({
       default: false
     }
   },
-  emits:    ['close'],
+  emits: ['close'],
+  data() {
+    return { labelledbyId: `banner-labelledby-${ generateRandomAlphaString(12) }` };
+  },
   computed: {
     /**
      * Return message text as label.
@@ -67,7 +70,9 @@ export default defineComponent({
     :class="{
       [color]: true,
     }"
-    role="banner"
+    role="region"
+    :aria-labelledby="labelledbyId"
+    tabindex="0"
   >
     <div
       v-if="icon"
@@ -77,9 +82,11 @@ export default defineComponent({
       <i
         class="icon icon-2x"
         :class="icon"
+        :alt="t('generic.banners.bannerIcon')"
       />
     </div>
     <div
+      :id="labelledbyId"
       class="banner__content"
       data-testid="banner-content"
       :class="{
@@ -94,7 +101,9 @@ export default defineComponent({
           :k="labelKey"
           :raw="true"
         />
-        <span v-else-if="messageLabel">{{ messageLabel }}</span>
+        <span
+          v-else-if="messageLabel"
+        >{{ messageLabel }}</span>
         <span
           v-else
           v-clean-html="nlToBr(label)"
@@ -113,6 +122,7 @@ export default defineComponent({
         <i
           data-testid="banner-close"
           class="icon icon-close closer-icon"
+          :alt="t('generic.banners.altCloseBanner')"
         />
       </div>
     </div>
