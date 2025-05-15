@@ -2514,7 +2514,7 @@ fleet:
           =1 { cluster }
           other { clusters }
           }
-      noClusters: The { type } is not targeting any clusters
+      noClusters: Not targeting any clusters
     resources: Resources
     source: Source
   cluster:
