@@ -510,10 +510,6 @@ export function deepToRaw(obj, cache = new WeakSet()) {
  *                  with arrays in obj2 when both properties are arrays
  *                  false: default lodash merge behavior - recursively merges
  *                  array members
- * @param {boolean} [options.replaceObjectProps=false] - true: merges objects in
- *                  obj1 with objects in obj2, overwriting duplicate props
- *                  false: default lodash merge behavior - recursively merges
- *                  object props
  */
 export function mergeWithReplace(
   obj1 = {},
@@ -521,7 +517,6 @@ export function mergeWithReplace(
   {
     mutateOriginal = false,
     replaceArray = true,
-    replaceObjectProps = false,
   } = {}
 ) {
   const destination = mutateOriginal ? obj1 : {};
@@ -529,13 +524,6 @@ export function mergeWithReplace(
   return mergeWith(destination, obj1, obj2, (obj1Value, obj2Value) => {
     if (replaceArray && Array.isArray(obj1Value) && Array.isArray(obj2Value)) {
       return obj2Value;
-    }
-
-    if (replaceObjectProps && isObject(obj1Value) && isObject(obj2Value)) {
-      return {
-        ...obj1Value,
-        ...obj2Value,
-      };
     }
   });
 }

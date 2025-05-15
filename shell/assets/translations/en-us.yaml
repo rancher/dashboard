@@ -2064,6 +2064,7 @@ cluster:
     docker: Docker
     eks: Amazon EKS
     exoscale: Exoscale
+    sks: Exoscale SKS
     gcp: Google
     google: Google GCE
     googlegke: Google GKE
@@ -4755,6 +4756,7 @@ prefs:
     allNamespaces: Show dynamic Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
     pluginDeveloper: Enable Extension developer features
+    pluginDeveloperTooltip: Enables the ability to perform a developer load of UI extensions
   hideDesc:
     label: Hide Type Description banners above resource lists
   helm:

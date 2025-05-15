@@ -508,7 +508,7 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failO
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
   const retry = () => {
@@ -519,6 +519,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
         'x-api-csrf': token.value,
         Accept:       'application/json'
       },
+      failOnStatusCode: config?.failOnStatusCode === undefined ? true : !!config?.failOnStatusCode,
     })
       .then((resp) => {
         if (!testFn(resp)) {
@@ -526,14 +527,14 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           if (retries === 0) {
             cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
 
-            return false;
+            return Promise.resolve(false);
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return retry();
         }
 
-        return true;
+        return Promise.resolve(true);
       });
   };
 

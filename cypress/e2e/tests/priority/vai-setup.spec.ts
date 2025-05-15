@@ -26,6 +26,16 @@ describe('Setup Vai', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, ()
   });
 
   it('Enable Performance Setting', () => {
+    // Sometimes the setting resource isn't available yet..... so wait until it is before trying to set it
+    cy.waitForRancherResource(
+      'v1',
+      'schema',
+      'management.cattle.io.settings',
+      (resp) => resp?.body?.id === 'management.cattle.io.setting',
+      20,
+      { failOnStatusCode: false }
+    );
+
     PerformancePagePo.navTo();
     performancePage.waitForPage();
 
@@ -40,5 +50,7 @@ describe('Setup Vai', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, ()
     performancePage.serverSidePaginationCheckbox().isChecked();
 
     performancePage.applyButton().click();
+
+    // Should validate that the setting is correctly applied, however this whole block us due to be removed in https://github.com/rancher/dashboard/pull/14086
   });
 });

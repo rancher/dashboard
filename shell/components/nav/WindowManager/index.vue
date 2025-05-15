@@ -326,6 +326,7 @@ export default {
 
 <template>
   <div
+    v-if="open"
     id="windowmanager"
     data-testid="windowmanager"
     class="windowmanager"
