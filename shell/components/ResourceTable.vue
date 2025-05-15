@@ -664,16 +664,12 @@ export default {
       v-if="externalPaginationEnabled"
       #watch-controls
     >
-      <!-- TODO: RC Refresh Toggle Agreed UX REVIEW! -->
-      <!-- TODO: RC Refresh Toggle Agreed inline style $btn-height-->
-      <!-- TODO: RC Refresh Toggle Agreed BUG setting fixed height breaks height in home page. fixed because thin browser and select rows causes height to grow. see also class="refresh-button" -->
-      <!-- TODO: RC Refresh Toggle Agreed  l10n-->
-      <!-- This and mixing 'TODO' should be moved out to PaginatedResourceTable.... but there's far too many places where ResourceTable is used  -->
+      <!-- See https://github.com/rancher/dashboard/issues/14359 -->
       <ToggleSwitch
+        class="auto-update"
         :value="watching"
         name="label-system-toggle"
-        :on-label="'Auto Update'"
-        style="min-width: 150px; height: 40px"
+        :on-label="t('resourceTable.autoRefresh.label')"
         @update:value="toggleWatch"
       />
     </template>
@@ -723,3 +719,9 @@ export default {
     </template>
   </SortableTable>
 </template>
+
+<style lang="scss" scoped>
+.auto-update {
+  min-width: 150px; height: 40px
+}
+</style>

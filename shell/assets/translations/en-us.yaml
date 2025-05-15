@@ -5240,6 +5240,8 @@ resourceTable:
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name}"
     node: "<span>Node:</span> {name}"
+  autoRefresh:
+    label: Auto Refresh
 
 resourceTabs:
   conditions:

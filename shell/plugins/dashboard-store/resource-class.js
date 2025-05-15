@@ -794,8 +794,6 @@ export default class Resource {
 
   waitForState(state, timeout, interval) {
     return this.waitForTestFn(() => {
-      console.warn('waitForState', this.nameDisplay, this.state);
-
       return (this.state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
   }

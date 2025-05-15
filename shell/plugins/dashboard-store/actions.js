@@ -284,15 +284,6 @@ export default {
       return Promise.reject(e);
     }
 
-    // TODO: RC DEBUG --> REMOVE
-    // if (type.indexOf('clusterrepo') >= 0) {
-    //   const a = out.data.find((a) => a.id === 'harvester');
-
-    //   console.warn('findAll', 'raw from response', a.id, a.metadata.state.name);
-
-    //   debugger;
-    // }
-
     if ( load === _NONE ) {
       if (!opt.incremental && opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });

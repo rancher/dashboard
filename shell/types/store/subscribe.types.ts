@@ -1,8 +1,11 @@
+/* eslint-disable no-unused-vars */
 export enum STEVE_WATCH_MODE {
   DEFAULT = '',
   RESOURCE_CHANGES = 'resource.changes'
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
 export enum STEVE_WATCH_EVENT {
   START = 'resource.start',
   CREATE = 'resource.create',
@@ -12,6 +15,7 @@ export enum STEVE_WATCH_EVENT {
   ERROR = 'resource.error',
   STOP = 'resource.stop',
 }
+/* eslint-enable no-unused-vars */
 
 export interface STEVE_WATCH_PARAMS {
   type: string,
