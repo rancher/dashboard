@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
-describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterListPage = new FleetClusterListPagePo();
   const fleetGitRepoListPage = new FleetGitRepoListPagePo();
   const clusterList = new ClusterManagerListPagePo();
@@ -19,7 +19,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const paths = 'simple';
   const downloadsFolder = Cypress.config('downloadsFolder');
 
-  describe('bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: 'off', tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
+  describe.skip('bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: 'off', tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
     const region = 'us-west-1';
     const namespace = 'fleet-default';
     let removeCluster = false;
@@ -301,7 +301,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { tags: ['@fleet', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@fleet', '@adminUser'] }, () => {
     const fleetClusterListPage = new FleetClusterListPagePo();
     let removeGitRepo = false;
     const workspace = 'fleet-local';

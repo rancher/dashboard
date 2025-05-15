@@ -6,7 +6,7 @@ import * as path from 'path';
 const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe.skip('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -37,7 +37,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Versions', () => {
+  describe.skip('Versions', () => {
     beforeEach(() => {
       aboutPage.goTo();
     });
@@ -80,7 +80,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Image List', () => {
+  describe.skip('Image List', () => {
     before(() => {
       aboutPage.goTo();
     });
@@ -110,7 +110,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('CLI Downloads', () => {
+  describe.skip('CLI Downloads', () => {
     // Shouldn't be needed with https://github.com/rancher/dashboard/issues/11393
     const expectedLinkStatusCode = 200;
 

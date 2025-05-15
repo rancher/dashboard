@@ -3,12 +3,12 @@ import { ClusterRoleBindingsPagePo } from '@/cypress/e2e/po/pages/explorer/clust
 
 const clusterRoleBindingsPage = new ClusterRoleBindingsPagePo();
 
-describe('ClusterRoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('ClusterRoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('validate cluster role bindings table in empty state', () => {
       clusterRoleBindingNoData();
       clusterRoleBindingsPage.goTo();

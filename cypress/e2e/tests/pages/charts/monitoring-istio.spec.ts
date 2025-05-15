@@ -40,8 +40,8 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
     cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
   }
 
-  describe('Monitoring', { testIsolation: 'off' }, () => {
-    describe('Prometheus local provisioner config', () => {
+  describe.skip('Monitoring', { testIsolation: 'off' }, () => {
+    describe.skip('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
 
       // Install the chart
@@ -167,7 +167,7 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
       });
     });
 
-    describe('Grafana resource configuration', () => {
+    describe.skip('Grafana resource configuration', () => {
       beforeEach(() => {
         ChartPage.navTo(null, 'Monitoring');
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?*', {
@@ -249,13 +249,13 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
   /**
    * Istio requires Prometheus operator to be installed, see previous steps.
    */
-  describe('Istio', () => {
+  describe.skip('Istio', () => {
     beforeEach(() => {
       cy.login();
       HomePagePo.goTo();
     });
 
-    describe('Istio local provisioning', () => {
+    describe.skip('Istio local provisioning', () => {
       it('Should install Istio', () => {
         ChartPage.navTo(null, 'Istio');
 

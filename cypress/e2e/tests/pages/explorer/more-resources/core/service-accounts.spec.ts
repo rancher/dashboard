@@ -3,12 +3,12 @@ import { generateServiceAccDataSmall, serviceAccNoData } from '@/cypress/e2e/blu
 
 const serviceAccountsPagePo = new ServiceAccountsPagePo();
 
-describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

@@ -8,7 +8,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

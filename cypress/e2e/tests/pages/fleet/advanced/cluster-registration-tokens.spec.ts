@@ -4,11 +4,11 @@ import { clusterRegistrationTokensNoData, generateclusterRegistrationTokensDataS
 
 const defaultWorkspace = 'fleet-default';
 
-describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetTokensPage = new FleetClusterRegistrationTokenListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

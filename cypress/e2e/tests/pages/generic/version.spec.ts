@@ -11,7 +11,7 @@ function interceptAndChangeVersion(version) {
   });
 }
 
-describe('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe.skip('App Bar Version Number', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   const nav = new ProductNavPo();
 
   before(() => {

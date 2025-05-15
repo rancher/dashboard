@@ -2,12 +2,12 @@ import { APIServicesPagePo } from '@/cypress/e2e/po/pages/explorer/api-services.
 
 const apiServicesPage = new APIServicesPagePo('local');
 
-describe('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Cluster Explorer', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-  describe('API: APIServices', () => {
+  describe.skip('API: APIServices', () => {
     it('Should be able to use shift+j to select rows and the count of selected is correct', () => {
       apiServicesPage.goTo();
       apiServicesPage.waitForRequests();

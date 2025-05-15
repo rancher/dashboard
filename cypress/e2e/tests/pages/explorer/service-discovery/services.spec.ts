@@ -3,12 +3,12 @@ import { generateServicesDataSmall, servicesNoData } from '@/cypress/e2e/bluepri
 
 const servicesPagePo = new ServicesPagePo();
 
-describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

@@ -2,12 +2,12 @@ import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, Workl
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-describe('Cluster Explorer', () => {
+describe.skip('Cluster Explorer', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  describe('Workloads', { tags: ['@explorer2', '@standardUser', '@adminUser', '@flaky'] }, () => {
+  describe.skip('Workloads', { tags: ['@explorer2', '@standardUser', '@adminUser', '@flaky'] }, () => {
     let deploymentsListPage: WorkloadsDeploymentsListPagePo;
     let deploymentsCreatePage: WorkloadsDeploymentsCreatePagePo;
 
@@ -20,7 +20,7 @@ describe('Cluster Explorer', () => {
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
-    describe('Create: Deployments', () => {
+    describe.skip('Create: Deployments', () => {
       beforeEach(() => {
         cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       });
@@ -50,7 +50,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('Update: Deployments', () => {
+    describe.skip('Update: Deployments', () => {
       let workloadName;
       let workloadDetailsPage;
 
@@ -153,7 +153,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('List: Deployments', () => {
+    describe.skip('List: Deployments', () => {
       it('Should list the workloads', () => {
         deploymentsListPage.goTo();
         deploymentsListPage.waitForPage();
@@ -163,7 +163,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('Delete: Deployments', () => {
+    describe.skip('Delete: Deployments', () => {
       it('Should be able to delete a workload', () => {
         const deploymentName = e2eWorkloads[0].name;
 

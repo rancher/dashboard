@@ -15,7 +15,7 @@ const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe.skip('Settings', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

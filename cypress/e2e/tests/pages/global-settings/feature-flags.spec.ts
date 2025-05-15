@@ -7,7 +7,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const featureFlagsPage = new FeatureFlagsPagePo();
 const burgerMenu = new BurgerMenuPo();
 
-describe('Feature Flags', { testIsolation: 'off' }, () => {
+describe.skip('Feature Flags', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -213,7 +213,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible

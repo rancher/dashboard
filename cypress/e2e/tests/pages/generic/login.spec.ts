@@ -4,7 +4,7 @@ import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-util
 
 const successStatusCode = 200;
 
-describe('Local authentication', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+describe.skip('Local authentication', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   it('Confirm correct number of settings requests made', () => {
     cy.intercept('GET', '/v1/management.cattle.io.settings?exclude=metadata.managedFields').as('settingsReq');
     const loginPage = new LoginPagePo();

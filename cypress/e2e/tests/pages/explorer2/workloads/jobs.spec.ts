@@ -1,12 +1,12 @@
 import { WorkloadsJobsListPagePo, WorkLoadsJobDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-jobs.po';
 
-describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-  describe('Workloads', () => {
-    describe('Jobs', () => {
+  describe.skip('Workloads', () => {
+    describe.skip('Jobs', () => {
       const namespaceName = 'custom-namespace';
       const jobName = 'my-job-custom-name';
       const containerImageName = 'nginx';

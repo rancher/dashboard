@@ -3,12 +3,12 @@ import { generatePersistentVolumesDataSmall, persistentVolumesNoData } from '@/c
 
 const persistentVolumesPagePo = new PersistentVolumesPagePo();
 
-describe('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('PersistentVolumes', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

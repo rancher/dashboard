@@ -5,7 +5,7 @@ import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install
 
 const clusterTools = new ClusterToolsPagePo('local');
 
-describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

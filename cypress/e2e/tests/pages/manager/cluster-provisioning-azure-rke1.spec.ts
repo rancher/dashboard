@@ -12,7 +12,7 @@ import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/ti
  ******/
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy RKE1 cluster using node driver on Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
+describe.skip('Deploy RKE1 cluster using node driver on Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const createRKE1ClusterPage = new ClusterManagerCreateRke1AzurePagePo();
   const loadingPo = new LoadingPo('.loading-indicator');

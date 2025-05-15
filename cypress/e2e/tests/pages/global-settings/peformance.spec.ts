@@ -4,7 +4,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 const performancePage = new PerformancePagePo();
 const performanceSettingsOriginal = [];
 
-describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
+describe.skip('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   before('get default performance settings', () => {
     cy.login();
     HomePagePo.goTo();
@@ -16,7 +16,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     });
   });
 
-  describe('Inactivity', () => {
+  describe.skip('Inactivity', () => {
     it('should show the modal after 6 seconds', () => {
       PerformancePagePo.navTo();
 

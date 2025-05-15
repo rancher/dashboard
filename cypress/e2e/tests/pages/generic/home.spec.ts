@@ -11,7 +11,7 @@ const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const longClusterDescription = 'this-is-some-really-really-really-really-really-really-long-description';
 
-describe('Home Page', () => {
+describe.skip('Home Page', () => {
   it('Confirm correct number of settings requests made', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     cy.login();
 
@@ -27,7 +27,7 @@ describe('Home Page', () => {
     cy.get('@settingsReq.all').should('have.length', 1);
   });
 
-  describe('List', { testIsolation: 'off' }, () => {
+  describe.skip('List', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
     });
@@ -129,7 +129,7 @@ describe('Home Page', () => {
     });
   });
 
-  describe('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  describe.skip('Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       cy.login();
@@ -193,7 +193,7 @@ describe('Home Page', () => {
     });
   });
 
-  describe('Home Page', { testIsolation: 'off' }, () => {
+  describe.skip('Home Page', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
     });

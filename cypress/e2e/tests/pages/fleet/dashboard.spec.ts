@@ -7,7 +7,7 @@ describe.skip('[Vue3 Skip]: Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }
   let fleetDashboardPage: FleetDashboardPagePo;
   // const repoName = 'fleet-e2e-test-dashboard';
 
-  // Note - The 'describe` previously had `.only`, which ironically meant this was not tested in our CI (probably something to so with grep tags)
+  // Note - The 'describe.skip` previously had `.only`, which ironically meant this was not tested in our CI (probably something to so with grep tags)
   // Enabling the test results results in consistent failures (bundle does not become ready). For the short term comment these out
 
   beforeEach(() => {

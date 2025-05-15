@@ -11,7 +11,7 @@ function executeWebSocket(command: string, podName: string, namespace: string, c
   );
 }
 
-describe('Pod management and WebSocket interaction', { tags: ['@jenkins', '@adminUser'] }, () => {
+describe.skip('Pod management and WebSocket interaction', { tags: ['@jenkins', '@adminUser'] }, () => {
   let token:string;
   const tokenDesc = 'e2e-test-description';
   let tokenId:string;

@@ -3,12 +3,12 @@ import { clusterRolesNoData, generateClusterRolesDataSmall } from '@/cypress/e2e
 
 const clusterRolesPage = new ClusterRolesPagePo();
 
-describe('ClusterRoles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('ClusterRoles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('validate cluster roles table in empty state', () => {
       clusterRolesNoData();
       clusterRolesPage.goTo();

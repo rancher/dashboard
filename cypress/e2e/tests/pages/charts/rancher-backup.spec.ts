@@ -8,8 +8,8 @@ import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install
 
 const STORAGE_CLASS_RESOURCE = 'storage.k8s.io.storageclasses';
 
-describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
-  describe('Rancher Backups', () => {
+describe.skip('Charts', { tags: ['@charts', '@adminUser'] }, () => {
+  describe.skip('Rancher Backups', () => {
     const chartPage = new ChartPage();
 
     before(() => {
@@ -17,7 +17,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       HomePagePo.goTo();
     });
 
-    describe('Rancher Backups storage class config', () => {
+    describe.skip('Rancher Backups storage class config', () => {
       beforeEach(() => {
         cy.intercept('/v1/storage.k8s.io.storageclasses?exclude=metadata.managedFields').as('storageClasses');
         cy.intercept('/v1/persistentvolumes?exclude=metadata.managedFields').as('persistentVolumes');

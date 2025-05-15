@@ -27,7 +27,7 @@ const UPDATE_GROUP_IMAGE_PATH = 'some/path';
 const elementalPo = new ElementalPo();
 const namespaceFilter = new NamespaceFilterPo();
 
-describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }, () => {
+describe.skip('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

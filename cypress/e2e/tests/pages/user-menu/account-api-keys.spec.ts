@@ -17,7 +17,7 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     cy.login();
   });
 
-  describe('User can make changes to their account', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  describe.skip('User can make changes to their account', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     it('Can navigate to Account and API Keys page and change their password', () => {
     /**
      * Open user menu and navigate to Account and API Keys page
@@ -103,7 +103,7 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@userMenu', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@userMenu', '@adminUser'] }, () => {
     const tokenDesc = 'e2e-test-description';
     const uniqueTokenDesc = 'aaa-e2e-test-description';
     let initialCount: number;

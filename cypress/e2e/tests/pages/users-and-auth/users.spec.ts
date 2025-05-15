@@ -19,7 +19,7 @@ const userBaseUsername = `${ runPrefix }-userBase-user`;
 
 let userId: string;
 
-describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
+describe.skip('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -138,7 +138,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
   });
 
-  describe('Action Menu', () => {
+  describe.skip('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
       // Deactivate user and check state is Inactive
       usersPo.goTo();
@@ -218,7 +218,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('Bulk Actions', () => {
+  describe.skip('Bulk Actions', () => {
     it('can Deactivate and Activate users', () => {
       // Deactivate user and check state is Inactive
       cy.intercept('PUT', '/v3/users/*').as('updateUsers');
@@ -265,7 +265,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList = [];

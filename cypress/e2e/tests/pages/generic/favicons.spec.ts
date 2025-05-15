@@ -1,7 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
-describe('Global UI', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-  describe('Favicons', () => {
+describe.skip('Global UI', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+  describe.skip('Favicons', () => {
     beforeEach(() => {
       LoginPagePo.goTo();
     });

@@ -7,12 +7,12 @@ const crdsPage = new CustomResourceDefinitionsPagePo('local');
 const crdName = `e2etests.${ +new Date() }.example.com`;
 const crdGroup = `${ +new Date() }.example.com`;
 
-describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
     });

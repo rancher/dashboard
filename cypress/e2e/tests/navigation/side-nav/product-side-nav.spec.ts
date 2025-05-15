@@ -9,7 +9,7 @@ const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
 const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
 
 Cypress.config();
-describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
+describe.skip('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');

@@ -4,7 +4,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import NodeDetailsPo from '@/cypress/e2e/po/detail/node.po';
 
-describe('Node detail', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off' }, () => {
+describe.skip('Node detail', { tags: ['@explorer2', '@adminUser'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

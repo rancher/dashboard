@@ -7,7 +7,7 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 
-describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe.skip('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
 

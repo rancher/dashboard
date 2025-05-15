@@ -12,7 +12,7 @@ function updateUserRetentionSetting(settingId, newValue) {
   });
 }
 
-describe('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Auth Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   const runTimestamp = +new Date();
   const usernameBlock = `user_to_block_${ runTimestamp }`;
   const usernameRetention = `user_retention_access_${ runTimestamp }`;

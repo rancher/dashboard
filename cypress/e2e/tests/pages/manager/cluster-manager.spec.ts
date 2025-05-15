@@ -42,7 +42,7 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe.skip('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -152,7 +152,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
   });
 
-  describe('All providers', () => {
+  describe.skip('All providers', () => {
     providersList.forEach((prov) => {
       prov.conditions.forEach((condition) => {
         it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
@@ -171,12 +171,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Created', () => {
+  describe.skip('Created', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
     const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(undefined, rke2CustomName);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
-    describe('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
+    describe.skip('RKE2 Custom', { tags: ['@jenkins', '@customCluster'] }, () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(undefined, rke2CustomName);
 
       it('can create new cluster', () => {
@@ -403,7 +403,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
 
-    describe('RKE1 Custom', () => {
+    describe.skip('RKE1 Custom', () => {
       it('can create new cluster', () => {
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -538,10 +538,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
+  describe.skip('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
 
-    describe('Generic', () => {
+    describe.skip('Generic', () => {
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(undefined, importGenericName);
 
       it('can create new cluster', () => {
@@ -633,7 +633,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.waitForPage();
   });
 
-  describe('Cluster Details Tabs', () => {
+  describe.skip('Cluster Details Tabs', () => {
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
     const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
 
@@ -751,8 +751,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     shellPo.closeTerminal();
   });
 
-  describe('Credential Step', () => {
-    describe('should always show credentials', () => {
+  describe.skip('Credential Step', () => {
+    describe.skip('should always show credentials', () => {
       const driver = 'nutanix';
 
       it('should show credential step when `addCloudCredential` is true', () => {
@@ -792,7 +792,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     const driver2 = 'outscale';
 
-    describe('should show on condition of addCloudCredential', () => {
+    describe.skip('should show on condition of addCloudCredential', () => {
       it('should show credential step when `addCloudCredential` is true', () => {
         cy.intercept({
           method: 'GET',

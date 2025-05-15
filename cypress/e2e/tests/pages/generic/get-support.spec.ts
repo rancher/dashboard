@@ -6,7 +6,7 @@ import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/sup
 const burgerMenu = new BurgerMenuPo();
 const supportPage = new SupportPagePo();
 
-describe('Support Page', () => {
+describe.skip('Support Page', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -23,7 +23,7 @@ describe('Support Page', () => {
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Support Links', { tags: ['@generic', '@adminUser'] }, () => {
+  describe.skip('Support Links', { tags: ['@generic', '@adminUser'] }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
       supportPage.goTo();

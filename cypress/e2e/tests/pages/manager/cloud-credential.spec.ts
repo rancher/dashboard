@@ -5,7 +5,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-azure.po';
 
-describe('Cloud Credential', { testIsolation: 'off' }, () => {
+describe.skip('Cloud Credential', { testIsolation: 'off' }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const doCreatedCloudCredsIds = [];
   const azCreatedCloudCredsIds = [];

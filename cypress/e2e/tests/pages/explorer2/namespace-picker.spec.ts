@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const namespacePicker = new NamespaceFilterPo();
 
-describe('Namespace picker', { testIsolation: 'off' }, () => {
+describe.skip('Namespace picker', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

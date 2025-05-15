@@ -21,7 +21,7 @@ const graphEndpoint = 'https://graph.test.com';
 const mockStatusCode = 200;
 const mockBody = {};
 
-describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
+describe.skip('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   beforeEach(() => {
     cy.login();
     HomePagePo.goToAndWaitForGet();

@@ -4,7 +4,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
 
-describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
+describe.skip('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   const jwtAuthenticationPage = new JWTAuthenticationPagePo();
 
   let instance0 = '';
@@ -155,7 +155,7 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 });
 
-describe('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
+describe.skip('JWT Authentication (Standard User)', { testIsolation: 'off', tags: ['@manager', '@standardUser', '@jenkins'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();

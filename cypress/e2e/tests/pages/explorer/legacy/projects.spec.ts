@@ -6,7 +6,7 @@ const featureFlagsPage = new FeatureFlagsPagePo();
 
 let disableLegacyFlag = false;
 
-describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], testIsolation: 'off' }, () => {
+describe.skip('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
 

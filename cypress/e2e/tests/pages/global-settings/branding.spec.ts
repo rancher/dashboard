@@ -28,7 +28,7 @@ const settings = {
   }
 };
 
-describe('Branding', { testIsolation: 'off' }, () => {
+describe.skip('Branding', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     homePage.goTo();

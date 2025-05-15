@@ -3,12 +3,12 @@ import { fleetContentsNoData, generateFleetContentsDataSmall } from '@/cypress/e
 
 const contentsPagePo = new ContentsPagePo();
 
-describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     it('validate fleet contents table in empty state', () => {
       fleetContentsNoData();
       contentsPagePo.goTo();

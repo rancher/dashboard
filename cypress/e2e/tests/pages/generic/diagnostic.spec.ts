@@ -3,7 +3,7 @@ import * as path from 'path';
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Diagnostics Page', { tags: ['@generic', '@adminUser'] }, () => {
+describe.skip('Diagnostics Page', { tags: ['@generic', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });

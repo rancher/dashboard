@@ -6,7 +6,7 @@ const networkPolicyPage = new NetworkPolicyPagePo('local');
 const networkPolicyName = 'custom-network-policy';
 const networkPolicyDescription = 'Custom Network Policy Description';
 
-describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

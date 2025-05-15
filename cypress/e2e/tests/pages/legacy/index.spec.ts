@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Legacy Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Legacy Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

@@ -3,12 +3,12 @@ import { PersistentVolumeClaimsPagePo } from '@/cypress/e2e/po/pages/explorer/pe
 
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
-describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

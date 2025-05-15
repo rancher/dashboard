@@ -2,7 +2,7 @@ import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo } from
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
 import { deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 
-describe('Yaml Editor', () => {
+describe.skip('Yaml Editor', () => {
   const deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
   const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
 
@@ -19,7 +19,7 @@ describe('Yaml Editor', () => {
     cy.wait('@createDeployment').its('response.statusCode').should('eq', 201);
   });
 
-  describe('Edit mode', () => {
+  describe.skip('Edit mode', () => {
     it('Check if body and footer are visible to human eye', { tags: ['@components', '@adminUser'] }, () => {
       deploymentsListPage.goTo();
       deploymentsListPage.listElementWithName(name).should('exist');

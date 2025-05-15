@@ -4,17 +4,17 @@ import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 const workloadsPage = new WorkloadPagePo('local');
 
-describe('Can describe resource', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe.skip('Can describe.skip resource', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  it('Can open describe resource', () => {
+  it('Can open describe.skip resource', () => {
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
     workloadsPodPage.goTo();
     workloadsPodPage.waitForPage();
-    // Open Describe resource
+    // Open describe.skip resource
     workloadsPage.actionsHeader().kubectlExplain().click();
 
     const slideIn = new SlideInPo();

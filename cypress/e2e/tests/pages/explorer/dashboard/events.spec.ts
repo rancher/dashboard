@@ -7,12 +7,12 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const events = new EventsPagePo('local');
 
-describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;

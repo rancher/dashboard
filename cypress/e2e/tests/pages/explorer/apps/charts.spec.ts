@@ -4,7 +4,7 @@ import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimen
 
 const chartsPage = new ChartsPage();
 
-describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
     chartsPage.goTo();

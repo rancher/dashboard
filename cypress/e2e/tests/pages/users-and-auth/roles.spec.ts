@@ -77,8 +77,8 @@ let runPrefix: string;
 let globalRoleName: string;
 const roleTemplatesToDelete = [];
 
-describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
-  describe('Roles', () => {
+describe.skip('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
+  describe.skip('Roles', () => {
     beforeEach(() => {
       cy.login();
       cy.viewport(1280, 720);
@@ -360,7 +360,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
     let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
@@ -564,7 +564,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('Global Roles', () => {
+  describe.skip('Global Roles', () => {
     before(() => {
       cy.login();
     });

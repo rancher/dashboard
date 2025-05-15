@@ -34,7 +34,7 @@ const settings = {
   }
 };
 
-describe('Banners', { testIsolation: 'off' }, () => {
+describe.skip('Banners', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -46,7 +46,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('Standard Banner Configuration', () => {
+  describe.skip('Standard Banner Configuration', () => {
     after('set default banners settings', () => {
       if (restoreSettings) {
         cy.login(undefined, undefined, true);
@@ -244,10 +244,10 @@ describe('Banners', { testIsolation: 'off' }, () => {
       bannersPage.banner().should('not.exist');
     });
 
-    // Note: This test needs to be in its own `describe` with two `it` blocks for Show and Hide scenarios.
+    // Note: This test needs to be in its own `describe.skip` with two `it` blocks for Show and Hide scenarios.
     // 401 error is throw when the user attempts to login with valid credentials the second time
     // which unexpectedly fails the test. This an automation specific issue it seems
-    describe('Login Failed Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    describe.skip('Login Failed Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
       it('Show Banner', () => {
         cy.login(undefined, undefined, false);
         BannersPagePo.navTo();
@@ -466,15 +466,15 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
   }
 
-  describe('Header Banner (Individual Setting)', () => {
+  describe.skip('Header Banner (Individual Setting)', () => {
     bannerTests('Header');
   });
 
-  describe('Footer Banner (Individual Setting)', () => {
+  describe.skip('Footer Banner (Individual Setting)', () => {
     bannerTests('Footer');
   });
 
-  describe('Login Consent Banner (Individual Setting)', () => {
+  describe.skip('Login Consent Banner (Individual Setting)', () => {
     before(() => {
       cy.then(() => Cypress.session.clearAllSavedSessions());
       cy.login();

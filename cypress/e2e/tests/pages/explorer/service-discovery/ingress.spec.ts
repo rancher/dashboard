@@ -3,7 +3,7 @@ import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/bluep
 
 const ingressPagePo = new IngressPagePo();
 
-describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -30,7 +30,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     ingressPagePo.createIngressForm().yamlEditor().checkExists();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });

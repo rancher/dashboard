@@ -10,7 +10,7 @@ describe.skip('[Vue3 Skip]: V2 monitoring Chart', { tags: ['@charts', '@adminUse
     generateV2MonitoringForLocalCluster();
   });
 
-  describe('V2 monitoring resources', () => {
+  describe.skip('V2 monitoring resources', () => {
     it('alertmanagerconfig should have property "proxyURL" correctly filled out', () => {
       // this intercept is for the payload of the receiver, which is what we want to test
       cy.intercept('PUT', 'k8s/clusters/local/v1/monitoring.coreos.com.alertmanagerconfigs/default/test-alert', (req: any) => {

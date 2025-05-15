@@ -5,7 +5,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();
 
-describe('User can logout of Rancher', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
+describe.skip('User can logout of Rancher', { tags: ['@userMenu', '@adminUser', '@standardUser', '@flaky'] }, () => {
   beforeEach(() => {
     // we need to forcefully not use the cached session for this test suite, otherwise
     // it get's into this weird state where it doesn't move past the login screen

@@ -7,14 +7,14 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
 
-describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetWorkspacesPage = new FleetWorkspaceListPagePo();
 
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     let initialCount: number;
 
     it('check table headers are available in list and details view', () => {

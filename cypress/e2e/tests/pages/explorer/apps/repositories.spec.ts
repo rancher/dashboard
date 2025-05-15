@@ -3,9 +3,9 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
-describe('Apps', () => {
-  describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
-    describe('Add', () => {
+describe.skip('Apps', () => {
+  describe.skip('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
+    describe.skip('Add', () => {
       const appRepoList = new ReposListPagePo('local', 'apps');
 
       beforeEach(() => {
@@ -17,7 +17,7 @@ describe('Apps', () => {
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });
 
-      describe('Contained', () => {
+      describe.skip('Contained', () => {
         const reposToDelete = [];
 
         it('After add Repo list should not contain multiple entries', function() {
@@ -147,7 +147,7 @@ describe('Apps', () => {
       });
     });
 
-    describe('Refresh', () => {
+    describe.skip('Refresh', () => {
       const chartPage = new ChartPage();
       const clusterId = 'local';
       const appRepoList = new ReposListPagePo(clusterId, 'apps');

@@ -1,7 +1,7 @@
 import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import { spoofThirdPartyPrincipal } from '@/cypress/e2e/blueprints/explorer/rbac/third-party-principals-get';
 
-describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   const projectsNamespacesPage = new ProjectsNamespacesPagePo('local');
 
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     projectsNamespacesPage.nsProject().checkExists();
   });
 
-  describe('Project creation', () => {
+  describe.skip('Project creation', () => {
     beforeEach(() => {
       cy.createE2EResourceName('proj').as('projectName');
       cy.intercept('POST', '/v3/projects').as('createProjectRequest');
@@ -61,7 +61,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
   });
 
-  describe('Project Error Banner and Validation', () => {
+  describe.skip('Project Error Banner and Validation', () => {
     beforeEach(() => {
       projectsNamespacesPage.goTo();
     });

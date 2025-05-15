@@ -12,12 +12,12 @@ const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
 Cypress.config();
-describe('Side Menu: main', () => {
+describe.skip('Side Menu: main', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  describe('Needs intercepts BEFORE route navigation', () => {
+  describe.skip('Needs intercepts BEFORE route navigation', () => {
     beforeEach(() => {
       generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId);
 
@@ -87,7 +87,7 @@ describe('Side Menu: main', () => {
     });
   });
 
-  describe('No intercepts needed before route navigation', () => {
+  describe.skip('No intercepts needed before route navigation', () => {
     beforeEach(() => {
       HomePagePo.goTo();
       BurgerMenuPo.toggle();

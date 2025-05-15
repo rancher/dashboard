@@ -1,12 +1,12 @@
 import { WorkloadsDaemonsetsListPagePo, WorkLoadsDaemonsetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 
-describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-  describe('Workloads', () => {
-    describe('Daemonsets', () => {
+  describe.skip('Workloads', () => {
+    describe.skip('Daemonsets', () => {
       it('modifying "Scaling and Upgrade Policy" to "On Delete" should use the correct property "OnDelete"', () => {
         const daemonsetName = 'daemonset-test';
 

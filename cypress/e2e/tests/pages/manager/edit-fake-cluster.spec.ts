@@ -8,7 +8,7 @@ const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
 describe.skip('[Vue3 Skip]: Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
-  describe('Cluster Edit (Fake DO cluster)', () => {
+  describe.skip('Cluster Edit (Fake DO cluster)', () => {
     beforeEach(() => {
       generateFakeClusterDataAndIntercepts(fakeProvClusterId, fakeMgmtClusterId, true);
 

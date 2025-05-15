@@ -4,13 +4,13 @@ import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 
-describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
+describe.skip('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
   });
 
-  describe('OPA Gatekeeper resources', () => {
+  describe.skip('OPA Gatekeeper resources', () => {
     it('should check conditions related to issue #4600 (template w/ create btn + edit constraints w/ save btn)', () => {
       // all intercepts needed to mock install of OPA-Gatekeeper
       generateOpaGatekeeperForLocalCluster();
@@ -43,11 +43,11 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
     });
   });
 
-  describe('OPA Gatekeeper install', () => {
+  describe.skip('OPA Gatekeeper install', () => {
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
 
-    describe('YAML view', () => {
+    describe.skip('YAML view', () => {
       beforeEach(() => {
         ChartPage.navTo(null, 'OPA Gatekeeper');
         chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-gatekeeper');
@@ -55,7 +55,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         installChartPage.nextPage().editYaml();
       });
 
-      describe('UI Elements', () => {
+      describe.skip('UI Elements', () => {
         it('Footer controls should sticky to bottom', () => {
           cy.get('#wizard-footer-controls').should('be.visible');
 

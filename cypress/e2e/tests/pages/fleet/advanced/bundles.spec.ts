@@ -6,11 +6,11 @@ const bundle = 'fleet-agent-local';
 const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
 
-describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetBundles = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

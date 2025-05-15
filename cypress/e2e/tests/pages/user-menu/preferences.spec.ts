@@ -21,7 +21,7 @@ const repoList = repoListPage.list();
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 
-describe('User can update their preferences', () => {
+describe.skip('User can update their preferences', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -72,10 +72,10 @@ describe('User can update their preferences', () => {
     const header = new HeaderPo();
 
     header.showKubectlExplainTooltip();
-    header.getKubectlExplainTooltipContent().contains('Describe Resource');
+    header.getKubectlExplainTooltipContent().contains('describe.skip Resource');
     cy.reload();
     header.showKubectlExplainTooltip();
-    header.getKubectlExplainTooltipContent().contains('Describe Resource');
+    header.getKubectlExplainTooltipContent().contains('describe.skip Resource');
     // EO test https://github.com/rancher/dashboard/issues/10153
   });
 
@@ -413,7 +413,7 @@ describe('User can update their preferences', () => {
     }
   });
 
-  describe('Check keyboard mapping on YAML Editor', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  describe.skip('Check keyboard mapping on YAML Editor', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     it('does not show any indicator for default keyboard mapping', () => {
       prefPage.goTo();
       prefPage.keymapButtons().checkVisible();

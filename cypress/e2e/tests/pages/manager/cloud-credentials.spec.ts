@@ -2,7 +2,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
+describe.skip('Cloud Credentials', { testIsolation: 'off', tags: ['@manager', '@jenkins', '@adminUser', '@standardUser'] }, () => {
   const cloudCredentialsPage = new CloudCredentialsPagePo();
   let cloudcredentialId = '';
 

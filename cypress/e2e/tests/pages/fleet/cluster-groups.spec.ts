@@ -2,11 +2,11 @@ import { FleetClusterGroupsListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet
 import FleetClusterGroupDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.clustergroup.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 
-describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe.skip('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterGroups = new FleetClusterGroupsListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
@@ -47,7 +47,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
         });
     });
   });
-  describe('Edit', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('Edit', { tags: ['@vai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

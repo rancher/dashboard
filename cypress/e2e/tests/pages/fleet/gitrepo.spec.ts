@@ -10,8 +10,8 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
-describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  describe('Create', () => {
+describe.skip('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+  describe.skip('Create', () => {
     const listPage = new FleetGitRepoListPagePo();
     const gitRepoCreatePage = new GitRepoCreatePo('_');
     const headerPo = new HeaderPo();

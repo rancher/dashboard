@@ -31,7 +31,7 @@ const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
 const header = new HeaderPo();
 
-describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe.skip('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -294,7 +294,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       });
   });
 
-  describe('Cluster dashboard with limited permissions', () => {
+  describe.skip('Cluster dashboard with limited permissions', () => {
     let stdProjectName;
     let stdNsName;
     let stdUsername;

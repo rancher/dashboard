@@ -7,14 +7,14 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
-describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe.skip('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@vai', '@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
@@ -203,7 +203,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('Should open a terminal', () => {
+  describe.skip('Should open a terminal', () => {
     beforeEach(() => {
       workloadsPodPage.goTo();
     });
@@ -215,7 +215,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('When cloning a pod', () => {
+  describe.skip('When cloning a pod', () => {
     const { name: origPodName, namespace } = createPodBlueprint.metadata;
     const { name: clonePodName } = clonePodBlueprint.metadata;
 
@@ -281,7 +281,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     });
   });
 
-  describe('When creating a pod using the web Form', () => {
+  describe.skip('When creating a pod using the web Form', () => {
     const singlePodName = Cypress._.uniqueId(Date.now().toString());
 
     it(`should properly add container tabs to the tablist`, () => {

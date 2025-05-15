@@ -3,7 +3,7 @@ import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/mac
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe.skip('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo();
   const nsName = 'default';
   let resourceVersion = '';

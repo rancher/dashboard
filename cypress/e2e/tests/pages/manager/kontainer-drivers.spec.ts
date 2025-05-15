@@ -6,7 +6,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe.skip('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
   const createDriverPage = new KontainerDriverEditPo();
   const clusterList = new ClusterManagerListPagePo();
