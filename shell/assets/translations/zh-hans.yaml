@@ -2092,7 +2092,7 @@ fleet:
     gitOpsScale: 大规模 GitOps。
     learnMore: 了解更多。
     learnMoreLink: https://fleet.rancher.io
-    noRepo: "工作区中没有任何 Git 仓库"
+    noApplications: "工作区中没有任何 Git 仓库"
     getStarted: 开始使用
     thereIsMore: |-
       {count, plural,

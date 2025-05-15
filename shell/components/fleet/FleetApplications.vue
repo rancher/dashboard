@@ -112,7 +112,7 @@ export default {
       :is-creatable="true"
       :labelKey="'application'"
       :route="createLocation"
-      :icon="'icon-gear'"
+      :icon="'icon-repository'"
     />
     <ResourceTable
       v-if="!noRows"

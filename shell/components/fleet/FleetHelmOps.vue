@@ -86,7 +86,7 @@ export default {
       v-if="noRows && !loading"
       :schema="schema"
       :labelKey="'helmOp'"
-      :icon="'icon-linux'"
+      :icon="'icon-helm'"
     />
     <ResourceTable
       v-if="!noRows"

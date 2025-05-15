@@ -2516,7 +2516,7 @@ fleet:
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
     learnMoreLink: https://fleet.rancher.io
-    noRepo: "You don't have any Git Repositories in your Workspaces"
+    noApplications: "You don't have any App Bundles in your Workspaces"
     getStarted: Get started
     workspace: Workspace
     expand: Expand
@@ -2597,8 +2597,10 @@ fleet:
       cluster: There are no clusters available
   gitRepo:
     intro:
-      add: Add Repository
+      add: Create Git Repo
+      empty: No Git Repos have been added
     actions:
+      add: Create Git Repo
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
@@ -2724,10 +2726,10 @@ fleet:
     helmRepoURLRegex: Helm Repos (URL Regex)
   helmOp:
     intro:
-      add: Add Helm Application
-      empty: No applications have been added
+      add: Create Helm Op
+      empty: No Helm Ops have been added
     actions:
-      add: Add Helm Application
+      add: Create Helm Op
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
