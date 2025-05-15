@@ -278,7 +278,8 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
             'management/schemaFor': jest.fn(),
             'i18n/t':               (text: string) => text,
             t:                      (text: string) => text,
-          }
+          },
+          dispatch: jest.fn()
         },
         $fetchState: {},
       },
