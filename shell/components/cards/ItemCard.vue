@@ -107,18 +107,18 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     <div :class="['item-card-body', variant]">
       <template v-if="variant !== 'small'">
         <div>
-          <div
-            v-if="image"
-            :class="['item-card-image', variant]"
-          >
-            <slot name="item-card-image">
+          <slot name="item-card-image">
+            <div
+              v-if="image"
+              :class="['item-card-image', variant]"
+            >
               <LazyImage
                 :src="image.src"
                 :alt="labelText(image?.alt)"
                 data-testid="item-card-image"
               />
-            </slot>
-          </div>
+            </div>
+          </slot>
           <slot name="item-card-pill">
             <div
               v-if="pill && variant !== 'small'"
