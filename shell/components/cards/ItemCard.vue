@@ -98,9 +98,11 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     :class="['item-card', variant]"
     :role="clickable ? 'button' : undefined"
     :tabindex="clickable ? '0' : undefined"
+    :aria-label="labelText(header?.title) || 'Item Card'"
     :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
     @keydown.enter="_handleCardClick"
+    @keydown.space.prevent="_handleCardClick"
   >
     <div :class="['item-card-body', variant]">
       <template v-if="variant !== 'small'">
@@ -122,6 +124,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               v-if="pill && variant !== 'small'"
               v-clean-tooltip="labelText(pill.tooltip)"
               class="item-card-pill"
+              :aria-label="labelText(pill.tooltip) || labelText(pill.label)"
               data-testid="item-card-pill"
             >
               {{ labelText(pill.label) }}
@@ -150,6 +153,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
             <h3
               v-clean-tooltip="labelText(header.title)"
               :class="['item-card-header-title', variant]"
+              :aria-label="labelText(header.title)"
               data-testid="item-card-header-title"
             >
               {{ labelText(header.title) }}
@@ -163,6 +167,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               v-for="(status, i) in visibleStatuses"
               :key="i"
               class="item-card-header-statuses-status"
+              :aria-label="labelText(status.tooltip)"
               data-testid="item-card-header-statuses-status"
             >
               <i
@@ -194,6 +199,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
         <template v-else-if="content">
           <div
             class="item-card-content"
+            aria-label="Card content"
             data-testid="item-card-content"
           >
             <p>{{ labelText(content) }}</p>
