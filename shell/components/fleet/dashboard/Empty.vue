@@ -1,7 +1,5 @@
 
 <script>
-import { FLEET } from '@shell/config/types';
-import { NAME } from '@shell/config/product/fleet';
 export default {
   name: 'FleetDashboardEmpty',
 
@@ -13,15 +11,7 @@ export default {
   },
 
   data() {
-    return {
-      getStartedLink: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  NAME,
-          resource: FLEET.GIT_REPO
-        },
-      },
-    };
+    return { getStartedLink: { name: 'c-cluster-fleet-application-create' } };
   }
 };
 </script>
@@ -46,7 +36,7 @@ export default {
     </p>
     <template v-if="permissions.gitRepos">
       <h3 class="mb-30">
-        {{ t('fleet.dashboard.noRepo', null, true) }}
+        {{ t('fleet.dashboard.noApplications', null, true) }}
       </h3>
       <router-link
         :to="getStartedLink"
