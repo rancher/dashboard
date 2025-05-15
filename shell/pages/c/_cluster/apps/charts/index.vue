@@ -495,7 +495,7 @@ export default {
       </div>
       <template v-else>
         <div
-          class="app-cards-container"
+          class="app-cards"
           data-testid="app-cards-container"
         >
           <ItemCard
@@ -505,51 +505,55 @@ export default {
             variant="medium"
             :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
             :header="{
-              image: { src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) }},
               title: { text: chart.chartNameDisplay },
               statuses: chart.cardContent.statuses
             }"
+            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) }}"
             :content="{ text: chart.chartDescription }"
             :value="chart"
             :clickable="true"
             @card-click="selectChart"
           >
             <template #item-card-sub-header>
-              <div
-                v-for="subHeaderItem in chart.cardContent.subHeaderItems"
-                :key="subHeaderItem.text"
-                class="app-card-sub-header-item"
-                data-testid="app-card-version"
-              >
-                <i
-                  v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
-                  :class="['icon', subHeaderItem.icon]"
-                />
-                <p>
-                  {{ subHeaderItem.label }}
-                </p>
+              <div class="app-card-sub-header">
+                <div
+                  v-for="subHeaderItem in chart.cardContent.subHeaderItems"
+                  :key="subHeaderItem.text"
+                  class="app-card-sub-header-item"
+                  data-testid="app-card-version"
+                >
+                  <i
+                    v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
+                    :class="['icon', 'app-card-item-icon', subHeaderItem.icon]"
+                  />
+                  <p>
+                    {{ subHeaderItem.label }}
+                  </p>
+                </div>
               </div>
             </template>
             <template #item-card-footer>
-              <div
-                v-for="(footerItem, i) in chart.cardContent.footerItems"
-                :key="i"
-                class="app-card-footer-item no-card-click"
-                data-testid="app-card-footer-item"
-              >
-                <i
-                  v-if="footerItem.icon"
-                  v-clean-tooltip="t(footerItem.iconTooltip.key)"
-                  :class="['icon', 'app-card-footer-item-icon', footerItem.icon]"
-                />
-                <p
-                  v-for="(label, j) in footerItem.labels"
-                  :key="j"
-                  class="app-card-footer-item-text secondary-text-link"
-                  data-testid="app-card-footer-item-text"
+              <div class="app-card-footer">
+                <div
+                  v-for="(footerItem, i) in chart.cardContent.footerItems"
+                  :key="i"
+                  class="app-card-footer-item no-card-click"
+                  data-testid="app-card-footer-item"
                 >
-                  {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
-                </p>
+                  <i
+                    v-if="footerItem.icon"
+                    v-clean-tooltip="t(footerItem.iconTooltip.key)"
+                    :class="['icon', 'app-card-item-icon', footerItem.icon]"
+                  />
+                  <p
+                    v-for="(label, j) in footerItem.labels"
+                    :key="j"
+                    class="app-card-footer-item-text secondary-text-link"
+                    data-testid="app-card-footer-item-text"
+                  >
+                    {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+                  </p>
+                </div>
               </div>
             </template>
           </ItemCard>
@@ -624,36 +628,52 @@ export default {
   }
 }
 
-.app-cards-container {
+.app-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, max-content));
   grid-gap: var(--gap-md);
   overflow: hidden;
 
-  .app-card-sub-header-item {
-    display: flex;
-    align-items: center;
+  .app-card {
 
-    .icon {
-      font-size: 18px;
+    &-sub-header {
+      display: flex;
+      gap: var(--gap-md);
+      color: var(--link-text-secondary);
+      margin-bottom: 8px;
+
+      &-item {
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    &-footer {
+      display: flex;
+      flex-wrap: wrap;
+
+      &-item {
+        display: flex;
+        align-items: center;
+        color: var(--link-text-secondary);
+        margin-top: 8px;
+        margin-right: 8px;
+
+        &-text {
+          text-transform: capitalize;
+          margin-right: 8px;
+        }
+      }
+    }
+
+    &-item-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      font-size: 19px;
+      align-items: center;
+      justify-content: center;
       margin-right: 8px;
-    }
-  }
-
-  .app-card-footer-item {
-    display: flex;
-    align-items: center;
-    color: var(--link-text-secondary);
-    margin-top: 8px;
-    margin-right: 16px;
-
-    .app-card-footer-item-icon {
-      font-size: 18px;
-    }
-
-    .app-card-footer-item-text {
-      margin-left: 8px;
-      text-transform: capitalize;
     }
   }
 }

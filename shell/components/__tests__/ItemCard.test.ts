@@ -6,9 +6,9 @@ const id = 'test';
 const baseProps = {
   id,
   value:  { someProperty: 'some-value' },
+  image:  { src: 'logo.png', alt: { text: 'Logo' } },
   header: {
     title:    { text: 'Card Title' },
-    image:    { src: 'logo.png', alt: { text: 'Logo' } },
     statuses: [
       { icon: 'icon-one', tooltip: { text: 'Status One' } },
       { icon: 'icon-two' }
@@ -24,7 +24,7 @@ describe('itemCard', () => {
     expect(wrapper.get('[data-testid="item-card-header-title"]').text()).toBe('Card Title');
     expect(wrapper.get('[data-testid="item-card-content"]').text()).toContain('Card description here');
     expect(wrapper.get('[data-testid="item-card-image"]')).toBeTruthy();
-    expect(wrapper.findAll(`[data-testid="item-card-header-status-${ id }"]`)).toHaveLength(2);
+    expect(wrapper.findAll(`[data-testid="item-card-header-statuses-status"]`)).toHaveLength(2);
   });
 
   it('renders pill only in medium variant', () => {
@@ -146,7 +146,7 @@ describe('itemCard', () => {
       }
     });
 
-    const icon = wrapper.get(`[data-testid="item-card-header-status-${ id }"]`);
+    const icon = wrapper.get('[data-testid="item-card-header-status-0"]');
 
     expect(icon.attributes('style')).toContain('color: red');
   });

@@ -30,7 +30,6 @@ type Status = {
 }
 
 type Header = {
-  image?: Image;
   title?: Label;
   statuses?: Status[];
 }
@@ -40,7 +39,7 @@ type ItemValue = Record<string, any>;
 const store = useStore();
 const { t } = useI18n(store);
 
-const emit = defineEmits<{( e: 'card-click', value: any): void; }>();
+const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
 
 const props = defineProps({
   id: {
@@ -54,6 +53,10 @@ const props = defineProps({
   header: {
     type:     Object as PropType<Header>,
     required: true
+  },
+  image: {
+    type:    Object as PropType<Image> | undefined,
+    default: undefined
   },
   content: {
     type:    Object as PropType<Label> | undefined,
@@ -99,104 +102,104 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     @click="_handleCardClick"
     @keydown.enter="_handleCardClick"
   >
-    <div
-      v-if="variant === 'medium'"
-      class="side-section"
-      data-testid="item-card-image-wrapper"
-    >
-      <div
-        v-if="header.image"
-        class="item-card-image"
-      >
-        <slot name="item-card-image">
-          <LazyImage
-            :src="header.image.src"
-            :alt="labelText(header.image?.alt)"
-            data-testid="item-card-image"
-          />
-        </slot>
-      </div>
-      <slot name="item-card-pill">
-        <div
-          v-if="pill"
-          v-clean-tooltip="labelText(pill.tooltip)"
-          class="item-card-pill"
-          data-testid="item-card-pill"
-        >
-          {{ labelText(pill.label) }}
-        </div>
-      </slot>
-    </div>
-
-    <div class="main-section">
-      <div :class="['item-card-header', variant]">
-        <div
-          v-if="variant === 'small'"
-          data-testid="item-card-image-wrapper"
-        >
+    <div :class="['item-card-body', variant]">
+      <template v-if="variant !== 'small'">
+        <div>
           <div
-            v-if="header.image"
-            class="item-card-header-image"
+            v-if="image"
+            :class="['item-card-image', variant]"
           >
-            <slot name="item-card-header-image">
+            <slot name="item-card-image">
               <LazyImage
-                :src="header.image.src"
-                :alt="labelText(header.image?.alt)"
-                data-testid="item-card-header-image"
+                :src="image.src"
+                :alt="labelText(image?.alt)"
+                data-testid="item-card-image"
               />
             </slot>
           </div>
-        </div>
-        <slot name="item-card-header-title">
-          <h3
-            v-clean-tooltip="labelText(header.title)"
-            :class="['item-card-header-title', variant]"
-            data-testid="item-card-header-title"
-          >
-            {{ labelText(header.title) }}
-          </h3>
-        </slot>
-        <div
-          v-if="header.statuses"
-          class="item-card-header-statuses"
-        >
-          <div
-            v-for="(status, i) in visibleStatuses"
-            :key="i"
-          >
-            <i
-              v-clean-tooltip="labelText(status.tooltip)"
-              :class="['icon', status.icon, status.color]"
-              :style="{color: status.customColor}"
-              :data-testid="`item-card-header-status-${id}`"
-            />
-          </div>
-        </div>
-
-        <template v-if="$slots['item-card-actions']">
-          <div class="item-card-header-action-menu no-card-click">
-            <slot name="item-card-actions" />
-          </div>
-        </template>
-      </div>
-
-      <template v-if="$slots['item-card-sub-header']">
-        <div class="item-card-sub-header">
-          <slot name="item-card-sub-header" />
+          <slot name="item-card-pill">
+            <div
+              v-if="pill && variant !== 'small'"
+              v-clean-tooltip="labelText(pill.tooltip)"
+              class="item-card-pill"
+              data-testid="item-card-pill"
+            >
+              {{ labelText(pill.label) }}
+            </div>
+          </slot>
         </div>
       </template>
 
-      <div
-        v-if="content"
-        class="item-card-content"
-        data-testid="item-card-content"
-      >
-        <slot name="item-card-content">
-          <p>{{ labelText(content) }}</p>
-        </slot>
-      </div>
+      <div class="item-card-body-details">
+        <div :class="['item-card-header', variant]">
+          <template v-if="variant === 'small'">
+            <slot name="item-card-image">
+              <div
+                v-if="image"
+                :class="['item-card-image', variant]"
+              >
+                <LazyImage
+                  :src="image.src"
+                  :alt="labelText(image?.alt)"
+                  data-testid="item-card-image"
+                />
+              </div>
+            </slot>
+          </template>
+          <slot name="item-card-header-title">
+            <h3
+              v-clean-tooltip="labelText(header.title)"
+              :class="['item-card-header-title', variant]"
+              data-testid="item-card-header-title"
+            >
+              {{ labelText(header.title) }}
+            </h3>
+          </slot>
+          <div
+            v-if="header.statuses"
+            class="item-card-header-statuses"
+          >
+            <div
+              v-for="(status, i) in visibleStatuses"
+              :key="i"
+              class="item-card-header-statuses-status"
+              data-testid="item-card-header-statuses-status"
+            >
+              <i
+                v-clean-tooltip="labelText(status.tooltip)"
+                :class="['icon', status.icon, status.color]"
+                :style="{color: status.customColor}"
+                :data-testid="`item-card-header-status-${i}`"
+              />
+            </div>
+          </div>
 
-      <div class="item-card-footer">
+          <template v-if="$slots['item-card-actions']">
+            <div class="item-card-header-action-menu no-card-click">
+              <slot name="item-card-actions" />
+            </div>
+          </template>
+        </div>
+
+        <slot name="item-card-sub-header" />
+
+        <template v-if="$slots['item-card-content']">
+          <slot name="item-card-content">
+            <div
+              class="item-card-content"
+              data-testid="item-card-content"
+            />
+          </slot>
+        </template>
+        <template v-else-if="content">
+          <div
+            class="item-card-content"
+            data-testid="item-card-content"
+          >
+            <p>{{ labelText(content) }}</p>
+          </div>
+        </template>
+
         <slot name="item-card-footer" />
       </div>
     </div>
@@ -223,110 +226,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     min-width: 320px;
   }
 
-  &-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    color: var(--body-text);
-
-    &.small {
-      align-items: center;
-    }
-
-    &-image {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 8px;
-      background: #fff;
-      border-radius: var(--border-radius);
-
-      ::v-deep img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-      }
-    }
-
-    &-title {
-      max-width: 250px;
-      font-weight: 600;
-      margin-bottom: 0px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-
-      &.small {
-        max-width: 150px;
-      }
-    }
-
-    &-statuses {
-      display: flex;
-      align-items: flex-start;
-      gap: var(--gap-md);
-      margin-left: auto;
-      margin-right: 4px;
-
-      .icon {
-        font-size: 23px;
-
-        &.error {
-          color: var(--error);
-        }
-        &.info {
-          color: var(--info);
-        }
-        &.success {
-          color: var(--success);
-        }
-      }
-    }
-
-    &-action-menu {
-      margin-top: -4px;
-      margin-right: -4px;
-
-      ::v-deep .icon {
-        font-size: 16px;
-        color: var(--body-text)
-      }
-    }
-  }
-
-  &-sub-header {
-    display: flex;
-    justify-content: flex-start;
-    gap: var(--gap-md);
-    color: var(--link-text-secondary);
-    margin-bottom: 8px;
-  }
-
-  &-content {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 21px;
-    word-break: break-word;
-  }
-
-  &-footer {
-    display: flex;
-    flex-wrap: wrap;
-  }
-}
-
-.side-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--gap-md);
-
-  .item-card-image {
+  &-image {
     width: 48px;
     height: 48px;
     display: flex;
@@ -340,12 +240,91 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
       height: 40px;
       object-fit: contain;
     }
+
+    &.small {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+
+      ::v-deep img {
+        width: 24px;
+        height: 24px;
+      }
+    }
   }
 
-  .item-card-pill {
+  &-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 24px;
+    color: var(--body-text);
+
+    &-title {
+      max-width: 250px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 0px;
+      line-height: 24px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+
+      &.small {
+        max-width: 150px;
+      }
+    }
+
+    &-statuses {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-left: auto;
+
+      &-status {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .icon {
+          font-size: 23px;
+
+          &.error    { color: var(--error); }
+          &.info     { color: var(--info); }
+          &.success  { color: var(--success); }
+        }
+      }
+    }
+
+    &-action-menu {
+      margin-left: 12px;
+
+      ::v-deep .icon {
+        font-size: 16px;
+        color: var(--body-text);
+      }
+    }
+  }
+
+  &-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 4px 0;
+    line-height: 21px;
+    word-break: break-word;
+  }
+
+  &-pill {
     display: flex;
     width: 48px;
     padding: 4px 8px;
+    margin-top: 8px;
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
@@ -355,14 +334,28 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     font-size: 10px;
     font-weight: 600;
   }
-}
 
-.main-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--gap);
-  flex: 1;
+  &-body {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap-lg);
+
+    &.small {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--gap);
+      flex: 1;
+    }
+
+    &-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--gap);
+      width: 100%;
+      flex: 1;
+    }
+  }
 }
 
 </style>
