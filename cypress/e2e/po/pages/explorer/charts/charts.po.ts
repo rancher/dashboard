@@ -52,12 +52,12 @@ export class ChartsPage extends PagePo {
   }
 
   charts() {
-    return new ItemCardPo('[data-testid="apps-container"] [data-testid="item-card"]');
+    return new ItemCardPo('[data-testid="app-cards-container"] [data-testid="item-card"]');
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
     const src = this.charts().getAppByName(name)
-      .get('[data-testid="item-card-logo-wrapper"] img')
+      .get('[data-testid="item-card-image"] img')
       .invoke('attr', 'src');
 
     if (isGeneric) {

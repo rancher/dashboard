@@ -1,15 +1,15 @@
-// import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
-// export default class ItemCardPo extends ComponentPo {
-//   constructor(selector = '[data-testid="item-card"]') {
-//     super(selector);
-//   }
+export default class ItemCardPo extends ComponentPo {
+  constructor(selector = '[data-testid="item-card"]') {
+    super(selector);
+  }
 
-//   getAppByName(name: string) {
-//     return this.self().find('[data-testid="item-card-title"]').contains(name);
-//   }
+  getAppByName(name: string) {
+    return this.self().find('[data-testid="item-card-header-title"]').contains(name);
+  }
 
-//   select(name: string) {
-//     return this.getAppByName(name).click();
-//   }
-// }
+  select(name: string) {
+    return this.getAppByName(name).click();
+  }
+}
