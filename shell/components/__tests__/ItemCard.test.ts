@@ -1,80 +1,153 @@
-// import { mount } from '@vue/test-utils';
-// import ItemCard from '@shell/components/cards/ItemCard.vue';
+import { mount } from '@vue/test-utils';
+import ItemCard from '@shell/components/cards/ItemCard.vue';
 
-// describe('component: ItemCard', () => {
-//   const defaultProps = {
-//     title:       'Test App',
-//     description: 'A brief description of the test app.',
-//     logo:        '/test-logo.png',
-//     logoAltText: 'Test App Logo',
-//     featured:    true,
-//     asLink:      true,
-//     deprecated:  true,
-//     upgradable:  true,
-//     installed:   true,
-//     version:     '1.0.0',
-//     repo:        'TestRepo',
-//     categories:  ['Category1', 'Category2'],
-//     tags:        ['Tag1', 'Tag2'],
-//   };
+const id = 'test';
 
-//   let wrapper;
+const baseProps = {
+  id,
+  value:  { someProperty: 'some-value' },
+  header: {
+    title:    { text: 'Card Title' },
+    image:    { src: 'logo.png', alt: { text: 'Logo' } },
+    statuses: [
+      { icon: 'icon-one', tooltip: { text: 'Status One' } },
+      { icon: 'icon-two' }
+    ]
+  },
+  content: { text: 'Card description here' }
+};
 
-//   beforeEach(() => {
-//     wrapper = mount(ItemCard, { props: defaultProps });
-//   });
+describe('itemCard', () => {
+  it('renders title, image, and content', () => {
+    const wrapper = mount(ItemCard, { props: baseProps });
 
-//   afterEach(() => {
-//     wrapper.unmount();
-//   });
+    expect(wrapper.get('[data-testid="item-card-header-title"]').text()).toBe('Card Title');
+    expect(wrapper.get('[data-testid="item-card-content"]').text()).toContain('Card description here');
+    expect(wrapper.get('[data-testid="item-card-image"]')).toBeTruthy();
+    expect(wrapper.findAll(`[data-testid="item-card-header-status-${ id }"]`)).toHaveLength(2);
+  });
 
-//   it('renders all main props correctly', () => {
-//     expect(wrapper.get('[data-testid="item-card-title"]').text()).toBe(defaultProps.title);
-//     expect(wrapper.get('[data-testid="item-card-description"]').text()).toBe(defaultProps.description);
-//     expect(wrapper.get('[data-testid="item-card-logo"]')).toBeTruthy();
-//     expect(wrapper.get('[data-testid="item-card-version"]').text()).toContain(defaultProps.version);
-//     expect(wrapper.get('[data-testid="item-card-repo"]').text()).toBe(defaultProps.repo);
-//     expect(wrapper.findAll('[data-testid^="item-card-category-"]')).toHaveLength(defaultProps.categories.length);
-//     expect(wrapper.findAll('[data-testid^="item-card-tag-"]')).toHaveLength(defaultProps.tags.length);
-//   });
+  it('renders pill only in medium variant', () => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        variant: 'medium',
+        pill:    { label: { text: 'Installed' } }
+      }
+    });
 
-//   it('emits card-click when card is clicked (outside actionable areas)', async() => {
-//     await wrapper.get('[data-testid="item-card"]').trigger('click');
-//     expect(wrapper.emitted('card-click')).toBeTruthy();
-//   });
+    expect(wrapper.get('[data-testid="item-card-pill"]').text()).toBe('Installed');
 
-//   it('does not emit card-click when an actionable area is clicked', async() => {
-//     await wrapper.get('[data-testid="item-card-repo"]').trigger('click');
-//     expect(wrapper.emitted('card-click')).toBeFalsy();
-//   });
+    // now test that it's not rendered when variant is small
+    const wrapperSmall = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        variant: 'small',
+        pill:    { label: { text: 'Installed' } }
+      }
+    });
 
-//   it('emits repo-click with correct value', async() => {
-//     await wrapper.get('[data-testid="item-card-repo-text"]').trigger('click');
-//     expect(wrapper.emitted('repo-click')[0]).toStrictEqual([defaultProps.repo]);
-//   });
+    expect(wrapperSmall.find('[data-testid="item-card-pill"]').exists()).toBe(false);
+  });
 
-//   it('emits category-click for each category', async() => {
-//     for (const [i, category] of defaultProps.categories.entries()) {
-//       await wrapper.get(`[data-testid="item-card-category-${ i }"]`).trigger('click');
-//       expect(wrapper.emitted('category-click')[i]).toStrictEqual([category]);
-//     }
-//   });
+  it('emits card-click when clicked and clickable', async() => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        clickable: true
+      }
+    });
 
-//   it('emits tag-click for each tag', async() => {
-//     for (const [i, tag] of defaultProps.tags.entries()) {
-//       await wrapper.get(`[data-testid="item-card-tag-${ i }"]`).trigger('click');
-//       expect(wrapper.emitted('tag-click')[i]).toStrictEqual([tag]);
-//     }
-//   });
+    await wrapper.trigger('click');
 
-//   it('repo, tags, and categories are keyboard accessible', async() => {
-//     await wrapper.get('[data-testid="item-card-repo-text"]').trigger('keydown.enter');
-//     expect(wrapper.emitted('repo-click')).toBeTruthy();
+    const emitted = wrapper.emitted('card-click');
 
-//     await wrapper.get('[data-testid="item-card-category-0"]').trigger('keydown.enter');
-//     expect(wrapper.emitted('category-click')).toBeTruthy();
+    expect(emitted).toBeTruthy();
+    expect(emitted?.[0]).toStrictEqual([{ someProperty: 'some-value' }]);
+  });
 
-//     await wrapper.get('[data-testid="item-card-tag-0"]').trigger('keydown.enter');
-//     expect(wrapper.emitted('tag-click')).toBeTruthy();
-//   });
-// });
+  it('does not emit card-click when clicking on .no-card-click', async() => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        clickable: true
+      },
+      slots: { 'item-card-actions': '<button class="no-card-click">Actions</button>' }
+    });
+
+    await wrapper.find('.no-card-click').trigger('click');
+
+    expect(wrapper.emitted('card-click')).toBeFalsy();
+  });
+
+  it('sets role and tabindex when clickable', () => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        clickable: true
+      }
+    });
+
+    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+
+    expect(root.attributes('role')).toBe('button');
+    expect(root.attributes('tabindex')).toBe('0');
+  });
+
+  it('does not set role or tabindex when not clickable', () => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        clickable: false
+      }
+    });
+
+    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+
+    expect(root.attributes('role')).toBeUndefined();
+    expect(root.attributes('tabindex')).toBeUndefined();
+  });
+
+  it('supports keyboard enter to trigger click', async() => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        clickable: true
+      }
+    });
+
+    await wrapper.trigger('keydown.enter');
+    expect(wrapper.emitted('card-click')).toBeTruthy();
+  });
+
+  it('supports slot for footer and sub-header', () => {
+    const wrapper = mount(ItemCard, {
+      props: baseProps,
+      slots: {
+        'item-card-footer':     '<div>FooterContent</div>',
+        'item-card-sub-header': '<div>SubHeaderContent</div>'
+      }
+    });
+
+    expect(wrapper.text()).toContain('FooterContent');
+    expect(wrapper.text()).toContain('SubHeaderContent');
+  });
+
+  it('renders icon with custom color', () => {
+    const wrapper = mount(ItemCard, {
+      props: {
+        ...baseProps,
+        header: {
+          ...baseProps.header,
+          statuses: [
+            { icon: 'icon-custom', customColor: 'red' }
+          ]
+        }
+      }
+    });
+
+    const icon = wrapper.get(`[data-testid="item-card-header-status-${ id }"]`);
+
+    expect(icon.attributes('style')).toContain('color: red');
+  });
+});
