@@ -134,9 +134,17 @@ export default {
     };
   },
 
+  created() {
+    this.$store.dispatch('showWorkspaceSwitcher', false);
+  },
+
   mounted() {
     this.preset('cardsCount', 'object');
     this.preset('viewMode', 'string');
+  },
+
+  beforeUnmount() {
+    this.$store.dispatch('showWorkspaceSwitcher', true);
   },
 
   computed: {

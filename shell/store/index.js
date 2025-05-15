@@ -263,6 +263,7 @@ export const state = () => {
      * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
      */
     sideNavCache:            undefined,
+    showWorkspaceSwitcher:   true,
   };
 };
 
@@ -601,6 +602,16 @@ export const getters = {
     return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
   },
 
+  showWorkspaceSwitcher(state, getters) {
+    const product = getters['currentProduct'];
+
+    if (!product) {
+      return false;
+    }
+
+    return product.showWorkspaceSwitcher && state.showWorkspaceSwitcher;
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },
@@ -763,7 +774,11 @@ export const mutations = {
 
   setSideNavCache(state, sideNavCache) {
     state.sideNavCache = sideNavCache;
-  }
+  },
+
+  showWorkspaceSwitcher(state, value) {
+    state.showWorkspaceSwitcher = value;
+  },
 };
 
 export const actions = {
@@ -1289,6 +1304,10 @@ export const actions = {
 
   setSideNavCache({ commit }, sideNavCache) {
     commit('setSideNavCache', sideNavCache);
+  },
+
+  showWorkspaceSwitcher({ commit }, value) {
+    commit('showWorkspaceSwitcher', value);
   },
 
   ...gcActions
