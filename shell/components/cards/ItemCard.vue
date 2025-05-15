@@ -321,7 +321,6 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 4px 0;
     line-height: 21px;
     word-break: break-word;
   }
