@@ -86,7 +86,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     header.kubectlShell().openAndExecuteCommand('get no');
     header.kubectlShell().closeTerminal();
-    header.kubectlShell().checkNotVisible();
+    header.kubectlShell().checkNotExists();
   });
 
   it('can download kubeconfig from header', () => {
