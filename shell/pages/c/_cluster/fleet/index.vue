@@ -277,7 +277,7 @@ export default {
       return this.cardResources[workspace][state.stateDisplay]?.length;
     },
 
-    totaleStateCount(workspace) {
+    totalStateCount(workspace) {
       return this.filterByType(workspace)?.length;
     },
 
@@ -443,7 +443,7 @@ export default {
             <div class="title">
               <h3 class="label">
                 <i class="icon icon-folder" />
-                <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
+                <span class="label-secondary">{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
               </h3>
               <router-link
                 class="name"
@@ -472,10 +472,6 @@ export default {
                 :workspace="workspace.id"
                 :type="FLEET.CLUSTER"
                 :selectable="false"
-              />
-              <div
-                v-if="workspace.clusterGroups?.length"
-                class="spacer"
               />
               <ResourcePanel
                 v-if="workspace.clusterGroups?.length"
@@ -552,9 +548,11 @@ export default {
               v-for="(state, j) in resourceStates"
               :key="j"
               :data-testid="`state-panel-${ state.stateDisplay }`"
-              class="card-panel mt-20"
             >
-              <template v-if="cardResources[workspace.id][state.stateDisplay]?.length">
+              <div
+                v-if="cardResources[workspace.id][state.stateDisplay]?.length"
+                class="card-panel"
+              >
                 <div
                   role="button"
                   tabindex="0"
@@ -579,7 +577,7 @@ export default {
                     <span class="partial">
                       {{ state.stateDisplay }}&nbsp;&nbsp;{{ partialStateCount(workspace.id, state) }}
                     </span>
-                    <span lass="total">/{{ totaleStateCount(workspace) }}</span>
+                    <span class="total label-secondary">/{{ totalStateCount(workspace) }}</span>
                   </div>
                 </div>
                 <div
@@ -620,7 +618,7 @@ export default {
                     </p>
                   </div>
                 </div>
-              </template>
+              </div>
             </div>
           </div>
           <div
@@ -673,8 +671,9 @@ export default {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 16px;
   background-color: var(--body-bg);
+  box-shadow: none;
   min-width: 500px;
   padding: 16px;
 
@@ -749,6 +748,10 @@ export default {
         flex-direction: column;
         margin-top: 5px;
 
+        label {
+          width: fit-content;
+        }
+
         .label {
           margin-top: 2px;
           line-height: 20px;
@@ -763,11 +766,14 @@ export default {
 
     .cards-panel {
       .card-panel {
+        margin-top: 32px;
+
         .title {
           display: flex;
           align-items: center;
           cursor: pointer;
           width: fit-content;
+          margin-bottom: 16px;
 
           .icon {
             margin-right: 5px;
@@ -800,16 +806,17 @@ export default {
 
         .card-panel-body {
           .resource-cards-container {
-            display: flex;
-            justify-content: flex-start;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px 8px;
+            min-height: 100%;
 
             .resource-card {
               cursor: pointer;
 
               .selected {
                 border: 2px solid var(--primary);
-                margin: 9px;
+                margin: 0;
               }
             }
           }
@@ -841,6 +848,10 @@ p {
     text-decoration: underline;
     cursor: pointer;
   }
+}
+
+.label-secondary{
+  color: var(--label-secondary);
 }
 
 @keyframes slideInOut {

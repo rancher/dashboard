@@ -85,38 +85,51 @@ export default {
       />
     </div>
     <div class="mt-5 summary">
-      <div v-if="value.stateDescription">
+      <div
+        v-if="value.stateDescription"
+        class="error mt-10"
+      >
         <span
-          class="msg"
+          v-clean-tooltip="value.stateDescription"
+          class="label wrap-text"
           :class="{ 'text-error' : value.stateObj.error }"
         >
           {{ value.stateDescription }}
         </span>
       </div>
       <div
-        v-else
-        class="description"
+        v-else-if="noClustersWarning"
+        class="no-clusters"
       >
-        <template v-if="noClustersWarning">
-          <i class="icon icon-lg icon-warning text-warning" />
-          <span>{{ noClustersWarning }}</span>
-        </template>
-        <template v-else>
-          <i
-            v-if="statePanel.id !== 'success'"
-            class="icon-lg"
-            :class="statePanel.icon"
-            :style="{ color: statePanel.color }"
-          />
-          <div class="label">
-            <span class="large">{{ summary.partial }}</span>
-            <span v-if="summary.partial !== summary.total && summary.total !== 0">/{{ summary.total }}</span>
-            &nbsp;
-            <span>{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
-            <span class="large">{{ summary.clusters }}</span>
-            <span>{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
-          </div>
-        </template>
+        <i class="icon icon-lg icon-warning text-warning" />
+        <span
+          v-clean-tooltip="noClustersWarning"
+          class="wrap-text"
+        >
+          {{ noClustersWarning }}
+        </span>
+      </div>
+      <div
+        v-else
+        class="count"
+      >
+        <i
+          v-if="statePanel.id !== 'success'"
+          class="icon-lg"
+          :class="statePanel.icon"
+          :style="{ color: statePanel.color }"
+        />
+        <div class="label">
+          <span class="large">{{ summary.partial }}</span>
+          <span
+            v-if="summary.partial !== summary.total && summary.total !== 0"
+            class="label-secondary"
+          >/{{ summary.total }}</span>
+          &nbsp;
+          <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
+          <span class="large">{{ summary.clusters }}</span>
+          <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -124,25 +137,38 @@ export default {
 
 <style lang="scss" scoped>
   .summary-panel {
-    max-width: 300px;
+
+    .progress {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .progress, .progress * {
+      height: 6px;
+      border-right: 1px solid var(--body-bg);
+    }
+
     .details {
       display: flex;
       align-items: center;
       gap: 5px;
-
-      .state-parts {
-        margin-top: 2px;
-      }
+      max-width: 300px;
     }
 
     .summary {
       margin-top: 5px;
 
-      .msg {
-        overflow-wrap: break-word;
+      .no-clusters {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+
+        .icon {
+          margin-right: 5px;
+        }
       }
 
-      .description {
+      .count {
         display: flex;
         align-items: center;
 
@@ -157,5 +183,17 @@ export default {
         }
       }
     }
+  }
+
+  .label-secondary{
+    color: var(--label-secondary);
+  }
+
+  .wrap-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
   }
 </style>

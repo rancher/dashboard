@@ -85,7 +85,7 @@ export default {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 10px;
-    margin: 10px;
+    margin: 1px;
 
     .title {
       display: flex;
@@ -99,6 +99,10 @@ export default {
         gap: 5px;
         font-size: medium;
       }
+    }
+
+    .body {
+      padding-right: 10px;
     }
   }
 </style>

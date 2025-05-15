@@ -1,6 +1,7 @@
 <script>
 import { markRaw } from 'vue';
 import { mapGetters } from 'vuex';
+import { lcFirst } from '@shell/utils/string';
 import { Chart, registerables } from 'chart.js';
 import { BadgeState } from '@components/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
@@ -55,15 +56,25 @@ export default {
         responsive: true,
         elements:   {
           arc: {
-            borderWidth: 4,
-            borderColor: () => {
-              return getComputedStyle(document.body).getPropertyValue('--body-bg');
-            }
+            borderWidth:      4,
+            borderColor:      this.bgColor,
+            hoverBorderColor: this.bgColor,
           }
         },
         plugins: {
-          legend: { display: false },
-          title:  { display: false },
+          legend:  { display: false },
+          title:   { display: false },
+          tooltip: {
+            yAlign:    'bottom',
+            callbacks: {
+              title: (ctx) => {
+                const v = ctx[0];
+
+                return `${ v?.formattedValue } ${ lcFirst(v.label) }`;
+              },
+              label: () => '',
+            }
+          }
         },
         cutout:  13,
         onHover: (event) => {
@@ -200,6 +211,10 @@ export default {
 
     onClickBadge(state) {
       this.selectState(state);
+    },
+
+    bgColor() {
+      return getComputedStyle(document.body).getPropertyValue('--body-bg');
     }
   }
 };
@@ -221,7 +236,7 @@ export default {
         <span class="count">{{ resources.length }}</span>
         <span class="label">{{ typeLabel }}</span>
       </div>
-      <div class="states mt-5">
+      <div class="states">
         <BadgeState
           v-for="(state, i) in states"
           :key="i"
@@ -270,6 +285,7 @@ export default {
         .count {
           font-size: 25px;
           font-weight: bold;
+          margin-right: 4px;
         }
 
         .label {
@@ -280,49 +296,54 @@ export default {
       .states {
         display: flex;
         align-items: center;
+        margin-top: 4px;
 
         .badge {
-          margin: 0 5px 0 0;
+          margin: 2px 5px 2px 2px;
+          border: 0;
 
           &.selectable {
             cursor: pointer;
           }
 
-          &.selected {
-            &.bg-error {
-              background: var(--error);
-              color: var(--primary-text);
-            }
-
-            &.bg-warning {
-              background: var(--warning);
-              color: var(--warning-text);
-            }
-
-            &.bg-info {
-              background: var(--info);
-              color: var(--primary-text);
-            }
-
-            &.bg-success {
-              background: var(--success);
-              color: var(--primary-text);
-            }
-          }
-
           &.bg-error {
-            background: transparent;
-            color: var(--error);
+            background: var(--click-badge-error-bg);
+            color: var(--click-badge-error);
           }
 
           &.bg-warning {
-            background: transparent;
-            color: var(--warning);
+            background: var(--click-badge-warning-bg);
+            color: var(--click-badge-warning);
+          }
+
+          &.bg-success {
+            background: var(--click-badge-success-bg);
+            color: var(--click-badge-success);
           }
 
           &.bg-info {
-            background: transparent;
-            color: var(--info);
+            background: var(--click-badge-info-bg);
+            color: var(--click-badge-info);
+          }
+
+          &.selected {
+            margin: 0 5px 0 0;
+
+            &.bg-error {
+              border: 2px solid var(--click-badge-error-border);
+            }
+
+            &.bg-warning {
+              border: 2px solid var(--click-badge-warning-border);
+            }
+
+            &.bg-success {
+              border: 2px solid var(--click-badge-success-border);
+            }
+
+            &.bg-info {
+              border: 2px solid var(--click-badge-info-border);
+            }
           }
         }
       }
