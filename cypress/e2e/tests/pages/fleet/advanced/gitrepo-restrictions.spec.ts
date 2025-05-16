@@ -1,4 +1,4 @@
-import { FleetGitRepoRestrictionListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitreporestriction.po';
+import { FleetGitRepoRestrictionListPagePo, FleetRestrictionCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitreporestriction.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -12,7 +12,7 @@ const restrictionNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  const fleetRestrictionsPage = new FleetGitRepoRestrictionListPagePo();
+  const fleetRestrictionsListPage = new FleetGitRepoRestrictionListPagePo();
   const headerPo = new HeaderPo();
 
   describe('CRUD', { tags: ['@fleet', '@adminUser'] }, () => {
@@ -24,19 +24,21 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
     });
 
     it('can create a gitrepo restriction', () => {
+      const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo();
+
       cy.intercept('POST', '/v1/fleet.cattle.io.gitreporestrictions').as('createRestriction');
 
-      fleetRestrictionsPage.goTo();
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().baseResourceList().masthead().title()
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.baseResourceList().masthead().title()
         .should('contain', 'GitRepoRestrictions');
       headerPo.selectWorkspace(defaultWorkspace);
-      fleetRestrictionsPage.sharedComponents().baseResourceList().masthead().createYaml();
-      fleetRestrictionsPage.createRestrictionForm().waitForPage('as=yaml');
-      fleetRestrictionsPage.createRestrictionForm().mastheadTitle().then((title) => {
+      fleetRestrictionsListPage.baseResourceList().masthead().createYaml();
+      fleetRestrictionCreateEditPage.waitForPage('as=yaml');
+      fleetRestrictionCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('GitRepoRestriction: Create');
       });
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
         // convert yaml into json to update values
@@ -44,34 +46,36 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
           json.metadata.name = customRestrictionName;
 
-          fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@createRestriction').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
         removeRestriction = true;
         restrictionNameList.push(customRestrictionName);
       });
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().rowWithName(customRestrictionName).checkVisible();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().rowWithName(customRestrictionName).checkVisible();
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
     it.skip('can Edit Config', () => {
+      const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo(defaultWorkspace, customRestrictionName);
+
       cy.intercept('PUT', `/v1/fleet.cattle.io.gitreporestrictions/${ defaultWorkspace }/${ customRestrictionName }`).as('editRestriction');
 
-      fleetRestrictionsPage.goTo();
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().actionMenu(customRestrictionName).getMenuItem('Edit YAML')
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Edit YAML')
         .click();
-      fleetRestrictionsPage.createRestrictionForm(defaultWorkspace, customRestrictionName).waitForPage('mode=edit&as=yaml');
-      fleetRestrictionsPage.createRestrictionForm().mastheadTitle().then((title) => {
+      fleetRestrictionCreateEditPage.waitForPage('mode=edit&as=yaml');
+      fleetRestrictionCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`GitRepoRestriction: ${ customRestrictionName }`);
       });
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -79,30 +83,32 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
           json.metadata.namespace = localWorkspace;
 
-          fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@editRestriction').then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(response?.body.metadata.namespace).equals(localWorkspace);
       });
-      fleetRestrictionsPage.waitForPage();
+      fleetRestrictionsListPage.waitForPage();
     });
 
     it('can clone a gitrepo restriction', () => {
+      const fleetRestrictionCreateEditPage = new FleetRestrictionCreateEditPo(defaultWorkspace, customRestrictionName);
+
       cy.intercept('POST', '/v1/fleet.cattle.io.gitreporestrictions').as('cloneRestriction');
 
-      fleetRestrictionsPage.goTo();
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().actionMenu(customRestrictionName).getMenuItem('Clone')
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Clone')
         .click();
-      fleetRestrictionsPage.createRestrictionForm(defaultWorkspace, customRestrictionName).waitForPage('mode=clone&as=yaml');
-      fleetRestrictionsPage.createRestrictionForm().mastheadTitle().then((title) => {
+      fleetRestrictionCreateEditPage.waitForPage('mode=clone&as=yaml');
+      fleetRestrictionCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain(`GitRepoRestriction: Clone from ${ customRestrictionName }`);
       });
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
         .value()
         .then((val) => {
           // convert yaml into json to update values
@@ -110,25 +116,25 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
           json.metadata.name = `${ customRestrictionName }-clone`;
 
-          fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().codeMirror()
+          fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().codeMirror()
             .set(jsyaml.dump(json));
         });
 
-      fleetRestrictionsPage.sharedComponents().resourceDetail().resourceYaml().saveOrCreate()
+      fleetRestrictionCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
         .click();
       cy.wait('@cloneRestriction').then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
       });
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().rowWithName(`${ customRestrictionName }-clone`).checkVisible();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().rowWithName(`${ customRestrictionName }-clone`).checkVisible();
     });
 
     it('can Download YAML', () => {
       cy.deleteDownloadsFolder();
 
-      fleetRestrictionsPage.goTo();
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().actionMenu(customRestrictionName).getMenuItem('Download YAML')
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().actionMenu(customRestrictionName).getMenuItem('Download YAML')
         .click();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customRestrictionName }.yaml`);
@@ -143,11 +149,11 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
     });
 
     it('can delete a gitrepo restriction', () => {
-      fleetRestrictionsPage.goTo();
-      fleetRestrictionsPage.waitForPage();
-      fleetRestrictionsPage.sharedComponents().list().actionMenu(`${ customRestrictionName }-clone`).getMenuItem('Delete')
+      fleetRestrictionsListPage.goTo();
+      fleetRestrictionsListPage.waitForPage();
+      fleetRestrictionsListPage.list().actionMenu(`${ customRestrictionName }-clone`).getMenuItem('Delete')
         .click();
-      fleetRestrictionsPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetRestrictionsListPage.list().resourceTable().sortableTable()
         .rowNames('.col-link-detail')
         .then((rows: any) => {
           const promptRemove = new PromptRemove();
@@ -156,10 +162,10 @@ describe('GitRepo Restrictions', { testIsolation: 'off', tags: ['@fleet', '@admi
 
           promptRemove.remove();
           cy.wait('@deleteRestriction');
-          fleetRestrictionsPage.waitForPage();
-          fleetRestrictionsPage.sharedComponents().list().resourceTable().sortableTable()
+          fleetRestrictionsListPage.waitForPage();
+          fleetRestrictionsListPage.list().resourceTable().sortableTable()
             .checkRowCount(false, rows.length - 1);
-          fleetRestrictionsPage.sharedComponents().list().resourceTable().sortableTable()
+          fleetRestrictionsListPage.list().resourceTable().sortableTable()
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customRestrictionName }-clone`);
         });

@@ -1,6 +1,4 @@
-import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
-import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetGitRepoListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
@@ -16,8 +14,8 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
   let adminUserId = '';
 
   describe('Create', () => {
-    const listPage = new FleetGitRepoListPagePo();
-    const gitRepoCreatePage = new GitRepoCreatePo('_');
+    const gitRepoListPage = new FleetGitRepoListPagePo();
+    const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
     const headerPo = new HeaderPo();
     const reposToDelete = [];
 
@@ -67,23 +65,23 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       headerPo.selectWorkspace('fleet-default');
 
       // Metadata step
-      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+      gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
         .name()
         .set(name);
-      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Repository details step
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
 
-      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Target info step
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickOption(6);
 
-      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().nextPage();
+      gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Advanced info step
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
@@ -103,7 +101,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.wait('@getSecrets', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
-      gitRepoCreatePage.sharedComponents().resourceDetail().createEditView().create()
+      gitRepoCreatePage.resourceDetail().createEditView().create()
         .then(() => {
           reposToDelete.push(`fleet-default/${ name }`);
         });
@@ -141,9 +139,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         expect(response.statusCode).to.eq(201);
         expect(request.body).to.deep.eq(gitRepoCreateRequest);
 
-        const listPage = new FleetGitRepoListPagePo();
-
-        listPage.waitForPage();
+        gitRepoListPage.waitForPage();
 
         const prefPage = new PreferencesPagePo();
 
@@ -164,18 +160,18 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         });
         prefPage.languageDropdownMenu().isClosed();
 
-        listPage.goTo();
-        listPage.waitForPage();
-        listPage.sharedComponents().list().resourceTable().checkVisible();
-        listPage.sharedComponents().list().resourceTable().sortableTable()
+        gitRepoListPage.goTo();
+        gitRepoListPage.waitForPage();
+        gitRepoListPage.list().resourceTable().checkVisible();
+        gitRepoListPage.list().resourceTable().sortableTable()
           .checkVisible();
-        listPage.sharedComponents().list().resourceTable().sortableTable()
+        gitRepoListPage.list().resourceTable().sortableTable()
           .checkLoadingIndicatorNotVisible();
-        listPage.sharedComponents().list().resourceTable().sortableTable()
+        gitRepoListPage.list().resourceTable().sortableTable()
           .noRowsShouldNotExist();
 
         // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
-        listPage.sharedComponents().goToDetailsPage('fleet-e2e-test-gitrepo');
+        gitRepoListPage.goToDetailsPage('fleet-e2e-test-gitrepo');
         gitRepoCreatePage.mastheadTitle().then((title) => {
           expect(title.replace(/\s+/g, ' ')).to.contain('Git 仓库: fleet-e2e-test-gitrepo');
         });
@@ -199,14 +195,14 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const workspace = 'fleet-default';
 
       // go to fleet gitrepo
-      listPage.goTo();
-      listPage.waitForPage();
+      gitRepoListPage.goTo();
+      gitRepoListPage.waitForPage();
       headerPo.selectWorkspace(workspace);
 
       // check table headers
       const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-      listPage.sharedComponents().list().resourceTable().sortableTable()
+      gitRepoListPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
@@ -214,7 +210,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         });
 
       // go to fleet gitrepo details
-      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
+      gitRepoListPage.goToDetailsPage(this.gitRepo);
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
@@ -223,7 +219,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // check table headers
       const expectedHeadersDetailsView = ['State', 'Name', 'Deployments', 'Last Updated', 'Date'];
 
-      gitRepoDetails.bundlesTab().list().resourceTable().sortableTable()
+      gitRepoDetails.bundlesList().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
@@ -238,10 +234,10 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-      listPage.goTo();
-      listPage.waitForPage();
+      gitRepoListPage.goTo();
+      gitRepoListPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
+      gitRepoListPage.goToDetailsPage(this.gitRepo);
       gitRepoDetails.waitForPage(null, 'bundles');
       gitRepoDetails.gitRepoTabs().allTabs().should('have.length', 4, { timeout: 10000 });
       const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
@@ -287,11 +283,11 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   });
 
     //   // go to fleet gitrepo
-    //   listPage.goTo();
-    //   listPage.waitForPage();
+    //   gitRepoListPage.goTo();
+    //   gitRepoListPage.waitForPage();
     //   headerPo.selectWorkspace(workspace);
 
-    //   listPage.goToDetailsPage(basicRepos[1].name);
+    //   gitRepoListPage.goToDetailsPage(basicRepos[1].name);
 
     //   const gitRepoDetails = new FleetGitRepoDetailsPo('fleet-local', basicRepos[1].name);
 
@@ -305,10 +301,10 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-      listPage.goTo();
-      listPage.waitForPage();
+      gitRepoListPage.goTo();
+      gitRepoListPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      listPage.sharedComponents().resourceTableDetails(this.gitRepo, 2).find('a').click();
+      gitRepoListPage.goToDetailsPage(this.gitRepo);
 
       gitRepoDetails.waitForPage(null, 'bundles');
 

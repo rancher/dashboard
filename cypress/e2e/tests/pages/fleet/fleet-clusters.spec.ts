@@ -1,20 +1,18 @@
-import { FleetClusterListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.cluster.po';
+import { FleetClusterListPagePo, FleetClusterDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.cluster.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
-import FleetClusterDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.cluster.po';
+import { FleetGitRepoListPagePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 
 describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterListPage = new FleetClusterListPagePo();
-  const fleetGitRepoListPage = new FleetGitRepoListPagePo();
+  const fleetGitRepoPage = new FleetGitRepoListPagePo();
   const clusterList = new ClusterManagerListPagePo();
   const featureFlagsPage = new FeatureFlagsPagePo();
   const headerPo = new HeaderPo();
@@ -102,49 +100,51 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // go to fleet gitrepo and wait until git repo is in active state
-      fleetGitRepoListPage.navTo();
-      fleetGitRepoListPage.waitForPage();
+      fleetGitRepoPage.navTo();
+      fleetGitRepoPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetGitRepoListPage.sharedComponents().resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
+      fleetGitRepoPage.resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
 
       // go to fleet clusters
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
 
       // check name
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).should('be.visible');
+      fleetClusterListPage.resourceTableDetails(clusterName, 2).should('be.visible');
       // check cluster state in fleet
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 1).contains('Not Ready', MEDIUM_TIMEOUT_OPT);
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
+      fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Not Ready', MEDIUM_TIMEOUT_OPT);
+      fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
       // check bundles ready
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 3).should('have.text', '4');
+      fleetClusterListPage.resourceTableDetails(clusterName, 3).should('have.text', '4');
       // check repos ready
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 4).should('have.text', '1');
+      fleetClusterListPage.resourceTableDetails(clusterName, 4).should('have.text', '1');
       // check resources: testing https://github.com/rancher/dashboard/issues/11154
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 5).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
+      fleetClusterListPage.resourceTableDetails(clusterName, 5).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
       // check cluster labels
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().subRows()
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .subRows()
         .should('contain.text', 'foo=bar');
 
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
 
       // go to cluster details in fleet
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).find('a').click();
+      fleetClusterListPage.goToDetailsPage(clusterName);
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
 
       // check state
-      fleetClusterDetailsPage.gitReposList().details(gitRepo, 1).contains('Ready');
+      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 1).contains('Ready');
       // check name
-      fleetClusterDetailsPage.gitReposList().details(gitRepo, 2).should('be.visible');
+      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 2).should('be.visible');
       // check repo
-      fleetClusterDetailsPage.gitReposList().details(gitRepo, 3).contains('rancher/fleet-test-data master');
+      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
       // check target
-      fleetClusterDetailsPage.gitReposList().details(gitRepo, 4).contains('Advanced');
+      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 4).contains('Advanced');
       // check cluster resources
-      fleetClusterDetailsPage.gitReposList().details(gitRepo, 5).should('have.text', ' 1 ');
+      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
     });
 
     it('check all tabs are available in the details view', () => {
@@ -155,7 +155,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).find('a').click();
+      fleetClusterListPage.goToDetailsPage(clusterName);
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
       const tabs = ['Git Repos', 'Conditions', 'Recent Events', 'Related Resources'];
@@ -184,7 +184,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`).as('pause');
 
       // pause
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Pause')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Pause')
         .click();
       cy.wait('@pause').then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -194,7 +194,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // check cluster state
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 1).contains('Paused', LONG_TIMEOUT_OPT);
+      fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Paused', LONG_TIMEOUT_OPT);
     });
 
     it('can Unpause', () => {
@@ -206,7 +206,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`).as('unpause');
 
       // unpause
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Unpause')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Unpause')
         .click();
       cy.wait('@unpause').then(({ response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -216,7 +216,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // check cluster state
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
+      fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
     });
 
     it('can Edit Config', () => {
@@ -224,16 +224,16 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Edit Config')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Edit Config')
         .click();
 
       const editFleetCluster = fleetClusterListPage.editFleetCluster(undefined, clusterName);
 
       editFleetCluster.waitForPage('mode=edit');
-      editFleetCluster.sharedComponents().resourceDetail().createEditView().nameNsDescription()
+      editFleetCluster.resourceDetail().createEditView().nameNsDescription()
         .description()
         .set(`${ clusterName }-fleet-desc`);
-      editFleetCluster.sharedComponents().resourceDetail().cruResource().saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`)
+      editFleetCluster.resourceDetail().cruResource().saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`)
         .then(({ response }) => {
           expect(response?.statusCode).to.eq(200);
           expect(response?.body.metadata).to.have.property('name', clusterName);
@@ -248,7 +248,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Download YAML')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Download YAML')
         .click();
 
       const downloadedFilename = path.join(downloadsFolder, `${ clusterName }.yaml`);
@@ -286,32 +286,34 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       headerPo.selectWorkspace(namespace);
 
       cy.intercept('PUT', '/v1/userpreferences/*').as('changeWorkspace');
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Change workspace')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
         .click();
       fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
       fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(customWorkspace);
       fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
 
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(customWorkspace);
       cy.wait('@changeWorkspace');
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).isVisible();
+      fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
 
       // restore
-      fleetClusterListPage.sharedComponents().list().actionMenu(clusterName).getMenuItem('Change workspace')
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
         .click();
       fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
       fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(namespace);
       fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
 
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       cy.wait('@changeWorkspace');
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).isVisible();
+      fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
     });
 
     it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
@@ -338,8 +340,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
     });
 
     after('clean up', () => {
@@ -384,18 +388,20 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
     });
 
     it('should be able to list clusters in local workspace', () => {
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkRowCount(false, 1);
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkRowCount(false, 1);
     });
 
     it('Git Repos Tab Add Repository button takes you to the correct page', () => {
       // testing https://github.com/rancher/dashboard/issues/11198
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, 'local');
-      const gitRepoCreatePage = new GitRepoCreatePo('_');
+      const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
-      fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-      fleetClusterListPage.sharedComponents().resourceTableDetails('local', 2).find('a').click();
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkLoadingIndicatorNotVisible();
+      fleetClusterListPage.goToDetailsPage('local');
       fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.gitReposTab().addRepostoryButton().click();
+      fleetClusterDetailsPage.addRepostoryButton().click();
       gitRepoCreatePage.waitForPage();
       gitRepoCreatePage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Git Repo: Create');
@@ -406,7 +412,8 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.goTo();
       headerPo.selectWorkspace(workspace);
 
-      const constActionMenu = fleetClusterListPage.sharedComponents().resourceTable().sortableTable().rowActionMenuOpen('local');
+      const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
+        .rowActionMenuOpen('local');
 
       const allowedActions: MenuActions[] = [
         MenuActions.Pause,
@@ -437,10 +444,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // go to fleet gitrepo
-      fleetGitRepoListPage.navTo();
-      fleetGitRepoListPage.waitForPage();
+      fleetGitRepoPage.navTo();
+      fleetGitRepoPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      fleetGitRepoListPage.sharedComponents().list().rowWithName(gitRepo).checkVisible();
+      fleetGitRepoPage.list().rowWithName(gitRepo).checkVisible();
 
       // go to fleet cluster list
       FleetClusterListPagePo.navTo();
@@ -449,7 +456,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // check table headers
       const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
 
-      fleetClusterListPage.sharedComponents().list().resourceTable().sortableTable()
+      fleetClusterListPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
@@ -457,7 +464,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         });
 
       // go to fleet cluster details
-      fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).find('a').click();
+      fleetClusterListPage.resourceTableDetails(clusterName, 2).find('a').click();
 
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, clusterName);
 
@@ -466,7 +473,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // check table headers
       const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];
 
-      fleetClusterDetailsPage.gitReposTab().list().resourceTable().sortableTable()
+      fleetClusterDetailsPage.gitReposList().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {

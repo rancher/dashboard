@@ -13,4 +13,25 @@ export default class ResourceTablePo extends ComponentPo {
   snapshotNowButton() {
     return cy.get('[data-testid="action-button-async-button"').last();
   }
+
+  /**
+   * Returns a specific table column value for a row with the given name
+   * @param name
+   * @param index
+   * @returns
+   */
+  resourceTableDetails(name: string, index: number) {
+    return this.sortableTable().rowWithName(name)
+      .column(index);
+  }
+
+  /**
+   * Navigates to the detail page for a given resource name
+   * @param name
+   * @returns
+   */
+  goToDetailsPage(name: string) {
+    return this.sortableTable().detailsPageLinkWithName(name)
+      .click();
+  }
 }

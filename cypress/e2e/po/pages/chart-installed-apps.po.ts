@@ -1,32 +1,31 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
-import { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 const terminal = new Kubectl();
 
 /**
  * List page for catalog.cattle.io.app resources
  */
-export default class ChartInstalledAppsPagePo extends PagePo {
+export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string, product: 'apps' | 'manager') {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.app`;
   }
 
   static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ChartInstalledAppsPagePo.createPath(clusterId, product));
+    return super.goTo(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }
 
   constructor(clusterId = 'local', product: 'apps' | 'manager') {
-    super(ChartInstalledAppsPagePo.createPath(clusterId, product));
+    super(ChartInstalledAppsListPagePo.createPath(clusterId, product));
   }
 
   filter(key: string) {
     this.self().get('.input-sm.search-box').type(key);
   }
 
-  sharedComponents(options?: GetOptions) {
-    return new SharedComponentsPo('[data-testid="installed-app-catalog-list"]', this.self(options));
+  appsList() {
+    return new ResourceTablePo('[data-testid="installed-app-catalog-list"]');
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
@@ -37,7 +36,7 @@ export default class ChartInstalledAppsPagePo extends PagePo {
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
-      this.sharedComponents().resourceTableDetails(item, 0).should('contain', 'Deployed');
+      this.appsList().resourceTableDetails(item, 0).should('contain', 'Deployed');
     });
 
     // timeout to give time for everything to be setup, otherwise the extension
