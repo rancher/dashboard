@@ -10,6 +10,7 @@ import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -230,7 +231,8 @@ export default {
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration: undefined,
+      sortGeneration:           undefined,
+      isListAutoRefreshEnabled: paginationUtils.isListAutoRefreshEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
@@ -666,6 +668,7 @@ export default {
     >
       <!-- See https://github.com/rancher/dashboard/issues/14359 -->
       <ToggleSwitch
+        v-if="isListAutoRefreshEnabled"
         class="auto-update"
         :value="watching"
         name="label-system-toggle"

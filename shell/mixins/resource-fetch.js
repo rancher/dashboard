@@ -271,7 +271,7 @@ export default {
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {
         watch = false;
         isTooManyItemsToAutoUpdate = true;
-      } else if (this.canPaginate) {
+      } else if (this.canPaginate && this.isPaginationManualRefreshEnabled) {
         isTooManyItemsToAutoUpdate = true;
       }
 
