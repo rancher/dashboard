@@ -254,4 +254,37 @@ describe('component: LabeledSelect', () => {
     // from the library
     expect(vSelectInput.attributes('aria-label')).toBe('-');
   });
+
+  it('pressing space key while focused on search should not prevent event propagation', async() => {
+    const value = 'value-1';
+    const options = [
+      { label: 'label-1', value: 'value-1' },
+      { label: 'label-2', value: 'value-2' },
+    ];
+
+    const wrapper = mount(LabeledSelect, {
+      props: {
+        value,
+        label:      'some-label',
+        options,
+        searchable: true
+      }
+    });
+
+    const mockEvent = { preventDefault: jest.fn() };
+    const spyFocus = jest.spyOn(wrapper.vm, 'focusSearch');
+    const spyPreventDefault = jest.spyOn(mockEvent, 'preventDefault');
+
+    const input = wrapper.find('.labeled-select');
+
+    // open labeled-select first
+    await input.trigger('keydown.enter');
+
+    // mimic pressing space on search box inside v-select
+    await input.trigger('keydown.space', mockEvent);
+
+    // eslint-disable-next-line
+    expect(spyFocus).toHaveBeenCalled();
+    expect(spyPreventDefault).not.toHaveBeenCalled();
+  });
 });
