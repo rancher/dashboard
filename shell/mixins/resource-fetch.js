@@ -3,6 +3,7 @@ import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
 import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -201,15 +202,20 @@ export default {
           .finally(() => (that['paginating'] = false));
       }
 
-      let incremental = 0;
+      let incremental = null;
 
       if (this.incremental) {
         const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
 
-        incremental = Math.ceil(resourceCount / PAGES);
+        incremental = {
+          quickLoadCount:        100,
+          resourcesPerIncrement: Math.ceil(resourceCount / PAGES),
+          increments:            PAGES,
+          pageByNumber:          this.$store.getters[`${ this.inStore }/paginationEnabled`]?.()
+        };
       }
 
-      const opt = {
+      const opt = { // Of type ActionFindAllArgs
         incremental,
         watch:            this.watch,
         force:            this.force,
@@ -244,11 +250,11 @@ export default {
       this.init = true;
 
       // manual refresh settings config
-      const manualDataRefreshEnabled = this.perfConfig?.manualRefresh?.enabled;
+      const manualDataRefreshEnabled = perfSettingsUtils.manualRefreshUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
       const manualDataRefreshThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // incremental loading settings config
-      const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
+      const incrementalLoadingEnabled = perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
       const incrementalLoadingThreshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
 
       // other vars

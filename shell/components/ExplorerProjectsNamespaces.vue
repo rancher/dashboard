@@ -15,6 +15,7 @@ import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
@@ -110,7 +111,7 @@ export default {
       return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
     },
     showIncrementalLoadingIndicator() {
-      return this.perfConfig?.incrementalLoading?.enabled;
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
