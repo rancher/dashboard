@@ -99,7 +99,7 @@ export default class Chart extends SteveModel {
       },
       {
         icon:        'icon-refresh-alt',
-        iconTooltip: { key: 'generic.refresh' },
+        iconTooltip: { key: 'tableHeaders.lastUpdated' },
         label:       day(this.versions[0].created).format('MMM D, YYYY')
       }
     ];
