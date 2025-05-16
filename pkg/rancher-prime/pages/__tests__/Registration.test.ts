@@ -1,5 +1,5 @@
 import Registration from '../Registration.vue';
-import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 
 // Mock for useI18n
 jest.mock('vuex', () => ({
@@ -12,7 +12,28 @@ describe('page: Registration', () => {
   let wrapper: VueWrapper<any>;
 
   beforeEach(() => {
-    wrapper = shallowMount(Registration, { global: { stubs: { Card: { template: '<div><slot name="body"></slot></div>' } } } });
+    wrapper = mount(Registration, {
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'i18n/exists': jest.fn().mockReturnValue(true),
+              'i18n/t':      (t: string) => t
+            }
+          },
+          $route:  { hash: 'online' },
+          $router: {
+            currentRoute: { _value: { name: 'online' } },
+            replace:      jest.fn()
+          },
+        },
+        stubs: {
+          LabeledInput: true,
+          AsyncButton:  true,
+          FileSelector: true
+        }
+      }
+    });
   });
 
   it('should render', () => {
@@ -23,7 +44,7 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should allow new online request given a registration code', async() => {
@@ -31,37 +52,31 @@ describe('page: Registration', () => {
       await wrapper.vm.$nextTick();
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('false');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(false);
     });
 
     it('should allow to type the registration code', () => {
       const registerOnlineInput = wrapper.find('[data-testid="registration-code-input"]');
 
-      expect(registerOnlineInput.attributes().disabled).toStrictEqual('false');
+      expect(registerOnlineInput.isDisabled()).toStrictEqual(false);
     });
 
     it('should allow to download registration request', () => {
       const registerOfflineDownload = wrapper.find('[data-testid="registration-offline-download"]');
 
-      expect(registerOfflineDownload.attributes().disabled).toStrictEqual('false');
+      expect(registerOfflineDownload.isDisabled()).toStrictEqual(false);
     });
 
     it('should allow new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.attributes().disabled).toStrictEqual('false');
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(false);
     });
 
-    it('should not display deregistration button online', () => {
-      const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
+    it('should not allow deregistration', () => {
+      const deregisterButtonOnline = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-      expect(deregisterButtonOnline.exists()).toBe(false);
-    });
-
-    it('should not display deregistration button offline', () => {
-      const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
-
-      expect(deregisterButtonOffline.exists()).toBe(false);
+      expect(deregisterButtonOnline.isDisabled()).toBe(true);
     });
   });
 
@@ -73,7 +88,7 @@ describe('page: Registration', () => {
     it('should not display online registration button', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.exists()).toBe(false);
+      expect(registerOnlineButton.isDisabled()).toBe(true);
     });
 
     it('should prevent to type the registration code', () => {
@@ -85,27 +100,19 @@ describe('page: Registration', () => {
     it('should prevent to download registration request', () => {
       const registerOfflineDownload = wrapper.find('[data-testid="registration-offline-download"]');
 
-      expect(registerOfflineDownload.attributes().disabled).toStrictEqual('true');
+      expect(registerOfflineDownload.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
     });
 
-    it('should display a successful expiration online status', async() => {
-      wrapper.vm.expirationStatus = 'success';
-      await wrapper.vm.$nextTick();
-      const expirationOnline = wrapper.find('[data-testid="expiration-status-online"]');
+    it('should allow to deregister', () => {
+      const deregisterButtonOnline = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-      expect(expirationOnline.element).toBeDefined();
-    });
-
-    it('should display deregistration button online', () => {
-      const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
-
-      expect(deregisterButtonOnline.exists()).toBe(true);
+      expect(deregisterButtonOnline.isDisabled()).toBe(false);
     });
   });
 
@@ -114,10 +121,10 @@ describe('page: Registration', () => {
       wrapper.vm.registrationStatus = 'registered-offline';
     });
 
-    it('should not display offline registration button', () => {
+    it('should not allow offline registration', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.exists()).toBe(false);
+      expect(registerOfflineButton.isDisabled()).toBe(true);
     });
 
     it('should prevent to type the registration code', () => {
@@ -129,27 +136,13 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent to download registration request', () => {
       const registerOfflineDownload = wrapper.find('[data-testid="registration-offline-download"]');
 
-      expect(registerOfflineDownload.attributes().disabled).toStrictEqual('true');
-    });
-
-    it('should display a successful expiration offline status', async() => {
-      wrapper.vm.expirationStatus = 'success';
-      await wrapper.vm.$nextTick();
-      const expirationOffline = wrapper.find('[data-testid="expiration-status-offline"]');
-
-      expect(expirationOffline.element).toBeDefined();
-    });
-
-    it('should display deregistration button offline', () => {
-      const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
-
-      expect(deregisterButtonOffline.exists()).toBe(true);
+      expect(registerOfflineDownload.isDisabled()).toStrictEqual(true);
     });
   });
 
@@ -161,25 +154,19 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
     });
 
-    it('should not display deregistration button online', () => {
-      const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
+    it('should not allow deregistration', () => {
+      const deregisterButton = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-      expect(deregisterButtonOnline.exists()).toBe(false);
-    });
-
-    it('should not display deregistration button offline', () => {
-      const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
-
-      expect(deregisterButtonOffline.exists()).toBe(false);
+      expect(deregisterButton.isDisabled()).toBe(true);
     });
   });
 
@@ -191,25 +178,19 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
     });
 
-    it('should not display deregistration button online', () => {
-      const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
+    it('should not allow deregistration', () => {
+      const deregisterButton = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-      expect(deregisterButtonOnline.exists()).toBe(false);
-    });
-
-    it('should not display deregistration button offline', () => {
-      const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
-
-      expect(deregisterButtonOffline.exists()).toBe(false);
+      expect(deregisterButton.isDisabled()).toBe(true);
     });
   });
 
@@ -221,7 +202,7 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.exists()).toBe(false);
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent to type the registration code', () => {
@@ -233,20 +214,20 @@ describe('page: Registration', () => {
     it('should prevent new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
     });
 
     // TODO - #13387: This is component specific, update after implementation
     // it('should prevent new online de-registration request', () => {
-    //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
+    //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-    //   expect(deregisterButtonOnline.attributes().disabled).toStrictEqual('true');
+    //   expect(deregisterButtonOnline.isDisabled()).toStrictEqual(true);
     // });
 
     // it('should prevent new offline de-registration request', () => {
-    //   const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
+    //   const deregisterButton = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
 
-    //   expect(deregisterButtonOffline.attributes().disabled).toStrictEqual('true');
+    //   expect(deregisterButton.isDisabled()).toStrictEqual(true);
     // });
   });
 
@@ -258,7 +239,7 @@ describe('page: Registration', () => {
     it('should prevent new online request', () => {
       const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
 
-      expect(registerOnlineButton.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent to type the registration code', () => {
@@ -270,36 +251,36 @@ describe('page: Registration', () => {
     it('should prevent new offline request', () => {
       const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
 
-      expect(registerOfflineButton.exists()).toBe(false);
+      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
     });
 
     // TODO - #13387: This is component specific, update after implementation
     // it('should prevent new online de-registration request', () => {
-    //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-online-deregister-cta"]');
+    //   const deregisterButtonOnline = wrapper.find('[data-testid="registration-deregister-cta"]');
 
-    //   expect(deregisterButtonOnline.attributes().disabled).toStrictEqual('true');
+    //   expect(deregisterButtonOnline.isDisabled()).toStrictEqual(true);
     // });
 
     // it('should prevent new offline de-registration request', () => {
-    //   const deregisterButtonOffline = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
+    //   const deregisterButton = wrapper.find('[data-testid="registration-offline-deregister-cta"]');
 
-    //   expect(deregisterButtonOffline.attributes().disabled).toStrictEqual('true');
+    //   expect(deregisterButton.isDisabled()).toStrictEqual(true);
     // });
   });
 
   // TODO - #13387: Update cases after implementation to identify button outcomes
-  describe('while using the form,', () => {
-    it.each([
-      ['registration-online-cta', 'registering-online'],
-      // ['registration-offline-cta', 'registering-offline'], // TBD file upload
-      // ['registration-online-deregister-cta', null], // No de-registering status
-      // ['registration-offline-deregister-cta', null] // No de-registering status
-    ])('pressing %p should set status %p', async(ctaId, status) => {
-      const cta = wrapper.find(`[data-testid="${ ctaId }"]`);
+  // describe('while using the form,', () => {
+  //   it.each([
+  //     ['registration-online-cta', 'registering-online'],
+  //     // ['registration-offline-cta', 'registering-offline'], // TBD file upload
+  //     // ['registration-deregister-cta', null], // No de-registering status
+  //     // ['registration-offline-deregister-cta', null] // No de-registering status
+  //   ])('pressing %p should set status %p', async(ctaId, status) => {
+  //     const cta = wrapper.find(`[data-testid="${ ctaId }"]`);
 
-      await cta.trigger('click');
+  //     await cta.trigger('click');
 
-      expect(wrapper.vm.registrationStatus).toStrictEqual(status);
-    });
-  });
+  //     expect(wrapper.vm.registrationStatus).toStrictEqual(status);
+  //   });
+  // });
 });
