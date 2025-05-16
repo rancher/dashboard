@@ -95,7 +95,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
 
 <template>
   <div
-    :class="['item-card', variant]"
+    class="item-card"
     :role="clickable ? 'button' : undefined"
     :tabindex="clickable ? '0' : undefined"
     :aria-label="labelText(header?.title) || 'Item Card'"
@@ -213,10 +213,10 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
 </template>
 
 <style scoped lang="scss">
+$image-medium-box-width: 48px;
+
 .item-card {
   display: flex;
-  min-width: 420px;
-  max-width: 580px;
   padding: 16px;
   align-items: flex-start;
   gap: var(--gap-lg);
@@ -228,13 +228,9 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     border-color: var(--primary);
   }
 
-  &.small {
-    min-width: 320px;
-  }
-
   &-image {
-    width: 48px;
-    height: 48px;
+    width: $image-medium-box-width;
+    height: $image-medium-box-width;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -268,7 +264,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     color: var(--body-text);
 
     &-title {
-      max-width: 250px;
+      max-width: 60%;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 0px;
@@ -327,7 +323,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
 
   &-pill {
     display: flex;
-    width: 48px;
+    width: $image-medium-box-width;
     padding: 4px 8px;
     margin-top: 8px;
     justify-content: center;
@@ -357,9 +353,13 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
       display: flex;
       flex-direction: column;
       align-items: flex-start;
+      width: calc(100% - var(--gap-lg) - $image-medium-box-width);
       gap: var(--gap);
-      width: 100%;
       flex: 1;
+
+      &.small {
+        width: 100%;
+      }
     }
   }
 }

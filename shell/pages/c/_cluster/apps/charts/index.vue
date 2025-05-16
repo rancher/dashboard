@@ -630,7 +630,7 @@ export default {
 
 .app-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(460px, 500px));
   grid-gap: var(--gap-md);
   overflow: hidden;
 
