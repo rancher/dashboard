@@ -3,14 +3,19 @@ import SettingsEditPo from '@/cypress/e2e/po/edit/settings.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 export class SettingsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
+    console.log(clusterId);
+
     return `/c/${ clusterId }/settings/management.cattle.io.setting`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    console.log(clusterId);
+
     return super.goTo(SettingsPagePo.createPath(clusterId));
   }
 
   constructor(clusterId = '_') {
+    console.log(clusterId);
     super(SettingsPagePo.createPath(clusterId));
   }
 
