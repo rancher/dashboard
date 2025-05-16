@@ -402,6 +402,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('can update k3s-based-upgrader-uninstall-concurrency', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
+    settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
 
     const settingsEdit = settingsPage.editSettings('local', 'k3s-based-upgrader-uninstall-concurrency');
@@ -438,6 +439,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
+    settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('system-default-registry');
 
     const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
