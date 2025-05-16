@@ -648,6 +648,9 @@ export default {
 }
 
 .tablist-controls {
+  display: flex;
+  align-items: center;
+
   .role-link {
     padding: 10px 15px;
     min-height: unset;
@@ -663,6 +666,10 @@ export default {
     }
   }
 
+  .btn, .btn-sm {
+    width: auto;
+    color: var(--link);
+  }
 }
 
 .deployment-tabs {

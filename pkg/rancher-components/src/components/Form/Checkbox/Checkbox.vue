@@ -409,7 +409,7 @@ $fontColor: var(--input-label);
  .checkbox-custom {
     height: 14px;
     width: 14px;
-    background-color: var(--body-bg);
+    background-color: var(--body__bg);
     border-radius: var(--border-radius);
     border: 1px solid var(--border);
     flex-shrink: 0;
@@ -435,12 +435,12 @@ $fontColor: var(--input-label);
   }
 
   input:checked ~ .checkbox-custom {
-    background-color:var(--primary);
+    background-color: var(--active);
     -webkit-transform: rotate(0deg) scale(1);
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 1px solid var(--primary);
+    border: 1px solid var(--active);
   }
 
   // Custom Checkbox tick

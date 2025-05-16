@@ -939,6 +939,10 @@ export default {
     display: inline-block;
     border-radius: var(--border-radius);
 
+    &:focus-visible {
+      @include focus-outline;
+    }
+
     .ns-glass {
       top: 0;
       bottom: 0;
@@ -1181,7 +1185,7 @@ export default {
 <style lang="scss">
   .v-popper__popper {
     .ns-filter-tooltip {
-      background-color: var(--body-bg);
+      background-color: var(--body__bg);
       margin: -6px;
       padding: 6px;
 

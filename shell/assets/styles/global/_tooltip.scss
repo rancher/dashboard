@@ -79,7 +79,7 @@
     &[data-popper-placement^="bottom"] {
       .v-popper__arrow-container {
         .v-popper__arrow-outer {
-          border-bottom-color: var(--body-bg);
+          border-bottom-color: var(--body__bg);
         }
       }
     }
