@@ -314,11 +314,13 @@ export default defineComponent({
       v-if="displayIcon"
       v-clean-tooltip="tooltip"
       :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
+      :alt="t('asyncButton.alt.iconAlt')"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"
       v-clean-tooltip="tooltip"
       v-clean-html="displayLabel"
+      data-testid="async-btn-display-label"
     />
   </button>
 </template>
