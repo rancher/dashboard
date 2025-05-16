@@ -895,7 +895,7 @@ export const actions = {
     if ( res[FLEET.WORKSPACE] ) {
       commit('updateWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
-        all:   [FLEET.WORKSPACE],
+        all:   res[FLEET.WORKSPACE],
         getters
       });
     }
