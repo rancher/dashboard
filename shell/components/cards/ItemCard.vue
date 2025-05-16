@@ -4,6 +4,9 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage';
 
+const store = useStore();
+const { t } = useI18n(store);
+
 type ItemCardVariant = 'small' | 'medium';
 
 type Label = {
@@ -36,11 +39,6 @@ type Header = {
 
 type ItemValue = Record<string, any>;
 
-const store = useStore();
-const { t } = useI18n(store);
-
-const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
-
 interface Props {
   id: string;
   value: ItemValue;
@@ -59,6 +57,8 @@ const props = withDefaults(defineProps<Props>(), {
   pill:      undefined,
   clickable: false
 });
+
+const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
 
 function _handleCardClick(e: MouseEvent | KeyboardEvent) {
   // Prevent card click if the user clicks on an inner actionable element like repo, category, or tag
@@ -82,7 +82,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
     class="item-card"
     :role="clickable ? 'button' : undefined"
     :tabindex="clickable ? '0' : undefined"
-    :aria-label="labelText(header?.title) || 'Item Card'"
+    :aria-label="clickable ? t('itemCard.ariaLabel.clickable') : t('itemCard.ariaLabel.card')"
     :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
     @keydown.enter="_handleCardClick"
@@ -108,7 +108,6 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               v-if="pill && variant !== 'small'"
               v-clean-tooltip="labelText(pill.tooltip)"
               class="item-card-pill"
-              :aria-label="labelText(pill.tooltip) || labelText(pill.label)"
               data-testid="item-card-pill"
             >
               {{ labelText(pill.label) }}
@@ -135,23 +134,23 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
           </template>
           <slot name="item-card-header-title">
             <h3
+              v-if="header.title"
               v-clean-tooltip="labelText(header.title)"
               :class="['item-card-header-title', variant]"
-              :aria-label="labelText(header.title)"
               data-testid="item-card-header-title"
             >
               {{ labelText(header.title) }}
             </h3>
           </slot>
           <div
-            v-if="header.statuses"
+            v-if="header.statuses?.length"
             class="item-card-header-statuses"
           >
             <div
               v-for="(status, i) in visibleStatuses"
               :key="i"
               class="item-card-header-statuses-status"
-              :aria-label="labelText(status.tooltip)"
+              :aria-label="labelText(status.tooltip) || t('itemCard.ariaLabel.status')"
               data-testid="item-card-header-statuses-status"
             >
               <i
@@ -183,7 +182,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
         <template v-else-if="content">
           <div
             class="item-card-content"
-            aria-label="Card content"
+            :aria-label="t('itemCard.ariaLabel.content')"
             data-testid="item-card-content"
           >
             <p>{{ labelText(content) }}</p>

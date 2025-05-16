@@ -3144,6 +3144,11 @@ istio:
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
+itemCard:
+  ariaLabel:
+    clickable: Click on Card
+    card: Item Card
+    status: Status
 jwt:
   title: JWT Authentication
   actions:
