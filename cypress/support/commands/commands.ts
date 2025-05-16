@@ -98,3 +98,6 @@ Cypress.Commands.add('shouldHaveCssVar', { prevSubject: true }, (subject, styleN
       .should('eq', evaluatedStyle);
   });
 });
+Cypress.Commands.add('hideElementBySelector', (selector:string) => {
+  cy.get(selector).invoke('css', 'opacity', '0');
+});
