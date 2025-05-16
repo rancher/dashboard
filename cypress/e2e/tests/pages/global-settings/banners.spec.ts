@@ -371,6 +371,11 @@ describe('Banners', { testIsolation: 'off' }, () => {
     });
 
     describe('HTML Banners', { tags: ['@globalSettings', '@adminUser'] }, () => {
+      before(() => {
+        cy.login();
+        HomePagePo.goTo();
+      });
+
       it('can show and hide an HTML Header Banner', () => {
         BannersPagePo.navTo();
 
