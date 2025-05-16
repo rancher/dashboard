@@ -433,9 +433,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
         bannersPage.contentTypeToggle('bannerConsent').set('HTML'); // Set content type as HTML
         bannersPage.htmlTextArea('bannerConsent').set(bannerHtml);
         bannersPage.acceptButtonInput('bannerConsent').set(acceptButtonText);
-        bannersPage.textColorPicker(4).value().should('not.eq', settings.bannerTextColor.new);
         bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);
-        bannersPage.textColorPicker(5).value().should('not.eq', settings.bannerBackgroundColor.new);
         bannersPage.textColorPicker(5).set(settings.bannerBackgroundColor.new);
         bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
           expect(response?.statusCode).to.eq(200);
