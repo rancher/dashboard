@@ -42,14 +42,14 @@ export default class ProductNavPo extends ComponentPo {
       .invoke('text');
   }
 
-  sideMenuEntryByLabel(label: string): Cypress.Chainable {
+  sideMenuEntryByLabel(label: string | RegExp): Cypress.Chainable {
     return this.self().should('exist', LONG_TIMEOUT_OPT).find('.child.nav-type a .label').contains(label);
   }
 
   /**
    * Navigate to a side menu entry by label
    */
-  navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
+  navToSideMenuEntryByLabel(label: string | RegExp): Cypress.Chainable {
     return this.sideMenuEntryByLabel(label).click({ force: true });
   }
 

@@ -158,7 +158,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.sharedComponents().resourceTableDetails(clusterName, 2).find('a').click();
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
-      const tabs = ['Git Repos', 'Conditions', 'Recent Events', 'Related Resources'];
+      const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
 
       fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
         expect(el).to.eq(tabs[i]);
@@ -395,10 +395,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.sharedComponents().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       fleetClusterListPage.sharedComponents().resourceTableDetails('local', 2).find('a').click();
       fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.gitReposTab().addRepostoryButton().click();
+      fleetClusterDetailsPage.appBundlesTab().addAppButton().click();
       gitRepoCreatePage.waitForPage();
       gitRepoCreatePage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain('Git Repo: Create');
+        expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
       });
     });
 
@@ -466,7 +466,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // check table headers
       const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];
 
-      fleetClusterDetailsPage.gitReposTab().list().resourceTable().sortableTable()
+      fleetClusterDetailsPage.appBundlesTab().list().resourceTable().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {

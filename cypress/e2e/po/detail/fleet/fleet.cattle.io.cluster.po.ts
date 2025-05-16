@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import FleetGitRepoList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.gitrepo.po';
-import GitReposTab from '@/cypress/e2e/po/detail/fleet/tabs/git-repos-tab.po';
+import AppBundlesTab from '@/cypress/e2e/po/detail/fleet/tabs/app-bundles-tab.po';
 
 /**
  * Details component for fleet.cattle.io.gitrepo resources
@@ -27,7 +27,7 @@ export default class FleetClusterDetailsPo extends PagePo {
     return new FleetGitRepoList(this.self());
   }
 
-  gitReposTab() {
-    return new GitReposTab();
+  appBundlesTab() {
+    return new AppBundlesTab();
   }
 }
