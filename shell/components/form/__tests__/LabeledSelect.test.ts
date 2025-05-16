@@ -283,6 +283,7 @@ describe('component: LabeledSelect', () => {
     // mimic pressing space on search box inside v-select
     await input.trigger('keydown.space', mockEvent);
 
+    // eslint-disable-next-line
     expect(spyFocus).toHaveBeenCalled();
     expect(spyPreventDefault).not.toHaveBeenCalled();
   });
