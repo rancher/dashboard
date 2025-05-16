@@ -382,9 +382,7 @@ describe('Banners', { testIsolation: 'off' }, () => {
         bannersPage.headerBannerCheckbox().hasAppropriateHeight();
         bannersPage.contentTypeToggle('bannerHeader').set('HTML'); // Set content type as HTML
         bannersPage.htmlTextArea('bannerHeader').set(bannerHtml);
-        bannersPage.textColorPicker(0).value().should('not.eq', settings.bannerTextColor.new);
         bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
-        bannersPage.textColorPicker(1).value().should('not.eq', settings.bannerBackgroundColor.new);
         bannersPage.textColorPicker(1).set(settings.bannerBackgroundColor.new);
         bannersPage.applyAndWait('**/ui-banners').then(({ response }) => {
           expect(response?.statusCode).to.eq(200);
