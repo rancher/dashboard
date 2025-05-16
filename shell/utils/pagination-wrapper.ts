@@ -76,8 +76,6 @@ class PaginationWrapper<T extends object> {
   async request(args: {
       pagination: PaginationArgs,
   }): Promise<Result<T>> {
-    // console.warn(this.id, this.enabledFor.resource?.id, args.pagination, !!this.onChange);
-
     if (!this.isEnabled) {
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
     }

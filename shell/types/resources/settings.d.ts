@@ -46,7 +46,7 @@ export interface PaginationSettings {
    * List of specific features that can be enabled / disabled
    */
   features?: {
-    [key in PaginationFeature]: {
+    [key in PaginationFeature]: { // eslint-disable-line no-unused-vars
       enabled: boolean,
     }
   }

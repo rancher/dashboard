@@ -151,7 +151,7 @@ export abstract class BaseTopLevelMenuHelper {
     return {
       id:              mgmtCluster.id,
       label:           mgmtCluster.nameDisplay,
-      ready:           mgmtCluster.isReady, // && !provCluster?.hasError,
+      ready:           mgmtCluster.isReady,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
       iconColor:       mgmtCluster.iconColor,
@@ -184,11 +184,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   }) {
     super({ $store });
 
+    // Fetch all PINNED clusters (see `clustersPinned` description for details)
+    // No need to monitor for changes, the UNPINNED request will handle it
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
       id:         'tlm-pinned-clusters',
-      // Note - no onChange is required for this v1 mgmt cluster request, as all roads lead back to both v1 mgmt cluster requests being made
-      // It needs to be other, as in some cases there's no pinned... so won't make the request... so won't watch
       enabledFor: {
         store:    STORE.MANAGEMENT,
         resource: {
@@ -198,6 +198,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       },
       formatResponse: { classify: true }
     });
+    // Fetch all UNPINNED clusters capped at 10 (see `clustersOthers` description for details)
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
@@ -215,6 +216,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       },
       formatResponse: { classify: true }
     });
+    // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',

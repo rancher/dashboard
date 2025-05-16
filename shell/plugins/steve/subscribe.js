@@ -488,36 +488,17 @@ const sharedActions = {
       dispatch('unwatchIncompatible', messageMeta);
     }
 
-    // TODO: RC DELETE ME
-    // xisSteveCacheEnabled check is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
-    // xSteve cache backed api does not return a revision, so `revision` here is always undefined
-    // xWhich means we find a revision within a resource itself and use it in the watch
-    // xThat revision is probably too old and results in a watch error
-
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    // if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) { // TODO: RC DEBUG --> REMOVE
     if (typeof revision === 'undefined') {
       revision = getters.nextResourceVersion(type, id);
     }
-
-    // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
-    // if (type === 'pod') {
-    //   // revision = 50233;// Number.MAX_SAFE_INTEGER; // 155770 from resource
-    //   // revision = 1;// Number.MAX_SAFE_INTEGER;
-    //   // revision = Number.MAX_SAFE_INTEGER;
-    // }
 
     const msg = { resourceType: type };
 
     if (mode) {
       msg.mode = mode;
     }
-
-    // if (type === 'apps.deployment') { // TODO: RC DEBUG --> REMOVE
-    //   msg.namespace = 'default';
-    //   delete msg.mode;
-    // }
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
@@ -537,8 +518,6 @@ const sharedActions = {
 
     if ( selector ) {
       msg.selector = selector;
-      // msg.namespace = 'default'
-      // msg.mode = 'resource.changes'; // TODO: RC DEBUG --> REMOVE
     }
 
     const worker = this.$workers?.[getters.storeName] || {};
