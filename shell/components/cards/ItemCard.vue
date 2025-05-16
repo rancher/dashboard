@@ -343,6 +343,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
   &-body {
     display: flex;
     flex-direction: row;
+    width: 100%;
     gap: var(--gap-lg);
 
     &.small {
