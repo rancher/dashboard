@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import LazyImage from '@shell/components/LazyImage';
+import LazyImage from '@shell/components/LazyImage.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
