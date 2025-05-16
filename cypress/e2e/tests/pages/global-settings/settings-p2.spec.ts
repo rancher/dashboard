@@ -7,6 +7,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import {
   settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
 } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const settingsPage = new SettingsPagePo('local');
 const homePage = new HomePagePo();
@@ -14,7 +15,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-const removeServerUrl = false;
+let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -437,7 +438,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
-    SettingsPagePo.navTo();
+    settingsPage.goTo();
     settingsPage.editSettingsByLabel('system-default-registry');
 
     const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
@@ -460,7 +461,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
     createRKE2ClusterPage.selectCustom(0);
+    createRKE2ClusterPage.waitForPage('type=custom&rkeType=rke2', 'basic');
+    createRKE2ClusterPage.title().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain('Cluster: Create Custom');
+    });
+    createRKE2ClusterPage.nameNsDescription().name().checkVisible();
+    createRKE2ClusterPage.clusterConfigurationTabs().allTabs().should('have.length', 13, MEDIUM_TIMEOUT_OPT);
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
+    createRKE2ClusterPage.waitForPage('type=custom&rkeType=rke2', 'rke2-calico');
     cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
 
     const settingsPageBlank = new SettingsPagePo();
