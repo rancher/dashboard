@@ -3325,10 +3325,10 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
 
-"@rancher/icons@2.0.34":
-  version "2.0.34"
-  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.34.tgz#974d266fda24de60bffd2920eb6dd8129bdf72b6"
-  integrity sha512-6P0J4Y3Q/C7pFjvwdIDjGGB9uPQh1bijLVgu7tC10S7KI9dNDGo6I2fIgWUWMuOv6UJsRfXTSNDXyHS6x2KIjQ==
+"@rancher/icons@2.0.36":
+  version "2.0.36"
+  resolved "https://registry.yarnpkg.com/@rancher/icons/-/icons-2.0.36.tgz#ad47509f023b96def444ce98202308e17160c709"
+  integrity sha512-9gJbDiSiKzSJ2ZFuXkmxX0fe/+iRDz4d0XKtqfq+/XGytbeqsfgDf5ZwDPPVXxzFpBHD79Vz9CzVQcxk4Um7Kg==
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
