@@ -56,7 +56,6 @@ export default {
       const combined = mergeWithReplace(
         merge({}, this.value?.chartValues || {}),
         this.value?.values || {},
-        { replaceObjectProps: true }
       );
 
       return jsyaml.dump(combined);
