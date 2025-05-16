@@ -111,11 +111,11 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
             <div
               v-if="image"
               :class="['item-card-image', variant]"
+              data-testid="item-card-image"
             >
               <LazyImage
                 :src="image.src"
                 :alt="labelText(image?.alt)"
-                data-testid="item-card-image"
               />
             </div>
           </slot>
@@ -140,11 +140,11 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               <div
                 v-if="image"
                 :class="['item-card-image', variant]"
+                data-testid="item-card-image"
               >
                 <LazyImage
                   :src="image.src"
                   :alt="labelText(image?.alt)"
-                  data-testid="item-card-image"
                 />
               </div>
             </slot>
