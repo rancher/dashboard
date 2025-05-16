@@ -799,7 +799,7 @@ export default {
         flex-direction: column;
         margin-top: 5px;
 
-        label {
+        .checkbox-outer-container {
           width: fit-content;
         }
 
