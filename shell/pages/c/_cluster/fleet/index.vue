@@ -85,14 +85,11 @@ export default {
           type:            FLEET.GIT_REPO,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
         },
-      };
-
-      if (IS_HELM_OPS_ENABLED) {
-        permissionsSchemas.helmOps = {
+        helmOps: {
           type:            FLEET.HELM_OP,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
-        };
-      }
+        }
+      };
 
       const permissions = await checkPermissions(permissionsSchemas, this.$store.getters);
 
@@ -106,11 +103,11 @@ export default {
     return {
       permissions:     {},
       FLEET,
-      [FLEET.REPO]:          [],
-      [FLEET.HELM_OP]:       [],
-      fleetWorkspaces:       [],
+      [FLEET.REPO]:    [],
+      [FLEET.HELM_OP]: [],
+      fleetWorkspaces: [],
       VIEW_MODE,
-      viewModeOptions:       [
+      viewModeOptions: [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -179,7 +176,7 @@ export default {
         ...acc,
         [ws.id]: this.resourceStates([
           ...ws.repos,
-          ...(IS_HELM_OPS_ENABLED ? ws.helmOps : [])
+          ...ws.helmOps
         ])
       }), {});
     },
@@ -387,7 +384,7 @@ export default {
     },
 
     _decodeTypeFilter(workspace, type) {
-      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === 'flat';
+      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === VIEW_MODE.TABLE;
 
       return disabledFilter || this.typeFilter[workspace]?.[type];
     },
@@ -541,7 +538,7 @@ export default {
           </div>
           <div class="card-panel-main-actions">
             <div
-              v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
+              v-if="workspace.repos?.length || workspace.helmOps?.length"
               class="expand-button"
               :data-testid="'expand-button'"
             >
@@ -623,7 +620,7 @@ export default {
                     <span class="partial">
                       {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
-                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...(IS_HELM_OPS_ENABLED ? workspace.helmOps : []) ].length }}</span>
+                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...workspace.helmOps ].length }}</span>
                   </div>
                 </div>
                 <div
