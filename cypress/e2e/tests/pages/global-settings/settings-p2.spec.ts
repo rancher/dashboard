@@ -435,7 +435,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].original);
   });
 
-  it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  /**
+   * TODO: rancher/rancher#50344 Re-enable test when issues with RKE2
+   * provisioning are resolved
+   */
+  it.skip('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');
