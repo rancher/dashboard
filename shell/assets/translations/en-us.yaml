@@ -7828,15 +7828,12 @@ performance:
     authUserTTL: This timeout cannot be higher than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
   serverPagination:
     label: Server-side Pagination
-    description: By default Lists will fetch all resources and paginate in the browser (create the page given sorting and filtering settings). Change this setting to enable pagination server-side. This should help the responsiveness of the UI in systems with a lot of resources.
-    checkboxLabel: Enable Server-side Pagination
+    description: By default Lists will fetch all resources and paginate (create the page given sort and filter settings) locally in the browser. Server-Side Pagination moves this out from the browser to the server. This improves performance of the UI, especially in systems with lots of resources.
     applicable: "Server-side pagination applies to Resource Types"
-    incompatibleDescription: "Server-side Pagination is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them."
-    featureFlag: The&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache` must be enabled to use this feature
+    featureFlag: This setting is now soley controlled by the&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache`
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
-    experimental: This setting is experimental and may be removed or updated in future versions. We do not recommend enabling this setting in production environments.
 banner:
   label: Fixed Banners
   settingName: Banners

@@ -1,5 +1,5 @@
 import { NAMESPACE_FILTER_NAMESPACED_YES, NAMESPACE_FILTER_NAMESPACED_NO, NAMESPACE_FILTER_ALL } from '@shell/utils/namespace-filter';
-import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
+import { NAMESPACE } from '@shell/config/types';
 import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
@@ -112,6 +112,19 @@ export default {
       }
 
       return false;
+    },
+
+    calcCanPaginate() {
+      if (!this.resource) {
+        return false;
+      }
+
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -170,16 +183,7 @@ export default {
         return;
       }
 
-      if (!this.resource) {
-        return false;
-      }
-
-      const args = {
-        id:      this.resource.id || this.resource,
-        context: this.context,
-      };
-
-      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.calcCanPaginate();
     },
 
     paginationResult() {
@@ -276,7 +280,6 @@ export default {
           filters
         } = stevePaginationUtils.createParamsFromNsFilter({
           allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-          getProject:                   (id) => this.$store.getters[`management/byId`](MANAGEMENT.PROJECT, id),
           selection:                    neu,
           isAllNamespaces:              this.isAllNamespaces,
           isLocalCluster:               this.$store.getters['currentCluster'].isLocal,

@@ -448,7 +448,17 @@ export default {
     return undefined;
   },
 
+  /**
+   * Determine if server-side pagination (SSP) is enabled
+   *
+   * If args is falsy just check the Feature Flag
+   *
+   * Otherwise args should reference a resource who's compatibility with SSP will also be checked
+   */
   paginationEnabled: (state, getters, rootState, rootGetters) => (args) => {
+    if (!args) {
+      return paginationUtils.isSteveCacheEnabled({ rootGetters });
+    }
     const id = typeof args === 'object' ? args.id : args;
     const context = typeof args === 'object' ? args.context : undefined;
 
@@ -456,5 +466,19 @@ export default {
     const resource = id || context ? { id, context } : null;
 
     return paginationUtils.isEnabled({ rootGetters }, { store, resource });
-  }
+  },
+
+  /**
+   * Is the url path a rancher steve one?
+   *
+   * Can be used to change behaviour given steve api
+   */
+  isSteveUrl: (state) => () => false,
+
+  /**
+   * Is the url path a rancher steve one AND the steve cache is enabled?
+   *
+   * Can be used to change behaviour given steve cache api functionality
+   */
+  isSteveCacheUrl: (state) => () => false,
 };

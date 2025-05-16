@@ -13,7 +13,29 @@ export type ActionCoreFindArgs = {
 export interface ActionFindAllArgs extends ActionCoreFindArgs {
   watch?: boolean,
   namespaced?: string[],
-  incremental?: boolean,
+  /**
+   * Should resources be fetched in increments?
+   */
+  incremental?: {
+    /**
+     * load this amount of info first, to show something quickly
+     *
+     * helpful if resources per increments turns out to be large
+     */
+    quickLoadCount: number,
+    /**
+     * Number of resources to fetch in each increment
+     */
+    resourcesPerIncrement: number,
+    /**
+     * Number of increments to fetch
+     */
+    increments: number,
+    /**
+     * Fetch increments by page size and number (instead of limit and next)
+     */
+    pageByNumber: boolean,
+  },
   hasManualRefresh?: boolean,
   limit?: number,
   /**

@@ -30,10 +30,6 @@ export type PaginationFeature = 'listAutoRefresh' | 'listManualRefresh'
  */
 export interface PaginationSettings {
   /**
-   * Global setting to enable or disable
-   */
-  enabled: boolean,
-  /**
    * Override `stores` and apply pagination to a set of default resource types that can change between versions
    */
   useDefaultStores: boolean,
