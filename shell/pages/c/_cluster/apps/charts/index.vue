@@ -16,12 +16,12 @@ import Select from '@shell/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
 import { removeObject, addObject } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
 import ItemCard from '@shell/components/cards/ItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 
 export default {
   name:       'Charts',
@@ -49,7 +49,7 @@ export default {
     this.category = query[CATEGORY] || '';
     this.allRepos = this.areAllEnabled();
 
-    this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
+    this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
   },
 
   data() {
@@ -359,7 +359,7 @@ export default {
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         hideRepos,
-        hideTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TPL],
+        hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     }
