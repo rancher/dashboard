@@ -5,17 +5,16 @@ import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, RKE_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
-import { PROVISIONER, _RKE1, _RKE2 } from '@shell/store/prefs';
+import { PROVISIONER, _RKE2 } from '@shell/store/prefs';
 import { filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG, CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { mapFeature, RKE2 as RKE2_FEATURE, RKE1_UI } from '@shell/store/features';
+import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
@@ -25,7 +24,6 @@ import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdr
 const SORT_GROUPS = {
   template:  1,
   kontainer: 2,
-  rke1:      3,
   rke2:      3,
   register:  4,
   custom:    5,
@@ -49,7 +47,6 @@ export default {
     Loading,
     Rke2Config,
     SelectIconGrid,
-    ToggleSwitch,
     Banner
   },
 
@@ -105,6 +102,7 @@ export default {
       hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
     }
 
+    // Not sure if needed for legacy hosted cluster?
     if ( this.value.id && !this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
@@ -217,7 +215,6 @@ export default {
         this.$store.dispatch('prefs/set', { key: PROVISIONER, value });
       }
     },
-    _RKE1: () => _RKE1,
     _RKE2: () => _RKE2,
 
     emberLink() {
@@ -282,8 +279,7 @@ export default {
       return '';
     },
 
-    rke2Enabled:   mapFeature(RKE2_FEATURE),
-    rke1UiEnabled: mapFeature(RKE1_UI),
+    rke2Enabled: mapFeature(RKE2_FEATURE),
 
     // todo nb is this info stored anywhere else..?
     selectedSubType() {
@@ -292,16 +288,6 @@ export default {
 
     provisioner: {
       get() {
-        // This can incorrectly return rke1 instead
-        // of rke2 for cluster owners.
-        if ( !this.rke2Enabled ) {
-          return _RKE1;
-        }
-
-        if ( !this.rke1UiEnabled ) {
-          return _RKE2;
-        }
-
         return this.preferredProvisioner;
       },
 
@@ -311,11 +297,11 @@ export default {
     },
 
     isRke1() {
-      return this.provisioner === _RKE1;
+      return this.value.isRke1;
     },
 
     isRke2() {
-      return this.value.isRke2 || !this.isRke1;
+      return this.value.isRke2;
     },
 
     templateOptions() {
@@ -360,20 +346,13 @@ export default {
         if (isElementalActive) {
           // !this.subType means we are on the /create screen - we only want to show for rke2
           // if a subType is selected, always add the ELEMENTAL_CLUSTER_PROVIDER type to cover edit scenarios
-          if ((!this.subType && !this.isRke1) || this.subType) {
+          if ((!this.subType && this.isRke2) || this.subType) {
             addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
           }
         }
 
-        if (this.isRke1 ) {
-          machineTypes.forEach((type) => {
-            const id = type.spec.displayName || type.id;
-
-            addType(this.$plugin, id, _RKE1, false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id], type);
-          });
-
-          addType(this.$plugin, 'custom', 'custom1', false, '/g/clusters/add/launch/custom');
-        } else {
+        // Only add the RKE2 options if RKE2 is enabled
+        if (this.rke2Enabled) {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
@@ -385,11 +364,6 @@ export default {
       }
       // Add from extensions
       this.extensions.forEach((ext) => {
-        // if the rke toggle is set to rke1, don't add extensions that specify rke2 group
-        // default group is rke2
-        if (!this.isRke2 && (ext.group === _RKE2 || !ext.group)) {
-          return;
-        }
         // Do not show the extension provisioner on the import cluster page unless its explicitly set to do so
         if (isImport && !ext.showImport) {
           return;
@@ -504,7 +478,7 @@ export default {
     },
 
     firstNodeDriverItem() {
-      return this.groupedSubTypes.findIndex((obj) => [_RKE1, _RKE2].includes(obj.name));
+      return this.groupedSubTypes.findIndex((obj) => [_RKE2].includes(obj.name));
     },
 
     firstCustomClusterItem() {
@@ -522,18 +496,6 @@ export default {
   },
 
   methods: {
-    showRkeToggle(i) {
-      if (this.isImport || !this.rke2Enabled) {
-        return false;
-      }
-
-      if (this.firstNodeDriverItem >= 0) {
-        return i === this.firstNodeDriverItem;
-      }
-
-      return i === this.firstCustomClusterItem;
-    },
-
     loadStylesheet(url, id) {
       if ( !id ) {
         console.error('loadStylesheet called without an id'); // eslint-disable-line no-console
@@ -621,6 +583,14 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div
+    v-else-if="isRke1"
+  >
+    <Banner
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
+  </div>
+  <div
     v-else-if="emberLink"
     class="embed"
   >
@@ -653,27 +623,8 @@ export default {
         style="width: 100%;"
       >
         <h4>
-          <div
-            v-if="showRkeToggle(i) && rke1UiEnabled"
-            class="grouped-type"
-          >
-            <ToggleSwitch
-              v-model:value="provisioner"
-              data-testid="cluster-manager-create-rke-switch"
-              class="rke-switch"
-              :off-value="_RKE1"
-              :off-label="t('cluster.toggle.v1')"
-              :on-value="_RKE2"
-              :on-label="t('cluster.toggle.v2')"
-            />
-          </div>
           {{ obj.label }}
         </h4>
-        <Banner
-          v-if="provisioner === _RKE1 && i === 1"
-          color="warning"
-          label-key="cluster.banner.rke1DeprecationShortMessage"
-        />
         <SelectIconGrid
           :rows="obj.types"
           key-field="id"

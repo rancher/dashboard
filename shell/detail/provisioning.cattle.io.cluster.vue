@@ -448,12 +448,16 @@ export default {
 
     showSnapshots() {
       if (this.value.isRke1) {
-        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP) && this.extDetailTabs.snapshots;
+        return false;
       } else if (this.value.isRke2) {
         return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
+    },
+
+    isRke1() {
+      return this.value.isRke1;
     },
 
     showEksNodeGroupWarning() {
@@ -495,8 +499,14 @@ export default {
     },
 
     mgmtNodeSchemaHeaders() {
+      // Remove Cluster name being a link
+      const RKE1_NAME_COL = {
+        ...NAME_COL,
+        formatter: undefined
+      };
+
       const headers = [
-        STATE, NAME_COL,
+        STATE, RKE1_NAME_COL,
         {
           name:          'node-name',
           labelKey:      'tableHeaders.machineNodeName',
@@ -967,7 +977,7 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref"
+                v-if="group.ref && !isRke1"
                 class="right group-header-buttons"
               >
                 <MachineSummaryGraph

@@ -106,10 +106,6 @@ export default class MgmtCluster extends SteveModel {
     return null;
   }
 
-  get rkeTemplateVersion() {
-    return this.spec?.clusterTemplateRevisionName;
-  }
-
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
@@ -136,14 +132,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get emberEditPath() {
-    let clusterTemplateRevision;
-
-    // If the RKE1 cluster is created from an RKE template, we need
-    // to get the template version to pass into the Ember UI for
-    // the iFramed edit cluster form
-    if (this.rkeTemplateVersion) {
-      clusterTemplateRevision = this.rkeTemplateVersion;
-    }
     const provider = this.providerForEmberParam;
 
     // Avoid passing falsy values as query parameters
@@ -151,10 +139,6 @@ export default class MgmtCluster extends SteveModel {
 
     if (provider) {
       qp['provider'] = provider;
-    }
-
-    if (clusterTemplateRevision) {
-      qp['clusterTemplateRevision'] = clusterTemplateRevision;
     }
 
     // Copied out of https://github.com/rancher/ui/blob/20f56dc54c4fc09b5f911e533cb751c13609adaf/app/models/cluster.js#L844
@@ -166,10 +150,6 @@ export default class MgmtCluster extends SteveModel {
        // || something for aks v2
     ) {
       qp.importProvider = KONTAINER_TO_DRIVER[provider];
-    }
-
-    if ( this.clusterTemplateRevisionId ) {
-      qp.clusterTemplateRevision = this.clusterTemplateRevisionId;
     }
 
     const path = addParams(`/c/${ escape(this.id) }/edit`, qp);
