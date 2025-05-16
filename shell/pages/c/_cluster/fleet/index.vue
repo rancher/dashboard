@@ -106,11 +106,11 @@ export default {
       createRoute: { name:   'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
-      [FLEET.REPO]:          [],
-      [FLEET.HELM_OP]:       [],
-      fleetWorkspaces:       [],
+      [FLEET.REPO]:    [],
+      [FLEET.HELM_OP]: [],
+      fleetWorkspaces: [],
       VIEW_MODE,
-      viewModeOptions:       [
+      viewModeOptions: [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -179,7 +179,7 @@ export default {
     },
 
     applicationStates() {
-      return this._groupByWorkspace((ws) => this._resourceStates([ ...ws.repos, ...ws.helmOps ]));
+      return this._groupByWorkspace((ws) => this._resourceStates([...ws.repos, ...ws.helmOps]));
     },
 
     clusterStates() {
