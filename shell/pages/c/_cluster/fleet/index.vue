@@ -74,8 +74,6 @@ export default {
 
     this[FLEET.GIT_REPO] = hash.gitRepos || [];
     this[FLEET.HELM_OP] = hash.helmOps || [];
-    this[FLEET.CLUSTER] = hash.fleetClusters || [];
-    this[FLEET.CLUSTER_GROUP] = hash.clusterGroups || [];
 
     try {
       const permissionsSchemas = {
@@ -84,11 +82,14 @@ export default {
           type:            FLEET.GIT_REPO,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
         },
-        helmOps: {
+      };
+
+      if (IS_HELM_OPS_ENABLED) {
+        permissionsSchemas.helmOps = {
           type:            FLEET.HELM_OP,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
-        },
-      };
+        };
+      }
 
       const permissions = await checkPermissions(permissionsSchemas, this.$store.getters);
 
@@ -101,15 +102,13 @@ export default {
   data() {
     return {
       IS_HELM_OPS_ENABLED,
-      repoSchema:            this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
-      permissions:           {},
+      repoSchema:      this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
+      permissions:     {},
       FLEET,
-      [FLEET.REPO]:          [],
-      [FLEET.HELM_OP]:       [],
-      [FLEET.CLUSTER]:       [],
-      [FLEET.CLUSTER_GROUP]: [],
-      fleetWorkspaces:       [],
-      viewModeOptions:       [
+      [FLEET.REPO]:    [],
+      [FLEET.HELM_OP]: [],
+      fleetWorkspaces: [],
+      viewModeOptions: [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -173,42 +172,35 @@ export default {
       });
     },
 
-    resourceStates() {
-      const resources = [
-        FLEET.GIT_REPO,
-      ];
+    applicationStates() {
+      return this.workspaces.reduce((acc, ws) => ({
+        ...acc,
+        [ws.id]: this.resourceStates([
+          ...ws.repos,
+          ...(IS_HELM_OPS_ENABLED ? ws.helmOps : [])
+        ])
+      }), {});
+    },
 
-      if (IS_HELM_OPS_ENABLED) {
-        resources.push(FLEET.HELM_OP);
-      }
+    clusterStates() {
+      return this.workspaces.reduce((acc, ws) => ({
+        ...acc,
+        [ws.id]: this.resourceStates(ws.clusters)
+      }), {});
+    },
 
-      const out = [];
-
-      resources.forEach((type) => {
-        this[type].forEach((obj) => {
-          const {
-            stateDisplay,
-            stateSort
-          } = obj;
-
-          if (!out.find((s) => s.stateDisplay === stateDisplay)) {
-            out.push({
-              stateDisplay,
-              stateSort,
-              statePanel: FleetUtils.getDashboardState(obj)
-            });
-          }
-        });
-      });
-
-      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
+    clusterGroupsStates() {
+      return this.workspaces.reduce((acc, ws) => ({
+        ...acc,
+        [ws.id]: this.resourceStates(ws.clusterGroups)
+      }), {});
     },
 
     cardResources() {
       return this.workspaces.reduce((acc, ws) => {
-        const filtered = this.resourceStates.reduce((acc, state) => ({
+        const filtered = this.applicationStates[ws.id].reduce((acc, state) => ({
           ...acc,
-          [state.stateDisplay]: this.filterByState(ws, state),
+          [state.stateDisplay]: this.filterResources(state),
         }), {});
 
         return {
@@ -220,9 +212,9 @@ export default {
 
     tableResources() {
       return this.workspaces.reduce((acc, ws) => {
-        const filtered = this.resourceStates.reduce((acc, state) => ([
+        const filtered = this.applicationStates[ws.id].reduce((acc, state) => ([
           ...acc,
-          ...this.filterByState(ws, state).filter((r) => !IS_HELM_OPS_ENABLED || r.type === FLEET.GIT_REPO)
+          ...this.filterResources(state)
         ]), []);
 
         return {
@@ -242,27 +234,48 @@ export default {
   },
 
   methods: {
-    filterByType(workspace) {
-      return [
-        ...(isEmpty(this.typeFilter) || this.typeFilter[workspace.id]?.[FLEET.GIT_REPO] ? workspace.repos : []),
-        ...(IS_HELM_OPS_ENABLED && (isEmpty(this.typeFilter) || this.typeFilter[workspace.id]?.[FLEET.HELM_OP]) ? workspace.helmOps : []),
-      ];
+    resourceStates(resources) {
+      const out = [];
+
+      resources.forEach((obj) => {
+        const {
+          stateDisplay,
+          stateSort
+        } = obj;
+
+        const exists = out.find((s) => s.stateDisplay === stateDisplay);
+
+        if (exists) {
+          exists.resources.push(obj);
+        } else {
+          out.push({
+            stateDisplay,
+            stateSort,
+            statePanel: FleetUtils.getDashboardState(obj),
+            resources:  [obj]
+          });
+        }
+      });
+
+      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
     },
 
-    filterByState(workspace, state) {
-      return this.filterByType(workspace).filter((item) => {
-        const stateId = FleetUtils.getDashboardStateId(item);
-
-        const toShow = Object.values(this.stateFilter[workspace.id] || {}).filter((f) => f).length === 0 || this.stateFilter[workspace.id][stateId];
-
-        return item.stateDisplay === state.stateDisplay && toShow;
-      });
+    filterResources(state) {
+      return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
+        this._decodeStateFilter(item.namespace, state)
+      );
     },
 
     selectStates(workspace, state) {
       this._checkInit(workspace, 'stateFilter');
 
-      this.stateFilter[workspace][state] = !this.stateFilter[workspace][state];
+      this._cleanStateFilter(workspace);
+
+      if (this.stateFilter[workspace][state]) {
+        delete this.stateFilter[workspace][state];
+      } else {
+        this.stateFilter[workspace][state] = true;
+      }
 
       if (this.isWorkspaceCollapsed[workspace]) {
         this.toggleCard(workspace);
@@ -279,14 +292,6 @@ export default {
       this.typeFilter[workspace][type] = value;
 
       this.toggleStateAll(workspace, 'expand');
-    },
-
-    partialStateCount(workspace, state) {
-      return this.cardResources[workspace][state.stateDisplay]?.length;
-    },
-
-    totalStateCount(workspace) {
-      return this.filterByType(workspace)?.length;
     },
 
     toggleCard(key) {
@@ -353,6 +358,46 @@ export default {
           zIndex:              1,
           triggerFocusTrap:    true,
           returnFocusSelector: `[data-testid="card-${ value.id }"]`
+        }
+      });
+    },
+
+    _stateExistsInWorkspace(workspace, state) {
+      return !!this.applicationStates[workspace].find((s) => s.statePanel.id === state);
+    },
+
+    _decodeStateFilter(workspace, state) {
+      const stateFilter = Object.keys(this.stateFilter[workspace] || {});
+
+      if (stateFilter.length === 0) {
+        return true;
+      }
+
+      if (stateFilter.filter((key) => this.stateFilter[workspace][key] && this._stateExistsInWorkspace(workspace, key)).length === 0) {
+        return true;
+      }
+
+      if (this.stateFilter[workspace][state.statePanel.id]) {
+        return true;
+      }
+
+      return false;
+    },
+
+    _decodeTypeFilter(workspace, type) {
+      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === 'flat';
+
+      return disabledFilter || this.typeFilter[workspace]?.[type];
+    },
+
+    _cleanStateFilter(workspace) {
+      const all = [...Object.keys(this.stateFilter[workspace] || {})];
+
+      all.forEach((state) => {
+        const exists = this._stateExistsInWorkspace(workspace, state);
+
+        if (!exists) {
+          delete this.stateFilter[workspace][state];
         }
       });
     },
@@ -466,8 +511,8 @@ export default {
             <div class="body">
               <ResourcePanel
                 v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
-                :data-testid="'resource-panel-git-repos'"
-                :resources="[ ...workspace.repos, ...(IS_HELM_OPS_ENABLED ? workspace.helmOps : []) ]"
+                :data-testid="'resource-panel-applications'"
+                :states="applicationStates[workspace.id]"
                 :workspace="workspace.id"
                 :type="FLEET.GIT_REPO"
                 :selected-states="stateFilter[workspace.id] || {}"
@@ -476,7 +521,7 @@ export default {
               <ResourcePanel
                 v-if="workspace.clusters?.length"
                 :data-testid="'resource-panel-clusters'"
-                :resources="workspace.clusters"
+                :states="clusterStates[workspace.id]"
                 :workspace="workspace.id"
                 :type="FLEET.CLUSTER"
                 :selectable="false"
@@ -484,7 +529,7 @@ export default {
               <ResourcePanel
                 v-if="workspace.clusterGroups?.length"
                 :data-testid="'resource-panel-cluster-groups'"
-                :resources="workspace.clusterGroups"
+                :states="clusterGroupsStates[workspace.id]"
                 :workspace="workspace.id"
                 :type="FLEET.CLUSTER_GROUP"
                 :show-chart="false"
@@ -494,7 +539,7 @@ export default {
           </div>
           <div class="card-panel-main-actions">
             <div
-              v-if="workspace.repos?.length || workspace.helmOps?.length"
+              v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
               class="expand-button"
               :data-testid="'expand-button'"
             >
@@ -553,7 +598,7 @@ export default {
             class="cards-panel"
           >
             <div
-              v-for="(state, j) in resourceStates"
+              v-for="(state, j) in applicationStates[workspace.id]"
               :key="j"
               :data-testid="`state-panel-${ state.stateDisplay }`"
             >
@@ -583,9 +628,9 @@ export default {
                   />
                   <div class="label">
                     <span class="partial">
-                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ partialStateCount(workspace.id, state) }}
+                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
-                    <span class="total label-secondary">/{{ totalStateCount(workspace) }}</span>
+                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...(IS_HELM_OPS_ENABLED ? workspace.helmOps : []) ].length }}</span>
                   </div>
                 </div>
                 <div

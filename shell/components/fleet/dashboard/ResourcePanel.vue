@@ -17,9 +17,9 @@ export default {
   components: { BadgeState },
 
   props: {
-    resources: {
-      type:    Array,
-      default: () => ([])
+    states: {
+      type:    Object,
+      default: () => ({})
     },
 
     workspace: {
@@ -89,7 +89,7 @@ export default {
             return;
           }
 
-          const state = this.states.find(({ index }) => idx === index);
+          const state = this.statePanels.find(({ index }) => idx === index);
 
           this.selectState(state);
         },
@@ -124,39 +124,43 @@ export default {
 
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
-    states() {
+
+    statePanels() {
       const out = [];
 
-      this.resources.forEach((obj) => {
+      this.states.forEach((state) => {
         const {
-          state,
-          stateSort
-        } = obj;
+          statePanel,
+          resources
+        } = state;
 
-        const statePanel = FleetUtils.getDashboardState(obj);
+        const exists = out.find((s) => s.id === statePanel.id);
 
-        if (!out.find((s) => s.id === statePanel.id)) {
-          const count = this.resources.filter((r) => FleetUtils.getDashboardStateId(r) === statePanel.id).length;
-
+        if (exists) {
+          exists.count += resources.length;
+        } else {
           out.push({
             ...statePanel,
-            count,
             state,
-            stateSort,
+            count: resources.length
           });
         }
       });
 
-      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
+      return out;
+    },
+
+    count() {
+      return this.statePanels.reduce((acc, state) => acc + state.count, 0);
     },
 
     typeLabel() {
-      return this.t(`typeLabel."${ this.type }"`, { count: this.resources.length });
+      return this.t(`typeLabel."${ this.type }"`, { count: this.count });
     },
   },
 
   watch: {
-    states: {
+    statePanels: {
       handler: 'updateStates',
       deep:    true,
     },
@@ -174,7 +178,7 @@ export default {
       const labels = chartStates.map(({ label }) => label);
       const backgroundColor = chartStates.map(({ color }) => color);
 
-      const data = this.getChartStates(this.states);
+      const data = this.getChartStates(this.statePanels);
 
       return {
         labels,
@@ -233,12 +237,12 @@ export default {
         class="description"
         :data-testid="'description'"
       >
-        <span class="count">{{ resources.length }}</span>
+        <span class="count">{{ count }}</span>
         <span class="label">{{ typeLabel }}</span>
       </div>
       <div class="states">
         <BadgeState
-          v-for="(state, i) in states"
+          v-for="(state, i) in statePanels"
           :key="i"
           class="badge"
           :tabindex="selectable ? 0 : undefined"
