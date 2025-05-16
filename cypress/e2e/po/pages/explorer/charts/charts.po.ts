@@ -52,7 +52,7 @@ export class ChartsPage extends PagePo {
   }
 
   charts() {
-    return new ItemCardPo('[data-testid="app-cards-container"] [data-testid="item-card"]');
+    return new ItemCardPo('[data-testid="app-cards-container"] .item-card');
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
