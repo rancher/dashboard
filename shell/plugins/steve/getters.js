@@ -18,6 +18,7 @@ import {
   STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 import { createHeaders } from '@shell/store/type-map.utils';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -36,10 +37,17 @@ const GC_IGNORE_TYPES = {
 const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
 
 export default {
-  urlOptions: () => (url, opt, schema) => {
+  // TODO: RC description
+  isSteveUrl: () => (urlPath) => steveRegEx.test(urlPath),
+  // TODO: RC description
+  isSteveVai: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
+
+  urlOptions: (state, getters, rootState, rootGetters) => (url, opt, schema) => {
     opt = opt || {};
     const parsedUrl = parse(url);
-    const isSteve = steveRegEx.test(parsedUrl.path);
+
+    const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
+    const isSteveVai = getters.isSteveVai(parsedUrl.path);
 
     const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
 
@@ -54,6 +62,7 @@ export default {
 
       // Filter
       if ( opt.filter ) {
+        // When ui-sql-cache is always on we should look to replace the usages of this with findPage (basically using the new filter definitions)
         url += `${ (url.includes('?') ? '&' : '?') }`;
         const keys = Object.keys(opt.filter);
 
@@ -64,13 +73,12 @@ export default {
             vals = [vals];
           }
 
-          // Steve's filter options now support more complex filtering not yet implemented here #9341
-          if (isSteve) {
+          if (isSteveUrl) {
             url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
           }
 
           const filterStrings = vals.map((val) => {
-            return `${ encodeURI(key) }=${ encodeURI(val) }`;
+            return `${ encodeURI(key) }${ isSteveVai ? '~' : '=' }${ encodeURI(val) }`;
           });
           const urlEnding = url.charAt(url.length - 1);
           const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
@@ -97,13 +105,23 @@ export default {
       }
       // End: Limit
 
+      // Page Size
+      const hack = true && url.indexOf('/v1/management.cattle.io.clusterroletemplatebindings') >= 0;
+      if (isSteveVai && opt.isList && hack) {
+
+        // Use of pagesize is restricted to findPage and would have been caught by stevePagination
+        // Here we're ensuring behaviour with vai off (where default limit of 1000) matches vai on (force a limit). This also stops crazy high return numbers
+        url += `${ url.includes('?') ? '&' : '?' }pagesize=${paginationUtils.defaultPageSize}`;
+      }
+      // End: Page Size
+
       // Sort
       // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
       const sortBy = opt.sortBy;
       const orderBy = opt.sortOrder;
 
       if ( sortBy ) {
-        if (isSteve) {
+        if (isSteveUrl) {
           url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
         } else {
           url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
@@ -118,7 +136,7 @@ export default {
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
-    if (isSteve) {
+    if (isSteveUrl) {
       if (!Array.isArray(opt?.excludeFields)) {
         const excludeFields = ['metadata.managedFields'];
 

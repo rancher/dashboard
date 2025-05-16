@@ -66,18 +66,11 @@ describe('steve: getters:', () => {
   });
 
   describe('urlOptions', () => {
-    // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { config: { baseUrl: 'protocol' } };
-    const getters = {
-      normalizeType: (type) => type,
-      // this has its own tests so it just returns the input string
-      urlOptions:    (string) => string
-    };
-
-    const urlOptionsGetter = urlOptions();
+    const urlOptionsGetter = urlOptions(undefined, undefined, undefined, { 'features/get': () => false });
+    const urlOptionsGetterVaiOn = urlOptions(undefined, undefined, undefined, { 'features/get': () => true });
 
     it('expects urlOptions to return a function', () => {
-      expect(typeof urlOptions(state, getters)).toBe('function');
+      expect(typeof urlOptions()).toBe('function');
     });
     it('returns undefined when called without params', () => {
       expect(urlOptionsGetter()).toBeUndefined();
@@ -102,6 +95,12 @@ describe('steve: getters:', () => {
     });
     it('returns a string with a multiple filter statements applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+    });
+    it('returns a string with correct equality for vai off', () => {
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+    });
+    it('returns a string with correct equality for vai on', () => {
+      expect(urlOptionsGetterVaiOn('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar~baz&far~faz&exclude=metadata.managedFields');
     });
     it('returns a string with a labelSelector and formatted for steve if the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b' })).toBe('/v1/foo?labelSelector=a=b&exclude=metadata.managedFields');
