@@ -41,6 +41,13 @@ export default class Workspace extends HybridModel {
     return forWorkspace;
   }
 
+  get helmOps() {
+    const all = this.$getters['all'](FLEET.HELM_OP);
+    const forWorkspace = filterBy(all, 'namespace', this.id);
+
+    return forWorkspace;
+  }
+
   get basicNorman() {
     if (this.id) {
       return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.FLEET_WORKSPACES }, { root: true });

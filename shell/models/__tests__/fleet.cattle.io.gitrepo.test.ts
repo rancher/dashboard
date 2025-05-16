@@ -127,7 +127,7 @@ describe('class GitRepo', () => {
   describe('resourcesStatuses', () => {
     it.each([
       []
-    ])('foobat', () => {
+    ])('fn', () => {
       jest.spyOn(GitRepo.prototype, '$getters', 'get').mockReturnValue({ byId: jest.fn() });
 
       jest.spyOn(GitRepo.prototype, 'targetClusters', 'get').mockReturnValue([{
