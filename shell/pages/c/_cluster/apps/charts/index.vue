@@ -517,8 +517,8 @@ export default {
             <template #item-card-sub-header>
               <div class="app-card-sub-header">
                 <div
-                  v-for="subHeaderItem in chart.cardContent.subHeaderItems"
-                  :key="subHeaderItem.text"
+                  v-for="(subHeaderItem, i) in chart.cardContent.subHeaderItems"
+                  :key="i"
                   class="app-card-sub-header-item"
                   data-testid="app-card-version"
                 >
