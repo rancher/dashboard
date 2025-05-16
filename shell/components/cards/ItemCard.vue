@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PropType, computed } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage';
@@ -9,7 +9,7 @@ type ItemCardVariant = 'small' | 'medium';
 type Label = {
   key?: string;
   text?: string;
-}
+};
 
 type Image = {
   src: string;
@@ -27,12 +27,12 @@ type Status = {
   customColor?: string;
   tooltip?: Label;
   handleClick?: () => void;
-}
+};
 
 type Header = {
   title?: Label;
   statuses?: Status[];
-}
+};
 
 type ItemValue = Record<string, any>;
 
@@ -41,39 +41,23 @@ const { t } = useI18n(store);
 
 const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
 
-const props = defineProps({
-  id: {
-    type:     String,
-    required: true
-  },
-  value: {
-    type:     Object as PropType<ItemValue>,
-    required: true
-  },
-  header: {
-    type:     Object as PropType<Header>,
-    required: true
-  },
-  image: {
-    type:    Object as PropType<Image> | undefined,
-    default: undefined
-  },
-  content: {
-    type:    Object as PropType<Label> | undefined,
-    default: undefined
-  },
-  variant: {
-    type:    String as PropType<ItemCardVariant>,
-    default: 'medium'
-  },
-  pill: { // can be visible only when the card's variant is NOT small
-    type:    Object as PropType<Pill> | undefined,
-    default: undefined
-  },
-  clickable: {
-    type:    Boolean,
-    default: false
-  }
+interface Props {
+  id: string;
+  value: ItemValue;
+  header: Header;
+  image?: Image;
+  content?: Label;
+  variant?: ItemCardVariant;
+  pill?: Pill; // can be visible only when the card's variant is NOT small
+  clickable?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  image:     undefined,
+  content:   undefined,
+  variant:   'medium',
+  pill:      undefined,
+  clickable: false
 });
 
 function _handleCardClick(e: MouseEvent | KeyboardEvent) {
