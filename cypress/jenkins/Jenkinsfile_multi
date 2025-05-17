@@ -71,7 +71,7 @@ node {
                                         string(name: 'CHROME_VERSION', value: "${CHROME_VERSION}"),
                                         string(name: 'QASE_PROJECT', value: "${QASE_PROJECT}"),
                                         string(name: 'QASE_REPORT', value: "${QASE_REPORT}"),
-                                        string(name: 'RANCHER_IMAGE_TAG', value: val)]
+                                        string(name: 'RANCHER_IMAGE_TAG', value: "${RANCHER_IMAGE_TAG}")]
                             echo "TAG: ${params}"
                             build (job: 'ui-automation-job', parameters: params, propagate: false, wait: false)
                         }
