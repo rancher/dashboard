@@ -24,26 +24,35 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
 
         workloadsDaemonsetsListPage.goTo();
         workloadsDaemonsetsListPage.waitForPage();
-        workloadsDaemonsetsListPage.createDaemonset();
+        workloadsDaemonsetsListPage.baseResourceList().masthead().create();
 
         // create a new daemonset
         const workloadsDaemonsetsEditPage = new WorkLoadsDaemonsetsEditPagePo('local');
 
-        workloadsDaemonsetsEditPage.nameNsDescription().name().set(daemonsetName);
+        workloadsDaemonsetsEditPage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(daemonsetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
-        workloadsDaemonsetsEditPage.saveCreateForm().click();
+        workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
+          .click();
 
         workloadsDaemonsetsListPage.waitForPage();
-        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('be.visible');
-        workloadsDaemonsetsListPage.goToeditItemWithName(daemonsetName);
+        workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
+          .rowElementWithName(daemonsetName)
+          .should('be.visible');
+        workloadsDaemonsetsListPage.list().actionMenu(daemonsetName).getMenuItem('Edit Config')
+          .click();
 
         // edit daemonset
         workloadsDaemonsetsEditPage.clickTab('#DaemonSet');
         workloadsDaemonsetsEditPage.clickTab('#upgrading');
         workloadsDaemonsetsEditPage.ScalingUpgradePolicyRadioBtn().set(1);
-        workloadsDaemonsetsEditPage.saveCreateForm().click();
+        workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
+          .click();
 
-        workloadsDaemonsetsListPage.listElementWithName(daemonsetName).should('be.visible');
+        workloadsDaemonsetsListPage.baseResourceList().resourceTable().sortableTable()
+          .rowElementWithName(daemonsetName)
+          .should('be.visible');
 
         cy.wait('@daemonsetEdit', { requestTimeout: 4000 }).then((req) => {
           expect(req.request.body.spec.updateStrategy.type).to.equal('OnDelete');

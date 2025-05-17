@@ -1,11 +1,11 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import CustomBadgeDialogPo from '@/cypress/e2e/po/components/custom-badge-dialog.po';
-import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -38,10 +38,6 @@ export default class ClusterDashboardPagePo extends PagePo {
     return new CustomBadgeDialogPo();
   }
 
-  eventsList(): EventsListPo {
-    return new EventsListPo('[data-testid="sortable-table-list-container"]');
-  }
-
   certificates(): CertificatesPo {
     return new CertificatesPo();
   }
@@ -62,6 +58,14 @@ export default class ClusterDashboardPagePo extends PagePo {
 
   fullSecretsList() {
     return cy.get('.cert-table-link').contains('Full secrets list');
+  }
+
+  eventsList() {
+    return new ResourceTablePo('#cluster-events [data-testid="sortable-table-list-container"]');
+  }
+
+  certificatesList() {
+    return new ResourceTablePo('#cluster-certs [data-testid="sortable-table-list-container"]');
   }
 
   clusterActionsHeader() {

@@ -1,11 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import GlobalRoleBindings from '@/cypress/e2e/po/components/global-role-binding.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export default class MgmtUserEditPo extends PagePo {
+export default class MgmtUserEditPo extends BaseDetailPagePo {
   private static createPath(clusterId: string, userId?: string ) {
     const root = `/c/${ clusterId }/auth/management.cattle.io.user`;
 
@@ -44,10 +43,6 @@ export default class MgmtUserEditPo extends PagePo {
     return CheckboxInputPo.byLabel(this.self(), label);
   }
 
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
-  }
-
   saveCreateWithErrorRetry(attempt = 1): Cypress.Chainable | null {
     if (attempt > 3) {
       return null;
@@ -56,7 +51,8 @@ export default class MgmtUserEditPo extends PagePo {
     cy.intercept('POST', 'v3/users').as('userCreation');
     cy.intercept('POST', 'v3/globalrolebindings').as('globalRoleBindingsCreation');
 
-    this.saveCreateForm().click();
+    this.resourceDetail().cruResource().saveOrCreate()
+      .click();
 
     // Based on issue https://github.com/rancher/dashboard/issues/10260
     // main xhr request for user creation
@@ -83,7 +79,8 @@ export default class MgmtUserEditPo extends PagePo {
 
   saveAndWaitForRequests(method: string, url: any, multipleCalls?: boolean): CypressChainable {
     cy.intercept(method, url).as('request');
-    this.saveCreateForm().click();
+    this.resourceDetail().cruResource().saveOrCreate()
+      .click();
 
     return (multipleCalls ? cy.wait(['@request', '@request'], { timeout: 10000 }) : cy.wait('@request', { timeout: 10000 }));
   }

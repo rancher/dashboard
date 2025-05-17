@@ -24,7 +24,7 @@ export default class PromptRemove extends ComponentPo {
   }
 
   cancel() {
-    return this.self().get('.btn.role-secondary').click();
+    return this.self().get('.btn.role-secondary').contains('Cancel').click();
   }
 
   // Get the warning message

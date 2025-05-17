@@ -1,8 +1,10 @@
-import ProjectsNamespacesPagePo from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
+import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateEditPagePo } from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import { spoofThirdPartyPrincipal } from '@/cypress/e2e/blueprints/explorer/rbac/third-party-principals-get';
 
 describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
-  const projectsNamespacesPage = new ProjectsNamespacesPagePo('local');
+  const projectsNamespacesPage = new ProjectsNamespacesListPagePo();
+  const createProjectPage = new ProjectCreateEditPagePo();
+  const createNamespacePage = new NamespaceCreateEditPagePo();
 
   beforeEach(() => {
     cy.login();
@@ -11,13 +13,18 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
   });
 
   it('flat list view should have create Namespace button', () => {
-    projectsNamespacesPage.flatListClick();
-    projectsNamespacesPage.createProjectNamespaceButton().should('exist');
+    projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
+      .click();
+    projectsNamespacesPage.createNamespaceButton().should('exist');
+    projectsNamespacesPage.baseResourceList().masthead().create()
+      .should('exist');
   });
 
   it('create namespace screen should have a projects dropdown', () => {
-    projectsNamespacesPage.createProjectNamespaceClick();
-    projectsNamespacesPage.nsProject().checkExists();
+    projectsNamespacesPage.createNamespaceButton().click();
+    createNamespacePage.resourceDetail().createEditView().nameNsDescription()
+      .project()
+      .checkExists();
   });
 
   describe('Project creation', () => {
@@ -31,9 +38,13 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
         // intercept the request to /v3/principals and return a principal authenticated by github instead of local
         spoofThirdPartyPrincipal();
 
-        projectsNamespacesPage.createProjectButtonClick();
-        projectsNamespacesPage.name().set(projectName);
-        projectsNamespacesPage.buttonSubmit().click();
+        projectsNamespacesPage.baseResourceList().masthead().create();
+        createProjectPage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(projectName);
+        createProjectPage.resourceDetail().createEditView()
+          .create()
+          .click();
 
         cy.wait('@createProjectRequest').then(({ request }) => {
           expect(request.body.annotations['field.cattle.io/creator-principal-name']).to.equal('github://1234567890');
@@ -43,9 +54,12 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     it('does not set a creator principal id annotation when creating a project if using local auth', () => {
       cy.get('@projectName').then((projectName) => {
-        projectsNamespacesPage.createProjectButtonClick();
-        projectsNamespacesPage.name().set(projectName);
-        projectsNamespacesPage.buttonSubmit().click();
+        projectsNamespacesPage.baseResourceList().masthead().create();
+        createProjectPage.resourceDetail().createEditView().nameNsDescription()
+          .name()
+          .set(projectName);
+        createProjectPage.resourceDetail().createEditView()
+          .create();
 
         cy.wait('@createProjectRequest').then(({ request, response }) => {
           expect(request.body.annotations).to.not.have.property('field.cattle.io/creator-principal-name');
@@ -55,7 +69,7 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
     });
 
     afterEach(() => {
-      cy.get('@projectName').then((projectName) => {
+      cy.get<string>('@projectName').then((projectName) => {
         cy.deleteRancherResource('v3', 'projects', projectName, false);
       });
     });
@@ -68,77 +82,95 @@ describe('Projects/Namespaces', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     // Issue 5975: create button should be disabled unless name is filled in
     it('Create button becomes available if the name is filled in', () => {
-      projectsNamespacesPage.createProjectButtonClick();
-      projectsNamespacesPage.buttonSubmit().expectToBeDisabled();
-      projectsNamespacesPage.name().set('test-1234');
-      projectsNamespacesPage.buttonSubmit().expectToBeEnabled();
+      projectsNamespacesPage.baseResourceList().masthead().create();
+      createProjectPage.resourceDetail().createEditView()
+        .createButton()
+        .expectToBeDisabled();
+      createProjectPage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set('test-1234');
+      createProjectPage.resourceDetail().createEditView()
+        .createButton()
+        .expectToBeEnabled();
     });
 
     it('displays an error message when submitting a form with errors', () => {
-      projectsNamespacesPage.createProjectButtonClick();
+      projectsNamespacesPage.baseResourceList().masthead().create();
 
-      projectsNamespacesPage.name().set('test-1234');
-      projectsNamespacesPage.tabResourceQuotas().click();
-      projectsNamespacesPage.btnAddResource().click();
-      projectsNamespacesPage.inputProjectLimit().set('50');
-      projectsNamespacesPage.buttonSubmit().click();
+      createProjectPage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set('test-1234');
+      createProjectPage.tabResourceQuotas().click();
+      createProjectPage.btnAddResource().click();
+      createProjectPage.inputProjectLimit().set('50');
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-      projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
-      projectsNamespacesPage.bannerError(0).should('have.length', 1);
+      createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
+      createProjectPage.bannerError(0).should('have.length', 1);
     });
 
     it('displays a single error message on repeat submissions of a form with errors', () => {
-      projectsNamespacesPage.createProjectButtonClick();
+      projectsNamespacesPage.baseResourceList().masthead().create();
 
-      projectsNamespacesPage.name().set('test-1234');
-      projectsNamespacesPage.tabResourceQuotas().click();
-      projectsNamespacesPage.btnAddResource().click();
-      projectsNamespacesPage.inputProjectLimit().set('50');
-      projectsNamespacesPage.buttonSubmit().click();
+      createProjectPage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set('test-1234');
+      createProjectPage.tabResourceQuotas().click();
+      createProjectPage.btnAddResource().click();
+      createProjectPage.inputProjectLimit().set('50');
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-      projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
-      projectsNamespacesPage.bannerError(0).should('have.length', 1);
+      createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
+      createProjectPage.bannerError(0).should('have.length', 1);
 
-      projectsNamespacesPage.buttonSubmit().click();
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-      projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
-      projectsNamespacesPage.bannerError(0).should('have.length', 1);
-      projectsNamespacesPage.bannerError(1).should('have.length', 0);
+      createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
+      createProjectPage.bannerError(0).should('have.length', 1);
+      createProjectPage.bannerError(1).should('have.length', 0);
     });
 
-    // https://github.com/rancher/dashboard/issues/11881
-    //   it.skip('displays the most recent error after resolving a single error in a form with multiple errors', () => {
-    //     projectsNamespacesPage.createProjectButtonClick();
+    // testing https://github.com/rancher/dashboard/issues/11881
+    it('displays the most recent error after resolving a single error in a form with multiple errors', () => {
+      projectsNamespacesPage.baseResourceList().masthead().create();
 
-    //     // Create the first error
-    //     projectsNamespacesPage.name().set('test-1234');
-    //     projectsNamespacesPage.tabResourceQuotas().click();
-    //     projectsNamespacesPage.btnAddResource().click();
-    //     projectsNamespacesPage.inputProjectLimit().set('50');
-    //     projectsNamespacesPage.buttonSubmit().click();
+      // Create the first error
+      createProjectPage.resourceDetail().createEditView().nameNsDescription()
+        .name()
+        .set('test-1234');
+      createProjectPage.tabResourceQuotas().click();
+      createProjectPage.btnAddResource().click();
+      createProjectPage.inputProjectLimit().set('50');
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-    //     // Create a second error
-    //     projectsNamespacesPage.tabContainerDefaultResourceLimit().click();
-    //     projectsNamespacesPage.inputCpuReservation().set('1000');
-    //     projectsNamespacesPage.inputMemoryReservation().set('128');
-    //     projectsNamespacesPage.inputCpuLimit().set('200');
-    //     projectsNamespacesPage.inputMemoryLimit().set('64');
-    //     projectsNamespacesPage.buttonSubmit().click();
+      // Create a second error
+      createProjectPage.tabContainerDefaultResourceLimit().click();
+      createProjectPage.inputCpuReservation().set('1000');
+      createProjectPage.inputMemoryReservation().set('128');
+      createProjectPage.inputCpuLimit().set('200');
+      createProjectPage.inputMemoryLimit().set('64');
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-    //     // Assert that there is only a single error message
-    //     projectsNamespacesPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
-    //     projectsNamespacesPage.bannerError(0).should('have.length', 1);
-    //     projectsNamespacesPage.bannerError(1).should('have.length', 0);
+      // Assert that there is only a single error message
+      createProjectPage.bannerError(0).should('be.visible').contains('does not have all fields defined on a resourceQuota');
+      createProjectPage.bannerError(0).should('have.length', 1);
+      createProjectPage.bannerError(1).should('have.length', 0);
 
-    //     // resolve the first error
-    //     projectsNamespacesPage.tabResourceQuotas().click();
-    //     projectsNamespacesPage.inputNamespaceDefaultLimit().set('50');
-    //     projectsNamespacesPage.buttonSubmit().click();
+      // resolve the first error
+      createProjectPage.tabResourceQuotas().click();
+      createProjectPage.inputNamespaceDefaultLimit().set('50');
+      createProjectPage.resourceDetail().createEditView()
+        .create();
 
-  //     // Click on Create again and assert that there is only a single error
-  //     projectsNamespacesPage.bannerError(0).should('be.visible').contains('admission webhook "rancher.cattle.io.projects.management.cattle.io" denied the request');
-  //     projectsNamespacesPage.bannerError(0).should('have.length', 1);
-  //     projectsNamespacesPage.bannerError(1).should('have.length', 0);
-  //   });
+      // Click on Create again and assert that there is only a single error
+      createProjectPage.bannerError(0).should('be.visible').contains('admission webhook "rancher.cattle.io.projects.management.cattle.io" denied the request');
+      createProjectPage.bannerError(0).should('have.length', 1);
+      createProjectPage.bannerError(1).should('have.length', 0);
+    });
   });
 });

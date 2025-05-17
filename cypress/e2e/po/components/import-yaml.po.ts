@@ -22,6 +22,10 @@ export class ImportYamlPo extends ComponentPo {
     this.self().find('[data-testid="import-yaml-close"]').click();
   }
 
+  importYamlCancelClick() {
+    this.self().find('[data-testid="import-yaml-cancel"]').click();
+  }
+
   importYamlSortableTable() {
     return new SortableTablePo(this.self());
   }

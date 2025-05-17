@@ -28,6 +28,10 @@ export default class CreateKeyPagePo extends PagePo {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
   }
 
+  cancelButton(): Cypress.Chainable {
+    return this.self().get('button.role-secondary');
+  }
+
   doneButton(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="token_done_create_button"]', this.self());
   }
@@ -42,5 +46,9 @@ export default class CreateKeyPagePo extends PagePo {
 
   create(): Cypress.Chainable {
     return this.createButton().click();
+  }
+
+  cancel() {
+    return this.cancelButton().click();
   }
 }
