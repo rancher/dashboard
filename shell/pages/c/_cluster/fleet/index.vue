@@ -173,55 +173,40 @@ export default {
     },
 
     applicationStates() {
-      return this.workspaces.reduce((acc, ws) => ({
-        ...acc,
-        [ws.id]: this.resourceStates([
-          ...ws.repos,
-          ...(IS_HELM_OPS_ENABLED ? ws.helmOps : [])
-        ])
-      }), {});
+      return this._groupByWorkspace((ws) => this._resourceStates([
+        ...ws.repos,
+        ...(IS_HELM_OPS_ENABLED ? ws.helmOps : [])
+      ]));
     },
 
     clusterStates() {
-      return this.workspaces.reduce((acc, ws) => ({
-        ...acc,
-        [ws.id]: this.resourceStates(ws.clusters)
-      }), {});
+      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusters));
     },
 
     clusterGroupsStates() {
-      return this.workspaces.reduce((acc, ws) => ({
-        ...acc,
-        [ws.id]: this.resourceStates(ws.clusterGroups)
-      }), {});
+      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusterGroups));
     },
 
     cardResources() {
-      return this.workspaces.reduce((acc, ws) => {
+      return this._groupByWorkspace((ws) => {
         const filtered = this.applicationStates[ws.id].reduce((acc, state) => ({
           ...acc,
-          [state.stateDisplay]: this.filterResources(state),
+          [state.stateDisplay]: this._filterResources(state),
         }), {});
 
-        return {
-          ...acc,
-          [ws.id]: filtered
-        };
-      }, {});
+        return filtered;
+      });
     },
 
     tableResources() {
-      return this.workspaces.reduce((acc, ws) => {
+      return this._groupByWorkspace((ws) => {
         const filtered = this.applicationStates[ws.id].reduce((acc, state) => ([
           ...acc,
-          ...this.filterResources(state)
+          ...this._filterResources(state)
         ]), []);
 
-        return {
-          ...acc,
-          [ws.id]: filtered
-        };
-      }, {});
+        return filtered;
+      });
     },
 
     isEmptyDashboard() {
@@ -234,38 +219,6 @@ export default {
   },
 
   methods: {
-    resourceStates(resources) {
-      const out = [];
-
-      resources.forEach((obj) => {
-        const {
-          stateDisplay,
-          stateSort
-        } = obj;
-
-        const exists = out.find((s) => s.stateDisplay === stateDisplay);
-
-        if (exists) {
-          exists.resources.push(obj);
-        } else {
-          out.push({
-            stateDisplay,
-            stateSort,
-            statePanel: FleetUtils.getDashboardState(obj),
-            resources:  [obj]
-          });
-        }
-      });
-
-      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
-    },
-
-    filterResources(state) {
-      return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
-        this._decodeStateFilter(item.namespace, state)
-      );
-    },
-
     selectStates(workspace, state) {
       this._checkInit(workspace, 'stateFilter');
 
@@ -362,6 +315,45 @@ export default {
       });
     },
 
+    _resourceStates(resources) {
+      const out = [];
+
+      resources.forEach((obj) => {
+        const {
+          stateDisplay,
+          stateSort
+        } = obj;
+
+        const exists = out.find((s) => s.stateDisplay === stateDisplay);
+
+        if (exists) {
+          exists.resources.push(obj);
+        } else {
+          out.push({
+            stateDisplay,
+            stateSort,
+            statePanel: FleetUtils.getDashboardState(obj),
+            resources:  [obj]
+          });
+        }
+      });
+
+      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
+    },
+
+    _filterResources(state) {
+      return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
+        this._decodeStateFilter(item.namespace, state)
+      );
+    },
+
+    _groupByWorkspace(callback) {
+      return this.workspaces.reduce((acc, ws) => ({
+        ...acc,
+        [ws.id]: callback(ws)
+      }), {});
+    },
+
     _stateExistsInWorkspace(workspace, state) {
       return !!this.applicationStates[workspace].find((s) => s.statePanel.id === state);
     },
@@ -406,7 +398,7 @@ export default {
       if (!this[name][workspace]) {
         this[name][workspace] = {};
       }
-    }
+    },
   },
 
   watch: {
