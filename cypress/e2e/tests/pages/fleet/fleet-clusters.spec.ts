@@ -136,15 +136,15 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
 
       // check state
-      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 1).contains('Ready');
+      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 1).contains('Ready');
       // check name
-      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 2).should('be.visible');
+      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 2).should('be.visible');
       // check repo
-      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
+      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
       // check target
-      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 4).contains('Advanced');
+      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 4).contains('Advanced');
       // check cluster resources
-      fleetClusterDetailsPage.gitReposList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
+      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
     });
 
     it('check all tabs are available in the details view', () => {
@@ -158,7 +158,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.goToDetailsPage(clusterName);
       fleetClusterDetailsPage.waitForPage(null, 'repos');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
-      const tabs = ['Git Repos', 'Conditions', 'Recent Events', 'Related Resources'];
+      const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
 
       fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
         expect(el).to.eq(tabs[i]);
@@ -401,10 +401,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
         .checkLoadingIndicatorNotVisible();
       fleetClusterListPage.goToDetailsPage('local');
       fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.addRepostoryButton().click();
+      fleetClusterDetailsPage.addAppButton().click();
       gitRepoCreatePage.waitForPage();
       gitRepoCreatePage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain('Git Repo: Create');
+        expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
       });
     });
 
@@ -473,7 +473,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // check table headers
       const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];
 
-      fleetClusterDetailsPage.gitReposList().sortableTable()
+      fleetClusterDetailsPage.appBunlesList().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {

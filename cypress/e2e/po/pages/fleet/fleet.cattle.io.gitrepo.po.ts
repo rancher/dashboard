@@ -10,7 +10,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export class FleetGitRepoListPagePo extends BaseListPagePo {
-  static url = `/c/_/fleet/fleet.cattle.io.gitrepo`
+  static url = `/c/_/fleet/application`;
 
   constructor() {
     super(FleetGitRepoListPagePo.url);
@@ -113,7 +113,7 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
 
 export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace: string, gitRepoName: string) {
-    return `/c/_/fleet/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
+    return `/c/_/fleet/application/fleet.cattle.io.gitrepo/${ fleetWorkspace }/${ gitRepoName }`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
@@ -129,7 +129,7 @@ export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   }
 
   bundlesCount(): Cypress.Chainable {
-    return this.self().find('[data-testid="gitrepo-bundle-summary"] .count').invoke('text');
+    return this.self().find('[data-testid="resource-bundle-summary"] .count').invoke('text');
   }
 
   bundlesList() {
@@ -145,6 +145,6 @@ export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
   }
 
   graph() {
-    return this.self().find('[data-testid="gitrepo_graph"]');
+    return this.self().find('[data-testid="resource-graph"]');
   }
 }
