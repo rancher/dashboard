@@ -103,7 +103,7 @@ export default {
 
   data() {
     return {
-      createRoute: { name:   'c-cluster-fleet-application-create' },
+      createRoute:     { name: 'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
@@ -587,7 +587,7 @@ export default {
                 :to="createRoute"
                 class="btn role-primary"
               >
-                {{ t('fleet.gitRepo.intro.add') }}
+                {{ t('fleet.application.intro.add') }}
               </router-link>
             </div>
           </div>
