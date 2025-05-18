@@ -53,11 +53,6 @@ export default {
       type:    Boolean,
       default: false
     },
-
-    showIntro: {
-      type:    Boolean,
-      default: true,
-    }
   },
 
   computed: {
@@ -107,10 +102,6 @@ export default {
         AGE
       ];
     },
-
-    _showIntro() {
-      return this.showIntro && !this.filteredRows.length;
-    },
   },
   methods: {
     parseTargetMode(row) {
@@ -129,7 +120,7 @@ export default {
       :icon="'icon-github'"
     />
     <ResourceTable
-      v-if="!_showIntro"
+      v-if="!noRows"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
