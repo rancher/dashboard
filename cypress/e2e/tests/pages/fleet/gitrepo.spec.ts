@@ -174,9 +174,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         listPage.list().resourceTable().checkVisible();
         listPage.list().resourceTable().sortableTable()
           .checkVisible();
-          listPage.list().resourceTable().sortableTable()
+        listPage.list().resourceTable().sortableTable()
           .checkLoadingIndicatorNotVisible();
-          listPage.list().resourceTable().sortableTable()
+        listPage.list().resourceTable().sortableTable()
           .noRowsShouldNotExist();
 
         // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
