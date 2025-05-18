@@ -65,14 +65,15 @@ export default {
     },
 
     cancel() {
-      this.$router.push({
-        name:   'c-cluster-fleet-application',
-        params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
-          resource: FLEET.APPLICATION,
-        },
-      });
+      this.$router.back();
+      // this.$router.push({
+      //   name:   'c-cluster-fleet-application',
+      //   params: {
+      //     cluster:  this.$route.params.cluster,
+      //     product:  this.$store.getters['productId'],
+      //     resource: FLEET.APPLICATION,
+      //   },
+      // });
     },
   }
 };

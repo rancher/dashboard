@@ -50,6 +50,11 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+
+    showIntro: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -78,8 +83,8 @@ export default {
       return !!this.clusterId;
     },
 
-    noRows() {
-      return !this.filteredRows.length;
+    shouldShowIntro() {
+      return this.showIntro && !this.filteredRows.length;
     },
 
     headers() {
@@ -107,7 +112,7 @@ export default {
 <template>
   <div>
     <FleetIntro
-      v-if="noRows && !loading"
+      v-if="shouldShowIntro && !loading"
       :schema="schema"
       :is-creatable="true"
       :labelKey="'application'"
@@ -115,7 +120,7 @@ export default {
       :icon="'icon-repository'"
     />
     <ResourceTable
-      v-if="!noRows"
+      v-if="!shouldShowIntro"
       v-bind="$attrs"
       key-field="_key"
       :schema="schema"
