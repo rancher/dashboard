@@ -53,6 +53,11 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+
+    showIntro: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -103,6 +108,10 @@ export default {
         AGE
       ];
     },
+
+    _showIntro() {
+      return this.showIntro && !this.filteredRows.length;
+    },
   },
   methods: {
     parseTargetMode(row) {
@@ -114,9 +123,9 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows && !loading" />
+    <FleetIntro v-if="_showIntro && !loading" />
     <ResourceTable
-      v-if="!noRows"
+      v-if="!_showIntro"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"

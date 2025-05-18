@@ -2,6 +2,7 @@
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
+import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
 import Loading from '@shell/components/Loading';
@@ -102,7 +103,14 @@ export default {
   data() {
     return {
       IS_HELM_OPS_ENABLED,
-      repoSchema:      this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
+      repoSchema:  this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
+      createRoute: {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  FLEET_NAME,
+          resource: FLEET.GIT_REPO
+        },
+      },
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
@@ -377,9 +385,9 @@ export default {
     },
 
     _decodeTypeFilter(workspace, type) {
-      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === 'flat';
+      const emptyFilter = isEmpty(this.typeFilter) || !this.viewMode;
 
-      return disabledFilter || this.typeFilter[workspace]?.[type];
+      return emptyFilter || this.typeFilter[workspace]?.[type];
     },
 
     _cleanStateFilter(workspace) {
@@ -554,13 +562,10 @@ export default {
           class="card-panel-expand mt-10"
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
-          <div
-            v-if="IS_HELM_OPS_ENABLED"
-            class="cards-panel-actions"
-          >
+          <div class="actions">
             <div
-              v-if="viewMode === 'cards'"
-              class="cards-panel-filters"
+              v-if="IS_HELM_OPS_ENABLED"
+              class="type-filters"
             >
               <Checkbox
                 :data-testid="'fleet-dashboard-filter-git-repos'"
@@ -583,8 +588,18 @@ export default {
                 </template>
               </Checkbox>
             </div>
+            <div
+              v-if="viewMode === 'flat'"
+              class="create-button"
+            >
+              <router-link
+                :to="createRoute"
+                class="btn role-primary"
+              >
+                {{ t('fleet.gitRepo.intro.add') }}
+              </router-link>
+            </div>
           </div>
-
           <div
             v-if="viewMode === 'cards'"
             class="cards-panel"
@@ -676,6 +691,7 @@ export default {
               :schema="repoSchema"
               :loading="$fetchState.pending"
               :use-query-params-for-simple-filtering="true"
+              :show-intro="false"
             />
           </div>
         </div>
@@ -783,12 +799,12 @@ export default {
   .card-panel-expand {
     animation: slideInOut 0.5s ease-in-out;
 
-    .cards-panel-actions {
+    .actions {
       display: flex;
-      flex-direction: row;
       align-items: center;
+      justify-content: space-between;
 
-      .cards-panel-filters {
+      .type-filters {
         display: flex;
         flex-direction: column;
         margin-top: 5px;
@@ -806,6 +822,10 @@ export default {
           padding: 2px;
           font-size: 25px;
         }
+      }
+
+      .create-button {
+        margin-left: auto;
       }
     }
 
