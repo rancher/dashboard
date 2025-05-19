@@ -7,8 +7,12 @@ export default class CreateEditViewPo extends ComponentPo {
     return new NameNsDescription(this.self());
   }
 
+  createButton() {
+    return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary'));
+  }
+
   create() {
-    return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary')).click();
+    return this.createButton().click();
   }
 
   save() {

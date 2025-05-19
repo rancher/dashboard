@@ -1,52 +1,46 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import GenericPrompt from '@/cypress/e2e/po/prompts/genericPrompt.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 
-export default class ProjectNamespacePagePo extends PagePo {
+export class ProjectsNamespacesListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/projectsnamespaces`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ProjectNamespacePagePo.createPath(clusterId));
+    return super.goTo(ProjectsNamespacesListPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string) {
-    super(ProjectNamespacePagePo.createPath(clusterId));
+  constructor(clusterId = 'local') {
+    super(ProjectsNamespacesListPagePo.createPath(clusterId));
   }
 
-  flatListButton() {
-    return this.self().getId('button-group-child-0');
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuEntryByLabel('Projects/Namespaces');
   }
 
-  flatListClick(): Cypress.Chainable {
-    return this.flatListButton().click();
+  createNamespaceButton() {
+    return this.self().get('[data-testid="create_project_namespaces"]');
+  }
+}
+
+export class ProjectCreateEditPagePo extends BaseDetailPagePo {
+  private static createPath(clusterId: string, projName?: string ) {
+    const root = `/c/${ clusterId }/explorer/management.cattle.io.project`;
+
+    return projName ? `${ root }/${ projName }` : `${ root }/create`;
   }
 
-  createProjectNamespaceButton() {
-    return this.self().getId('create_project_namespaces');
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
   }
 
-  createProjectNamespaceClick(): Cypress.Chainable {
-    return this.createProjectNamespaceButton().click();
-  }
-
-  createProjectButtonClick(): Cypress.Chainable {
-    return new ResourceListMastheadPo(this.self()).create();
-  }
-
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
-  }
-
-  nsProject() {
-    return this.nameNsDescription().project();
-  }
-
-  name() {
-    return this.nameNsDescription().name();
+  constructor(clusterId = 'local', projName?: string) {
+    super(ProjectCreateEditPagePo.createPath(clusterId, projName));
   }
 
   tabResourceQuotas() {
@@ -63,10 +57,6 @@ export default class ProjectNamespacePagePo extends PagePo {
 
   inputNamespaceDefaultLimit() {
     return new LabeledInputPo(cy.get('[data-testid="projectrow-namespace-quota-input"]'));
-  }
-
-  buttonSubmit() {
-    return new AsyncButtonPo(this.self().getId('form-save'));
   }
 
   tabContainerDefaultResourceLimit() {
@@ -91,5 +81,29 @@ export default class ProjectNamespacePagePo extends PagePo {
 
   bannerError(n: number) {
     return this.self().getId(`error-banner${ n }`);
+  }
+
+  addProjectMemberButton() {
+    return this.self().get('[data-testid="add-item"]');
+  }
+
+  addProjectMemberModal(): GenericPrompt {
+    return new GenericPrompt(this.self());
+  }
+}
+
+export class NamespaceCreateEditPagePo extends BaseDetailPagePo {
+  private static createPath(clusterId: string, nsName?: string ) {
+    const root = `/c/${ clusterId }/explorer/namespace`;
+
+    return nsName ? `${ root }/${ nsName }` : `${ root }/create`;
+  }
+
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(clusterId = 'local', nsName?: string) {
+    super(NamespaceCreateEditPagePo.createPath(clusterId, nsName));
   }
 }
