@@ -257,6 +257,13 @@ export default {
       });
 
       return appBar;
+    },
+
+    hideLocalCluster() {
+      const hideLocalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+      const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+
+      return value === 'true';
     }
   },
 
@@ -309,6 +316,9 @@ export default {
       immediate: true,
     },
 
+    hideLocalCluster() {
+      this.updateClusters(this.pinnedIds, 'slow');
+    }
   },
 
   mounted() {
@@ -317,6 +327,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
+    this.helper?.destroy();
   },
 
   methods: {

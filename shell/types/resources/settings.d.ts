@@ -21,6 +21,11 @@ export interface PaginationSettingsStore {
 }
 
 /**
+ *
+ */
+export type PaginationFeature = 'listAutoRefresh' | 'listManualRefresh'
+
+/**
  * Settings to handle server side pagination
  */
 export interface PaginationSettings {
@@ -31,7 +36,16 @@ export interface PaginationSettings {
   /**
    * Should pagination be enabled for resources in a store
    */
-  stores: PaginationSettingsStore | undefined
+  stores?: PaginationSettingsStore,
+
+  /**
+   * List of specific features that can be enabled / disabled
+   */
+  features?: {
+    [key in PaginationFeature]: { // eslint-disable-line no-unused-vars
+      enabled: boolean,
+    }
+  }
 }
 
 type Links = {

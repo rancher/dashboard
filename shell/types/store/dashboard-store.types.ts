@@ -1,4 +1,4 @@
-import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationArgs, StorePagination } from '@shell/types/store/pagination.types';
 
 /**
  * Properties on all findX actions
@@ -46,6 +46,11 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
   depaginate?: boolean,
 }
 
+export interface ActionFindPageTransientResult<T> {
+  pagination: StorePagination,
+  data: T[],
+}
+
 /**
  * Args used for findPage action
  */
@@ -61,8 +66,17 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   namespaced?: string,
   /**
-   * Result of request is transient and not persisted to store
+   * Watch for changes
+   *
+   * false = no, all other values = yes
+   */
+  watch?: boolean,
+  /**
+   * Does this request stem from a list with manual refresh?
+   */
+  hasManualRefresh?: boolean,
+  /**
+   * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
-  hasManualRefresh?: boolean,
 }

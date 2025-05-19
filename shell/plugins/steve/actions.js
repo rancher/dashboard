@@ -55,6 +55,9 @@ export default {
       waiting = state.deferredRequests[key];
 
       if ( waiting ) {
+        // A matching request has already been made and is currently waiting to complete
+        // Avoid making another request, just wait for the original one to complete
+        // and return the result of the first call (see `waiting` being processed far below)
         const later = deferred();
 
         waiting.push(later);
