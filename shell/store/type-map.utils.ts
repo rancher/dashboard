@@ -181,6 +181,49 @@ export function headerFromSchemaCol(col: SchemaAttributeColumn, rootGetters: Vue
   };
 }
 
+/**
+ * Rewrite a JSON Path expression, so that it is compatible with the library we use.
+ * Specifically, ensure we can handle path keys that contain an escaped '.' character (\.)
+ *
+ * For example, this function re-writes the expression:
+ *   $.metadata.labels.topology\.kubernetes\.io/zone
+ * to:
+ *   $.metadata.labels.["topology.kubernetes.io/zone"]
+ *
+ * @param path JSON Path expression
+ * @returns Re-written JSON Path expression
+ */
+function rewriteJsonPath(path: any): any {
+  // Check if we should re-write, otherwise just return the input expression as is
+  if (typeof path === 'string' && path.startsWith('$') && path.includes('\\.')) {
+    const parts = path.split('.');
+    let inField = false;
+    let res = '';
+
+    parts.forEach((part) => {
+      let prefix = res.length ? '.' : '';
+
+      if (part.endsWith('\\')) {
+        if (!inField) {
+          inField = true;
+          prefix = `${ prefix }["`;
+        }
+
+        res = `${ res }${ prefix }${ part.substr(0, part.length - 1) }`;
+      } else {
+        const postfix = inField ? '"]' : '';
+
+        res += `${ prefix }${ part }${ postfix }`;
+        inField = false;
+      }
+    });
+
+    return res;
+  }
+
+  return path;
+}
+
 export function rowValueGetter(col: SchemaAttributeColumn, asFn = true): string | ((row: any) => string) {
   // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
   // We will use JsonPath to look up this value, which is costly - so if we can detect this format
@@ -198,7 +241,7 @@ export function rowValueGetter(col: SchemaAttributeColumn, asFn = true): string 
     return `metadata.fields.${ fieldIndex }`;
   }
 
-  return value;
+  return rewriteJsonPath(value);
 }
 
 type conditionalDepaginateArgs ={
