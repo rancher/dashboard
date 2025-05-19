@@ -187,7 +187,8 @@ export default {
       doneRouteList:        'c-cluster-fleet-application',
       chartValues:          {},
       clusterRegistry:      null,
-      fetchChartValues:     false
+      fetchChartValues:     false,
+      selectedChart:        null
     };
   },
 
@@ -469,6 +470,8 @@ export default {
 
         this.value.spec.helm.chart = chart;
         this.value.spec.helm.version = version;
+
+        this.selectedChart = this.charts[reg._key]?.find((chart) => chart.chartName === this.value.spec?.helm?.chart) || {};
 
         this.getChartValues({
           repoName,
@@ -756,6 +759,7 @@ export default {
     :errors="errors"
     :steps="steps"
     :finish-mode="'finish'"
+    :banner-image="selectedChart?.icon"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"

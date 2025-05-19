@@ -390,6 +390,6 @@ export default {
   }
 
   .appco-fill {
-    fill: white
+    fill: var(--body-text)
   }
 </style>

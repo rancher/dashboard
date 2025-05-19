@@ -1,11 +1,10 @@
 <script>
-import { ensureRegex } from '@shell/utils/string';
+import { ensureRegex, lcFirst } from '@shell/utils/string';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
 } from '@shell/config/query-params';
-import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@shell/store/prefs';
@@ -345,7 +344,6 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return enabledCharts.filter((c) => {
-
         if ( searchQuery ) {
           // The search filter doesn't match
           const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
@@ -359,7 +357,7 @@ export default {
           }
         }
 
-        return c.repoName === 'application-collection';        
+        return c.repoName === 'application-collection';
       });
     }
   },
