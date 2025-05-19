@@ -1,7 +1,5 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Link from '@shell/components/formatter/Link';
-import Shortened from '@shell/components/formatter/Shortened';
 import FleetIntro from '@shell/components/fleet/FleetIntro';
 
 import {
@@ -22,17 +20,24 @@ export default {
   name: 'FleetRepos',
 
   components: {
-    ResourceTable, Link, Shortened, FleetIntro
+    FleetIntro,
+    ResourceTable,
   },
   props: {
+    rows: {
+      type:     Array,
+      required: true,
+    },
+
+    workspace: {
+      type:    String,
+      default: ''
+    },
+
     clusterId: {
       type:     String,
       required: false,
       default:  null,
-    },
-    rows: {
-      type:     Array,
-      required: true,
     },
 
     schema: {
@@ -57,11 +62,14 @@ export default {
         return [];
       }
 
-      // Returns boolean { [namespace]: true }
-      const selectedWorkspace = this.$store.getters['namespaces']();
+      const selectedNamespaces = this.$store.getters['namespaces']();
 
       return this.rows.filter((row) => {
-        return !!selectedWorkspace[row.metadata.namespace];
+        if (this.workspace) {
+          return this.workspace === row.metadata.namespace;
+        }
+
+        return !!selectedNamespaces[row.metadata.namespace];
       });
     },
 
@@ -115,28 +123,9 @@ export default {
       :rows="rows"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :namespaced="!workspace"
       key-field="_key"
     >
-      <template #cell:repo="{ row }">
-        <Link
-          :row="row"
-          :value="row.spec.repo || ''"
-          label-key="repoDisplay"
-          before-icon-key="repoIcon"
-          url-key="spec.repo"
-        />
-        {{ row.cluster }}
-        <template v-if="row.commitDisplay">
-          <div class="text-muted">
-            <Shortened
-              long-value-key="status.commit"
-              :row="row"
-              :value="row.commitDisplay"
-            />
-          </div>
-        </template>
-      </template>
-
       <template
         v-if="!isClusterView"
         #cell:clustersReady="{ row }"

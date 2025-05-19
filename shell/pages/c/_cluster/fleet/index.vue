@@ -1,36 +1,43 @@
 <script>
-import { mapState } from 'vuex';
+import { getVersionData } from '@shell/config/version';
+import { mapState, mapGetters } from 'vuex';
+import { isEmpty } from '@shell/utils/object';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
-import {
-  getStateLabel,
-  primaryDisplayStatusFromCount,
-  STATES,
-  STATES_ENUM,
-} from '@shell/plugins/dashboard-store/resource-class';
 import Loading from '@shell/components/Loading';
-import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
-import ResourceTable from '@shell/components/ResourceTable';
-import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
 import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
-import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
-import { NAME } from '@shell/config/product/fleet';
-import { xOfy } from '@shell/utils/string';
+import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
+import ResourceCard from '@shell/components/fleet/dashboard/ResourceCard.vue';
+import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
+import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
+import ButtonGroup from '@shell/components/ButtonGroup';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetUtils from '@shell/utils/fleet';
+import Preset from '@shell/mixins/preset';
+
+const IS_HELM_OPS_ENABLED = false;
 
 export default {
   name:       'FleetDashboard',
   components: {
+    ButtonGroup,
+    Checkbox,
+    EmptyDashboard,
+    FleetRepos,
     Loading,
-    ResourceTable,
-    CollapsibleCard,
-    CompoundStatusBadge,
-    FleetNoWorkspaces
+    NoWorkspaces,
+    ResourceCard,
+    ResourcePanel,
   },
 
+  mixins: [Preset],
+
   async fetch() {
-    const hash = await checkSchemasForFindAllHash({
+    const schemas = {
       fleetWorkspaces: {
         inStoreType:     'management',
         type:            FLEET.WORKSPACE,
@@ -51,17 +58,40 @@ export default {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO,
       },
+      helmOps: {
+        inStoreType: 'management',
+        type:        FLEET.HELM_OP,
+      },
       fleetClusters: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER,
       }
-    }, this.$store);
+    };
 
-    this.gitRepos = hash.gitRepos;
-    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
+    const hash = await checkSchemasForFindAllHash(schemas, this.$store);
+
+    this.fleetWorkspaces = hash.fleetWorkspaces || [];
+
+    this[FLEET.GIT_REPO] = hash.gitRepos || [];
+    this[FLEET.HELM_OP] = hash.helmOps || [];
 
     try {
-      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: (schema) => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
+      const permissionsSchemas = {
+        workspaces: { type: FLEET.WORKSPACE },
+        gitRepos:   {
+          type:            FLEET.GIT_REPO,
+          schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
+        },
+      };
+
+      if (IS_HELM_OPS_ENABLED) {
+        permissionsSchemas.helmOps = {
+          type:            FLEET.HELM_OP,
+          schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
+        };
+      }
+
+      const permissions = await checkPermissions(permissionsSchemas, this.$store.getters);
 
       this.permissions = permissions;
     } catch (e) {
@@ -71,211 +101,327 @@ export default {
 
   data() {
     return {
-      admissableAreas: ['clusters', 'bundles', 'resources'],
-      headers:         [
+      IS_HELM_OPS_ENABLED,
+      repoSchema:      this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
+      permissions:     {},
+      FLEET,
+      [FLEET.REPO]:    [],
+      [FLEET.HELM_OP]: [],
+      fleetWorkspaces: [],
+      viewModeOptions: [
         {
-          name:          'name',
-          labelKey:      'tableHeaders.repoName',
-          value:         'nameDisplay',
-          sort:          ['nameSort'],
-          formatter:     'LinkDetail',
-          canBeVariable: true,
+          tooltipKey: 'fleet.dashboard.viewMode.table',
+          icon:       'icon-list-flat',
+          value:      'flat',
         },
         {
-          name:     'clustersReady',
-          labelKey: 'tableHeaders.clustersReady',
-          value:    'status.readyClusters',
-          sort:     'status.readyClusters',
-          search:   false,
+          tooltipKey: 'fleet.dashboard.viewMode.cards',
+          icon:       'icon-apps',
+          value:      'cards',
         },
-        {
-          name:     'bundlesReady',
-          labelKey: 'tableHeaders.bundlesReady',
-          value:    'status.readyClusters',
-          sort:     'status.readyClusters',
-          search:   false,
-        },
-        {
-          name:     'resourcesReady',
-          labelKey: 'tableHeaders.resourcesReady',
-          value:    'status.resourceCounts.ready',
-          sort:     'status.resourceCounts.ready',
-        }
       ],
-      schema:              {},
-      gitRepos:            [],
-      fleetWorkspacesData: [],
-      isCollapsed:         {},
-      permissions:         {},
-      getStartedLink:      {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  NAME,
-          resource: FLEET.GIT_REPO
-        },
-      }
+      CARDS_MIN:            50,
+      CARDS_SIZE:           50,
+      cardsCount:           {},
+      viewMode:             'cards',
+      isWorkspaceCollapsed: {},
+      isStateCollapsed:     {},
+      typeFilter:           {},
+      stateFilter:          {},
+      selectedCard:         null,
+      presetVersion:        getVersionData()?.Version,
     };
   },
+
+  created() {
+    this.$store.dispatch('showWorkspaceSwitcher', false);
+  },
+
+  mounted() {
+    this.preset('cardsCount', 'object');
+    this.preset('viewMode', 'string');
+  },
+
+  beforeUnmount() {
+    this.$store.dispatch('showWorkspaceSwitcher', true);
+  },
+
   computed: {
     ...mapState(['workspace', 'allNamespaces']),
-    fleetWorkspaces() {
-      if (this.fleetWorkspacesData?.length) {
-        return this.fleetWorkspacesData;
+    ...mapGetters({ isOpenSlideInPanel: 'slideInPanel/isOpen' }),
+    ...mapGetters({ isClosingSlideInPanel: 'slideInPanel/isClosing' }),
+
+    workspaces() {
+      if (this.fleetWorkspaces?.length) {
+        return this.fleetWorkspaces;
       }
 
       // When user doesn't have access to the workspaces fall back to namespaces
       return this.allNamespaces.filter((item) => {
         return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
       }).map(( obj ) => {
-        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id);
+        const repos = filterBy(this[FLEET.GIT_REPO], 'metadata.namespace', obj.id);
+        const helmOps = filterBy(this[FLEET.HELM_OP], 'metadata.namespace', obj.id);
 
         return {
           ...obj,
-          counts: {
-            clusters:      '-',
-            clusterGroups: '-',
-            gitRepos:      repos.length
-          },
           repos,
-          nameDisplay: obj.id
+          helmOps,
+          id: obj.id
         };
       });
     },
-    workspacesData() {
-      return this.fleetWorkspaces.filter((ws) => ws.counts.gitRepos > 0);
-    },
-    emptyWorkspaces() {
-      return this.fleetWorkspaces.filter((ws) => ws.counts.gitRepos === 0);
-    },
-    areAllCardsExpanded() {
-      return Object.keys(this.isCollapsed).every((key) => !this.isCollapsed[key]);
-    },
-    gitReposCounts() {
-      return this.gitRepos.reduce((prev, gitRepo) => {
-        prev[gitRepo.id] = {
-          bundles:   gitRepo.allBundlesStatuses,
-          resources: gitRepo.allResourceStatuses,
-        };
 
-        return prev;
-      }, {});
+    applicationStates() {
+      return this._groupByWorkspace((ws) => this._resourceStates([
+        ...ws.repos,
+        ...(IS_HELM_OPS_ENABLED ? ws.helmOps : [])
+      ]));
+    },
+
+    clusterStates() {
+      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusters));
+    },
+
+    clusterGroupsStates() {
+      return this._groupByWorkspace((ws) => this._resourceStates(ws.clusterGroups));
+    },
+
+    cardResources() {
+      return this._groupByWorkspace((ws) => {
+        const filtered = this.applicationStates[ws.id].reduce((acc, state) => ({
+          ...acc,
+          [state.stateDisplay]: this._filterResources(state),
+        }), {});
+
+        return filtered;
+      });
+    },
+
+    tableResources() {
+      return this._groupByWorkspace((ws) => {
+        const filtered = this.applicationStates[ws.id].reduce((acc, state) => ([
+          ...acc,
+          ...this._filterResources(state)
+        ]), []);
+
+        return filtered;
+      });
+    },
+
+    isEmptyDashboard() {
+      return this[FLEET.GIT_REPO]?.length === 0 && this[FLEET.HELM_OP]?.length === 0;
+    },
+
+    allCardsExpanded() {
+      return Object.keys(this.isWorkspaceCollapsed).every((key) => !this.isWorkspaceCollapsed[key]);
     },
   },
-  methods: {
-    setWorkspaceFilterAndLinkToGitRepo(value) {
-      this.$store.commit('updateWorkspace', { value, getters: this.$store.getters } );
-      this.$store.dispatch('prefs/set', { key: WORKSPACE, value });
 
-      this.$router.push({
-        name:   'c-cluster-product-resource',
-        params: {
-          product:  NAME,
-          resource: FLEET.GIT_REPO
-        },
+  methods: {
+    selectStates(workspace, state) {
+      this._checkInit(workspace, 'stateFilter');
+
+      this._cleanStateFilter(workspace);
+
+      if (this.stateFilter[workspace][state]) {
+        delete this.stateFilter[workspace][state];
+      } else {
+        this.stateFilter[workspace][state] = true;
+      }
+
+      if (this.isWorkspaceCollapsed[workspace]) {
+        this.toggleCard(workspace);
+      }
+
+      this.$nextTick(() => {
+        this.toggleStateAll(workspace, 'expand');
       });
     },
-    getStatusInfo(area, row, rowCounts) {
-      const defaultStatusInfo = {
-        badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
-        icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
-      };
 
-      // classes are defined in the themes SASS files...
-      return this.getBadgeClassAndIcon(area, row, rowCounts) || defaultStatusInfo;
+    selectType(workspace, type, value) {
+      this._checkInit(workspace, 'typeFilter');
+
+      this.typeFilter[workspace][type] = value;
+
+      this.toggleStateAll(workspace, 'expand');
     },
-    getBadgeClassAndIcon(area, row, rowCounts) {
-      if (!this.admissableAreas.includes(area)) {
-        return false;
-      }
 
-      let group;
-
-      if (area === 'clusters') {
-        const clusterInfo = row.clusterInfo;
-        const state = clusterInfo.ready === clusterInfo.total ? STATES_ENUM.ACTIVE : STATES_ENUM.NOT_READY;
-
-        return {
-          badgeClass: `${ STATES[state].color } badge-class-area-${ area }`,
-          icon:       STATES[state].compoundIcon
-        };
-      } else if (area === 'bundles') {
-        group = rowCounts[row.id].bundles;
-      } else if (area === 'resources') {
-        group = rowCounts[row.id].resources;
-      } else {
-        // unreachable
-        return false;
-      }
-
-      if (group.total === group.states.ready) {
-        return {
-          badgeClass: STATES[STATES_ENUM.ACTIVE].color,
-          icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon,
-        };
-      }
-      const state = primaryDisplayStatusFromCount(group.states);
-
-      return {
-        badgeClass: STATES[state].color ? STATES[state].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-        icon:       STATES[state].compoundIcon ? STATES[state].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
-      };
+    toggleCard(key) {
+      this.isWorkspaceCollapsed[key] = !this.isWorkspaceCollapsed[key];
     },
-    getTooltipInfo(area, row, rowCounts) {
-      if (!this.admissableAreas.includes(area)) {
-        return {};
-      }
 
-      if (area === 'bundles') {
-        return this.generateTooltipData(rowCounts[row.id].bundles.states);
-      } else if (area === 'resources') {
-        return this.generateTooltipData(rowCounts[row.id].resources.states);
-      }
-
-      return '';
-    },
-    generateTooltipData(infoObj) {
-      return Object.keys(infoObj)
-        .filter((key) => infoObj[key] > 0) // filter zero values
-        .map((key) => `${ getStateLabel(key) }: ${ infoObj[key] }<br>`).join('');
-    },
-    getBadgeValue(area, row, rowCounts) {
-      let value;
-
-      if (!this.admissableAreas.includes(area)) {
-        return 'N/A';
-      }
-
-      if (area === 'clusters') {
-        value = `${ row.clusterInfo.ready }/${ row.clusterInfo.total }`;
-      } else if (area === 'bundles') {
-        const bundles = rowCounts[row.id].bundles;
-
-        value = xOfy(bundles.states.ready || 0, bundles.total);
-      } else if (area === 'resources') {
-        const resources = rowCounts[row.id].resources;
-
-        value = xOfy(resources.states.ready || 0, resources.total);
-      }
-
-      return value;
-    },
-    toggleCollapse(val, key) {
-      this.isCollapsed[key] = val;
-    },
-    toggleAll(action) {
+    toggleCardAll(action) {
       const val = action !== 'expand';
 
-      Object.keys(this.isCollapsed).forEach((key) => {
-        this.isCollapsed[key] = val;
+      Object.keys(this.isWorkspaceCollapsed).forEach((key) => {
+        this.isWorkspaceCollapsed[key] = val;
       });
-    }
+    },
+
+    toggleState(workspace, state) {
+      this._checkInit(workspace, 'isStateCollapsed');
+
+      this.isStateCollapsed[workspace][state] = !this.isStateCollapsed[workspace][state];
+    },
+
+    toggleStateAll(workspace, action) {
+      const val = action !== 'expand';
+
+      Object.keys(this.isStateCollapsed[workspace] || []).forEach((state) => {
+        this.isStateCollapsed[workspace][state] = val;
+      });
+    },
+
+    loadMore(workspace, state) {
+      this._checkInit(workspace, 'cardsCount');
+
+      const count = this.cardsCount[workspace][state] || this.CARDS_MIN;
+
+      const val = count + this.CARDS_SIZE;
+
+      this.cardsCount[workspace][state] = val;
+    },
+
+    loadLess(workspace, state) {
+      this._checkInit(workspace, 'cardsCount');
+
+      const count = this.cardsCount[workspace][state] || this.CARDS_MIN;
+
+      const val = count - this.CARDS_MIN < 0 ? this.CARDS_MIN : count - this.CARDS_SIZE;
+
+      this.cardsCount[workspace][state] = val;
+    },
+
+    showResourceDetails(value, statePanel, workspace, selected) {
+      if (this.isClosingSlideInPanel) {
+        return;
+      }
+
+      this.selectedCard = selected;
+
+      this.$shell.slideInPanel({
+        component:      ResourceDetails,
+        componentProps: {
+          value,
+          statePanel,
+          workspace,
+          showHeader:          false,
+          width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
+          zIndex:              1,
+          triggerFocusTrap:    true,
+          returnFocusSelector: `[data-testid="card-${ value.id }"]`
+        }
+      });
+    },
+
+    _resourceStates(resources) {
+      const out = [];
+
+      resources.forEach((obj) => {
+        const {
+          stateDisplay,
+          stateSort
+        } = obj;
+
+        const exists = out.find((s) => s.stateDisplay === stateDisplay);
+
+        if (exists) {
+          exists.resources.push(obj);
+        } else {
+          out.push({
+            stateDisplay,
+            stateSort,
+            statePanel: FleetUtils.getDashboardState(obj),
+            resources:  [obj]
+          });
+        }
+      });
+
+      return out.sort((a, b) => a.stateSort.localeCompare(b.stateSort));
+    },
+
+    _filterResources(state) {
+      return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
+        this._decodeStateFilter(item.namespace, state)
+      );
+    },
+
+    _groupByWorkspace(callback) {
+      return this.workspaces.reduce((acc, ws) => ({
+        ...acc,
+        [ws.id]: callback(ws)
+      }), {});
+    },
+
+    _stateExistsInWorkspace(workspace, state) {
+      return !!this.applicationStates[workspace].find((s) => s.statePanel.id === state);
+    },
+
+    _decodeStateFilter(workspace, state) {
+      const stateFilter = Object.keys(this.stateFilter[workspace] || {});
+
+      if (stateFilter.length === 0) {
+        return true;
+      }
+
+      if (stateFilter.filter((key) => this.stateFilter[workspace][key] && this._stateExistsInWorkspace(workspace, key)).length === 0) {
+        return true;
+      }
+
+      if (this.stateFilter[workspace][state.statePanel.id]) {
+        return true;
+      }
+
+      return false;
+    },
+
+    _decodeTypeFilter(workspace, type) {
+      const disabledFilter = isEmpty(this.typeFilter) || !this.viewMode || this.viewMode === 'flat';
+
+      return disabledFilter || this.typeFilter[workspace]?.[type];
+    },
+
+    _cleanStateFilter(workspace) {
+      const all = [...Object.keys(this.stateFilter[workspace] || {})];
+
+      all.forEach((state) => {
+        const exists = this._stateExistsInWorkspace(workspace, state);
+
+        if (!exists) {
+          delete this.stateFilter[workspace][state];
+        }
+      });
+    },
+
+    _checkInit(workspace, name) {
+      if (!this[name][workspace]) {
+        this[name][workspace] = {};
+      }
+    },
   },
 
   watch: {
-    fleetWorkspaces(value) {
-      value?.filter((ws) => ws.repos?.length).forEach((ws) => {
-        this.isCollapsed[ws.id] = false;
-      });
+    workspaces(neu) {
+      if (neu) {
+        neu?.forEach((ws) => {
+          this.isWorkspaceCollapsed[ws.id] = neu.length > 1;
+
+          this.isStateCollapsed[ws.id] = { Active: true };
+
+          this.typeFilter[ws.id] = {
+            [FLEET.GIT_REPO]: true,
+            [FLEET.HELM_OP]:  true,
+          };
+
+          this.stateFilter[ws.id] = {};
+        });
+
+        this.preset('isWorkspaceCollapsed', 'object');
+        this.preset('isStateCollapsed', 'object');
+        this.preset('typeFilter', 'object');
+        this.preset('stateFilter', 'object');
+      }
     }
   }
 };
@@ -284,223 +430,492 @@ export default {
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
-    <!-- no git repos -->
-    <FleetNoWorkspaces
-      v-else-if="!fleetWorkspacesData.length"
+    <NoWorkspaces
+      v-else-if="!workspaces?.length"
       :can-view="permissions.workspaces"
     />
-    <div
-      v-else-if="!gitRepos.length"
-      class="fleet-empty-dashboard"
-    >
-      <i class="icon-fleet mb-30" />
-      <h1>{{ t('fleet.dashboard.welcome') }}</h1>
-      <p class="mb-30">
-        <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
-        <a
-          :href="t('fleet.dashboard.learnMoreLink')"
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-        >
-          {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
-        </a>
-      </p>
-      <template v-if="permissions.gitRepos">
-        <h3 class="mb-30">
-          {{ t('fleet.dashboard.noRepo', null, true) }}
-        </h3>
-        <router-link
-          :to="getStartedLink"
-          class="btn role-secondary"
-        >
-          {{ t('fleet.dashboard.getStarted') }}
-        </router-link>
-      </template>
-    </div>
-    <!-- fleet dashboard with repos -->
+    <EmptyDashboard
+      v-else-if="isEmptyDashboard"
+      :permissions="permissions"
+    />
     <div
       v-else
-      class="fleet-dashboard-data"
+      class="dashboard"
+      :data-testid="'fleet-dashboard-workspace-cards'"
     >
-      <div class="title">
+      <div class="dashboard-header">
         <h1>
           <t k="fleet.dashboard.pageTitle" />
         </h1>
-        <div>
-          <p
-            v-if="areAllCardsExpanded"
-            @click="toggleAll('collapse')"
-          >
-            {{ t('fleet.dashboard.collapseAll') }}
-          </p>
-          <p
-            v-else
-            @click="toggleAll('expand')"
-          >
-            {{ t('fleet.dashboard.expandAll') }}
-          </p>
+
+        <div class="dashboard-main-actions">
+          <div :data-testid="'fleet-dashboard-expand-all'">
+            <p
+              v-if="allCardsExpanded"
+              @click="toggleCardAll('collapse')"
+            >
+              {{ t('fleet.dashboard.collapseAll') }}
+            </p>
+            <p
+              v-else
+              @click="toggleCardAll('expand')"
+            >
+              {{ t('fleet.dashboard.expandAll') }}
+            </p>
+          </div>
+          <ButtonGroup
+            :data-testid="'view-button'"
+            :value="viewMode"
+            :options="viewModeOptions"
+            @update:value="viewMode = $event"
+          />
         </div>
       </div>
       <div
-        v-if="emptyWorkspaces.length"
-        class="title-footnote"
-      >
-        <p>{{ t('fleet.dashboard.thereIsMore', { count: emptyWorkspaces.length }) }}:&nbsp;</p>
-        <p
-          v-for="(ews, i) in emptyWorkspaces"
-          :key="i"
-        >
-          {{ ews.nameDisplay }}<span v-if="i != (emptyWorkspaces.length - 1)">,&nbsp;</span>
-        </p>
-      </div>
-      <CollapsibleCard
-        v-for="(ws, i) in workspacesData"
+        v-for="(workspace, i) in workspaces"
         :key="i"
-        class="mt-20 mb-40"
-        :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
-        :is-collapsed="isCollapsed[ws.id]"
-        :is-title-clickable="true"
-        :data-testid="`collapsible-card-${ ws.id }`"
-        @toggleCollapse="toggleCollapse($event, ws.id)"
-        @titleClick="setWorkspaceFilterAndLinkToGitRepo(ws.id)"
+        class="card-container m-0 mt-20"
+        :data-testid="`fleet-dashboard-workspace-card-${ workspace.id }`"
+        :show-actions="false"
+        :show-separator="false"
+        :show-highlight-border="false"
       >
-        <template v-slot:header-right>
-          <div class="header-icons">
-            <p>
-              <i class="icon icon-repository" />
-              <span>{{ t('tableHeaders.repositories') }}: <span>{{ ws.counts.gitRepos }}</span></span>
-            </p>
-            <p>
-              <i class="icon icon-storage" />
-              <span>{{ t('tableHeaders.clusters') }}: <span>{{ ws.counts.clusters }}</span></span>
-            </p>
-            <p>
-              <i class="icon icon-folder" />
-              <span>{{ t('tableHeaders.clusterGroups') }}: <span>{{ ws.counts.clusterGroups }}</span></span>
-            </p>
-          </div>
-        </template>
-        <template v-slot:content>
-          <ResourceTable
-            :schema="schema"
-            :headers="headers"
-            :rows="ws.repos"
-            key-field="_key"
-            :search="false"
-            :table-actions="false"
+        <div class="card-panel-main">
+          <div
+            class="card-panel-main-details"
+            :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
-            <template #cell:clustersReady="{row}">
-              <span v-if="ws.type === 'namespace'"> - </span>
-              <CompoundStatusBadge
-                v-else
-                data-testid="clusters-ready"
-                :tooltip-text="getTooltipInfo('clusters', row, gitReposCounts)"
-                :badge-class="getStatusInfo('clusters', row, gitReposCounts).badgeClass"
-                :icon="getStatusInfo('clusters', row, gitReposCounts).icon"
-                :value="getBadgeValue('clusters', row, gitReposCounts)"
+            <div class="title">
+              <h3 class="label">
+                <i class="icon icon-folder" />
+                <span class="label-secondary">{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
+              </h3>
+              <router-link
+                class="name"
+                role="link"
+                tabindex="0"
+                :aria-label="workspace.nameDisplay"
+                :to="workspace.detailLocation || {}"
+              >
+                {{ workspace.nameDisplay }}
+              </router-link>
+            </div>
+            <div class="body">
+              <ResourcePanel
+                v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
+                :data-testid="'resource-panel-applications'"
+                :states="applicationStates[workspace.id]"
+                :workspace="workspace.id"
+                :type="FLEET.GIT_REPO"
+                :selected-states="stateFilter[workspace.id] || {}"
+                @click:state="selectStates(workspace.id, $event)"
               />
-            </template>
-            <template #cell:bundlesReady="{row}">
-              <span v-if="ws.type === 'namespace'"> - </span>
-              <CompoundStatusBadge
-                v-else
-                data-testid="bundles-ready"
-                :tooltip-text="getTooltipInfo('bundles', row, gitReposCounts)"
-                :badge-class="getStatusInfo('bundles', row, gitReposCounts).badgeClass"
-                :icon="getStatusInfo('bundles', row, gitReposCounts).icon"
-                :value="getBadgeValue('bundles', row, gitReposCounts)"
+              <ResourcePanel
+                v-if="workspace.clusters?.length"
+                :data-testid="'resource-panel-clusters'"
+                :states="clusterStates[workspace.id]"
+                :workspace="workspace.id"
+                :type="FLEET.CLUSTER"
+                :selectable="false"
               />
-            </template>
-            <template #cell:resourcesReady="{row}">
-              <CompoundStatusBadge
-                data-testid="resources-ready"
-                :tooltip-text="getTooltipInfo('resources', row, gitReposCounts)"
-                :badge-class="getStatusInfo('resources', row, gitReposCounts).badgeClass"
-                :icon="getStatusInfo('resources', row, gitReposCounts).icon"
-                :value="getBadgeValue('resources', row, gitReposCounts)"
+              <ResourcePanel
+                v-if="workspace.clusterGroups?.length"
+                :data-testid="'resource-panel-cluster-groups'"
+                :states="clusterGroupsStates[workspace.id]"
+                :workspace="workspace.id"
+                :type="FLEET.CLUSTER_GROUP"
+                :show-chart="false"
+                :selectable="false"
               />
-            </template>
+            </div>
+          </div>
+          <div class="card-panel-main-actions">
+            <div
+              v-if="workspace.repos?.length || (IS_HELM_OPS_ENABLED && workspace.helmOps?.length)"
+              class="expand-button"
+              :data-testid="'expand-button'"
+            >
+              <i
+                role="button"
+                tabindex="0"
+                :aria-label="t(`${ isWorkspaceCollapsed[workspace.id] ? 'expand': 'collapse' }-${ workspace.id }`)"
+                :class="{
+                  ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
+                  ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
+                }"
+                @click="toggleCard(workspace.id)"
+                @keydown.space.enter.stop.prevent="toggleCard(workspace.id)"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="!isWorkspaceCollapsed[workspace.id]"
+          class="card-panel-expand mt-10"
+          :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
+        >
+          <div
+            v-if="IS_HELM_OPS_ENABLED"
+            class="cards-panel-actions"
+          >
+            <div
+              v-if="viewMode === 'cards'"
+              class="cards-panel-filters"
+            >
+              <Checkbox
+                :data-testid="'fleet-dashboard-filter-git-repos'"
+                :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
+                @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
+              >
+                <template #label>
+                  <i class="icon icon-lg icon-git mr-5" />
+                  <span class="label">{{ t('fleet.dashboard.cards.filters.gitRepos') }}</span>
+                </template>
+              </Checkbox>
+              <Checkbox
+                :data-testid="'fleet-dashboard-filter-helm-ops'"
+                :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
+                @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
+              >
+                <template #label>
+                  <i class="icon icon-lg icon-helm mr-5" />
+                  <span class="label">{{ t('fleet.dashboard.cards.filters.helmOps') }}</span>
+                </template>
+              </Checkbox>
+            </div>
+          </div>
 
-            <template #cell:target="{row}">
-              {{ row.targetInfo.modeDisplay }}
-            </template>
-          </ResourceTable>
-        </template>
-      </CollapsibleCard>
+          <div
+            v-if="viewMode === 'cards'"
+            class="cards-panel"
+          >
+            <div
+              v-for="(state, j) in applicationStates[workspace.id]"
+              :key="j"
+              :data-testid="`state-panel-${ state.stateDisplay }`"
+            >
+              <div
+                v-if="cardResources[workspace.id][state.stateDisplay]?.length"
+                class="card-panel"
+              >
+                <div
+                  role="button"
+                  tabindex="0"
+                  class="title"
+                  :aria-label="t(`${ isStateCollapsed[workspace.id]?.[state.stateDisplay] ? 'expand': 'collapse' }-${ state.stateDisplay }`)"
+                  @click="toggleState(workspace.id, state.stateDisplay)"
+                  @keydown.space.enter.stop.prevent="toggleState(workspace.id, state.stateDisplay)"
+                >
+                  <i
+                    :class="{
+                      ['icon icon-chevron-right']: isStateCollapsed[workspace.id]?.[state.stateDisplay],
+                      ['icon icon-chevron-down']: !isStateCollapsed[workspace.id]?.[state.stateDisplay],
+                    }"
+                  />
+                  <i
+                    v-if="state.statePanel.id !== 'success'"
+                    class="ml-5 state-icon"
+                    :class="state.statePanel.icon"
+                    :style="{ color: state.statePanel.color }"
+                  />
+                  <div class="label">
+                    <span class="partial">
+                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
+                    </span>
+                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...(IS_HELM_OPS_ENABLED ? workspace.helmOps : []) ].length }}</span>
+                  </div>
+                </div>
+                <div
+                  v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
+                  class="card-panel-body"
+                >
+                  <div class="resource-cards-container">
+                    <div
+                      v-for="(item, y) in cardResources[workspace.id][state.stateDisplay]"
+                      :key="y"
+                      class="resource-card"
+                    >
+                      <ResourceCard
+                        v-if="y < (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                        :class="{
+                          ['selected']: selectedCard === `${ item.id }-${ y }` && isOpenSlideInPanel
+                        }"
+                        :data-testid="`card-${ item.id }`"
+                        :value="item"
+                        :state-panel="state.statePanel"
+                        @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
+                      />
+                    </div>
+                  </div>
+                  <div class="resource-cards-action">
+                    <p
+                      v-if="(cardsCount[workspace.id]?.[state.stateDisplay] || 0) > CARDS_MIN"
+                      @click="loadLess(workspace.id, state.stateDisplay)"
+                    >
+                      {{ t('generic.showLess') }}
+                    </p>
+                    <div />
+                    <p
+                      v-if="cardResources[workspace.id][state.stateDisplay]?.length > (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                      @click="loadMore(workspace.id, state.stateDisplay)"
+                    >
+                      {{ t('generic.showMore') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-if="viewMode === 'flat'"
+            class="table-panel"
+          >
+            <FleetRepos
+              :workspace="workspace.id"
+              :rows="tableResources[workspace.id]"
+              :schema="repoSchema"
+              :loading="$fetchState.pending"
+              :use-query-params-for-simple-filtering="true"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.fleet-empty-dashboard {
-  flex: 1;
+
+.dashboard-main-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  min-height: 100%;
+  justify-content: end;
+  gap: 15px;
+}
 
-  .icon-fleet {
-    font-size: 100px;
-    color: var(--disabled-text);
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h1 {
+    margin: 0;
   }
 
-  > p > span {
-    color: var(--disabled-text);
+  > div {
+    display: flex;
+    align-items: center;
+
+    i {
+      color: var(--primary);
+    }
   }
 }
 
-.fleet-dashboard-data {
-  .title {
+.card-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background-color: var(--body-bg);
+  box-shadow: none;
+  min-width: 500px;
+  padding: 16px;
+
+  .card-panel-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 48px;
+    margin-top: auto;
+    margin-bottom: auto;
 
-    > div {
+    .card-panel-main-details {
       display: flex;
       align-items: center;
 
-      p{
-        color: var(--primary);
+      .title {
+        margin: 0 20px 0 0;
+
+        .name {
+          font-size: 25px;
+        }
+
+        .label {
+          display: flex;
+          align-items: center;
+          min-width: 150px;
+          margin: 0 0 5px 0;
+
+          .icon {
+            margin-right: 5px;
+          }
+        }
+      }
+
+      .body {
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
+
+        .spacer {
+          border-left: 1px solid var(--border);
+        }
+      }
+    }
+
+    .card-panel-main-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+
+      .expand-button {
+        display: flex;
+        align-items: center;
 
         &:hover {
-          text-decoration: underline;
           cursor: pointer;
         }
       }
     }
   }
 
-  .title-footnote {
-    display: flex;
-    align-items: center;
-    color: var(--darker);
-  }
+  .card-panel-expand {
+    animation: slideInOut 0.5s ease-in-out;
 
-  .header-icons {
-    display: flex;
-    align-items: center;
-
-    p {
-      margin-right: 30px;
+    .cards-panel-actions {
       display: flex;
+      flex-direction: row;
       align-items: center;
 
-      > span {
-        color: var(--disabled-text);
+      .cards-panel-filters {
+        display: flex;
+        flex-direction: column;
+        margin-top: 5px;
 
-        > span {
-          color: var(--body-text);
+        label {
+          width: fit-content;
+        }
+
+        .label {
+          margin-top: 2px;
+          line-height: 20px;
+        }
+
+        .icon {
+          padding: 2px;
+          font-size: 25px;
         }
       }
+    }
 
-      i {
-        color: var(--disabled-text);
-        font-size: 20px;
-        margin-right: 10px;
+    .cards-panel {
+      .card-panel {
+        margin-top: 32px;
+
+        .title {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          width: fit-content;
+          margin-bottom: 16px;
+
+          .icon {
+            margin-right: 5px;
+          }
+
+          .label {
+            display: flex;
+            align-items: baseline;
+            margin-left: 2px;
+
+            .partial {
+              margin: 0;
+              margin-right: 2px;
+              font-size: 22px;
+            }
+
+            p {
+              font-size: small;
+
+              .icon {
+                line-height: -1px;
+              }
+            }
+          }
+
+          .state-icon {
+            font-size: 1.75em;
+          }
+        }
+
+        .card-panel-body {
+          .resource-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px 8px;
+            min-height: 100%;
+
+            .resource-card {
+              cursor: pointer;
+
+              .selected {
+                border: 2px solid var(--primary);
+                margin: 0;
+              }
+            }
+          }
+
+          .resource-cards-action {
+            display: flex;
+            justify-content: space-between;
+
+            p {
+              width: fit-content;
+              margin-left: 15px;
+            }
+          }
+        }
       }
     }
+
+    .table-panel {
+      margin-top: 20px;
+    }
+  }
+}
+
+p {
+  color: var(--primary);
+  margin-right: 2px;
+
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.label-secondary{
+  color: var(--label-secondary);
+}
+
+@keyframes slideInOut {
+  0% {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+  }
+
+  50% {
+      opacity: 0.5;
+      visibility: visible;
+      transform: translateY(0);
+  }
+
+  100% {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
   }
 }
 </style>
