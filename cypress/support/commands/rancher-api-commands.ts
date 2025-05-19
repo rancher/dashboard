@@ -15,6 +15,7 @@ Cypress.Commands.add('login', (
   password = Cypress.env('password'),
   cacheSession = true,
   skipNavigation = false,
+  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
@@ -26,6 +27,11 @@ Cypress.Commands.add('login', (
 
     loginPage
       .checkIsCurrentPage(!skipNavigation);
+
+    if (!!acceptConfirmation) {
+      loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
+      loginPage.confirmationAcceptButton().self().click();
+    }
 
     loginPage.switchToLocal();
 

@@ -47,7 +47,14 @@ export default defineComponent({
     stacked: {
       type:    Boolean,
       default: false
-    }
+    },
+    /**
+     * Disabled banner - banner is shown greyed out
+     */
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
   emits:    ['close'],
   computed: {
@@ -56,7 +63,7 @@ export default defineComponent({
      */
     messageLabel(): string | void {
       return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
-    }
+    },
   },
   methods: { nlToBr }
 });
@@ -66,6 +73,7 @@ export default defineComponent({
     class="banner"
     :class="{
       [color]: true,
+      'banner-disabled': disabled
     }"
     role="banner"
   >
@@ -162,6 +170,10 @@ $icon-size: 24px;
       background: var(--error);
       color: var(--primary-text);
     }
+  }
+
+  &.banner-disabled {
+    filter: grayscale(1);
   }
 
   &__content {

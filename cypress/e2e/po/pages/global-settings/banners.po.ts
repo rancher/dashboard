@@ -7,6 +7,7 @@ import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ToggleSwitchPo from '@/cypress/e2e/po/components/toggle-switch.po';
 
 export class BannersPagePo extends RootClusterPage {
   static url = '/c/_/settings/banners';
@@ -59,6 +60,35 @@ export class BannersPagePo extends RootClusterPage {
     return CheckboxInputPo.byLabel(this.self(), 'Show custom login error');
   }
 
+  consentBannerShowAsDialogCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Show Login Consent as a modal dialog');
+  }
+
+  /**
+   * Get content type toggle switch
+   */
+  contentTypeToggle(bannerType: string) {
+    return new ToggleSwitchPo(`[data-testid="banner_content_type_toggle${ bannerType }"]`, this.self());
+  }
+
+  /**
+   * HTML Input box
+   * @param bannerType Banner Type
+   * @returns Input Box
+   */
+  htmlTextArea(bannerType: string) {
+    return new LabeledInputPo(`[data-testid="banner_html${ bannerType }"]`, this.self());
+  }
+
+  /**
+   * Accept Button Input box
+   * @param bannerType Banner Type
+   * @returns Input Box
+   */
+  acceptButtonInput(bannerType: string) {
+    return new LabeledInputPo(`[data-testid="banner_accept_button${ bannerType }"]`, this.self());
+  }
+
   /**
    * Get text alignment radio buttons
    * @param bannerType
@@ -105,6 +135,14 @@ export class BannersPagePo extends RootClusterPage {
    */
   banner(): Cypress.Chainable {
     return cy.getId('fixed__banner');
+  }
+
+  /**
+   * Get the login confirmation dialog (login confirmation banner shown as a dialog)
+   * @returns
+   */
+  loadingConfirmationDialog(): Cypress.Chainable {
+    return cy.get('#banner-consent .banner-dialog-frame');
   }
 
   /**
