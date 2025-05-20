@@ -117,58 +117,62 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
         </div>
       </template>
 
-      <div class="item-card-body-details">
+      <div :class="['item-card-body-details', variant]">
         <div :class="['item-card-header', variant]">
-          <template v-if="variant === 'small'">
-            <slot name="item-card-image">
-              <div
-                v-if="image"
-                :class="['item-card-image', variant]"
-                data-testid="item-card-image"
+          <div class="item-card-header-left">
+            <template v-if="variant === 'small'">
+              <slot name="item-card-image">
+                <div
+                  v-if="image"
+                  :class="['item-card-image', variant]"
+                  data-testid="item-card-image"
+                >
+                  <LazyImage
+                    :src="image.src"
+                    :alt="labelText(image?.alt)"
+                    :style="{'width': '24px', 'height': '24px', 'object-fit': 'contain'}"
+                  />
+                </div>
+              </slot>
+            </template>
+            <slot name="item-card-header-title">
+              <h3
+                v-if="header.title"
+                v-clean-tooltip="labelText(header.title)"
+                :class="['item-card-header-title', variant]"
+                data-testid="item-card-header-title"
               >
-                <LazyImage
-                  :src="image.src"
-                  :alt="labelText(image?.alt)"
-                  :style="{'width': '24px', 'height': '24px', 'object-fit': 'contain'}"
+                {{ labelText(header.title) }}
+              </h3>
+            </slot>
+          </div>
+          <div class="item-card-header-right">
+            <div
+              v-if="header.statuses?.length"
+              class="item-card-header-statuses"
+            >
+              <div
+                v-for="(status, i) in visibleStatuses"
+                :key="i"
+                class="item-card-header-statuses-status"
+                :aria-label="labelText(status.tooltip) || t('itemCard.ariaLabel.status')"
+                data-testid="item-card-header-statuses-status"
+              >
+                <i
+                  v-clean-tooltip="labelText(status.tooltip)"
+                  :class="['icon', status.icon, status.color]"
+                  :style="{color: status.customColor}"
+                  :data-testid="`item-card-header-status-${i}`"
                 />
               </div>
-            </slot>
-          </template>
-          <slot name="item-card-header-title">
-            <h3
-              v-if="header.title"
-              v-clean-tooltip="labelText(header.title)"
-              :class="['item-card-header-title', variant]"
-              data-testid="item-card-header-title"
-            >
-              {{ labelText(header.title) }}
-            </h3>
-          </slot>
-          <div
-            v-if="header.statuses?.length"
-            class="item-card-header-statuses"
-          >
-            <div
-              v-for="(status, i) in visibleStatuses"
-              :key="i"
-              class="item-card-header-statuses-status"
-              :aria-label="labelText(status.tooltip) || t('itemCard.ariaLabel.status')"
-              data-testid="item-card-header-statuses-status"
-            >
-              <i
-                v-clean-tooltip="labelText(status.tooltip)"
-                :class="['icon', status.icon, status.color]"
-                :style="{color: status.customColor}"
-                :data-testid="`item-card-header-status-${i}`"
-              />
             </div>
-          </div>
 
-          <template v-if="$slots['item-card-actions']">
-            <div class="item-card-header-action-menu no-card-click">
-              <slot name="item-card-actions" />
-            </div>
-          </template>
+            <template v-if="$slots['item-card-actions']">
+              <div class="item-card-header-action-menu no-card-click">
+                <slot name="item-card-actions" />
+              </div>
+            </template>
+          </div>
         </div>
 
         <slot name="item-card-sub-header" />
@@ -237,6 +241,16 @@ $image-medium-box-width: 48px;
     height: 24px;
     color: var(--body-text);
 
+    &-left,
+    &-right {
+      display: flex;
+      align-items: center;
+    }
+
+    &-left {
+      flex-grow: 1;
+    }
+
     &-title {
       max-width: 60%;
       font-size: 18px;
@@ -246,17 +260,12 @@ $image-medium-box-width: 48px;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
-
-      &.small {
-        max-width: 150px;
-      }
     }
 
     &-statuses {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      margin-left: auto;
 
       &-status {
         width: 24px;
@@ -277,11 +286,6 @@ $image-medium-box-width: 48px;
 
     &-action-menu {
       margin-left: 12px;
-
-      ::v-deep .icon {
-        font-size: 16px;
-        color: var(--body-text);
-      }
     }
   }
 
@@ -299,7 +303,7 @@ $image-medium-box-width: 48px;
     display: flex;
     width: $image-medium-box-width;
     padding: 4px 8px;
-    margin-top: 8px;
+    margin-top: 16px;
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
