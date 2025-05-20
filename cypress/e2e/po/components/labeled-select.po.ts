@@ -1,4 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class LabeledSelectPo extends ComponentPo {
   toggle() {
@@ -76,7 +77,12 @@ export default class LabeledSelectPo extends ComponentPo {
     return this.self().type(name);
   }
 
-  static bySelector(selector: string): LabeledSelectPo {
-    return new LabeledSelectPo(selector);
+  static byLabel(self: CypressChainable, label: string): LabeledSelectPo {
+    return new LabeledSelectPo(
+      self
+        .find('.labeled-select', { includeShadowDom: true })
+        .contains(label)
+        .next()
+    );
   }
 }

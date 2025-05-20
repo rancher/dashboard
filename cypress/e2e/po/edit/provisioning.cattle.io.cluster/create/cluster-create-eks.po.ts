@@ -37,7 +37,7 @@ export default class ClusterManagerCreateEKSPagePo extends ClusterManagerCreateR
   }
 
   getRegion() {
-    return new LabeledSelectPo('[id="vs10__combobox"]');
+    return LabeledSelectPo.byLabel(cy.get('[data-testid="cru-form"]'), 'Region');
   }
 
   getVersion() {
