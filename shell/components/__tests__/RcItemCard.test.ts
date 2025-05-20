@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import ItemCard from '@shell/components/cards/ItemCard.vue';
+import RcItemCard from '@shell/components/cards/RcItemCard.vue';
 
 const id = 'test';
 
@@ -17,9 +17,9 @@ const baseProps = {
   content: { text: 'Card description here' }
 };
 
-describe('itemCard', () => {
+describe('rcItemCard', () => {
   it('renders title, image, and content', () => {
-    const wrapper = mount(ItemCard, { props: baseProps });
+    const wrapper = mount(RcItemCard, { props: baseProps });
 
     expect(wrapper.get('[data-testid="item-card-header-title"]').text()).toBe('Card Title');
     expect(wrapper.get('[data-testid="item-card-content"]').text()).toContain('Card description here');
@@ -28,7 +28,7 @@ describe('itemCard', () => {
   });
 
   it('renders pill only in medium variant', () => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         variant: 'medium',
@@ -39,7 +39,7 @@ describe('itemCard', () => {
     expect(wrapper.get('[data-testid="item-card-pill"]').text()).toBe('Installed');
 
     // now test that it's not rendered when variant is small
-    const wrapperSmall = mount(ItemCard, {
+    const wrapperSmall = mount(RcItemCard, {
       props: {
         ...baseProps,
         variant: 'small',
@@ -51,7 +51,7 @@ describe('itemCard', () => {
   });
 
   it('emits card-click when clicked and clickable', async() => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: true
@@ -67,7 +67,7 @@ describe('itemCard', () => {
   });
 
   it('does not emit card-click when clicking on .no-card-click', async() => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: true
@@ -81,7 +81,7 @@ describe('itemCard', () => {
   });
 
   it('sets role and tabindex when clickable', () => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: true
@@ -95,7 +95,7 @@ describe('itemCard', () => {
   });
 
   it('does not set role or tabindex when not clickable', () => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: false
@@ -109,7 +109,7 @@ describe('itemCard', () => {
   });
 
   it('supports keyboard enter to trigger click', async() => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: true
@@ -121,7 +121,7 @@ describe('itemCard', () => {
   });
 
   it('supports slot for footer and sub-header', () => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: baseProps,
       slots: {
         'item-card-footer':     '<div>FooterContent</div>',
@@ -134,7 +134,7 @@ describe('itemCard', () => {
   });
 
   it('renders icon with custom color', () => {
-    const wrapper = mount(ItemCard, {
+    const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         header: {

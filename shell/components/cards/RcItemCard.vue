@@ -7,7 +7,7 @@ import LazyImage from '@shell/components/LazyImage.vue';
 const store = useStore();
 const { t } = useI18n(store);
 
-type ItemCardVariant = 'small' | 'medium';
+type RcItemCardVariant = 'small' | 'medium';
 
 type Label = {
   key?: string;
@@ -45,7 +45,7 @@ interface Props {
   header: Header;
   image?: Image;
   content?: Label;
-  variant?: ItemCardVariant;
+  variant?: RcItemCardVariant;
   pill?: Pill; // can be visible only when the card's variant is NOT small
   clickable?: boolean;
 }

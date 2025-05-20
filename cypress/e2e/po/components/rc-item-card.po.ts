@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
-export default class ItemCardPo extends ComponentPo {
+export default class RcItemCardPo extends ComponentPo {
   constructor(selector = '[data-testid="item-card"]') {
     super(selector);
   }

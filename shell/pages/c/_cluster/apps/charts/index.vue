@@ -19,7 +19,7 @@ import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/cata
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
-import ItemCard from '@shell/components/cards/ItemCard';
+import RcItemCard from '@shell/components/cards/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 
@@ -35,7 +35,7 @@ export default {
     Select,
     TypeDescription,
     TabTitle,
-    ItemCard
+    RcItemCard
   },
 
   async fetch() {
@@ -498,11 +498,10 @@ export default {
           class="app-cards"
           data-testid="app-cards-container"
         >
-          <ItemCard
+          <rc-item-card
             v-for="chart in filteredCharts"
             :id="chart.chartName"
             :key="chart.chartName"
-            variant="medium"
             :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
             :header="{
               title: { text: chart.chartNameDisplay },
@@ -556,7 +555,7 @@ export default {
                 </div>
               </div>
             </template>
-          </ItemCard>
+          </rc-item-card>
         </div>
       </template>
     </div>

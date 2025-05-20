@@ -3,7 +3,7 @@ import SelectPo from '@/cypress/e2e/po/components/select.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import ItemCardPo from '@/cypress/e2e/po/components/item-card.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export class ChartsPage extends PagePo {
@@ -52,7 +52,7 @@ export class ChartsPage extends PagePo {
   }
 
   charts() {
-    return new ItemCardPo('[data-testid="app-cards-container"] .item-card');
+    return new RcItemCardPo('[data-testid="app-cards-container"] .item-card');
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {

@@ -3149,6 +3149,7 @@ itemCard:
     clickable: Click on Card
     card: Item Card
     status: Status
+    content: Card Content
 jwt:
   title: JWT Authentication
   actions:
