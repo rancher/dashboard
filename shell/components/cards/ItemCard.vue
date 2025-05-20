@@ -100,6 +100,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               <LazyImage
                 :src="image.src"
                 :alt="labelText(image?.alt)"
+                :style="{'width': '40px', 'height': '40px', 'object-fit': 'contain'}"
               />
             </div>
           </slot>
@@ -128,6 +129,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
                 <LazyImage
                   :src="image.src"
                   :alt="labelText(image?.alt)"
+                  :style="{'width': '24px', 'height': '24px', 'object-fit': 'contain'}"
                 />
               </div>
             </slot>
@@ -220,21 +222,10 @@ $image-medium-box-width: 48px;
     background: #fff;
     border-radius: var(--border-radius);
 
-    ::v-deep img {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-    }
-
     &.small {
       width: 32px;
       height: 32px;
       margin-right: 12px;
-
-      ::v-deep img {
-        width: 24px;
-        height: 24px;
-      }
     }
   }
 
