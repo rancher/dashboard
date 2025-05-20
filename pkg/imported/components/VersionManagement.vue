@@ -60,10 +60,10 @@ export default defineComponent({
         }
       } else {
         if (this.oldValue === VERSION_MANAGEMENT_DEFAULT) {
-          return this.value === this.globalSetting ? this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true ) }`;
+          return this.value === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true ) }`;
         } else {
           if (this.value === VERSION_MANAGEMENT_DEFAULT) {
-            return this.oldValue === this.globalSetting ? this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true ) }`;
+            return this.oldValue === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true ) }`;
           } else {
             return this.t('imported.basics.versionManagement.banner.edit.different');
           }
