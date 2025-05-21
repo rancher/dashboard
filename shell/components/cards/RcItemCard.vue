@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
@@ -7,23 +6,38 @@ import LazyImage from '@shell/components/LazyImage.vue';
 const store = useStore();
 const { t } = useI18n(store);
 
+/**
+ * Variants available for ItemCard layout
+ */
 type RcItemCardVariant = 'small' | 'medium';
 
+/**
+ * A label that can be either plain text or a translatable key.
+ */
 type Label = {
   key?: string;
   text?: string;
 };
 
+/**
+ * Represents an image used in the card.
+ */
 type Image = {
   src: string;
   alt?: Label;
 };
 
+/**
+ * Optional pill badge, typically used to highlight a tag or state.
+ */
 type Pill = {
   label: Label;
   tooltip?: Label;
 };
 
+/**
+ * Represents an icon-based status indicator shown in the card header.
+ */
 type Status = {
   icon: string;
   color?: string;
@@ -32,21 +46,45 @@ type Status = {
   handleClick?: () => void;
 };
 
+/**
+ * Header metadata for the card.
+ */
 type Header = {
   title?: Label;
   statuses?: Status[];
 };
 
+/**
+ * The generic data value passed to the card.
+ */
 type ItemValue = Record<string, any>;
 
+/**
+ * Props accepted by the ItemCard component.
+ */
 interface Props {
+  /** Unique identifier for the card (used in test IDs) */
   id: string;
+
+  /** Any object value associated with this card */
   value: ItemValue;
+
+  /** Card title, status icons and action menu. Image will be included in the header in small variant too */
   header: Header;
+
+  /** Optional image to show in card (position depends on variant). A slot is available for it too #item-card-image */
   image?: Image;
+
+  /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
+
+  /** Layout variant: 'small' or 'medium' */
   variant?: RcItemCardVariant;
-  pill?: Pill; // can be visible only when the card's variant is NOT small
+
+  /** Optional pill shown (only if variant is not 'small'). A slot is available for it too #item-card-pill */
+  pill?: Pill;
+
+  /** Makes the card clickable and emits 'card-click' on click/enter/space */
   clickable?: boolean;
 }
 
@@ -58,8 +96,15 @@ const props = withDefaults(defineProps<Props>(), {
   clickable: false
 });
 
+/**
+ * Emits 'card-click' when card is clicked or activated via keyboard.
+ */
 const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
 
+/**
+ * Handles the card click while avoiding nested interactive elements
+ * By having .no-card-click class on an element the 'card-click' will be ignored
+ */
 function _handleCardClick(e: MouseEvent | KeyboardEvent) {
   // Prevent card click if the user clicks on an inner actionable element like repo, category, or tag
   if ((e.target as HTMLElement).closest('.no-card-click')) {
@@ -69,11 +114,12 @@ function _handleCardClick(e: MouseEvent | KeyboardEvent) {
   emit('card-click', props.value);
 }
 
+/**
+ * Utility to resolve localized or plain text labels.
+ */
 function labelText(label?: Label): string {
   return label?.key ? t(label.key) : label?.text ?? '';
 }
-
-const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || []);
 
 </script>
 
@@ -152,7 +198,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
               class="item-card-header-statuses"
             >
               <div
-                v-for="(status, i) in visibleStatuses"
+                v-for="(status, i) in header.statuses"
                 :key="i"
                 class="item-card-header-statuses-status"
                 :aria-label="labelText(status.tooltip) || t('itemCard.ariaLabel.status')"
