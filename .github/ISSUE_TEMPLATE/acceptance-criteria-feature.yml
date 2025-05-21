@@ -1,14 +1,14 @@
-name:  Feature/ Issue / Epic that requires acceptance criteria
-description: Create feature / issue /epic with clear requirements on the expected behavior of the Rancher UI
-title: "Summarize feature in one line"
+name:  Feature / Issue / Epic that requires acceptance criteria
+description: Create feature / issue / epic with clear requirements on the expected behavior of the Rancher UI
+title: "<feature title: summarize feature in one line>"
 labels: ["kind/enhancement"]
 assignees: []
 body:
 - type: textarea
-  id: issue_scope
+  id: issue_description
   attributes:
-    label: Issue/Epic Scope
-    description: "A description of what the issue/epic is about and what it is being created for."
+    label: Description
+    description: "A description of what the issue / epic is about and what it is being created for."
     value: |
       **Is your feature request related to a problem? Please describe.**
       <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
@@ -27,9 +27,9 @@ body:
   id: acceptance_criteria
   attributes:
     label: Acceptance Criteria
-    description: "List applicable use cases, each of them with a clear description of the expected behavior or alternative link to a requirements document. Please, try to include all possible use-cases. The QA team can help and include more as needed."
+    description: "List conditions that the product or this feature must meet to be considered acceptable and complete. Please try to include all possible use-cases, each with a clear description of the expected behavior, or attach a requirements document."
     placeholder: |
-      List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.   
+      <!-- List the scenarios or link sub-issues here using the issue number or URL. Progress will be tracked automatically. -->   
       - [ ] 
       - [ ]  
   validations:
@@ -38,9 +38,9 @@ body:
   id: uiux_dep
   attributes:
     label: UI/UX Dependencies
-    description: "List of sub-issues/steps required for the UI/UX team to complete the feature, accomplishing all the acceptance criteria."
+    description: "List of sub-issues / steps required for the UI / UX team to complete the feature, accomplishing all the acceptance criteria."
     placeholder: |  
-      List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
+      <!-- List the steps or link sub-issues here using the issue number or URL. Progress will be tracked automatically. -->
         - [ ] #issue_number or URL
         - [ ] 
   validations:
@@ -49,9 +49,9 @@ body:
   id: other_dep
   attributes:
     label: Other Dependencies
-    description: "List of sub-issues/steps required for the backend or other teams to complete the feature, accomplishing all the acceptance criteria."
+    description: "List of sub-issues / steps required for the backend or other teams to complete the feature, accomplishing all the acceptance criteria."
     placeholder: |
-      List the steps or link sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
+      <!-- List the steps or link sub-issues here using the issue_number or URL. Progress will be tracked automatically. -->
         - [ ]
         - [ ] 
   validations:
@@ -59,12 +59,12 @@ body:
 - type: textarea
   id: qa_testing
   attributes:
-    label: QA/Testing
+    label: QA / Testing
     description: |
-      List all testing steps/sub-issues to test the feature, covering all the acceptance criteria. For sub-issues please, label them as unit, e2e or manual tests. 
+      List all testing steps / sub-issues to test the feature, covering all the acceptance criteria. For sub-issues please, label them as unit, e2e or manual tests. 
       Testing steps directly described here are reproduction steps for manual testing.
     placeholder: |
-        List the testing steps or link automation sub-issues here using `- [ ] #issue_number` or URL. Progress will be tracked automatically.
+        <!-- List the testing steps or link QA automation sub-issues here using issue number or URL. Progress will be tracked automatically. -->
         - [ ]
         - [ ] 
   validations:
@@ -73,7 +73,7 @@ body:
   id: rancher_teams
   attributes:
     label: Rancher Teams
-    description: "Tag a representative of each team involved in the completion of the feature, so they can track feature work."
+    description: "Comma-separated list of a representative from each team involved in the completion of this feature."
     placeholder: "Type @username of each of the team representatives involved"
   validations:
     required: false   
