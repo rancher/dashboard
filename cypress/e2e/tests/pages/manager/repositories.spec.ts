@@ -9,6 +9,30 @@ import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
 
+describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  it('validating repositories page with percy', () => {
+    const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.list().resourceTable().sortableTable().checkVisible();
+    repositoriesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    repositoriesPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignore dinamic data inside rows 5 y 4(age and branch)
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-5']");
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-4']");
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('repositories Page');
+  });
+});
+
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
   const downloadsFolder = Cypress.config('downloadsFolder');
@@ -24,6 +48,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);

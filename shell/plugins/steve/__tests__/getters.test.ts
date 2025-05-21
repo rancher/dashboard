@@ -1,6 +1,8 @@
 import _getters from '@shell/plugins/steve/getters';
 
-const { urlFor, urlOptions, pathExistsInSchema } = _getters;
+const {
+  urlFor, urlOptions, pathExistsInSchema, isSteveUrl
+} = _getters;
 
 describe('steve: getters:', () => {
   describe('urlFor', () => {
@@ -67,17 +69,14 @@ describe('steve: getters:', () => {
 
   describe('urlOptions', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { config: { baseUrl: 'protocol' } };
-    const getters = {
-      normalizeType: (type) => type,
-      // this has its own tests so it just returns the input string
-      urlOptions:    (string) => string
-    };
+    const state = { };
+    const isSteveUrlGetter = isSteveUrl();
+    const getters = { isSteveUrl: isSteveUrlGetter };
 
-    const urlOptionsGetter = urlOptions();
+    const urlOptionsGetter = urlOptions(state, getters);
 
     it('expects urlOptions to return a function', () => {
-      expect(typeof urlOptions(state, getters)).toBe('function');
+      expect(typeof urlOptions()).toBe('function');
     });
     it('returns undefined when called without params', () => {
       expect(urlOptionsGetter()).toBeUndefined();

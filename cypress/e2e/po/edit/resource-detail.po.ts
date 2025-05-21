@@ -6,7 +6,8 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export default class ResourceDetailPo extends ComponentPo {
   /**
-   * components for handling CRUD operations for resources, including cancel/save buttons
+   * Returns the page object for interacting with the CRU (Create, Read, Update) resource component,
+   * including support for actions like selecting types and clicking save/cancel buttons.
    * @returns
    */
   cruResource() {
@@ -14,7 +15,8 @@ export default class ResourceDetailPo extends ComponentPo {
   }
 
   /**
-   * components for managing the resource creation and edit forms
+   * Returns the page object for managing resource creation and edit views,
+   * including interactions like saving, editing as YAML, and navigating form steps.
    * @returns
    */
   createEditView() {
@@ -22,13 +24,19 @@ export default class ResourceDetailPo extends ComponentPo {
   }
 
   /**
-   * components for YAML editor
+   * Returns the page object for interacting with the YAML editor,
+   * including methods to access the editor, footer, and save/create actions.
    * @returns
    */
   resourceYaml() {
     return new ResourceYamlPo(this.self());
   }
 
+  /**
+   * Returns the page object for interacting with tabbed UI components,
+   * allowing tab selection and verification of active tabs.
+   * @returns
+   */
   tabs() {
     return new TabbedPo('[data-testid="tabbed"]');
   }
