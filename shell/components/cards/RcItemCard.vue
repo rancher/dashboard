@@ -106,7 +106,7 @@ const visibleStatuses = computed(() => props.header.statuses?.slice(0, 3) || [])
           </slot>
           <slot name="item-card-pill">
             <div
-              v-if="pill && variant !== 'small'"
+              v-if="pill"
               v-clean-tooltip="labelText(pill.tooltip)"
               class="item-card-pill"
               data-testid="item-card-pill"
