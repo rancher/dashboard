@@ -253,11 +253,17 @@ export default class FleetApplication extends SteveModel {
     const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
       const { perClusterState, ...resource } = resourceInfo;
 
-      Object.entries(perClusterState).forEach(([state, clusterIds]) => {
-        clusterIds.filter((id) => !!clusters[id]).forEach((clusterId) => {
-          acc.push(Object.assign({}, resource, { clusterId, state }));
+      if (Object.entries(perClusterState).length === 0) {
+        (this.targetClusters || []).forEach((cluster) => {
+          acc.push(Object.assign({}, resource, { clusterId: cluster.id, state: resource.state }));
         });
-      });
+      } else {
+        Object.entries(perClusterState).forEach(([state, clusterIds]) => {
+          clusterIds.filter((id) => !!clusters[id]).forEach((clusterId) => {
+            acc.push(Object.assign({}, resource, { clusterId, state }));
+          });
+        });
+      }
 
       return acc;
     }, []);
