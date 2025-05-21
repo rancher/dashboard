@@ -69,7 +69,6 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     });
     cloudCredForm.accessKey().set(Cypress.env('awsAccessKey'));
     cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'));
-    cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'));
     cloudCredForm.saveButton().expectToBeEnabled();
 
     cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
@@ -140,7 +139,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createEKSClusterPage.getLauchTemplate().checkOptionSelected(eksSettings.launchTemplate);
 
     // Check the default instance type
-    // createEKSClusterPage.getInstanceType().checkContainsOptionSelected(eksSettings.instanceType);
+    createEKSClusterPage.getInstanceType().checkContainsOptionSelected(eksSettings.instanceType);
 
     // Check the default volume Size
     createEKSClusterPage.getDiskSize().shouldHaveValue(eksSettings.diskSize);
