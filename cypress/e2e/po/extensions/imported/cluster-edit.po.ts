@@ -50,6 +50,10 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return this.versionManagementRadioButton().set(1);
   }
 
+  disableVersionManagement() {
+    return this.versionManagementRadioButton().set(2);
+  }
+
   defaultVersionManagement() {
     return this.versionManagementRadioButton().set(0);
   }
@@ -72,5 +76,9 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
 
   save() {
     return this.resourceDetail().createEditView().save();
+  }
+
+  cancel() {
+    return this.resourceDetail().createEditView().cancel();
   }
 }

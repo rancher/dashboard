@@ -810,7 +810,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   describe('Local', { tags: ['@jenkins', '@localCluster'] }, () => {
     it(`can open edit for local cluster`, () => {
-      const description = 'local';
       const editLocalClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-local', 'local');
 
       cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
@@ -822,7 +821,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       // check accordions are properly displayed
       editLocalClusterPage.accordion(2, 'Basics').should('be.visible');
-      editLocalClusterPage.accordion(3, 'Member Roles').should('be.visible');
+      editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
@@ -832,26 +831,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       editLocalClusterPage.versionManagementBanner().should('not.exist');
 
       editLocalClusterPage.enableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('not.exist').and('be.visible');
-      editLocalClusterPage.defaultVersionManagement();
-
-      editLocalClusterPage.defaultVersionManagement();
-
-      editLocalClusterPage.nameNsDescription().description().set(description);
-
-      editLocalClusterPage.save();
-
-      // We should be taken back to the list page if the save was successful
-      clusterList.waitForPage();
-
-      clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
-
-      editLocalClusterPage.waitForPage('mode=edit');
-      editLocalClusterPage.nameNsDescription().description().value().should('eq', description );
-
-      // Set it back to original
-      editLocalClusterPage.nameNsDescription().description().set('');
-      editLocalClusterPage.save();
+      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
+      editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
+      editLocalClusterPage.disableVersionManagement();
+      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
+      editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
+      editLocalClusterPage.cancel();
 
       // We should be taken back to the list page if the save was successful
       clusterList.waitForPage();

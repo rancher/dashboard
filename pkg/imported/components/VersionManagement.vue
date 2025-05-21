@@ -35,7 +35,7 @@ export default defineComponent({
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t', features: 'features/get' }),
+    ...mapGetters({ t: 'i18n/t' }),
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -59,13 +59,26 @@ export default defineComponent({
           return this.t('imported.basics.versionManagement.banner.create.nonDefault');
         }
       } else {
-        if (this.oldValue === VERSION_MANAGEMENT_DEFAULT) {
-          return this.value === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true ) }`;
+        if (this.value === this.oldValue) {
+          return '';
+        }
+        if ( this.isLocal) {
+          if ( this.oldValue === VERSION_MANAGEMENT_DEFAULT) {
+            return this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true);
+          } else if (this.value === VERSION_MANAGEMENT_DEFAULT) {
+            return this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true);
+          }
+
+          return '';
         } else {
-          if (this.value === VERSION_MANAGEMENT_DEFAULT) {
-            return this.oldValue === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true ) }`;
+          if (this.oldValue === VERSION_MANAGEMENT_DEFAULT) {
+            return this.value === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.defaultToNonDefault', {}, true ) }`;
           } else {
-            return this.t('imported.basics.versionManagement.banner.edit.different');
+            if (this.value === VERSION_MANAGEMENT_DEFAULT) {
+              return this.oldValue === `${ this.globalSetting }` ? this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true) : `${ this.t('imported.basics.versionManagement.banner.edit.different') } ${ this.t('imported.basics.versionManagement.banner.edit.nonDefaultToDefault', {}, true ) }`;
+            } else {
+              return this.t('imported.basics.versionManagement.banner.edit.different');
+            }
           }
         }
       }
@@ -85,7 +98,10 @@ export default defineComponent({
       return !this.globalSetting ? this.t('imported.basics.versionManagement.summary.canEnable', {}, true) : '';
     },
     showVersionManagementBanner() {
-      return !this.isLocal && !(this.isEdit && this.value === this.oldValue);
+      const valueChanged = this.isEdit && this.value !== this.oldValue;
+      const localChangedInvolvingDefault = valueChanged && this.isLocal && (this.oldValue === VERSION_MANAGEMENT_DEFAULT || this.value === VERSION_MANAGEMENT_DEFAULT);
+
+      return localChangedInvolvingDefault || (!this.isLocal && valueChanged);
     }
   }
 });
