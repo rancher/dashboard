@@ -51,7 +51,18 @@ export default class Chart extends SteveModel {
     });
   }
 
-  // This works as the inverted version of "matchingCharts" in shell/models/catalog.cattle.io.app.js
+  /**
+   * Returns the list of installed apps that match this chart by:
+   * - chart name
+   * - repository name
+   * - and either:
+   *   - the home URL matches the latest version’s home URL
+   *   - or version + home URL match any other known version
+   *
+   * Inverse logic of `matchingCharts` in `catalog.cattle.io.app.js`.
+   *
+   * @returns {Array<Object>} List of matching installed app objects.
+   */
   get matchingInstalledApps() {
     const [latestVersion, ...otherVersions] = this.versions || [];
     const appHome = latestVersion?.home;
@@ -81,15 +92,33 @@ export default class Chart extends SteveModel {
     });
   }
 
+  /**
+   * Determines if the chart is installed by checking if exactly one matching installed app is found.
+   *
+   * @returns {boolean} `true` if the chart is currently installed.
+   */
   get isInstalled() {
-    // when there's only one match, we know we found the best match
     return this.matchingInstalledApps.length === 1;
   }
 
+  /**
+   * Determines if the installed app has a single available upgrade.
+   * Requires the chart to be installed.
+   *
+   * @returns {boolean} `true` if the app is installed and has a single upgrade available.
+   */
   get upgradeable() {
     return this.isInstalled && this.matchingInstalledApps[0].upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
   }
 
+  /**
+   * Builds structured metadata for display in RcItemCard.vue:
+   * - Sub-header (version and last updated)
+   * - Footer (repository, categories, tags)
+   * - Status indicators (e.g. deprecated, upgradeable, installed)
+   *
+   * @returns {Object} Card content object with `subHeaderItems`, `footerItems`, and `statuses` arrays.
+   */
   get cardContent() {
     const subHeaderItems = [
       {
