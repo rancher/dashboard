@@ -1,0 +1,29 @@
+name: Update Cloud Data
+on:
+  # Runs every 3 days
+  schedule:
+    - cron: "0 0 */3 * *"
+  # Can be trigger manually if needed
+  workflow_dispatch:
+jobs:
+  update-cloud-data:
+    runs-on: ubuntu-latest
+    #permissions: write-all
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      id-token: write    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+    - name: Install Node Module
+      run: yarn install
+    - name: Update Cloud Data
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO_NAME: ${{ github.repository }}
+      run: .github/workflows/scripts/update-cloud-data.sh
