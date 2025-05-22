@@ -101,7 +101,7 @@ export default defineComponent({
       const valueChanged = this.isEdit && this.value !== this.oldValue;
       const localChangedInvolvingDefault = valueChanged && this.isLocal && (this.oldValue === VERSION_MANAGEMENT_DEFAULT || this.value === VERSION_MANAGEMENT_DEFAULT);
 
-      return localChangedInvolvingDefault || (!this.isLocal && valueChanged);
+      return this.isCreate || localChangedInvolvingDefault || (!this.isLocal && valueChanged);
     }
   }
 });
