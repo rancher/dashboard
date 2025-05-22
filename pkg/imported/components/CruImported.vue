@@ -454,6 +454,7 @@ export default defineComponent({
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
           :show-version-management="!isRKE1"
+          :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
