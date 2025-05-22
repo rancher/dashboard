@@ -137,7 +137,6 @@ nav:
   restoreSnapshot: 还原快照
   rotateCertificates: 轮换证书
   rotateEncryptionKeys: 轮换加密密钥
-  saveAsRKETemplate: 保存为 RKE 模板
   takeSnapshot: 拍摄快照
   group:
     cluster: 集群
@@ -1669,7 +1668,6 @@ cluster:
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">文档</a>。'
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
-  rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
   availabilityWarnings:
     node: 节点 {name} 处于非活动状态
@@ -4446,12 +4444,6 @@ promptRollback:
   currentLabel: "（当前）"
   multipleWorkloadError: "一次只能回滚一个工作负载。"
   singleRevisionBanner: 没有可用于回滚的修订版本。
-
-promptSaveAsRKETemplate:
-  title: 将 {cluster} 转换为新的 RKE 模板
-  name: 集群模板名称
-  description: 创建新的集群模板，并使用当前集群配置发起修改。
-  warning: 此操作将对集群进行修改，即把新创建的集群模板和修改应用到集群中。此操作不能撤销。
 
 promptRotateEncryptionKey:
   title: 轮换加密密钥
