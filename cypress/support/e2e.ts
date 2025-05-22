@@ -1,4 +1,5 @@
 import '@cypress/code-coverage/support';
+import '@percy/cypress';
 import './commands/commands';
 import './commands/chainable';
 import './commands/rancher-api-commands';
