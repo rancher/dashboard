@@ -75,9 +75,17 @@ export default {
           for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
             const cssRules = stylesheet.cssRules[x];
 
-            if (cssRules.selectorText && ((currTheme === 'light' && (cssRules.selectorText.includes('body') || cssRules.selectorText.includes('BODY')) &&
-              cssRules.selectorText.includes('.theme-light') && cssRules.style.cssText.includes('--link:')) ||
-              (currTheme === 'dark' && cssRules.selectorText.includes('.theme-dark')))) {
+            const lightThemeConditions = (cssRules.selectorText?.includes('body') || cssRules.selectorText?.includes('BODY')) &&
+            cssRules.selectorText?.includes('.theme-light') && cssRules.style?.cssText?.includes('--link:');
+
+            // color must exist on the css rules
+            if ((
+              // narrow it down if it's light mode
+              (currTheme === 'light' && lightThemeConditions) ||
+              // narrow it down if it's dark mode but we are on "primary" color type (dark mode CSS stylesheet doesn't have those variables, so we need to go to light mode and search for them)
+              (currTheme === 'dark' && this.color === 'primary' && lightThemeConditions) ||
+              // narrow it down if it's dark mode, not "primary" color type
+              (currTheme === 'dark' && cssRules.selectorText?.includes('.theme-dark'))) && cssRules?.style?.getPropertyValue(colors[this.color].color)) {
               // grab the colors to be used on the icon from the css rules
               uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
               hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
