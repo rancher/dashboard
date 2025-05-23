@@ -29,7 +29,7 @@
     &.top {
       background-image: linear-gradient(
         -90deg,
-        var(--body__bg),
+        var(--body-bg),
         var(--accent-btn)
       );
 
@@ -78,7 +78,7 @@
     .banner-abbrv {
       align-items: center;
       background-color: var(--primary);
-      color: var(--body__bg);
+      color: var(--body-bg);
       display: flex;
       font-size: 2.5em;
       height: 100%;
