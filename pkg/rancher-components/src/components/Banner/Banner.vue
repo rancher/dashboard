@@ -160,7 +160,7 @@ $icon-size: 24px;
 
     .error & {
       background: var(--error);
-      color: var(--primary-text);
+      color: var(--on-primary);
     }
   }
 
@@ -196,12 +196,13 @@ $icon-size: 24px;
     .warning & {
       background: var(--warning-banner-bg);
       border-color: var(--warning);
+      color: var(--warning-banner-text);
     }
 
     .error & {
       background: var(--error-banner-bg);
       border-color: var(--error);
-      color: var(--error);
+      color: var(--error-banner-text);
     }
 
     &.stacked {
