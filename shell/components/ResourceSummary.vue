@@ -158,7 +158,7 @@ export default {
 
     & .chip{
       border-radius: 2em;
-      color: var(--body__bg);
+      color: var(--body-bg);
       padding: 0px 1em;
 
       &.warn-count {
