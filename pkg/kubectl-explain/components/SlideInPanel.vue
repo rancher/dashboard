@@ -447,7 +447,7 @@ export default {
     position: fixed;
     top: 0;
     width: $slidein-width;
-    background-color: var(--body__bg);
+    background-color: var(--body-bg);
     right: -$slidein-width;
     transition: right 0.5s;
     border-left: 1px solid var(--border);
@@ -474,7 +474,7 @@ export default {
       z-index: z-index('slide-in');
 
     &.slide-in-glass-open {
-      background-color: var(--body__bg);
+      background-color: var(--body-bg);
       display: block;
       opacity: 0.5;
     }

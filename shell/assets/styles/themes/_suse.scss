@@ -10,7 +10,7 @@
     --non-primary-text: #{$green-120};
     --non-primary-hover: #{$green-20};
 
-    --secondary: var(--body__bg);
+    --secondary: var(--body-bg);
     --secondary__border: #{$green-jungle};
     --on-secondary: var(--non-primary-text);
     --secondary--hover: var(--non-primary-hover);
@@ -41,7 +41,7 @@
     --non-primary-text: #{$lighter-green-jungle};
     --non-primary-hover: #1A2A4D;
 
-    --secondary: var(--body__bg);
+    --secondary: var(--body-bg);
     --secondary__border: var(--non-primary-text);
     --on-secondary: var(--non-primary-text);
     --secondary--hover: var(--non-primary-hover);

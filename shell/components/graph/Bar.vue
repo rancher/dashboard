@@ -75,7 +75,7 @@ export default {
       top: 0;
       bottom: 0;
       width: 1px;
-      background-color: var(--body__bg);
+      background-color: var(--body-bg);
     }
 }
 </style>
