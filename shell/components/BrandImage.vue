@@ -78,9 +78,13 @@ export default {
       }
     },
 
+    isDarkTheme() {
+      return this.theme === 'dark' || this.theme === 'dark-modern';
+    },
+
     pathToBrandedImage() {
       if (this.fileName === 'rancher-logo.svg' || this.supportCustomLogo) {
-        if (this.theme === 'dark' && this.uiLogoDark) {
+        if (this.isDarkTheme && this.uiLogoDark) {
           return this.uiLogoDark;
         }
 
@@ -90,7 +94,7 @@ export default {
       }
 
       if (this.fileName === 'banner.svg') {
-        if (this.theme === 'dark' && this.uiBannerDark) {
+        if (this.isDarkTheme && this.uiBannerDark) {
           return this.uiBannerDark;
         }
 
@@ -100,7 +104,7 @@ export default {
       }
 
       if (this.fileName === 'login-landscape.svg') {
-        if (this.theme === 'dark' && this.uiLoginBackgroundDark) {
+        if (this.isDarkTheme && this.uiLoginBackgroundDark) {
           return this.uiLoginBackgroundDark;
         }
 
@@ -112,7 +116,7 @@ export default {
       if (!this.brand) {
         return this.defaultPathToBrandedImage;
       } else {
-        if (this.theme === 'dark' || this.dark) {
+        if (this.isDarkTheme || this.dark) {
           try {
             return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
