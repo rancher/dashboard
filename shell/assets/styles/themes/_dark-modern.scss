@@ -1,4 +1,4 @@
-.theme-dark {
+.theme-dark-modern {
   // Local variables for reused colors
 
   //dark sidebar
@@ -20,7 +20,7 @@
   $lighter: #b6b6c2;
 
   // dark main text
-  $lightest: #ffffff;
+  $grey-0: #ffffff;
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
@@ -29,19 +29,84 @@
   $disabled: $light;
 
   //Contrast colors
-  $contrasted-dark: $lightest !default;
+  $contrasted-dark: $grey-0 !default;
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+  $body-bg: #2F2F42;
+
+  /*********************/
+  
+  --body__bg: #{$body-bg};
+  --body__border: #5A5F6A;
+  --link: #{$primary-55};
+  
+  --primary: #{$primary};
+  --on-primary: #{$grey-0};
+  --primary--hover: #{$primary-110};
+
+  --non-primary-hover: #{$primary-150};
+
+  --secondary: var(--body__bg);
+  --secondary__border: #{$primary-60};
+  --on-secondary: #{$primary-60};
+  --secondary--hover: var(--non-primary-hover);
+
+  --tertiary: transparent;
+  --on-tertiary: var(--link);
+  --tertiary--hover: var(--non-primary-hover);
+  
+  --active: #{$primary-50};
+  --on-active: #{$grey-90};
+  --active--hover: #{darken($primary-50, 5%)};
+  --category--active: #{$primary-75};
+  --category--active--hover: #{$grey-70};
+
+  --toggle-OFF__bg: #{$grey-80};
+  --toggle-OFF__color: #{$grey-30};
+  --toggle-OFF--hover: #{$grey-90};
+  --toggle-ON__bg: var(--active);
+  --toggle-ON__color: var(--on-active);
+
+  --vertical-tabs__bg: #{darken($body-bg, 10%)};
+  --tabbed-sidebar-bg: var(--vertical-tabs__bg);
+
+  --disabled-opacity: .5;
+
+  $success         : #00FF32;
+  $warning         : #FFCA4D;
+  $error           : #B13333;
+  $info            : #1F67DB;
+
+  --error-text    : #FFAC99;
+  --warning-text  : #{$warning};
+
+  --success-badge    : #{rgba($success, 10%)};
+  --on-success-banner : #{$success};
+
+  --warning-badge    : #ffcc00;
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --info-badge    : #{rgba($info, 30%)};
+  --on-info-banner : #{lighten($info, 50%)};
+
+  --error-badge    :  #{$error};
+  --on-error-banner : #FFFFFF;
+
+  --error-banner-bg: #301D1D;
+
+  --warning-banner-text: var(--warning-text);
+  --error-banner-text: var(--error-text);
+
+  /*********************/
 
   $slate: #4B4F6B;
 
   --slate: #{$slate};
 
   --default                    : #{$dark};
-  --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
-  --default-hover-text         : #{saturate($lightest, 20%)};
+  --default-hover-text         : #{saturate($grey-0, 20%)};
   --default-active-bg          : #{darken($dark, 25%)};
   --default-active-text        : #{contrast-color(darken($dark, 25%))};
   --default-border             : #{$dark};
@@ -53,26 +118,30 @@
   --muted                      : #{$disabled};
 
   --body-bg                    : #{$darker};
-  --body-text                  : #{$lightest};
+  --body-text                  : #{$grey-0};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : #{$darker};
+  --header-bg                  : var(--body__bg);
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
-  --header-btn-text            : #{$lightest};
-  --header-btn-text-hover      : #{$lightest};
-  --header-input-text          : #{$lightest};
+  --header-btn-text            : #{$grey-0};
+  --header-btn-text-hover      : #{$grey-0};
+  --header-input-text          : #{$grey-0};
 
   // Header, Footer and Consent banner defaults
-  --banner-text-color          : #{$lightest};
+  --banner-text-color          : #{$grey-0};
 
-  --nav-bg                     : #{$darkest};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
+
+  --nav-bg                     : var(--body__bg);
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
+  --nav--hover                 : #{$grey-60};
+  --nav-category-active--hover: #{$grey-70};
+  --nav-active--hover          : var(--active--hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
@@ -82,26 +151,26 @@
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : #{$darkest};
-  --topmenu-text               : #{$lightest};
+  --topmenu-bg                 : var(--body__bg);
+  --topmenu-text               : #{$grey-0};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
   --topmost-light-hover        : #{$medium};
 
   --accent-btn                 : var(--primary-banner-bg);
   --accent-btn-hover           : var(--primary);
-  --accent-btn-hover-text      : #{$lightest};
+  --accent-btn-hover-text      : #{$grey-0};
 
   --modal-bg                   : #{$dark};
   --modal-border               : #{$medium};
   --overlay-bg                 : #{rgba($darkest, 0.75)};
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$lightest};
-  --checkbox-border            : #{$medium};
+  --checkbox-tick              : var(--on-active);
+  --checkbox-border            : var(--body__border);
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -109,45 +178,35 @@
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
   --dropdown-border            : #{$light};
   --dropdown-divider           : #{$light};
-  --dropdown-text              : #{$lightest};
-  --dropdown-active-text       : #{$lightest};
+  --dropdown-text              : #{$grey-0};
+  --dropdown-active-text       : #{$grey-0};
   --dropdown-active-bg         : #{$light};
-  --dropdown-hover-text        : #{$lightest};
+  --dropdown-hover-text        : #{$grey-0};
   --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
   --dropdown-group-text        : #{$lighter};
   --dropdown-highlight-text    : var(--link);
 
-  --input-text                 : #{$lightest};
+  --input-text                 : #{$grey-0};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
-  --input-bg                   : var(--body-bg);
+  --input-bg                   : var(--body__bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
-  --input-disabled-text        : #{darken($lightest, 50%)};
+  --input-disabled-text        : #{darken($grey-0, 50%)};
   --input-disabled-label       : #{darken($lighter, 30%)};
   --input-disabled-bg          : #{darken($disabled, 30%)};
   --input-disabled-border      : #{darken($medium, 30%)};
   --input-disabled-placeholder : #{darken($disabled, 10%)};
   --input-addon-bg             : #{$darker};
 
-  --label-secondary           : #{$lighter};
-
   --progress-bg                : #{$medium};
-  --progress-divider           : #{$lightest};
+  --progress-divider           : #{$grey-0};
 
-  --sortable-table-bg          : #{lighten($darkest, 10%)};
-  --sortable-table-row-bg      : #{$darker};;
-  --sortable-table-header-bg   : #{$darkest};
-  --sortable-table-top-divider : var(--border);
-  --sortable-table-hover-bg    : #{$darkest};
-  --sortable-table-selected-bg : var(--primary-light-bg);
-  --sortable-table-group-label : #{$lighter};
-
-  --tag-primary                : #{$lightest};
+  --tag-primary                : #{$grey-0};
   --tag-bg                     : #{$medium};
 
   --popover-bg                 : #{$darker};
@@ -159,13 +218,11 @@
   --tooltip-text               : var(--body-text);
   --tooltip-text-warning       : var(--body-text);
 
-
   --tabbed-border              : #{$medium};
   --tabbed-sidebar-bg          : #{$darkest};
   --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
 
   --yaml-editor-bg             : #{$darkest};
-  --drawer-body-bg             : #{$darkest};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -223,36 +280,35 @@
   --gauge-error-secondary      : 120, 45, 42;
 
   --product-icon               : #{$lighter};
-  --product-icon-active        : #{$lightest};
+  --product-icon-active        : #{$grey-0};
 
   --badge-state-disabled-text  : #{$desc-light};
   --badge-state-disabled-bg    : #{$medium};
   --badge-state-disabled-border: #{$lighter};
 
-  --click-badge-error          : #{$lightest};
-  --click-badge-error-bg       : #F43434;
-  --click-badge-error-border   : #FF8080;
-
-  --click-badge-warning        : #662E00;
-  --click-badge-warning-bg     : #FFCA4D;
-  --click-badge-warning-border : #F2870D;
-
-  --click-badge-success        : #00FF32;
-  --click-badge-success-bg     : #354240;
-  --click-badge-success-border : #4DFF70;
-  
-  --click-badge-info           : #{$lightest};
-  --click-badge-info-bg        : #{$info};
-  --click-badge-info-border    : #ACD2EC;
-  --bubble-bg                  : #{$darkest};
-
   $slate: #4B4F6B;
 
   --slate: #{$slate};
 
-  --link-text-secondary: #{$secondary};
+  --border: var(--body__border);
+  --nav-border: var(--body__border);
+  --topmost-border: var(--body__border);
+  --header-border: var(--body__border);
 
-  .secondary-text-link {
-    color: var(--link-text-secondary);
+  --nav--hover: #{lighten($body-bg, 10%)};
+
+  --sortable-table-bg          : #{darken($body-bg, 10%)};
+  --sortable-table-row-bg       : var(--body__bg);
+  --sortable-table-header-bg    : #{darken($body-bg, 15%)};
+  --sortable-table-top-divider  : var(--body__border);
+  --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
+  --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
+  --sortable-table-group-label  : #{$grey-30};
+
+  .text-error {
+    color: var(--error-text);
+  }
+  .text-warning {
+    color: var(--warning-text);
   }
 }
