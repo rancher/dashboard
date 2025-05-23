@@ -55,7 +55,6 @@ $drag-over: #DCDEE7;
 BODY, .theme-light-modern {
 
   /*********************/
-  --body__bg: #{$grey-0};
   --body__border: #{$grey-20};
   --link: #{$primary-80};
   
@@ -65,7 +64,7 @@ BODY, .theme-light-modern {
 
   --non-primary-hover: #{$primary-20};
 
-  --secondary: var(--body__bg);
+  --secondary: var(--body-bg);
   --secondary__border: #{$primary};
   --on-secondary: #{$primary};
   --secondary--hover: var(--non-primary-hover);
@@ -368,7 +367,7 @@ BODY, .theme-light-modern {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$grey-90};
 
-  --header-bg                  : var(--body__bg);
+  --header-bg                  : var(--body-bg);
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$grey-90};
   --header-btn-text-hover      : #{$grey-0};
@@ -377,7 +376,7 @@ BODY, .theme-light-modern {
   --header-border              : #{$grey-20};
   --header-border-size         : 1px;
   --nav-width                  : 250px;
-  --nav-bg                     : var(--body__bg);
+  --nav-bg                     : var(--body-bg);
   --nav-active                 : #{$grey-10};
   --nav--hover                  : #{$grey-10};
   --nav-category-active--hover : #{$grey-20};
@@ -390,7 +389,7 @@ BODY, .theme-light-modern {
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 
-  --topmenu-bg                 : var(--body__bg);
+  --topmenu-bg                 : var(--body-bg);
   --topmenu-text               : #{$grey-90};
   --topmost-border             : #{$grey-20};
   --topmost-shadow             : #{lighten($grey-0, 10%)};
@@ -447,7 +446,7 @@ BODY, .theme-light-modern {
   --input-label                : #{$secondary};
   --input-placeholder          : #{darken($disabled, 10%)};
   --input-border               : var(--border);
-  --input-bg                   : var(--body__bg);
+  --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($grey-10, 2%)};
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
@@ -477,7 +476,7 @@ BODY, .theme-light-modern {
   --tag-primary                : #{$grey-90};
   --tag-bg                     : #{$grey-20};
 
-  --popover-bg                 : var(--body__bg);
+  --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
   --popover-border-radius      : var(--border-radius);
@@ -530,7 +529,7 @@ BODY, .theme-light-modern {
   --simple-box-divider         : #{$grey-20};
   --simple-box-shadow          : none;
 
-  --terminal-bg                : var(--body__bg);
+  --terminal-bg                : var(--body-bg);
   --terminal-cursor            : var(--warning);
   --terminal-selection         : #{$selected};
   --terminal-text              : var(--body-text);

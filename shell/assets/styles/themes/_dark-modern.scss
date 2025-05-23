@@ -37,7 +37,6 @@
 
   /*********************/
   
-  --body__bg: #{$body-bg};
   --body__border: #5A5F6A;
   --link: #{$primary-55};
   
@@ -47,7 +46,7 @@
 
   --non-primary-hover: #{$primary-150};
 
-  --secondary: var(--body__bg);
+  --secondary: var(--body-bg);
   --secondary__border: #{$primary-60};
   --on-secondary: #{$primary-60};
   --secondary--hover: var(--non-primary-hover);
@@ -117,14 +116,14 @@
 
   --muted                      : #{$disabled};
 
-  --body-bg                    : #{$darker};
+  --body-bg                    : #{$body-bg};
   --body-text                  : #{$grey-0};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : var(--body__bg);
+  --header-bg                  : var(--body-bg);
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$grey-0};
@@ -136,7 +135,7 @@
 
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
-  --nav-bg                     : var(--body__bg);
+  --nav-bg                     : var(--body-bg);
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav--hover                 : #{$grey-60};
@@ -151,7 +150,7 @@
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : var(--body__bg);
+  --topmenu-bg                 : var(--body-bg);
   --topmenu-text               : #{$grey-0};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
@@ -192,7 +191,7 @@
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
-  --input-bg                   : var(--body__bg);
+  --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
   --input-focus-bg             : var(--box-bg);
@@ -298,7 +297,7 @@
   --nav--hover: #{lighten($body-bg, 10%)};
 
   --sortable-table-bg          : #{darken($body-bg, 10%)};
-  --sortable-table-row-bg       : var(--body__bg);
+  --sortable-table-row-bg       : var(--body-bg);
   --sortable-table-header-bg    : #{darken($body-bg, 15%)};
   --sortable-table-top-divider  : var(--body__border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};

@@ -160,7 +160,7 @@ export default {
     max-width: 450px;
 
     &::after {
-      background: var(--body__bg);
+      background: var(--body-bg);
       color: var(--body-text);
       content: var(--custom-content);
       padding: 0 12px;

@@ -24,13 +24,13 @@ BODY {
 }
 
 HEADER {
-  background: var(--body__bg);
+  background: var(--body-bg);
 }
 
 .dashboard-body {
   // this was moved to its own class because the background color prop conflicts with storybookjs addon "backgrounds".
   // decoupling this style allows us to preview components in both light and dark themes
-  background: var(--body__bg);
+  background: var(--body-bg);
 }
 
 ::-webkit-scrollbar {
