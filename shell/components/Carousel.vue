@@ -279,7 +279,7 @@ export default {
 
 .slide-badge {
   background: var(--app-partner-accent);
-  color: var(--body__bg);
+  color: var(--body-bg);
 }
 .slide {
   min-height: 210px;
