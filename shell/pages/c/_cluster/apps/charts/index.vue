@@ -500,8 +500,8 @@ export default {
         >
           <rc-item-card
             v-for="chart in filteredCharts"
-            :id="chart.chartName"
-            :key="chart.chartName"
+            :id="chart.id"
+            :key="chart.id"
             :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
             :header="{
               title: { text: chart.chartNameDisplay },
