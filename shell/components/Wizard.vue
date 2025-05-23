@@ -692,7 +692,7 @@ $spacer: 10px;
     position: absolute;
     bottom: 0;
     width: 100%;
-    background: var(--body__bg);
+    background: var(--body-bg);
     .controls-steps {
 
       .btn {

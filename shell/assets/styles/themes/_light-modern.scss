@@ -359,7 +359,7 @@ BODY, .theme-light-modern {
       }
   }
 
-  --body-bg                    : #{$grey-0};
+  --body-bg                    : var(--body__bg);
   --body-text                  : #{$grey-90};
   --scrollbar-thumb            : #{$grey-30};
   --scrollbar-thumb-dropdown   : #{$grey-5};

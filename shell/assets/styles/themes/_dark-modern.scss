@@ -117,7 +117,7 @@
 
   --muted                      : #{$disabled};
 
-  --body-bg                    : #{$darker};
+  --body-bg                    : var(--body__bg);
   --body-text                  : #{$grey-0};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
