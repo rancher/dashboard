@@ -1,6 +1,4 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import { CypressChainable } from '@/cypress/e2e/po/po.types';
-
 export default class LabeledSelectPo extends ComponentPo {
   toggle() {
     return this.self().click();
