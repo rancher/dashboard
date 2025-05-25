@@ -314,23 +314,6 @@ export default {
       });
     },
 
-    handleRepoClick(repoLabel) {
-      // TODO
-      // console.log('Repo Clicked, ', repo);
-      // const repoKey = this.repoOptions.find((opt) => opt.label === repoLabel)._key;
-      // addObject(this.hideRepos, repoKey);
-    },
-
-    handleCategoryClick(category) {
-      // TODO
-      // this.category = category;
-    },
-
-    handleTagClick(tag) {
-      // TODO
-      // console.log('Tag Clicked, ', tag);
-    },
-
     focusSearch() {
       if ( this.$refs.searchQuery ) {
         this.$refs.searchQuery.focus();
@@ -547,7 +530,7 @@ export default {
                   <p
                     v-for="(label, j) in footerItem.labels"
                     :key="j"
-                    class="app-card-footer-item-text secondary-text-link"
+                    class="app-card-footer-item-text"
                     data-testid="app-card-footer-item-text"
                   >
                     {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
