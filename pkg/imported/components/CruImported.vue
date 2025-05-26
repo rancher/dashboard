@@ -196,9 +196,12 @@ export default defineComponent({
     isRke2() {
       return !!this.value.isRke2;
     },
+    isHarvester() {
+      return !!this.value.isHarvester;
+    },
     enableNetworkPolicySupported() {
       // https://github.com/rancher/rancher/pull/33070/files
-      return !this.isK3s && !this.isRke2;
+      return !this.isK3s && !this.isRke2 && !this.isHarvester;
     },
     isLocal() {
       return !!this.value.isLocal;
@@ -580,7 +583,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isRKE1"
+        v-if="!isRKE1 & !isHarvester"
         class="mb-20 accordion"
         title-key="imported.accordions.advanced"
         :open-initially="false"

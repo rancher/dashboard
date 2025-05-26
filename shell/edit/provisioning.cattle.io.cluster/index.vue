@@ -37,6 +37,7 @@ const SORT_GROUPS = {
 const PROXY_ENDPOINT = '/meta/proxy';
 const IMPORTED = 'imported';
 const LOCAL = 'local';
+const HARVESTER = 'harvester';
 
 export default {
   name: 'CruCluster',
@@ -176,9 +177,10 @@ export default {
     let subType = null;
 
     subType = this.$route.query[SUB_TYPE] || null;
+
     if ( this.$route.query[SUB_TYPE]) {
       subType = this.$route.query[SUB_TYPE];
-    } else if (this.value.isImported) {
+    } else if (this.value.isImported || this.value.machineProvider === HARVESTER) {
       subType = IMPORTED;
     } else if (this.value.isLocal) {
       subType = LOCAL;
