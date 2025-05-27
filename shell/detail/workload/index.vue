@@ -375,13 +375,12 @@ export default {
         />
       </Tab>
       <Tab
-        v-else
+        v-else-if="value.podMatchExpression"
         name="pods"
         :label="t('tableHeaders.pods')"
         :weight="4"
       >
         <ResourceTable
-          v-if="value.pods?.length"
           :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
