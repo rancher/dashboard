@@ -378,15 +378,17 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   function reply(statusCode: number, body: any) {
-    return (req) => { req.reply({ statusCode, body }); };
+    return (req) => {
+      req.reply({ statusCode, body });
+    };
   }
 
   const forbiddenResponse = {
-    "type": "error",
-    "links": {},
-    "code": "Forbidden",
-    "message": "deployments.apps is forbidden",
-    "status": 403,
+    type:    'error',
+    links:   {},
+    code:    'Forbidden',
+    message: 'deployments.apps is forbidden',
+    status:  403,
   };
 
   describe('Cluster dashboard - Fleet agent', () => {
@@ -419,7 +421,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       clusterDashboard.schedulerStatus().should('exist');
       clusterDashboard.controllerManagerStatus().should('exist');
     });
-  });  
+  });
 
   after(function() {
     if (removePod) {
