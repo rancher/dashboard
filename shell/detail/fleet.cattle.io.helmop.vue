@@ -12,7 +12,7 @@ import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
-  name: 'DetailhelmOp',
+  name: 'DetailsHelmOp',
 
   emits: ['input'],
 
