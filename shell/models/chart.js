@@ -64,7 +64,7 @@ export default class Chart extends SteveModel {
    * @returns {Array<Object>} List of matching installed app objects.
    */
   get matchingInstalledApps() {
-    const [latestVersion, ...otherVersions] = this.versions || [];
+    const latestVersion = this.versions?.[0] || [];
     const appHome = latestVersion?.home;
     const installedApps = this.$rootGetters['cluster/all'](CATALOG.APP);
 
@@ -88,7 +88,7 @@ export default class Chart extends SteveModel {
       }
 
       // match by version + home for the rest
-      return otherVersions.some((v) => v.version === version && home === appHome);
+      return this.versions?.some((v) => v.version === version && home === appHome);
     });
   }
 
