@@ -456,7 +456,7 @@ export default defineComponent({
           :versions="allVersions"
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
-          :show-version-management="!isRKE1"
+          :show-version-management="!isRKE1 && !isHarvester"
           :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
           :version-management="versionManagement"
@@ -553,7 +553,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isRKE1"
+        v-if="!isRKE1 && !isHarvester"
         class="mb-20 accordion"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
