@@ -213,7 +213,6 @@ export default {
   <Card
     class="prompt-badge"
     :show-highlight-border="false"
-    :trigger-focus-trap="true"
   >
     <template #title>
       <h4 class="text-default-text">
@@ -296,6 +295,7 @@ export default {
               v-model:value="badgeBgColor"
               :disabled="!badgeColorPicker"
               :default-value="badgeBgColor"
+              :aria-label="t('clusterBadge.modal.badgeBgColorInput')"
             />
           </div>
         </div>

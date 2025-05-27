@@ -11,6 +11,11 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
+/**
+ * obscure namespaces are reserved and have special meaning if they're also classed as `system`
+ *
+ * (by default hidden from user given by default `show dynamic namespaces` preference is disabled and `user namespaces` filter is on)
+ */
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
 
@@ -73,7 +78,13 @@ export default class Namespace extends SteveModel {
   }
 
   move(resources = this) {
-    this.$dispatch('promptMove', resources);
+    this.$dispatch('promptModal', {
+      component:  'MoveNamespaceDialog',
+      resources:  !Array.isArray(resources) ? [resources] : resources,
+      modalWidth: '440',
+      height:     'auto',
+      styles:     'max-height: 100vh;'
+    });
   }
 
   get isSystem() {

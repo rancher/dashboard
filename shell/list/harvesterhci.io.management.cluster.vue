@@ -178,7 +178,10 @@ export default {
       <div class="no-clusters">
         {{ t('harvesterManager.cluster.none') }}
       </div>
-      <hr class="info-section">
+      <hr
+        class="info-section"
+        role="none"
+      >
       <div class="logo">
         <BrandImage
           file-name="harvester.png"

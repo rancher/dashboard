@@ -1,7 +1,4 @@
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
-import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { GitRepoEditPo } from '@/cypress/e2e/po/edit/fleet/gitrepo-edit.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
@@ -9,12 +6,12 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetGitRepoListPagePo, FleetGitRepoDetailsPo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
-  const fleetDashboardPage = new FleetDashboardPagePo('_');
-  const gitRepoCreatePage = new GitRepoCreatePo('_');
+  const fleetDashboardPage = new FleetDashboardListPagePo('_');
+  const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
   const headerPo = new HeaderPo();
 
   let repoName;
@@ -22,6 +19,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   const branch = 'master';
   const paths = 'qa-test-apps/nginx-app';
   const localWorkspace = 'fleet-local';
+  const defaultWorkspace = 'fleet-default';
   let removeGitRepo = false;
   const reposToDelete = [];
 
@@ -48,14 +46,16 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
     fleetDashboardPage.getStartedButton().click();
     gitRepoCreatePage.waitForPage();
-    gitRepoCreatePage.title().contains('Git Repo: Create').should('be.visible');
+    gitRepoCreatePage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain('Git Repo: Create');
+    });
   });
 
   it('Should display cluster status', () => {
     // create gitrepo
     cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(localWorkspace, repoName, gitRepoUrl, branch, paths)).then(() => {
       removeGitRepo = true;
-      reposToDelete.push(`fleet-local/${ repoName }`);
+      reposToDelete.push(`${ localWorkspace }/${ repoName }`);
     });
 
     fleetDashboardPage.goTo();
@@ -64,10 +64,10 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     // check if burguer menu nav is highlighted correctly for Fleet
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
-    const row = fleetDashboardPage.sortableTable(localWorkspace).row(0);
+    const row = fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().row(0);
 
     row.get('.bg-success[data-testid="clusters-ready"]', LONG_TIMEOUT_OPT).should('exist');
-    row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
+    row.get('.bg-success[data-testid="clusters-ready"] span', MEDIUM_TIMEOUT_OPT).should('have.text', '1/1');
 
     row.get('.bg-success[data-testid="bundles-ready"]').should('exist');
     row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
@@ -81,8 +81,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.list().rowWithName(repoName).column(0).find('a')
-      .click();
+    fleetDashboardPage.collapsibleTable(localWorkspace).goToDetailsPage(repoName);
     gitRepoDetails.waitForPage(null, 'bundles');
   });
 
@@ -91,7 +90,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     fleetDashboardPage.waitForPage();
     headerPo.selectWorkspace(localWorkspace);
 
-    const constActionMenu = fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName);
+    const constActionMenu = fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowActionMenuOpen(repoName);
 
     const allowedActions: MenuActions[] = [
       MenuActions.Pause,
@@ -116,29 +115,39 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   });
 
   it('can clone a git repo', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
-
+    cy.intercept('GET', '/v1/fleet.cattle.io.clusters?exclude=metadata.managedFields').as('getFleetClusters');
     cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
+
+    const gitRepoEditPage = new FleetGitRepoCreateEditPo(localWorkspace, repoName);
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Clone').click();
+    cy.wait('@getFleetClusters');
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowActionMenuOpen(repoName).getMenuItem('Clone')
+      .click();
 
     gitRepoEditPage.waitForPage('mode=clone');
-    cy.wait('@getSecrets', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    gitRepoEditPage.title().contains(`Git Repo: Clone from ${ repoName }`).should('be.visible');
-    headerPo.selectWorkspace('fleet-default');
-    gitRepoEditPage.nameNsDescription().name().set(`clone-${ repoName }`);
-    gitRepoEditPage.footer().nextPage();
-    gitRepoEditPage.footer().create().then(() => {
-      removeGitRepo = true;
-      reposToDelete.push(`fleet-default/clone-${ repoName }`);
+    gitRepoEditPage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: Clone from ${ repoName }`);
     });
+    headerPo.selectWorkspace(defaultWorkspace);
+    gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
+      .name()
+      .set(`clone-${ repoName }`);
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    cy.wait('@getSecrets', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    gitRepoEditPage.resourceDetail().createEditView().create()
+      .then(() => {
+        removeGitRepo = true;
+        reposToDelete.push(`${ defaultWorkspace }/clone-${ repoName }`);
+      });
 
-    FleetDashboardPagePo.navTo();
+    FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable('fleet-default').rowElementWithName(`clone-${ repoName }`).should('be.visible');
-    fleetDashboardPage.sortableTable('fleet-local').rowElementWithName(repoName).should('be.visible');
+    fleetDashboardPage.collapsibleTable(defaultWorkspace).sortableTable().rowElementWithName(`clone-${ repoName }`).should('be.visible');
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowElementWithName(repoName).should('be.visible');
   });
 
   it('user lands in correct git repo workspace when using workspace link on Fleet Dashboard', () => {
@@ -146,30 +155,33 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable('fleet-default').rowElementWithName(`clone-${ repoName }`).should('be.visible');
-    fleetDashboardPage.sortableTable('fleet-local').rowElementWithName(repoName).should('be.visible');
+    fleetDashboardPage.collapsibleTable(defaultWorkspace).sortableTable().rowElementWithName(`clone-${ repoName }`).should('be.visible');
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowElementWithName(repoName).should('be.visible');
 
     // click workspace link: fleet default
-    fleetDashboardPage.goToGitRepoListLink('fleet-default').click();
+    fleetDashboardPage.goToGitRepoListLink(defaultWorkspace).click();
     gitrepoListPage.waitForPage();
-    headerPo.checkCurrentWorkspace('fleet-default');
+    headerPo.checkCurrentWorkspace(defaultWorkspace);
 
     // click workspace link: fleet local
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.goToGitRepoListLink('fleet-local').click();
+    fleetDashboardPage.goToGitRepoListLink(localWorkspace).click();
     gitrepoListPage.waitForPage();
-    headerPo.checkCurrentWorkspace('fleet-local');
+    headerPo.checkCurrentWorkspace(localWorkspace);
   });
 
   it('can Edit Yaml', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+    const gitRepoEditPage = new FleetGitRepoCreateEditPo(localWorkspace, repoName);
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit YAML').click();
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit YAML')
+      .click();
     gitRepoEditPage.waitForPage('mode=edit&as=yaml');
-    gitRepoEditPage.title().contains(`Git Repo: ${ repoName }`).should('be.visible');
+    gitRepoEditPage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: ${ repoName }`);
+    });
   });
 
   it('can Download Yaml', () => {
@@ -177,7 +189,8 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Download YAML').click();
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowActionMenuOpen(repoName).getMenuItem('Download YAML')
+      .click();
 
     const downloadedFilename = path.join(downloadsFolder, `${ repoName }.yaml`);
 
@@ -193,17 +206,20 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
   });
 
   it('can Edit Config', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+    const gitRepoEditPage = new FleetGitRepoCreateEditPo(localWorkspace, repoName);
     const description = `${ repoName }-desc`;
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit Config').click();
+    fleetDashboardPage.collapsibleTable(localWorkspace).sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit Config')
+      .click();
 
     gitRepoEditPage.waitForPage('mode=edit');
-    gitRepoEditPage.nameNsDescription().description().set(description);
-    gitRepoEditPage.footer().nextPage();
-    gitRepoEditPage.footer().save();
+    gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
+      .description()
+      .set(description);
+    gitRepoEditPage.resourceDetail().createEditView().nextPage();
+    gitRepoEditPage.resourceDetail().createEditView().save();
     fleetDashboardPage.waitForPage();
   });
 

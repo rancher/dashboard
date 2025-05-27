@@ -217,7 +217,10 @@ export default {
     update() {
       this.$nextTick(() => {
         const out = this.rules.map((rule) => {
-          const expression = { key: rule.key, operator: rule.operator };
+          const expression = {
+            key:      rule.key.trim(),
+            operator: rule.operator
+          };
 
           if (this.matchingSelectorDisplay) {
             expression.matching = rule.matching;

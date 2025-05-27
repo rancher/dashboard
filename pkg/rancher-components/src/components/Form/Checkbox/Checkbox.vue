@@ -124,6 +124,15 @@ export default defineComponent({
       type:    String,
       default: undefined
     },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'checkbox'
+    },
   },
 
   emits: ['update:value'],
@@ -133,6 +142,18 @@ export default defineComponent({
   },
 
   computed: {
+    ariaDescribedBy(): string | undefined {
+      const inheritedDescribedBy = this.$attrs['aria-describedby'];
+      const internalDescribedBy = this.descriptionKey || this.description ? this.describedById : undefined;
+
+      if (inheritedDescribedBy && internalDescribedBy) {
+        return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
+      } else if (inheritedDescribedBy || internalDescribedBy) {
+        return `${ inheritedDescribedBy || internalDescribedBy }`;
+      }
+
+      return undefined;
+    },
     /**
      * Determines if the checkbox is disabled.
      * @returns boolean: True when the disabled prop is true or when mode is
@@ -167,7 +188,7 @@ export default defineComponent({
     },
 
     idForLabel():string {
-      return `${ this.id }-label`;
+      return `${ generateRandomAlphaString(12) }-checkbox-label`;
     }
   },
 
@@ -271,10 +292,11 @@ export default defineComponent({
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
+        :aria-disabled="isDisabled"
         :aria-label="replacementLabel"
         :aria-checked="!!value"
         :aria-labelledby="labelKey || label ? idForLabel : undefined"
-        :aria-describedby="descriptionKey || description ? describedById : undefined"
+        :aria-describedby="ariaDescribedBy"
         role="checkbox"
       />
       <span
@@ -298,6 +320,7 @@ export default defineComponent({
             v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="t(tooltipKey)"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
           <i
@@ -305,6 +328,7 @@ export default defineComponent({
             v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
             v-stripped-aria-label="tooltip"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
@@ -374,7 +398,7 @@ $fontColor: var(--input-label);
 
   .checkbox-info {
     line-height: normal;
-    margin-left: 2px;
+    margin-left: 4px;
 
     &:focus-visible {
       @include focus-outline;

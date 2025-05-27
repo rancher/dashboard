@@ -32,6 +32,7 @@ describe('class: Steve', () => {
             clusterName:                'whatever',
             deletionGracePeriodSeconds: 'whatever',
             generateName:               'whatever',
+            ownerReferences:            'whatever',
           },
           spec: { versions: {} }
         };

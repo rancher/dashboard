@@ -561,6 +561,7 @@ export default defineComponent({
         <LabeledSelect
           v-model:value="displayNodeRole"
           :mode="mode"
+          data-testid="eks-noderole"
           label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
@@ -640,7 +641,10 @@ export default defineComponent({
         </KeyValue>
       </div>
     </div>
-    <hr class="mb-20">
+    <hr
+      class="mb-20"
+      role="none"
+    >
     <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"

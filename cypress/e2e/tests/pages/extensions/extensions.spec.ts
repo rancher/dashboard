@@ -5,6 +5,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
@@ -280,7 +281,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should install an extension', () => {
-    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=install`).as('installExtension');
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -327,7 +328,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should update an extension version', () => {
-    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();

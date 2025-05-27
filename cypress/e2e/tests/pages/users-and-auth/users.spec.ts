@@ -6,6 +6,9 @@ import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import FixedBannerPo from '@/cypress/e2e/po/components/fixed-banner.po';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -245,7 +248,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().selectAll().set();
       usersPo.list().openBulkActionDropdown();
 
-      cy.intercept('GET', '/v1/management.cattle.io.users/*').as('downloadYaml');
+      cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
       usersPo.list().bulkActionButton('Download YAML').click({ force: true });
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
@@ -504,6 +507,68 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
       // Ensure the default rows per page value is set after executing the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('Create admin user with standard user', () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('User creation should complete after admin user fails to create for Standard user with Manage Users Role', () => {
+      // create standard user
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      userCreate.username().set(standardUsername);
+      userCreate.newPass().set(standardPassword);
+      userCreate.confirmNewPass().set(standardPassword);
+      userCreate.selectCheckbox('Manage Users').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
+
+      // check that the user is on the list view before attempting to login
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(standardUsername).should('exist');
+
+      // logout admin
+      cy.logout();
+
+      // login as standard user
+      cy.login(standardUsername, standardPassword);
+
+      // navigate to the users page and attempt to create an admin user
+      HomePagePo.goToAndWaitForGet();
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      const runTimestamp = +new Date();
+      const runPrefix = `e2e-test-${ runTimestamp }`;
+      const adminUsername = `${ runPrefix }-admin-user`;
+      const adminPassword = 'admin-password';
+
+      userCreate.username().set(adminUsername);
+      userCreate.newPass().set(adminPassword);
+      userCreate.confirmNewPass().set(adminPassword);
+      userCreate.selectCheckbox('Administrator').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // the error banner should be displayed
+      const banner = new FixedBannerPo('#cru-errors');
+
+      banner.checkExists();
+      banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
+
+      // update the Global Permissions
+      userCreate.selectCheckbox('User-Base').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // save and assert that the new user exists
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(adminUsername).should('exist');
     });
   });
 });

@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 
 // Use a visible display type to reduce flickering
-const displayType = 'inline-block';
+const displayType = 'inline-flex';
 
 export default {
 

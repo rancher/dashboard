@@ -4,7 +4,7 @@ import { get } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { ref, toRef, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 export default {
   emits: ['update:value', 'remove'],
@@ -83,14 +83,14 @@ export default {
 
     switch (type.value) {
     case 'resourceFieldRef':
-      name.value = toRef(props.value.name);
-      refName.value = toRef(props.value.valueFrom[type.value].containerName);
+      name.value = props.value.name;
+      refName.value = props.value.valueFrom[type.value].containerName;
       key.value = props.value.valueFrom[type.value].resource || '';
       break;
     case 'configMapKeyRef':
-      name.value = toRef(props.value.name);
+      name.value = props.value.name;
       key.value = props.value.valueFrom[type.value].key || '';
-      refName.value = toRef(props.value.valueFrom[type.value].name);
+      refName.value = props.value.valueFrom[type.value].name;
       referenced.value = props.allConfigMaps.filter((resource) => {
         return resource.metadata.name === refName.value;
       })[0];
@@ -100,13 +100,13 @@ export default {
       break;
     case 'secretRef':
     case 'configMapRef':
-      name.value = toRef(props.value.prefix);
-      refName.value = toRef(props.value[type.value].name);
+      name.value = props.value.prefix;
+      refName.value = props.value[type.value].name;
       break;
     case 'secretKeyRef':
-      name.value = toRef(props.value.name);
+      name.value = props.value.name;
       key.value = props.value.valueFrom[type.value].key || '';
-      refName.value = toRef(props.value.valueFrom[type.value].name);
+      refName.value = props.value.valueFrom[type.value].name;
       referenced.value = props.allSecrets.filter((resource) => {
         return resource.metadata.name === refName.value;
       })[0];
@@ -116,11 +116,11 @@ export default {
       break;
     case 'fieldRef':
       fieldPath.value = get(props.value.valueFrom, `${ type.value }.fieldPath`) || '';
-      name.value = toRef(props.value.name);
+      name.value = props.value.name;
       break;
     default:
-      name.value = toRef(props.value.name);
-      valStr.value = toRef(props.value.value);
+      name.value = props.value.name;
+      valStr.value = props.value.value;
       break;
     }
 

@@ -78,8 +78,8 @@ export default {
           this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
         }
 
-        if (this.value.k8sDistro) {
-          this.value.k8sDistro = `${ neu }/${ this.k8sDistroSubDir }`;
+        if (this.dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.COMMON && this.commonConfig) {
+          this.value.k8sDistro = `${ this.commonConfig }/${ this.k8sDistroSubDir }`;
         }
       }
     }
@@ -129,9 +129,11 @@ export default {
         this.commonConfig = DEFAULT_COMMON_BASE_PATH;
 
         this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.COMMON;
+
+        // individual data for each field is set on the watcher for commonConfig a bit further above
         break;
-      // default is custom config
       default:
+        // switch "default" is for the "custom" config
         if (this.mode === _CREATE) {
           this.commonConfig = '';
         }

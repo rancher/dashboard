@@ -214,4 +214,77 @@ describe('component: LabeledSelect', () => {
       expect(wrapper.vm.$data.myValue).toStrictEqual(expectation);
     });
   });
+
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
+    const label = 'Foo';
+    const value = 'foo';
+    const ariaDescribedById = 'some-described-by-id';
+    const itemLabel = 'some-label';
+
+    const wrapper = mount(LabeledSelect, {
+      props: {
+        value,
+        label:   itemLabel,
+        options: [
+          { label, value },
+        ],
+        required: true
+      },
+      attrs: { 'aria-describedby': ariaDescribedById }
+    });
+
+    const labeledSelectContainer = wrapper.find('.labeled-select');
+    const ariaExpanded = labeledSelectContainer.attributes('aria-expanded');
+    const ariaDescribedBy = labeledSelectContainer.attributes('aria-describedby');
+    const ariaRequired = labeledSelectContainer.attributes('aria-required');
+    const containerId = labeledSelectContainer.attributes('id');
+    const labelFor = wrapper.find('label').attributes('for');
+
+    const vSelectInput = wrapper.find('.v-select');
+
+    expect(ariaExpanded).toBe('false');
+    expect(ariaDescribedBy).toBe(ariaDescribedById);
+    expect(ariaRequired).toBe('true');
+    expect(containerId).toBe(wrapper.vm.labeledSelectLabelId);
+    expect(labelFor).toBe(wrapper.vm.labeledSelectLabelId);
+
+    // make sure it's hardcoded to a "neutral" value so that
+    // in the current architecture of the component
+    // screen readers won't pick up the default "Select option" aria-label
+    // from the library
+    expect(vSelectInput.attributes('aria-label')).toBe('-');
+  });
+
+  it('pressing space key while focused on search should not prevent event propagation', async() => {
+    const value = 'value-1';
+    const options = [
+      { label: 'label-1', value: 'value-1' },
+      { label: 'label-2', value: 'value-2' },
+    ];
+
+    const wrapper = mount(LabeledSelect, {
+      props: {
+        value,
+        label:      'some-label',
+        options,
+        searchable: true
+      }
+    });
+
+    const mockEvent = { preventDefault: jest.fn() };
+    const spyFocus = jest.spyOn(wrapper.vm, 'focusSearch');
+    const spyPreventDefault = jest.spyOn(mockEvent, 'preventDefault');
+
+    const input = wrapper.find('.labeled-select');
+
+    // open labeled-select first
+    await input.trigger('keydown.enter');
+
+    // mimic pressing space on search box inside v-select
+    await input.trigger('keydown.space', mockEvent);
+
+    // eslint-disable-next-line
+    expect(spyFocus).toHaveBeenCalled();
+    expect(spyPreventDefault).not.toHaveBeenCalled();
+  });
 });

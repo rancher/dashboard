@@ -69,11 +69,17 @@ export default class FleetCluster extends SteveModel {
   }
 
   assignTo() {
-    this.$dispatch('assignTo', [this]);
+    this.$dispatch('promptModal', {
+      component:      'AssignToDialog',
+      componentProps: { toAssign: [this] }
+    });
   }
 
   assignToBulk(items) {
-    this.$dispatch('assignTo', items);
+    this.$dispatch('promptModal', {
+      component:      'AssignToDialog',
+      componentProps: { toAssign: items }
+    });
   }
 
   get canDelete() {

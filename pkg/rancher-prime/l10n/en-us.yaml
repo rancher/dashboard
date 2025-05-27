@@ -32,3 +32,7 @@ registration:
     button-cta:
       label: Deregister
       progress: Deregistering
+
+prime:
+  installed: This is a SUSE Rancher Prime installation
+  

@@ -9,6 +9,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
@@ -93,6 +94,12 @@ export class WorkloadsListPageBasePo extends PagePo {
     super(WorkloadsListPageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuGroupByLabel('Workloads');
+  }
+
   navigateToCreatePage() {
     const baseResourceList = new BaseResourceList(this.self());
 
@@ -112,7 +119,8 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 
   deleteItemWithUI(name: string) {
-    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').click();
+    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').scrollIntoView()
+      .click();
 
     const promptRemove = new PromptRemove();
 
@@ -193,6 +201,22 @@ export class WorkloadsCreatePageBasePo extends PagePo {
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  }
+
+  addEnvironmentVariable() {
+    cy.get('[data-testid="add-env-var"]').click();
+  }
+
+  removeEnvironmentVariable(index: number) {
+    cy.get(`[data-testid="env-var-row-${ index }"] .remove button`).click();
+  }
+
+  environmentVariableKeyInput(index: number) {
+    return LabeledInputPo.bySelector(this.self(), `[data-testid="env-var-row-${ index }"] .name`);
+  }
+
+  environmentVariableValueInput(index: number) {
+    return LabeledInputPo.bySelector(this.self(), `[data-testid="env-var-row-${ index }"] .single-value`);
   }
 
   /**

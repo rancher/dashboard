@@ -81,6 +81,30 @@ export default {
   },
 
   computed: {
+    hasCustomCloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
+    },
+
+    cloudCredentialComponent() {
+      const driverName = this.driverName;
+
+      return this.$store.getters['type-map/importCloudCredential'](driverName);
+    },
+
+    genericCloudCredentialComponent() {
+      return this.$store.getters['type-map/importCloudCredential']('generic');
+    },
+
+    cloudComponent() {
+      if (this.hasCustomCloudCredentialComponent) {
+        return this.cloudCredentialComponent;
+      }
+
+      return this.genericCloudCredentialComponent;
+    },
+
     isNone() {
       return this.credentialId === null || this.credentialId === _NONE;
     },
@@ -140,14 +164,6 @@ export default {
       return out;
     },
 
-    createComponent() {
-      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
-        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
-      }
-
-      return this.$store.getters['type-map/importCloudCredential']('generic');
-    },
-
     validationPassed() {
       if ( this.credentialId === _NONE ) {
         return false;
@@ -175,6 +191,7 @@ export default {
   },
 
   methods: {
+
     async save(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
@@ -236,7 +253,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <CruResource
     v-else
-    :done-params="$attrs['done-params'] /* Without this, changes to the validationPassed prop end up propagating all the way to the root of the app and force a re-render when the input becomes valid. I haven't found a reasonable explanation for why this happens. */"
     :mode="mode"
     :validation-passed="validationPassed"
     :resource="newCredential"
@@ -267,7 +283,7 @@ export default {
       />
 
       <component
-        :is="createComponent"
+        :is="cloudComponent"
         ref="create"
         v-model:value="newCredential"
         mode="create"

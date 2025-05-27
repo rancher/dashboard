@@ -24,9 +24,18 @@ import { ref } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 
-defineProps<{
-  ariaLabel?: string
-}>();
+import type { Placement } from 'floating-vue';
+
+withDefaults(
+  defineProps<{
+    // eslint-disable-next-line vue/require-default-prop
+    ariaLabel?: string;
+    // eslint-disable-next-line vue/require-default-prop
+    distance?: number;
+    placement?: Placement;
+  }>(),
+  { placement: 'bottom-end' }
+);
 
 const emit = defineEmits(['update:open']);
 
@@ -61,7 +70,8 @@ const applyShow = () => {
     :shown="isMenuOpen"
     :auto-hide="false"
     :container="popperContainer"
-    :placement="'bottom-end'"
+    :placement="placement"
+    :distance="distance"
     @apply-show="applyShow"
   >
     <slot name="default">
@@ -78,8 +88,8 @@ const applyShow = () => {
         dropdown-menu-collection
         :aria-label="ariaLabel || 'Dropdown Menu'"
         @keydown="handleKeydown"
-        @keydown.down="setFocus('down')"
-        @keydown.up="setFocus('up')"
+        @keydown.down.prevent="setFocus('down')"
+        @keydown.up.prevent="setFocus('up')"
       >
         <slot name="dropdownCollection">
           <!--Empty slot content-->
@@ -111,6 +121,7 @@ const applyShow = () => {
         }
 
         .v-popper__inner {
+          overflow: unset;
           padding: 10px 0 10px 0;
         }
       }

@@ -7,7 +7,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
-import { addParam } from '@shell/utils/url';
+import { addParam, parse } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
@@ -85,9 +85,17 @@ export default {
 
   loadSchemas,
 
-  // Load a page of data for a given type
-  // Used for incremental loading when enabled
-  async loadDataPage(ctx, { type, opt }) {
+  /**
+   * Load a page of data for a given type. Given the response will continue until there are no pages left to fetch
+   *
+   * Used for incremental loading when enabled
+   *
+   * If we're in the non-vai world paginate via native limit/next (pageByLimit)
+   * If we're in the vai world paginate via page number (pageByNumber)
+   */
+  async loadDataPage(ctx, {
+    type, opt, pageByLimit, pageByNumber
+  }) {
     const { getters, commit, dispatch } = ctx;
 
     type = getters.normalizeType(type);
@@ -101,6 +109,17 @@ export default {
     const loadCount = getters['loadCounter'](type);
 
     try {
+      if (pageByLimit) {
+        opt.url = pageByLimit.next;
+      } else if (pageByNumber) {
+        const { url, page, pageSize } = pageByNumber;
+
+        opt.url = addParam(url, 'page', `${ page }`);
+        opt.url = addParam(opt.url, 'pagesize', `${ pageSize }`);
+      } else {
+        throw Error('loadDataPage requires either pageByLimit or pageByNumber');
+      }
+
       const res = await dispatch('request', { opt, type });
 
       const newLoadCount = getters['loadCounter'](type);
@@ -117,12 +136,19 @@ export default {
         data: res.data,
       });
 
-      if (res.pagination?.next) {
+      if (pageByLimit && res.pagination?.next) {
         dispatch('loadDataPage', {
           type,
-          opt: {
-            ...opt,
-            url: res.pagination?.next
+          opt,
+          pageByLimit: { next: res.pagination.next },
+        });
+      } else if (pageByNumber && pageByNumber.page !== pageByNumber.pages) {
+        dispatch('loadDataPage', {
+          type,
+          opt,
+          pageByNumber: {
+            ...pageByNumber,
+            page: pageByNumber.page + 1,
           }
         });
       } else {
@@ -202,10 +228,10 @@ export default {
     let skipHaveAll = false;
 
     // if it's incremental loading, we do two parallel requests
-    // on for a limit of 100, to quickly show data
+    // one for a limit of 100, to quickly show data
     // another one with 1st page of the subset of the resource we are fetching
     // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
-    let pageFetchOpts;
+    let pageByLimit, pageByNumber;
 
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
@@ -214,14 +240,23 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      pageFetchOpts = {
-        ...opt,
-        url: addParam(opt.url, 'limit', `${ opt.incremental }`),
-      };
+      if (opt.incremental.pageByNumber && getters.isSteveCacheUrl(parse(opt.url).path)) {
+        // Set the configuration for the rest of the incremental requests
+        pageByNumber = {
+          url:      opt.url,
+          page:     1,
+          pages:    opt.incremental.increments,
+          pageSize: opt.incremental.resourcesPerIncrement,
+        };
+        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
+        opt.url = addParam(opt.url, 'pagesize', `${ opt.incremental.quickLoadCount }`);
+      } else {
+        // Set the configuration for the rest of the incremental requests
+        pageByLimit = { next: addParam(opt.url, 'limit', `${ opt.incremental.resourcesPerIncrement }`) };
+        // this is where we "hijack" the limit for the dispatch('request') some lines below and therefore have 2 initial requests in parallel
+        opt.url = addParam(opt.url, 'limit', `${ opt.incremental.quickLoadCount }`);
+      }
 
-      // this is where we "hijack" the limit for the dispatch('request') some lines below
-      // and therefore have 2 initial requests in parallel
-      opt.url = addParam(opt.url, 'limit', '100');
       skipHaveAll = true;
 
       // since we are forcing a request, clear the haveAll
@@ -335,7 +370,9 @@ export default {
 
       if (opt.incremental) {
         // This needs to come after the loadAll (which resets state) so supplements via loadDataPage aren't lost
-        dispatch('loadDataPage', { type, opt: pageFetchOpts });
+        dispatch('loadDataPage', {
+          type, opt, pageByLimit, pageByNumber
+        });
       }
     }
 

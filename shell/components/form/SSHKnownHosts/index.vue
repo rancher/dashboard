@@ -1,6 +1,5 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import KnownHostsEditDialog from './KnownHostsEditDialog.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default defineComponent({
@@ -20,8 +19,6 @@ export default defineComponent({
     },
   },
 
-  components: { KnownHostsEditDialog },
-
   computed: {
     isViewMode() {
       return this.mode === _VIEW;
@@ -40,7 +37,20 @@ export default defineComponent({
   methods: {
     openDialog() {
       (this.$refs.button as HTMLInputElement)?.blur();
-      (this.$refs.editDialog as any).showDialog();
+
+      this.$store.dispatch('management/promptModal', {
+        component:           'KnownHostsEditDialog',
+        returnFocusSelector: '#known-ssh-hosts-trigger',
+        testId:              'sshKnownHostsDialog',
+        height:              'auto',
+        componentProps:      {
+          mode:   this.mode,
+          value:  this.value,
+          closed: (res: any) => {
+            this.dialogClosed(res);
+          }
+        }
+      });
     },
 
     dialogClosed(result: any) {
@@ -65,20 +75,19 @@ export default defineComponent({
     </div>
     <template v-if="!isViewMode">
       <button
+        id="known-ssh-hosts-trigger"
         ref="button"
+        role="button"
+        :aria-label="t('secret.ssh.editKnownHosts.title')"
         data-testid="input-known-ssh-hosts_open-dialog"
         class="show-dialog-btn btn"
         @click="openDialog"
       >
-        <i class="icon icon-edit" />
+        <i
+          class="icon icon-edit"
+          :alt="t('secret.ssh.editKnownHosts.title')"
+        />
       </button>
-
-      <KnownHostsEditDialog
-        ref="editDialog"
-        :value="value"
-        :mode="mode"
-        @closed="dialogClosed"
-      />
     </template>
   </div>
 </template>
@@ -94,8 +103,16 @@ export default defineComponent({
     }
 
     .show-dialog-btn {
-      display: contents;
       background-color: transparent;
+      padding: 4px;
+      height: 22px;
+      margin: -3px -3px 0 0;
+      min-height: unset;
+
+      &:focus-visible {
+        @include focus-outline;
+        outline-offset: 1px;
+      }
     }
   }
 </style>
