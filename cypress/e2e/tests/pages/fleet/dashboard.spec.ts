@@ -5,7 +5,7 @@ import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const fleetDashboardPage = new FleetDashboardListPagePo('_');
-  const gitRepoCreatePage = new FleetGitRepoCreateEditPo('_');
+  const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
   let repoName;
   const gitRepoUrl = 'https://github.com/rancher/fleet-test-data';
@@ -64,7 +64,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     workspaceCard.expandButton().should('be.visible');
 
     // TODO change to fleet applications when HelmOps enabled
-    const gitReposPanel = workspaceCard.resourcePanel('git-repos');
+    const gitReposPanel = workspaceCard.resourcePanel('applications');
 
     gitReposPanel.chart().should('exist');
     gitReposPanel.stateBadge('success').should('exist');

@@ -42,7 +42,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
   });
 
   describe('Create', () => {
-    const gitRepoCreatePage = new FleetGitRepoCreateEditPo('_');
+    const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
     beforeEach(() => {
       cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {

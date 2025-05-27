@@ -75,7 +75,7 @@ export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
     this.workspace = workspace;
   }
 
-  resourcePanel(type: 'git-repos' | 'helm-ops' | 'clusters' | 'cluster-groups') {
+  resourcePanel(type: 'applications' | 'clusters' | 'cluster-groups') {
     return new ResourcePanelPo(`[data-testid="resource-panel-${ type }"]`, this.self());
   }
 
