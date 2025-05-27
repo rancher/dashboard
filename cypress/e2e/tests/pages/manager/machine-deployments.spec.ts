@@ -3,6 +3,28 @@ import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/mac
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
+describe('Visual testing MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  const machineDeploymentsPage = new MachineDeploymentsPagePo();
+
+  before(() => {
+    cy.login();
+  });
+  it('validating machine deployments page with percy', () => {
+    MachineDeploymentsPagePo.goTo();
+
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkVisible();
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    machineDeploymentsPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('machine deployments Page');
+  });
+});
+
 describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo();
   const nsName = 'default';

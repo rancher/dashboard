@@ -1,10 +1,9 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import FleetTokensCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.clusterregistrationtoken.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export class FleetClusterRegistrationTokenListPagePo extends PagePo {
+export class FleetClusterRegistrationTokenListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`
 
   constructor() {
@@ -16,9 +15,9 @@ export class FleetClusterRegistrationTokenListPagePo extends PagePo {
   }
 
   static navTo() {
-    const fleetDashboardPage = new FleetDashboardPagePo('_');
+    const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
-    FleetDashboardPagePo.navTo();
+    FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
@@ -26,12 +25,20 @@ export class FleetClusterRegistrationTokenListPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Advanced');
     sideNav.navToSideMenuEntryByLabel('Cluster Registration Tokens');
   }
+}
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+export class FleetTokensCreateEditPo extends BaseDetailPagePo {
+  private static createPath(workspace?: string, id?: string ) {
+    const root = `/c/_/fleet/fleet.cattle.io.clusterregistrationtoken`;
+
+    return id ? `${ root }/${ workspace }/${ id }` : `${ root }/create`;
   }
 
-  createTokenForm(fleetWorkspace?: string, id?: string): FleetTokensCreateEditPo {
-    return new FleetTokensCreateEditPo(fleetWorkspace, id);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(workspace?: string, id?: string) {
+    super(FleetTokensCreateEditPo.createPath(workspace, id));
   }
 }

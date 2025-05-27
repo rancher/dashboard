@@ -1,18 +1,18 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export class EventsPagePo extends PagePo {
+export class EventsPageListPo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/event`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(EventsPagePo.createPath(clusterId));
+    return super.goTo(EventsPageListPo.createPath(clusterId));
   }
 
   constructor(clusterId: string) {
-    super(EventsPagePo.createPath(clusterId));
+    super(EventsPageListPo.createPath(clusterId));
   }
 
   static navTo() {
@@ -20,15 +20,20 @@ export class EventsPagePo extends PagePo {
 
     sideNav.navToSideMenuEntryByLabel('Events');
   }
+}
 
-  eventslist(): EventsListPo {
-    return new EventsListPo('[data-testid="sortable-table-list-container"]');
+export class EventsCreateEditPo extends BaseDetailPagePo {
+  private static createPath(clusterId: string, namespace?: string, eventName?: string) {
+    const root = `/c/${ clusterId }/explorer/event`;
+
+    return namespace && eventName ? `${ root }/${ namespace }/${ eventName }` : `${ root }/create`;
   }
 
-  /**
-   * Convenience method
-   */
-  sortableTable() {
-    return this.eventslist().resourceTable().sortableTable();
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(clusterId = 'local', namespace?: string, eventName?: string) {
+    super(EventsCreateEditPo.createPath(clusterId, namespace, eventName));
   }
 }

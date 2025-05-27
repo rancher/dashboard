@@ -27,6 +27,7 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
 import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -596,7 +597,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     describe('Generic', () => {
       it('can create new cluster', () => {
-        cy.intercept('GET', `/v1/management.cattle.io.users?exclude=metadata.managedFields`).as('getUsers');
+        cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();
@@ -619,6 +620,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
+        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
+        importClusterPage.versionManagementBanner().should('exist').and('be.visible');
+
         importClusterPage.create();
 
         cy.wait('@importRequest').then((intercept) => {
@@ -663,7 +667,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it('can edit imported cluster and see changes afterwards', () => {
-        const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, importedClusterName);
+        const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', importedClusterName);
 
         cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
         clusterList.goTo();
@@ -682,6 +686,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
         editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
+
+        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
+        editImportedClusterPage.versionManagementBanner().should('not.exist');
+
+        editImportedClusterPage.enableVersionManagement();
+        editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
+        editImportedClusterPage.defaultVersionManagement();
 
         editImportedClusterPage.toggleAccordion(5, 'Networking');
         editImportedClusterPage.ace().enable();
@@ -798,14 +809,48 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  it(`can navigate to local cluster's explore product`, () => {
-    const clusterName = 'local';
-    const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+  describe('Local', { tags: ['@jenkins', '@localCluster'] }, () => {
+    it(`can open edit for local cluster`, () => {
+      const editLocalClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-local', 'local');
 
-    clusterList.goTo();
-    clusterList.list().explore(clusterName).click();
+      cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+      clusterList.goTo();
+      clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
+      editLocalClusterPage.waitForPage('mode=edit');
 
-    clusterDashboard.waitForPage(undefined, 'cluster-events');
+      editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
+
+      // check accordions are properly displayed
+      editLocalClusterPage.accordion(2, 'Basics').should('be.visible');
+      editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
+      editLocalClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+
+      // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
+      editLocalClusterPage.versionManagementBanner().should('not.exist');
+
+      editLocalClusterPage.enableVersionManagement();
+      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
+      editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
+      editLocalClusterPage.disableVersionManagement();
+      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
+      editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
+      editLocalClusterPage.cancel();
+
+      // We should be taken back to the list page if the save was successful
+      clusterList.waitForPage();
+    });
+    it(`can navigate to local cluster's explore product`, () => {
+      const clusterName = 'local';
+      const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+
+      clusterList.goTo();
+      clusterList.list().explore(clusterName).click();
+
+      clusterDashboard.waitForPage(undefined, 'cluster-events');
+    });
   });
 
   it('can download YAML via bulk actions', () => {

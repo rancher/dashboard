@@ -3,6 +3,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
 import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 /******
  *  Running this test will delete all GKE cloud credentials from the target cluster
@@ -88,7 +89,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.saveButton().expectToBeEnabled();
-    cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
+    cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('pageLoad');
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id.replace(':', '%3A');

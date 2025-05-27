@@ -20,6 +20,10 @@ export default class ResourceYamlPo extends ComponentPo {
     return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
   }
 
+  cancel(): Cypress.Chainable {
+    return this.self().find('button.role-secondary');
+  }
+
   saveOrCreate(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
   }

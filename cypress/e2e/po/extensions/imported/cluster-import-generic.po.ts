@@ -11,4 +11,8 @@ export default class ClusterManagerImportGenericPagePo extends ClusterManagerImp
   networkingAccordion() {
     return this.self().find('[data-testid="networking-accordion"]');
   }
+
+  versionManagementBanner() {
+    return this.self().find('[data-testid="version-management-banner"]');
+  }
 }
