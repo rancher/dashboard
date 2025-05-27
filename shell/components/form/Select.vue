@@ -114,7 +114,14 @@ export default {
       calculatePosition(dropdownList, component, width, this.placement);
     },
 
-    focusSearch() {
+    focusSearch(ev) {
+      const searchBox = document.querySelector('.vs__search');
+
+      // added to mitigate https://github.com/rancher/dashboard/issues/14361
+      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
+        ev.preventDefault();
+      }
+
       // we need this override as in a "closeOnSelect" type of component
       // if we don't have this override, it would open again
       if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
@@ -258,7 +265,7 @@ export default {
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
-    @keydown.space.prevent="focusSearch"
+    @keydown.space="focusSearch"
   >
     <v-select
       ref="select-input"
