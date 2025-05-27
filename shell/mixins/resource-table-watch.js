@@ -1,8 +1,8 @@
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
-// Ideally this functionality should be in PaginatedResourceTable, however that
-// hasn't been adopted by a LOT of places. So separate out logic here to move there
-// eventually
+// This is functionality used to stop or start sockets used to watch resources in the vai world.
+// Currently disabled via (non-public) perf setting
+// See https://github.com/rancher/dashboard/issues/14359 for long term plan
 
 export default {
   props: {
