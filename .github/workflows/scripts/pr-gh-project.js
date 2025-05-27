@@ -74,8 +74,6 @@ function getReferencedIssues(body) {
 
 function hasLabel(issue, label) {
   const labels = issue.labels || [];
-  console.log(labels)
-  console.log(label)
 
   return !!(labels.find(l => l.name.toLowerCase() === label.toLowerCase()));
 }
