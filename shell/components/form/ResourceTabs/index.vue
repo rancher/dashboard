@@ -232,6 +232,7 @@ export default {
   <Tabbed
     v-bind="$attrs"
     :default-tab="defaultTab"
+    :resource="value"
     @changed="tabChange"
   >
     <slot />
