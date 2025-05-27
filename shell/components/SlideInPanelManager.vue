@@ -52,7 +52,18 @@ watch(
         }
       };
 
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => isOpen?.value && !isClosing?.value, '#slide-in-panel-manager', opts, false);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(
+        () => {
+          if (currentProps?.value?.focusTrapWatcherBasedVariable) {
+            return currentProps.value.focusTrapWatcherBasedVariable;
+          }
+
+          return isOpen?.value && !isClosing?.value;
+        },
+        '#slide-in-panel-manager',
+        opts,
+        false
+      );
     }
   }
 );

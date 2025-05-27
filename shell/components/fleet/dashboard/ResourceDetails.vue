@@ -86,7 +86,6 @@ export default {
         class="icon icon-close"
         data-testid="slide-in-close"
         :aria-label="'slide-in-close'"
-        :trigger-focus-trap="true"
         tabindex="0"
         @click="closePanel"
         @keydown.space.enter.stop.prevent="closePanel"
