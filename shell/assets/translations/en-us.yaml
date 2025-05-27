@@ -2590,7 +2590,7 @@ fleet:
     subTypes:
       fleet.cattle.io.gitrepo:
         description: GitRepos text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
-      fleet.cattle.io.helmapp:
+      fleet.cattle.io.helmop:
         description: HelmOps text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group

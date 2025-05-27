@@ -181,7 +181,9 @@ export default {
       tempCachedValues:     {},
       valueFromOptions,
       doneRouteList:        'c-cluster-fleet-application',
-      chartValues:          {}
+      chartValues:          {},
+      clusterRegistry:      null,
+      fetchChartValues:     false
     };
   },
 
@@ -268,7 +270,7 @@ export default {
         out.push({
           disabled: true,
           kind:     'title',
-          label:    this.t('fleet.helmOp.source.registryOption')
+          label:    this.t('fleet.helmOp.source.registry.option')
         });
       }
 
@@ -446,8 +448,14 @@ export default {
 
   methods: {
     onSourceTypeSelect(value) {
+      delete this.value.spec.helm.repo;
+      delete this.value.spec.helm.chart;
+      delete this.value.spec.helm.version;
+
       if (value.isClusterRegistry) {
         const registry = this.registries.find((registry) => registry._key === value.key);
+
+        this.clusterRegistry = registry;
 
         this.value.spec.helm.repo = registry.spec.url;
       }
@@ -490,9 +498,24 @@ export default {
     },
 
     async getChartValues(version) {
-      const res = await this.$store.dispatch('management/request', { url: `/v1/${ REPO_CATALOG.CLUSTER_REPO }/${ version.repoName }?link=info&chartName=${ version.name }&version=${ version.version }` });
+      this.fetchChartValues = true;
 
-      this.value.spec.helm.values = saferDump(res?.values || {});
+      try {
+        const res = await this.$store.dispatch('management/request', { url: `/v1/${ REPO_CATALOG.CLUSTER_REPO }/${ version.repoName }?link=info&chartName=${ version.name }&version=${ version.version }` });
+
+        if (res?.values) {
+          this.chartValues = saferDump(res?.values || {});
+
+          this.value.spec.helm.values = res?.values;
+        }
+      } catch (error) {
+      }
+
+      this.fetchChartValues = false;
+    },
+
+    updateChartValues(values) {
+      this.value.spec.helm.values = values;
     },
 
     updateTargets() {
@@ -820,6 +843,13 @@ export default {
           </div>
         </div>
 
+        <Banner
+          v-if="clusterRegistry?.stateObj?.error"
+          class="col"
+          color="error"
+          :label="t('fleet.helmOp.source.registry.error', { registry: clusterRegistry.name })"
+        />
+
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
@@ -869,7 +899,10 @@ export default {
         </div>
       </div> -->
 
-      <div class="mb-15">
+      <div
+        v-if="!fetchChartValues"
+        class="mb-15"
+      >
         <h3 v-t="'fleet.helmOp.values.values.selectLabel'" />
         <div
           v-if="!isView"
@@ -885,7 +918,7 @@ export default {
             class="yaml-form-controls-spacer"
             style="flex:1"
           >
-&nbsp;
+            &nbsp;
           </div>
           <ButtonGroup
             v-if="showYamlDiff"
@@ -912,13 +945,14 @@ export default {
           <YamlEditor
             v-if="yamlForm === VALUES_STATE.YAML"
             ref="yaml"
-            v-model:value="value.spec.helm.values"
+            v-model:value="chartValues"
             class="step__values__content"
             :mode="mode"
             :scrolling="true"
             :initial-yaml-values="defaultYamlValues"
             :editor-mode="editorMode"
             :hide-preview-buttons="true"
+            @update:value="updateChartValues"
           />
         </div>
 
@@ -936,6 +970,14 @@ export default {
           @cancel-cancel="preFormYamlOption=formYamlOption"
           @confirm-cancel="formYamlOption = preFormYamlOption;"
         /> -->
+      </div>
+
+      <div
+        v-else
+        class="loading"
+      >
+        <span>{{ t('fleet.helmOp.values.values.loading') }}</span>
+        <i class="icon icon-spin icon-spinner" />
       </div>
 
       <!-- <div class="mb-15">
@@ -1124,5 +1166,14 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 5px;
+  }
+  .loading {
+    display: flex;
+    align-items: center;
+    margin: 20px 0 20px 5px;
+
+    span {
+      margin-right: 10px;
+    }
   }
 </style>
