@@ -614,9 +614,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.accordion(2, 'Basics').should('be.visible');
         importClusterPage.accordion(3, 'Member Roles').should('be.visible');
         importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(5, 'Advanced').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
         importClusterPage.networkingAccordion().should('not.exist');
-        importClusterPage.registriesAccordion().should('not.exist');
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
