@@ -119,18 +119,24 @@ export default {
     },
 
     async removeCatalogResources(catalog) {
-      const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ catalog.name }`;
-      const namespace = UI_PLUGIN_NAMESPACE;
+      if ( catalog.name ) {
+        const namespace = UI_PLUGIN_NAMESPACE;
+        // of type KubeLabelSelector
+        const labelSelector = { matchLabels: { [UI_PLUGIN_LABELS.CATALOG_IMAGE]: catalog.name } };
 
-      if ( selector ) {
         const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatching', {
-            type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
+          deployment: this.$store.dispatch('management/findLabelSelector', {
+            type:     WORKLOAD_TYPES.DEPLOYMENT,
+            matching: { namespace, labelSelector }
           }),
-          service: this.$store.dispatch('management/findMatching', {
-            type: SERVICE, selector, namespace
+          service: this.$store.dispatch('management/findLabelSelector', {
+            type:     SERVICE,
+            matching: { namespace, labelSelector }
           }),
-          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector })
+          repo: this.$store.dispatch('management/findLabelSelector', {
+            type:     CATALOG.CLUSTER_REPO,
+            matching: { labelSelector }
+          })
         });
 
         for ( const resource of Object.keys(hash) ) {
