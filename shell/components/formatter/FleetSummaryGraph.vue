@@ -119,4 +119,11 @@ export default {
   padding: 0;
   line-height: initial;
 }
+
+.hand {
+  .progress, .progress > .piece {
+    height: 6px;
+    border-right: 1px solid var(--body-bg);
+  }
+}
 </style>
