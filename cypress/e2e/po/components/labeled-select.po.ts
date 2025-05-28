@@ -1,5 +1,4 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-
 export default class LabeledSelectPo extends ComponentPo {
   toggle() {
     return this.self().click();
@@ -35,6 +34,12 @@ export default class LabeledSelectPo extends ComponentPo {
   checkOptionSelected(label: string): Cypress.Chainable {
     return this.self().find('.vs__selected-options > span.vs__selected').should((elm) => {
       expect(elm.text().trim()).to.equal(label);
+    });
+  }
+
+  checkContainsOptionSelected(label: string): Cypress.Chainable {
+    return this.self().find('.vs__selected-options > span.vs__selected').should((elm) => {
+      expect(elm.text().trim()).to.include(label);
     });
   }
 
