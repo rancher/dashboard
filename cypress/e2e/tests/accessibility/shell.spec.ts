@@ -41,7 +41,7 @@ import { StorageClassesPagePo } from '@/cypress/e2e/po/pages/explorer/storage-cl
 import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.po';
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import { FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 
 describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
   describe('Login page', () => {
@@ -102,9 +102,13 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
     });
 
     it('Fleet GitRepo - Add Repository page', () => {
+      const appBundleCreatePage = new FleetApplicationCreatePo();
       const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
-      gitRepoCreatePage.goTo();
+      appBundleCreatePage.goTo();
+      appBundleCreatePage.waitForPage();
+
+      appBundleCreatePage.createGitRepo();
       gitRepoCreatePage.waitForPage();
       gitRepoCreatePage.resourceDetail().createEditView().nameNsDescription()
         .name()
