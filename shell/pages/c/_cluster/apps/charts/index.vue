@@ -2,40 +2,29 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import Carousel from '@shell/components/Carousel';
-import ButtonGroup from '@shell/components/ButtonGroup';
-import TypeDescription from '@shell/components/TypeDescription';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, TAG
 } from '@shell/config/query-params';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
-import { Checkbox } from '@components/Form/Checkbox';
-import Select from '@shell/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
-import { removeObject, addObject } from '@shell/utils/array';
-import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
+import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
-import TabTitle from '@shell/components/TabTitle';
 import RcItemCard from '@shell/components/cards/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import RcFilterPanel from '@shell/components/RcFilterPanel';
 
 export default {
   name:       'Charts',
   components: {
     AsyncButton,
     Banner,
-    Carousel,
-    ButtonGroup,
     Loading,
-    Checkbox,
-    Select,
-    TypeDescription,
-    TabTitle,
-    RcItemCard
+    RcItemCard,
+    RcFilterPanel
   },
 
   async fetch() {
@@ -46,32 +35,23 @@ export default {
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
-    this.category = query[CATEGORY] || '';
-    this.allRepos = this.areAllEnabled();
+    this.filters.repos = query[REPO] || [];
+    this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
+    this.filters.tags = normalizeFilterQuery(query[TAG]) || [];
 
     this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
   },
 
   data() {
     return {
-      allRepos:        null,
-      category:        null,
-      operatingSystem: null,
-      searchQuery:     null,
-      showDeprecated:  null,
-      showHidden:      null,
-      chartOptions:    [
-        {
-          label:     this.t('catalog.charts.browseBtn'),
-          value:     'browse',
-          ariaLabel: this.t('catalog.charts.browseAriaLabel')
-        },
-        {
-          label:     this.t('catalog.charts.featuredBtn'),
-          value:     'featured',
-          ariaLabel: this.t('catalog.charts.featuredAriaLabel')
-        }
-      ],
+      searchQuery:    null,
+      showDeprecated: null,
+      showHidden:     null,
+      filters:        {
+        repos:      [],
+        categories: [],
+        tags:       []
+      },
       installedApps: []
     };
   },
@@ -80,56 +60,36 @@ export default {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
-    chartMode: mapPref(SHOW_CHART_MODE),
-
-    hideRepos: mapPref(HIDE_REPOS),
-
     repoOptions() {
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
-          _key:    r._key,
-          label:   r.nameDisplay,
-          weight:  ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
-          enabled: !this.hideRepos.includes(r._key),
+          value:  r._key,
+          label:  r.nameDisplay,
+          weight: ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
         };
       });
 
       out = sortBy(out, ['weight', 'label']);
 
+      // custom option to render as a link for adding a new repo
+      out.push({
+        type:  'custom',
+        value: 'add-repo-link',
+      });
+
       return out;
     },
 
-    repoOptionsForDropdown() {
-      return [{
-        label: this.t('catalog.repo.all'), all: true, enabled: this.areAllEnabled()
-      }, ...this.repoOptions];
-    },
+    tagOptions() {
+      const outSet = new Set();
 
-    flattenedRepoNames() {
-      const allChecked = this.repoOptionsForDropdown.find((repo) => repo.all && repo.enabled);
-
-      if (allChecked) {
-        return allChecked.label;
-      }
-
-      // None checked
-      if (!this.repoOptionsForDropdown.find((repo) => repo.enabled)) {
-        return this.t('generic.none');
-      }
-
-      const shownRepos = this.repoOptions.filter((repo) => !this.hideRepos.includes(repo._key));
-      const reducedRepos = shownRepos.reduce((acc, c, i) => {
-        acc += c.label;
-        const length = shownRepos.length;
-
-        if (i < length - 1) {
-          acc += ', ';
+      this.allCharts.forEach((chart) => {
+        if (Array.isArray(chart.tags)) {
+          chart.tags.forEach((tag) => outSet.add(tag));
         }
+      });
 
-        return acc;
-      }, '');
-
-      return reducedRepos;
+      return Array.from(outSet).map((tag) => ({ value: tag.toLowerCase(), label: tag }));
     },
 
     /**
@@ -160,42 +120,24 @@ export default {
      */
     filteredCharts() {
       return this.filterCharts({
-        category:    this.category,
+        category:    this.filters.categories,
         searchQuery: this.searchQuery,
-        hideRepos:   this.hideRepos
+        showRepos:   this.filters.repos,
+        tag:         this.filters.tags
       });
     },
 
-    /**
-     * Filter valid charts (alll filters minus user provided ones) by whether they are featured or not
-     *
-     * This will power the carousel
-     */
-    featuredCharts() {
-      const filteredCharts = this.filterCharts({});
-
-      const featuredCharts = filteredCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
-
-      return featuredCharts.slice(0, 5);
-    },
-
-    categories() {
+    categoryOptions() {
       const map = {};
 
-      // Filter charts by everything except itself
-      const charts = this.filterCharts({
-        searchQuery: this.searchQuery,
-        hideRepos:   this.hideRepos
-      });
-
-      for ( const chart of charts ) {
+      for ( const chart of this.allCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
 
             map[c] = {
               label: this.$store.getters['i18n/withFallback'](labelKey, null, c),
-              value: c,
+              value: c.toLowerCase(),
               count: 0
             };
           }
@@ -206,19 +148,12 @@ export default {
 
       const out = Object.values(map);
 
-      out.unshift({
-        label: this.t('catalog.charts.categories.all'),
-        value: '',
-        count: charts.length
-      });
-
       return sortBy(out, ['label']);
     },
 
-    showCarousel() {
-      return this.chartMode === 'featured' && this.featuredCharts.length;
+    clusterId() {
+      return this.$store.getters['clusterId'];
     }
-
   },
 
   watch: {
@@ -226,59 +161,22 @@ export default {
       this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
     },
 
-    category(cat) {
-      this.$router.applyQuery({ [CATEGORY]: cat || undefined });
-    },
+    filters: {
+      deep: true,
+      handler(newFilters) {
+        const query = {
+          [REPO]:     normalizeFilterQuery(newFilters.repos),
+          [CATEGORY]: normalizeFilterQuery(newFilters.categories),
+          [TAG]:      normalizeFilterQuery(newFilters.tags)
+        };
 
-    operatingSystem(os) {
-      this.$router.applyQuery({ [OPERATING_SYSTEM]: os || undefined });
-    },
-
-    showDeprecated(neu) {
-      this.$router.applyQuery({ [DEPRECATED_QUERY]: neu || undefined });
+        this.$router.applyQuery(query);
+      }
     }
   },
 
   methods: {
     get,
-
-    toggleAll(on) {
-      for ( const r of this.repoOptions ) {
-        this.toggleRepo(r, on, false);
-      }
-
-      this.$nextTick(() => {
-        this.allRepos = this.areAllEnabled();
-      });
-    },
-
-    areAllEnabled() {
-      const all = this.$store.getters['catalog/repos'];
-
-      for ( const r of all ) {
-        if ( this.hideRepos.includes(r._key) ) {
-          return false;
-        }
-      }
-
-      return true;
-    },
-
-    toggleRepo(repo, on, updateAll = true) {
-      const hidden = this.hideRepos;
-
-      if ( on ) {
-        removeObject(hidden, repo._key);
-      } else {
-        addObject(hidden, repo._key);
-      }
-
-      this.hideRepos = hidden;
-
-      if ( updateAll ) {
-        this.allRepos = this.areAllEnabled();
-      }
-    },
 
     selectChart(chart) {
       let version;
@@ -314,6 +212,20 @@ export default {
       });
     },
 
+    handleFooterItemClick(type, value) {
+      if (type === REPO) {
+        const repoKey = this.repoOptions.find((option) => option.value === value)?._key;
+
+        if (!this.filters.repos.includes(repoKey)) {
+          this.filters.repos.push(repoKey);
+        }
+      } else if (type === CATEGORY && !this.filters.categories.includes(value.toLowerCase())) {
+        this.filters.categories.push(value.toLowerCase());
+      } else if (type === TAG && !this.filters.tags.includes(value.toLowerCase())) {
+        this.filters.tags.push(value.toLowerCase());
+      }
+    },
+
     focusSearch() {
       if ( this.$refs.searchQuery ) {
         this.$refs.searchQuery.focus();
@@ -331,17 +243,20 @@ export default {
       }
     },
 
-    filterCharts({ category, searchQuery, hideRepos }) {
+    filterCharts({
+      showRepos, category, tag, searchQuery
+    }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
 
       return filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
+        showRepos,
         category,
+        tag,
         searchQuery,
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
-        hideRepos,
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
@@ -353,112 +268,34 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
-      <div class="title">
-        <h1
-          data-testid="charts-header-title"
-          class="m-0"
-        >
-          <TabTitle>{{ t('catalog.charts.header') }}</TabTitle>
-        </h1>
-      </div>
-      <div
-        v-if="featuredCharts.length > 0"
-        class="actions-container"
-      >
-        <ButtonGroup
-          v-model:value="chartMode"
-          :options="chartOptions"
-        />
-      </div>
-    </header>
-    <div v-if="showCarousel">
-      <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
-      <Carousel
-        :sliders="featuredCharts"
-        data-testid="charts-carousel"
-        @clicked="(row) => selectChart(row)"
+    <div class="header">
+      <h1 class="m-0">
+        {{ t('catalog.chart.header.charts') }}
+      </h1>
+      <AsyncButton
+        role="button"
+        :aria-label="t('catalog.charts.refresh')"
+        :label="t('catalog.charts.refresh')"
+        class="refresh-btn"
+        mode="refresh"
+        @click="refresh"
       />
     </div>
-
-    <TypeDescription resource="chart" />
-    <div class="left-right-split">
-      <Select
-        :searchable="false"
-        :options="repoOptionsForDropdown"
-        :value="flattenedRepoNames"
-        class="checkbox-select"
-        :close-on-select="false"
-        data-testid="charts-filter-repos"
-        @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
-      >
-        <template #selected-option="selected">
-          {{ selected.label }}
-        </template>
-        <template #option="repo">
-          <Checkbox
-            :value="repo.enabled"
-            :label="repo.label"
-            class="pull-left repo in-select"
-          >
-            <template #label>
-              <span>{{ repo.label }}</span>
-            </template>
-          </Checkbox>
-        </template>
-      </Select>
-
-      <Select
-        v-model:value="category"
-        :clearable="false"
-        :searchable="false"
-        :options="categories"
-        placement="bottom"
-        label="label"
-        style="min-width: 200px;"
-        :reduce="opt => opt.value"
-        data-testid="charts-filter-category"
-      >
-        <template #option="opt">
-          {{ opt.label }} ({{ opt.count }})
-        </template>
-      </Select>
-
-      <div class="filter-block">
-        <input
-          ref="searchQuery"
-          v-model="searchQuery"
-          type="search"
-          class="input-sm"
-          :placeholder="t('catalog.charts.search')"
-          data-testid="charts-filter-input"
-          :aria-label="t('catalog.charts.search')"
-          role="textbox"
-        >
-
-        <button
-          v-shortkey.once="['/']"
-          class="hide"
-          @shortkey="focusSearch()"
-        />
-        <AsyncButton
-          role="button"
-          :aria-label="t('catalog.charts.refresh')"
-          class="refresh-btn"
-          mode="refresh"
-          size="sm"
-          @click="refresh"
-        />
-      </div>
-
-      <div class="mt-10">
-        <Checkbox
-          v-model:value="showDeprecated"
-          :label="t('catalog.charts.deprecatedChartsFilter.label')"
-          data-testid="charts-show-deprecated-filter"
-        />
-      </div>
-    </div>
+    <input
+      ref="searchQuery"
+      v-model="searchQuery"
+      type="search"
+      class="input search-input"
+      :placeholder="t('catalog.charts.search')"
+      data-testid="charts-filter-input"
+      :aria-label="t('catalog.charts.search')"
+      role="textbox"
+    >
+    <button
+      v-shortkey.once="['/']"
+      class="hide"
+      @shortkey="focusSearch()"
+    />
 
     <Banner
       v-for="(err, i) in loadingErrors"
@@ -467,17 +304,48 @@ export default {
       :label="err"
     />
 
-    <div v-if="allCharts.length">
-      <div
-        v-if="filteredCharts.length === 0"
-        style="width: 100%;"
-      >
-        <div class="m-50 text-center">
+    <template v-if="allCharts.length">
+      <div class="wrapper">
+        <rc-filter-panel
+          v-model="filters"
+          :filters="[
+            {
+              key: 'repos',
+              title: 'Repository',
+              options: repoOptions
+            },
+            {
+              key: 'categories',
+              title: 'Category',
+              options: categoryOptions
+            },
+            {
+              key: 'tags',
+              title: 'Tag',
+              options: tagOptions
+            }
+          ]"
+        >
+          <template #custom-option="{ filter, option }">
+            <router-link
+              v-if="filter.key === 'repos' && option.value === 'add-repo-link'"
+              :href="`/c/${clusterId}/apps/catalog.cattle.io.clusterrepo/create`"
+              target="_blank"
+              class="add-repo-link"
+            >
+              + <span class="secondary-text-link">{{ t('catalog.charts.addNew') }}</span>
+            </router-link>
+          </template>
+        </rc-filter-panel>
+
+        <div
+          v-if="filteredCharts.length === 0"
+          class="app-cards-empty-state"
+        >
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
-      </div>
-      <template v-else>
         <div
+          v-else
           class="app-cards"
           data-testid="app-cards-container"
         >
@@ -530,8 +398,9 @@ export default {
                   <p
                     v-for="(label, j) in footerItem.labels"
                     :key="j"
-                    class="app-card-footer-item-text"
+                    class="app-card-footer-item-text secondary-text-link"
                     data-testid="app-card-footer-item-text"
+                    @click="() => handleFooterItemClick(footerItem.type, label)"
                   >
                     {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
                   </p>
@@ -540,8 +409,8 @@ export default {
             </template>
           </rc-item-card>
         </div>
-      </template>
-    </div>
+      </div>
+    </template>
     <div
       v-else
       class="m-50 text-center"
@@ -552,47 +421,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.left-right-split {
-    padding: 0 0 20px 0;
-    width: 100%;
-    z-index: z-index('fixedTableHeader');
-    background: transparent;
-    display: grid;
-    grid-template-columns: 40% auto auto;
-    align-content: center;
-    grid-column-gap: 10px;
 
-    .filter-block {
-      display: flex;
-    }
-    .refresh-btn {
-      margin-left: 10px;
-    }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
 
-    &.with-os-options {
-      grid-template-columns: 40% auto auto auto;
-    }
-
-    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
-      &{
-        grid-template-columns: auto auto !important;
-        grid-template-rows: 40px 40px;
-        grid-row-gap: 20px;
-      }
-    }
-
-    @media only screen and (max-width: map-get($breakpoints, '--viewport-7')) {
-      &{
-        &{
-          grid-template-columns: auto !important;
-          grid-template-rows: 40px 40px 40px !important;
-
-          &.with-os-options {
-            grid-template-rows: 40px 40px 40px 40px !important;
-          }
-        }
-      }
-    }
+.search-input {
+  margin-bottom: 24px;
 }
 
 .checkbox-select {
@@ -610,10 +448,30 @@ export default {
   }
 }
 
+.wrapper {
+  display: flex;
+  gap: 16px;
+}
+
+.add-repo-link {
+  all: unset;
+  cursor: pointer;
+  color: var(--link-text-secondary);
+}
+
+.app-cards-empty-state {
+  width: 100%;
+  margin-top: 32px;
+  padding: 32px;
+  text-align: center;
+}
+
 .app-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(460px, 500px));
   grid-gap: var(--gap-md);
+  width: 100%;
+  height: max-content;
   overflow: hidden;
 
   .app-card {
@@ -659,140 +517,4 @@ export default {
     }
   }
 }
-
-.checkbox-outer-container.in-select {
-  transform: translateX(-5px);
-  padding: 7px 0 6px 13px;
-  width: calc(100% + 10px);
-
-  :deep() .checkbox-label {
-    display: flex;
-    align-items: center;
-
-    & i {
-      line-height: inherit;
-    }
-  }
-
-  &:first-child {
-    &:hover {
-      background: var(--input-hover-bg);
-    }
-  }
-
-  &:hover :deep() .checkbox-label {
-      color: var(--body-text);
-    }
-
-  &.rancher {
-      &:hover {
-      background: var(--app-rancher-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-rancher-accent-text);
-    }
-    & i {
-      color: var(--app-rancher-accent)
-    }
-  }
-
-  &.partner {
-      &:hover {
-      background: var(--app-partner-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-partner-accent-text);
-    }
-    & i {
-      color: var(--app-partner-accent)
-    }
-  }
-
-  &.color1 {
-    &:hover {
-      background: var(--app-color1-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color1-accent-text);
-    }
-    & i {
-      color: var(--app-color1-accent)
-    }
-  }
-  &.color2 {
-    &:hover {
-      background: var(--app-color2-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color2-accent-text);
-    }
-    & i {
-      color: var(--app-color2-accent)
-    }
-  }
-  &.color3 {
-    &:hover {
-      background: var(--app-color3-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color3-accent-text);
-    }
-    & i {
-      color: var(--app-color3-accent)
-    }
-  }
-  &.color4 {
-    &:hover {
-      background: var(--app-color4-accent);
-    }
-    &:hover :deep().checkbox-label {
-      color: var(--app-color4-accent-text);
-    }
-    & i {
-      color: var(--app-color4-accent)
-    }
-  }
-  &.color5 {
-    &:hover {
-      background: var(--app-color5-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color5-accent-text);
-    }
-    & i {
-      color: var(--app-color5-accent)
-    }
-  }
-  &.color6 {
-    &:hover {
-      background: var(--app-color6-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color6-accent-text);
-    }
-    & i {
-      color: var(--app-color6-accent)
-    }
-  }
-  &.color7 {
-    &:hover {
-      background: var(--app-color7-accent);
-    }
-    &:hover :deep() .checkbox-label {
-      color: var(--app-color7-accent-text);
-    }
-    & i {
-      color: var(--app-color7-accent)
-    }
-  }
-  &.color8 {
-    &:hover {
-      background: var(--app-color8-accent);
-    }
-    & i {
-      color: var(--app-color8-accent)
-    }
-  }
-}
-
 </style>

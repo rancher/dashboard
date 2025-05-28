@@ -1035,6 +1035,7 @@ catalog:
     search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
+    addNew: Add new
   install:
     action:
       goToUpgrade: Edit/Upgrade
