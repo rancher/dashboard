@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BundlesTab from '@/cypress/e2e/po/detail/fleet/tabs/bundles-tab.po';
 
 /**
  * Details component for fleet.cattle.io.applications resources
@@ -21,11 +20,7 @@ export default class FleetApplicationDetailsPo extends PagePo {
     return this.self().find('[data-testid="resource-bundle-summary"] .count').invoke('text');
   }
 
-  bundlesTab() {
-    return new BundlesTab();
-  }
-
-  shwoConfig() {
+  showConfig() {
     this.self().find('[data-testid="button-group-child-1"]').click();
   }
 

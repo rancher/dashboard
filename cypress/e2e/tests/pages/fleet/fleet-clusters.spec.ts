@@ -2,7 +2,7 @@ import { FleetClusterListPagePo, FleetClusterDetailsPo } from '@/cypress/e2e/po/
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { FleetGitRepoListPagePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
@@ -12,7 +12,8 @@ import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/featu
 
 describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
   const fleetClusterListPage = new FleetClusterListPagePo();
-  const fleetGitRepoPage = new FleetGitRepoListPagePo();
+  const fleetAppBundlesListPage = new FleetApplicationListPagePo();
+  const appBundleCreatePage = new FleetApplicationCreatePo();
   const clusterList = new ClusterManagerListPagePo();
   const featureFlagsPage = new FeatureFlagsPagePo();
   const headerPo = new HeaderPo();
@@ -100,10 +101,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // go to fleet gitrepo and wait until git repo is in active state
-      fleetGitRepoPage.navTo();
-      fleetGitRepoPage.waitForPage();
+      fleetAppBundlesListPage.navTo();
+      fleetAppBundlesListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
-      fleetGitRepoPage.resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
+      fleetAppBundlesListPage.resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
 
       // go to fleet clusters
       FleetClusterListPagePo.navTo();
@@ -132,7 +133,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
       // go to cluster details in fleet
       fleetClusterListPage.goToDetailsPage(clusterName);
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
+      fleetClusterDetailsPage.waitForPage(null, 'applications');
       fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
 
       // check state
@@ -156,7 +157,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.waitForPage();
       headerPo.selectWorkspace(namespace);
       fleetClusterListPage.goToDetailsPage(clusterName);
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
+      fleetClusterDetailsPage.waitForPage(null, 'applications');
       fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
       const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
 
@@ -400,8 +401,11 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterListPage.list().resourceTable().sortableTable()
         .checkLoadingIndicatorNotVisible();
       fleetClusterListPage.goToDetailsPage('local');
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
+      fleetClusterDetailsPage.waitForPage(null, 'applications');
       fleetClusterDetailsPage.addAppButton().click();
+      appBundleCreatePage.waitForPage();
+
+      appBundleCreatePage.createGitRepo();
       gitRepoCreatePage.waitForPage();
       gitRepoCreatePage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
@@ -444,10 +448,10 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       });
 
       // go to fleet gitrepo
-      fleetGitRepoPage.navTo();
-      fleetGitRepoPage.waitForPage();
+      fleetAppBundlesListPage.navTo();
+      fleetAppBundlesListPage.waitForPage();
       headerPo.selectWorkspace(workspace);
-      fleetGitRepoPage.list().rowWithName(gitRepo).checkVisible();
+      fleetAppBundlesListPage.list().rowWithName(gitRepo).checkVisible();
 
       // go to fleet cluster list
       FleetClusterListPagePo.navTo();
@@ -469,7 +473,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
 
       const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, clusterName);
 
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
+      fleetClusterDetailsPage.waitForPage(null, 'applications');
 
       // check table headers
       const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];

@@ -1,11 +1,12 @@
 import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-import { FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import FleetApplicationDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.application.po';
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
   const fleetDashboardPage = new FleetDashboardListPagePo('_');
+  const appBundleCreatePage = new FleetApplicationCreatePo();
   const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
   let repoName;
@@ -39,6 +40,10 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
     fleetDashboardPage.getStartedButton().click();
+
+    appBundleCreatePage.waitForPage();
+    appBundleCreatePage.createGitRepo();
+
     gitRepoCreatePage.waitForPage();
     gitRepoCreatePage.mastheadTitle().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');

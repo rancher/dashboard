@@ -9,15 +9,15 @@ import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
-export class FleetGitRepoListPagePo extends BaseListPagePo {
+export class FleetApplicationListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/application`;
 
   constructor() {
-    super(FleetGitRepoListPagePo.url);
+    super(FleetApplicationListPagePo.url);
   }
 
   goTo() {
-    return cy.visit(FleetGitRepoListPagePo.url);
+    return cy.visit(FleetApplicationListPagePo.url);
   }
 
   navTo() {
@@ -28,15 +28,33 @@ export class FleetGitRepoListPagePo extends BaseListPagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuEntryByLabel('Git Repos');
+    sideNav.navToSideMenuEntryByLabel('App Bundles');
 
     this.list().checkVisible();
   }
 }
 
+export class FleetApplicationCreatePo extends BaseDetailPagePo {
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor() {
+    super('/c/_/fleet/application/create');
+  }
+
+  createGitRepo() {
+    return this.self().get(`[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]`).click();
+  }
+
+  createHelmOp() {
+    return this.self().get(`[data-testid="subtype-banner-item-fleet.cattle.io.helmop"]`).click();
+  }
+}
+
 export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
   private static createPath(fleetWorkspace?: string, gitRepoName?: string) {
-    const root = `/c/_/fleet/fleet.cattle.io.gitrepo`;
+    const root = `/c/_/fleet/application/fleet.cattle.io.gitrepo`;
 
     return fleetWorkspace ? `${ root }/${ fleetWorkspace }/${ gitRepoName }` : `${ root }/create`;
   }
@@ -136,7 +154,7 @@ export class FleetGitRepoDetailsPo extends BaseDetailPagePo {
     return new ResourceTablePo('#bundles [data-testid="sortable-table-list-container"]');
   }
 
-  shwoConfig() {
+  showConfig() {
     this.self().find('[data-testid="button-group-child-1"]').click();
   }
 
