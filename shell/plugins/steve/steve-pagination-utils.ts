@@ -136,6 +136,14 @@ class NamespaceProjectFilters {
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
   /**
+   * Match
+   * - a-z (case insensitive)
+   * - 0-9
+   * - `-`, `_`, `.`
+   */
+  static VALID_FIELD_VALUE_REGEX = /^[\w\-.]+$/;
+
+  /**
    * Filtering with the vai cache supports specific fields
    * 1) Those listed here
    * 2) Those references in the schema's attributes.fields list (which is used by generic lists)
@@ -484,8 +492,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // != not exact match (!equals + exact)
               // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
+              const quotedValue = StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(value) ? value : `"${ value }"`;
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
+              return `${ this.convertArrayPath(field.field) }${ operator }${ quotedValue }`;
             }
 
             return field.value;
