@@ -100,7 +100,7 @@ export function createHeaders(
 
   // Always try to have an identifier
   if ( !hasName ) {
-    insertAt(out, 1, idColumn || nameColumn);
+    insertAt(out, 1, nameColumn || idColumn );
     if ( namespaced ) {
       insertAt(out, 2, namespaceColumn);
     }

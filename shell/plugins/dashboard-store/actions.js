@@ -9,6 +9,8 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam, parse } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { FilterArgs } from '@shell/types/store/pagination.types';
+import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -399,6 +401,9 @@ export default {
   },
 
   /**
+   * If result not already cached, make a http request to fetch a specific set of resources
+   *
+   * This accepts all the new sql-cache backed api features (sort, filter, etc)
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
@@ -478,9 +483,59 @@ export default {
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
     return opt.transient ? {
-      data: out.data,
+      data: await dispatch('createMany', out.data), // Return classified objects
       pagination
     } : findAllGetter(getters, type, opt);
+  },
+
+  /**
+   * Find results matching a kube `labelSelector` object
+   *
+   * If result not already cached, make a http request to fetch resources matching the selector/s
+   *
+   * This is different if vai based pagination is on
+   * a) Pagination Enabled - use the new sql-cache backed api - findPage
+   * b) Pagination Disabled - use the old 'native kube api' - findMatching
+   *
+   * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
+   */
+  async findLabelSelector(ctx, {
+    type,
+    context,
+    matching: {
+      namespace,
+      labelSelector
+    },
+    opt
+  }) {
+    const { getters, dispatch } = ctx;
+    const args = {
+      id: type,
+      context,
+    };
+
+    if (getters[`paginationEnabled`]?.(args)) {
+      if (isLabelSelectorEmpty(labelSelector)) {
+        throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
+      }
+
+      // opt of type ActionFindPageArgs
+      return dispatch('findPage', {
+        type,
+        opt: {
+          ...(opt || {}),
+          namespaced: namespace,
+          pagination: new FilterArgs({ labelSelector }),
+        }
+      });
+    }
+
+    return dispatch('findMatching', {
+      type,
+      selector: labelSelectorToSelector(labelSelector),
+      opt,
+      namespace,
+    });
   },
 
   async findMatching(ctx, {
@@ -500,7 +555,13 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
-    if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
+
+    if ( opt.force !== true && getters['haveSelector'](type, selector)) {
+      return getters.all(type);
+    }
+
+    // Optimisation - We can pretend like we've fetched a specific selectors worth instead of replacing ALL pods with only SOME
+    if ( opt.force !== true && getters['haveAll'](type)) {
       return getters.matching( type, selector, namespace );
     }
 
@@ -508,6 +569,7 @@ export default {
 
     opt = opt || {};
     opt.labelSelector = selector;
+    opt.namespaced = namespace;
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
 
@@ -536,7 +598,7 @@ export default {
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return getters.matching( type, selector, namespace );
+    return getters.all(type);
   },
 
   // opt:
