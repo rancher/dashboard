@@ -155,9 +155,16 @@ export default {
 
   methods: {
     // resizeHandler = in mixin
-    focusSearch() {
+    focusSearch(ev) {
       if (this.isView || this.disabled || this.loading) {
         return;
+      }
+
+      const searchBox = document.querySelector('.vs__search');
+
+      // added to mitigate https://github.com/rancher/dashboard/issues/14361
+      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
+        ev.preventDefault();
       }
 
       // we need this override as in a "closeOnSelect" type of component
@@ -299,7 +306,7 @@ export default {
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
-    @keydown.space.prevent="focusSearch"
+    @keydown.space="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
