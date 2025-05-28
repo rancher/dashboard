@@ -107,11 +107,11 @@ export default {
 
       // Page Size
       const hack = true && url.indexOf('/v1/management.cattle.io.clusterroletemplatebindings') >= 0;
-      if (isSteveVai && opt.isList && hack) {
 
+      if (isSteveVai && opt.isList && hack) {
         // Use of pagesize is restricted to findPage and would have been caught by stevePagination
         // Here we're ensuring behaviour with vai off (where default limit of 1000) matches vai on (force a limit). This also stops crazy high return numbers
-        url += `${ url.includes('?') ? '&' : '?' }pagesize=${paginationUtils.defaultPageSize}`;
+        url += `${ url.includes('?') ? '&' : '?' }pagesize=${ paginationUtils.defaultPageSize }`;
       }
       // End: Page Size
 
