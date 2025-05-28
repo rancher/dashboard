@@ -398,7 +398,7 @@ $fontColor: var(--input-label);
 
   .checkbox-info {
     line-height: normal;
-    margin-left: 2px;
+    margin-left: 4px;
 
     &:focus-visible {
       @include focus-outline;

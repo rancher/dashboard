@@ -6,7 +6,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
-import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
+import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 
@@ -86,7 +86,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     header.kubectlShell().openAndExecuteCommand('get no');
     header.kubectlShell().closeTerminal();
-    header.kubectlShell().checkNotVisible();
   });
 
   it('can download kubeconfig from header', () => {
@@ -245,15 +244,16 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
-    clusterDashboard.eventsList().resourceTable().sortableTable().rowElements()
+    clusterDashboard.eventsList().sortableTable().rowElements()
       .should('have.length.gte', 2);
 
     clusterDashboard.fullEventsLink().click();
 
-    const events = new EventsPagePo('local');
+    const events = new EventsPageListPo('local');
 
     events.waitForPage();
-    events.sortableTable().rowElements().should('have.length.gte', 2);
+    events.list().resourceTable().sortableTable().rowElements()
+      .should('have.length.gte', 2);
   });
 
   it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
@@ -263,7 +263,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
+    clusterDashboard.eventsList().sortableTable().checkRowCount(true, 1);
 
     let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
@@ -272,10 +272,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
       }
 
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
         .self()
         .scrollIntoView();
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
@@ -283,16 +283,16 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       clusterDashboard.fullEventsLink().click();
       cy.wait('@eventsNoData');
-      const events = new EventsPagePo('local');
+      const events = new EventsPageListPo('local');
 
       events.waitForPage();
 
-      events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+      events.list().resourceTable().sortableTable().checkRowCount(true, 1);
 
       const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
         'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
-      events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+      events.list().resourceTable().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedFullHeaders[i]);

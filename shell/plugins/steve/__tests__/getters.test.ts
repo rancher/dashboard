@@ -1,6 +1,8 @@
 import _getters from '@shell/plugins/steve/getters';
 
-const { urlFor, urlOptions, pathExistsInSchema } = _getters;
+const {
+  urlFor, urlOptions, pathExistsInSchema, isSteveUrl, isSteveCacheUrl
+} = _getters;
 
 describe('steve: getters:', () => {
   describe('urlFor', () => {
@@ -66,8 +68,14 @@ describe('steve: getters:', () => {
   });
 
   describe('urlOptions', () => {
-    const urlOptionsGetter = urlOptions(undefined, undefined, undefined, { 'features/get': () => false });
-    const urlOptionsGetterVaiOn = urlOptions(undefined, undefined, undefined, { 'features/get': () => true });
+    const urlOptionsGetter = urlOptions(undefined, {
+      isSteveUrl:      isSteveUrl(),
+      isSteveCacheUrl: () => false,
+    });
+    const urlOptionsGetterVaiOn = urlOptions(undefined, {
+      isSteveUrl:      isSteveUrl(),
+      isSteveCacheUrl: () => true,
+    });
 
     it('expects urlOptions to return a function', () => {
       expect(typeof urlOptions()).toBe('function');

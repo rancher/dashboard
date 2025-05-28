@@ -1,6 +1,6 @@
 import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import { promptModal } from '@/cypress/e2e/po/prompts/shared/promptInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 
 const performancePage = new PerformancePagePo();
 const performanceSettingsOriginal = [];
@@ -176,7 +176,7 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     performancePage.namespaceFilteringCheckbox().set();
 
     promptModal().getBody().contains('Required Namespace / Project Filtering is incompatible with Manual Refresh and Incremental Loading. Enabling this will disable them.');
-    promptModal().submit('Continue');
+    promptModal().clickActionButton('Continue');
     performancePage.namespaceFilteringCheckbox().isChecked();
     performancePage.applyAndWait('forceNsFilterV2-true').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);

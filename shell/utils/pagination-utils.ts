@@ -63,7 +63,7 @@ class PaginationUtils {
     const settings = this.getSettings({ rootGetters });
 
     // No setting, not enabled
-    if (!settings?.enabled) {
+    if (!settings) {
       return false;
     }
 

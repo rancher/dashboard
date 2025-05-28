@@ -37,18 +37,25 @@ const GC_IGNORE_TYPES = {
 const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
 
 export default {
-  // TODO: RC description
-  isSteveUrl: () => (urlPath) => steveRegEx.test(urlPath),
-  // TODO: RC description
-  isSteveVai: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
+  /**
+   * Is the url path a rancher steve one?
+   *
+   * Can be used to change behaviour given steve api
+   */
+  isSteveUrl:      () => (urlPath) => steveRegEx.test(urlPath),
+  /**
+   * Is the url path a rancher steve one AND the steve cache is enabled?
+   *
+   * Can be used to change behaviour given steve cache api functionality
+   */
+  isSteveCacheUrl: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
 
-  urlOptions: (state, getters, rootState, rootGetters) => (url, opt, schema) => {
+  urlOptions: (state, getters) => (url, opt, schema) => {
     opt = opt || {};
-    const parsedUrl = parse(url);
+    const parsedUrl = parse(url || '');
 
     const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
-    const isSteveVai = getters.isSteveVai(parsedUrl.path);
-
+    const isSteveCacheUrl = getters.isSteveCacheUrl(parsedUrl.path);
     const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
 
     if (stevePagination) {
@@ -78,7 +85,7 @@ export default {
           }
 
           const filterStrings = vals.map((val) => {
-            return `${ encodeURI(key) }${ isSteveVai ? '~' : '=' }${ encodeURI(val) }`;
+            return `${ encodeURI(key) }${ isSteveCacheUrl ? '~' : '=' }${ encodeURI(val) }`;
           });
           const urlEnding = url.charAt(url.length - 1);
           const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
@@ -106,11 +113,12 @@ export default {
       // End: Limit
 
       // Page Size
-      const hack = true && url.indexOf('/v1/management.cattle.io.clusterroletemplatebindings') >= 0;
+      const hack = true && url.indexOf('/v1/management.cattle.io.clusterroletemplatebindings') >= 0; // TODO: RC remove
 
-      if (isSteveVai && opt.isList && hack) {
-        // Use of pagesize is restricted to findPage and would have been caught by stevePagination
-        // Here we're ensuring behaviour with vai off (where default limit of 1000) matches vai on (force a limit). This also stops crazy high return numbers
+      if (isSteveCacheUrl && opt.isList && hack) {
+        // This is a steve url and the new cache is being used.
+        // Pre-cache there was always a max page size (given kube proxy). With cache there's not.
+        // So ensure we don't go backwards (and fetch crazy high resource counts) by adding a default
         url += `${ url.includes('?') ? '&' : '?' }pagesize=${ paginationUtils.defaultPageSize }`;
       }
       // End: Page Size

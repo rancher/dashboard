@@ -333,7 +333,6 @@ export default {
       this.chartValues = mergeWithReplace(
         merge({}, this.versionInfo?.values || {}),
         userValues,
-        { replaceObjectProps: true }
       );
 
       if (this.showCustomRegistry) {

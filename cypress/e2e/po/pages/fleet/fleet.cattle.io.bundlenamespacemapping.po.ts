@@ -1,10 +1,9 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { SharedComponentsPo } from '@/cypress/e2e/po/components/shared-components/shared-components.po';
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import FleetBundleNsMappingCreateEditPo from '@/cypress/e2e/po/edit/fleet/fleet.cattle.io.bundlenamespacemapping.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 
-export class FleetBundleNamespaceMappingListPagePo extends PagePo {
+export class FleetBundleNamespaceMappingListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/fleet.cattle.io.bundlenamespacemapping`
 
   constructor() {
@@ -16,9 +15,9 @@ export class FleetBundleNamespaceMappingListPagePo extends PagePo {
   }
 
   static navTo() {
-    const fleetDashboardPage = new FleetDashboardPagePo('_');
+    const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
-    FleetDashboardPagePo.navTo();
+    FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
@@ -26,12 +25,20 @@ export class FleetBundleNamespaceMappingListPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Advanced');
     sideNav.navToSideMenuEntryByLabel('Bundle Namespace Mappings');
   }
+}
 
-  sharedComponents() {
-    return new SharedComponentsPo(this.self());
+export class FleetBundleNsMappingCreateEditPo extends BaseDetailPagePo {
+  private static createPath(workspace?: string, id?: string ) {
+    const root = `/c/_/fleet/fleet.cattle.io.bundlenamespacemapping`;
+
+    return id ? `${ root }/${ workspace }/${ id }` : `${ root }/create`;
   }
 
-  createMappingForm(fleetWorkspace?: string, id?: string): FleetBundleNsMappingCreateEditPo {
-    return new FleetBundleNsMappingCreateEditPo(fleetWorkspace, id);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(workspace?: string, id?: string) {
+    super(FleetBundleNsMappingCreateEditPo.createPath(workspace, id));
   }
 }
