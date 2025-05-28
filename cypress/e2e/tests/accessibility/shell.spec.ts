@@ -528,7 +528,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.createCluster();
-        createClusterPage.rkeToggle().set('RKE2/K3s');
         createClusterPage.selectCreate(2);
         loadingPo.checkNotExists();
         createClusterPage.rke2PageTitle().should('include', 'Create DigitalOcean');
