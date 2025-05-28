@@ -1,4 +1,4 @@
-import { FleetGitRepoListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
@@ -26,7 +26,7 @@ let adminUserId = '';
 const reposToDelete = [];
 
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  const listPage = new FleetGitRepoListPagePo();
+  const listPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();
 
   before(() => {
@@ -207,7 +207,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       headerPo.selectWorkspace(workspace);
 
       // check table headers
-      const expectedHeadersListView = ['State', 'Name', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+      const expectedHeadersListView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
       listPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
