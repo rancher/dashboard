@@ -18,7 +18,9 @@ export default {
     return await loadSchemas(ctx, watch);
   },
 
-  async request({ state, dispatch, rootGetters, getters }, pOpt ) {
+  async request({
+    state, dispatch, rootGetters, getters
+  }, pOpt ) {
     const opt = pOpt.opt || pOpt;
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
@@ -83,7 +85,7 @@ export default {
     }
 
     let paginatedResult;
-    const isSteveVai = getters.isSteveVai(opt.url);
+    const isSteveCacheUrl = getters.isSteveCacheUrl(opt.url);
 
     while (true) {
       try {
@@ -94,16 +96,17 @@ export default {
         }
 
         if (!paginatedResult) {
-          const pageByNumber = isSteveVai && opt.url.includes(`pagesize=${paginationUtils.defaultPageSize}`) ? {
+          const pageByNumber = isSteveCacheUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
             total: out.count,
-            page: 1,
-            url: opt.url,
+            page:  1,
+            url:   opt.url,
           } : null;
-          const pageByLimit = !pageByNumber ? {  } : null;
+          const pageByLimit = !pageByNumber ? { } : null;
 
           paginatedResult = {
             // initialise some settings
-            pageByLimit, pageByNumber,
+            pageByLimit,
+            pageByNumber,
             // First result, so store it
             out
           };
@@ -112,12 +115,12 @@ export default {
           paginatedResult.out.data = paginatedResult.out.data.concat(out.data);
         }
 
-        const { total, page, url } = paginatedResult.pageByNumber || {}
+        const { total, page, url } = paginatedResult.pageByNumber || {};
 
         if (paginatedResult.pageByLimit && out?.pagination?.next) {
           opt.url = out?.pagination?.next;
         } else if (paginatedResult.pageByNumber && (total > paginationUtils.defaultPageSize * page)) {
-          paginatedResult.pageByNumber.page += 1
+          paginatedResult.pageByNumber.page += 1;
 
           opt.url = addParam(url, 'page', `${ paginatedResult.pageByNumber.page }`);
         } else {

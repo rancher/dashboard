@@ -55,12 +55,13 @@ export default {
     const parsedUrl = parse(url || '');
 
     const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
-    const isSteveCacheUrl = getters.isSteveCacheUrl(parsedUrl.path);
     const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
 
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
     } else {
+      const isSteveCacheUrl = getters.isSteveCacheUrl(parsedUrl.path);
+
       // labelSelector
       if ( opt.labelSelector ) {
         url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
@@ -113,9 +114,7 @@ export default {
       // End: Limit
 
       // Page Size
-      const hack = true && url.indexOf('/v1/management.cattle.io.clusterroletemplatebindings') >= 0; // TODO: RC remove
-
-      if (isSteveCacheUrl && opt.isList && hack) {
+      if (isSteveCacheUrl && opt.isCollection) {
         // This is a steve url and the new cache is being used.
         // Pre-cache there was always a max page size (given kube proxy). With cache there's not.
         // So ensure we don't go backwards (and fetch crazy high resource counts) by adding a default

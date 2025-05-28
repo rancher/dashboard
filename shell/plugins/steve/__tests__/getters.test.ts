@@ -1,7 +1,7 @@
 import _getters from '@shell/plugins/steve/getters';
 
 const {
-  urlFor, urlOptions, pathExistsInSchema, isSteveUrl, isSteveCacheUrl
+  urlFor, urlOptions, pathExistsInSchema, isSteveUrl
 } = _getters;
 
 describe('steve: getters:', () => {

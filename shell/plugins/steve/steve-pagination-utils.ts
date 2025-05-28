@@ -369,11 +369,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       params.push(`page=${ opt.pagination.page }`);
     }
 
-    if (opt.pagination.pageSize !== null) {
+    if (!!opt.pagination.pageSize || opt.pagination.pageSize === 0) {
       params.push(`pagesize=${ opt.pagination.pageSize }`);
     } else {
       // Prevent unlimited resources in response
-      params.push(`pagesize=${paginationUtils.defaultPageSize}`);
+      params.push(`pagesize=${ paginationUtils.defaultPageSize }`);
     }
 
     if (opt.pagination.sort?.length) {
