@@ -221,6 +221,7 @@ export default {
 
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
+    opt.isCollection = true;
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
@@ -569,6 +570,7 @@ export default {
 
     opt = opt || {};
     opt.labelSelector = selector;
+    opt.isCollection = true;
     opt.namespaced = namespace;
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = conditionalDepaginate(typeOptions?.depaginate, { ctx, args: { type, opt } });
