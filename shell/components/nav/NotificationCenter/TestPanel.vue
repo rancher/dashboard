@@ -32,7 +32,7 @@ const addAll = () => {
 
   store.dispatch('notifications/add', {
     level:         NotificationLevel.Info,
-    title:         'Hey, have I got some information for you',
+    title:         'Hey, have I got some information for you - this is a long title that should be clipped',
     message:       'The StackState extension failed to load after 3 attempts.',
     primaryAction: {
       label:  'Learn More',
