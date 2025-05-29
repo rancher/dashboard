@@ -26,6 +26,7 @@ const DEFAULT_BANNER_SETTING = {
     fontSize:       '14px',
     textDecoration: null,
     text:           null,
+    html:           null,
   },
   bannerFooter: {
     background:     null,
@@ -35,7 +36,8 @@ const DEFAULT_BANNER_SETTING = {
     fontStyle:      null,
     fontSize:       '14px',
     textDecoration: null,
-    text:           null
+    text:           null,
+    html:           null,
   },
   bannerConsent: {
     background:     null,
@@ -47,6 +49,7 @@ const DEFAULT_BANNER_SETTING = {
     textDecoration: null,
     text:           null,
     button:         null,
+    html:           null,
   },
   showHeader:  'false',
   showFooter:  'false',
@@ -71,6 +74,7 @@ export default {
     Object.assign(this, hash);
 
     this.uiBannerIndividual = getIndividualBanners(this.$store);
+    this.overlayDefaults(this.bannerVal);
   },
 
   data() {
@@ -127,12 +131,26 @@ export default {
           this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
 
           overlayIndividualBanners(this.bannerVal, this.uiBannerIndividual);
+          this.overlayDefaults(this.bannerVal);
         } catch {}
       }
     }
   },
 
   methods: {
+    // We remove some of the defaults (e.g. font size) when we save as HTML
+    // so add them back in so that if the user switches back to text, they have those defaults
+    overlayDefaults(value) {
+      Object.keys(value).forEach((key) => {
+        if (key.startsWith('banner')) {
+          value[key] = {
+            ...DEFAULT_BANNER_SETTING[key] || {},
+            ...value[key]
+          };
+        }
+      });
+    },
+
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
       const {
         bannerHeader, bannerFooter, bannerConsent, banner, loginError
@@ -175,8 +193,44 @@ export default {
       return parsedBanner;
     },
 
+    tidy(val) {
+      Object.keys(val).forEach((k) => {
+        if (k.startsWith('banner')) {
+          const banner = val[k];
+          const isHtml = banner.isHtml === undefined ? !!banner.html : banner.isHtml;
+
+          if (isHtml) {
+            banner.html = banner.html?.trim(); // Remove any whitespace at start and end
+            delete banner.text;
+
+            // Remove all of the fields for text formatting (not needed for HTML)
+            delete banner.textAlignment;
+            delete banner.textDecoration;
+            delete banner.fontWeight;
+            delete banner.fontStyle;
+            delete banner.fontSize;
+          } else {
+            delete banner.html;
+          }
+
+          delete banner.isHtml;
+
+          Object.keys(banner).forEach((f) => {
+            if (banner[f] === null) {
+              delete banner[f];
+            }
+          });
+        }
+      });
+
+      return val;
+    },
+
     async save(btnCB) {
-      this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
+      // Clone the value - we'll tidy it up before save, but want to keep the full value in case the save errors
+      const cpy = JSON.parse(JSON.stringify(this.bannerVal));
+
+      this.uiBannerSetting.value = JSON.stringify(this.tidy(cpy));
 
       this.errors = [];
 
