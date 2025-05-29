@@ -11,6 +11,9 @@ import garbageCollect from '@shell/utils/gc/gc';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { labelSelectorToSelector } from '@shell/utils/selector-typed';
 
+/**
+ * opt: ActionFindPageArgs
+ */
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
   type = getters.normalizeType(type);

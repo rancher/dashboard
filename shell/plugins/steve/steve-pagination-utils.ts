@@ -362,13 +362,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     };
   }
 
-  public createParamsForPagination(schema: Schema, opt: ActionFindPageArgs): string | undefined {
+  public createParamsForPagination({ schema, opt }: {schema?: Schema, opt: ActionFindPageArgs}): string | undefined {
     if (!opt.pagination) {
       return;
     }
 
     const params: string[] = [];
-    const namespaceParam = this.convertPaginationParams(schema, opt.pagination.projectsOrNamespaces);
+    const namespaceParam = this.convertPaginationParams({ schema, filters: opt.pagination.projectsOrNamespaces });
 
     if (namespaceParam) {
       params.push(namespaceParam);
@@ -402,12 +402,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       params.push(`sort=${ joined }`);
 
       if (validateFields.invalid.length) {
-        console.warn(`Pagination API does not support sorting '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+        console.warn(`Pagination API does not support sorting '${ schema?.id || opt.url }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
       }
     }
 
     if (opt.pagination.filters?.length) {
-      const filters = this.convertPaginationParams(schema, opt.pagination.filters);
+      const filters = this.convertPaginationParams({ schema, filters: opt.pagination.filters });
 
       if (filters) {
         params.push(filters);
@@ -415,7 +415,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     }
 
     if (opt.pagination.labelSelector) {
-      const filters = this.convertLabelSelectorPaginationParams(schema, opt.pagination.labelSelector);
+      const filters = this.convertLabelSelectorPaginationParams({ labelSelector: opt.pagination.labelSelector });
 
       if (filters) {
         params.push(filters);
@@ -431,7 +431,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   /**
    * Check if the API supports filtering by this field
    */
-  private validateField(state: { checked: string[], invalid: string[]}, schema: Schema, field?: string) {
+  private validateField(state: { checked: string[], invalid: string[]}, schema?: Schema, field?: string) {
     if (!field) {
       return; // no field, so not invalid
     }
@@ -445,6 +445,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     // First check in our hardcoded list of supported filters
     if (
       process.env.NODE_ENV === 'dev' &&
+      !!schema &&
       [
         StevePaginationUtils.VALID_FIELDS[''], // Global
         StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
@@ -475,7 +476,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   /**
    * Convert our {@link PaginationParam} definition of params to a set of url params
    */
-  private convertPaginationParams(schema: Schema, filters: PaginationParam[] = []): string {
+  private convertPaginationParams({ schema, filters = [] }: {schema?: Schema, filters: PaginationParam[]}): string {
     const validateFields = {
       checked: new Array<string>(),
       invalid: new Array<string>(),
@@ -516,7 +517,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     const res = Object.keys(unique).join('&'); // This means AND
 
     if (validateFields.invalid.length) {
-      console.warn(`Pagination API does not support filtering '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+      console.warn(`Pagination API does not support filtering '${ schema?.id || 'unknown' }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
     }
 
     return res;
@@ -528,7 +529,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * A lot of the requirements and details are taken directly from
    * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
    */
-  private convertLabelSelectorPaginationParams(schema: Schema, labelSelector: KubeLabelSelector): string {
+  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
     // Get a list of matchExpressions
     const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
 
