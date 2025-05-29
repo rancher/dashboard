@@ -657,6 +657,7 @@ authConfig:
   oidc:
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
+    cognito: Configure an Amazon Cognito account
     rancherUrl: Rancher URL
     clientId: Client ID
     clientSecret: Client Secret
@@ -675,6 +676,8 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
+    cognitoIssuer: Issuer URL
+    cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
       label: Scopes
       placeholder: openid
@@ -6962,6 +6965,8 @@ model:
       googleoauth: Google
       genericoidc: Generic OIDC
       keycloakoidc: Keycloak
+      cognito: Amazon Cognito
+
 
   cluster:
     name: Cluster Name
