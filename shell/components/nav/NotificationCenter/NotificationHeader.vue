@@ -8,11 +8,11 @@ const store = useStore();
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
 const markAllReadButton = ref<HTMLElement>();
 
-const markAllRead = () => {
+const markAllRead = (keyboard: boolean) => {
   store.dispatch('notifications/markAllRead');
 
-  // If we have focus, then move to the next item
-  if (document.activeElement === markAllReadButton?.value) {
+  // If we have focus, then move to the next item if activated by the keyboard
+  if (keyboard && document.activeElement === markAllReadButton?.value) {
     moveFocus(true);
   }
 };
@@ -71,8 +71,8 @@ const gotFocus = (e: Event) => {
           tabindex="-1"
           href="#"
           @keydown.up.down.stop="handleKeydown"
-          @keydown.enter.space.stop="markAllRead"
-          @click="markAllRead"
+          @keydown.enter.space.stop="markAllRead(true)"
+          @click="markAllRead(false)"
         >
           {{ t('notificationCenter.markAllRead') }}
         </a>
@@ -86,7 +86,6 @@ const gotFocus = (e: Event) => {
   [dropdown-menu-item] {
     display: flex;
     flex-direction: column;
-    gap: 8px;
 
     .notification-border {
       border-bottom: 1px solid var(--border);
@@ -97,7 +96,7 @@ const gotFocus = (e: Event) => {
     .notification-header {
       display: flex;
       flex: 1;
-      padding: 8px 20px;
+      padding: 6px 16px 16px 16px; // already 10px at the top of the dropdown
 
       .notification-title {
         font-weight: bold;

@@ -274,6 +274,7 @@ nav:
     label: Page actions menu
     button:
       label: Open page actions menu
+  notifications: Notifications Center
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
@@ -4165,11 +4166,12 @@ node:
     forceDelete: Force Delete
 
 notificationCenter:
-  caughtUp: "You're all caught up"
+  caughtUp: "You're all caught up!"
   dates:
     today: Today
     yesterday: Yesterday
   markAllRead: Mark all as read
+  markRead: Mark as read
   title: Notifications
 
 persistentVolume:
