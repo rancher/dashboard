@@ -9,12 +9,13 @@ const clientId = 'test-client-id';
 const clientSecret = 'test-client-secret';
 const issuerUrl = 'test-issuer-url';
 const defaultScope = 'openid email';
-const defaultUrl = 'https://127.0.0.1:8005/verify-auth';
 
 const mockStatusCode = 200;
 const mockBody = {};
 
 describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
+  const defaultUrl = `${ Cypress.config().baseUrl }/verify-auth`;
+
   beforeEach(() => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
