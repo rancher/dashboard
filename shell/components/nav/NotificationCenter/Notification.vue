@@ -209,6 +209,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     ref="dropdownMenuItem"
     dropdown-menu-item
     tabindex="-1"
+    role="menuitem"
     @keydown.up.down.stop="handleKeydown"
     @focus.stop="gotFocus"
     @click.stop
@@ -234,6 +235,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           class="read-indicator"
           role="button"
           :disabled="!!item.read"
+          :aria-label="t('notificationCenter.markRead')"
           @keydown.enter.space.stop="markRead($event, true)"
           @keydown.tab.stop="innerFocusNext($event)"
           @keydown.escape.stop="exitFocusTrap"
@@ -246,7 +248,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
         </button>
       </div>
       <div class="bottom">
-        <div class="created">
+        <div class="created text-muted">
           {{ age }}
         </div>
         <div
@@ -266,7 +268,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
               class="pb-foreground"
             />
           </div>
-          <div class="progress-percent">
+          <div class="progress-percent text-muted">
             {{ item.progress }}%
           </div>
         </div>
@@ -311,8 +313,8 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     display: flex;
     gap: 8px;
     align-items: center;
-    padding: 9px 8px;
-    margin: 0 9px;
+    padding: 12px;
+    margin: 0 8px;
     border-radius: 4px;
 
     &:focus-visible, &:focus {
@@ -332,21 +334,24 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
 
         .icon {
           display: flex;
-          width: 32px;
           text-align: center;
           vertical-align: middle;
-          margin-right: 4px;
+          width: 32px; // 20px icon + 12px right spacing
         }
 
         .item-title {
           flex: 1;
-          font-weight: bold;
+          font-weight: 700;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         button.read-indicator {
           line-height: normal;
           min-height: auto;
           padding: 0;
+          margin-left: 16px;
 
           &:disabled {
             cursor: default;
@@ -367,24 +372,28 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
               background-color: var(--primary);
             }
           }
+
+          // Add subtle effect when hovering over the unread button
+          &:hover .read-icon.unread {
+            opacity: 0.5;
+          }
         }
       }
 
       .bottom {
-        margin-left: 36px;
+        margin-left: 32px; // 20px icon + 12px spacing
 
         .created {
           font-size: 12px;
-          opacity: 0.6;
         }
 
         .message {
-          margin-top: 8px;
+          padding: 6px 0;
         }
 
         .progress {
           display: flex;
-          margin-top: 5px;
+          margin-top: 6px;
 
           .progress-bar {
             align-items: center;
@@ -394,8 +403,8 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
 
             .pb-foreground, .pb-background {
               position: absolute;
-              height: 8px;
-              border-radius: 4px;
+              height: 6px;
+              border-radius: 5px;
               background-color: var(--primary);
               transition: width 0.1s ease-in;
             }
@@ -407,19 +416,19 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           }
 
           .progress-percent {
-            margin-left: 10px;
-            min-width: 48px;
-            opacity: 0.5;
+            font-size: 13px;
+            margin-left: 16px;
+            min-width: 40px;
             text-align: right;
           }
         }
 
         .notification-actions {
           display: flex;
-          margin-top: 10px;
+          margin-top: 12px;
 
           > button:not(:first-child) {
-            margin-left: 10px;
+            margin-left: 12px;
           }
         }
       }
