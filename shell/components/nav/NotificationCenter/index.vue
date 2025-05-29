@@ -48,13 +48,13 @@ const open = (opened: boolean) => {
 
 <template>
   <rc-dropdown
-    :aria-label="t('nav.notifications')"
+    :aria-label="t('nav.notifications.label')"
     @update:open="open"
   >
     <rc-dropdown-trigger
       tertiary
       data-testid="notifications-center"
-      :aria-label="t('nav.actionMenu.button.label')"
+      :aria-label="t('nav.notifications.button.label')"
     >
       <div class="level-indicator">
         <i class="icon icon-lg icon-notify-bell" />
@@ -144,7 +144,6 @@ const open = (opened: boolean) => {
       height: 11px;
       width: 11px;
       background-color: var(--primary);
-      border: 1px solid var(--header-bg); // Needed so we can see this when hovered
       transition: opacity 0.5s ease-in-out;
       opacity: 0;
 
