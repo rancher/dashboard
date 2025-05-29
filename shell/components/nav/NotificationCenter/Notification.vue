@@ -40,7 +40,7 @@ const secondaryActionButton = ref<HTMLElement>();
 const tabItems = computed(() => {
   const items: HTMLElement[] = [];
 
-  if (!props.item.read && readButton.value) {
+  if (readButton.value) {
     items.push(readButton.value);
   }
 
@@ -53,6 +53,11 @@ const tabItems = computed(() => {
   }
 
   return items;
+});
+
+// Ensure the aria label changes when read/unread is toggled
+const toggleLabel = computed(() => {
+  return props.item.read ? t('notificationCenter.markRead') : t('notificationCenter.markUnread');
 });
 
 const age = computed(() => {
@@ -76,36 +81,21 @@ const action = (action: NotificationAction) => {
   window.open(action.target, '_blank');
 };
 
-const markRead = (e: MouseEvent | KeyboardEvent, fromKeyboard = false) => {
-  store.dispatch('notifications/markRead', props.item.id);
+const toggleRead = (e: MouseEvent | KeyboardEvent, fromKeyboard = false) => {
+  if (props.item.read) {
+    store.dispatch('notifications/markUnread', props.item.id);
+  } else {
+    store.dispatch('notifications/markRead', props.item.id);
+  }
 
-  // Okay, if the user marks the notification as read, the button is then disabled
-  // as you can't toggle it back to unread, so if there are no other actions in
-  // the notification, then focus should return to the outer notification
-  // Note we don't want to do this if interacted with by the mouse
   if (fromKeyboard) {
-    if (tabItems.value.length === 0) {
-      // There are no tab items, so return focus to the outer notification
-      dropdownMenuItem.value?.focus();
-    } else {
-      // Move focus to the first button
-      const elementToFocus = tabItems.value[0];
-
-      elementToFocus.focus();
-
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    e.preventDefault();
+    e.stopPropagation();
   }
 };
 
 // User presses enter or space on the notification, so enter the focus trap
 const enterFocusTrap = (e: MouseEvent | KeyboardEvent) => {
-  // If there is only one tab item and we are marked read, then we can't enter the focus trap, as there is nothing to receive focus, so keep focus on the notification
-  if (tabItems.value.length === 0 && props.item.read) {
-    return;
-  }
-
   const elementToFocus = tabItems.value[0];
 
   elementToFocus.focus();
@@ -210,6 +200,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     dropdown-menu-item
     tabindex="-1"
     role="menuitem"
+    :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
     @keydown.up.down.stop="handleKeydown"
     @focus.stop="gotFocus"
     @click.stop
@@ -234,12 +225,11 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           tab-index="0"
           class="read-indicator"
           role="button"
-          :disabled="!!item.read"
-          :aria-label="t('notificationCenter.markRead')"
-          @keydown.enter.space.stop="markRead($event, true)"
+          :aria-label="toggleLabel"
+          @keydown.enter.space.stop="toggleRead($event, true)"
           @keydown.tab.stop="innerFocusNext($event)"
           @keydown.escape.stop="exitFocusTrap"
-          @click.stop="markRead($event, false)"
+          @click.stop="toggleRead($event, false)"
         >
           <div
             class="read-icon"
@@ -336,7 +326,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           display: flex;
           text-align: center;
           vertical-align: middle;
-          width: 32px; // 20px icon + 12px right spacing
+          width: 32px;
         }
 
         .item-title {
