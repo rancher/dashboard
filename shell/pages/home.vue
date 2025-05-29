@@ -29,7 +29,6 @@ import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
 import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
-import TestPanel from '@shell/components/nav/NotificationCenter/TestPanel.vue';
 import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 
 export default defineComponent({
@@ -44,7 +43,6 @@ export default defineComponent({
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
-    TestPanel,
   },
 
   mixins: [PageHeaderActions],
@@ -487,7 +485,6 @@ export default defineComponent({
       pref-key="welcomeBanner"
       data-testid="home-banner-graphic"
     />
-    <TestPanel />
     <IndentedPanel class="mt-20 mb-20">
       <div class="row home-panels">
         <div class="col main-panel">
