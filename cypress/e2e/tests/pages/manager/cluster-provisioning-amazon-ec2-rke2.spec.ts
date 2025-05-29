@@ -55,7 +55,6 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(0);
     loadingPo.checkNotExists();
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Amazon EC2');
