@@ -9,6 +9,7 @@ import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
 import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -373,6 +374,52 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         cy.deleteRancherResource('v3', 'users', userId);
       });
+    });
+  });
+
+  function reply(statusCode: number, body: any) {
+    return (req) => {
+      req.reply({ statusCode, body });
+    };
+  }
+
+  const forbiddenResponse = {
+    type:    'error',
+    links:   {},
+    code:    'Forbidden',
+    message: 'deployments.apps is forbidden',
+    status:  403,
+  };
+
+  describe('Cluster dashboard - Fleet agent', () => {
+    it('does not show fleet controller status if a 403 is returned by the API', () => {
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
+
+      HomePagePo.goToAndWaitForGet();
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage();
+
+      clusterDashboard.fleetStatus().should('exist');
+      clusterDashboard.fleetStatus().should('be.hidden');
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
+    });
+
+    it('does not show fleet controller status if a 404 is returned by the API', () => {
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(404, {}));
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(404, {}));
+
+      HomePagePo.goToAndWaitForGet();
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage();
+
+      clusterDashboard.fleetStatus().should('exist');
+      clusterDashboard.fleetStatus().should('be.hidden');
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
     });
   });
 

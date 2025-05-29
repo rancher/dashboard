@@ -513,6 +513,13 @@ export default {
     },
 
     getAgentStatus(resources, opt = { checkDisconnected: false }) {
+      // If there is a single resource that is null, then there was an error fetching the status, which
+      // is most likely because the user does not have permission, so we should hide the agent status
+      // as we can not determine what it is
+      if (resources.length === 1 && resources[0] === null) {
+        return { state: STATES_ENUM.OFF };
+      }
+
       if (resources.find((resource) => resource === 'loading')) {
         return { state: STATES_ENUM.IN_PROGRESS };
       }
@@ -999,6 +1006,10 @@ export default {
     > I {
       color: var(--success)
     }
+  }
+
+  &.off {
+    display: none;
   }
 }
 </style>
