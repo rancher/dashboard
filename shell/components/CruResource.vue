@@ -265,7 +265,7 @@ export default {
       return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
         ...acc,
         [error]: {
-          message: error,
+          message: this.formatError(error),
           icon:    null
         }
       }), {});
@@ -427,6 +427,89 @@ export default {
 
     shouldProvideSlot(slot) {
       return slot !== 'default' && typeof this.$slots[slot] === 'function';
+    },
+
+    formatError(err) {
+      if ( typeof err === 'string') {
+        return err;
+      }
+
+      let str = '';
+      const msg = !!err?.message ? ` ${ err?.message }` : '';
+
+      if ( err?.code === 'ActionNotAvailable' ) {
+        str = this.t('errors.actionNotAvailable');
+      } else if ( err?.status === 422 ) {
+        str = this.t('errors.failedInApi');
+        let something = false;
+
+        if ( err?.fieldName ) {
+          str += ` '${ err?.fieldName }'${ msg }`;
+          something = true;
+        }
+
+        if ( err?.detail ) {
+          str += ` (${ err?.detail })`;
+          something = true;
+        }
+
+        if ( !something && !!msg) {
+          str += msg;
+          something = true;
+        }
+
+        if ( !something ) {
+          str += ` (${ err?.code })`;
+        }
+
+        switch ( err?.code ) {
+        case 'MissingRequired':
+          str += this.t('errors.missingRequired'); break;
+        case 'NotUnique':
+          str += this.t('errors.notUnique'); break;
+        case 'NotNullable':
+          str += this.t('errors.notNullable'); break;
+        case 'InvalidOption':
+          str += this.t('errors.invalidOption'); break;
+        case 'InvalidCharacters':
+          str += this.t('errors.invalidCharacters'); break;
+        case 'MinLengthExceeded':
+          str += this.t('errors.minLengthExceeded'); break;
+        case 'MaxLengthExceeded':
+          str += this.t('errors.maxLengthExceeded'); break;
+        case 'MinLimitExceeded':
+          str += this.t('errors.minLimitExceeded'); break;
+        case 'MaxLimitExceded':
+          str += this.t('errors.maxLimitExceded'); break;
+        }
+      } else if ( err?.status === 404 ) {
+        str = `${ msg }`;
+
+        if (!!err?.opt?.url) {
+          str += `: ${ err.opt.url }`;
+        }
+      } else {
+        if (!!msg || !!err.detail) {
+          let str = '';
+
+          if ( msg ) {
+            str = msg;
+            if ( err.detail ) {
+              if ( str ) {
+                str += ` (${ err.detail })`;
+              } else {
+                str = err.detail;
+              }
+            }
+          } else if ( err.detail ) {
+            str = err.detail;
+          }
+
+          return str;
+        }
+      }
+
+      return str.length > 0 ? str : err;
     }
   },
 

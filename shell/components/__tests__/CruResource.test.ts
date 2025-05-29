@@ -68,6 +68,51 @@ describe('component: CruResource', () => {
     expect(node.text()).toContain(errors[1]);
   });
 
+  it.each([
+    ['error', 'error'],
+    [{
+      code: 'ActionNotAvailable', status: 500, message: 'error'
+    }, 'errors.actionNotAvailable'],
+    [{ status: 422, message: 'error' }, 'errors.failedInApi error'],
+    [{ status: 404, message: 'message' }, 'message'],
+    [{
+      status: 404, message: 'message', opt: { url: 'test' }
+    }, 'message: test'],
+    [{ status: 500, message: 'message' }, 'message'],
+    [{
+      status: 500, message: 'message', detail: 'detail'
+    }, 'message (detail)'],
+    [{ status: 500, detail: 'detail' }, 'detail'],
+  ])('should display correct error', (err, res) => {
+    const wrapper = mount(CruResource, {
+      props: {
+        canYaml:  false,
+        mode:     _EDIT,
+        resource: {},
+        errors:   [err]
+      },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  (text: string) => text,
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: _YAML } },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+    const node = wrapper.find('#cru-errors');
+
+    expect(node.text()).toContain(res);
+  });
+
   it('should prevent default events on keypress Enter', async() => {
     const event = { preventDefault: jest.fn() };
     const wrapper = mount(CruResource, {
