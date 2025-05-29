@@ -12,7 +12,7 @@ import {
 const store = useStore();
 const allNotifications = computed(() => store.getters['notifications/all']);
 const unreadLevelClass = computed(() => {
-  return `level-${ store.getters['notifications/unreadLevel'] }`;
+  return store.getters['notifications/unreadCount'] === 0 ? '' : 'unread';
 });
 
 // There may be more notifications than we can show on screen, so the popover needs to scroll
@@ -148,28 +148,9 @@ const open = (opened: boolean) => {
       transition: opacity 0.5s ease-in-out;
       opacity: 0;
 
-      &.level-5 {
+      &.unread {
         opacity: 1;
         background-color: var(--error);
-      }
-
-      &.level-4 {
-        opacity: 1;
-        background-color: var(--warning);
-      }
-
-      &.level-3 {
-        opacity: 1;
-        background-color: var(--success);
-      }
-
-      &.level-2, &.level-0, &.level-1 {
-        opacity: 1;
-        background-color: var(--info);
-      }
-
-      &.level--1 {
-        opacity: 0;
       }
     }
   }
