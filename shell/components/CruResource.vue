@@ -265,7 +265,7 @@ export default {
       return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
         ...acc,
         [error]: {
-          message: error,
+          message: this.formatError(error),
           icon:    null
         }
       }), {});
@@ -427,6 +427,91 @@ export default {
 
     shouldProvideSlot(slot) {
       return slot !== 'default' && typeof this.$slots[slot] === 'function';
+    },
+
+    formatError(err) {
+      if ( typeof err === 'string') {
+        return err;
+      }
+      if ( err?.code === 'ActionNotAvailable' ) {
+        return this.t('errors.actionNotAvailable');
+      }
+      const msg = !!err?.message ? err.message : '';
+      let messageDetail = '';
+
+      if (!!err?.message && !!err.detail) {
+        messageDetail = this.t('errors.messageAndDetail', { message: err.message, detail: err.detail });
+      } else if (!!err?.message || !!err.detail) {
+        const val = err.message ? err.message : err.detail;
+
+        messageDetail = this.t('errors.messageOrDetail', { val });
+      }
+      if ( err?.status === 422 ) {
+        const name = err?.fieldName;
+        const code = err?.code;
+        let codeExplanation = '';
+
+        switch ( err?.code ) {
+        case 'MissingRequired':
+          codeExplanation = this.t('errors.missingRequired'); break;
+        case 'NotUnique':
+          codeExplanation = this.t('errors.notUnique'); break;
+        case 'NotNullable':
+          codeExplanation = this.t('errors.notNullable'); break;
+        case 'InvalidOption':
+          codeExplanation = this.t('errors.invalidOption'); break;
+        case 'InvalidCharacters':
+          codeExplanation = this.t('errors.invalidCharacters'); break;
+        case 'MinLengthExceeded':
+          codeExplanation = this.t('errors.minLengthExceeded'); break;
+        case 'MaxLengthExceeded':
+          codeExplanation = this.t('errors.maxLengthExceeded'); break;
+        case 'MinLimitExceeded':
+          codeExplanation = this.t('errors.minLimitExceeded'); break;
+        case 'MaxLimitExceded':
+          codeExplanation = this.t('errors.maxLimitExceded'); break;
+        }
+        if (!!name) {
+          if (!!codeExplanation) {
+            if (!!messageDetail) {
+              return this.t('errors.failedInApi.withName.withCodeExplanation.withMessageDetail', {
+                name, codeExplanation, messageDetail
+              });
+            }
+
+            return this.t('errors.failedInApi.withName.withCodeExplanation.withoutMessageDetail', { name, codeExplanation });
+          }
+          if (!!messageDetail) {
+            return this.t('errors.failedInApi.withName.withMessageDetail', { name, messageDetail });
+          }
+
+          return this.t('errors.failedInApi.withName.withoutAnythingElse', { name });
+        } else {
+          if (!!messageDetail) {
+            if (!!codeExplanation) {
+              return this.t('errors.failedInApi.withoutName.withMessageDetail.withCodeExplanation', { codeExplanation, messageDetail });
+            }
+
+            return this.t('errors.failedInApi.withoutName.withMessageDetail.withoutCodeExplanation', { messageDetail });
+          } else if (!!code) {
+            if (!!codeExplanation) {
+              return this.t('errors.failedInApi.withoutName.withCode.withCodeExplanation', { code, codeExplanation });
+            }
+
+            return this.t('errors.failedInApi.withoutName.withCode.withoutCodeExplanation', { code });
+          }
+
+          return this.t('errors.failedInApi.withoutAnything');
+        }
+      } else if ( err?.status === 404 ) {
+        if (!!err?.opt?.url) {
+          return this.t('errors.notFound.withUrl', { msg, url: err.opt.url });
+        }
+
+        return this.t('errors.notFound.withoutUrl', { msg });
+      }
+
+      return messageDetail.length > 0 ? messageDetail : err;
     }
   },
 

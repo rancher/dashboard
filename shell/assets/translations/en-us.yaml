@@ -8102,3 +8102,35 @@ gitPicker:
 networkAttachmentDefinition:
   tabs:
     config: Config
+
+errors:
+  actionNotAvailable: This action is not currently available
+  missingRequired: is required
+  notUnique: is not unique
+  notNullable: must be set
+  invalidOption: is not a valid option
+  invalidCharacters: contains invalid characters
+  minLengthExceeded: is not long enough
+  maxLengthExceeded: is too long
+  minLimitExceeded: is too small
+  maxLimitExceded: is too big
+  messageAndDetail: '{message} ({detail})'
+  messageOrDetail: '{val}'
+  failedInApi: 
+    withName:
+      withCodeExplanation:
+        withMessageDetail: 'Validation failed in API: {name} {codeExplanation}: {messageDetail}'
+        withoutMessageDetail: 'Validation failed in API: {name} {codeExplanation}'
+      withMessageDetail: 'Validation failed in API: {name} {messageDetail}'
+      withoutAnythingElse: 'Validation failed in API: {name} '
+    withoutName:
+      withMessageDetail: 
+        withCodeExplanation: 'Validation failed in API: {codeExplanation}: {messageDetail}'
+        withoutCodeExplanation: 'Validation failed in API: {messageDetail}'
+      withCode:
+        withCodeExplanation: 'Validation failed in API: {code} {codeExplanation}'
+        withoutCodeExplanation: 'Validation failed in API: {code}'
+    withoutAnything: Validation failed in API.
+  notFound:
+    withUrl: '{msg}: {url}'
+    withoutUrl: '{msg}'
