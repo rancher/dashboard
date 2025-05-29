@@ -116,6 +116,12 @@ generic:
   experimental: Experimental
 
   deprecated: Deprecated
+  upgradeable: Upgradeable
+  installed: Installed
+  featured: Featured
+  shortFeatured: Feat
+  category: Category
+  tags: Tags
   placeholder: "e.g. {text}"
   moreInfo: More Info
   selectors:
@@ -1028,6 +1034,7 @@ catalog:
     search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
+    addNew: Add new
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -3136,6 +3143,12 @@ istio:
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
+itemCard:
+  ariaLabel:
+    clickable: Click on Card
+    card: Item Card
+    status: Status
+    content: Card Content
 jwt:
   title: JWT Authentication
   actions:

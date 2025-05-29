@@ -349,9 +349,11 @@ export default defineComponent({
         </p>
       </template>
     </div>
-    <div class="checkbox-outer-container-extra">
-      <slot name="extra" />
-    </div>
+    <template v-if="$slots['extra']">
+      <div class="checkbox-outer-container-extra">
+        <slot name="extra" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -388,7 +390,7 @@ $fontColor: var(--input-label);
   .checkbox-label {
     color: var(--input-label);
     display: inline-flex;
-    margin: 0px 10px 0px 5px;
+    margin: 0px 10px 0px 8px;
 
     &.checkbox-primary {
       color: inherit;
@@ -407,8 +409,8 @@ $fontColor: var(--input-label);
   }
 
  .checkbox-custom {
-    height: 14px;
-    width: 14px;
+    height: 16px;
+    width: 16px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
     border: 1px solid var(--border);

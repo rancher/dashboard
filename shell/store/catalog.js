@@ -498,35 +498,51 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+    const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
+    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+    const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
+    const tags = [];
+
+    if (experimental) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
+    }
+    if (windowsIncompatible) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.windowsIncompatible'));
+    }
+    if (deploysOnWindows) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.deploysOnWindows'));
+    }
+
     obj = classify(ctx, {
       key,
-      type:                'chart',
-      id:                  key,
+      type:             'chart',
+      id:               key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:     ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
-      certifiedSort:       CERTIFIED_SORTS[certified] || 99,
-      icon:                chart.icon,
-      color:               repo.color,
-      chartType:           chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
-      chartName:           chart.name,
-      chartNameDisplay:    chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
-      chartDescription:    chart.description,
-      featured:            chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
-      repoKey:             repo._key,
-      versions:            [],
-      categories:          filterCategories(chart.keywords),
-      deprecated:          !!chart.deprecated,
-      experimental:        !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL],
-      hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:               chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:            [],
-      windowsIncompatible: !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
-      deploysOnWindows:    (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
+      icon:             chart.icon,
+      color:            repo.color,
+      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:        chart.name,
+      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription: chart.description,
+      featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      repoKey:          repo._key,
+      versions:         [],
+      categories:       filterCategories(chart.keywords),
+      deprecated:       !!chart.deprecated,
+      experimental,
+      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:         [],
+      windowsIncompatible,
+      deploysOnWindows,
+      tags
     });
 
     map[key] = obj;
@@ -582,6 +598,16 @@ function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
 }
 
+export function normalizeFilterQuery(value) {
+  if (Array.isArray(value)) {
+    return value.map((v) => v.toLowerCase());
+  } else if (value) {
+    return [value.toLowerCase()];
+  }
+
+  return undefined;
+}
+
 /*
 catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
   default: nothing
@@ -614,6 +640,7 @@ export function filterAndArrangeCharts(charts, {
   clusterProvider = '',
   operatingSystems,
   category,
+  tag,
   searchQuery,
   showDeprecated = false,
   showHidden = false,
@@ -641,8 +668,13 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if ( category && !c.categories.includes(category) ) {
+    if (category?.length && !c.categories.some((cat) => category.includes(cat.toLowerCase()))) {
       // The category filter doesn't match
+      return false;
+    }
+
+    if (tag?.length && !c.tags.some((t) => tag.includes(t.toLowerCase()))) {
+      // The tag filter doesn't match
       return false;
     }
 
