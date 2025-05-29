@@ -433,83 +433,85 @@ export default {
       if ( typeof err === 'string') {
         return err;
       }
-
-      let str = '';
-      const msg = !!err?.message ? ` ${ err?.message }` : '';
-
       if ( err?.code === 'ActionNotAvailable' ) {
-        str = this.t('errors.actionNotAvailable');
-      } else if ( err?.status === 422 ) {
-        str = this.t('errors.failedInApi');
-        let something = false;
+        return this.t('errors.actionNotAvailable');
+      }
+      const msg = !!err?.message ? err.message : '';
+      let messageDetail = '';
 
-        if ( err?.fieldName ) {
-          str += ` '${ err?.fieldName }'${ msg }`;
-          something = true;
-        }
+      if (!!err?.message && !!err.detail) {
+        messageDetail = this.t('errors.messageAndDetail', { message: err.message, detail: err.detail });
+      } else if (!!err?.message || !!err.detail) {
+        const val = err.message ? err.message : err.detail;
 
-        if ( err?.detail ) {
-          str += ` (${ err?.detail })`;
-          something = true;
-        }
-
-        if ( !something && !!msg) {
-          str += msg;
-          something = true;
-        }
-
-        if ( !something ) {
-          str += ` (${ err?.code })`;
-        }
+        messageDetail = this.t('errors.messageOrDetail', { val });
+      }
+      if ( err?.status === 422 ) {
+        const name = err?.fieldName;
+        const code = err?.code;
+        let codeExplanation = '';
 
         switch ( err?.code ) {
         case 'MissingRequired':
-          str += this.t('errors.missingRequired'); break;
+          codeExplanation = this.t('errors.missingRequired'); break;
         case 'NotUnique':
-          str += this.t('errors.notUnique'); break;
+          codeExplanation = this.t('errors.notUnique'); break;
         case 'NotNullable':
-          str += this.t('errors.notNullable'); break;
+          codeExplanation = this.t('errors.notNullable'); break;
         case 'InvalidOption':
-          str += this.t('errors.invalidOption'); break;
+          codeExplanation = this.t('errors.invalidOption'); break;
         case 'InvalidCharacters':
-          str += this.t('errors.invalidCharacters'); break;
+          codeExplanation = this.t('errors.invalidCharacters'); break;
         case 'MinLengthExceeded':
-          str += this.t('errors.minLengthExceeded'); break;
+          codeExplanation = this.t('errors.minLengthExceeded'); break;
         case 'MaxLengthExceeded':
-          str += this.t('errors.maxLengthExceeded'); break;
+          codeExplanation = this.t('errors.maxLengthExceeded'); break;
         case 'MinLimitExceeded':
-          str += this.t('errors.minLimitExceeded'); break;
+          codeExplanation = this.t('errors.minLimitExceeded'); break;
         case 'MaxLimitExceded':
-          str += this.t('errors.maxLimitExceded'); break;
+          codeExplanation = this.t('errors.maxLimitExceded'); break;
         }
-      } else if ( err?.status === 404 ) {
-        str = `${ msg }`;
-
-        if (!!err?.opt?.url) {
-          str += `: ${ err.opt.url }`;
-        }
-      } else {
-        if (!!msg || !!err.detail) {
-          let str = '';
-
-          if ( msg ) {
-            str = msg;
-            if ( err.detail ) {
-              if ( str ) {
-                str += ` (${ err.detail })`;
-              } else {
-                str = err.detail;
-              }
+        if (!!name) {
+          if (!!codeExplanation) {
+            if (!!messageDetail) {
+              return this.t('errors.failedInApi.withName.withCodeExplanation.withMessageDetail', {
+                name, codeExplanation, messageDetail
+              });
             }
-          } else if ( err.detail ) {
-            str = err.detail;
+
+            return this.t('errors.failedInApi.withName.withCodeExplanation.withoutMessageDetail', { name, codeExplanation });
+          }
+          if (!!messageDetail) {
+            return this.t('errors.failedInApi.withName.withMessageDetail', { name, messageDetail });
           }
 
-          return str;
+          return this.t('errors.failedInApi.withName.withoutAnythingElse', { name });
+        } else {
+          if (!!messageDetail) {
+            if (!!codeExplanation) {
+              return this.t('errors.failedInApi.withoutName.withMessageDetail.withCodeExplanation', { codeExplanation, messageDetail });
+            }
+
+            return this.t('errors.failedInApi.withoutName.withMessageDetail.withoutCodeExplanation', { messageDetail });
+          } else if (!!code) {
+            if (!!codeExplanation) {
+              return this.t('errors.failedInApi.withoutName.withCode.withCodeExplanation', { code, codeExplanation });
+            }
+
+            return this.t('errors.failedInApi.withoutName.withCode.withoutCodeExplanation', { code });
+          }
+
+          return this.t('errors.failedInApi.withoutAnything');
         }
+      } else if ( err?.status === 404 ) {
+        if (!!err?.opt?.url) {
+          return this.t('errors.notFound.withUrl', { msg, url: err.opt.url });
+        }
+
+        return this.t('errors.notFound.withoutUrl', { msg });
       }
 
-      return str.length > 0 ? str : err;
+      return messageDetail.length > 0 ? messageDetail : err;
     }
   },
 

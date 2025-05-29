@@ -73,16 +73,34 @@ describe('component: CruResource', () => {
     [{
       code: 'ActionNotAvailable', status: 500, message: 'error'
     }, 'errors.actionNotAvailable'],
-    [{ status: 422, message: 'error' }, 'errors.failedInApi error'],
-    [{ status: 404, message: 'message' }, 'message'],
+    [{
+      status: 422, fieldName: 'Name', code: 'NotUnique', message: 'error'
+    }, 'errors.failedInApi.withName.withCodeExplanation.withMessageDetail'],
+    [{
+      status: 422, fieldName: 'Name', code: 'NotUnique'
+    }, 'errors.failedInApi.withName.withCodeExplanation.withoutMessageDetail'],
+    [{
+      status: 422, fieldName: 'Name', code: 'Brr', message: 'error'
+    }, 'errors.failedInApi.withName.withMessageDetail'],
+    [{
+      status: 422, fieldName: 'Name', code: 'Brr'
+    }, 'errors.failedInApi.withName.withoutAnythingElse'],
+    [{
+      status: 422, code: 'NotUnique', message: 'error'
+    }, 'errors.failedInApi.withoutName.withMessageDetail.withCodeExplanation'],
+    [{ status: 422, message: 'error' }, 'errors.failedInApi.withoutName.withMessageDetail.withoutCodeExplanation'],
+    [{ status: 422, code: 'NotUnique' }, 'errors.failedInApi.withoutName.withCode.withCodeExplanation'],
+    [{ status: 422, code: 'Brr' }, 'errors.failedInApi.withoutName.withCode.withoutCodeExplanation'],
+    [{ status: 422 }, 'errors.failedInApi.withoutAnything'],
+    [{ status: 404, message: 'message' }, 'errors.notFound.withoutUrl'],
     [{
       status: 404, message: 'message', opt: { url: 'test' }
-    }, 'message: test'],
-    [{ status: 500, message: 'message' }, 'message'],
+    }, 'errors.notFound.withUrl'],
+    [{ status: 500, message: 'message' }, 'errors.messageOrDetail'],
     [{
       status: 500, message: 'message', detail: 'detail'
-    }, 'message (detail)'],
-    [{ status: 500, detail: 'detail' }, 'detail'],
+    }, 'errors.messageAndDetail'],
+    [{ status: 500, detail: 'detail' }, 'errors.messageOrDetail'],
   ])('should display correct error', (err, res) => {
     const wrapper = mount(CruResource, {
       props: {
