@@ -140,6 +140,7 @@ export default ({
     <div class="row pb-10">
       <ToggleSwitch
         v-model:value="isHtml"
+        :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.toggleTextHtml')}`"
         :data-testid="`banner_content_type_toggle${bannerType}`"
         :disabled="isUiDisabled"
         :off-label="t('banner.type.text')"
@@ -226,6 +227,7 @@ export default ({
         </Banner>
         <TextAreaAutoGrow
           v-model:value="value[bannerType].html"
+          :aria-label="`${t(`banner.${bannerType}`)} ${t('banner.htmlContent')}`"
           :data-testid="`banner_html${bannerType}`"
           :min-height="64"
           :disabled="isUiDisabled"

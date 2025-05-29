@@ -7869,7 +7869,9 @@ banner:
   type:
     html: HTML
     text: Text
-  htmlWarning: 'Not all HTML elements or attributes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
+  htmlWarning: 'Not all HTML elements or attriutes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
+  htmlContent: HTML Content
+  toggleTextHtml: Toggle between text and html
 
 branding:
   label: Branding
