@@ -48,12 +48,12 @@ const open = (opened: boolean) => {
 
 <template>
   <rc-dropdown
-    :aria-label="t('nav.actionMenu.label')"
+    :aria-label="t('nav.notifications')"
     @update:open="open"
   >
     <rc-dropdown-trigger
       tertiary
-      data-testid="page-actions-menu"
+      data-testid="notifications-center"
       :aria-label="t('nav.actionMenu.button.label')"
     >
       <div class="level-indicator">
@@ -116,17 +116,17 @@ const open = (opened: boolean) => {
   }
 
   .no-notifications {
-    padding: 0 20px;
     text-align: center;
-    min-width: 240px;
-    margin: 5px 0 10px 0;
+    min-width: 340px;
+    margin: 40px 16px;
 
     .hands {
-      font-size: 40px;
+      font-size: 53px;
+      padding-top: 0;
     }
 
     > div {
-      padding-top: 10px;
+      padding-top: 16px;
     }
   }
 
