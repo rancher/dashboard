@@ -20,6 +20,7 @@ export type NotificationAction = {
 export type NotificationPreference = {
   key: string; // User preference key to use when setting the preference when the notification is marked as read
   value: string; // User preference value to use when setting the preference when the notification is marked as read
+  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
 };
 
 export enum NotificationLevel {
@@ -142,6 +143,16 @@ export const mutations = {
     persist(state);
   },
 
+  markUnread(state: NotificationsStore, id: string) {
+    const notification = state.notifications.find((n) => n.id === id);
+
+    if (notification && notification.read) {
+      notification.read = false;
+    }
+
+    persist(state);
+  },
+
   markAllRead(state: NotificationsStore) {
     state.notifications.forEach((notification) => {
       if (!notification.read) {
@@ -214,6 +225,19 @@ export const actions = {
 
     if (notification?.preference) {
       await dispatch('prefs/set', notification.preference, { root: true });
+    }
+  },
+
+  async markUnread({ commit, dispatch, getters }: any, id: string) {
+    commit('markUnread', id);
+
+    const notification = getters.item(id) as Notification;
+
+    if (notification?.preference) {
+      await dispatch('prefs/set', {
+        key:   notification.preference.key,
+        value: notification.preference.unsetValue || '',
+      }, { root: true });
     }
   },
 
