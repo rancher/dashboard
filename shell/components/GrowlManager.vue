@@ -154,7 +154,7 @@ export default {
 
   .growl-list {
     max-height: calc(100vh - 50px);
-    overflow: hidden;
+    overflow: scroll;
   }
 
   .growl {
