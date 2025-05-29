@@ -2,6 +2,7 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
+import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, TAG
 } from '@shell/config/query-params';
@@ -23,6 +24,7 @@ export default {
     AsyncButton,
     Banner,
     Loading,
+    TypeDescription,
     RcItemCard,
     RcFilterPanel
   },
@@ -214,7 +216,7 @@ export default {
 
     handleFooterItemClick(type, value) {
       if (type === REPO) {
-        const repoKey = this.repoOptions.find((option) => option.value === value)?._key;
+        const repoKey = this.repoOptions.find((option) => option.label === value)?.value;
 
         if (!this.filters.repos.includes(repoKey)) {
           this.filters.repos.push(repoKey);
@@ -281,6 +283,7 @@ export default {
         @click="refresh"
       />
     </div>
+    <TypeDescription resource="chart" />
     <input
       ref="searchQuery"
       v-model="searchQuery"
@@ -468,7 +471,7 @@ export default {
 
 .app-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(460px, 500px));
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
   grid-gap: var(--gap-md);
   width: 100%;
   height: max-content;

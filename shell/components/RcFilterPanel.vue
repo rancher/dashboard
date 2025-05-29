@@ -78,7 +78,7 @@ const updateFilter = (key: string, value: string[]) => {
   align-items: flex-start;
   gap: 24px;
   border-radius: 6px;
-  background: var(--nav-active);
+  background: var(--sortable-table-header-bg);
 
   &-filter-group {
     display: flex;
