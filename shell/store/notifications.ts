@@ -107,18 +107,6 @@ export const getters = {
   unreadCount: (state: NotificationsStore) => {
     return state.notifications.filter((n) => !n.read).length;
   },
-
-  // Go through all of the unread items and find the best level that represents the most severe unread item(s)
-  // Returns -1 if no unread items
-  unreadLevel: (state: NotificationsStore) => {
-    return state.notifications.reduce((acc, value) => {
-      if (!value.read && value.level > acc) {
-        return value.level;
-      }
-
-      return acc;
-    }, -1);
-  },
 };
 
 export const mutations = {
