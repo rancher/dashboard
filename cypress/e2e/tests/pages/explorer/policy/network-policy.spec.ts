@@ -48,7 +48,6 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).clickOptionWithLabel('Namespace Selector');
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleKeyInput(1).focus().type('something-with-no-matching-namespaces');
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).self().scrollIntoView();
-      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
       networkPolicyPage.createEditNetworkPolicyForm().matchingNamespacesMessage(1).should('contain.text', `Matches 0 of ${ count }`);
       // Click on Create
       networkPolicyPage.createEditNetworkPolicyForm().saveCreateForm().click();
