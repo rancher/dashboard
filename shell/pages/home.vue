@@ -671,6 +671,11 @@ export default defineComponent({
                           v-clean-tooltip="row.unavailableMachines"
                           class="conditions-alert-icon icon-alert icon"
                         />
+                        <i
+                          v-if="row.isRke1"
+                          v-clean-tooltip="t('cluster.rke1Unsupported')"
+                          class="rke1-unsupported-icon icon-warning icon"
+                        />
                       </p>
                       <p
                         v-if="row.description"
@@ -822,6 +827,11 @@ export default defineComponent({
 
     .conditions-alert-icon {
       color: var(--error);
+      margin-left: 4px;
+    }
+
+    .rke1-unsupported-icon {
+      color: var(--warning);
       margin-left: 4px;
     }
   }

@@ -9,6 +9,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export default {
 
@@ -17,7 +18,9 @@ export default {
     return await loadSchemas(ctx, watch);
   },
 
-  async request({ state, dispatch, rootGetters }, pOpt ) {
+  async request({
+    state, dispatch, rootGetters, getters
+  }, pOpt ) {
     const opt = pOpt.opt || pOpt;
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
@@ -82,6 +85,7 @@ export default {
     }
 
     let paginatedResult;
+    const isSteveCacheUrl = getters.isSteveCacheUrl(opt.url);
 
     while (true) {
       try {
@@ -92,24 +96,42 @@ export default {
         }
 
         if (!paginatedResult) {
-          // First result, so store it
-          paginatedResult = out;
+          const pageByNumber = isSteveCacheUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
+            total: out.count,
+            page:  1,
+            url:   opt.url,
+          } : null;
+          const pageByLimit = !pageByNumber ? { } : null;
+
+          paginatedResult = {
+            // initialise some settings
+            pageByLimit,
+            pageByNumber,
+            // First result, so store it
+            out
+          };
         } else {
           // Subsequent request, so add to it
-          paginatedResult.data = paginatedResult.data.concat(out.data);
+          paginatedResult.out.data = paginatedResult.out.data.concat(out.data);
         }
 
-        if (out?.pagination?.next) {
-          // More results to come, update options
-          opt.url = out.pagination.next;
+        const { total, page, url } = paginatedResult.pageByNumber || {};
+
+        if (paginatedResult.pageByLimit && out?.pagination?.next) {
+          opt.url = out?.pagination?.next;
+        } else if (paginatedResult.pageByNumber && (total > paginationUtils.defaultPageSize * page)) {
+          paginatedResult.pageByNumber.page += 1;
+
+          opt.url = addParam(url, 'page', `${ paginatedResult.pageByNumber.page }`);
         } else {
           // No more results, so clear out the pagination section (which will be stale from the first request)
-          delete paginatedResult.pagination?.first;
-          delete paginatedResult.pagination?.last;
-          delete paginatedResult.pagination?.next;
-          delete paginatedResult.pagination?.partial;
+          delete paginatedResult.out.pagination?.first;
+          delete paginatedResult.out.pagination?.last;
+          delete paginatedResult.out.pagination?.next;
+          delete paginatedResult.out.pagination?.partial;
+          delete paginatedResult.out.continue;
 
-          return paginatedResult;
+          return paginatedResult.out;
         }
       } catch (err) {
         return onError(err);

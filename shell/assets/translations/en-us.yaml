@@ -187,7 +187,6 @@ nav:
   restoreSnapshot: Restore Snapshot
   rotateCertificates: Rotate Certificates
   rotateEncryptionKeys: Rotate Encryption Keys
-  saveAsRKETemplate: Save as RKE Template
   takeSnapshot: Take Snapshot
   seeAllClusters: See all clusters
   seeAllClustersCollapsed: See all
@@ -1942,9 +1941,8 @@ cluster:
         =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
         other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
       }
-    rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) will reach end of life on July 31, 2025. Rancher 2.12.0 and later will no longer support provisioning or managing downstream RKE1 clusters. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
-    rke1DeprecationShortMessage: Rancher Kubernetes Engine (RKE / RKE1) will reach end of life on July 31, 2025. Rancher 2.12.0 and later will no longer support provisioning or managing downstream RKE1 clusters.
-  rkeTemplateUpgrade: Template revision {name} available for upgrade
+    rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
+  rke1Unsupported: RKE1 Clusters are no longer supported
   cloudCredentials:
     renew: Renew Cloud Credentials
     expired: Cloud Credential expired, please Renew Cloud Credentials
@@ -4993,12 +4991,6 @@ promptRollback:
   multipleWorkloadError: "Only one workload can be rolled back at a time."
   singleRevisionBanner: There are no revisions to roll back to.
 
-promptSaveAsRKETemplate:
-  title: Convert {cluster} to new RKE Template
-  name: Cluster Template Name
-  description: Create a new RKE cluster template and initial revision from the current cluster configuration.
-  warning: This will modify the cluster, setting it up to use the newly created cluster template and revision. This can not be undone.
-
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
   description: The last backup {name} was performed on {date}
@@ -7840,7 +7832,7 @@ performance:
     label: Server-side Pagination
     description: By default Lists will fetch all resources and paginate (create the page given sort and filter settings) locally in the browser. Server-Side Pagination moves this out from the browser to the server. This improves performance of the UI, especially in systems with lots of resources.
     applicable: "Server-side pagination applies to Resource Types"
-    featureFlag: This setting is now soley controlled by the&nbsp;<a href="{ffUrl}">Feature Flag</a>&nbsp;`ui-sql-cache`
+    featureFlag: Enabling/Disabling <i class="mr-5">"Server-side Pagination"</i> is now solely done so via the <i class="mr-5">ui-sql-cache</i>&nbsp;<a href="{ffUrl}">Feature Flag</a>
     resources:
       generic: most resources in the cluster's 'More Resources' section
       all: All Resources
@@ -7876,6 +7868,12 @@ banner:
   consent: Consent Banner
   consentFootnote: "Tip: Use \\n character for line break"
   individualSetting: 'This banner is managed by the setting "{name}" and can not be modified in the UI'
+  type:
+    html: HTML
+    text: Text
+  htmlWarning: 'Not all HTML elements or attriutes are permitted and the HTML entered here will be sanitized before display. For HTML anchor elements, it is recommended to use the target attribute to have links open in a blank tab.'
+  htmlContent: HTML Content
+  toggleTextHtml: Toggle between text and html
 
 branding:
   label: Branding
@@ -8176,3 +8174,38 @@ gitPicker:
 networkAttachmentDefinition:
   tabs:
     config: Config
+
+errors:
+  actionNotAvailable: This action is not currently available
+  missingRequired: is required
+  notUnique: is not unique
+  notNullable: must be set
+  invalidOption: is not a valid option
+  invalidCharacters: contains invalid characters
+  minLengthExceeded: is not long enough
+  maxLengthExceeded: is too long
+  minLimitExceeded: is too small
+  maxLimitExceded: is too big
+  messageAndDetail: '{message} ({detail})'
+  messageOrDetail: '{val}'
+  failedInApi: 
+    withName:
+      withCodeExplanation:
+        withMessageDetail: 'Validation failed in API: {name} {codeExplanation}: {messageDetail}'
+        withoutMessageDetail: 'Validation failed in API: {name} {codeExplanation}'
+      withMessageDetail: 'Validation failed in API: {name} {messageDetail}'
+      withoutAnythingElse: 'Validation failed in API: {name} '
+    withoutName:
+      withMessageDetail: 
+        withCodeExplanation: 'Validation failed in API: {codeExplanation}: {messageDetail}'
+        withoutCodeExplanation: 'Validation failed in API: {messageDetail}'
+      withCode:
+        withCodeExplanation: 'Validation failed in API: {code} {codeExplanation}'
+        withoutCodeExplanation: 'Validation failed in API: {code}'
+    withoutAnything: Validation failed in API.
+  notFound:
+    withUrl: '{msg}: {url}'
+    withoutUrl: '{msg}'
+
+
+

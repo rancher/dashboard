@@ -2,10 +2,11 @@
 import { Banner } from '@components/Banner';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ResourceTable from '@shell/components/ResourceTable';
-import { allHash } from '@shell/utils/promise';
 import { _EDIT } from '@shell/config/query-params';
-import { convert, matching, simplify } from '@shell/utils/selector';
+import { convert, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
+import { COUNT } from '@shell/config/types';
+import { matching } from '@shell/utils/selector-typed';
 
 export default {
   name: 'ResourceSelector',
@@ -36,11 +37,6 @@ export default {
   },
 
   async fetch() {
-    // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
-    const hash = await allHash({ allResources: this.$store.dispatch('cluster/findAll', { type: this.type }) });
-
-    this.allResources = hash.allResources;
-
     this.updateMatchingResources();
   },
 
@@ -53,11 +49,10 @@ export default {
         sample:  null,
         total:   0,
       },
-      allResources:        [],
-      allResourcesInScope: [],
-      tableHeaders:        this.$store.getters['type-map/headersFor'](
+      tableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](this.type)
       ),
+      inStore: this.$store.getters['currentProduct'].inStore,
     };
   },
 
@@ -71,6 +66,9 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     selectorExpressions: {
       get() {
         return convert(
@@ -85,22 +83,27 @@ export default {
         this.value['matchExpressions'] = matchExpressions;
       }
     },
+    allResourcesInScope() {
+      const counts = this.$store.getters[`${ this.inStore }/all`](COUNT)?.[0]?.counts || {};
+
+      if (this.namespace) {
+        return counts?.[this.type].namespaces[this.namespace]?.count || 0;
+      }
+
+      return counts[this.type]?.summary?.count || 0;
+    }
   },
 
   methods: {
-    updateMatchingResources: throttle(function() {
-      this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
-      const match = matching(this.allResourcesInScope, this.selectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
-
-      this.matchingResources = {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   this.allResourcesInScope.length,
-      };
+    updateMatchingResources: throttle(async function() {
+      this.matchingResources = await matching({
+        labelSelector: { matchExpressions: this.selectorExpressions },
+        type:          this.type,
+        inStore:       this.inStore,
+        $store:        this.$store,
+        inScopeCount:  this.allResourcesInScope,
+        namespace:     this.namespace,
+      });
     }, 250, { leading: true }),
   }
 

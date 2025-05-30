@@ -33,10 +33,40 @@ export default class NormanCluster extends NormanModel {
     return !!(this.systemAnnotations || []).length;
   }
 
+  /**
+   * Return the namespace of the v1 prov cluster.
+   *
+   * Used to construct the prov cluster id
+   *
+   * objectset.rio.cattle.io/owner-namespace annotation is applied to v3 clusters that were automatically created following the creation of a v1 prov cluster
+   */
+  get provisioningClusterNs() {
+    return this.annotations?.['objectset.rio.cattle.io/owner-namespace'] || 'fleet-default';
+  }
+
+  /**
+   * Return the name of the v1 prov cluster (note - not the human name, but usually is)
+   *
+   * Used to construct the prov cluster id.
+   *
+   * It could be two different forms. If the v1 prov cluster was created ..
+   * - automatically following the creation of a v3 cluster = id is the v3 cluster id
+   * - directly by the user = id is the (roughly) human name, which is this.id
+   *
+   * objectset.rio.cattle.io/owner-namespace annotation is applied to v3 clusters that were automatically created following the creation of a v1 prov cluster
+   *
+   */
+  get provisioningClusterName() {
+    return this.annotations?.['objectset.rio.cattle.io/owner-name'] || this.id;
+  }
+
+  get provisioningClusterId() {
+    return `${ this.provisioningClusterNs }/${ this.provisioningClusterName }`;
+  }
+
   waitForProvisioning(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
-      const ns = this.annotations['objectset.rio.cattle.io/owner-namespace'] || 'fleet-default';
-      const id = `${ ns }/${ this.id }`;
+      const id = this.provisioningClusterId;
 
       return id && !!this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, id);
     }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);

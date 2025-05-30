@@ -4,6 +4,7 @@ import { PaginationArgs } from '@shell/types/store/pagination.types';
  * Properties on all findX actions
  */
 export type ActionCoreFindArgs = {
+  url?: string,
   force?: boolean,
 }
 

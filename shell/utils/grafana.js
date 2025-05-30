@@ -24,6 +24,7 @@ export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, para
   }
   newUrl = addParam(newUrl, 'orgId', url.query.orgId);
   newUrl = addParam(newUrl, 'kiosk', null);
+  newUrl = addParam(newUrl, '_dash.hideTimePicker', 'true');
 
   Object.entries(params).forEach((entry) => {
     newUrl = addParam(newUrl, entry[0], entry[1]);

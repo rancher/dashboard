@@ -21,11 +21,15 @@ import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-p
  */
 class PaginationUtils {
   /**
+   * In places where we're using paginated features but not in a page... this is what the max results should be
+   */
+  readonly defaultPageSize = 10000;
+  /**
    * When a ns filter isn't one or more projects/namespaces... what are the valid values?
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */
-  validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
+  readonly validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
 
   private getSettings({ rootGetters }: any): PaginationSettings {
     const perf = getPerformanceSetting(rootGetters);

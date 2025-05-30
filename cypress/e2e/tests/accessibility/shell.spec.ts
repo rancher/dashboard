@@ -515,17 +515,11 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         createClusterPage.waitForPage();
         loadingPo.checkNotExists();
 
-        createClusterPage.rkeToggle().checkVisible();
         cy.injectAxe();
 
         cy.checkPageAccessibility();
 
         cy.injectAxe();
-
-        // check rke toggle
-        createClusterPage.rkeToggle().get('.switch').then((el) => {
-          cy.checkElementAccessibility(el);
-        });
       });
 
       it('Cluster - Create Digital Ocean Cloud Credential', () => {
@@ -534,7 +528,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.createCluster();
-        createClusterPage.rkeToggle().set('RKE2/K3s');
         createClusterPage.selectCreate(2);
         loadingPo.checkNotExists();
         createClusterPage.rke2PageTitle().should('include', 'Create DigitalOcean');
