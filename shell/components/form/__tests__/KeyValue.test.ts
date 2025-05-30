@@ -203,9 +203,9 @@ describe('component: KeyValue', () => {
     expect(wrapper.vm.rows[0].value).toBe(value[0].value);
 
     expect(mainContainer.attributes('aria-label')).toBe('%generic.ariaLabel.keyValue%');
-    expect(mainContainer.attributes('role')).toBe('group');
-    expect(keyGroup.attributes('role')).toBe('group');
-    expect(valueGroup.attributes('role')).toBe('group');
+    expect(mainContainer.attributes('role')).toBe('grid');
+    expect(keyGroup.attributes('role')).toBe('gridcell');
+    expect(valueGroup.attributes('role')).toBe('gridcell');
     expect(firstKeyInput.attributes('aria-label')).toBe('%generic.ariaLabel.key%');
     expect(firstValueInput.attributes('aria-label')).toBe('%generic.ariaLabel.value%');
     expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');

@@ -597,7 +597,7 @@ export default {
     </div>
     <div
       class="kv-container"
-      role="group"
+      role="grid"
       :aria-label="title || t('generic.ariaLabel.keyValue')"
       :aria-rowcount="rows.length"
       :aria-colcount="extraColumns.length + 2"
@@ -646,13 +646,13 @@ export default {
           <div class="row">
             <div
               class="kv-item key text-muted"
-              role="group"
+              role="gridcell"
             >
               &mdash;
             </div>
             <div
               class="kv-item key text-muted"
-              role="group"
+              role="gridcell"
             >
               &mdash;
             </div>
@@ -672,7 +672,7 @@ export default {
             <!-- Key -->
             <div
               class="kv-item key"
-              role="group"
+              role="gridcell"
               :aria-rowindex="i+1"
               :aria-colindex="1"
             >
@@ -716,7 +716,7 @@ export default {
             <div
               :data-testid="`kv-item-value-${i}`"
               class="kv-item value"
-              role="group"
+              role="gridcell"
               :aria-rowindex="i+1"
               :aria-colindex="2"
             >
@@ -794,7 +794,7 @@ export default {
               v-for="(c, j) in extraColumns"
               :key="`${i}-${j}`"
               class="kv-item extra"
-              role="group"
+              role="gridcell"
               :aria-rowindex="i+1"
               :aria-colindex="j+3"
             >
@@ -809,7 +809,7 @@ export default {
               v-if="canRemove"
               :key="i"
               class="kv-item remove"
-              role="group"
+              role="gridcell"
               :aria-rowindex="i+1"
               :aria-colindex="extraColumns.length+3"
               :data-testid="`remove-column-${i}`"
