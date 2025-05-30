@@ -2627,6 +2627,7 @@ fleet:
     ociRegistrySecret:
       title: OCI Registry
       label: OCI Storage Secret
+      tooltip: If 'None' is selected, Fleet will use the most recent OCI storage secret defined as default in {workspace} workspace.<br>Every changes of the selected OCI storage secret will not be applied until next Git Repo update.
       options:
         chooseExisting: "Choose a secret:"
         chooseCustom: "Choose a custom secret:"
