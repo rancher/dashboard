@@ -452,6 +452,7 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       // go to fleet cluster list
       FleetClusterListPagePo.navTo();
       fleetClusterListPage.waitForPage();
+      headerPo.selectWorkspace(workspace);
 
       // check table headers
       const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];

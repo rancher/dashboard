@@ -30,6 +30,41 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Fleet {
+  dashboardStates = [
+    {
+      index:           0,
+      id:              'error',
+      label:           'Error',
+      color:           '#F64747',
+      icon:            'icon icon-error',
+      stateBackground: 'bg-error'
+    },
+    {
+      index:           1,
+      id:              'warning',
+      label:           'Warning',
+      color:           '#DAC342',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-warning'
+    },
+    {
+      index:           2,
+      id:              'success',
+      label:           'Active',
+      color:           '#5D995D',
+      icon:            'icon icon-checkmark',
+      stateBackground: 'bg-success'
+    },
+    {
+      index:           3,
+      id:              'info',
+      label:           'InProgress',
+      color:           '#3d98d3',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-info'
+    },
+  ];
+
   resourceId(r: BundleResourceKey): string {
     return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
   }
@@ -125,6 +160,16 @@ class Fleet {
     } else {
       return STATES_ENUM.READY;
     }
+  }
+
+  getDashboardStateId(resource: { stateColor: string }): string {
+    return resource?.stateColor?.replace('text-', '') || 'warning';
+  }
+
+  getDashboardState(resource: { stateColor: string }) {
+    const stateId = this.getDashboardStateId(resource);
+
+    return this.dashboardStates.find(({ id }) => stateId === id) || {};
   }
 }
 
