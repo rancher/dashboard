@@ -63,8 +63,8 @@ export default {
   },
 
   methods: {
-    close(data) {
-      this.$emit('close', data);
+    close() {
+      this.$emit('close');
     },
 
     async move(finish) {
