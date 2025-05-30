@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
@@ -14,7 +14,6 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
-import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -66,7 +65,6 @@ export default defineComponent({
 
     return {
       HIDE_HOME_PAGE_CARDS,
-      fullVersion: getVersionInfo(this.$store).fullVersion,
       // Page actions don't change on the Home Page
       pageActions: [
         {
@@ -213,7 +211,7 @@ export default defineComponent({
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
+    ...mapGetters(['currentCluster', 'defaultClusterId']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     canCreateCluster() {
@@ -223,10 +221,6 @@ export default defineComponent({
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
-    readWhatsNewAlready() {
-      return readReleaseNotes(this.$store);
-    },
-
     showSetLoginBanner() {
       return this.homePageCards?.setLoginPage;
     },
@@ -235,7 +229,6 @@ export default defineComponent({
   async created() {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
-    markSeenReleaseNotes(this.$store);
   },
 
   // Forget the types when we leave the page
@@ -410,11 +403,6 @@ export default defineComponent({
       return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
     },
 
-    showWhatsNew() {
-      // Update the value, so that the message goes away
-      markReadReleaseNotes(this.$store);
-    },
-
     showUserPrefs() {
       this.$router.push({ name: 'prefs' });
     },
@@ -425,8 +413,6 @@ export default defineComponent({
       delete value.setLoginPage;
 
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-
-      await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
     },
 
     async toggleBanner() {
@@ -522,31 +508,6 @@ export default defineComponent({
       data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
-      <div
-        v-if="!readWhatsNewAlready"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            data-testid="changelog-banner"
-            color="info whats-new"
-          >
-            <div>
-              {{ t('landing.seeWhatsNew', { version: CURRENT_RANCHER_VERSION }) }}
-            </div>
-            <a
-              class="hand banner-link"
-              :href="releaseNotesUrl"
-              role="link"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              :aria-label="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })"
-              @click.stop="showWhatsNew"
-              @keyup.stop.enter="showWhatsNew"
-            ><span v-clean-html="t('landing.whatsNewLink', { version: CURRENT_RANCHER_VERSION })" /></a>
-          </Banner>
-        </div>
-      </div>
       <div class="row home-panels">
         <div class="col main-panel">
           <div
@@ -756,19 +717,6 @@ export default defineComponent({
 
     .side-panel {
       margin-left: 1.75%;
-    }
-  }
-
-  .set-login-page, .whats-new {
-    > :deep() .banner__content {
-      display: flex;
-
-      > div {
-        flex: 1;
-      }
-      > a {
-        align-self: flex-end;
-      }
     }
   }
 
