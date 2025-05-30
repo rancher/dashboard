@@ -298,6 +298,13 @@ export default {
     },
 
     applyDefaults() {
+      // TESTING - REMOVE
+      if (this.value.id === 'cognito') {
+        this.model.clientId = '6quqn57o4ccbd3gafs8cvtjgnt';
+        this.model.clientSecret = '1ten5smn3o7vlujig7h7pmo30sua96sjjug9inssmk2c6jbnkuil';
+        this.model.issuer = 'https://cognito-idp.us-east-2.amazonaws.com/us-east-2_grliV4U9y';
+      }
+
       switch (this.value.configType) {
       case 'oidc': {
         const serverUrl = this.serverUrl.endsWith('/') ? this.serverUrl.slice(0, this.serverUrl.length - 1) : this.serverUrl;
