@@ -10,7 +10,7 @@ const OPTIONS = { _NONE: '_none' };
 
 export default {
 
-  name: 'FleetOCIRegistrySecret',
+  name: 'FleetOCIStorageSecret',
 
   emits: ['update:value'],
 
@@ -113,7 +113,7 @@ export default {
       if (this.secretsList.length > 0) {
         out.push({
           kind:     'title',
-          label:    this.t(`fleet.gitRepo.ociRegistrySecret.options.${ this.allowDefault ? 'chooseCustom' : 'chooseExisting' }`),
+          label:    this.t(`fleet.gitRepo.ociStorageSecret.options.${ this.allowDefault ? 'chooseCustom' : 'chooseExisting' }`),
           disabled: true
         });
 
@@ -138,7 +138,7 @@ export default {
 
     tooltip() {
       if (this.allowDefault) {
-        return this.t('fleet.gitRepo.ociRegistrySecret.tooltip', { workspace: this.workspace }, { raw: true });
+        return this.t('fleet.gitRepo.ociStorageSecret.tooltip', { workspace: this.workspace }, { raw: true });
       }
 
       return null;
@@ -163,7 +163,7 @@ export default {
 
 <template>
   <LabeledSelect
-    :label="t('fleet.gitRepo.ociRegistrySecret.label')"
+    :label="t('fleet.gitRepo.ociStorageSecret.label')"
     :mode="mode"
     :value="selected"
     :options="options"

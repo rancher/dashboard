@@ -2624,7 +2624,7 @@ fleet:
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
         minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
-    ociRegistrySecret:
+    ociStorageSecret:
       title: OCI Registry
       label: OCI Storage Secret
       tooltip: If 'None' is selected, Fleet will use the most recent OCI storage secret defined as default in {workspace} workspace.<br>Every changes of the selected OCI storage secret will not be applied until next Git Repo update.

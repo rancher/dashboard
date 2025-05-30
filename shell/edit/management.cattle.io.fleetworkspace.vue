@@ -18,7 +18,7 @@ import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import FleetOCIRegistrySecret from '@shell/components/fleet/FleetOCIRegistrySecret.vue';
+import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -28,7 +28,7 @@ export default {
   inheritAttrs: false,
   components:   {
     CruResource,
-    FleetOCIRegistrySecret,
+    FleetOCIStorageSecret,
     Labels,
     Loading,
     NameNsDescription,
@@ -253,7 +253,7 @@ export default {
         label-key="fleet.workspaces.tabs.ociRegistry"
         :weight="2"
       >
-        <FleetOCIRegistrySecret
+        <FleetOCIStorageSecret
           :secret="defaultOCIStorageSecret"
           :workspace="value.metadata.name"
           :mode="mode"
