@@ -128,8 +128,8 @@ class PaginationUtils {
     return false;
   }
 
-  isListAutoRefreshEnabled({ rootGetters }: any): boolean {
-    return this.isFeatureEnabled({ rootGetters }, 'listAutoRefresh');
+  listAutoRefreshToggleEnabled({ rootGetters }: any): boolean {
+    return this.isFeatureEnabled({ rootGetters }, 'listAutoRefreshToggle');
   }
 
   isListManualRefreshEnabled({ rootGetters }: any): boolean {
@@ -145,6 +145,12 @@ class PaginationUtils {
     const settings = this.getSettings({ rootGetters });
 
     return !!settings.features?.[featureName]?.enabled;
+  }
+
+  resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
+    const settings = this.getSettings({ rootGetters });
+
+    return settings.resourceChangesDebounceMs;
   }
 
   validateNsProjectFilters(nsProjectFilters: string[]) {

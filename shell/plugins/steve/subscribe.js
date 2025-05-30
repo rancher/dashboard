@@ -36,6 +36,7 @@ import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -498,6 +499,14 @@ const sharedActions = {
 
     if (mode) {
       msg.mode = mode;
+
+      if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        const debounceMs = paginationUtils.resourceChangesDebounceMs({ rootGetters });
+
+        if (debounceMs) {
+          msg.debounceMs = debounceMs;
+        }
+      }
     }
 
     if ( revision ) {

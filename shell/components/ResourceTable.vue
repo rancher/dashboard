@@ -231,8 +231,8 @@ export default {
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration:           undefined,
-      isListAutoRefreshEnabled: paginationUtils.isListAutoRefreshEnabled({ rootGetters: this.$store.getters }),
+      sortGeneration:               undefined,
+      listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
@@ -668,7 +668,7 @@ export default {
     >
       <!-- See https://github.com/rancher/dashboard/issues/14359 -->
       <ToggleSwitch
-        v-if="isListAutoRefreshEnabled"
+        v-if="listAutoRefreshToggleEnabled"
         class="auto-update"
         :value="watching"
         name="label-system-toggle"

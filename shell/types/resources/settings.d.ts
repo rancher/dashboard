@@ -20,10 +20,7 @@ export interface PaginationSettingsStore {
   }
 }
 
-/**
- *
- */
-export type PaginationFeature = 'listAutoRefresh' | 'listManualRefresh'
+export type PaginationFeature = 'listAutoRefreshToggle' | 'listManualRefresh'
 
 /**
  * Settings to handle server side pagination
@@ -45,7 +42,14 @@ export interface PaginationSettings {
     [key in PaginationFeature]: { // eslint-disable-line no-unused-vars
       enabled: boolean,
     }
-  }
+  },
+
+  /**
+   * Debounce the amount of time between a resource changing and the backend sending a resource.changes message
+   *
+   * This greatly reduces spam in systems with high resource churn. It needs to be more than it takes for the UI to make a http request to fetch changes
+   */
+  resourceChangesDebounceMs?: number
 }
 
 type Links = {
