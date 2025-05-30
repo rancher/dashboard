@@ -321,7 +321,6 @@ FleetOCIRegistrySecret,
     workspace(neu) {
       if ( this.isCreate ) {
         set(this.value, 'metadata.namespace', neu);
-set(this.value, 'spec.ociRegistrySecret', undefined);
       }
     },
   },
