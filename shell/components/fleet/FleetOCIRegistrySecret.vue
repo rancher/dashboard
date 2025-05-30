@@ -135,6 +135,14 @@ export default {
 
       return this.secret || OPTIONS._NONE;
     },
+
+    tooltip() {
+      if (this.allowDefault) {
+        return this.t('fleet.gitRepo.ociRegistrySecret.tooltip', { workspace: this.workspace }, { raw: true });
+      }
+
+      return null;
+    }
   },
 
   watch: {
@@ -159,6 +167,7 @@ export default {
     :mode="mode"
     :value="selected"
     :options="options"
+    :tooltip="tooltip"
     @update:value="update"
   />
 </template>
