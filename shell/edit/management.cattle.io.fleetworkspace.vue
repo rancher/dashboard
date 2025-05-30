@@ -1,10 +1,12 @@
 <script>
+import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { FLEET, MANAGEMENT, SCHEMA } from '@shell/config/types';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 // import RoleBindings from '@shell/components/RoleBindings';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -16,6 +18,7 @@ import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import FleetOCIRegistrySecret from '@shell/components/fleet/FleetOCIRegistrySecret.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -25,6 +28,7 @@ export default {
   inheritAttrs: false,
   components:   {
     CruResource,
+    FleetOCIRegistrySecret,
     Labels,
     Loading,
     NameNsDescription,
@@ -126,6 +130,10 @@ export default {
         this.errors = exceptionToErrorsArray(err);
       }
     },
+
+    updateDefaultOCIStorageSecret(secretName) {
+      this.value.metadata.annotations[FLEET_ANNOTATIONS.OCI_STORAGE_SECRET_DEFAULT] = secretName;
+    }
   },
 
   computed: {
@@ -143,6 +151,14 @@ export default {
 
         this.targetNamespaces = value;
       }
+    },
+
+    defaultOCIStorageSecret() {
+      return this.value.metadata?.annotations?.[FLEET_ANNOTATIONS.OCI_STORAGE_SECRET_DEFAULT];
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
     },
 
     SCOPE_NAMESPACE() {
@@ -199,18 +215,9 @@ export default {
       </Tab> -->
 
       <Tab
-        name="labels"
-        label-key="generic.labelsAndAnnotations"
-      >
-        <Labels
-          :value="value"
-          :mode="mode"
-          @update:value="$emit('input', $event)"
-        />
-      </Tab>
-      <Tab
         name="allowedtargetnamespaces"
         label-key="fleet.workspaces.tabs.restrictions"
+        :weight="3"
       >
         <Banner
           color="info"
@@ -238,6 +245,31 @@ export default {
           :title="t('fleet.restrictions.addTitle')"
           :read-allowed="false"
           :value-can-be-empty="true"
+        />
+      </Tab>
+      <Tab
+        v-if="!isCreate"
+        name="ociRegistries"
+        label-key="fleet.workspaces.tabs.ociRegistry"
+        :weight="2"
+      >
+        <FleetOCIRegistrySecret
+          :secret="defaultOCIStorageSecret"
+          :workspace="value.metadata.name"
+          :mode="mode"
+          :allow-default="false"
+          @update:value="updateDefaultOCIStorageSecret"
+        />
+      </Tab>
+      <Tab
+        name="labels"
+        label-key="generic.labelsAndAnnotations"
+        :weight="1"
+      >
+        <Labels
+          :value="value"
+          :mode="mode"
+          @update:value="$emit('input', $event)"
         />
       </Tab>
     </Tabbed>
