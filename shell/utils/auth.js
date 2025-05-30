@@ -30,9 +30,6 @@ export function openAuthPopup(url, provider) {
       popup.resolve(code);
     };
 
-    // Window hook for when window can invoke a method on the opener
-    window.onAuthTest = onAuthTest;
-
     // Broadcast message listener for when the window can not invoke a method on the opener
     bc.onmessage = (msgEvent) => {
       try {
