@@ -50,12 +50,15 @@ export default {
    */
   isSteveCacheUrl: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
 
+  /**
+   * opt: ActionFindPageArgs
+   */
   urlOptions: (state, getters) => (url, opt, schema) => {
     opt = opt || {};
     const parsedUrl = parse(url || '');
 
     const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
-    const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
+    const stevePagination = stevePaginationUtils.createParamsForPagination({ schema, opt });
 
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
