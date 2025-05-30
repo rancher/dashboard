@@ -28,6 +28,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import { toSeconds } from '@shell/utils/duration';
+import FleetOCIRegistrySecret from '@shell/components/fleet/FleetOCIRegistrySecret.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 const DEFAULT_POLLING_INTERVAL = 60;
@@ -48,6 +49,7 @@ export default {
     ArrayList,
     Banner,
     CruResource,
+FleetOCIRegistrySecret,
     InputWithSelect,
     Labels,
     LabeledInput,
@@ -130,8 +132,7 @@ export default {
     return {
       allClusters:             [],
       allClusterGroups:        [],
-      allWorkspaces:           [],
-      tempCachedValues:        {},
+            tempCachedValues:        {},
       username:                null,
       password:                null,
       publicKey:               null,
@@ -320,6 +321,7 @@ export default {
     workspace(neu) {
       if ( this.isCreate ) {
         set(this.value, 'metadata.namespace', neu);
+set(this.value, 'spec.ociRegistrySecret', undefined);
       }
     },
   },
@@ -750,6 +752,20 @@ export default {
         </div>
       </template>
       <div class="spacer" />
+
+      <h2 v-t="'fleet.gitRepo.ociRegistrySecret.title'" />
+      <div class="row mt-20">
+        <div class="col span-6">
+          <FleetOCIRegistrySecret
+            :secret="value.spec.ociRegistrySecret"
+:workspace="workspace"
+            :mode="mode"
+@update:value="value.spec.ociRegistrySecret=$event"
+          />
+        </div>
+      </div>
+      <div class="spacer" />
+
       <h2 v-t="'fleet.gitRepo.resources.label'" />
       <div class="resource-handling">
         <Checkbox
