@@ -6944,6 +6944,7 @@ model:
       saml: SAML
       oauth: OAuth
       oidc: OIDC
+      cognito: Amazon Cognito
     name:
       keycloak: Keycloak (SAML)
       keycloakoidc: Keycloak (OIDC)

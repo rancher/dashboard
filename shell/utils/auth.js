@@ -20,14 +20,14 @@ export function openAuthPopup(url, provider) {
 
     const bc = new BroadcastChannel(AUTH_BROADCAST_CHANNEL_NAME);
 
-    const onAuthTest = (error, code) => {
+    window.onAuthTest = (error, code) => {
       if (error) {
         popup.reject(error);
       }
 
+      bc.close();
       delete window.onAuthTest;
       popup.resolve(code);
-      bc.close();
     };
 
     // Window hook for when window can invoke a method on the opener
@@ -39,9 +39,9 @@ export function openAuthPopup(url, provider) {
         const obj = JSON.parse(msgEvent.data);
         const { error, code } = obj;
 
-        onAuthTest(error, code);
+        window.onAuthTest(error, code);
       } catch (e) {
-        console.error('Unable to process message on auth broadcast channel', e); // eslint-disable-line no-console
+        console.error('Unable to process message from auth broadcast channel', e); // eslint-disable-line no-console
       }
     };
   }, (e) => {
