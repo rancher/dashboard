@@ -46,4 +46,13 @@ export default class CreateEditViewPo extends ComponentPo {
   saveClusterAsYaml() {
     return new AsyncButtonPo(this.self().find('[data-testid="rke2-custom-create-yaml-save"]')).click();
   }
+
+  saveAndWaitForRequests(method, endpoint: string, statusCode?: number): Cypress.Chainable {
+    cy.intercept(method, endpoint).as(endpoint);
+    this.save();
+    /* eslint-disable cypress/no-assigning-return-values */
+    const wait = cy.wait(`@${ endpoint }`, { timeout: 10000 });
+
+    return statusCode ? wait.its('response.statusCode').should('eq', statusCode) : wait;
+  }
 }

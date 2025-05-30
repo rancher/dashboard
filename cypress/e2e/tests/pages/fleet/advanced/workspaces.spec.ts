@@ -393,7 +393,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
 
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
         .assertTabIsActive('[data-testid="allowedtargetnamespaces"]');
-      fleetWorkspaceCreateEditPage.allowTargetNsTabList().setValueAtIndex('test', 0);
+      fleetWorkspaceCreateEditPage.allowTargetNsTabList().setValueAtIndex('test', 0, 'Add');
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
         .clickTabWithSelector('[data-testid="btn-labels"]');
       fleetWorkspaceCreateEditPage.waitForPage(null, 'labels');
