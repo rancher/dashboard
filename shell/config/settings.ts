@@ -250,7 +250,8 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
     }
   },
   serverPagination: {
-    useDefaultStores: true,
-    stores:           undefined,
+    useDefaultStores:          true,
+    stores:                    undefined,
+    resourceChangesDebounceMs: 4000,
   }
 };
