@@ -3,7 +3,7 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { FLEET, SECRET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 const OPTIONS = { _NONE: '_none' };
@@ -98,17 +98,15 @@ export default {
     },
 
     options() {
-      const out = [];
+      const out = [{
+        label: this.t('generic.none'),
+        value: OPTIONS._NONE
+      }];
 
       if (this.defaultSecret) {
         out.push({
           label: `${ this.defaultSecret.name } (${ this.t('generic.default') })`,
           value: this.defaultSecret
-        });
-      } else {
-        out.push({
-          label: this.t('generic.none'),
-          value: OPTIONS._NONE
         });
       }
 
@@ -131,21 +129,25 @@ export default {
     },
 
     selected() {
-      if (this.secret) {
-        return this.secret;
+      if (this.secret === this.defaultSecret?.name) {
+        return this.defaultSecret;
       }
 
-      return this.defaultSecret ?? OPTIONS._NONE;
+      return this.secret || OPTIONS._NONE;
     },
+  },
+
+  watch: {
+    workspace() {
+      if (this.mode === _CREATE) {
+        this.update(this.defaultSecret);
+      }
+    }
   },
 
   methods: {
     update(value) {
-      if (value === OPTIONS._NONE || value?.id === this.defaultSecret?.id) {
-        this.$emit('update:value', undefined);
-      } else {
-        this.$emit('update:value', value?.name);
-      }
+      this.$emit('update:value', value?.name);
     },
   }
 };
