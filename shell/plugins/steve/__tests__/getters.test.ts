@@ -68,12 +68,14 @@ describe('steve: getters:', () => {
   });
 
   describe('urlOptions', () => {
-    // we're not testing function output based off of state or getter inputs here since they are dependencies
-    const state = { };
-    const isSteveUrlGetter = isSteveUrl();
-    const getters = { isSteveUrl: isSteveUrlGetter };
-
-    const urlOptionsGetter = urlOptions(state, getters);
+    const urlOptionsGetter = urlOptions(undefined, {
+      isSteveUrl:      isSteveUrl(),
+      isSteveCacheUrl: () => false,
+    });
+    const urlOptionsGetterVaiOn = urlOptions(undefined, {
+      isSteveUrl:      isSteveUrl(),
+      isSteveCacheUrl: () => true,
+    });
 
     it('expects urlOptions to return a function', () => {
       expect(typeof urlOptions()).toBe('function');
@@ -101,6 +103,12 @@ describe('steve: getters:', () => {
     });
     it('returns a string with a multiple filter statements applied and formatted for steve if a single filter statement is applied and the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+    });
+    it('returns a string with correct equality for vai off', () => {
+      expect(urlOptionsGetter('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar=baz&far=faz&exclude=metadata.managedFields');
+    });
+    it('returns a string with correct equality for vai on', () => {
+      expect(urlOptionsGetterVaiOn('/v1/foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('/v1/foo?filter=bar~baz&far~faz&exclude=metadata.managedFields');
     });
     it('returns a string with a labelSelector and formatted for steve if the url starts with "/v1"', () => {
       expect(urlOptionsGetter('/v1/foo', { labelSelector: 'a=b' })).toBe('/v1/foo?labelSelector=a=b&exclude=metadata.managedFields');

@@ -34,6 +34,7 @@ import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { parse } from '@shell/utils/selector';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1179,7 +1180,9 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = this.toSave() || JSON.parse(JSON.stringify(this)); // Needs to completely dereference self to ensure properties that are cleaned are not removed from cache
+    // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
+    // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
+    opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;
@@ -1802,6 +1805,7 @@ export default class Resource {
       }
 
       if ( r.selector ) {
+        // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
         addObjects(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
@@ -1845,15 +1849,32 @@ export default class Resource {
   }
 
   async _findRelationship(rel, direction) {
+    // Find resources for this resource's metadata.relationships (steve prop)
+    // These will either reference a selector (stringified matchLabels) OR specific resources (ids)
     const { selectors, ids } = this._relationshipsFor(rel, direction);
     const out = [];
 
+    // Find all the resources that match the selector
     for ( const sel of selectors ) {
-      const matching = await this.$dispatch('findMatching', sel);
+      const {
+        type,
+        selector,
+        namespace,
+        opt,
+      } = sel;
+      const matching = await this.$dispatch('findLabelSelector', {
+        type,
+        matching: {
+          namespace,
+          labelSelector: { matchExpressions: parse(selector) }
+        },
+        opts: opt
+      });
 
-      addObjects(out, matching.data);
+      addObjects(out, matching);
     }
 
+    // Find all the resources that match the required id's
     for ( const obj of ids ) {
       const { type, id } = obj;
       let matching = this.$getters['byId'](type, id);

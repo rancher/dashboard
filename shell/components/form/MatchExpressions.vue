@@ -25,7 +25,11 @@ export default {
       default: 'edit'
     },
 
-    // pod/node affinity types have different operator options
+    /**
+     * pod/node affinity types have different operator options
+     *
+     * Note - This prop should just be isNode
+     */
     type: {
       type:    String,
       default: NODE

@@ -18,6 +18,8 @@ import {
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
+import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -134,6 +136,14 @@ class NamespaceProjectFilters {
  * Helper functions for steve pagination
  */
 class StevePaginationUtils extends NamespaceProjectFilters {
+  /**
+   * Match
+   * - a-z (case insensitive)
+   * - 0-9
+   * - `-`, `_`, `.`
+   */
+  static VALID_FIELD_VALUE_REGEX = /^[\w\-.]+$/;
+
   /**
    * Filtering with the vai cache supports specific fields
    * 1) Those listed here
@@ -352,13 +362,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     };
   }
 
-  public createParamsForPagination(schema: Schema, opt: ActionFindPageArgs): string | undefined {
+  public createParamsForPagination({ schema, opt }: {schema?: Schema, opt: ActionFindPageArgs}): string | undefined {
     if (!opt.pagination) {
       return;
     }
 
     const params: string[] = [];
-    const namespaceParam = this.convertPaginationParams(schema, opt.pagination.projectsOrNamespaces);
+    const namespaceParam = this.convertPaginationParams({ schema, filters: opt.pagination.projectsOrNamespaces });
 
     if (namespaceParam) {
       params.push(namespaceParam);
@@ -368,8 +378,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       params.push(`page=${ opt.pagination.page }`);
     }
 
-    if (opt.pagination.pageSize) {
+    if (!!opt.pagination.pageSize || opt.pagination.pageSize === 0) {
       params.push(`pagesize=${ opt.pagination.pageSize }`);
+    } else {
+      // Prevent unlimited resources in response
+      params.push(`pagesize=${ paginationUtils.defaultPageSize }`);
     }
 
     if (opt.pagination.sort?.length) {
@@ -389,12 +402,20 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       params.push(`sort=${ joined }`);
 
       if (validateFields.invalid.length) {
-        console.warn(`Pagination API does not support sorting '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+        console.warn(`Pagination API does not support sorting '${ schema?.id || opt.url }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
       }
     }
 
     if (opt.pagination.filters?.length) {
-      const filters = this.convertPaginationParams(schema, opt.pagination.filters);
+      const filters = this.convertPaginationParams({ schema, filters: opt.pagination.filters });
+
+      if (filters) {
+        params.push(filters);
+      }
+    }
+
+    if (opt.pagination.labelSelector) {
+      const filters = this.convertLabelSelectorPaginationParams({ labelSelector: opt.pagination.labelSelector });
 
       if (filters) {
         params.push(filters);
@@ -410,7 +431,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   /**
    * Check if the API supports filtering by this field
    */
-  private validateField(state: { checked: string[], invalid: string[]}, schema: Schema, field?: string) {
+  private validateField(state: { checked: string[], invalid: string[]}, schema?: Schema, field?: string) {
     if (!field) {
       return; // no field, so not invalid
     }
@@ -424,6 +445,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     // First check in our hardcoded list of supported filters
     if (
       process.env.NODE_ENV === 'dev' &&
+      !!schema &&
       [
         StevePaginationUtils.VALID_FIELDS[''], // Global
         StevePaginationUtils.VALID_FIELDS[schema.id], // Type specific
@@ -454,7 +476,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   /**
    * Convert our {@link PaginationParam} definition of params to a set of url params
    */
-  private convertPaginationParams(schema: Schema, filters: PaginationParam[] = []): string {
+  private convertPaginationParams({ schema, filters = [] }: {schema?: Schema, filters: PaginationParam[]}): string {
     const validateFields = {
       checked: new Array<string>(),
       invalid: new Array<string>(),
@@ -475,8 +497,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // != not exact match (!equals + exact)
               // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
+              const quotedValue = StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(value) ? value : `"${ value }"`;
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ value }`;
+              return `${ this.convertArrayPath(field.field) }${ operator }${ quotedValue }`;
             }
 
             return field.value;
@@ -494,10 +517,115 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     const res = Object.keys(unique).join('&'); // This means AND
 
     if (validateFields.invalid.length) {
-      console.warn(`Pagination API does not support filtering '${ schema.id }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
+      console.warn(`Pagination API does not support filtering '${ schema?.id || 'unknown' }' by the requested fields: ${ uniq(validateFields.invalid).join(', ') }`); // eslint-disable-line no-console
     }
 
     return res;
+  }
+
+  /**
+   * Convert kube labelSelector object into steve filter params
+   *
+   * A lot of the requirements and details are taken directly from
+   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+   */
+  private convertLabelSelectorPaginationParams({ labelSelector }: { labelSelector: KubeLabelSelector}): string {
+    // Get a list of matchExpressions
+    const expressions: KubeLabelSelectorExpression[] = labelSelector.matchExpressions ? [...labelSelector.matchExpressions] : [];
+
+    // matchLabels are just simpler versions of matchExpressions, for ease convert them
+    if (labelSelector.matchLabels) {
+      Object.entries(labelSelector.matchLabels).forEach(([key, value]) => {
+        const expression: KubeLabelSelectorExpression = {
+          key,
+          values:   [value],
+          operator: 'In'
+        };
+
+        expressions.push(expression);
+      });
+    }
+
+    // concert all matchExpressions into string params
+    const filters: string[] = expressions.reduce((res, exp) => {
+      const labelKey = `metadata.labels[${ exp.key }]`;
+
+      switch (exp.operator) {
+      case 'In':
+        if (!exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(IN) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // foo IN [bar] => ?filter=foo+IN+(bar)
+        // foo IN [bar, baz2] => ?filter=foo+IN+(bar,baz2)
+        res.push(`filter=${ labelKey } IN (${ exp.values.join(',') })`);
+        break;
+      case 'NotIn':
+
+        if (!exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(NOTIN) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // aaa NotIn [bar, baz2]=> ?filter=foo+NOTIN+(bar,baz2)
+        res.push(`filter=${ labelKey } NOTIN (${ exp.values.join(',') })`);
+        break;
+      case 'Exists':
+
+        if (exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Exists) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // bbb Exists=> ?filter=bbb
+        res.push(`filter=${ labelKey }`);
+        break;
+      case 'DoesNotExist':
+        if (exp.values?.length) {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(DoesNotExist) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // ccc DoesNotExist ?filter=!bbb. # or %21bbb
+        res.push(`filter=!${ labelKey }`);
+        break;
+      case 'Gt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+
+        if (typeof exp.values !== 'string') {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Gt) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // ddd Gt 1=> ?filter=ddd+>+1
+        res.push(`filter=${ labelKey } > (${ exp.values })`);
+        break;
+      case 'Lt':
+        // Currently broken - see https://github.com/rancher/rancher/issues/50057
+        // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
+        if (typeof exp.values !== 'string') {
+          console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
+
+          return res;
+        }
+
+        // eee Lt 2=> ?filter=eee+<+2
+        res.push(`filter=${ labelKey } < (${ exp.values })`);
+        break;
+      }
+
+      return res;
+    }, [] as string[]);
+
+    // "All of the requirements, from both matchLabels and matchExpressions are ANDed together -- they must all be satisfied in order to match"
+    return filters.join('&');
   }
 }
 

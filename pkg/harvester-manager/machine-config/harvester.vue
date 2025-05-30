@@ -303,6 +303,7 @@ export default {
       this.update();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
+      console.error('Failed to initialize harvester machine config data', e); // eslint-disable-line no-console
     }
   },
 

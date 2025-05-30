@@ -5,7 +5,6 @@ import { providersList } from '@/cypress/e2e/blueprints/manager/clusterProviderU
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
-import ClusterManagerDetailSnapshotsPo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-snapshots.po';
 import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-import-generic.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
@@ -15,13 +14,10 @@ import ClusterManagerNamespacePagePo from '@/cypress/e2e/po/pages/cluster-manage
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import Shell from '@/cypress/e2e/po/components/shell.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { snapshot } from '@/cypress/e2e/blueprints/manager/cluster-snapshots';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-responses';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
@@ -38,7 +34,6 @@ const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
 const importType = 'cluster';
 const clusterNamePartial = `${ runPrefix }-create`;
-const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
 let reenableAKS = false;
@@ -52,46 +47,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   before(() => {
     cy.login();
-  });
-
-  // testing https://github.com/rancher/dashboard/issues/9823
-  it('Toggling the feature flag "rke1-ui" to false should not display RKE toggle on cluster creation screen and hide RKE1 resources from nav', () => {
-    cy.fetchRevision().then((revision) => {
-      cy.intercept('GET', 'v1/management.cattle.io.features?*', {
-        type:         'collection',
-        resourceType: 'management.cattle.io.feature',
-        revision,
-        data:         [
-          {
-            id:     'rke1-ui',
-            type:   'management.cattle.io.feature',
-            kind:   'Feature',
-            spec:   { value: false },
-            status: {
-              default:     true,
-              description: 'Disable RKE1 provisioning',
-              dynamic:     false,
-              lockedValue: false
-            }
-          }
-        ]
-      }).as('featuresGet');
-
-      const clusterCreate = new ClusterManagerCreatePagePo();
-
-      clusterCreate.goTo();
-      clusterCreate.waitForPage();
-
-      // seems like the waitForPage does await for full DOM render, so let's wait for a simple assertion
-      // like "gridElementExists" to make sure we aren't creating a fake assertion with the toggle
-      clusterCreate.gridElementExistanceByName('Linode', 'exist');
-      clusterCreate.rkeToggleExistance('not.exist');
-
-      const sideNav = new ProductNavPo();
-
-      // check that the nav group isn't visible anymore
-      sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'not.exist');
-    });
   });
 
   it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
@@ -167,7 +122,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterCreatePage.waitForPage();
     cy.wait('@kontainerDrivers');
 
-    clusterCreatePage.rkeToggleExistance('exist');
     clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
 
     clusterCreatePage.gridElementGroupTitles().should('have.length', 2);
@@ -178,21 +132,17 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
   });
 
-  describe('All providers', () => {
+  describe('RKE2 providers', () => {
     providersList.forEach((prov) => {
-      prov.conditions.forEach((condition) => {
-        it(`should be able to access cluster creation for provider ${ prov.label } with rke type ${ condition.rkeType } via url`, () => {
-          const clusterCreate = new ClusterManagerCreatePagePo();
+      it(`should be able to access RKE2 cluster creation for provider ${ prov.label } via url`, () => {
+        const clusterCreate = new ClusterManagerCreatePagePo();
 
-          clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=${ condition.rkeType }`);
-          clusterCreate.waitForPage();
+        clusterCreate.goTo(`type=${ prov.clusterProviderQueryParam }&rkeType=rke2`);
+        clusterCreate.waitForPage();
 
-          loadingPo.checkNotExists();
-          const fnName = condition.loads === 'rke1' ? 'rke1PageTitle' : 'rke2PageTitle';
-          const evaluation = condition.loads === 'rke1' ? `Add Cluster - ${ condition.label ? condition.label : prov.label }` : `Create ${ condition.label ? condition.label : prov.label }`;
+        loadingPo.checkNotExists();
 
-          clusterCreate[fnName]().should('contain', evaluation);
-        });
+        clusterCreate.rke2PageTitle().should('contain', `Create ${ prov.label }`);
       });
     });
   });
@@ -232,15 +182,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.waitForPage();
 
-        // Test for https://github.com/rancher/dashboard/issues/9823 (default is feature flag 'rke1-ui' = true)
-        createRKE2ClusterPage.rkeToggleExistance('exist');
-
-        const sideNav = new ProductNavPo();
-
-        sideNav.navToSideMenuGroupByLabelExistence('RKE1 Configuration', 'exist');
         // EO test for https://github.com/rancher/dashboard/issues/9823
-
-        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
         createRKE2ClusterPage.selectCustom(0);
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
@@ -345,8 +287,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.waitForPage();
 
-        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
-
         createRKE2ClusterPage.selectCustom(0);
 
         createRKE2ClusterPage.nameNsDescription().name().set('abc');
@@ -426,167 +366,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         });
       });
     });
-
-    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
-
-    describe('RKE1 Custom', { tags: ['@jenkins'] }, () => {
-      it('can create new cluster', () => {
-        clusterList.goTo();
-        clusterList.checkIsCurrentPage();
-        clusterList.createCluster();
-
-        createClusterRKE1Page.waitForPage();
-
-        createClusterRKE1Page.rkeToggle().set('RKE1');
-        createClusterRKE1Page.selectCustom(0);
-        loadingPo.checkNotExists(MEDIUM_TIMEOUT_OPT);
-
-        createClusterRKE1Page.clusterName().set(rke1CustomName);
-
-        // Test Custom Cluster Roles -------------------------
-        const roles = [{
-          label:          'Create Projects',
-          roleTemplateId: 'projects-create'
-        }, {
-          label:          'Manage Cluster Catalogs',
-          roleTemplateId: 'clustercatalogs-manage'
-        }, {
-          label:          'Manage Navlinks',
-          roleTemplateId: 'navlinks-manage'
-        }, {
-          label:          'Manage Storage',
-          roleTemplateId: 'storage-manage'
-        }];
-
-        createClusterRKE1Page.memberRoles().checkExists();
-        createClusterRKE1Page.memberRoles().expand();
-        createClusterRKE1Page.memberRolesFormMembers().addMember();
-        createClusterRKE1Page.memberRolesFormMembers().setNewMemberWithCustomRoles('admin', roles);
-
-        cy.intercept('POST', '/v3/clusterroletemplatebinding').as('binding');
-
-        //  -------------------------
-
-        createClusterRKE1Page.next();
-
-        let found = 0;
-
-        for (let i = 0; i < roles.length; i++) {
-          cy.wait('@binding').then((res: any) => {
-            if (roles.find((r) => r.roleTemplateId === res.response.body.roleTemplateId)) {
-              found++;
-            }
-
-            if (i === roles.length - 1) {
-              expect(roles.length).equal(found);
-            }
-          });
-        }
-
-        createClusterRKE1Page.nodeCommand().checkExists();
-        createClusterRKE1Page.etcdRole().click();
-        createClusterRKE1Page.cpRole().click();
-        createClusterRKE1Page.registrationCommand().then(($value) => {
-          const registrationCommand = $value.text().replace('sudo', '');
-
-          cy.log(registrationCommand);
-
-          cy.exec(`echo ${ Cypress.env('customNodeKeyRke1') } | base64 -d > custom_node_rke1.key && chmod 600 custom_node_rke1.key`).then((result) => {
-            cy.log('Creating the custom_node_rke1.key');
-            cy.log(result.stderr);
-            cy.log(result.stdout);
-            expect(result.code).to.eq(0);
-          });
-          cy.exec(`head custom_node_rke1.key`).then((result) => {
-            cy.log(result.stdout);
-            cy.log(result.stderr);
-            expect(result.code).to.eq(0);
-          });
-          cy.exec(createClusterRKE1Page.customClusterRegistrationCmd(registrationCommand, 1), { failOnNonZeroExit: false, timeout: 120000 }).then((result) => {
-            cy.log(result.stderr);
-            cy.log(result.stdout);
-          });
-        });
-        createClusterRKE1Page.done();
-
-        clusterList.waitForPage();
-        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
-        clusterList.list().state(rke1CustomName).should('contain.text', 'Provisioning');
-        clusterList.list().state(rke1CustomName).contains('Active', { timeout: 500000 }); // super long timeout needed for cluster provisioning to complete
-      });
-
-      // it.skip('can create new snapshots', () => {
-      // });
-
-      it('can show snapshots list', () => {
-        clusterList.goToClusterListAndGetClusterDetails(rke1CustomName).then((cluster) => {
-          const snapshots = new ClusterManagerDetailSnapshotsPo(undefined, cluster.id);
-
-          // We want to show 2 elements in the snapshots tab
-          const snapshotId1 = 'ml-mkhz4';
-          const snapshotId2 = 'ml-mkhz5';
-
-          // Intercept first request with limit 1, this should triggers depaginate mechanism and make a second request to fetch second snapshot.
-          cy.intercept({
-            method: 'GET',
-            path:   '/v3/etcdbackups',
-          }, (req) => {
-            req.query = { limit: '1' };
-
-            req.continue((res) => {
-              res.body.pagination = {
-                first:   `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId1 }`,
-                next:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
-                last:    `${ req.url }&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
-                limit:   1,
-                total:   2,
-                partial: true
-              };
-
-              res.body.data = [
-                snapshot(cluster.id, snapshotId1),
-              ];
-            });
-          });
-
-          // Intercept second request
-          cy.intercept({
-            method: 'GET',
-            path:   `/v3/etcdbackups?limit=1&marker=${ cluster.id }%3A${ cluster.id }-${ snapshotId2 }`,
-          }, (req) => {
-            req.continue((res) => {
-              res.body.data = [
-                snapshot(cluster.id, snapshotId2),
-              ];
-            });
-          });
-
-          snapshots.goTo();
-          snapshots.waitForPage();
-
-          snapshots.list().resourceTable().sortableTable().groupElementWithName('Location')
-            .should('have.length', 1); // 1 group row
-
-          snapshots.list().resourceTable().sortableTable().rowElements()
-            .should('have.length.gte', 2); // 2 main rows
-        });
-      });
-
-      // it.skip('can delete snapshots', () => {
-      // });
-
-      it('can delete cluster', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke1CustomName).getMenuItem('Delete').click();
-
-        const promptRemove = new PromptRemove();
-
-        promptRemove.confirm(rke1CustomName);
-        promptRemove.remove();
-
-        clusterList.sortableTable().rowElementWithName(rke1CustomName, MEDIUM_TIMEOUT_OPT).should('not.exist', MEDIUM_TIMEOUT_OPT);
-      });
-    });
   });
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster'] }, () => {
@@ -614,9 +393,9 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.accordion(2, 'Basics').should('be.visible');
         importClusterPage.accordion(3, 'Member Roles').should('be.visible');
         importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(5, 'Advanced').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
+        importClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
         importClusterPage.networkingAccordion().should('not.exist');
-        importClusterPage.registriesAccordion().should('not.exist');
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
