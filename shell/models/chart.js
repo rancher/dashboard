@@ -120,66 +120,70 @@ export default class Chart extends SteveModel {
    * @returns {Object} Card content object with `subHeaderItems`, `footerItems`, and `statuses` arrays.
    */
   get cardContent() {
-    const subHeaderItems = [
-      {
-        icon:        'icon-version-alt',
-        iconTooltip: { key: 'tableHeaders.version' },
-        label:       this.versions[0].version
-      },
-      {
-        icon:        'icon-refresh-alt',
-        iconTooltip: { key: 'tableHeaders.lastUpdated' },
-        label:       day(this.versions[0].created).format('MMM D, YYYY')
+    if (!this._cardContent) {
+      const subHeaderItems = [
+        {
+          icon:        'icon-version-alt',
+          iconTooltip: { key: 'tableHeaders.version' },
+          label:       this.versions[0].version
+        },
+        {
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       day(this.versions[0].created).format('MMM D, YYYY')
+        }
+      ];
+      const footerItems = [
+        {
+          icon:        'icon-repository-alt',
+          iconTooltip: { key: 'tableHeaders.repoName' },
+          labels:      [this.repoNameDisplay]
+        }
+      ];
+
+      if (this.categories.length) {
+        footerItems.push( {
+          icon:        'icon-category-alt',
+          iconTooltip: { key: 'generic.category' },
+          labels:      this.categories
+        });
       }
-    ];
-    const footerItems = [
-      {
-        icon:        'icon-repository-alt',
-        iconTooltip: { key: 'tableHeaders.repoName' },
-        labels:      [this.repoNameDisplay]
+
+      if (this.tags.length) {
+        footerItems.push({
+          icon:        'icon-tag-alt',
+          iconTooltip: { key: 'generic.tags' },
+          labels:      this.tags
+        });
       }
-    ];
 
-    if (this.categories.length) {
-      footerItems.push( {
-        icon:        'icon-category-alt',
-        iconTooltip: { key: 'generic.category' },
-        labels:      this.categories
-      });
+      const statuses = [];
+
+      if (this.deprecated) {
+        statuses.push({
+          icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
+        });
+      }
+
+      if (this.upgradeable) {
+        statuses.push({
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        });
+      }
+
+      if (this.isInstalled) {
+        statuses.push({
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
+        });
+      }
+
+      this._cardContent = {
+        subHeaderItems,
+        footerItems,
+        statuses
+      };
     }
 
-    if (this.tags.length) {
-      footerItems.push({
-        icon:        'icon-tag-alt',
-        iconTooltip: { key: 'generic.tags' },
-        labels:      this.tags
-      });
-    }
-
-    const statuses = [];
-
-    if (this.deprecated) {
-      statuses.push({
-        icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
-      });
-    }
-
-    if (this.upgradeable) {
-      statuses.push({
-        icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
-      });
-    }
-
-    if (this.isInstalled) {
-      statuses.push({
-        icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
-      });
-    }
-
-    return {
-      subHeaderItems,
-      footerItems,
-      statuses
-    };
+    return this._cardContent;
   }
 }

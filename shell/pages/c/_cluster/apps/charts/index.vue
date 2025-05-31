@@ -22,6 +22,8 @@ import TabTitle from '@shell/components/TabTitle';
 import RcItemCard from '@shell/components/cards/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
+import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
 
 export default {
   name:       'Charts',
@@ -35,7 +37,9 @@ export default {
     Select,
     TypeDescription,
     TabTitle,
-    RcItemCard
+    RcItemCard,
+    AppCardSubHeader,
+    AppCardFooter
   },
 
   async fetch() {
@@ -217,6 +221,22 @@ export default {
 
     showCarousel() {
       return this.chartMode === 'featured' && this.featuredCharts.length;
+    },
+
+    appCards() {
+      return this.filteredCharts.map((chart) => ({
+        id:     chart.id,
+        pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
+        header: {
+          title:    { text: chart.chartNameDisplay },
+          statuses: chart.cardContent.statuses
+        },
+        subHeaderItems: chart.cardContent.subHeaderItems,
+        image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+        content:        { text: chart.chartDescription },
+        footerItems:    chart.cardContent.footerItems,
+        rawChart:       chart
+      }));
     }
 
   },
@@ -482,61 +502,28 @@ export default {
           data-testid="app-cards-container"
         >
           <rc-item-card
-            v-for="chart in filteredCharts"
-            :id="chart.id"
-            :key="chart.id"
-            :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
-            :header="{
-              title: { text: chart.chartNameDisplay },
-              statuses: chart.cardContent.statuses
-            }"
-            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) }}"
-            :content="{ text: chart.chartDescription }"
-            :value="chart"
+            v-for="card in appCards"
+            :id="card.id"
+            :key="card.id"
+            :pill="card.pill"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :value="card.rawChart"
             :clickable="true"
             @card-click="selectChart"
           >
-            <template #item-card-sub-header>
-              <div class="app-card-sub-header">
-                <div
-                  v-for="(subHeaderItem, i) in chart.cardContent.subHeaderItems"
-                  :key="i"
-                  class="app-card-sub-header-item"
-                  data-testid="app-card-version"
-                >
-                  <i
-                    v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
-                    :class="['icon', 'app-card-item-icon', subHeaderItem.icon]"
-                  />
-                  <p>
-                    {{ subHeaderItem.label }}
-                  </p>
-                </div>
-              </div>
+            <template
+              v-once
+              #item-card-sub-header
+            >
+              <AppCardSubHeader :items="card.subHeaderItems" />
             </template>
-            <template #item-card-footer>
-              <div class="app-card-footer">
-                <div
-                  v-for="(footerItem, i) in chart.cardContent.footerItems"
-                  :key="i"
-                  class="app-card-footer-item no-card-click"
-                  data-testid="app-card-footer-item"
-                >
-                  <i
-                    v-if="footerItem.icon"
-                    v-clean-tooltip="t(footerItem.iconTooltip.key)"
-                    :class="['icon', 'app-card-item-icon', footerItem.icon]"
-                  />
-                  <p
-                    v-for="(label, j) in footerItem.labels"
-                    :key="j"
-                    class="app-card-footer-item-text"
-                    data-testid="app-card-footer-item-text"
-                  >
-                    {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
-                  </p>
-                </div>
-              </div>
+            <template
+              v-once
+              #item-card-footer
+            >
+              <AppCardFooter :items="card.footerItems" />
             </template>
           </rc-item-card>
         </div>
@@ -615,49 +602,6 @@ export default {
   grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
   grid-gap: var(--gap-md);
   overflow: hidden;
-
-  .app-card {
-
-    &-sub-header {
-      display: flex;
-      gap: var(--gap-md);
-      color: var(--link-text-secondary);
-      margin-bottom: 8px;
-
-      &-item {
-        display: flex;
-        align-items: center;
-      }
-    }
-
-    &-footer {
-      display: flex;
-      flex-wrap: wrap;
-
-      &-item {
-        display: flex;
-        align-items: center;
-        color: var(--link-text-secondary);
-        margin-top: 8px;
-        margin-right: 8px;
-
-        &-text {
-          text-transform: capitalize;
-          margin-right: 8px;
-        }
-      }
-    }
-
-    &-item-icon {
-      width: 20px;
-      height: 20px;
-      display: flex;
-      font-size: 19px;
-      align-items: center;
-      justify-content: center;
-      margin-right: 8px;
-    }
-  }
 }
 
 .checkbox-outer-container.in-select {
