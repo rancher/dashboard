@@ -175,6 +175,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloakoidc`, 'auth/oidc');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/genericoidc`, 'auth/oidc');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/cognito`, 'auth/oidc');
 
   basicType([
     'config',

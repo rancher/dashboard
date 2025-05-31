@@ -22,11 +22,11 @@ export default class AuthProviderPo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Auth Provider');
   }
 
-  goToAzureADCreation(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(`/c/${ clusterId }/auth/config/azuread?mode=edit`);
+  goToCreation(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`/c/${ clusterId }/auth/config/cognito?mode=edit`);
   }
 
-  selectAzureAd() {
-    return this.self().find('[data-testid="select-icon-grid-AzureAD"]').click();
+  select() {
+    return this.self().find('[data-testid="select-icon-grid-Amazon Cognito"]').click();
   }
 }
