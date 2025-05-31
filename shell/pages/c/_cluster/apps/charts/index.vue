@@ -10,6 +10,7 @@ import {
 } from '@shell/config/query-params';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
+import debounce from 'lodash/debounce';
 import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
@@ -58,13 +59,14 @@ export default {
 
   data() {
     return {
-      allRepos:        null,
-      category:        null,
-      operatingSystem: null,
-      searchQuery:     null,
-      showDeprecated:  null,
-      showHidden:      null,
-      chartOptions:    [
+      allRepos:             null,
+      category:             null,
+      operatingSystem:      null,
+      searchQuery:          null,
+      debouncedSearchQuery: null,
+      showDeprecated:       null,
+      showHidden:           null,
+      chartOptions:         [
         {
           label:     this.t('catalog.charts.browseBtn'),
           value:     'browse',
@@ -165,7 +167,7 @@ export default {
     filteredCharts() {
       return this.filterCharts({
         category:    this.category,
-        searchQuery: this.searchQuery,
+        searchQuery: this.debouncedSearchQuery,
         hideRepos:   this.hideRepos
       });
     },
@@ -188,7 +190,7 @@ export default {
 
       // Filter charts by everything except itself
       const charts = this.filterCharts({
-        searchQuery: this.searchQuery,
+        searchQuery: this.debouncedSearchQuery,
         hideRepos:   this.hideRepos
       });
 
@@ -242,8 +244,12 @@ export default {
   },
 
   watch: {
-    searchQuery(q) {
-      this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
+    searchQuery: {
+      handler: debounce(function(q) {
+        this.debouncedSearchQuery = q;
+        this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
+      }, 300),
+      immediate: false
     },
 
     category(cat) {
