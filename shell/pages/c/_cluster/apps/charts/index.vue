@@ -1,10 +1,11 @@
 <script>
+import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, TAG
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
@@ -20,6 +21,8 @@ import RcItemCard from '@shell/components/cards/RcItemCard';
 import RcFilterPanel from '@shell/components/RcFilterPanel';
 import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
 import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
+import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
+import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 
 export default {
   name:       'Charts',
@@ -40,10 +43,10 @@ export default {
     const query = this.$route.query;
 
     this.searchQuery = query[SEARCH_QUERY] || '';
-    this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = query[REPO] || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
+    this.filters.statuses = normalizeFilterQuery(query[STATUS]) || [];
     this.filters.tags = normalizeFilterQuery(query[TAG]) || [];
 
     this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
@@ -58,9 +61,34 @@ export default {
       filters:              {
         repos:      [],
         categories: [],
+        statuses:   [],
         tags:       []
       },
-      installedApps: []
+      installedApps: [],
+      statusOptions: [
+        {
+          value: 'installed',
+          label: {
+            component:      markRaw(StatusLabel),
+            componentProps: {
+              label: this.t('generic.installed'), icon: 'icon-warning', iconColor: 'warning'
+            }
+          }
+        },
+        {
+          value: 'deprecated',
+          label: this.t('generic.deprecated'),
+        },
+        {
+          value: 'upgradeable',
+          label: {
+            component:      markRaw(StatusLabel),
+            componentProps: {
+              label: this.t('generic.upgradeable'), icon: 'icon-warning', iconColor: 'warning'
+            }
+          }
+        }
+      ]
     };
   },
 
@@ -79,10 +107,11 @@ export default {
 
       out = sortBy(out, ['weight', 'label']);
 
-      // custom option to render as a link for adding a new repo
+      // not a filter, just a link for adding a new repo
       out.push({
-        type:  'custom',
-        value: 'add-repo-link',
+        value:          'add-repo-link',
+        component:      markRaw(AddRepoLink),
+        componentProps: { clusterId: this.clusterId }
       });
 
       return out;
@@ -101,16 +130,12 @@ export default {
     },
 
     /**
-     * Filter allll charts by invalid entries (deprecated, hidden and ui plugin).
+     * Filter all charts by invalid entries (hidden and ui plugin).
      *
      * This does not include any user provided filters (like selected repos, categories and text query)
      */
     enabledCharts() {
       return (this.allCharts || []).filter((c) => {
-        if ( c.deprecated && !this.showDeprecated ) {
-          return false;
-        }
-
         if ( c.hidden && !this.showHidden ) {
           return false;
         }
@@ -127,12 +152,15 @@ export default {
      * Filter enabled charts allll filters. These are what the user will see in the list
      */
     filteredCharts() {
-      return this.filterCharts({
+      const res = this.filterCharts({
         category:    this.filters.categories,
         searchQuery: this.debouncedSearchQuery,
-        showRepos:   this.filters.repos,
-        tag:         this.filters.tags
+        repo:        this.filters.repos,
+        tag:         this.filters.tags,
+        status:      this.filters.statuses
       });
+
+      return res;
     },
 
     categoryOptions() {
@@ -145,12 +173,9 @@ export default {
 
             map[c] = {
               label: this.$store.getters['i18n/withFallback'](labelKey, null, c),
-              value: c.toLowerCase(),
-              count: 0
+              value: c.toLowerCase()
             };
           }
-
-          map[c].count++;
         }
       }
 
@@ -195,6 +220,7 @@ export default {
         const query = {
           [REPO]:     normalizeFilterQuery(newFilters.repos),
           [CATEGORY]: normalizeFilterQuery(newFilters.categories),
+          [STATUS]:   normalizeFilterQuery(newFilters.statuses),
           [TAG]:      normalizeFilterQuery(newFilters.tags)
         };
 
@@ -226,8 +252,8 @@ export default {
         [VERSION]:   version
       };
 
-      if (chart.deprecated && this.showDeprecated) {
-        query[DEPRECATED_QUERY] = 'true';
+      if (chart.deprecated) {
+        query[DEPRECATED] = 'true';
       }
 
       this.$router.push({
@@ -272,18 +298,19 @@ export default {
     },
 
     filterCharts({
-      showRepos, category, tag, searchQuery
+      repo, category, status, tag, searchQuery
     }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
 
       return filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        showRepos,
+        showRepos:      repo,
         category,
+        status,
         tag,
         searchQuery,
-        showDeprecated: this.showDeprecated,
+        showDeprecated: true,
         showHidden:     this.showHidden,
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
@@ -349,23 +376,17 @@ export default {
               options: categoryOptions
             },
             {
+              key: 'statuses',
+              title: 'Status',
+              options: statusOptions
+            },
+            {
               key: 'tags',
               title: 'Tag',
               options: tagOptions
             }
           ]"
-        >
-          <template #custom-option="{ filter, option }">
-            <router-link
-              v-if="filter.key === 'repos' && option.value === 'add-repo-link'"
-              :href="`/c/${clusterId}/apps/catalog.cattle.io.clusterrepo/create`"
-              target="_blank"
-              class="add-repo-link"
-            >
-              + <span class="secondary-text-link">{{ t('catalog.charts.addNew') }}</span>
-            </router-link>
-          </template>
-        </rc-filter-panel>
+        />
 
         <div
           v-if="filteredCharts.length === 0"
@@ -449,12 +470,6 @@ export default {
 .wrapper {
   display: flex;
   gap: 16px;
-}
-
-.add-repo-link {
-  all: unset;
-  cursor: pointer;
-  color: var(--link-text-secondary);
 }
 
 .app-cards-empty-state {

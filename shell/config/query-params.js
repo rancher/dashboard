@@ -64,6 +64,7 @@ export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
 export const TAG = 'tag';
+export const STATUS = 'status';
 export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';

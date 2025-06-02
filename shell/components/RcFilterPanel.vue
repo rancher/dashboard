@@ -2,9 +2,10 @@
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 type FilterOption = {
-  type?: 'default' | 'custom';
   value?: string;
-  label?: string;
+  component?: any;
+  componentProps?: Record<string, any>;
+  label?: string | { component: any; componentProps: Record<string, any>; };
 };
 
 type FilterGroup = {
@@ -39,27 +40,32 @@ const updateFilter = (key: string, value: string[]) => {
         {{ filter.title }}
       </h4>
       <div
-        v-for="option in filter.options"
-        :key="`${filter.key}-${option.value}`"
+        v-for="(option, i) in filter.options"
+        :key="`${filter.key}-${i}`"
         class="filter-panel-filter-option"
       >
-        <template v-if="option.type === 'custom'">
-          <slot
-            name="custom-option"
-            :option="option"
-            :filter="filter"
+        <template v-if="option.component">
+          <component
+            :is="option.component"
+            v-bind="option.componentProps"
           />
         </template>
         <template v-else>
           <Checkbox
+            :key="i"
             class="filter-panel-filter-checkbox"
-            :label="option.label"
+            :label="typeof option.label === 'string' ? option.label : undefined"
             :value="modelValue[filter.key]"
             :value-when-true="option.value"
             @update:value="updateFilter(filter.key, $event)"
           >
             <template #label>
-              <span>{{ option.label }}</span>
+              <span v-if="typeof option.label === 'string'">{{ option.label }}</span>
+              <component
+                :is="option.label.component"
+                v-else
+                v-bind="option.label.componentProps"
+              />
             </template>
           </Checkbox>
         </template>
