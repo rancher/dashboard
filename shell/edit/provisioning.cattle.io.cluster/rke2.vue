@@ -1225,7 +1225,7 @@ export default {
           out.push(poolData);
 
           // but we also store the initial data so that we can handle conflicts
-          const poolDataClone = Object.assign({}, poolData);
+          const poolDataClone = structuredClone(poolData);
 
           this.initialMachinePoolsValues.push(poolDataClone);
         }
@@ -1293,7 +1293,7 @@ export default {
 
       this.machinePools.push(pool);
 
-      const poolDataClone = Object.assign({}, pool);
+      const poolDataClone = structuredClone(pool);
 
       this.initialMachinePoolsValues.push(poolDataClone);
 
