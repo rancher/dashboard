@@ -47,6 +47,8 @@ export default {
       },
 
       paginationFromList: null,
+
+      isPaginationManualRefreshEnabled: paginationUtils.isListManualRefreshEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
