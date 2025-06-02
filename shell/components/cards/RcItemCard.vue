@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
+import { DropdownOption } from '@components/RcDropdown/types';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -75,6 +78,9 @@ interface Props {
   /** Optional image to show in card (position depends on variant). A slot is available for it too #item-card-image */
   image?: Image;
 
+  /** Optional actions that will be displayed inside an action-menu */
+  actions?: DropdownOption;
+
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
 
@@ -89,6 +95,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  actions:   undefined,
   image:     undefined,
   content:   undefined,
   variant:   'medium',
@@ -121,14 +128,28 @@ function labelText(label?: Label): string {
   return label?.key ? t(label.key) : label?.text ?? '';
 }
 
+const headerTitle = computed(() => labelText(props.header.title));
+const imageAlt = computed(() => labelText(props.image?.alt));
+const pillLabel = computed(() => labelText(props.pill?.label));
+const pillTooltip = computed(() => labelText(props.pill?.tooltip));
+const contentText = computed(() => labelText(props.content));
+const statusTooltips = computed(() => props.header.statuses?.map((status) => labelText(status.tooltip)) || []
+);
+
+const cardMeta = computed(() => ({
+  ariaLabel: props.clickable ? t('itemCard.ariaLabel.clickable') : t('itemCard.ariaLabel.card'),
+  tabIndex:  props.clickable ? '0' : undefined,
+  role:      props.clickable ? 'button' : undefined
+}));
+
 </script>
 
 <template>
   <div
     class="item-card"
-    :role="clickable ? 'button' : undefined"
-    :tabindex="clickable ? '0' : undefined"
-    :aria-label="clickable ? t('itemCard.ariaLabel.clickable') : t('itemCard.ariaLabel.card')"
+    :role="cardMeta.role"
+    :tabindex="cardMeta.tabIndex"
+    :aria-label="cardMeta.ariaLabel"
     :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
     @keydown.enter="_handleCardClick"
@@ -145,7 +166,7 @@ function labelText(label?: Label): string {
             >
               <LazyImage
                 :src="image.src"
-                :alt="labelText(image?.alt)"
+                :alt="imageAlt"
                 :style="{'width': '40px', 'height': '40px', 'object-fit': 'contain'}"
               />
             </div>
@@ -153,11 +174,11 @@ function labelText(label?: Label): string {
           <slot name="item-card-pill">
             <div
               v-if="pill"
-              v-clean-tooltip="labelText(pill.tooltip)"
+              v-clean-tooltip="pillTooltip"
               class="item-card-pill"
               data-testid="item-card-pill"
             >
-              {{ labelText(pill.label) }}
+              {{ pillLabel }}
             </div>
           </slot>
         </div>
@@ -175,7 +196,7 @@ function labelText(label?: Label): string {
                 >
                   <LazyImage
                     :src="image.src"
-                    :alt="labelText(image?.alt)"
+                    :alt="imageAlt"
                     :style="{'width': '24px', 'height': '24px', 'object-fit': 'contain'}"
                   />
                 </div>
@@ -184,11 +205,11 @@ function labelText(label?: Label): string {
             <slot name="item-card-header-title">
               <h3
                 v-if="header.title"
-                v-clean-tooltip="labelText(header.title)"
+                v-clean-tooltip="headerTitle"
                 :class="['item-card-header-title', variant]"
                 data-testid="item-card-header-title"
               >
-                {{ labelText(header.title) }}
+                {{ headerTitle }}
               </h3>
             </slot>
           </div>
@@ -201,11 +222,11 @@ function labelText(label?: Label): string {
                 v-for="(status, i) in header.statuses"
                 :key="i"
                 class="item-card-header-statuses-status"
-                :aria-label="labelText(status.tooltip) || t('itemCard.ariaLabel.status')"
+                :aria-label="statusTooltips[i] || t('itemCard.ariaLabel.status')"
                 data-testid="item-card-header-statuses-status"
               >
                 <i
-                  v-clean-tooltip="labelText(status.tooltip)"
+                  v-clean-tooltip="statusTooltips[i]"
                   :class="['icon', status.icon, status.color]"
                   :style="{color: status.customColor}"
                   :data-testid="`item-card-header-status-${i}`"
@@ -216,6 +237,14 @@ function labelText(label?: Label): string {
             <template v-if="$slots['item-card-actions']">
               <div class="item-card-header-action-menu no-card-click">
                 <slot name="item-card-actions" />
+              </div>
+            </template>
+            <template v-else-if="actions">
+              <div class="item-card-header-action-menu no-card-click">
+                <ActionMenu
+                  data-testid="item-card-header-action-menu"
+                  :custom-actions="actions"
+                />
               </div>
             </template>
           </div>
@@ -237,7 +266,7 @@ function labelText(label?: Label): string {
             :aria-label="t('itemCard.ariaLabel.content')"
             data-testid="item-card-content"
           >
-            <p>{{ labelText(content) }}</p>
+            <p>{{ contentText }}</p>
           </div>
         </template>
 

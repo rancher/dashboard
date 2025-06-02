@@ -14,7 +14,6 @@ import GitRepoForceUpdateDialog from '@shell/dialog/GitRepoForceUpdateDialog.vue
 import RollbackWorkloadDialog from '@shell/dialog/RollbackWorkloadDialog.vue';
 import RotateCertificatesDialog from '@shell/dialog/RotateCertificatesDialog.vue';
 import RotateEncryptionKeyDialog from '@shell/dialog/RotateEncryptionKeyDialog.vue';
-import SaveAsRKETemplateDialog from '@shell/dialog/SaveAsRKETemplateDialog.vue';
 import ScaleMachineDownDialog from '@shell/dialog/ScaleMachineDownDialog.vue';
 import ScalePoolDownDialog from '@shell/dialog/ScalePoolDownDialog.vue';
 import SloDialog from '@shell/dialog/SloDialog.vue';
@@ -100,7 +99,6 @@ describe('component: PromptModal', () => {
     ['RollbackWorkloadDialog', RollbackWorkloadDialog],
     ['RotateCertificatesDialog', RotateCertificatesDialog],
     ['RotateEncryptionKeyDialog', RotateEncryptionKeyDialog],
-    ['SaveAsRKETemplateDialog', SaveAsRKETemplateDialog],
     ['SloDialog', SloDialog],
     ['AddCustomBadgeDialog', AddCustomBadgeDialog],
     ['ScaleMachineDownDialog', ScaleMachineDownDialog],

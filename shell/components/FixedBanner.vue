@@ -164,7 +164,7 @@ export default {
       class="banner"
       data-testid="fixed__banner"
       :style="bannerStyle"
-      :class="{'banner-consent': consent}"
+      :class="{'banner-consent': consent, 'banner-text': !!banner.text}"
     >
       <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
       <div v-if="isTextAnArray">
@@ -177,11 +177,16 @@ export default {
         </div>
       </div>
       <div
-        v-else
+        v-else-if="banner.text"
         class="single-row"
       >
         {{ banner.text }}
       </div>
+      <div
+        v-else-if="banner.html"
+        v-clean-html="banner.html"
+        class="single-row"
+      />
     </div>
     <div v-else-if="showDialog">
       <div class="banner-dialog-glass" />
@@ -205,13 +210,19 @@ export default {
               </div>
             </div>
             <div
-              v-else
+              v-else-if="banner.text"
               class="single-row"
             >
               {{ banner.text }}
             </div>
+            <div
+              v-else-if="banner.html"
+              v-clean-html="banner.html"
+              class="single-row"
+            />
           </div>
           <button
+            data-testid="login-confirmation-accept-button"
             class="btn role-primary"
             @click="hideDialog()"
           >
@@ -225,10 +236,13 @@ export default {
 
 <style lang="scss" scoped>
   .banner {
-    text-align: center;
     line-height: 2em;
     width: 100%;
-    padding: 0 20px;
+
+    &.banner-text {
+      padding: 0 20px;
+      text-align: center;
+    }
 
     &.banner-consent {
       height: unset;

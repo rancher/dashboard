@@ -550,7 +550,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isCreate && !isRKE1"
+        v-if="!isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
@@ -573,7 +573,6 @@ export default defineComponent({
           v-if="showPrivateRegistryInput"
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           :mode="mode"
-          :disabled="!isEdit"
           :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
           label-key="catalog.chart.registry.custom.inputLabel"
           data-testid="private-registry-url"

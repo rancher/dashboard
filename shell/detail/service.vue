@@ -83,7 +83,6 @@ export default {
 
     return {
       servicePortInfoHeaders,
-      pods:            [],
       podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),

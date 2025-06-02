@@ -2,6 +2,7 @@ import DOMPurify from 'dompurify';
 import { uniq } from '@shell/utils/array';
 
 const ALLOWED_TAGS = [
+  'center',
   'code',
   'li',
   'a',
@@ -13,6 +14,7 @@ const ALLOWED_TAGS = [
   'span',
   'div',
   'i',
+  'img',
   'em',
   'strong',
   'h1',
