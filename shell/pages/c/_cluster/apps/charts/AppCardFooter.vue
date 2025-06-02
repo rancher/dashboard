@@ -6,9 +6,15 @@ interface FooterItem {
   labels: string[];
 }
 
+const emit = defineEmits<{(e: 'footer-item-click', type: string, label: string): void; }>();
+
 defineProps<{
   items: FooterItem[];
 }>();
+
+function onFooterItemClick(type: string, label: string) {
+  emit('footer-item-click', type, label);
+}
 
 </script>
 
@@ -28,8 +34,9 @@ defineProps<{
       <p
         v-for="(label, j) in footerItem.labels"
         :key="j"
-        class="app-card-footer-item-text"
+        class="app-card-footer-item-text secondary-text-link"
         data-testid="app-card-footer-item-text"
+        @click="onFooterItemClick(footerItem.type, label)"
       >
         {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </p>

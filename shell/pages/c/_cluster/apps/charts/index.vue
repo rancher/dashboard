@@ -14,9 +14,12 @@ import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
-import RcItemCard from '@shell/components/cards/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import RcItemCard from '@shell/components/cards/RcItemCard';
+import RcFilterPanel from '@shell/components/RcFilterPanel';
+import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
+import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
 
 export default {
   name:       'Charts',
@@ -25,7 +28,6 @@ export default {
     Banner,
     Loading,
     TypeDescription,
-    TabTitle,
     RcItemCard,
     RcFilterPanel,
     AppCardSubHeader,
@@ -49,11 +51,11 @@ export default {
 
   data() {
     return {
-      searchQuery:    null,
+      searchQuery:          null,
       debouncedSearchQuery: null,
-      showDeprecated: null,
-      showHidden:     null,
-      filters:        {
+      showDeprecated:       null,
+      showHidden:           null,
+      filters:              {
         repos:      [],
         categories: [],
         tags:       []
@@ -135,7 +137,6 @@ export default {
 
     categoryOptions() {
       const map = {};
-
 
       for ( const chart of this.allCharts ) {
         for ( const c of chart.categories ) {
@@ -399,7 +400,10 @@ export default {
               v-once
               #item-card-footer
             >
-              <AppCardFooter :items="card.footerItems" />
+              <AppCardFooter
+                :items="card.footerItems"
+                @footer-item-click="handleFooterItemClick"
+              />
             </template>
           </rc-item-card>
         </div>

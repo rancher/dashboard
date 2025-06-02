@@ -141,7 +141,7 @@ export default class Chart extends SteveModel {
           labels:      [this.repoNameDisplay]
         }
       ];
-  
+
       if (this.categories.length) {
         footerItems.push( {
           type:        CATEGORY,
@@ -150,7 +150,7 @@ export default class Chart extends SteveModel {
           labels:      this.categories
         });
       }
-  
+
       if (this.tags.length) {
         footerItems.push({
           type:        TAG,
@@ -159,33 +159,32 @@ export default class Chart extends SteveModel {
           labels:      this.tags
         });
       }
-  
+
       const statuses = [];
-  
+
       if (this.deprecated) {
         statuses.push({
           icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
         });
       }
-  
+
       if (this.upgradeable) {
         statuses.push({
           icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
         });
       }
-  
+
       if (this.isInstalled) {
         statuses.push({
           icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
         });
       }
-  
+
       this._cardContent = {
         subHeaderItems,
         footerItems,
         statuses
       };
-  
     }
 
     return this._cardContent;

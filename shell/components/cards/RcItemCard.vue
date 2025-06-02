@@ -106,7 +106,7 @@ const props = withDefaults(defineProps<Props>(), {
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
  */
-const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
+const emit = defineEmits<{(e: 'card-click', value: ItemValue): void; }>();
 
 /**
  * Handles the card click while avoiding nested interactive elements
