@@ -34,6 +34,10 @@ env:
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -201,10 +205,6 @@ jobs:
           name: accessibility-report
           path: cypress/accessibility
 
-      - name: Unzip report
-        run: |
-          unzip cypress/accessibility/*.zip -d cypress/accessibility/html
-
       - name: Deploy a11y report to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -215,16 +215,37 @@ jobs:
           npx netlify deploy \
             --auth $NETLIFY_AUTH_TOKEN \
             --site=$NETLIFY_SITE_ID \
-            --dir=cypress/accessibility/html \
-            --alias=$DEPLOY_ALIAS \
-            --prod-if-unaliased
+            --dir=cypress/accessibility \
+            --alias=$DEPLOY_ALIAS
 
-      - name: Set GitHub Deployment Status
-        uses: actions/deployment-status@v2
+      - name: Create GitHub Deployment and Status
+        uses: actions/github-script@v6
         with:
-          state: success
-          environment: pr-${{ github.event.pull_request.number }}
-          environment_url: https://chipper-paletas-75dfc9.netlify.app/pr-${{ github.event.pull_request.number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+            const envName = `ACCESSIBILITY-REPORT-PR-${prNumber}`;
+            const envUrl = `https://pr-${prNumber}--chipper-paletas-75dfc9.netlify.app`;
+
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha,
+              required_contexts: [],
+              environment: envName,
+              auto_merge: false,
+              transient_environment: true
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: "success",
+              environment_url: envUrl,
+              log_url: envUrl
+            });
 
         
   unit-test:
