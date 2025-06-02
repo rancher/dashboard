@@ -50,6 +50,32 @@ describe('rcItemCard', () => {
     expect(wrapperSmall.find('[data-testid="item-card-pill"]').exists()).toBe(false);
   });
 
+  it('renders action-menu if slot content is provided for it', () => {
+    const wrapper = mount(RcItemCard, {
+      props: { ...baseProps },
+      slots: { 'item-card-actions': '<div class="test-slot-for-actions">test</div>' }
+    });
+
+    expect(wrapper.find('.test-slot-for-actions').exists()).toBe(true);
+  });
+
+  it('renders action-menu when actions are passed as a prop', () => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        actions: [{ action: 'test', label: 'test' }]
+      }
+    });
+
+    expect(wrapper.findComponent('[data-testid="item-card-header-action-menu"]').exists()).toBe(true);
+  });
+
+  it('does not render action-menu if no slot and no actions', () => {
+    const wrapper = mount(RcItemCard, { props: { ...baseProps } });
+
+    expect(wrapper.findComponent('[data-testid="item-card-header-action-menu"]').exists()).toBe(false);
+  });
+
   it('emits card-click when clicked and clickable', async() => {
     const wrapper = mount(RcItemCard, {
       props: {

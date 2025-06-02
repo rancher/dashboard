@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
+import { DropdownOption } from '@components/RcDropdown/types';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -76,6 +78,9 @@ interface Props {
   /** Optional image to show in card (position depends on variant). A slot is available for it too #item-card-image */
   image?: Image;
 
+  /** Optional actions that will be displayed inside an action-menu */
+  actions?: DropdownOption;
+
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
 
@@ -90,6 +95,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  actions:   undefined,
   image:     undefined,
   content:   undefined,
   variant:   'medium',
@@ -231,6 +237,14 @@ const cardMeta = computed(() => ({
             <template v-if="$slots['item-card-actions']">
               <div class="item-card-header-action-menu no-card-click">
                 <slot name="item-card-actions" />
+              </div>
+            </template>
+            <template v-else-if="actions">
+              <div class="item-card-header-action-menu no-card-click">
+                <ActionMenu
+                  data-testid="item-card-header-action-menu"
+                  :custom-actions="actions"
+                />
               </div>
             </template>
           </div>
