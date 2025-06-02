@@ -21,7 +21,7 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
     authProviderPo.waitForPage();
-    authProviderPo.select();
+    authProviderPo.selectAmazonCognito();
     cognitoPo.waitForPage();
   });
 
