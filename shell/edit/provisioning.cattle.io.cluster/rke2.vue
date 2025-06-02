@@ -2150,7 +2150,7 @@ export default {
       :showing-form="showForm"
       :default-on-cancel="true"
       data-testid="select-credential"
-      class="mt-20"
+      class="mt-20 span-4"
     />
 
     <div
