@@ -146,10 +146,13 @@ export default {
   },
 
   watch: {
-    workspace() {
-      if (this.mode === _CREATE) {
-        this.update(this.defaultSecret);
-      }
+    defaultSecret: {
+      handler(neu) {
+        if (this.mode === _CREATE) {
+          this.update(neu);
+        }
+      },
+      emmediate: true
     }
   },
 
