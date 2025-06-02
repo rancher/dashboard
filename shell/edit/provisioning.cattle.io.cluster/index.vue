@@ -343,12 +343,9 @@ export default {
           });
         });
 
+        // If Elemental is installed, then add the elemental cluster provider
         if (isElementalActive) {
-          // !this.subType means we are on the /create screen - we only want to show for rke2
-          // if a subType is selected, always add the ELEMENTAL_CLUSTER_PROVIDER type to cover edit scenarios
-          if ((!this.subType && this.isRke2) || this.subType) {
-            addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
-          }
+          addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
         }
 
         // Only add the RKE2 options if RKE2 is enabled
