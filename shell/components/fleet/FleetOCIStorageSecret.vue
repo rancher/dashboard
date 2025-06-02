@@ -89,14 +89,6 @@ export default {
       return this.ociSecrets.find((secret) => secret.name === defaultSecretName);
     },
 
-    secretsList() {
-      if (this.defaultSecret) {
-        return this.ociSecrets.filter((secret) => secret.id !== this.defaultSecret.id);
-      }
-
-      return this.ociSecrets;
-    },
-
     options() {
       const out = [{
         label: this.t('generic.none'),
@@ -110,14 +102,16 @@ export default {
         });
       }
 
-      if (this.secretsList.length > 0) {
+      const customSecrets = this.defaultSecret ? this.ociSecrets.filter((secret) => secret.id !== this.defaultSecret.id) : this.ociSecrets;
+
+      if (customSecrets.length > 0) {
         out.push({
           kind:     'title',
           label:    this.t(`fleet.gitRepo.ociStorageSecret.options.${ this.allowDefault ? 'chooseCustom' : 'chooseExisting' }`),
           disabled: true
         });
 
-        this.secretsList.forEach((secret) => {
+        customSecrets.forEach((secret) => {
           out.push({
             label: secret.name,
             value: secret
@@ -166,6 +160,7 @@ export default {
 
 <template>
   <LabeledSelect
+    data-testid="fleet-oci-storage-secret-list"
     :label="t('fleet.gitRepo.ociStorageSecret.label')"
     :mode="mode"
     :value="selected"
