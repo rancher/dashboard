@@ -254,6 +254,7 @@ export default {
         :weight="2"
       >
         <FleetOCIStorageSecret
+          data-testid="default-oci-storage-secret"
           :secret="defaultOCIStorageSecret"
           :workspace="value.metadata.name"
           :mode="mode"

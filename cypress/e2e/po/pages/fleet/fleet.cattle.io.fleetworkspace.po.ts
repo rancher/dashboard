@@ -6,6 +6,7 @@ import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.p
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export class FleetWorkspaceListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/management.cattle.io.fleetworkspace`
@@ -52,6 +53,10 @@ export class FleetWorkspaceCreateEditPo extends BaseDetailPagePo {
 
   lablesAnnotationsKeyValue() {
     return new KeyValuePo('section#labels');
+  }
+
+  defaultOciRegistry() {
+    return new LabeledSelectPo('[data-testid="default-oci-storage-secret"]');
   }
 }
 
