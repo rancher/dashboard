@@ -200,6 +200,32 @@ jobs:
         with:
           name: accessibility-report
           path: cypress/accessibility
+
+      - name: Unzip report
+        run: |
+          unzip cypress/accessibility/*.zip -d cypress/accessibility/html
+
+      - name: Deploy a11y report to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          DEPLOY_ALIAS="pr-${PR_NUMBER}"
+          npx netlify deploy \
+            --auth $NETLIFY_AUTH_TOKEN \
+            --site=$NETLIFY_SITE_ID \
+            --dir=cypress/accessibility/html \
+            --alias=$DEPLOY_ALIAS \
+            --prod-if-unaliased
+
+      - name: Set GitHub Deployment Status
+        uses: actions/deployment-status@v2
+        with:
+          state: success
+          environment: pr-${{ github.event.pull_request.number }}
+          environment_url: https://chipper-paletas-75dfc9.netlify.app/pr-${{ github.event.pull_request.number }}
+
         
   unit-test:
     runs-on: ubuntu-latest
