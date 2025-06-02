@@ -51,14 +51,16 @@ export class ChartsPage extends PagePo {
     return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
   }
 
-  charts() {
-    return new RcItemCardPo('[data-testid="app-cards-container"] .item-card');
+  getAppByName(name: string) {
+    return new RcItemCardPo().getCardByTitle(name);
+  }
+
+  clickChart(name: string) {
+    return new RcItemCardPo().clickByTitle(name);
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
-    const src = this.charts().getAppByName(name)
-      .get('[data-testid="item-card-image"] img')
-      .invoke('attr', 'src');
+    const src = new RcItemCardPo().getImageByTitle(name).invoke('attr', 'src');
 
     if (isGeneric) {
       return src.should('contain', 'generic-catalog');

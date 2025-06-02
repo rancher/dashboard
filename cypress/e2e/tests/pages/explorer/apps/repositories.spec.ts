@@ -182,7 +182,7 @@ describe('Apps', () => {
         chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
         chartsPage.chartsFilterInput().clear();
 
-        chartsPage.charts().select('Rancher Backups');
+        chartsPage.clickChart('Rancher Backups');
         chartPage.waitForPage();
 
         // The repo charts should have been fetched
