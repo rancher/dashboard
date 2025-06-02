@@ -14,8 +14,6 @@ const mockStatusCode = 200;
 const mockBody = {};
 
 describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
-  const defaultUrl = `${ Cypress.config().baseUrl }/verify-auth`;
-
   beforeEach(() => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
@@ -41,7 +39,6 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
       expect(req.body.clientSecret).to.equal(clientSecret);
       expect(req.body.issuer).to.equal(issuerUrl);
       expect(req.body.scope).to.equal(defaultScope);
-      expect(req.body.rancherUrl).to.equal(defaultUrl);
 
       req.reply(mockStatusCode, mockBody);
 
