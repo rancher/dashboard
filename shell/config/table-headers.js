@@ -266,11 +266,12 @@ export const CREATION_DATE = {
 };
 
 export const DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  align:    'left',
-  sort:     ['description'],
-  width:    300,
+  name:      'description',
+  labelKey:  'tableHeaders.description',
+  align:     'left',
+  sort:      ['description'],
+  formatter: 'Description',
+  width:     300,
 };
 
 export const NS_SNAPSHOT_QUOTA = {
