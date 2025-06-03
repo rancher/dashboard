@@ -269,6 +269,7 @@ export const DESCRIPTION = {
   name:      'description',
   labelKey:  'tableHeaders.description',
   align:     'left',
+  value:     'description',
   sort:      ['description'],
   formatter: 'Description',
   width:     300,

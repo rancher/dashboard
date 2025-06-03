@@ -1,24 +1,19 @@
 <script>
 export default {
   props: {
-    row: {
-      type:     Object,
+    value: {
+      type:     String,
       required: true,
-    },
-  },
-  computed: {
-    descriptionText() {
-      return this.row?.description || '';
-    },
+    }
   },
 };
 </script>
 <template>
   <span
-    v-clean-tooltip="{content: descriptionText, skidding: -30, placement: 'top-start', popperClass: ['description-tooltip']}"
+    v-clean-tooltip="{content: value, placement: 'auto', popperClass: ['description-tooltip']}"
     class="description-text"
   >
-    {{ descriptionText }}
+    {{ value }}
   </span>
 </template>
 <style lang="scss">
