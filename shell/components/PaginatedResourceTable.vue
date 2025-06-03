@@ -95,6 +95,12 @@ export default defineComponent({
 
       return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }
+  },
+
+  methods: {
+    clearSelection() {
+      this.$refs.table.clearSelection();
+    },
   }
 });
 
@@ -103,6 +109,7 @@ export default defineComponent({
 <template>
   <div>
     <ResourceTable
+      ref="table"
       v-bind="$attrs"
       :schema="schema"
       :rows="rows"
