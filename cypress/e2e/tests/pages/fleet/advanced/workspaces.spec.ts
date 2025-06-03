@@ -454,7 +454,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
               expect(response?.statusCode).to.eq(200);
               expect(response?.body.id).to.equal(customWorkspace);
               expect(response?.body.annotations).to.have.property('field.cattle.io/description', `${ customWorkspace }-desc-edit`);
-              expect(response?.body.annotations).to.have.property('default-oci-registry', ociSecretName); // TODO add real annotation
+              expect(response?.body.annotations).to.have.property('ui-default-oci-registry', ociSecretName);
             });
           fleetWorkspacesListPage.waitForPage();
         });
