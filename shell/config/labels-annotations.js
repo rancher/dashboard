@@ -127,7 +127,7 @@ export const FLEET = {
   CLUSTER:                      'fleet.cattle.io/cluster',
   CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
   CREATED_BY_USER_NAME:         'fleet.cattle.io/created-by-display-name',
-  OCI_STORAGE_SECRET_DEFAULT:   'default-oci-registry', // TODO add real id
+  OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
   OCI_STORAGE_SECRET_GENERATED: 'generated' // TODO add real id
 };
 
