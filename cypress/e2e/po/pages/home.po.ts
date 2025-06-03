@@ -99,6 +99,10 @@ export default class HomePagePo extends PagePo {
     return new BannersPo(cy.getId('changelog-banner'));
   }
 
+  changelogElement() {
+    return cy.getId('changelog-banner');
+  }
+
   /**
     * Get the home page banner image
    * @returns

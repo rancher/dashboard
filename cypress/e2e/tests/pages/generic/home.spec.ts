@@ -238,21 +238,24 @@ describe('Home Page', () => {
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic should be visible
-      homePage.bannerGraphic().graphicBanner().should('exist');
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
+      homePage.changelogElement().should('exist');
+      homePage.whatsNewBannerLink().should('exist');
+      homePage.whatsNewBannerLink().invoke('attr', 'href', '#');
+      homePage.whatsNewBannerLink().invoke('attr', 'target', '');
 
-      // Toggle the banner graphic to hide it
-      homePage.toggleBanner();
+      cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
 
-      // Banner graphic should not be visible
-      homePage.bannerGraphic().graphicBanner().should('not.exist');
+      homePage.whatsNewBannerLink().click();
+
+      cy.wait(['@markReleaseNotesRead']);
+
+      homePage.changelogElement().should('not.exist');
 
       // Restore the cards should bring back the banner graphic
       homePage.restoreAndWait();
 
       // Check banner graphic is visible
-      homePage.bannerGraphic().graphicBanner().should('exist');
+      homePage.whatsNewBannerLink().should('exist');
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
