@@ -249,20 +249,24 @@ describe('Home Page', () => {
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.getLoginPageBanner().checkVisible();
 
-      // Close the banner for changing login view
-      homePage.getLoginPageBanner().closeButton();
-      homePage.getLoginPageBanner().checkNotExists();
+      // Login Page Banner was removed, so should not be shown
+      homePage.getLoginPageBanner().checkNotVisible();
 
-      // Restore the cards should bring back the login banner
+      // Toggle the banner graphic to hide it
+      homePage.toggleBanner();
+
+      // Banner graphic should not be visible
+      homePage.bannerGraphic().graphicBanner().should('not.exist');
+
+      // Restore the cards should bring back the banner graphic
       homePage.restoreAndWait();
 
-      // Check login banner is visible
-      homePage.getLoginPageBanner().checkVisible();
+      // Check banner graphic is visible
+      homePage.bannerGraphic().graphicBanner().should('exist');
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
