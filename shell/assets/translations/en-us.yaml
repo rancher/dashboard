@@ -1122,6 +1122,25 @@ catalog:
       goToUpgrade: Edit/Upgrade
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
+    button:
+      stages:
+        addRepo:
+          action: Add the {repo} repository
+          waiting: Adding {repo} repository...
+          success: Repository added
+          error: Error adding {repo} repository
+        loadCharts:
+          action:  Fetch {repo} repository chart(s)
+          waiting: Fetching {repo} repository chart(s)...
+          success: '{chart} found'
+          error: '{chart} chart not found - Try again?'
+        installChart:
+          action: Install {chart}
+          waiting: Installing {chart}...
+          success: '{chart} installation  initialized'
+          error: Error installing {chart}
+      viewLogs: View Installation Logs
+      customizeInstall: Customize Install Options
     chart: Chart
     warning:
       managed:
