@@ -61,6 +61,7 @@ type Header = {
 /**
  * The generic data value passed to the card.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ItemValue = Record<string, any>;
 
 /**

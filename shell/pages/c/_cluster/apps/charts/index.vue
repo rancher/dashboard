@@ -20,7 +20,7 @@ import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/cata
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
-import RcItemCard from '@shell/components/cards/RcItemCard';
+import RcItemCard from '@pkg/rancher-components/src/components/RcItemCard/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
