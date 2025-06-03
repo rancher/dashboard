@@ -640,7 +640,6 @@ export function filterAndArrangeCharts(charts, {
   clusterProvider = '',
   operatingSystems,
   category,
-  status,
   tag,
   searchQuery,
   showDeprecated = false,
@@ -663,8 +662,6 @@ export function filterAndArrangeCharts(charts, {
     ) {
       return false;
     }
-
-    // status filtering logic
 
     if (compatibleVersionsFor(c, operatingSystems, showPrerelease).length <= 0) {
       // There's no versions compatible with the specified os

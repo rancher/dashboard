@@ -18,7 +18,6 @@ import { isUIPlugin } from '@shell/config/uiplugins';
 import RcItemCard from '@pkg/rancher-components/src/components/RcItemCard/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import RcItemCard from '@shell/components/cards/RcItemCard';
 import RcFilterPanel from '@shell/components/RcFilterPanel';
 import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
 import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
@@ -153,15 +152,31 @@ export default {
      * Filter enabled charts allll filters. These are what the user will see in the list
      */
     filteredCharts() {
+      const {
+        categories, repos, tags, statuses
+      } = this.filters;
       const res = this.filterCharts({
-        category:    this.filters.categories,
+        category:    categories,
         searchQuery: this.debouncedSearchQuery,
-        repo:        this.filters.repos,
-        tag:         this.filters.tags,
-        status:      this.filters.statuses
+        repo:        repos,
+        tag:         tags
       });
 
-      return res;
+      // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
+      // by doing this we won't need to re-calculate it in filterAndArrangeCharts
+      if (!statuses.length) {
+        return res;
+      }
+
+      return res.filter((chart) => {
+        const chartStatuses = [
+          chart.deprecated && 'deprecated',
+          chart.isInstalled && 'installed',
+          chart.upgradeable && 'upgradeable'
+        ].filter(Boolean);
+
+        return chartStatuses.some((status) => statuses.includes(status));
+      });
     },
 
     categoryOptions() {
@@ -299,7 +314,7 @@ export default {
     },
 
     filterCharts({
-      repo, category, status, tag, searchQuery
+      repo, category, tag, searchQuery
     }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -308,7 +323,6 @@ export default {
         clusterProvider,
         showRepos:      repo,
         category,
-        status,
         tag,
         searchQuery,
         showDeprecated: true,
