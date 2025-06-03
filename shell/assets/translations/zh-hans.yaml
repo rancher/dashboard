@@ -2729,8 +2729,6 @@ landing:
     title: 商业支持
     body: 了解商业支持
   landingPrefs:
-    title: 更改登录后显示的页面：
-    userPrefs: 偏好设置
     body: "登录后显示："
     options:
       homePage: 主页
