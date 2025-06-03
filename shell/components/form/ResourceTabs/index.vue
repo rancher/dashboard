@@ -195,7 +195,7 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`; // TODO: RC TEST
+      const field = `involvedObject.uid`;
 
       // of type PaginationParamFilter
       let existing = null;
