@@ -1,6 +1,5 @@
 import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
@@ -231,51 +230,45 @@ describe('Home Page', () => {
       cy.login();
     });
 
-    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click link and verify user lands on preferences page
-     */
-
+    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       HomePagePo.navTo();
       homePage.waitForPage();
-      const prefPage = new PreferencesPagePo();
-
-      homePage.prefPageLink().click();
-      prefPage.waitForPage();
-      prefPage.checkIsCurrentPage();
-      prefPage.title();
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
-      homePage.bannerGraphic().graphicBanner().should('exist');
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.getLoginPageBanner().checkVisible();
+      homePage.changelogElement().should('exist');
+      homePage.whatsNewBannerLink().should('exist');
+      homePage.whatsNewBannerLink().invoke('attr', 'href', '#');
+      homePage.whatsNewBannerLink().invoke('attr', 'target', '');
 
-      // Close the banner for changing login view
-      homePage.getLoginPageBanner().closeButton();
-      homePage.getLoginPageBanner().checkNotExists();
+      cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
 
-      // Restore the cards should bring back the login banner
+      homePage.whatsNewBannerLink().click();
+
+      cy.wait(['@markReleaseNotesRead']);
+
+      homePage.changelogElement().should('not.exist');
+
+      // Restore the cards should bring back the banner graphic
       homePage.restoreAndWait();
 
-      // Check login banner is visible
-      homePage.getLoginPageBanner().checkVisible();
+      // Check banner graphic is visible
+      homePage.whatsNewBannerLink().should('exist');
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
 
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic

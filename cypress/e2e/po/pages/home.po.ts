@@ -45,10 +45,6 @@ export default class HomePagePo extends PagePo {
     return cy.getId('banner-title').invoke('text');
   }
 
-  prefPageLink(): Cypress.Chainable {
-    return this.getLoginPageBanner().self().find('a');
-  }
-
   whatsNewBannerLink(): Cypress.Chainable {
     return this.changelog().self().find('a');
   }
@@ -103,12 +99,8 @@ export default class HomePagePo extends PagePo {
     return new BannersPo(cy.getId('changelog-banner'));
   }
 
-  /**
-   * Get set login page banner
-   * @returns
-   */
-  getLoginPageBanner() {
-    return new BannersPo(cy.getId('set-login-page-banner'));
+  changelogElement() {
+    return cy.getId('changelog-banner');
   }
 
   /**
