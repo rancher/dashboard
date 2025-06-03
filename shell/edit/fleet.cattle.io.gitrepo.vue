@@ -28,9 +28,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import { toSeconds } from '@shell/utils/duration';
-
-const MINIMUM_POLLING_INTERVAL = 15;
-const DEFAULT_POLLING_INTERVAL = 60;
+import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -215,14 +213,6 @@ export default {
       return !(this.value?.spec?.repo || '').startsWith('http://');
     },
 
-    isPollingEnabled() {
-      return !this.value.spec.disablePolling;
-    },
-
-    isWebhookConfigured() {
-      return !!this.value.status?.webhookCommit;
-    },
-
     targetOptions() {
       const out = [
         {
@@ -279,22 +269,6 @@ export default {
       return out;
     },
 
-    clusterNames() {
-      const out = this.allClusters
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => x.metadata.name);
-
-      return out;
-    },
-
-    clusterGroupNames() {
-      const out = this.allClusterGroups
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => x.metadata.name);
-
-      return out;
-    },
-
     tlsOptions() {
       return [
         { label: this.t('fleet.gitRepo.tls.verify'), value: _VERIFY },
@@ -304,7 +278,7 @@ export default {
     },
 
     showPollingIntervalWarning() {
-      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+      return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
     },
   },
 
@@ -777,7 +751,7 @@ export default {
       <div class="row polling">
         <div class="col span-6">
           <Checkbox
-            v-model:value="isPollingEnabled"
+            :value="value.isPollingEnabled"
             data-testid="gitRepo-enablePolling-checkbox"
             class="check"
             type="checkbox"
@@ -786,7 +760,7 @@ export default {
             @update:value="enablePolling"
           />
         </div>
-        <template v-if="isPollingEnabled">
+        <template v-if="value.isPollingEnabled">
           <div class="col">
             <Banner
               v-if="showPollingIntervalWarning"
@@ -795,7 +769,7 @@ export default {
               data-testid="gitRepo-pollingInterval-minimumValueWarning"
             />
             <Banner
-              v-if="isWebhookConfigured"
+              v-if="value.isWebhookConfigured"
               color="warning"
               label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
               data-testid="gitRepo-pollingInterval-webhookWarning"
