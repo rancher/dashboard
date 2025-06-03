@@ -185,7 +185,7 @@ export default class GitRepo extends FleetApplication {
 
   get sourceSub() {
     return {
-      value:   this.status.commit,
+      value:   this.status?.commit,
       display: this.commitDisplay
     };
   }
