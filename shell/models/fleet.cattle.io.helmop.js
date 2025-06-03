@@ -42,6 +42,22 @@ export default class HelmOp extends FleetApplication {
     });
 
     insertAt(out, 2, {
+      action:   'enablePollingAction',
+      label:    this.t('fleet.helmOp.actions.enablePolling.label'),
+      icon:     'icon icon-endpoints_connected',
+      bulkable: true,
+      enabled:  !!this.links.update && !!this.spec?.disablePolling
+    });
+
+    insertAt(out, 3, {
+      action:   'disablePollingAction',
+      label:    this.t('fleet.helmOp.actions.disablePolling.label'),
+      icon:     'icon icon-endpoints_disconnected',
+      bulkable: true,
+      enabled:  !!this.links.update && !this.spec?.disablePolling
+    });
+
+    insertAt(out, 4, {
       action:     'forceUpdate',
       label:      this.t('fleet.helmOp.actions.forceUpdate.label'),
       icon:       'icon icon-refresh',
@@ -50,7 +66,7 @@ export default class HelmOp extends FleetApplication {
       enabled:    !!this.links.update
     });
 
-    insertAt(out, 3, { divider: true });
+    insertAt(out, 5, { divider: true });
 
     return out;
   }

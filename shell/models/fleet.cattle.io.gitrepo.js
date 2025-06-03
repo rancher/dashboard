@@ -55,7 +55,7 @@ export default class GitRepo extends FleetApplication {
     });
 
     insertAt(out, 2, {
-      action:   'enablePolling',
+      action:   'enablePollingAction',
       label:    this.t('fleet.gitRepo.actions.enablePolling.label'),
       icon:     'icon icon-endpoints_connected',
       bulkable: true,
@@ -63,7 +63,7 @@ export default class GitRepo extends FleetApplication {
     });
 
     insertAt(out, 3, {
-      action:   'disablePolling',
+      action:   'disablePollingAction',
       label:    this.t('fleet.gitRepo.actions.disablePolling.label'),
       icon:     'icon icon-endpoints_disconnected',
       bulkable: true,
@@ -82,16 +82,6 @@ export default class GitRepo extends FleetApplication {
     insertAt(out, 5, { divider: true });
 
     return out;
-  }
-
-  enablePolling() {
-    this.spec.disablePolling = false;
-    this.save();
-  }
-
-  disablePolling() {
-    this.spec.disablePolling = true;
-    this.save();
   }
 
   forceUpdate(resources = [this]) {

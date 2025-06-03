@@ -5,7 +5,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import FleetUtils from '@shell/utils/fleet';
 import {
@@ -30,6 +30,9 @@ import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { SECRET_TYPES } from '@shell/config/secret';
+import UnitInput from '@shell/components/form/UnitInput';
+import { toSeconds } from '@shell/utils/duration';
+import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -56,6 +59,7 @@ export default {
     NameNsDescription,
     SelectOrCreateAuthSecret,
     ValueFromResource,
+    UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -92,6 +96,17 @@ export default {
   },
 
   data() {
+    let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
+
+    if (!pollingInterval) {
+      if (this.realMode === _CREATE) {
+        pollingInterval = DEFAULT_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.durationSeconds(pollingInterval);
+      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
+        pollingInterval = MINIMUM_POLLING_INTERVAL;
+      }
+    }
+
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
@@ -119,6 +134,7 @@ export default {
       allSecrets:           [],
       allConfigMaps:        [],
       allWorkspaces:        [],
+      pollingInterval,
       targetMode,
       targetAdvanced,
       targetAdvancedErrors: null,
@@ -309,7 +325,11 @@ export default {
       }
 
       return out;
-    }
+    },
+
+    showPollingIntervalWarning() {
+      return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+    },
   },
 
   watch: {
@@ -386,6 +406,25 @@ export default {
         }
       } else {
         spec.targets = [];
+      }
+    },
+
+    enablePolling(value) {
+      if (value) {
+        delete this.value.spec.disablePolling;
+      } else {
+        this.value.spec.disablePolling = true;
+      }
+    },
+
+    updatePollingInterval(value) {
+      if (!value) {
+        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.durationSeconds(DEFAULT_POLLING_INTERVAL);
+      } else if (value === MINIMUM_POLLING_INTERVAL) {
+        delete this.value.spec.pollingInterval;
+      } else {
+        this.value.spec.pollingInterval = this.durationSeconds(value);
       }
     },
 
@@ -517,6 +556,10 @@ export default {
     updateBeforeSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
+
+    durationSeconds(value) {
+      return `${ value }s`;
+    }
   },
 };
 </script>
@@ -833,7 +876,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model:value="value.spec.insecureSkipTLSVerify"
-                        type="checkbox"
+            type="checkbox"
             label-key="fleet.helmOp.tls.insecure"
             :mode="mode"
           />
@@ -842,7 +885,7 @@ export default {
 
       <h2 v-t="'fleet.helmOp.resources.label'" />
 
-      <div class="resource-handling">
+      <div class="resource-handling mb-30">
         <Checkbox
           v-model:value="correctDriftEnabled"
           :tooltip="t('fleet.helmOp.resources.correctDriftTooltip')"
@@ -857,6 +900,44 @@ export default {
           label-key="fleet.helmOp.resources.keepResources"
           :mode="mode"
         />
+      </div>
+
+      <h2 v-t="'fleet.helmOp.polling.label'" />
+      <div class="row polling">
+        <div class="col span-6">
+          <Checkbox
+            :value="value.isPollingEnabled"
+            type="checkbox"
+            label-key="fleet.helmOp.polling.enable"
+            :mode="mode"
+            @update:value="enablePolling"
+          />
+        </div>
+        <template v-if="value.isPollingEnabled">
+          <div class="col">
+            <Banner
+              v-if="showPollingIntervalWarning"
+              color="warning"
+              label-key="fleet.helmOp.polling.pollingInterval.minimumValuewarning"
+            />
+            <Banner
+              v-if="value.isWebhookConfigured"
+              color="warning"
+              label-key="fleet.helmOp.polling.pollingInterval.webhookWarning"
+            />
+          </div>
+          <div class="col span-6">
+            <UnitInput
+              v-model:value="pollingInterval"
+              min="1"
+              :suffix="t('suffix.seconds', { count: pollingInterval })"
+              :label="t('fleet.helmOp.polling.pollingInterval.label')"
+              :mode="mode"
+              tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
+              @update:value="updatePollingInterval"
+            />
+          </div>
+        </template>
       </div>
     </template>
   </CruResource>
@@ -877,13 +958,9 @@ export default {
     flex-direction: column;
     gap: 5px;
   }
-  .loading {
+  .polling {
     display: flex;
-    align-items: center;
-    margin: 20px 0 20px 5px;
-
-    span {
-      margin-right: 10px;
-    }
+    flex-direction: column;
+    gap: 5px;
   }
 </style>

@@ -2730,6 +2730,10 @@ fleet:
       empty: No Helm Ops have been added
     actions:
       add: Create Helm Op
+      enablePolling:
+        label: Enable Polling
+      disablePolling:
+        label: Disable Polling
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
@@ -2849,6 +2853,14 @@ fleet:
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing
       correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the HelmOp. All resource changes made on the cluster will be lost.
+    polling:
+      label: Polling
+      enable: Enable Polling
+      pollingInterval:
+        label: Polling Interval
+        tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
+        webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     tls:
       insecure: Accept any certificate (insecure)
     auth:
