@@ -1035,6 +1035,8 @@ catalog:
     deprecatedChartsFilter:
       label: Show deprecated apps
     addNew: Add new
+    experimentalStatus:
+      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
   install:
     action:
       goToUpgrade: Edit/Upgrade

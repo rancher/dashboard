@@ -31,6 +31,12 @@ const CERTIFIED_SORTS = {
   other:                               3,
 };
 
+export const APP_STATUS = {
+  INSTALLED:   'installed',
+  DEPRECATED:  'deprecated',
+  UPGRADEABLE: 'upgradeable'
+};
+
 export const APP_UPGRADE_STATUS = {
   NOT_APPLICABLE:    'not_applicable', // managed by fleet
   NO_UPGRADE:        'no_upgrade', // no upgrade found

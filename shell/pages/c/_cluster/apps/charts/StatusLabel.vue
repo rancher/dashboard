@@ -4,6 +4,7 @@ defineProps<{
   label: string;
   icon: string;
   iconColor?: string;
+  tooltip?: string;
 }>();
 
 </script>
@@ -11,7 +12,10 @@ defineProps<{
 <template>
   <div class="status-label">
     {{ label }}
-    <i :class="['icon', icon, iconColor]" />
+    <i
+      v-clean-tooltip="tooltip"
+      :class="['icon', icon, iconColor]"
+    />
   </div>
 </template>
 

@@ -7,12 +7,12 @@ import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
+import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import { mapGetters } from 'vuex';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
-import { compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import RcItemCard from '@pkg/rancher-components/src/components/RcItemCard/RcItemCard';
@@ -67,24 +67,30 @@ export default {
       installedApps: [],
       statusOptions: [
         {
-          value: 'installed',
+          value: APP_STATUS.INSTALLED,
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label: this.t('generic.installed'), icon: 'icon-warning', iconColor: 'warning'
+              label:     this.t('generic.installed'),
+              icon:      'icon-warning',
+              iconColor: 'warning',
+              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
             }
           }
         },
         {
-          value: 'deprecated',
+          value: APP_STATUS.DEPRECATED,
           label: this.t('generic.deprecated'),
         },
         {
-          value: 'upgradeable',
+          value: APP_STATUS.UPGRADEABLE,
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label: this.t('generic.upgradeable'), icon: 'icon-warning', iconColor: 'warning'
+              label:     this.t('generic.upgradeable'),
+              icon:      'icon-warning',
+              iconColor: 'warning',
+              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
             }
           }
         }
@@ -170,9 +176,9 @@ export default {
 
       return res.filter((chart) => {
         const chartStatuses = [
-          chart.deprecated && 'deprecated',
-          chart.isInstalled && 'installed',
-          chart.upgradeable && 'upgradeable'
+          chart.deprecated && APP_STATUS.DEPRECATED,
+          chart.isInstalled && APP_STATUS.INSTALLED,
+          chart.upgradeable && APP_STATUS.UPGRADEABLE
         ].filter(Boolean);
 
         return chartStatuses.some((status) => statuses.includes(status));
