@@ -1,4 +1,4 @@
-
+import { parse } from '@shell/utils/url';
 import { insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -77,31 +77,50 @@ export default class HelmOp extends FleetApplication {
     return FleetUtils.resourceIcons[FLEET.HELM_OP];
   }
 
+  /**
+   *  Source type examples:
+   *
+   *  tarball:
+   *    chart: https://github.com/rancher/fleet-helm-charts/releases/download/fleet-0.12.1-beta.2/fleet-0.12.1-beta.2.tgz
+   *  repo:
+   *    repo: https://rancher.github.io/fleet-helm-charts/
+   *    chart: fleet-agent
+   *    version: 0.12.1-beta.2
+   *  oci:
+   *    chart: oci://ghcr.io/rancher/fleet-test-configmap-chart
+   *    version: the-tag
+   */
   get sourceType() {
-    let out = SOURCE_TYPE.REPO;
-
-    if (this.spec.helm?.repo) {
-      if (this.spec.helm.repo.startsWith('oci://')) {
-        out = SOURCE_TYPE.OCI;
-      }
-    } else if (this.spec.helm?.chart) {
-      if (this.spec.helm.chart.startsWith('https://')) {
-        out = SOURCE_TYPE.TARBALL;
-      }
+    if (this.spec.helm?.repo && this.spec.helm?.chart) {
+      return SOURCE_TYPE.REPO;
     }
 
-    return out;
+    if (this.spec.helm?.chart?.startsWith('oci://')) {
+      return SOURCE_TYPE.OCI;
+    }
+
+    if (this.spec.helm?.chart) {
+      return SOURCE_TYPE.TARBALL;
+    }
+
+    return null;
   }
 
   get source() {
     let value = '';
 
     switch (this.sourceType) {
-    case SOURCE_TYPE.TARBALL:
-      value = this.spec.helm.chart || '';
+    case SOURCE_TYPE.REPO:
+      value = this.spec.helm?.repo || '';
       break;
-    default:
-      value = this.spec.helm.repo || '';
+    case SOURCE_TYPE.OCI: {
+      const parsed = parse(this.spec.helm?.chart || '');
+
+      value = parsed?.host ? `oci://${ parsed?.host }` : '';
+      break;
+    }
+    case SOURCE_TYPE.TARBALL:
+      value = this.spec.helm?.chart || ''; // TODO ellipsis and tooltip
     }
 
     return {
@@ -113,14 +132,21 @@ export default class HelmOp extends FleetApplication {
 
   get sourceSub() {
     let chart = '';
-    let version = '';
+    const version = this.spec.helm.version || '';
 
-    if (this.sourceType !== SOURCE_TYPE.TARBALL) {
-      chart = this.spec.helm.chart;
-      version = this.spec.helm.version;
+    switch (this.sourceType) {
+    case SOURCE_TYPE.REPO:
+      chart = this.spec.helm.chart || '';
+      break;
+    case SOURCE_TYPE.OCI: {
+      const parsed = parse(this.spec.helm.chart || '');
+
+      chart = parsed?.path ? parsed?.path.substring(1) : '';
+      break;
+    }
     }
 
-    const value = chart?.concat(':', version);
+    const value = chart && version ? chart.concat(':', version) : chart;
 
     return {
       value,

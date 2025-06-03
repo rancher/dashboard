@@ -2589,9 +2589,9 @@ fleet:
     groupBy: Group By Type
     subTypes:
       fleet.cattle.io.gitrepo:
-        description: GitRepos text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+        description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
       fleet.cattle.io.helmop:
-        description: HelmOps text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+        description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
@@ -2748,59 +2748,58 @@ fleet:
       steps:
         metadata:
           label: Metadata
-          title: Specify the Helm App name and labels/annotations
+          title: Specify the Helm Op name and labels/annotations
           subtext: 'Define metadata details'
-          description: Helm App basic info
+          description: Helm Op basic info
         chart:
           label: Chart
           title: chart
-          subtext: 'chart'
+          subtext: 'Define Helm Chart source details'
           description: chart
         values:
           label: Values
           title: values
-          subtext: 'values'
+          subtext: 'Define Helm Values for the chart'
           description: values
         targetInfo:
           label: Target details
-          title: Target
-          subtext: 'Target'
-          description: Target.
+          title: Specify which target to synchronise this repository to
+          subtext: 'Define target details'
+          description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
         advanced:
           label: Advanced
-          title: Specify advanced settings.
+          title: Specify advanced settings like authenticaion credentials and polling
           subtext: 'Define advanced settings'
-          description: Advanced.
+          description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
     source:
       title: Source
-      selectLabel: Source
+      selectLabel: Type
       types:
         tarball: Tarball
         repo: Repository
         oci: OCI Registry
       tarball:
         label: Absolute URL
-        placeholder: placeholder
+        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
       repo:
-        label: URL
-        placeholder: placeholder
+        repo:
+          label: URL
+          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+        chart:
+          label: Chart
+          placeholder: The path to the chart name in the repository
       oci:
-        label: OCI Registry
-        placeholder: placeholder
-      chart:
-        label: Chart
-        placeholder: placeholder
+        chart:
+          label: OCI Registry URL
+          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
       version:
         label: Version
-        placeholder: placeholder
+        placeholder: The Chart version
       release:
         title: Release
         label: Name
-        placeholder: placeholder
-      registry:
-        option: Choose a Rancher Registry
-        error: The {registry} has errors, please try to update the registry in Rancher repository. 
+        placeholder: The Helm release name
     values:
       title: Values
       selectLabel: Values

@@ -1,14 +1,15 @@
 <script>
-import { set } from '@shell/utils/object';
-import { saferDump } from '@shell/utils/create-yaml';
+import { clone, set } from '@shell/utils/object';
 import jsyaml from 'js-yaml';
+import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import FleetUtils from '@shell/utils/fleet';
 import {
-  AUTH_TYPE, CATALOG as REPO_CATALOG, CONFIG_MAP, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
+  AUTH_TYPE, CONFIG_MAP, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
 } from '@shell/config/types';
 import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -29,8 +30,6 @@ import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { SECRET_TYPES } from '@shell/config/secret';
-
-const APP_CO_REGISTRY = 'oci://dp.apps.rancher.io/charts';
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -84,8 +83,6 @@ export default {
       }
     }, this.$store);
 
-    await this.$store.dispatch('catalog/load', { root: true });
-
     this.allClusters = hash.allClusters || [];
     this.allClusterGroups = hash.allClusterGroups || [];
     this.allSecrets = hash.allSecrets || [];
@@ -95,15 +92,6 @@ export default {
   },
 
   data() {
-    const valueFromOptions = [
-      {
-        value: 'configMapKeyRef', label: 'ConfigMap Key', hideVariableName: true
-      },
-      {
-        value: 'secretKeyRef', label: 'Secret key', hideVariableName: true
-      },
-    ];
-
     const targetInfo = this.value.targetInfo;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
@@ -121,50 +109,11 @@ export default {
 
     const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
-    let sourceType = SOURCE_TYPE.REPO;
-
-    if (this.value.spec.helm?.repo) {
-      if (this.value.spec.helm.repo.startsWith('oci://')) {
-        sourceType = SOURCE_TYPE.OCI;
-      }
-    } else if (this.value.spec.helm?.chart) {
-      if (this.value.spec.helm.chart.startsWith('https://')) {
-        sourceType = SOURCE_TYPE.TARBALL;
-      }
-    }
-
-    const valuesFrom = [];
-
-    (this.value.spec.helm.valuesFrom || []).forEach((elem) => {
-      const out = {};
-
-      const cm = elem.configMapKeyRef;
-
-      if (cm) {
-        out.valueFrom = {
-          configMapKeyRef: {
-            key:  cm.key || '',
-            name: cm.name || '',
-          }
-        };
-      }
-
-      const sc = elem.secretKeyRef;
-
-      if (sc) {
-        out.valueFrom = {
-          secretKeyRef: {
-            key:  sc.key || '',
-            name: sc.name || '',
-          }
-        };
-      }
-
-      valuesFrom.push(out);
-    });
+    const chartValues = saferDump(clone(this.value.spec.helm.values));
 
     return {
       VALUES_STATE,
+      SOURCE_TYPE,
       allClusters:          [],
       allClusterGroups:     [],
       allSecrets:           [],
@@ -173,17 +122,17 @@ export default {
       targetMode,
       targetAdvanced,
       targetAdvancedErrors: null,
-      sourceType,
-      defaultYamlValues:    this.value.spec.helm.values,
+      sourceTypeInit:       this.value.sourceType,
+      sourceType:           this.value.sourceType || SOURCE_TYPE.REPO,
+      helmSpecInit:         clone(this.value.spec.helm),
       yamlForm:             VALUES_STATE.YAML,
-      valuesFrom,
+      chartValues,
+      chartValuesInit:      chartValues,
+      valuesFrom:           FleetUtils.HelmOp.fromValuesFrom(this.value.spec.helm.valuesFrom),
       correctDriftEnabled,
       tempCachedValues:     {},
-      valueFromOptions,
       doneRouteList:        'c-cluster-fleet-application',
-      chartValues:          {},
-      clusterRegistry:      null,
-      fetchChartValues:     false
+      isRealModeEdit:       this.realMode === _EDIT
     };
   },
 
@@ -197,93 +146,6 @@ export default {
   },
 
   computed: {
-    registries() {
-      const all = [
-        APP_CO_REGISTRY
-      ];
-
-      const registries = this.$store.getters['catalog/repos'] || [];
-
-      return all.reduce((acc, id) => {
-        const registry = registries.find((repo) => repo.spec?.url === id);
-
-        if (!!registry) {
-          return [
-            ...acc,
-            registry
-          ];
-        }
-
-        return acc;
-      }, []);
-    },
-
-    charts() {
-      const charts = this.$store.getters['catalog/charts'];
-
-      return this.registries.reduce((acc, registry) => ({
-        ...acc,
-        [registry._key]: charts.filter((chart) => chart.repoKey === registry._key)
-      }), {});
-    },
-
-    // chartOptions() {
-    //   const all = this.$store.getters['catalog/charts'];
-
-    //   return this.registries.reduce((acc, registry) => {
-
-    //     const charts = all.reduce((acc, chart) => {
-    //       if (chart.repoKey === registry._key) {
-    //         return [
-    //           ...acc,
-    //           {
-    //             value: chart,
-    //             label: chart.chartNameDisplay
-    //           }
-    //         ];
-    //       }
-
-    //       return acc;
-    //     }, [])
-
-    //     return {
-    //       ...acc,
-    //       [registry._key]: charts
-    //     };
-    //   }, {});
-    // },
-
-    sourceTypeOptions() {
-      const out = [
-        ...Object.values(SOURCE_TYPE).map((value) => ({
-          value,
-          label: this.t(`fleet.helmOp.source.types.${ value }`)
-        })),
-        {
-          label:    'divider',
-          disabled: true,
-          kind:     'divider'
-        }
-      ];
-
-      if (this.registries.length) {
-        out.push({
-          disabled: true,
-          kind:     'title',
-          label:    this.t('fleet.helmOp.source.registry.option')
-        });
-      }
-
-      this.registries.forEach((registry) => {
-        out.push({
-          value: { key: registry._key, isClusterRegistry: true },
-          label: registry.name,
-        });
-      });
-
-      return out;
-    },
-
     ...mapGetters(['workspace']),
 
     steps() {
@@ -340,6 +202,59 @@ export default {
       return this.value.metadata.namespace === 'fleet-local';
     },
 
+    sourceTypeOptions() {
+      return Object.values(SOURCE_TYPE).map((value) => ({
+        value,
+        label: this.t(`fleet.helmOp.source.types.${ value }`)
+      }));
+    },
+
+    valueFromOptions() {
+      return [
+        {
+          value: 'configMapKeyRef', label: 'ConfigMap Key', hideVariableName: true
+        },
+        {
+          value: 'secretKeyRef', label: 'Secret key', hideVariableName: true
+        },
+      ];
+    },
+
+    yamlFormOptions() {
+      return [{
+        labelKey: 'fleet.helmOp.values.yaml.options.edit',
+        value:    VALUES_STATE.YAML,
+      }, {
+        labelKey: 'fleet.helmOp.values.yaml.options.diff',
+        value:    VALUES_STATE.DIFF,
+        disabled: this.chartValuesInit === this.chartValues,
+      }];
+    },
+
+    diffMode: mapPref(DIFF),
+
+    yamlDiffModeOptions() {
+      return [{
+        labelKey: 'resourceYaml.buttons.unified',
+        value:    'unified',
+      }, {
+        labelKey: 'resourceYaml.buttons.split',
+        value:    'split',
+      }];
+    },
+
+    isYamlDiff() {
+      return this.yamlForm === VALUES_STATE.DIFF;
+    },
+
+    editorMode() {
+      if (this.isYamlDiff) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
+    },
+
     targetOptions() {
       const out = [
         {
@@ -394,41 +309,6 @@ export default {
       }
 
       return out;
-    },
-
-    yamlFormOptions() {
-      return [{
-        labelKey: 'fleet.helmOp.values.yaml.options.edit',
-        value:    VALUES_STATE.YAML,
-      }, {
-        labelKey: 'fleet.helmOp.values.yaml.options.diff',
-        value:    VALUES_STATE.DIFF,
-        disabled: this.defaultYamlValues === this.value.spec.helm.values,
-      }];
-    },
-
-    yamlDiffModeOptions() {
-      return [{
-        labelKey: 'resourceYaml.buttons.unified',
-        value:    'unified',
-      }, {
-        labelKey: 'resourceYaml.buttons.split',
-        value:    'split',
-      }];
-    },
-
-    editorMode() {
-      if (this.showYamlDiff) {
-        return EDITOR_MODES.DIFF_CODE;
-      }
-
-      return EDITOR_MODES.EDIT_CODE;
-    },
-
-    diffMode: mapPref(DIFF),
-
-    showYamlDiff() {
-      return this.yamlForm === VALUES_STATE.DIFF && this.defaultYamlValues !== this.value.spec.helm.values;
     }
   },
 
@@ -440,82 +320,25 @@ export default {
     targetAdvanced:             'updateTargets',
 
     workspace(neu) {
-      if ( this.isCreate ) {
+      if (this.isCreate) {
         set(this.value, 'metadata.namespace', neu);
       }
     },
   },
 
   methods: {
-    onSourceTypeSelect(value) {
+    onSourceTypeSelect(type) {
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
       delete this.value.spec.helm.version;
 
-      if (value.isClusterRegistry) {
-        const registry = this.registries.find((registry) => registry._key === value.key);
+      if (this.realMode !== _CREATE && this.sourceTypeInit === type) {
+        const { repo, chart, version } = this.helmSpecInit;
 
-        this.clusterRegistry = registry;
-
-        this.value.spec.helm.repo = registry.spec.url;
+        set(this.value, 'spec.helm.repo', repo);
+        set(this.value, 'spec.helm.chart', chart);
+        set(this.value, 'spec.helm.version', version);
       }
-    },
-
-    async onChartSelect(value) {
-      if (value) {
-        const chart = value.chartName;
-        const version = value.versions[0];
-
-        this.value.spec.helm.chart = chart;
-        this.value.spec.helm.version = version.version;
-
-        this.getChartValues(version);
-      }
-    },
-
-    chartOptions(registry) {
-      return this.charts[registry].map((chart) => ({
-        value: chart,
-        label: chart.chartNameDisplay
-      }));
-    },
-
-    async onVersionSelect(value) {
-      if (value) {
-        this.value.spec.helm.version = value.version;
-
-        this.getChartValues(value);
-      }
-    },
-
-    versionOptions(registry) {
-      const selectedChart = this.charts[registry].find((chart) => chart.chartName === this.value.spec?.helm?.chart) || {};
-
-      return (selectedChart.versions || []).map((version) => ({
-        label: version.version,
-        value: version
-      }));
-    },
-
-    async getChartValues(version) {
-      this.fetchChartValues = true;
-
-      try {
-        const res = await this.$store.dispatch('management/request', { url: `/v1/${ REPO_CATALOG.CLUSTER_REPO }/${ version.repoName }?link=info&chartName=${ version.name }&version=${ version.version }` });
-
-        if (res?.values) {
-          this.chartValues = saferDump(res?.values || {});
-
-          this.value.spec.helm.values = res?.values;
-        }
-      } catch (error) {
-      }
-
-      this.fetchChartValues = false;
-    },
-
-    updateChartValues(values) {
-      this.value.spec.helm.values = values;
     },
 
     updateTargets() {
@@ -568,10 +391,6 @@ export default {
 
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
-
-      // if (key === 'helmSecretName') {
-      //   this.toggleHelmRepoURLRegex(val && val.selected !== AUTH_TYPE._NONE);
-      // }
     },
 
     updateAuth(val, key) {
@@ -666,12 +485,29 @@ export default {
       return secret;
     },
 
+    updateYamlForm() {
+      if (this.$refs.yaml) {
+        this.$refs.yaml.updateValue(this.chartValues);
+      }
+    },
+
+    updateChartValues(value) {
+      try {
+        const chartValues = jsyaml.load(value);
+
+        this.value.spec.helm.values = chartValues;
+      } catch (err) {
+      }
+    },
+
     addValueFrom() {
       this.valuesFrom.push({ valueFrom: {} });
     },
 
     updateValueFrom(index, value) {
       this.valuesFrom[index] = value;
+
+      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
     },
 
     removeValueFrom(index) {
@@ -680,33 +516,6 @@ export default {
 
     updateBeforeSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
-
-      this.value.spec.helm.valuesFrom = this.valuesFrom
-        .filter((f) => f.valueFrom?.configMapKeyRef || f.valueFrom?.secretKeyRef)
-        .map(({ valueFrom }) => {
-          const cm = valueFrom.configMapKeyRef;
-          const sc = valueFrom.secretKeyRef;
-
-          const out = {};
-
-          if (cm?.name) {
-            out.configMapKeyRef = {
-              key:       cm.key,
-              name:      cm.name,
-              namespace: this.workspace
-            };
-          }
-
-          if (sc?.name) {
-            out.secretKeyRef = {
-              key:       sc.key,
-              name:      sc.name,
-              namespace: this.workspace
-            };
-          }
-
-          return out;
-        });
     },
   },
 };
@@ -756,7 +565,6 @@ export default {
             :mode="mode"
             :label-key="`fleet.helmOp.source.release.label`"
             :placeholder="t(`fleet.helmOp.source.release.placeholder`, null, true)"
-            :required="true"
           />
         </div>
       </div>
@@ -765,7 +573,7 @@ export default {
 
       <div
         v-if="!isView"
-        class="row mb-10"
+        class="row mb-20"
       >
         <div class="col span-6">
           <LabeledSelect
@@ -775,12 +583,12 @@ export default {
             :mode="mode"
             :selectable="option => !option.disabled"
             :label="t('fleet.helmOp.source.selectLabel')"
-            @selecting="onSourceTypeSelect"
+            @update:value="onSourceTypeSelect"
           />
         </div>
       </div>
 
-      <template v-if="sourceType === 'tarball'">
+      <template v-if="sourceType === SOURCE_TYPE.TARBALL">
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -794,14 +602,14 @@ export default {
         </div>
       </template>
 
-      <template v-if="sourceType === 'repo' || sourceType === 'oci'">
+      <template v-if="sourceType === SOURCE_TYPE.REPO">
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
               v-model:value="value.spec.helm.repo"
               :mode="mode"
-              :label-key="`fleet.helmOp.source.${ sourceType }.label`"
-              :placeholder="t(`fleet.helmOp.source.${ sourceType }.placeholder`, null, true)"
+              :label-key="`fleet.helmOp.source.${ sourceType }.repo.label`"
+              :placeholder="t(`fleet.helmOp.source.${ sourceType }.repo.placeholder`, null, true)"
               :required="true"
             />
           </div>
@@ -812,8 +620,8 @@ export default {
             <LabeledInput
               v-model:value="value.spec.helm.chart"
               :mode="mode"
-              label-key="fleet.helmOp.source.chart.label"
-              :placeholder="t('fleet.helmOp.source.chart.placeholder', null, true)"
+              :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
+              :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
               :required="true"
             />
           </div>
@@ -829,48 +637,24 @@ export default {
         </div>
       </template>
 
-      <template v-if="sourceType.isClusterRegistry">
+      <template v-if="sourceType === SOURCE_TYPE.OCI">
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              :value="value.spec.helm.repo"
+              v-model:value="value.spec.helm.chart"
               :mode="mode"
-              :label-key="'fleet.helmOp.source.oci.label'"
-              :placeholder="t('fleet.helmOp.source.oci.placeholder', null, true)"
+              :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
+              :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
               :required="true"
-              :disabled="true"
-            />
-          </div>
-        </div>
-
-        <Banner
-          v-if="clusterRegistry?.stateObj?.error"
-          class="col"
-          color="error"
-          :label="t('fleet.helmOp.source.registry.error', { registry: clusterRegistry.name })"
-        />
-
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              :value="value.spec.helm.chart"
-              :options="chartOptions(sourceType.key)"
-              option-key="value"
-              :mode="mode"
-              :selectable="option => !option.disabled"
-              :label="t('fleet.helmOp.source.chart.label')"
-              @selecting="onChartSelect($event.value)"
             />
           </div>
           <div class="col span-4">
-            <LabeledSelect
-              :value="value.spec.helm.version"
-              :options="versionOptions(sourceType.key)"
-              option-key="value"
+            <LabeledInput
+              v-model:value="value.spec.helm.version"
               :mode="mode"
-              :selectable="option => !option.disabled"
-              :label="t('fleet.helmOp.source.version.label')"
-              @selecting="onVersionSelect($event.value)"
+              label-key="fleet.helmOp.source.version.label"
+              :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :required="true"
             />
           </div>
         </div>
@@ -886,26 +670,9 @@ export default {
 
       <h2 v-t="'fleet.helmOp.values.title'" />
 
-      <!-- <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model:value="valuesType"
-            :options="valuesTypeOptions"
-            option-key="value"
-            :mode="mode"
-            :selectable="option => !option.disabled"
-            :label="t('fleet.helmOp.values.selectLabel')"
-          />
-        </div>
-      </div> -->
-
-      <div
-        v-if="!fetchChartValues"
-        class="mb-15"
-      >
-        <h3 v-t="'fleet.helmOp.values.values.selectLabel'" />
+      <div class="mb-15">
         <div
-          v-if="!isView"
+          v-if="isRealModeEdit"
           class="yaml-form-controls"
         >
           <ButtonGroup
@@ -913,6 +680,7 @@ export default {
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
             :options="yamlFormOptions"
+            @update:value="updateYamlForm"
           />
           <div
             class="yaml-form-controls-spacer"
@@ -921,90 +689,28 @@ export default {
             &nbsp;
           </div>
           <ButtonGroup
-            v-if="showYamlDiff"
+            v-if="isYamlDiff"
             v-model:value="diffMode"
             :options="yamlDiffModeOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
           />
-          <!-- <div
-            v-if="hasReadme && !showingReadmeWindow"
-            class="btn-group"
-          >
-            <button
-              type="button"
-              class="btn bg-primary btn-sm"
-              @click="showSlideIn = !showSlideIn"
-            >
-              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
-            </button>
-          </div> -->
         </div>
 
-        <div>
-          <YamlEditor
-            v-if="yamlForm === VALUES_STATE.YAML"
-            ref="yaml"
-            v-model:value="chartValues"
-            class="step__values__content"
-            :mode="mode"
-            :scrolling="true"
-            :initial-yaml-values="defaultYamlValues"
-            :editor-mode="editorMode"
-            :hide-preview-buttons="true"
-            @update:value="updateChartValues"
-          />
-        </div>
-
-        <div
-          v-if="yamlForm === VALUES_STATE.DIFF"
-        >
-          DIFF
-        </div>
-
-        <!-- Confirm loss of changes on toggle from yaml/preview to form -->
-        <!-- <ResourceCancelModal
-          ref="cancelModal"
-          :is-cancel-modal="false"
-          :is-form="true"
-          @cancel-cancel="preFormYamlOption=formYamlOption"
-          @confirm-cancel="formYamlOption = preFormYamlOption;"
-        /> -->
-      </div>
-
-      <div
-        v-else
-        class="loading"
-      >
-        <span>{{ t('fleet.helmOp.values.values.loading') }}</span>
-        <i class="icon icon-spin icon-spinner" />
-      </div>
-
-      <!-- <div class="mb-15">
-        <ArrayList
-          v-model:value="value.spec.helm.valuesFiles"
-          :title="t('fleet.helmOp.values.valuesFiles.selectLabel')"
+        <YamlEditor
+          ref="yaml"
+          v-model:value="chartValues"
           :mode="mode"
-          :initial-empty-row="false"
-          :value-placeholder="t('fleet.helmOp.values.valuesFiles.placeholder')"
-          :add-label="t('fleet.helmOp.values.valuesFiles.addLabel')"
-          :a11y-label="t('fleet.helmOp.values.valuesFiles.ariaLabel')"
-          :add-icon="'icon-plus'"
-          :protip="t('fleet.helmOp.values.valuesFiles.empty')"
+          :initial-yaml-values="chartValuesInit"
+          :scrolling="true"
+          :editor-mode="editorMode"
+          :hide-preview-buttons="true"
+          @update:value="updateChartValues"
         />
-      </div> -->
+      </div>
 
       <div class="mb-20">
-        <h3 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
-        <!-- <LabeledSelect
-          v-model:value="valuesFrom"
-          :options="[]"
-          option-key="value"
-          :mode="mode"
-          :selectable="option => !option.disabled"
-          :label="t('fleet.helmOp.values.valuesFrom.selectLabel')"
-        /> -->
-
+        <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
         <div
           v-for="(row, i) in valuesFrom"
           :key="i"
@@ -1127,8 +833,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model:value="value.spec.insecureSkipTLSVerify"
-            :tooltip="t('fleet.helmOp.tls.insecure')"
-            type="checkbox"
+                        type="checkbox"
             label-key="fleet.helmOp.tls.insecure"
             :mode="mode"
           />
@@ -1161,6 +866,11 @@ export default {
   .yaml-form-controls {
     display: flex;
     margin-bottom: 15px;
+  }
+  :deep() .yaml-editor {
+    .root {
+      height: auto !important;
+    }
   }
   .resource-handling {
     display: flex;
