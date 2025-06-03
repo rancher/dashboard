@@ -120,7 +120,6 @@ export default {
       serverUrlSetting:          null,
       debouncedRefreshCharts:    null,
       versionInfo:               null,
-      versionInfoError:          null,
       userValues:                {},
       // payload for 'install' action on clusterrepo resource
       // contains array of chart install info as well as some helm install opts that are set by default in the regular chart install ui
@@ -308,10 +307,7 @@ export default {
           versionName: targetVersion
         });
       } catch (e) {
-        // TODO nb growl?
-        this.versionInfoError = e;
-
-        console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
+        this.stages.configureChart.errors = e;
       }
     },
 
@@ -357,6 +353,7 @@ export default {
     },
 
     async installChart() {
+      this.stages.configureChart.errors = '';
       this.stages.installChart.loading = true;
 
       if (this.stages.installChart.done) {
