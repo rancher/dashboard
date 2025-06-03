@@ -1,12 +1,8 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
-export class WorkloadsReplicasetsListPagePo extends PagePo {
+export class WorkloadsReplicasetsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/apps.replicaset`;
   }
@@ -18,39 +14,9 @@ export class WorkloadsReplicasetsListPagePo extends PagePo {
   constructor(clusterId = 'local') {
     super(WorkloadsReplicasetsListPagePo.createPath(clusterId));
   }
-
-  masthead() {
-    return new ResourceListMastheadPo(this.self());
-  }
-
-  createReplicaset() {
-    return this.masthead().create();
-  }
-
-  goToeditItemWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.actionMenu(name).getMenuItem('Edit Config').click();
-  }
-
-  baseResourceList() {
-    return new BaseResourceList(this.self());
-  }
-
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
-  }
-
-  sortableTable() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable();
-  }
 }
 
-export class WorkloadsReplicasetsEditPagePo extends PagePo {
+export class WorkloadsReplicasetsEditPagePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(daemonsetId: string, clusterId: string, namespaceId: string, queryParams?: Record<string, string>) {
@@ -75,19 +41,7 @@ export class WorkloadsReplicasetsEditPagePo extends PagePo {
     WorkloadsReplicasetsEditPagePo.url = WorkloadsReplicasetsEditPagePo.createPath(daemonsetId, clusterId, namespaceId, queryParams);
   }
 
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
-  }
-
   containerImageInput(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Container Image');
-  }
-
-  clickTab(selector: string) {
-    return new TabbedPo().clickTabWithSelector(selector);
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 }
