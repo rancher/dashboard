@@ -12,7 +12,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { isPrerelease } from '@shell/utils/version';
 import { nextTick } from 'vue';
 import { set } from '@shell/utils/object';
-import { defaultCmdOpts } from '@shell/pages/c/_cluster/apps/charts/install.vue';
+import { defaultCmdOpts as defaultOpts } from '@shell/pages/c/_cluster/apps/charts/install.vue';
 
 /**
  * Assumptions made by this component
@@ -23,6 +23,8 @@ import { defaultCmdOpts } from '@shell/pages/c/_cluster/apps/charts/install.vue'
  *  - if the app is already installed
  *  - if the user has permission to install apps
  */
+
+const defaultCmdOpts = { ...defaultOpts, timeout: '600s' };
 
 const MAX_TRIES = 5;
 const RETRY_WAIT = 500;
@@ -130,40 +132,39 @@ export default {
       operation:                 {},
       logsReady:                 false,
 
-      // TODO nb localize
       stages: {
         addRepo: {
-          actionLabel:  `Install ${ this.displayName || this.chartName }`,
-          waitingLabel: `Adding ${ this.repoName } repository...`,
-          successLabel: 'Repository Added',
-          errorLabel:   `Error Adding ${ this.repoName } repository`,
+          actionLabel:  this.t('catalog.install.button.stages.addRepo.action', { repo: this.repoName }),
+          waitingLabel: this.t('catalog.install.button.stages.addRepo.waiting', { repo: this.repoName }),
+          successLabel: this.t('catalog.install.button.stages.addRepo.success', { repo: this.repoName }),
+          errorLabel:   this.t('catalog.install.button.stages.addRepo.error', { repo: this.repoName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         loadCharts: {
-          actionLabel:  `Fetch ${ this.repoName } repository chart(s)`,
-          waitingLabel: `Fetching ${ this.repoName } respository chart(s)...`,
-          successLabel: 'Charts found',
-          errorLabel:   'Chart not found - Try Again',
+          actionLabel:  this.t('catalog.install.button.stages.loadCharts.action', { repo: this.repoName }),
+          waitingLabel: this.t('catalog.install.button.stages.loadCharts.waiting', { repo: this.repoName }),
+          successLabel: this.t('catalog.install.button.stages.loadCharts.success', { chart: this.displayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.loadCharts.error', { chart: this.displayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         configureChart: {
-          actionLabel:  `Install ${ this.displayName || this.chartName }`,
-          waitingLabel: `Installing ${ this.displayName || this.chartName }...`,
-          successLabel: 'Installed',
-          errorLabel:   'Error Installing Chart',
+          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.displayName || this.chartName }),
+          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.displayName || this.chartName }),
+          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.displayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.displayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         installChart: {
-          actionLabel:  `Install ${ this.displayName || this.chartName }`,
-          waitingLabel: `Installing ${ this.displayName || this.chartName }...`,
-          successLabel: `${ this.displayName || this.chartName } Installation Initialized`,
-          errorLabel:   `Error Installing ${ this.displayName || this.chartName }...`,
+          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.displayName || this.chartName }),
+          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.displayName || this.chartName }),
+          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.displayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.displayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
@@ -210,10 +211,7 @@ export default {
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.repoType,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.repoName
         },
-        // this only needs to be values that differ from the default
-        values: {
-          ...this.getGlobalValues(), ...this.extraValues, ...this.userValues
-        }
+
       };
 
       this.installCmd.namespace = this.targetNamespace || this.chart?.targetNamespace || 'default';
@@ -288,8 +286,6 @@ export default {
       // tried all our tries and the chart still isn't found - tell users something has gone wrong
       if (!this.chart) {
         this.btnCb(false);
-
-        this.stages.loadCharts.error = `Unable to locate the ${ this.chartName } chart in the ${ this.repoName } repository`;
       } else {
         this.btnCb(true);
 
@@ -360,7 +356,7 @@ export default {
       return values;
     },
 
-    async installChart(btnCb = () => {}) {
+    async installChart() {
       this.stages.installChart.loading = true;
 
       if (this.stages.installChart.done) {
@@ -373,9 +369,13 @@ export default {
       let res;
 
       try {
+        // should only be values that differ from default
+        this.installCmd.charts[0].values = {
+          ...this.getGlobalValues(), ...this.extraValues, ...this.userValues
+        };
+
         res = await this.targetRepo.doAction('install', this.installCmd);
       } catch (err) {
-        // TODO nb growl?
         console.error(err);
         this.btnCb(false);
 
@@ -384,7 +384,6 @@ export default {
         this.stages.installChart.error = err;
       }
 
-      // this.btnCb(true);
       this.stages.installChart.loading = false;
       this.stages.installChart.done = true;
       this.installOperationName = res.operationName;
@@ -425,10 +424,17 @@ export default {
     openLogs() {
       this.operation.openLogs();
     },
+
+    // go to full chart install experience
+    goToInstall() {
+      if (!this.chart) {
+        return;
+      }
+      this.chart.goToInstall(null, 'local');
+    }
   },
 
   computed: {
-    // ...mapGetters(['currentCluster']),
     ...mapGetters({
       charts: 'catalog/charts',
       repos:  'catalog/repos',
@@ -445,15 +451,6 @@ export default {
       return this.$store.getters[`management/byId`](MANAGEMENT.CLUSTER, 'local' );
     },
 
-    /**
-       * [!IMPORTANT]
-       * TODO:
-       * THIS IS BROKEN
-       * When installing, if you add the repo and leave the page
-       * then come back, the controllerChart will be null, but so will
-       * the targetRepo. This is because the repo is not saved to the store?
-       * TODO nb
-       */
     chart() {
       if (this.targetRepo) {
         return this.$store.getters['catalog/chart']({
@@ -586,6 +583,10 @@ export default {
       return this.buttonLabel.errors;
     },
 
+    readyToInstall() {
+      return this.stages.loadCharts.done && this.chart && !( this.stages.installChart.loading || this.stages.installChart.done );
+    }
+
   },
 
 }
@@ -600,11 +601,13 @@ export default {
       type="button"
       @click="openLogs"
     >
-      view helm logs
+      {{ t('catalog.install.button.viewLogs') }}
     </button>
   </div>
   <div v-else>
-    <div v-if="stages.loadCharts.done && chart && !( stages.installChart.loading || stages.installChart.done )">
+    <div
+      v-if="readyToInstall"
+    >
       <!-- shown when a chart is ready to be installed, and installation has not yet begun -->
       <slot
         :set-value="setValue"
@@ -636,5 +639,15 @@ export default {
       class="btn role-primary"
       @click="cb=>{btnCb=cb;buttonLabel.action()}"
     />
+    <div>
+      <button
+        v-if="chart && !stages.installChart.done"
+        type="button"
+        class="btn btn-sm role-link"
+        @click="goToInstall"
+      >
+        {{ t('catalog.install.button.customizeInstall') }}
+      </button>
+    </div>
   </div>
 </template>
