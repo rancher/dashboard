@@ -66,7 +66,7 @@ type ItemValue = Record<string, any>;
 /**
  * Props accepted by the ItemCard component.
  */
-interface Props {
+interface RcItemCardProps {
   /** Unique identifier for the card (used in test IDs) */
   id: string;
 
@@ -95,14 +95,7 @@ interface Props {
   clickable?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  actions:   undefined,
-  image:     undefined,
-  content:   undefined,
-  variant:   undefined,
-  pill:      undefined,
-  clickable: false
-});
+const props = defineProps<RcItemCardProps>();
 
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
