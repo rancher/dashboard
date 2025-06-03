@@ -1,10 +1,47 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import debounce from 'lodash/debounce';
 import LazyImage from '@shell/components/LazyImage.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+
+const cardEl = ref<HTMLElement | null>(null);
+const dynamicWidth = ref(0);
+
+const dynamicVariant = computed<RcItemCardVariant>(() => {
+  if (props.variant) {
+    return props.variant;
+  }
+  
+  if (dynamicWidth.value < 500) {
+    return 'small';
+  }
+
+  return 'medium';
+});
+
+const updateWidth = debounce((width: number) => {
+  dynamicWidth.value = width;
+}, 300)
+
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  if (!props.variant && cardEl.value) {
+    resizeObserver = new ResizeObserver(([entry]) => {
+      updateWidth(entry.contentRect.width);
+    });
+    resizeObserver.observe(cardEl.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (resizeObserver && cardEl.value) {
+    resizeObserver.unobserve(cardEl.value);
+  }
+});
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -98,7 +135,7 @@ const props = withDefaults(defineProps<Props>(), {
   actions:   undefined,
   image:     undefined,
   content:   undefined,
-  variant:   'medium',
+  variant:   undefined,
   pill:      undefined,
   clickable: false
 });
@@ -146,6 +183,7 @@ const cardMeta = computed(() => ({
 
 <template>
   <div
+    ref="cardEl"
     class="item-card"
     :role="cardMeta.role"
     :tabindex="cardMeta.tabIndex"
@@ -155,13 +193,13 @@ const cardMeta = computed(() => ({
     @keydown.enter="_handleCardClick"
     @keydown.space.prevent="_handleCardClick"
   >
-    <div :class="['item-card-body', variant]">
-      <template v-if="variant !== 'small'">
+    <div :class="['item-card-body', dynamicVariant]">
+      <template v-if="dynamicVariant !== 'small'">
         <div>
           <slot name="item-card-image">
             <div
               v-if="image"
-              :class="['item-card-image', variant]"
+              :class="['item-card-image', dynamicVariant]"
               data-testid="item-card-image"
             >
               <LazyImage
@@ -184,14 +222,14 @@ const cardMeta = computed(() => ({
         </div>
       </template>
 
-      <div :class="['item-card-body-details', variant]">
-        <div :class="['item-card-header', variant]">
+      <div :class="['item-card-body-details', dynamicVariant]">
+        <div :class="['item-card-header', dynamicVariant]">
           <div class="item-card-header-left">
-            <template v-if="variant === 'small'">
+            <template v-if="dynamicVariant === 'small'">
               <slot name="item-card-image">
                 <div
                   v-if="image"
-                  :class="['item-card-image', variant]"
+                  :class="['item-card-image', dynamicVariant]"
                   data-testid="item-card-image"
                 >
                   <LazyImage
@@ -206,7 +244,7 @@ const cardMeta = computed(() => ({
               <h3
                 v-if="header.title"
                 v-clean-tooltip="headerTitle"
-                :class="['item-card-header-title', variant]"
+                :class="['item-card-header-title', dynamicVariant]"
                 data-testid="item-card-header-title"
               >
                 {{ headerTitle }}

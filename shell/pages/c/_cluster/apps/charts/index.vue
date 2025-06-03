@@ -516,6 +516,7 @@ export default {
             :image="card.image"
             :content="card.content"
             :value="card.rawChart"
+            variant="medium"
             :clickable="true"
             @card-click="selectChart"
           >
