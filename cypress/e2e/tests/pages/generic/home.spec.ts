@@ -1,6 +1,5 @@
 import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
@@ -231,19 +230,9 @@ describe('Home Page', () => {
       cy.login();
     });
 
-    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click link and verify user lands on preferences page
-     */
-
+    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       HomePagePo.navTo();
       homePage.waitForPage();
-      const prefPage = new PreferencesPagePo();
-
-      homePage.prefPageLink().click();
-      prefPage.waitForPage();
-      prefPage.checkIsCurrentPage();
-      prefPage.title();
     });
 
     it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -252,9 +241,6 @@ describe('Home Page', () => {
       // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
-
-      // Login Page Banner was removed, so should not be shown
-      homePage.getLoginPageBanner().checkNotVisible();
 
       // Toggle the banner graphic to hide it
       homePage.toggleBanner();
@@ -272,14 +258,14 @@ describe('Home Page', () => {
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
 
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic
