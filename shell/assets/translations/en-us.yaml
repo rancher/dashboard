@@ -3145,10 +3145,7 @@ istio:
 
 itemCard:
   ariaLabel:
-    clickable: Click on Card
-    card: Item Card
-    status: Status
-    content: Card Content
+    clickable: Click on card for {cardTitle}
 jwt:
   title: JWT Authentication
   actions:

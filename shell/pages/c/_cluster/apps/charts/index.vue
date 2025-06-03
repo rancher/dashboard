@@ -15,6 +15,7 @@ import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
+import RcItemCard from '@pkg/rancher-components/src/components/RcItemCard/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import RcItemCard from '@shell/components/cards/RcItemCard';
@@ -408,6 +409,7 @@ export default {
             :image="card.image"
             :content="card.content"
             :value="card.rawChart"
+            variant="medium"
             :clickable="true"
             @card-click="selectChart"
           >

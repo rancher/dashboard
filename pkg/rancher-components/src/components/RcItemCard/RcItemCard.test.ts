@@ -1,5 +1,13 @@
 import { mount } from '@vue/test-utils';
-import RcItemCard from '@shell/components/cards/RcItemCard.vue';
+import RcItemCard from './RcItemCard.vue';
+
+class ResizeObserverMock {
+  observe = jest.fn();
+  unobserve = jest.fn();
+  disconnect = jest.fn();
+}
+
+global.ResizeObserver = ResizeObserverMock;
 
 const id = 'test';
 
