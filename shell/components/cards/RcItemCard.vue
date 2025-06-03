@@ -163,11 +163,10 @@ const imageAlt = computed(() => labelText(props.image?.alt));
 const pillLabel = computed(() => labelText(props.pill?.label));
 const pillTooltip = computed(() => labelText(props.pill?.tooltip));
 const contentText = computed(() => labelText(props.content));
-const statusTooltips = computed(() => props.header.statuses?.map((status) => labelText(status.tooltip)) || []
-);
+const statusTooltips = computed(() => props.header.statuses?.map((status) => labelText(status.tooltip)) || []);
 
 const cardMeta = computed(() => ({
-  ariaLabel: props.clickable ? t('itemCard.ariaLabel.clickable') : t('itemCard.ariaLabel.card'),
+  ariaLabel: props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
   tabIndex:  props.clickable ? '0' : undefined,
   role:      props.clickable ? 'button' : undefined
 }));
@@ -253,7 +252,6 @@ const cardMeta = computed(() => ({
                 v-for="(status, i) in header.statuses"
                 :key="i"
                 class="item-card-header-statuses-status"
-                :aria-label="statusTooltips[i] || t('itemCard.ariaLabel.status')"
                 data-testid="item-card-header-statuses-status"
               >
                 <i
@@ -294,7 +292,6 @@ const cardMeta = computed(() => ({
         <template v-else-if="content">
           <div
             class="item-card-content"
-            :aria-label="t('itemCard.ariaLabel.content')"
             data-testid="item-card-content"
           >
             <p>{{ contentText }}</p>
