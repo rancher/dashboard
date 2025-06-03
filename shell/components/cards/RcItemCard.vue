@@ -7,42 +7,6 @@ import LazyImage from '@shell/components/LazyImage.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 
-const cardEl = ref<HTMLElement | null>(null);
-const dynamicWidth = ref(0);
-
-const dynamicVariant = computed<RcItemCardVariant>(() => {
-  if (props.variant) {
-    return props.variant;
-  }
-  
-  if (dynamicWidth.value < 500) {
-    return 'small';
-  }
-
-  return 'medium';
-});
-
-const updateWidth = debounce((width: number) => {
-  dynamicWidth.value = width;
-}, 300)
-
-let resizeObserver: ResizeObserver | null = null;
-
-onMounted(() => {
-  if (!props.variant && cardEl.value) {
-    resizeObserver = new ResizeObserver(([entry]) => {
-      updateWidth(entry.contentRect.width);
-    });
-    resizeObserver.observe(cardEl.value);
-  }
-});
-
-onBeforeUnmount(() => {
-  if (resizeObserver && cardEl.value) {
-    resizeObserver.unobserve(cardEl.value);
-  }
-});
-
 const store = useStore();
 const { t } = useI18n(store);
 
@@ -164,6 +128,42 @@ function _handleCardClick(e: MouseEvent | KeyboardEvent) {
 function labelText(label?: Label): string {
   return label?.key ? t(label.key) : label?.text ?? '';
 }
+
+const cardEl = ref<HTMLElement | null>(null);
+const dynamicWidth = ref(0);
+
+const dynamicVariant = computed<RcItemCardVariant>(() => {
+  if (props.variant) {
+    return props.variant;
+  }
+
+  if (dynamicWidth.value < 500) {
+    return 'small';
+  }
+
+  return 'medium';
+});
+
+const updateWidth = debounce((width: number) => {
+  dynamicWidth.value = width;
+}, 300);
+
+let resizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+  if (!props.variant && cardEl.value) {
+    resizeObserver = new ResizeObserver(([entry]) => {
+      updateWidth(entry.contentRect.width);
+    });
+    resizeObserver.observe(cardEl.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (resizeObserver && cardEl.value) {
+    resizeObserver.unobserve(cardEl.value);
+  }
+});
 
 const headerTitle = computed(() => labelText(props.header.title));
 const imageAlt = computed(() => labelText(props.image?.alt));
