@@ -7,8 +7,8 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export const SOURCE_TYPE = {
   REPO:    'repo',
-  TARBALL: 'tarball',
   OCI:     'oci',
+  TARBALL: 'tarball',
 };
 
 export const NAME = 'fleet';
