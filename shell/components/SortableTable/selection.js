@@ -531,7 +531,7 @@ export default {
     },
 
     clearSelection() {
-      this.update([], this.selectedRows);
+      this.update([], [...this.selectedRows]);
     },
 
   }
