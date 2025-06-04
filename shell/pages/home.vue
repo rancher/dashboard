@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
-import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
@@ -35,7 +34,6 @@ export default defineComponent({
   name:       'Home',
   layout:     'home',
   components: {
-    Banner,
     BannerGraphic,
     IndentedPanel,
     PaginatedResourceTable,
