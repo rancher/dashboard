@@ -140,11 +140,13 @@ let resizeObserver: ResizeObserver | null = null;
 onMounted(() => {
   if (!props.variant && cardEl.value) {
     resizeObserver = new ResizeObserver(([entry]) => {
-      if (dynamicWidth.value) {
-        debounceUpdateWidth(entry.contentRect.width);
-      } else {
-        updateWidth(entry.contentRect.width);
-      }
+      requestAnimationFrame(() => {
+        if (dynamicWidth.value) {
+          debounceUpdateWidth(entry.contentRect.width);
+        } else {
+          updateWidth(entry.contentRect.width);
+        }
+      });
     });
     resizeObserver.observe(cardEl.value);
   }
