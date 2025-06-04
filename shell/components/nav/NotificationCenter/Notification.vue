@@ -200,6 +200,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     dropdown-menu-item
     tabindex="-1"
     role="menuitem"
+    data-testid="notifications-center-item"
     :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
     @keydown.up.down.stop="handleKeydown"
     @focus.stop="gotFocus"
@@ -208,6 +209,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
   >
     <div
       class="notification"
+      :data-testid="`notifications-center-item-${ item.id }`"
     >
       <div class="sep" />
       <div class="top">
