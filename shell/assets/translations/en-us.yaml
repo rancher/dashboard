@@ -1141,6 +1141,7 @@ catalog:
           error: Error installing {chart}
       viewLogs: View Installation Logs
       customizeInstall: Customize Install Options
+      waitForLogs: Installation initialized; waiting for logs...
     chart: Chart
     warning:
       managed:
