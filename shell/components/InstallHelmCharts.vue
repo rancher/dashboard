@@ -595,14 +595,16 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-if="stages.installChart.done && logsReady">
+  <div v-if="stages.installChart.done">
     <button
+      v-if="logsReady"
       class="btn btn-sm role-secondary"
       type="button"
       @click="openLogs"
     >
       {{ t('catalog.install.button.viewLogs') }}
     </button>
+    <span v-else><i class="icon icon-spinner icon-spin" />{{ t('catalog.install.button.waitForLogs') }} </span>
   </div>
   <div v-else>
     <div
