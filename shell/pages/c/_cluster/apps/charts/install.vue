@@ -59,7 +59,7 @@ export const defaultCmdOpts = {
   resetValues:   false,
   openApi:       true,
   wait:          true,
-  timeout:       '600',
+  timeout:       600,
   historyMax:    5,
 };
 
