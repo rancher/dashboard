@@ -1,0 +1,42 @@
+# Introduction
+
+Rancher may connect to clusters that contain a large number of resources. For example an imported cluster may have 10,000 pods.
+
+Similarly the Rancher cluster may be connected to many clusters and be aware of all their nodes 20,000 nodes.
+
+> The following applies to components and processes that result in requests to the internal Rancher "Steve" API
+> - `/v1/<resource>` 
+> - `/k8s/clusters/<cluster id>/v1/...`
+>
+> Those resulting in requests to the internal Rancher "Norman" API or directly to the Kube API do not require updating.
+> - `/v3/<resource>`
+> - `/apis/...` 
+> - `/k8s/clusters/<cluster id>/apis/...`
+
+## Approach
+
+### Legacy 
+Before `v2.12.0` the pattern to access and monitor resources was to 
+1. Make a http request to fetch all resources of that type
+1. Receive updates to the resources via WebSocket 
+   - A socket message is received once for any change to any resource of that type.
+   
+However this does not scale when the resource count increases. 
+- Takes a long time to fetch all resources
+- Increases memory footprint, impacting browser performance
+- Lots of churn when any change, there could be 100s of web socket messages a second
+
+
+### New
+From `v2.12.0` a new process for improving performance at scale has been introduced.
+
+- Fetch only the the resources required by the current view
+  - Lists will fetch a single page's worth of resources via server-side pagination, 
+  - Outside of lists resources are filtered server-side to only fetch the required resources 
+- Watch the resource type and update when required 
+  - A resource type is still watched, however the UI is notified once when any have changed
+  - The UI will then re-fetched that resource type with the original filters
+  - This replaces 100s web socket updates per second
+
+## Updates
+As an extension developer you will need to update your extension to make use of new generic components and new actions that follow the new approach. Run through the following pages to do so.
