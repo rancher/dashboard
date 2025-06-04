@@ -130,7 +130,6 @@ export default {
     }"
     :content="{}"
     :value="value"
-    :clickable="true"
     @click="select"
     @keydown.enter.stop.prevent="select"
     @keydown.space.stop.prevent="$router.push(value.detailLocation)"

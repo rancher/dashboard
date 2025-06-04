@@ -305,7 +305,7 @@ export default {
           width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
           zIndex:              1,
           triggerFocusTrap:    true,
-          returnFocusSelector: `[data-testid="card-${ value.id }"]`
+          returnFocusSelector: `[data-testid="resource-card-${ value.id }"]`
         }
       });
     },
@@ -643,6 +643,10 @@ export default {
                     >
                       <ResourceCard
                         v-if="y < (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
+                        role="button"
+                        tabindex="0"
+                        :aria-label="`aria-label-card-${ item.id }`"
+                        :data-testid="`resource-card-${ item.id }`"
                         :value="item"
                         :state-panel="state.statePanel"
                         @click="showResourceDetails(item, state.statePanel, workspace, `${ item.id }-${ y }`)"
