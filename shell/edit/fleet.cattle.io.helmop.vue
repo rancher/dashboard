@@ -952,12 +952,7 @@ export default {
               color="warning"
               label-key="fleet.helmOp.polling.pollingInterval.minimumValuewarning"
             />
-            <Banner
-              v-if="value.isWebhookConfigured"
-              color="warning"
-              label-key="fleet.helmOp.polling.pollingInterval.webhookWarning"
-            />
-          </div>
+                      </div>
           <div class="col span-6">
             <UnitInput
               v-model:value="pollingInterval"
