@@ -2,7 +2,6 @@
 import * as d3 from 'd3';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { BadgeState } from '@components/BadgeState';
-import { getChartIcon } from './chartIcons.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -17,8 +16,24 @@ export default {
       required: true
     }
   },
+
+  async fetch() {
+    this.canViewChart = await this.fdcConfig.checkSchemaPermissions(this.$store);
+
+    if (this.canViewChart) {
+      // set watcher for the chart data
+      this.dataWatcher = this.$watch(this.fdcConfig.watcherProp, (newValue) => {
+        this.watcherFunction(newValue);
+      }, {
+        deep:      true,
+        immediate: true
+      });
+    }
+  },
+
   data() {
     return {
+      canViewChart:                        null,
       dataWatcher:                         undefined,
       parsedInfo:                          undefined,
       root:                                undefined,
@@ -37,7 +52,7 @@ export default {
   },
   methods: {
     watcherFunction(newValue) {
-      if (newValue.length) {
+      if (newValue?.length) {
         if (!this.isChartFirstRendered) {
           this.parsedInfo = this.fdcConfig.parseData(this.data);
 
@@ -158,16 +173,11 @@ export default {
         .attr('r', this.setNodeRadius);
 
       nodeEnter.append('circle')
-        .attr('r', (d) => {
-          return this.setNodeRadius(d) - 5;
-        })
+        .attr('r', (d) => this.setNodeRadius(d) - 5)
         .attr('class', 'node-hover-layer');
 
-      nodeEnter.append('svg').html((d) => {
-        const icon = this.fdcConfig.fetchNodeIcon(d);
-
-        return getChartIcon(icon);
-      })
+      nodeEnter.append('svg')
+        .html((d) => this.fdcConfig.fetchNodeIcon(d))
         .attr('x', this.nodeImagePosition)
         .attr('y', this.nodeImagePosition)
         .attr('height', this.nodeImageSize)
@@ -177,9 +187,7 @@ export default {
 
       this.simulation.nodes(this.allNodesData);
       this.simulation.force('link', d3.forceLink()
-        .id((d) => {
-          return d.id;
-        })
+        .id((d) => d.id)
         .distance(100)
         .links(this.allLinks)
       );
@@ -188,10 +196,10 @@ export default {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
       const defaultClassArray = ['node'];
 
-      if (STATES[lowerCaseStatus] && STATES[lowerCaseStatus].color) {
-        defaultClassArray.push(`node-${ STATES[lowerCaseStatus].color }`);
-      } else {
+      if (d?.data?.muteStatus) {
         defaultClassArray.push(`node-default-fill`);
+      } else if (STATES[lowerCaseStatus] && STATES[lowerCaseStatus].color) {
+        defaultClassArray.push(`node-${ STATES[lowerCaseStatus].color }`);
       }
 
       // node active (clicked)
@@ -334,14 +342,6 @@ export default {
     this.svg = d3.select('#tree').append('svg')
       .attr('viewBox', `0 0 ${ this.fdcConfig.chartWidth } ${ this.fdcConfig.chartHeight }`)
       .attr('preserveAspectRatio', 'none');
-
-    // set watcher for the chart data
-    this.dataWatcher = this.$watch(this.fdcConfig.watcherProp, function(newValue) {
-      this.watcherFunction(newValue);
-    }, {
-      deep:      true,
-      immediate: true
-    });
   },
   unmounted() {
     this.dataWatcher();
@@ -353,20 +353,26 @@ export default {
   <div>
     <div
       class="chart-container"
-      data-testid="gitrepo_graph"
+      data-testid="resource-graph"
     >
       <!-- loading status container -->
       <div
         v-if="!isChartFirstRenderAnimationFinished"
         class="loading-container"
       >
-        <p v-show="!isChartFirstRendered">
-          {{ t('fleet.fdc.loadingChart') }}
+        <p v-if="canViewChart === false">
+          {{ t('graph.noPermissions') }}
         </p>
-        <p v-show="isChartFirstRendered && !isChartFirstRenderAnimationFinished">
-          {{ t('fleet.fdc.renderingChart') }}
+        <p v-else-if="!isChartFirstRendered">
+          {{ t('graph.loading') }}
         </p>
-        <i class="mt-10 icon-spinner icon-spin" />
+        <p v-else-if="!isChartFirstRenderAnimationFinished">
+          {{ t('graph.rendering') }}
+        </p>
+        <i
+          v-if="canViewChart !== false"
+          class="mt-10 icon-spinner icon-spin"
+        />
       </div>
       <!-- main div for svg container -->
       <div id="tree" />
@@ -415,6 +421,9 @@ export default {
                 colspan="2"
               >
                 <p>{{ item.value }}</p>
+              </td>
+              <td v-else-if="item.type === 'resource-type'">
+                {{ t(`typeLabel."${ item.valueKey }"`, { count: 1 }) }}
               </td>
               <!-- default template -->
               <td v-else>
@@ -478,32 +487,29 @@ export default {
         }
       }
 
-      &.repo.active > circle {
-        transform: scale(1.2);
-      }
-
       &.bundle.active > circle {
         transform: scale(1.35);
       }
 
-      &.bundle-deployment.active > circle {
+      &.bundledeployment.active > circle {
         transform: scale(1.6);
       }
 
-      &.node-default-fill > circle,
-      &.repo > circle {
+      &.node-default-fill > circle {
+        transform: scale(1.2);
         fill: var(--muted);
       }
-      &:not(.repo).node-success > circle {
+
+      &.node-success > circle {
         fill: var(--success);
       }
-      &:not(.repo).node-info > circle {
+      &.node-info > circle {
         fill: var(--info);
       }
-      &:not(.repo).node-warning > circle {
+      &.node-warning > circle {
         fill: var(--warning);
       }
-      &:not(.repo).node-error > circle {
+      &.node-error > circle {
         fill: var(--error);
       }
 
