@@ -178,7 +178,7 @@ export default {
 
   computed: {
     _addLabel() {
-      return this.addLabel || this.t('generic.add');
+      return this.addLabel || this.t('generic.ariaLabel.genericAddRow');
     },
     _removeLabel() {
       return this.removeLabel || this.t('generic.remove');
@@ -254,10 +254,15 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div
+    class="array-list-main-container"
+    role="group"
+    :aria-label="title || t('generic.ariaLabel.arrayList')"
+  >
     <div
       v-if="title"
       class="clearfix"
+      role="group"
     >
       <slot name="title">
         <h3>
@@ -265,143 +270,154 @@ export default {
           <span
             v-if="required"
             class="required"
+            aria-hidden="true"
           >*</span>
           <i
             v-if="showProtip"
-            v-clean-tooltip="protip"
+            v-clean-tooltip="{content: protip, triggers: ['hover', 'touch', 'focus'] }"
             class="icon icon-info"
+            tabindex="0"
           />
         </h3>
       </slot>
     </div>
 
-    <template v-if="rows.length">
-      <div v-if="showHeader">
-        <slot name="column-headers">
-          <label class="value text-label mb-10">
-            {{ valueLabel }}
-          </label>
+    <div>
+      <template v-if="rows.length">
+        <div
+          v-if="showHeader"
+          class="array-list-header-group"
+          role="group"
+        >
+          <slot name="column-headers">
+            <label class="value text-label mb-10">
+              {{ valueLabel }}
+            </label>
+          </slot>
+        </div>
+        <div
+          v-for="(row, idx) in rows"
+          :key="idx"
+          :data-testid="`${componentTestid}-box${ idx }`"
+          class="box"
+          role="group"
+        >
+          <slot
+            name="columns"
+            :queueUpdate="queueUpdate"
+            :i="idx"
+            :rows="rows"
+            :row="row"
+            :mode="mode"
+            :isView="isView"
+          >
+            <div class="value">
+              <slot
+                name="value"
+                :row="row"
+                :mode="mode"
+                :isView="isView"
+                :queue-update="queueUpdate"
+              >
+                <TextAreaAutoGrow
+                  v-if="valueMultiline"
+                  ref="value"
+                  v-model:value="row.value"
+                  :data-testid="`${componentTestid}-textarea-${idx}`"
+                  :placeholder="valuePlaceholder"
+                  :mode="mode"
+                  :disabled="disabled"
+                  :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
+                  @paste="onPaste(idx, $event)"
+                  @update:value="queueUpdate"
+                />
+                <LabeledInput
+                  v-else-if="rules.length > 0"
+                  ref="value"
+                  v-model:value="row.value"
+                  :data-testid="`${componentTestid}-labeled-input-${idx}`"
+                  :placeholder="valuePlaceholder"
+                  :disabled="isView || disabled"
+                  :rules="rules"
+                  :compact="false"
+                  :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
+                  @paste="onPaste(idx, $event)"
+                  @update:value="queueUpdate"
+                />
+                <input
+                  v-else
+                  ref="value"
+                  v-model="row.value"
+                  :data-testid="`${componentTestid}-input-${idx}`"
+                  :placeholder="valuePlaceholder"
+                  :disabled="isView || disabled"
+                  :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
+                  @paste="onPaste(idx, $event)"
+                >
+              </slot>
+            </div>
+          </slot>
+          <div
+            v-if="showRemove"
+            class="remove"
+          >
+            <slot
+              name="remove-button"
+              :remove="() => remove(row, idx)"
+              :i="idx"
+              :row="row"
+            >
+              <button
+                type="button"
+                :disabled="isView"
+                class="btn role-link"
+                :data-testid="`${componentTestid}-remove-item-${idx}`"
+                :aria-label="t('generic.ariaLabel.remove', {index: idx+1})"
+                role="button"
+                @click="remove(row, idx)"
+              >
+                {{ _removeLabel }}
+              </button>
+            </slot>
+          </div>
+        </div>
+      </template>
+      <div v-else>
+        <slot name="empty">
+          <div
+            v-if="mode==='view'"
+            class="text-muted"
+          >
+            &mdash;
+          </div>
         </slot>
       </div>
       <div
-        v-for="(row, idx) in rows"
-        :key="idx"
-        :data-testid="`${componentTestid}-box${ idx }`"
-        class="box"
+        v-if="showAdd && !isView"
+        class="footer mt-20"
       >
         <slot
-          name="columns"
-          :queueUpdate="queueUpdate"
-          :i="idx"
-          :rows="rows"
-          :row="row"
-          :mode="mode"
-          :isView="isView"
+          v-if="showAdd"
+          name="add"
+          :add="add"
         >
-          <div class="value">
-            <slot
-              name="value"
-              :row="row"
-              :mode="mode"
-              :isView="isView"
-              :queue-update="queueUpdate"
-            >
-              <TextAreaAutoGrow
-                v-if="valueMultiline"
-                ref="value"
-                v-model:value="row.value"
-                :data-testid="`${componentTestid}-textarea-${idx}`"
-                :placeholder="valuePlaceholder"
-                :mode="mode"
-                :disabled="disabled"
-                @paste="onPaste(idx, $event)"
-                @update:value="queueUpdate"
-              />
-              <LabeledInput
-                v-else-if="rules.length > 0"
-                ref="value"
-                v-model:value="row.value"
-                :data-testid="`${componentTestid}-labeled-input-${idx}`"
-                :placeholder="valuePlaceholder"
-                :disabled="isView || disabled"
-                :rules="rules"
-                :compact="false"
-                @paste="onPaste(idx, $event)"
-                @update:value="queueUpdate"
-              />
-              <input
-                v-else
-                ref="value"
-                v-model="row.value"
-                :data-testid="`${componentTestid}-input-${idx}`"
-                :placeholder="valuePlaceholder"
-                :disabled="isView || disabled"
-                :aria-label="a11yLabel ? a11yLabel : undefined"
-                @paste="onPaste(idx, $event)"
-              >
-            </slot>
-          </div>
-        </slot>
-        <div
-          v-if="showRemove"
-          class="remove"
-        >
-          <slot
-            name="remove-button"
-            :remove="() => remove(row, idx)"
-            :i="idx"
-            :row="row"
+          <button
+            type="button"
+            class="btn role-tertiary add"
+            :disabled="loading || disableAdd"
+            :data-testid="`${componentTestid}-button`"
+            :aria-label="_addLabel"
+            role="button"
+            @click="add()"
           >
-            <button
-              type="button"
-              :disabled="isView"
-              class="btn role-link"
-              :data-testid="`${componentTestid}-remove-item-${idx}`"
-              :aria-label="`${_removeLabel} ${idx + 1}`"
-              role="button"
-              @click="remove(row, idx)"
-            >
-              {{ _removeLabel }}
-            </button>
-          </slot>
-        </div>
+            <i
+              class="mr-5 icon"
+              :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+            />
+            {{ _addLabel }}
+          </button>
+        </slot>
       </div>
-    </template>
-    <div v-else>
-      <slot name="empty">
-        <div
-          v-if="mode==='view'"
-          class="text-muted"
-        >
-          &mdash;
-        </div>
-      </slot>
-    </div>
-    <div
-      v-if="showAdd && !isView"
-      class="footer mt-20"
-    >
-      <slot
-        v-if="showAdd"
-        name="add"
-        :add="add"
-      >
-        <button
-          type="button"
-          class="btn role-tertiary add"
-          :disabled="loading || disableAdd"
-          :data-testid="`${componentTestid}-button`"
-          :aria-label="_addLabel"
-          role="button"
-          @click="add()"
-        >
-          <i
-            class="mr-5 icon"
-            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
-          />
-          {{ _addLabel }}
-        </button>
-      </slot>
     </div>
   </div>
 </template>
