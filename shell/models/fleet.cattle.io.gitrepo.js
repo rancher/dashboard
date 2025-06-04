@@ -98,6 +98,10 @@ export default class GitRepo extends FleetApplication {
     });
   }
 
+  get isWebhookConfigured() {
+    return !!this.status?.webhookCommit;
+  }
+
   get github() {
     const match = (this.spec.repo || '').match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 

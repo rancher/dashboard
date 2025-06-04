@@ -73,10 +73,6 @@ export default class FleetApplication extends SteveModel {
     return !this.spec.disablePolling;
   }
 
-  get isWebhookConfigured() {
-    return !!this.status?.webhookCommit;
-  }
-
   get state() {
     if (this.spec?.paused === true) {
       return 'paused';
