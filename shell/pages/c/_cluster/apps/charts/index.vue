@@ -44,6 +44,8 @@ export default {
     const query = this.$route.query;
 
     this.searchQuery = query[SEARCH_QUERY] || '';
+    this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
+    this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = query[REPO] || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -95,7 +97,9 @@ export default {
             }
           }
         }
-      ]
+      ],
+      installedApps: [],
+      cardVariant:   undefined,
     };
   },
 
@@ -337,7 +341,7 @@ export default {
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
-    }
+    },
   },
 };
 </script>
@@ -422,7 +426,7 @@ export default {
           data-testid="app-cards-container"
         >
           <rc-item-card
-            v-for="card in appCards"
+            v-for="(card, i) in appCards"
             :id="card.id"
             :key="card.id"
             :pill="card.pill"
@@ -430,9 +434,10 @@ export default {
             :image="card.image"
             :content="card.content"
             :value="card.rawChart"
-            variant="medium"
+            :variant="i === 0 ? undefined : (cardVariant || 'medium')"
             :clickable="true"
             @card-click="selectChart"
+            @variant="cardVariant = $event"
           >
             <template
               v-once

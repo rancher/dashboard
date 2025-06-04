@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import {
+  ref, onMounted, onBeforeUnmount, computed, watch
+} from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import debounce from 'lodash/debounce';
@@ -101,7 +103,7 @@ const props = defineProps<RcItemCardProps>();
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
  */
-const emit = defineEmits<{(e: 'card-click', value: ItemValue): void; }>();
+ const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; ( e: 'variant', value: RcItemCardVariant): void; }>();
 
 /**
  * Handles the card click while avoiding nested interactive elements
@@ -123,31 +125,26 @@ function labelText(label?: Label): string {
   return label?.key ? t(label.key) : label?.text ?? '';
 }
 
+/** ---------------- data ------------------ */
 const cardEl = ref<HTMLElement | null>(null);
 const dynamicWidth = ref(0);
 
-const dynamicVariant = computed<RcItemCardVariant>(() => {
-  if (props.variant) {
-    return props.variant;
-  }
-
-  if (dynamicWidth.value < 500) {
-    return 'small';
-  }
-
-  return 'medium';
-});
-
-const updateWidth = debounce((width: number) => {
+/** ---------------- Lifecycle Hooks ------------------ */
+const updateWidth = (width: number) => {
   dynamicWidth.value = width;
-}, 300);
+};
+const debounceUpdateWidth = debounce(updateWidth, 300);
 
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(() => {
   if (!props.variant && cardEl.value) {
     resizeObserver = new ResizeObserver(([entry]) => {
-      updateWidth(entry.contentRect.width);
+      if (dynamicWidth.value) {
+        debounceUpdateWidth(entry.contentRect.width);
+      } else {
+        updateWidth(entry.contentRect.width);
+      }
     });
     resizeObserver.observe(cardEl.value);
   }
@@ -157,6 +154,20 @@ onBeforeUnmount(() => {
   if (resizeObserver && cardEl.value) {
     resizeObserver.unobserve(cardEl.value);
   }
+});
+
+/** ---------------- Computed ------------------ */
+
+const dynamicVariant = computed<RcItemCardVariant>(() => {
+  if (props.variant) {
+    return props.variant;
+  }
+
+  if (dynamicWidth.value < 470) {
+    return 'small';
+  }
+
+  return 'medium';
 });
 
 const headerTitle = computed(() => labelText(props.header.title));
@@ -172,6 +183,15 @@ const cardMeta = computed(() => ({
   role:      props.clickable ? 'button' : undefined
 }));
 
+/** ---------------- Watches ------------------ */
+
+watch(dynamicVariant, (neu) => {
+  if (props?.variant) {
+    return;
+  }
+
+  emit('variant', neu);
+}, { immediate: true });
 </script>
 
 <template>
