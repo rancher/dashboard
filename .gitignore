@@ -117,3 +117,6 @@ docusaurus/yarn.lock
 
 # GitHub actions scripts output
 codecov
+
+
+pkg/notification-test
