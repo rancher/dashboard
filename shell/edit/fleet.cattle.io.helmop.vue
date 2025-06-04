@@ -148,7 +148,8 @@ export default {
       correctDriftEnabled,
       tempCachedValues:     {},
       doneRouteList:        'c-cluster-fleet-application',
-      isRealModeEdit:       this.realMode === _EDIT
+      isRealModeEdit:       this.realMode === _EDIT,
+      fvFormRuleSets:       []
     };
   },
 
@@ -159,6 +160,7 @@ export default {
 
   mounted() {
     this.value.applyDefaults();
+    this.updateValidationRules(this.sourceType);
   },
 
   computed: {
@@ -172,7 +174,7 @@ export default {
           label:          this.t('fleet.helmOp.add.steps.metadata.label'),
           subtext:        this.t('fleet.helmOp.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.helmOp.add.steps.metadata.description',
-          ready:          true,
+          ready:          this.isView || !!this.value.metadata.name,
           weight:         1
         },
         {
@@ -181,7 +183,7 @@ export default {
           label:          this.t('fleet.helmOp.add.steps.chart.label'),
           subtext:        this.t('fleet.helmOp.add.steps.chart.subtext'),
           descriptionKey: 'fleet.helmOp.add.steps.chart.description',
-          ready:          true,
+          ready:          this.isView || !!this.fvFormIsValid,
           weight:         1
         },
         {
@@ -359,6 +361,8 @@ export default {
         set(this.value, 'spec.helm.chart', chart);
         set(this.value, 'spec.helm.version', version);
       }
+
+      this.updateValidationRules(type);
     },
 
     updateTargets() {
@@ -559,6 +563,32 @@ export default {
 
     durationSeconds(value) {
       return `${ value }s`;
+    },
+
+    updateValidationRules(sourceType) {
+      switch (sourceType) {
+        case SOURCE_TYPE.REPO:
+          this.fvFormRuleSets = [{
+            path:  'spec.helm.repo',
+            rules: ['required', 'gitRepository'],
+          }, {
+            path:  'spec.helm.chart',
+            rules: ['required'],
+          }];
+          break;
+        case SOURCE_TYPE.OCI:
+          this.fvFormRuleSets = [{
+            path:  'spec.helm.chart',
+            rules: ['required'],
+          }];
+          break;
+        case SOURCE_TYPE.TARBALL:
+          this.fvFormRuleSets = [{
+            path:  'spec.helm.chart',
+            rules: ['required', 'gitRepository'],
+          }];
+          break;
+      }
     }
   },
 };
@@ -639,6 +669,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.tarball.label"
               :placeholder="t('fleet.helmOp.source.tarball.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.chart')"
               :required="true"
             />
           </div>
@@ -653,6 +684,7 @@ export default {
               :mode="mode"
               :label-key="`fleet.helmOp.source.${ sourceType }.repo.label`"
               :placeholder="t(`fleet.helmOp.source.${ sourceType }.repo.placeholder`, null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.repo')"
               :required="true"
             />
           </div>
@@ -665,6 +697,7 @@ export default {
               :mode="mode"
               :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
               :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.chart')"
               :required="true"
             />
           </div>
@@ -674,7 +707,6 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
-              :required="true"
             />
           </div>
         </div>
@@ -688,6 +720,7 @@ export default {
               :mode="mode"
               :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
               :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.chart')"
               :required="true"
             />
           </div>
@@ -697,7 +730,6 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
-              :required="true"
             />
           </div>
         </div>
