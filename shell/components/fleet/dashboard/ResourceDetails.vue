@@ -71,6 +71,7 @@ export default {
       <div class="title">
         <i :class="value.dashboardIcon" />
         <router-link
+          class="label"
           :to="value.detailLocation"
         >
           {{ value.id }}
@@ -150,12 +151,16 @@ export default {
         align-items: center;
         flex: 1;
         font-style: normal;
-        font-weight: 400;
+        font-weight: 600;
         font-size: 18px;
 
         .icon {
           font-size: 2em;
-          margin-right: 5px;
+          margin-right: 16px;
+        }
+
+        .label {
+          margin-right: 8px;
         }
 
         .state-icon {

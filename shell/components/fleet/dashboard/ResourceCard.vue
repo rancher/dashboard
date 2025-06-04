@@ -124,6 +124,7 @@ export default {
     class="dashboard-resource-card"
     variant="small"
     :header="{
+      title: { text: value.nameDisplay },
       image: {},
       statuses,
     }"
@@ -139,18 +140,6 @@ export default {
         class="icon-lg"
         :class="value.dashboardIcon"
       />
-    </template>
-    <template #item-card-header-title>
-      <router-link
-        v-clean-tooltip="{content: nameTooltip, triggers: ['hover']}"
-        class="resource-name ml-5"
-        role="link"
-        tabindex="-1"
-        :aria-label="value.nameDisplay"
-        :to="value.detailLocation"
-      >
-        {{ value.nameDisplay }}
-      </router-link>
     </template>
     <template #item-card-actions>
       <ActionMenu
@@ -174,23 +163,11 @@ export default {
 
     :deep() .item-card-body {
       width: -webkit-fill-available;
-
-      .item-card-header {
-        font-size: medium;
-        margin-bottom: 5px;
-      }
     }
+  }
 
-    .resource-name {
-      max-width: 150px;
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 0px;
-      line-height: 24px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
+  :deep() .item-card-header-title {
+    margin-left: 8px;
   }
 
   .icon-lg {
