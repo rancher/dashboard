@@ -78,7 +78,8 @@ export default {
           ariaLabel: this.t('catalog.charts.featuredAriaLabel')
         }
       ],
-      installedApps: []
+      installedApps: [],
+      cardVariant:   undefined,
     };
   },
 
@@ -371,7 +372,7 @@ export default {
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
-    }
+    },
   },
 };
 </script>
@@ -508,7 +509,7 @@ export default {
           data-testid="app-cards-container"
         >
           <rc-item-card
-            v-for="card in appCards"
+            v-for="(card, i) in appCards"
             :id="card.id"
             :key="card.id"
             :pill="card.pill"
@@ -516,9 +517,10 @@ export default {
             :image="card.image"
             :content="card.content"
             :value="card.rawChart"
-            variant="medium"
+            :variant="i === 0 ? undefined : (cardVariant || 'medium')"
             :clickable="true"
             @card-click="selectChart"
+            @variant="cardVariant = $event"
           >
             <template
               v-once
