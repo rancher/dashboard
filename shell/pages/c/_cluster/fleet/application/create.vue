@@ -27,18 +27,23 @@ export default {
       return [
         FLEET.GIT_REPO,
         FLEET.HELM_OP
-      ].map((type) => {
+      ].reduce((acc, type) => {
         const schema = this.$store.getters['management/schemaFor'](type);
 
-        const label = this.$store.getters['type-map/labelFor'](schema) || '';
+        if (schema) {
+          return [
+            ...acc,
+            {
+              id:          type,
+              label:       this.$store.getters['type-map/labelFor'](schema) || '',
+              description: `fleet.application.subTypes.'${ type }'.description`,
+              icon:        FleetUtils.resourceIcons[type],
+            }
+          ];
+        }
 
-        return {
-          id:          type,
-          label,
-          description: `fleet.application.subTypes.'${ type }'.description`,
-          icon:        FleetUtils.resourceIcons[type],
-        };
-      });
+        return acc;
+      }, []);
     },
 
     selectedSubtype() {
@@ -48,12 +53,10 @@ export default {
 
   methods: {
     selectType(resource, event) {
-      // TODO keyboard shortcuts
       if (event?.srcElement?.tagName === 'A') {
         return;
       }
 
-      // this.$router.applyQuery({ [SUB_TYPE]: id });
       this.$router.push({
         name:   'c-cluster-fleet-application-resource-create',
         params: {
@@ -66,14 +69,6 @@ export default {
 
     cancel() {
       this.$router.back();
-      // this.$router.push({
-      //   name:   'c-cluster-fleet-application',
-      //   params: {
-      //     cluster:  this.$route.params.cluster,
-      //     product:  this.$store.getters['productId'],
-      //     resource: FLEET.APPLICATION,
-      //   },
-      // });
     },
   }
 };
