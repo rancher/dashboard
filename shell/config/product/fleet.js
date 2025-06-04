@@ -26,7 +26,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:            FLEET.GIT_REPO,
+    ifHaveType:            new RegExp(`${ FLEET.GIT_REPO }|${ FLEET.HELM_OP }`, 'i'),
     ifFeature:             FLEET_FEATURE,
     icon:                  'fleet',
     inStore:               'management',
