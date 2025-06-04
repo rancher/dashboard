@@ -52,6 +52,17 @@ export default class NotificationsCenterPo extends ComponentPo {
     return new NotificationPo(selector);
   }
 
+  /**
+   * Get a notification by index
+   * @param index Index of the notification in the notification center
+   * @returns Notification
+   */
+  getNotificationByIndex(index: number) {
+    const selector = `[data-testid="notifications-center-item"]`;
+
+    return new NotificationPo(() => cy.get(selector).eq(index));
+  }
+
   markAllRead() {
     cy.get('[data-testid="notifications-center-markall-read"]').click({ force: true });
   }
