@@ -63,7 +63,6 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     workspaceCard.expandButton().should('be.visible');
 
-    // TODO change to fleet applications when HelmOps enabled
     const gitReposPanel = workspaceCard.resourcePanel('applications');
 
     gitReposPanel.chart().should('exist');
@@ -99,13 +98,6 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     cardsPanel.self().should('be.visible');
 
-    // TODO re-enabled when HelmOps available
-    // cardsPanel.gitReposFilter().checkVisible();
-    // cardsPanel.gitReposFilter().isChecked();
-
-    // cardsPanel.helmOpsFilter().checkVisible();
-    // cardsPanel.helmOpsFilter().isChecked();
-
     const activeStatePanel = cardsPanel.statePanel('Active');
 
     activeStatePanel.title().should('contain.text', 'Active');
@@ -118,25 +110,6 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     card.should('be.visible');
     card.find('.title').should('contain.text', repoName);
   });
-
-  // TODO re-enabled when HelmOps available
-
-  // it('Should filter by GitRepo type', () => {
-  //   fleetDashboardPage.goTo();
-  //   fleetDashboardPage.waitForPage();
-
-  //   const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
-  //   const expandButton = workspaceCard.expandButton();
-
-  //   expandButton.click();
-
-  //   const cardsPanel = workspaceCard.cardsPanel();
-
-  //   cardsPanel.gitReposFilter().set();
-  //   const activeStatePanel = cardsPanel.statePanel('Active');
-
-  //   activeStatePanel.self().should('not.be.visible');
-  // });
 
   it('Should change ViewMode', () => {
     fleetDashboardPage.goTo();
