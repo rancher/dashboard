@@ -45,7 +45,6 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.showDeprecated = query[DEPRECATED_QUERY] === 'true' || query[DEPRECATED_QUERY] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = query[REPO] || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
