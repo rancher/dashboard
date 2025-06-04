@@ -83,7 +83,12 @@ export default {
       default: 1000
     },
 
-    displayName: {
+    chartDisplayName: {
+      type:    String,
+      default: null
+    },
+
+    repoDisplayName: {
       type:    String,
       default: null
     }
@@ -133,37 +138,37 @@ export default {
 
       stages: {
         addRepo: {
-          actionLabel:  this.t('catalog.install.button.stages.addRepo.action', { repo: this.repoName }),
-          waitingLabel: this.t('catalog.install.button.stages.addRepo.waiting', { repo: this.repoName }),
-          successLabel: this.t('catalog.install.button.stages.addRepo.success', { repo: this.repoName }),
-          errorLabel:   this.t('catalog.install.button.stages.addRepo.error', { repo: this.repoName }),
+          actionLabel:  this.t('catalog.install.button.stages.addRepo.action', { repo: this.repoDisplayName || this.repoName }),
+          waitingLabel: this.t('catalog.install.button.stages.addRepo.waiting', { repo: this.repoDisplayName || this.repoName }),
+          successLabel: this.t('catalog.install.button.stages.addRepo.success', { repo: this.repoDisplayName || this.repoName }),
+          errorLabel:   this.t('catalog.install.button.stages.addRepo.error', { repo: this.repoDisplayName || this.repoName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         loadCharts: {
-          actionLabel:  this.t('catalog.install.button.stages.loadCharts.action', { repo: this.repoName }),
-          waitingLabel: this.t('catalog.install.button.stages.loadCharts.waiting', { repo: this.repoName }),
-          successLabel: this.t('catalog.install.button.stages.loadCharts.success', { chart: this.displayName || this.chartName }),
-          errorLabel:   this.t('catalog.install.button.stages.loadCharts.error', { chart: this.displayName || this.chartName }),
+          actionLabel:  this.t('catalog.install.button.stages.loadCharts.action', { repo: this.repoDisplayName || this.repoName }),
+          waitingLabel: this.t('catalog.install.button.stages.loadCharts.waiting', { repo: this.repoDisplayName || this.repoName }),
+          successLabel: this.t('catalog.install.button.stages.loadCharts.success', { chart: this.chartDisplayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.loadCharts.error', { chart: this.chartDisplayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         configureChart: {
-          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.displayName || this.chartName }),
-          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.displayName || this.chartName }),
-          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.displayName || this.chartName }),
-          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.displayName || this.chartName }),
+          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.chartDisplayName || this.chartName }),
+          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.chartDisplayName || this.chartName }),
+          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.chartDisplayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.chartDisplayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
         },
         installChart: {
-          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.displayName || this.chartName }),
-          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.displayName || this.chartName }),
-          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.displayName || this.chartName }),
-          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.displayName || this.chartName }),
+          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.chartDisplayName || this.chartName }),
+          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.chartDisplayName || this.chartName }),
+          successLabel: this.t('catalog.install.button.stages.installChart.success', { chart: this.chartDisplayName || this.chartName }),
+          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.chartDisplayName || this.chartName }),
           loading:      false,
           done:         false,
           errors:       []
@@ -330,7 +335,7 @@ export default {
 
       const projects = this.$store.getters[`${ this.store }/all`](MANAGEMENT.PROJECT);
 
-      const systemProjectId = projects.find((p) => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
+      const systemProjectId = projects.find((p) => p.spec?.chartDisplayName === 'System')?.id?.split('/')?.[1] || '';
 
       const values = {
         global: {
@@ -401,10 +406,8 @@ export default {
       const { installOperationName, installOperationNamespace } = this;
       const operationId = `${ installOperationNamespace }/${ installOperationName }`;
 
-      // Non-admins without a cluster won't be able to fetch operations immediately
       await this.targetRepo.waitForOperation(operationId);
 
-      // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
       this.operation = await this.$store.dispatch(`${ this.store }/find`, {
         type: CATALOG.OPERATION,
         id:   operationId
@@ -592,7 +595,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-if=" stages.installChart.done">
+  <div v-if="stages.installChart.done && logsReady">
     <button
       class="btn btn-sm role-secondary"
       type="button"
@@ -626,6 +629,7 @@ export default {
     <!-- click event's callback function is stored in a data prop to be triggerd by different component methods -->
     <!-- 'current phase' sets color, enabled/disabled, spinner -->
     <AsyncButton
+      v-if="!stages.installChart.done"
       :current-phase="buttonLabel.phase"
       :action-label="buttonLabel.actionLabel"
       :waiting-label="buttonLabel.waitingLabel"
