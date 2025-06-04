@@ -371,6 +371,8 @@ export default {
     },
 
     async clickSave(buttonDone) {
+      let errorOccurred = false;
+
       if (this.createNamespace) {
         try {
           await this.createNamespaceIfNeeded();
@@ -379,13 +381,16 @@ export default {
         // show any applicable errors if the namespace is
         // invalid.
           this.$emit('error', exceptionToErrorsArray(err.message));
+          errorOccurred = true;
           buttonDone(false);
         }
       }
 
       // If the attempt to create the new namespace
       // was successful or no ns needs to be created, save the resource.
-      this.$emit('finish', buttonDone);
+      if (!errorOccurred) {
+        this.$emit('finish', buttonDone);
+      }
     },
 
     save() {
