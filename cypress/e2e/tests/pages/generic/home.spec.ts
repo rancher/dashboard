@@ -1,4 +1,3 @@
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
