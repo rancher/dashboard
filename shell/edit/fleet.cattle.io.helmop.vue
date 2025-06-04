@@ -567,27 +567,27 @@ export default {
 
     updateValidationRules(sourceType) {
       switch (sourceType) {
-        case SOURCE_TYPE.REPO:
-          this.fvFormRuleSets = [{
-            path:  'spec.helm.repo',
-            rules: ['required', 'gitRepository'],
-          }, {
-            path:  'spec.helm.chart',
-            rules: ['required'],
-          }];
-          break;
-        case SOURCE_TYPE.OCI:
-          this.fvFormRuleSets = [{
-            path:  'spec.helm.chart',
-            rules: ['required'],
-          }];
-          break;
-        case SOURCE_TYPE.TARBALL:
-          this.fvFormRuleSets = [{
-            path:  'spec.helm.chart',
-            rules: ['required', 'gitRepository'],
-          }];
-          break;
+      case SOURCE_TYPE.REPO:
+        this.fvFormRuleSets = [{
+          path:  'spec.helm.repo',
+          rules: ['required', 'gitRepository'],
+        }, {
+          path:  'spec.helm.chart',
+          rules: ['required'],
+        }];
+        break;
+      case SOURCE_TYPE.OCI:
+        this.fvFormRuleSets = [{
+          path:  'spec.helm.chart',
+          rules: ['required'],
+        }];
+        break;
+      case SOURCE_TYPE.TARBALL:
+        this.fvFormRuleSets = [{
+          path:  'spec.helm.chart',
+          rules: ['required', 'gitRepository'],
+        }];
+        break;
       }
     }
   },
@@ -952,7 +952,7 @@ export default {
               color="warning"
               label-key="fleet.helmOp.polling.pollingInterval.minimumValuewarning"
             />
-                      </div>
+          </div>
           <div class="col span-6">
             <UnitInput
               v-model:value="pollingInterval"
