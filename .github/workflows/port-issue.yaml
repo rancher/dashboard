@@ -52,6 +52,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ORIGINAL_ISSUE_URL: ${{ github.event.issue.html_url }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           declare -a additional_cmd
@@ -95,7 +96,7 @@ jobs:
               fi
           fi
           if [ -n "$MILESTONE" ]; then
-              echo -e "This is a ${TYPE} issue for #${ORIGINAL_ISSUE_NUMBER}, automatically created via [GitHub Actions workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) initiated by @${GITHUB_ACTOR}\n" > $BODY
+              echo -e "This is a ${TYPE} issue for ${ORIGINAL_ISSUE_URL}, automatically created via [GitHub Actions workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) initiated by @${GITHUB_ACTOR}\n" > $BODY
               echo -e "\nOriginal issue body:\n" >> $BODY
               echo "${ORIGINAL_ISSUE}" | jq -r '.body[0:65536]' >> $BODY
               NEW_ISSUE=$(gh issue create -R "${GITHUB_REPOSITORY}" --title "${NEW_TITLE}" --body-file "${BODY}" -m "${MILESTONE}" "${additional_cmd[@]}")
