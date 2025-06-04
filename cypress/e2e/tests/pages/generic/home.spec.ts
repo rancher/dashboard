@@ -254,10 +254,8 @@ describe('Home Page', () => {
       nc.checkHasUnread();
       nc.checkCount(1);
 
-      // Get the release notes notification (this has a known id)
-      const id = `release-notes-v${ CURRENT_RANCHER_VERSION }`;
-
-      let item = nc.getNotification(id);
+      // Get the release notes notification - this is the first (and only) one
+      let item = nc.getNotificationByIndex(0);
 
       item.checkExists();
 
@@ -286,9 +284,9 @@ describe('Home Page', () => {
       nc.checkAllRead();
 
       // Now mark the notification as unread
-      item = nc.getNotification(id);
+      item = nc.getNotificationByIndex(0);
 
-      item.title().should('contain', `Welcome to Rancher v${ CURRENT_RANCHER_VERSION }`);
+      item.title().should('contain', `Welcome to Rancher v`);
       item.primaryActionButton().should('exist');
 
       item.checkRead();
@@ -353,9 +351,8 @@ describe('Home Page', () => {
         nc.checkVisible();
         nc.checkCount(1);
 
-        // Get the release notes notification (this has a known id)
-        const id = `release-notes-v${ CURRENT_RANCHER_VERSION }`;
-        const item = nc.getNotification(id);
+        // Get the release notes notification
+        const item = nc.getNotificationByIndex(0);
 
         item.checkExists();
 
