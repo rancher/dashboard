@@ -59,13 +59,17 @@ const open = (opened: boolean) => {
       <div class="level-indicator">
         <i class="icon icon-lg icon-notify-bell" />
         <div
+          :data-testid="`notifications-center-status${ unreadLevelClass }`"
           class="trigger-level"
           :class="unreadLevelClass"
         />
       </div>
     </rc-dropdown-trigger>
     <template #dropdownCollection>
-      <div class="notification-dropdown">
+      <div
+        data-testid="notifications-center-panel"
+        class="notification-dropdown"
+      >
         <NotificationHeader class="header" />
         <div
           v-if="allNotifications.length === 0"

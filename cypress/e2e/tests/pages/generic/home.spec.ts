@@ -235,27 +235,66 @@ describe('Home Page', () => {
       homePage.waitForPage();
     });
 
-    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      cy.setUserPreference({ 'seen-whatsnew': '' });
+      cy.setUserPreference({ 'read-whatsnew': '' });
+
       goToHomePageAndSettle();
 
-      homePage.changelogElement().should('exist');
-      homePage.whatsNewBannerLink().should('exist');
-      homePage.whatsNewBannerLink().invoke('attr', 'href', '#');
-      homePage.whatsNewBannerLink().invoke('attr', 'target', '');
+      // Notification centre should have one unread notification for the release notes
+      const nc = homePage.notificationsCenter();
+
+      // Open the notification centre
+      nc.toggle();
+
+      nc.checkOpen();
+
+      nc.checkExists();
+      nc.checkVisible();
+      nc.checkHasUnread();
+      nc.checkCount(1);
+
+      // Get the release notes notification (this has a known id)
+      const id = `release-notes-v${ CURRENT_RANCHER_VERSION }`;
+
+      let item = nc.getNotification(id);
+
+      item.checkExists();
 
       cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
 
-      homePage.whatsNewBannerLink().click();
+      // Mark all as read
+      nc.markAllRead();
+
+      nc.checkAllRead();
+
+      // Close
+      nc.toggle();
 
       cy.wait(['@markReleaseNotesRead']);
 
-      homePage.changelogElement().should('not.exist');
+      nc.checkClosed();
 
-      // Restore the cards should bring back the banner graphic
-      homePage.restoreAndWait();
+      // Open again
+      nc.toggle();
 
-      // Check banner graphic is visible
-      homePage.whatsNewBannerLink().should('exist');
+      nc.checkOpen();
+
+      nc.checkExists();
+      nc.checkVisible();
+      nc.checkCount(1);
+      nc.checkAllRead();
+
+      // Now mark the notification as unread
+      item = nc.getNotification(id);
+
+      item.title().should('contain', `Welcome to Rancher v${ CURRENT_RANCHER_VERSION }`);
+      item.primaryActionButton().should('exist');
+
+      item.checkRead();
+      item.toggleRead();
+      item.checkUnread();
+      nc.checkHasUnread();
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
@@ -298,30 +337,35 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    // Note: This must be the last test to run in this test suite.
-    // When the test clicks on a link that opens a new tab it causes failures in tests that run after it.
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      /**
-       * Verify changelog banner is hidden after clicking link
-       * Verify release notes link is valid github page
-       * Verify correct Rancher version is displayed
-       */
+      cy.setUserPreference({ 'read-whatsnew': '' });
       HomePagePo.navTo();
       homePage.waitForPage();
-      homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains(`Learn more about the improvements and new capabilities in ${ CURRENT_RANCHER_VERSION }`);
-        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
+        const nc = homePage.notificationsCenter();
 
-        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-          cy.request(releaseNotesUrl).then((res) => {
-            expect(res.status).equals(200);
-          });
+        // Open the notification centre
+        nc.toggle();
+
+        nc.checkOpen();
+        nc.checkExists();
+        nc.checkVisible();
+        nc.checkCount(1);
+
+        // Get the release notes notification (this has a known id)
+        const id = `release-notes-v${ CURRENT_RANCHER_VERSION }`;
+        const item = nc.getNotification(id);
+
+        item.checkExists();
+
+        cy.window().then((win) => {
+          cy.stub(win, 'open', () => {}).as('openReleaseNotes');
         });
 
-        homePage.whatsNewBannerLink().click();
-        homePage.changelog().self().should('not.exist');
+        item.primaryActionButton().click();
+
+        cy.get('@openReleaseNotes').should('be.calledWith', 'https://github.com/rancher/rancher/releases/latest', '_blank');
       });
     });
   });

@@ -70,6 +70,7 @@ const gotFocus = (e: Event) => {
           role="button"
           tabindex="-1"
           href="#"
+          data-testid="notifications-center-markall-read"
           @keydown.up.down.stop="handleKeydown"
           @keydown.enter.space.stop="markAllRead(true)"
           @click="markAllRead(false)"
