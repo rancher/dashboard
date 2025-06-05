@@ -140,13 +140,10 @@ export default {
   },
 
   watch: {
-    defaultSecret: {
-      handler(neu) {
-        if (this.mode === _CREATE) {
-          this.update(neu);
-        }
-      },
-      emmediate: true
+    defaultSecret(neu) {
+      if (this.mode === _CREATE) {
+        this.update(neu);
+      }
     }
   },
 
