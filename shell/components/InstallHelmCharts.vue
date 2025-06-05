@@ -281,6 +281,7 @@ export default {
         } catch (err) {
           // some errors here are expected
           // we only show error state when while block finishes and still no chart found
+          // eslint-disable-next-line no-console
           console.error(err);
         }
       }
@@ -378,6 +379,7 @@ export default {
 
         res = await this.targetRepo.doAction('install', this.installCmd);
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error(err);
         this.btnCb(false);
 
@@ -468,24 +470,7 @@ export default {
     },
 
     // label the async button depending on form stage
-    /** set button currentPhase to one of xLabel
-     *   actionLabel: {
-      type:    String,
-      default: null,
-    },
-    waitingLabel: {
-      type:    String,
-      default: null,
-    },
-    successLabel: {
-      type:    String,
-      default: null,
-    },
-    errorLabel: {
-      type:    String,
-      default: null,
-    },
-
+    /** set button currentPhase to one of actionLabel, waitingLabel, successLabel, or errorLabel
      */
     buttonLabel() {
       const {
