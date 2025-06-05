@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, DefineComponent } from 'vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+
+/**
+ * Generic type for the passed components as props
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ComponentType = DefineComponent<any, any, any>;
 
 /**
  * A single filter option for a group (e.g., a single checkbox).
@@ -9,11 +15,11 @@ type FilterOption = {
   /** Value to apply when selected */
   value?: string;
   /** Optional custom component to render for this option (e.g., link or button) */
-  component?: any;
+  component?: ComponentType;
   /** Props passed to the custom component */
-  componentProps?: Record<string, any>;
+  componentProps?: Record<string, unknown>;
   /** Label to show next to the checkbox, or a custom component next to the checkbox */
-  label?: string | { component: any; componentProps: Record<string, any>; };
+  label?: string | { component: ComponentType; componentProps: Record<string, unknown>; };
 };
 
 /**
