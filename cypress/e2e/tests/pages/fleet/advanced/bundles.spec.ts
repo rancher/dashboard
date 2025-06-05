@@ -3,7 +3,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-// import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const bundle = 'fleet-agent-local';
 const localWorkspace = 'fleet-local';
@@ -134,7 +134,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
       // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
@@ -206,7 +206,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
       // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     it('can Download YAML', () => {
