@@ -18,7 +18,7 @@ import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import RcFilterPanel from '@shell/components/RcFilterPanel';
+import { RcFilterPanel } from '@components/RcFilterPanel';
 import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
 import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
@@ -271,7 +271,7 @@ export default {
 
     applyFiltersDebounced: debounce(function(newFilters) {
       this.filters = newFilters;
-    }, 300),
+    }, 100),
 
     selectChart(chart) {
       let version;
