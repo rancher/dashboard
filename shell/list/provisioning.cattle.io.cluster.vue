@@ -10,11 +10,10 @@ import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/feature
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
-import CloudCredExpired from '@shell/components/formatter/CloudCredExpired';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead, BadgeState, CloudCredExpired
+    Banner, ResourceTable, Masthead, BadgeState
   },
   mixins: [ResourceFetch],
   props:  {
@@ -42,7 +41,7 @@ export default {
       mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
 
-    this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+    // this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
@@ -156,28 +155,6 @@ export default {
       return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
     },
 
-    tokenExpiredData() {
-      const counts = this.rows.reduce((res, provCluster) => {
-        const expireData = provCluster.cloudCredential?.expireData;
-
-        if (expireData?.expiring) {
-          res.expiring++;
-        }
-        if (expireData?.expired) {
-          res.expired++;
-        }
-
-        return res;
-      }, {
-        expiring: 0,
-        expired:  0
-      });
-
-      return {
-        expiring: counts.expiring ? this.t('cluster.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
-        expired:  counts.expired ? this.t('cluster.cloudCredentials.banners.expired', { count: counts.expired }) : '',
-      };
-    }
   },
 
   $loadingResources() {
@@ -225,17 +202,6 @@ export default {
       </template>
     </Masthead>
 
-    <Banner
-      v-if="tokenExpiredData.expiring"
-      color="warning"
-      :label="tokenExpiredData.expiring"
-    />
-    <Banner
-      v-if="tokenExpiredData.expired"
-      color="error"
-      :label="tokenExpiredData.expired"
-    />
-
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
@@ -244,7 +210,6 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-      :sub-rows="true"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
@@ -255,37 +220,6 @@ export default {
           :color="row.stateBackground"
           :label="row.stateDisplay"
         />
-      </template>
-      <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
-        <tr
-          :key="row[keyField] + '-description'"
-          :data-testid="componentTestid + '-' + i + '-row-description'"
-          class="state-description sub-row"
-          @mouseenter="onRowMouseEnter"
-          @mouseleave="onRowMouseLeave"
-        >
-          <td v-if="row.cloudCredentialWarning || row.stateDescription">
-&nbsp;
-          </td>
-          <td
-            v-if="row.cloudCredentialWarning || row.stateDescription"
-            :colspan="fullColspan - 1"
-          >
-            <CloudCredExpired
-              v-if="row.cloudCredentialWarning"
-              :value="row.cloudCredential.expires"
-              :row="row.cloudCredential"
-              :verbose="true"
-              :class="{'mb-10': row.stateDescription}"
-            />
-            <div
-              v-if="row.stateDescription"
-              :class="{ 'text-error' : row.stateObj.error }"
-            >
-              {{ row.stateDescription }}
-            </div>
-          </td>
-        </tr>
       </template>
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
