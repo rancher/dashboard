@@ -281,8 +281,7 @@ export default {
         } catch (err) {
           // some errors here are expected
           // we only show error state when while block finishes and still no chart found
-          // eslint-disable-next-line no-console
-          console.error(err);
+          console.error(err); // eslint-disable-line no-console
         }
       }
 
@@ -379,8 +378,7 @@ export default {
 
         res = await this.targetRepo.doAction('install', this.installCmd);
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error(err);
+        console.error(err); // eslint-disable-line no-console
         this.btnCb(false);
 
         this.stages.installChart.loading = false;
