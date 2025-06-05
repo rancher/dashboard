@@ -73,7 +73,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // Repository details step
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);
+      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0, 'Add Path');
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 

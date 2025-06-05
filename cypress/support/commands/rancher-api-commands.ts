@@ -1114,3 +1114,57 @@ Cypress.Commands.add('setUserPreference', (prefs: any) => {
     return cy.setRancherResource('v1', 'userpreferences', update.id, update);
   });
 });
+
+/**
+ * Create a secret via api request
+ */
+Cypress.Commands.add('createSecret', (namespace: string, name: string, options: { type?: string; metadata?: any; data?: any } = {}) => {
+  const defaultData = {
+    'tls.crt': Buffer.from('MOCKCERT').toString('base64'),
+    'tls.key': Buffer.from('MOCKPRIVATEKEY').toString('base64')
+  };
+
+  const body = {
+    type:     options.type || 'kubernetes.io/tls',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'secrets', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Create a service via api request
+ */
+Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {
+  const defaultSpec = {
+    ports: options.ports || [{
+      name:       'myport',
+      port:       8080,
+      protocol:   'TCP',
+      targetPort: 80
+    }],
+    sessionAffinity: 'None',
+    type:            options.type || 'ClusterIP'
+  };
+
+  const body = {
+    type:     'service',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    spec: options.spec || defaultSpec
+  };
+
+  return cy.createRancherResource('v1', 'services', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
