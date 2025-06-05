@@ -65,6 +65,12 @@ export default {
         statuses:   [],
         tags:       []
       },
+      internalFilters: { // in order to update the filter checkboxes smoothly
+        repos:      [],
+        categories: [],
+        statuses:   [],
+        tags:       []
+      },
       installedApps: [],
       statusOptions: [
         {
@@ -249,12 +255,23 @@ export default {
         };
 
         this.$router.applyQuery(query);
+        this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
     }
   },
 
   methods: {
     get,
+
+    onFilterChange(newFilters) {
+      this.internalFilters = newFilters;
+
+      this.applyFiltersDebounced(newFilters);
+    },
+
+    applyFiltersDebounced: debounce(function(newFilters) {
+      this.filters = newFilters;
+    }, 300),
 
     selectChart(chart) {
       let version;
@@ -386,7 +403,7 @@ export default {
     <template v-if="allCharts.length">
       <div class="wrapper">
         <rc-filter-panel
-          v-model="filters"
+          :value="internalFilters"
           :filters="[
             {
               key: 'repos',
@@ -409,6 +426,7 @@ export default {
               options: tagOptions
             }
           ]"
+          @filter-change="onFilterChange"
         />
 
         <div

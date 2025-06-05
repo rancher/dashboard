@@ -1,30 +1,87 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
+/**
+ * A single filter option for a group (e.g., a single checkbox).
+ */
 type FilterOption = {
+  /** Value to apply when selected */
   value?: string;
+  /** Optional custom component to render for this option (e.g., link or button) */
   component?: any;
+  /** Props passed to the custom component */
   componentProps?: Record<string, any>;
+  /** Label to show next to the checkbox, or a custom component next to the checkbox */
   label?: string | { component: any; componentProps: Record<string, any>; };
 };
 
+/**
+ * A group of filter options (e.g., Repositories, Categories).
+ */
 type FilterGroup = {
+  /** Key that maps to the filters object (e.g., 'repos', 'categories') */
   key: string;
+  /** Title for the filter group */
   title: string;
+  /** The available options within this group */
   options: FilterOption[];
 };
 
+/**
+ * Props accepted by the filter panel.
+ *
+ * Supports either v-model or value + @filter-change.
+ */
 const props = defineProps<{
-  modelValue: Record<string, string[]>;
+  /** Two-way bound filters (if using v-model) */
+  modelValue?: Record<string, string[]>;
+  /** One-way bound filters (if using value and @filter-change) */
+  value?: Record<string, string[]>;
+  /** The list of filter groups to display */
   filters: FilterGroup[];
 }>();
 
-const emit = defineEmits<{(e: 'update:modelValue', val: Record<string, string[]>): void;}>();
+/**
+ * Events emitted by the component.
+ * - update:modelValue is emitted when using v-model.
+ * - filter-change is emitted for manual update handling.
+ */
+const emit = defineEmits<{(e: 'update:modelValue', val: Record<string, string[]>): void; (e: 'filter-change', val: Record<string, string[]>): void;}>();
 
+/**
+ * Determine which value to use for current filters.
+ * Prioritizes modelValue (v-model), then value, or defaults to an empty object.
+ */
+const currentValue = computed(() => {
+  if (props.modelValue !== undefined) {
+    return props.modelValue;
+  } else if (props.value !== undefined) {
+    return props.value;
+  } else {
+    return {};
+  }
+});
+
+/**
+ * To know if the user is using v-model
+ */
+const isUsingVModel = computed(() => props.modelValue !== undefined);
+
+/**
+ * Handles updating the selected filters for a given filter group key.
+ *
+ * @param key - The key of the filter group being updated (e.g., 'tags').
+ * @param value - The updated list of selected values.
+ */
 const updateFilter = (key: string, value: string[]) => {
-  const newValue = { ...props.modelValue, [key]: value };
+  const newValue = { ...currentValue.value, [key]: value };
 
-  emit('update:modelValue', newValue);
+  if (isUsingVModel.value) {
+    emit('update:modelValue', newValue);
+  } else {
+    emit('filter-change', newValue);
+  }
 };
 
 </script>
@@ -55,7 +112,7 @@ const updateFilter = (key: string, value: string[]) => {
             :key="i"
             class="filter-panel-filter-checkbox"
             :label="typeof option.label === 'string' ? option.label : undefined"
-            :value="modelValue[filter.key]"
+            :value="currentValue[filter.key]"
             :value-when-true="option.value"
             @update:value="updateFilter(filter.key, $event)"
           >
