@@ -235,7 +235,6 @@ describe('Home Page', () => {
     });
 
     it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      cy.setUserPreference({ 'seen-whatsnew': '' });
       cy.setUserPreference({ 'read-whatsnew': '' });
 
       goToHomePageAndSettle();
