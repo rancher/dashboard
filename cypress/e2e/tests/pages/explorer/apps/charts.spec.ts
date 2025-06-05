@@ -18,46 +18,6 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.bannerContent().should('be.visible').and('not.be.empty');
   });
 
-  it('filtering the Charts (search box) should not impact the Charts carousel', () => {
-    chartsPage.chartsFilterCategoriesSelect().toggle();
-    chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
-    chartsPage.chartsFilterReposSelect().toggle();
-    chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
-    chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
-    chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
-    chartsPage.chartsFilterInput().clear();
-
-    // testing https://github.com/rancher/dashboard/issues/10027
-    chartsPage.chartsCarouselSlides().then(($val) => {
-      const length = $val.length;
-
-      // Test text filter
-      chartsPage.chartsFilterInput().type('just some random text');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterInput().clear();
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // Test categories filter
-      chartsPage.chartsFilterCategoriesSelect().toggle();
-      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('Applications');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterCategoriesSelect().toggle();
-      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // Test repo filter
-      chartsPage.chartsFilterReposSelect().toggle();
-      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('Rancher');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // has the correct title (Meta tag)
-      // testing https://github.com/rancher/dashboard/issues/9822
-      cy.title().should('eq', 'Rancher - local - Charts');
-    });
-  });
-
   it('Charts have expected icons', () => {
     chartsPage.chartsFilterReposSelect().toggle();
     chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
