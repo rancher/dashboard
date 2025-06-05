@@ -13,6 +13,7 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
+import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -224,6 +225,12 @@ export default defineComponent({
   async created() {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
+
+    // We mark the release notes as seen still - the user has visited the home page, which will show the
+    // notification centre containing the release notes notification
+    // If we do not, then if they set the landing page, that won't work unless the release notes are marked read
+    // otherwise we always take them to the home page to see the release notes
+    markSeenReleaseNotes(this.$store);
   },
 
   // Forget the types when we leave the page
