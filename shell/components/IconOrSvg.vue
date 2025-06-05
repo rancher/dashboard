@@ -61,49 +61,16 @@ export default {
   },
 
   methods: {
+    getComputedStyleFor(cssVar) {
+      return normalizeHex(mapStandardColors((window.getComputedStyle(document.body).getPropertyValue(cssVar)).trim()));
+    },
+
     setColor() {
-      const currTheme = this.$store.getters['prefs/theme'];
-      let uiColor, hoverColor;
+      const uiColor = this.getComputedStyleFor(colors[this.color].color);
+      const hoverColor = this.getComputedStyleFor(colors[this.color].hover);
 
-      // grab css vars values based on the actual stylesheets, depending on the theme applied
-      // use for loops to minimize computation
-      for (let i = 0; i < Object.keys(document.styleSheets).length; i++) {
-        let found = false;
-        const stylesheet = document.styleSheets[i];
-
-        if (stylesheet && stylesheet.cssRules) {
-          for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
-            const cssRules = stylesheet.cssRules[x];
-
-            const lightThemeConditions = (cssRules.selectorText?.includes('body') || cssRules.selectorText?.includes('BODY')) &&
-            cssRules.selectorText?.includes('.theme-light') && cssRules.style?.cssText?.includes('--link:');
-
-            // color must exist on the css rules
-            if ((
-              // narrow it down if it's light mode
-              (currTheme === 'light' && lightThemeConditions) ||
-              // narrow it down if it's dark mode but we are on "primary" color type (dark mode CSS stylesheet doesn't have those variables, so we need to go to light mode and search for them)
-              (currTheme === 'dark' && this.color === 'primary' && lightThemeConditions) ||
-              // narrow it down if it's dark mode, not "primary" color type
-              (currTheme === 'dark' && cssRules.selectorText?.includes('.theme-dark'))) && cssRules?.style?.getPropertyValue(colors[this.color].color)) {
-              // grab the colors to be used on the icon from the css rules
-              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
-              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
-
-              // normalize hex colors (#xxx to #xxxxxx)
-              uiColor = normalizeHex(uiColor);
-              hoverColor = normalizeHex(hoverColor);
-
-              found = true;
-              break;
-            }
-          }
-        }
-        if (found) {
-          break;
-        } else {
-          continue;
-        }
+      if (!uiColor || !hoverColor) {
+        return;
       }
 
       const uiColorRGB = colorToRgb(uiColor);
@@ -150,7 +117,11 @@ export default {
           }
           a.option:hover > img.${ className } {
             ${ hoverFilter };
-          }      `;
+          }
+          a.option.active-menu-link > img.${ className } {
+            ${ hoverFilter };
+          }
+        `;
 
         const styleSheet = document.createElement('style');
 
