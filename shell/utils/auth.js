@@ -38,6 +38,8 @@ export function openAuthPopup(url, provider) {
 
         window.onAuthTest(error, code);
       } catch (e) {
+        window.onAuthTest(new Error(`Access was not authorized (invalid callback metadata)`));
+
         console.error('Unable to process message from auth broadcast channel', e); // eslint-disable-line no-console
       }
     };
