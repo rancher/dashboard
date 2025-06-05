@@ -15,7 +15,6 @@ import { mapGetters } from 'vuex';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
-import TabTitle from '@shell/components/TabTitle';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
@@ -46,7 +45,7 @@ export default {
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
     this.showHidden = query[HIDDEN] === _FLAGGED;
-    this.filters.repos = query[REPO] || [];
+    this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
     this.filters.statuses = normalizeFilterQuery(query[STATUS]) || [];
     this.filters.tags = normalizeFilterQuery(query[TAG]) || [];
@@ -97,8 +96,7 @@ export default {
           }
         }
       ],
-      installedApps: [],
-      cardVariant:   undefined,
+      cardVariant: undefined,
     };
   },
 

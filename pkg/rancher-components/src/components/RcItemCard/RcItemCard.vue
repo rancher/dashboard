@@ -103,7 +103,7 @@ const props = defineProps<RcItemCardProps>();
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
  */
- const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; ( e: 'variant', value: RcItemCardVariant): void; }>();
+const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; ( e: 'variant', value: RcItemCardVariant): void; }>();
 
 /**
  * Handles the card click while avoiding nested interactive elements
