@@ -27,14 +27,6 @@ export class ChartsPage extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Apps');
   }
 
-  chartsCarousel() {
-    return this.self().find('[data-testid="charts-carousel"]');
-  }
-
-  chartsCarouselSlides() {
-    return this.chartsCarousel().get('[id="slide-track"] > div');
-  }
-
   chartsFilterInput() {
     return this.self().find('[data-testid="charts-filter-input"]');
   }
