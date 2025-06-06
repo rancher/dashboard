@@ -13,23 +13,23 @@ defineProps<{
 </script>
 
 <template>
-  <div class="app-card-footer">
+  <div class="app-chart-card-footer">
     <div
       v-for="(footerItem, i) in items"
       :key="i"
-      class="app-card-footer-item no-card-click"
-      data-testid="app-card-footer-item"
+      class="app-chart-card-footer-item no-card-click"
+      data-testid="app-chart-card-footer-item"
     >
       <i
         v-if="footerItem.icon"
         v-clean-tooltip="t(footerItem.iconTooltip?.key)"
-        :class="['icon', 'app-card-footer-item-icon', footerItem.icon]"
+        :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
       />
       <p
         v-for="(label, j) in footerItem.labels"
         :key="j"
-        class="app-card-footer-item-text"
-        data-testid="app-card-footer-item-text"
+        class="app-chart-card-footer-item-text"
+        data-testid="app-chart-card-footer-item-text"
       >
         {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </p>
@@ -38,7 +38,7 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-.app-card-footer {
+.app-chart-card-footer {
   display: flex;
   flex-wrap: wrap;
 

@@ -13,16 +13,16 @@ defineProps<{
 </script>
 
 <template>
-  <div class="app-card-sub-header">
+  <div class="app-chart-card-sub-header">
     <div
       v-for="(subHeaderItem, i) in items"
       :key="i"
-      class="app-card-sub-header-item"
-      data-testid="app-card-version"
+      class="app-chart-card-sub-header-item"
+      data-testid="app-chart-card-version"
     >
       <i
         v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
-        :class="['icon', 'app-card-sub-header-item-icon', subHeaderItem.icon]"
+        :class="['icon', 'app-chart-card-sub-header-item-icon', subHeaderItem.icon]"
       />
       <p>{{ subHeaderItem.label }}</p>
     </div>
@@ -30,7 +30,7 @@ defineProps<{
 </template>
 
 <style scoped lang="scss">
-.app-card-sub-header {
+.app-chart-card-sub-header {
   display: flex;
   gap: var(--gap-md);
   color: var(--link-text-secondary);

@@ -23,8 +23,8 @@ import TabTitle from '@shell/components/TabTitle';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
-import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
+import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 
 export default {
   name:       'Charts',
@@ -39,8 +39,8 @@ export default {
     TypeDescription,
     TabTitle,
     RcItemCard,
-    AppCardSubHeader,
-    AppCardFooter
+    AppChartCardSubHeader,
+    AppChartCardFooter
   },
 
   async fetch() {
@@ -227,7 +227,7 @@ export default {
       return this.chartMode === 'featured' && this.featuredCharts.length;
     },
 
-    appCards() {
+    appChartCards() {
       return this.filteredCharts.map((chart) => ({
         id:     chart.id,
         pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
@@ -506,11 +506,11 @@ export default {
       </div>
       <template v-else>
         <div
-          class="app-cards"
-          data-testid="app-cards-container"
+          class="app-chart-cards"
+          data-testid="app-chart-cards-container"
         >
           <rc-item-card
-            v-for="(card, i) in appCards"
+            v-for="(card, i) in appChartCards"
             :id="card.id"
             :key="card.id"
             :pill="card.pill"
@@ -527,13 +527,13 @@ export default {
               v-once
               #item-card-sub-header
             >
-              <AppCardSubHeader :items="card.subHeaderItems" />
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
             </template>
             <template
               v-once
               #item-card-footer
             >
-              <AppCardFooter :items="card.footerItems" />
+              <AppChartCardFooter :items="card.footerItems" />
             </template>
           </rc-item-card>
         </div>
@@ -607,7 +607,7 @@ export default {
   }
 }
 
-.app-cards {
+.app-chart-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
   grid-gap: var(--gap-md);

@@ -51,7 +51,7 @@ export class ChartsPage extends PagePo {
     return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
   }
 
-  getAppByName(name: string): RcItemCardPo {
+  getChartByName(name: string): RcItemCardPo {
     return RcItemCardPo.getCardByTitle(name);
   }
 
