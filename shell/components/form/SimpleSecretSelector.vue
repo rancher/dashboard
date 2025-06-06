@@ -75,8 +75,11 @@ export default {
       key:                props.initialKey,
       none:               NONE,
       SECRET,
+      /**
+       * Of type @ResourceLabeledSelectSettings
+       */
       allSecretsSettings: {
-        mapResult: (secrets) => {
+        updateResources: (secrets) => {
           const allSecretsInNamespace = secrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
           const mappedSecrets = this.mapSecrets(allSecretsInNamespace.sort((a, b) => a.name.localeCompare(b.name)));
 
@@ -85,9 +88,12 @@ export default {
           return mappedSecrets;
         }
       },
+      /**
+       * Of type @ResourceLabeledSelectPaginateSettings
+       */
       paginateSecretsSetting: {
         requestSettings: this.paginatePageOptions,
-        mapResult:       (secrets) => {
+        updateResources: (secrets) => {
           const mappedSecrets = this.mapSecrets(secrets);
 
           this.secrets = secrets; // We need the key from the selected secret. When paginating we won't touch the store, so just pass back here
