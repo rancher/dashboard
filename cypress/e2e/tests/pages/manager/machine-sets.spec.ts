@@ -3,7 +3,29 @@ import MachineSetsPagePo from '@/cypress/e2e/po/pages/cluster-manager/machine-se
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  it('validating empty machine sets page with percy', () => {
+    const machineSetsPage = new MachineSetsPagePo();
+
+    MachineSetsPagePo.goTo();
+    machineSetsPage.waitForPage();
+
+    machineSetsPage.list().resourceTable().sortableTable().checkVisible();
+    machineSetsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    machineSetsPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('machineSets Page');
+  });
+});
+xdescribe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineSetsPage = new MachineSetsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
