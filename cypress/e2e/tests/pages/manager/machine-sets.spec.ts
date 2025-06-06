@@ -25,7 +25,7 @@ describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUse
     cy.percySnapshot('machineSets Page');
   });
 });
-xdescribe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineSetsPage = new MachineSetsPagePo();
   const nsName = 'default';
   let resourceVersion = '';
