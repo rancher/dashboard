@@ -679,7 +679,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
         ChartsPage.navTo();
         chartsPage.waitForPage();
-        chartsPage.chartsCarouselSlides().should('be.visible');
         cy.injectAxe();
 
         cy.checkPageAccessibility();

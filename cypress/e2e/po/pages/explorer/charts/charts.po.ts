@@ -3,7 +3,7 @@ import SelectPo from '@/cypress/e2e/po/components/select.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
-import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 export class ChartsPage extends PagePo {
@@ -27,14 +27,6 @@ export class ChartsPage extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Apps');
   }
 
-  chartsCarousel() {
-    return this.self().find('[data-testid="charts-carousel"]');
-  }
-
-  chartsCarouselSlides() {
-    return this.chartsCarousel().get('[id="slide-track"] > div');
-  }
-
   chartsFilterInput() {
     return this.self().find('[data-testid="charts-filter-input"]');
   }
@@ -51,18 +43,16 @@ export class ChartsPage extends PagePo {
     return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
   }
 
-  charts() {
-    return new SelectIconGridPo('[data-testid="chart-selection-grid"]', 'chart-selection');
+  getAppByName(name: string) {
+    return new RcItemCardPo().getCardByTitle(name);
   }
 
-  getChartByName(name: string) {
-    return this.charts().self().find(`[data-testid="select-icon-grid-${ name }"]`);
+  clickChart(name: string) {
+    return new RcItemCardPo().clickByTitle(name);
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
-    const src = this.charts().self().contains(name).parent()
-      .find('.logo img')
-      .invoke('attr', 'src');
+    const src = new RcItemCardPo().getImageByTitle(name).invoke('attr', 'src');
 
     if (isGeneric) {
       return src.should('contain', 'generic-catalog');

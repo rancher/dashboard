@@ -18,46 +18,6 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.bannerContent().should('be.visible').and('not.be.empty');
   });
 
-  it('filtering the Charts (search box) should not impact the Charts carousel', () => {
-    chartsPage.chartsFilterCategoriesSelect().toggle();
-    chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
-    chartsPage.chartsFilterReposSelect().toggle();
-    chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
-    chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
-    chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
-    chartsPage.chartsFilterInput().clear();
-
-    // testing https://github.com/rancher/dashboard/issues/10027
-    chartsPage.chartsCarouselSlides().then(($val) => {
-      const length = $val.length;
-
-      // Test text filter
-      chartsPage.chartsFilterInput().type('just some random text');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterInput().clear();
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // Test categories filter
-      chartsPage.chartsFilterCategoriesSelect().toggle();
-      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('Applications');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterCategoriesSelect().toggle();
-      chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // Test repo filter
-      chartsPage.chartsFilterReposSelect().toggle();
-      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('Rancher');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-      chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
-      chartsPage.chartsCarouselSlides().should('have.length', length);
-
-      // has the correct title (Meta tag)
-      // testing https://github.com/rancher/dashboard/issues/9822
-      cy.title().should('eq', 'Rancher - local - Charts');
-    });
-  });
-
   it('Charts have expected icons', () => {
     chartsPage.chartsFilterReposSelect().toggle();
     chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
@@ -72,21 +32,25 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
     chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
     // a deprecated chart should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedChart').should('not.exist');
+    chartsPage.getAppByName('deprecatedChart').should('not.exist');
     // an experimental chart should still be visible
-    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+      .and('be.visible');
     // a chart that's deprecated & experimental should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('not.exist');
+    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('not.exist');
     // enabling the checkbox
     chartsPage.chartsShowDeprecatedFilterCheckbox().set();
-    chartsPage.getChartByName('deprecatedChart').should('exist').scrollIntoView().and('be.visible');
-    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getAppByName('deprecatedChart').should('exist').scrollIntoView()
+      .and('be.visible');
+    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+      .and('be.visible');
+    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView()
+      .and('be.visible');
     // going to chart's page
     const chartPage = new ChartPage();
 
     generateDeprecatedAndExperimentalChart();
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').click();
+    chartsPage.getAppByName('deprecatedAndExperimentalChart').click();
     cy.wait('@generateDeprecatedAndExperimentalChart');
     // checking the "deprecated" query to be included in the url
     cy.location('search').should('include', 'deprecated=true');
@@ -100,7 +64,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.wait('@fetchChartData');
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getChartByName(chartName)
+    chartsPage.getAppByName(chartName)
       .should('exist')
       .scrollIntoView()
       .should('be.visible')
@@ -124,7 +88,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.wait('@fetchChartData');
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getChartByName(chartName)
+    chartsPage.getAppByName(chartName)
       .should('exist')
       .scrollIntoView()
       .should('be.visible')

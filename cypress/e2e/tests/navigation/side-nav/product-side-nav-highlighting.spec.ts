@@ -49,7 +49,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
     productNavPo.activeNavItem().should('equal', 'Charts');
 
     // Go to install page
-    chartsPage.charts().select(CHART.name);
+    chartsPage.clickChart(CHART.name);
     chartPage.waitForChartPage(CHART.repo, CHART.id);
     productNavPo.activeNavItem().should('equal', 'Charts');
 
