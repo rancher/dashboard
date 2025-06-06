@@ -5039,6 +5039,7 @@ rbac:
           resources: Resource
           nonResourceUrls: Non-Resource URLs
           apiGroups: API Groups
+        psaWarning: Granting Project Roles the ability to amend PSA labels could lead to a weaker security posture and allow for privilege escalation. This is only recommended for advanced users who understand the risks involved.
     subtypes:
       GLOBAL:
         createButton: Create Global Role
