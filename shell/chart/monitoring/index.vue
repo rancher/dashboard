@@ -55,7 +55,7 @@ export default {
   async fetch() {
     const { $store } = this;
 
-    // Fetch all the resources required for all the tabs asyncronously up front
+    // Fetch all the resources required for all the tabs asynchronously up front
     const hashPromises = {
       namespaces:        $store.getters['namespaces'](),
       pvcs:              $store.dispatch('cluster/findAll', { type: PVC }),

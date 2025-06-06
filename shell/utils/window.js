@@ -28,7 +28,7 @@ export class Popup {
     this.popup = null;
   }
 
-  open(url, name, opt) {
+  open(url, name, opt, doNotPollForClosure) {
     this.onOpen();
     this.popup = open(url, name, opt);
 
@@ -36,11 +36,15 @@ export class Popup {
       throw new Error('Please disable your popup blocker for this site');
     }
 
-    const timer = setInterval(() => {
-      if (this.popup.closed) {
-        clearInterval(timer);
-        this.onClose();
-      }
-    }, 500);
+    // In some cases, for example, if the origin policy does not allow, we will think the window has closed
+    // when it has not - we will see it as closed, because we don't have access
+    if (!doNotPollForClosure) {
+      const timer = setInterval(() => {
+        if (this.popup.closed) {
+          clearInterval(timer);
+          this.onClose();
+        }
+      }, 500);
+    }
   }
 }

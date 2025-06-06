@@ -1,6 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AzureadPo from '@/cypress/e2e/po/edit/auth/azuread.po';
-import AuthProviderPo from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
 const authProviderPo = new AuthProviderPo('local');
 const azureadPo = new AzureadPo('local');
@@ -27,7 +27,7 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
     authProviderPo.waitForPage();
-    authProviderPo.selectAzureAd();
+    authProviderPo.selectProvider(AuthProvider.AZURE);
     azureadPo.waitForPage();
   });
 

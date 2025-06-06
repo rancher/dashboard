@@ -19,8 +19,8 @@ import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { RcFilterPanel } from '@components/RcFilterPanel';
-import AppCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppCardSubHeader';
-import AppCardFooter from '@shell/pages/c/_cluster/apps/charts/AppCardFooter';
+import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 
@@ -33,8 +33,8 @@ export default {
     TypeDescription,
     RcItemCard,
     RcFilterPanel,
-    AppCardSubHeader,
-    AppCardFooter
+    AppChartCardSubHeader,
+    AppChartCardFooter
   },
 
   async fetch() {
@@ -214,7 +214,7 @@ export default {
       return sortBy(out, ['label']);
     },
 
-    appCards() {
+    appChartCards() {
       return this.filteredCharts.map((chart) => ({
         id:     chart.id,
         pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
@@ -431,14 +431,14 @@ export default {
 
         <div
           v-if="filteredCharts.length === 0"
-          class="app-cards-empty-state"
+          class="app-chart-cards-empty-state"
         >
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
         <div
           v-else
-          class="app-cards"
-          data-testid="app-cards-container"
+          class="app-chart-cards"
+          data-testid="app-chart-cards-container"
         >
           <rc-item-card
             v-for="(card, i) in appCards"
@@ -458,13 +458,13 @@ export default {
               v-once
               #item-card-sub-header
             >
-              <AppCardSubHeader :items="card.subHeaderItems" />
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
             </template>
             <template
               v-once
               #item-card-footer
             >
-              <AppCardFooter
+              <AppChartCardFooter
                 :items="card.footerItems"
                 @footer-item-click="handleFooterItemClick"
               />
@@ -515,14 +515,14 @@ export default {
   gap: 16px;
 }
 
-.app-cards-empty-state {
+.app-chart-cards-empty-state {
   width: 100%;
   margin-top: 32px;
   padding: 32px;
   text-align: center;
 }
 
-.app-cards {
+.app-chart-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
   grid-gap: var(--gap-md);

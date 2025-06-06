@@ -43,16 +43,16 @@ export class ChartsPage extends PagePo {
     return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
   }
 
-  getAppByName(name: string) {
-    return new RcItemCardPo().getCardByTitle(name);
+  getChartByName(name: string): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(name);
   }
 
   clickChart(name: string) {
-    return new RcItemCardPo().clickByTitle(name);
+    return RcItemCardPo.getCardByTitle(name).click();
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
-    const src = new RcItemCardPo().getImageByTitle(name).invoke('attr', 'src');
+    const src = RcItemCardPo.getCardByTitle(name).getImage().invoke('attr', 'src');
 
     if (isGeneric) {
       return src.should('contain', 'generic-catalog');

@@ -7,6 +7,9 @@ generic:
   userMenu: user menu
   actionMenu: action menu
   namespaceFilter: namespace filter menu
+  banners:
+    altCloseBanner: Close banner icon
+    bannerIcon: Banner icon
   filterNamespaces: filter namespaces
   clearSearch: clear search
   clearFilters: clear filters
@@ -135,8 +138,16 @@ generic:
         }
   basic: Basic
   ariaLabel:
-    key: Key {index}
-    value: Value {index}
+    keyValue: Key-Value input
+    key: Key for row {index}
+    value: Value for row {index}
+    remove: remove row {index}
+    addKeyValue: Add a new Key-Value row
+    readKeyValue: read  Key-Values from file
+    genericAddRow: Add a new row
+    arrayList: Array list input
+    genericRow: row {index}
+  
 
 locale:
   menu: Locale selector menu
@@ -662,6 +673,7 @@ authConfig:
   oidc:
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
+    cognito: Configure an Amazon Cognito account
     rancherUrl: Rancher URL
     clientId: Client ID
     clientSecret: Client Secret
@@ -680,6 +692,8 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
+    cognitoIssuer: Issuer URL
+    cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
       label: Scopes
       placeholder: openid
@@ -722,6 +736,8 @@ assignTo:
   workspace: Workspace
 
 asyncButton:
+  alt:
+    iconAlt: Async button icon
   apply:
     action: Apply
     success: Applied
@@ -3913,6 +3929,7 @@ nameNsDescription:
     placeholder: Any text you want that better describes this resource
 
 namespace:
+  cancelCreateAriaLabel: Cancel create namespace
   containerResourceLimit: Container Resource Limit
   resourceQuotas: Resource Quotas
   project:
@@ -6940,6 +6957,7 @@ model:
       saml: SAML
       oauth: OAuth
       oidc: OIDC
+      cognito: Amazon Cognito
     name:
       keycloak: Keycloak (SAML)
       keycloakoidc: Keycloak (OIDC)
@@ -6961,6 +6979,8 @@ model:
       googleoauth: Google
       genericoidc: Generic OIDC
       keycloakoidc: Keycloak
+      cognito: Amazon Cognito
+
 
   cluster:
     name: Cluster Name

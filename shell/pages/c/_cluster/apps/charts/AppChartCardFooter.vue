@@ -6,37 +6,30 @@ interface FooterItem {
   labels: string[];
 }
 
-const emit = defineEmits<{(e: 'footer-item-click', type: string, label: string): void; }>();
-
 defineProps<{
   items: FooterItem[];
 }>();
 
-function onFooterItemClick(type: string, label: string) {
-  emit('footer-item-click', type, label);
-}
-
 </script>
 
 <template>
-  <div class="app-card-footer">
+  <div class="app-chart-card-footer">
     <div
       v-for="(footerItem, i) in items"
       :key="i"
-      class="app-card-footer-item no-card-click"
-      data-testid="app-card-footer-item"
+      class="app-chart-card-footer-item no-card-click"
+      data-testid="app-chart-card-footer-item"
     >
       <i
         v-if="footerItem.icon"
         v-clean-tooltip="t(footerItem.iconTooltip?.key)"
-        :class="['icon', 'app-card-footer-item-icon', footerItem.icon]"
+        :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
       />
       <p
         v-for="(label, j) in footerItem.labels"
         :key="j"
-        class="app-card-footer-item-text secondary-text-link"
-        data-testid="app-card-footer-item-text"
-        @click="onFooterItemClick(footerItem.type, label)"
+        class="app-chart-card-footer-item-text"
+        data-testid="app-chart-card-footer-item-text"
       >
         {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </p>
@@ -45,7 +38,7 @@ function onFooterItemClick(type: string, label: string) {
 </template>
 
 <style scoped lang="scss">
-.app-card-footer {
+.app-chart-card-footer {
   display: flex;
   flex-wrap: wrap;
 

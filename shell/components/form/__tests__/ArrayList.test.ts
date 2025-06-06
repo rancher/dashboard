@@ -80,6 +80,38 @@ describe('the ArrayList', () => {
     expect(arrayListButtons).toHaveLength(0);
   });
 
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
+    const value = ['string 0', 'string 1', 'string 2'];
+
+    const wrapper = mount(ArrayList, {
+      props: {
+        value:      ['string 0', 'string 1', 'string 2'],
+        mode:       _EDIT,
+        showHeader: true,
+        a11yLabel:  'some-a11y-label',
+        title:      'some-title'
+      },
+    });
+
+    const mainContainer = wrapper.find('.array-list-main-container');
+    const colHeaderGroup = wrapper.find('.array-list-header-group');
+    const valueGroup = wrapper.find('[data-testid="array-list-box0"]');
+    const firstValueInput = wrapper.find('[data-testid="array-list-input-0"]');
+    const rowRemove = wrapper.find('[data-testid="array-list-remove-item-0"]');
+    const rowAdd = wrapper.find('[data-testid="array-list-button"]');
+
+    expect(wrapper.vm.rows[0]).toStrictEqual({ value: value[0] });
+
+    expect(mainContainer.attributes('role')).toBe('group');
+    expect(mainContainer.attributes('aria-label')).toBe('some-title');
+    expect(colHeaderGroup.attributes('role')).toBe('group');
+    expect(colHeaderGroup.find('label').text()).toBe('Value');
+    expect(valueGroup.attributes('role')).toBe('group');
+    expect(firstValueInput.attributes('aria-label')).toBe('some-a11y-label %generic.ariaLabel.genericRow%');
+    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');
+    expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.genericAddRow%');
+  });
+
   describe('onPaste', () => {
     it('should emit value with updated row text', () => {
       const text = 'test';

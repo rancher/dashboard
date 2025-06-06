@@ -32,25 +32,25 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
     chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
     // a deprecated chart should not be listed before enabling the checkbox
-    chartsPage.getAppByName('deprecatedChart').should('not.exist');
+    chartsPage.getChartByName('deprecatedChart').checkNotExists();
     // an experimental chart should still be visible
-    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
     // a chart that's deprecated & experimental should not be listed before enabling the checkbox
-    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('not.exist');
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkNotExists();
     // enabling the checkbox
     chartsPage.chartsShowDeprecatedFilterCheckbox().set();
-    chartsPage.getAppByName('deprecatedChart').should('exist').scrollIntoView()
+    chartsPage.getChartByName('deprecatedChart').checkExists().scrollIntoView()
       .and('be.visible');
-    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
-    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView()
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
     // going to chart's page
     const chartPage = new ChartPage();
 
     generateDeprecatedAndExperimentalChart();
-    chartsPage.getAppByName('deprecatedAndExperimentalChart').click();
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').click();
     cy.wait('@generateDeprecatedAndExperimentalChart');
     // checking the "deprecated" query to be included in the url
     cy.location('search').should('include', 'deprecated=true');
@@ -64,8 +64,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.wait('@fetchChartData');
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getAppByName(chartName)
-      .should('exist')
+    chartsPage.getChartByName(chartName)
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
@@ -88,8 +88,8 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.wait('@fetchChartData');
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
-    chartsPage.getAppByName(chartName)
-      .should('exist')
+    chartsPage.getChartByName(chartName)
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
