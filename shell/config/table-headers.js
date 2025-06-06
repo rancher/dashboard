@@ -1077,11 +1077,12 @@ export const FLEET_REPO_TARGET = {
 };
 
 export const FLEET_REPO = {
-  name:     'repo',
-  labelKey: 'tableHeaders.repo',
-  value:    'repoDisplay',
-  sort:     'repoDisplay',
-  search:   ['spec.repo', 'status.commit'],
+  name:      'repo',
+  labelKey:  'tableHeaders.repo',
+  value:     'repoDisplay',
+  formatter: 'FleetRepo',
+  sort:      'repoDisplay',
+  search:    ['spec.repo', 'status.commit'],
 };
 
 export const UI_PLUGIN_CATALOG = [

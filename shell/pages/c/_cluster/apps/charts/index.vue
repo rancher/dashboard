@@ -4,7 +4,6 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import Carousel from '@shell/components/Carousel';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, OPERATING_SYSTEM
@@ -15,11 +14,14 @@ import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
-import { removeObject, addObject, findBy } from '@shell/utils/array';
+import { removeObject, addObject } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
+import RcItemCard from '@shell/components/cards/RcItemCard';
+import { get } from '@shell/utils/object';
+import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
 
 export default {
   name:       'Charts',
@@ -31,9 +33,9 @@ export default {
     Loading,
     Checkbox,
     Select,
-    SelectIconGrid,
     TypeDescription,
-    TabTitle
+    TabTitle,
+    RcItemCard
   },
 
   async fetch() {
@@ -46,6 +48,8 @@ export default {
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
     this.allRepos = this.areAllEnabled();
+
+    this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
   },
 
   data() {
@@ -67,7 +71,8 @@ export default {
           value:     'featured',
           ariaLabel: this.t('catalog.charts.featuredAriaLabel')
         }
-      ]
+      ],
+      installedApps: []
     };
   },
 
@@ -80,31 +85,16 @@ export default {
     hideRepos: mapPref(HIDE_REPOS),
 
     repoOptions() {
-      let nextColor = 0;
-      // Colors 3 and 4 match `rancher` and `partner` colors, so just avoid them
-      const colors = [1, 2, 5, 6, 7, 8];
-
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
           _key:    r._key,
           label:   r.nameDisplay,
-          color:   r.color,
           weight:  ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
           enabled: !this.hideRepos.includes(r._key),
         };
       });
 
       out = sortBy(out, ['weight', 'label']);
-
-      for ( const entry of out ) {
-        if ( !entry.color ) {
-          entry.color = `color${ colors[nextColor] }`;
-          nextColor++;
-          if ( nextColor >= colors.length ) {
-            nextColor = 0;
-          }
-        }
-      }
 
       return out;
     },
@@ -250,16 +240,7 @@ export default {
   },
 
   methods: {
-    colorForChart(chart) {
-      const repos = this.repoOptions;
-      const repo = findBy(repos, '_key', chart.repoKey);
-
-      if ( repo ) {
-        return repo.color;
-      }
-
-      return null;
-    },
+    get,
 
     toggleAll(on) {
       for ( const r of this.repoOptions ) {
@@ -419,15 +400,9 @@ export default {
             :value="repo.enabled"
             :label="repo.label"
             class="pull-left repo in-select"
-            :class="{ [repo.color]: true}"
-            :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i
-                v-if="!repo.all"
-                class=" pl-5 icon icon-dot icon-sm"
-                :class="{[repo.color]: true}"
-              />
+              <span>{{ repo.label }}</span>
             </template>
           </Checkbox>
         </template>
@@ -501,16 +476,71 @@ export default {
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
-      <SelectIconGrid
-        v-else
-        data-testid="chart-selection-grid"
-        component-test-id="chart-selection"
-        :rows="filteredCharts"
-        name-field="chartNameDisplay"
-        description-field="chartDescription"
-        :color-for="colorForChart"
-        @clicked="(row) => selectChart(row)"
-      />
+      <template v-else>
+        <div
+          class="app-cards"
+          data-testid="app-cards-container"
+        >
+          <rc-item-card
+            v-for="chart in filteredCharts"
+            :id="chart.id"
+            :key="chart.id"
+            :pill="chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' }} : undefined"
+            :header="{
+              title: { text: chart.chartNameDisplay },
+              statuses: chart.cardContent.statuses
+            }"
+            :image="{ src: chart.versions[0].icon, alt: { text: t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) }}"
+            :content="{ text: chart.chartDescription }"
+            :value="chart"
+            :clickable="true"
+            @card-click="selectChart"
+          >
+            <template #item-card-sub-header>
+              <div class="app-card-sub-header">
+                <div
+                  v-for="(subHeaderItem, i) in chart.cardContent.subHeaderItems"
+                  :key="i"
+                  class="app-card-sub-header-item"
+                  data-testid="app-card-version"
+                >
+                  <i
+                    v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
+                    :class="['icon', 'app-card-item-icon', subHeaderItem.icon]"
+                  />
+                  <p>
+                    {{ subHeaderItem.label }}
+                  </p>
+                </div>
+              </div>
+            </template>
+            <template #item-card-footer>
+              <div class="app-card-footer">
+                <div
+                  v-for="(footerItem, i) in chart.cardContent.footerItems"
+                  :key="i"
+                  class="app-card-footer-item no-card-click"
+                  data-testid="app-card-footer-item"
+                >
+                  <i
+                    v-if="footerItem.icon"
+                    v-clean-tooltip="t(footerItem.iconTooltip.key)"
+                    :class="['icon', 'app-card-item-icon', footerItem.icon]"
+                  />
+                  <p
+                    v-for="(label, j) in footerItem.labels"
+                    :key="j"
+                    class="app-card-footer-item-text"
+                    data-testid="app-card-footer-item-text"
+                  >
+                    {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+                  </p>
+                </div>
+              </div>
+            </template>
+          </rc-item-card>
+        </div>
+      </template>
     </div>
     <div
       v-else
@@ -577,6 +607,56 @@ export default {
     text-overflow: ellipsis;
     display: inline-block;
     line-height: 2.4rem;
+  }
+}
+
+.app-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 500px));
+  grid-gap: var(--gap-md);
+  overflow: hidden;
+
+  .app-card {
+
+    &-sub-header {
+      display: flex;
+      gap: var(--gap-md);
+      color: var(--link-text-secondary);
+      margin-bottom: 8px;
+
+      &-item {
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    &-footer {
+      display: flex;
+      flex-wrap: wrap;
+
+      &-item {
+        display: flex;
+        align-items: center;
+        color: var(--link-text-secondary);
+        margin-top: 8px;
+        margin-right: 8px;
+
+        &-text {
+          text-transform: capitalize;
+          margin-right: 8px;
+        }
+      }
+    }
+
+    &-item-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      font-size: 19px;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+    }
   }
 }
 
