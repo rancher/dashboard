@@ -139,6 +139,10 @@ export default defineComponent({
       color="error"
       :label="expiredData.expired"
     />
+    <!--
+     It would be nicer if this used PaginatedResourceTable and server-side pagination, however...
+     a big sell it sorting by expiration time which is not a server-side property
+    -->
     <ResourceTable
       :loading="$fetchState.pending"
       :schema="schema"
@@ -147,6 +151,7 @@ export default defineComponent({
       :paging-label="'secret.certificate.paging'"
       :paging-params="pagingParams"
       :ignore-filter="true"
+      :hide-manual-refresh-button="true"
     >
       <template #col:certState="{row}">
         <td>

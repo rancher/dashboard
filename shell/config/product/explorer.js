@@ -32,7 +32,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -283,7 +283,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API support https://github.com/rancher/rancher/issues/48473 (index fields)
+        sort:   'spec.rules[0].host', // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -294,7 +294,7 @@ export function init(store) {
       {
         ...INGRESS_CLASS,
         sort:   'spec.ingressClassName',
-        search: 'spec.ingressClassName', // Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
+        search: 'spec.ingressClassName',
       },
       STEVE_AGE_COL
     ]
@@ -305,8 +305,11 @@ export function init(store) {
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
-      STEVE_NAMESPACE_COL,
-      TARGET_PORT,
+      STEVE_NAMESPACE_COL, {
+        ...TARGET_PORT,
+        sort:   false,
+        search: false,
+      },
       {
         // Selector is an object. This is broken in non-SSP world anyway (won't sort on object, filtering on `$[x][y]` paths are broken )
         ...SELECTOR,
@@ -315,8 +318,8 @@ export function init(store) {
       },
       {
         ...SPEC_TYPE,
-        sort:   false, // ['spec.type', 'spec.clusterIP'] Pending API support  (blocked https://github.com/rancher/rancher/issues/48473 (index fields)
-        search: 'spec.type',
+        sort:   ['spec.type'],
+        search: 'spec.type'
       },
       STEVE_AGE_COL
     ]
@@ -345,10 +348,10 @@ export function init(store) {
       STEVE_STATE_COL,
       STEVE_NAME_COL,
       STEVE_NAMESPACE_COL,
-      HPA_REFERENCE, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      MIN_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      MAX_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
-      CURRENT_REPLICA, // Pending API support https://github.com/rancher/rancher/issues/48479 (hpa filtering)
+      HPA_REFERENCE, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      MIN_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      MAX_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      CURRENT_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
       STEVE_AGE_COL
     ]
   );
@@ -496,8 +499,8 @@ export function init(store) {
       },
       {
         ...STORAGE_CLASS_DEFAULT,
-        sort:   false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
-        search: false, // [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`], // Pending API Support - https://github.com/rancher/rancher/issues/48453
+        sort:   [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
+        search: [`metadata.annotations[${ STORAGE.DEFAULT_STORAGE_CLASS }]`],
       },
       STEVE_AGE_COL
     ]
