@@ -6,6 +6,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
@@ -424,28 +425,40 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     it('can Edit Config', () => {
       const fleetWorkspaceCreateEditPage = new FleetWorkspaceCreateEditPo(customWorkspace);
 
-      fleetWorkspacesListPage.goTo();
-      fleetWorkspacesListPage.waitForPage();
-      fleetWorkspacesListPage.list().resourceTable().sortableTable()
-        .noRowsShouldNotExist();
-      fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Edit Config')
-        .click();
-      fleetWorkspaceCreateEditPage.waitForPage('mode=edit', 'allowedtargetnamespaces');
-      fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Workspace: ${ customWorkspace }`);
-      });
-      fleetWorkspaceCreateEditPage.resourceDetail().createEditView()
-        .nameNsDescription()
-        .description()
-        .set(`${ customWorkspace }-desc-edit`);
-      fleetWorkspaceCreateEditPage.resourceDetail().cruResource()
-        .saveAndWaitForRequests('PUT', `/v3/fleetWorkspaces/${ customWorkspace }`)
-        .then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.id).to.equal(customWorkspace);
-          expect(response?.body.annotations).to.have.property('field.cattle.io/description', `${ customWorkspace }-desc-edit`);
+      cy.createE2EResourceName('oci-secret').as('ociSecret');
+      cy.get<string>('@ociSecret').then((ociSecretName) => {
+        cy.createRancherResource('v1', 'secrets', ociSecretCreateRequest(customWorkspace, ociSecretName)).then(() => {
+          fleetWorkspacesListPage.goTo();
+          fleetWorkspacesListPage.waitForPage();
+          fleetWorkspacesListPage.list().resourceTable().sortableTable()
+            .noRowsShouldNotExist();
+          fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Edit Config')
+            .click();
+          fleetWorkspaceCreateEditPage.waitForPage('mode=edit', 'allowedtargetnamespaces');
+          fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
+            expect(title.replace(/\s+/g, ' ')).to.contain(`Workspace: ${ customWorkspace }`);
+          });
+
+          const editView = fleetWorkspaceCreateEditPage.resourceDetail().createEditView();
+
+          editView.nameNsDescription().description().set(`${ customWorkspace }-desc-edit`);
+
+          fleetWorkspaceCreateEditPage.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-ociRegistries"]');
+
+          fleetWorkspaceCreateEditPage.defaultOciRegistry().toggle();
+          fleetWorkspaceCreateEditPage.defaultOciRegistry().clickLabel(ociSecretName);
+
+          fleetWorkspaceCreateEditPage.resourceDetail().cruResource()
+            .saveAndWaitForRequests('PUT', `/v3/fleetWorkspaces/${ customWorkspace }`)
+            .then(({ response }) => {
+              expect(response?.statusCode).to.eq(200);
+              expect(response?.body.id).to.equal(customWorkspace);
+              expect(response?.body.annotations).to.have.property('field.cattle.io/description', `${ customWorkspace }-desc-edit`);
+              expect(response?.body.annotations).to.have.property('ui-default-oci-registry', ociSecretName);
+            });
+          fleetWorkspacesListPage.waitForPage();
         });
-      fleetWorkspacesListPage.waitForPage();
+      });
     });
 
     it('can Download YAML', () => {
