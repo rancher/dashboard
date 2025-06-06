@@ -89,7 +89,7 @@ export default {
         return false;
       }
 
-      if (this.model.id === 'cognito') {
+      if (this.isAmazonCognito) {
         const { issuer } = this.model;
 
         return !!(clientId && clientSecret && issuer);
@@ -126,6 +126,10 @@ export default {
       // We assume all do, apart from the ones here, which do not
       return !(['cognito'].includes(this.model.id));
     },
+
+    isAmazonCognito() {
+      return this.model?.id === 'cognito';
+    }
   },
 
   watch: {
@@ -247,7 +251,7 @@ export default {
         <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
 
         <Banner
-          v-if="!model.enabled && 'cognito' === model.id"
+          v-if="!model.enabled && isAmazonCognito"
           color="info"
           class="mb-20 mt-0"
           data-testid="oidc-cognito-banner"
@@ -354,7 +358,7 @@ export default {
           </div>
         </div>
 
-        <template v-if="'cognito' !== model.id">
+        <template v-if="!isAmazonCognito">
           <!-- Generated vs Specific Endpoints -->
           <div class="row mb-20">
             <div class="col span-6">
@@ -476,7 +480,7 @@ export default {
           </AdvancedSection>
         </template>
 
-        <template v-if="'cognito' === model.id">
+        <template v-if="isAmazonCognito">
           <h3>{{ t(`authConfig.oidc.cognitoIssuer`) }}</h3>
           <div class="row mb-20">
             <div class="col span-6">
