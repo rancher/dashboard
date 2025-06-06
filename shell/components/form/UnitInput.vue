@@ -140,6 +140,13 @@ export default {
       type:    Boolean,
       default: false,
     },
+    /**
+     * The sub-label for the Labeled Input.
+     */
+    subLabel: {
+      type:    String,
+      default: null
+    }
   },
 
   data() {
@@ -247,6 +254,7 @@ export default {
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
     :aria-describedby="displayUnit ? describedById : undefined"
+    :sub-label="subLabel"
     @update:value="update"
     @blur="update($event.target.value)"
   >

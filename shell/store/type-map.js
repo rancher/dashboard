@@ -512,21 +512,22 @@ export const getters = {
 
   optionsFor(state, getters, rootState, rootGetters) {
     const def = {
-      isCreatable:            true,
-      isEditable:             true,
-      isRemovable:            true,
-      showState:              true,
-      showAge:                true,
-      canYaml:                true,
-      namespaced:             null,
-      listGroups:             [],
-      listGroupsWillOverride: false,
-      listMandatorySort:      null,
-      depaginate:             false,
-      customRoute:            undefined,
-      resourceEditMasthead:   true,
-      custom:                 {},
-      subTypes:               [],
+      overrideCreateBtnListViewLabelKey: undefined,
+      isCreatable:                       true,
+      isEditable:                        true,
+      isRemovable:                       true,
+      showState:                         true,
+      showAge:                           true,
+      canYaml:                           true,
+      namespaced:                        null,
+      listGroups:                        [],
+      listGroupsWillOverride:            false,
+      listMandatorySort:                 null,
+      depaginate:                        false,
+      customRoute:                       undefined,
+      resourceEditMasthead:              true,
+      custom:                            {},
+      subTypes:                          [],
     };
 
     return (schemaOrType, pagination) => {

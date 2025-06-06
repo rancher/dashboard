@@ -10,6 +10,22 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
+export const RANCHER_AS_OIDC_PROV_COND = ['scope', 'client_id', 'redirect_uri', 'response_type'];
+
+export function checkIfIsRancherAsOidcProviderLogin(vueRoute) {
+  return vueRoute.query && Object.keys(vueRoute.query).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(vueRoute.query).includes(item));
+}
+
+export function getRedirectUrlFromParams(vueRoute, redirectUrlKey) {
+  const redirectUrl = vueRoute.query?.[redirectUrlKey];
+  const urlParams = new URLSearchParams(vueRoute.query);
+
+  if (redirectUrl) {
+    return `${ redirectUrl }?${ urlParams }`;
+  }
+
+  return undefined;
+}
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
