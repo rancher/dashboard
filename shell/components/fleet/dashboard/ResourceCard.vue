@@ -131,8 +131,8 @@ export default {
     :content="{}"
     :value="value"
     @click="select"
-    @keydown.enter.stop.prevent="select"
-    @keydown.space.stop.prevent="$router.push(value.detailLocation)"
+    @keydown.self.enter.stop.prevent="select"
+    @keydown.self.space.stop.prevent="$router.push(value.detailLocation)"
   >
     <template #item-card-image>
       <i
