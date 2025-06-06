@@ -5,12 +5,27 @@ import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
 import FleetUtils from '@shell/utils/fleet';
 
+const HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
+const SSH_REGEX = /^git@github\.com:.*\.git$/;
+
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
     return true;
   }
 
   return false;
+}
+
+function parseSSHUrl(url) {
+  const parts = (url || '').split(':');
+
+  const sshUserAndHost = parts[0];
+  const repoPath = parts[1]?.replace('.git', '');
+
+  return {
+    sshUserAndHost,
+    repoPath
+  };
 }
 
 export default class GitRepo extends FleetApplication {
@@ -103,10 +118,18 @@ export default class GitRepo extends FleetApplication {
   }
 
   get github() {
-    const match = (this.spec.repo || '').match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
+    const value = this.spec.repo || '';
 
-    if (match) {
-      return match[1];
+    const matchHttps = value.match(HTTPS_REGEX);
+
+    if (matchHttps) {
+      return matchHttps[1];
+    }
+
+    const matchSSH = value.match(SSH_REGEX);
+
+    if (matchSSH) {
+      return parseSSHUrl(matchSSH[0]).repoPath;
     }
 
     return false;
@@ -170,8 +193,18 @@ export default class GitRepo extends FleetApplication {
   }
 
   get source() {
+    let value = this.spec.repo || '';
+
+    const matchSSH = value.match(SSH_REGEX);
+
+    if (matchSSH) {
+      const { sshUserAndHost, repoPath } = parseSSHUrl(matchSSH[0]);
+
+      value = `https://${ sshUserAndHost.replace('git@', '') }/${ repoPath }`;
+    }
+
     return {
-      value:   this.spec.repo || '',
+      value,
       display: this.repoDisplay,
       icon:    this.resourceIcon,
     };
