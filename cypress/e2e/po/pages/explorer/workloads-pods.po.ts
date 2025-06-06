@@ -1,11 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import PodsListPo from '@/cypress/e2e/po/lists/pods-list.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { WorkloadsCreatePageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
-import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 
-export class WorkloadsPodsListPagePo extends PagePo {
+export class WorkloadsPodsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/pod`;
   }
@@ -27,21 +26,13 @@ export class WorkloadsPodsListPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Pods');
   }
 
-  list(): PodsListPo {
-    return new PodsListPo('[data-testid="sortable-table-list-container"]');
-  }
-
-  sortableTable() {
-    return this.list().resourceTable().sortableTable();
-  }
-
   createPod() {
     return this.list().masthead().actions().eq(0)
       .click();
   }
 }
 
-export class WorkLoadsPodDetailsPagePo extends PagePo {
+export class WorkLoadsPodDetailsPagePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(podId: string, clusterId: string, namespaceId: string, queryParams?: Record<string, string>) {
@@ -71,7 +62,7 @@ export class WorkloadsPodsCreatePagePo extends WorkloadsCreatePageBasePo {
     super(clusterId, workloadType, queryParams);
   }
 }
-export class WorkLoadsPodEditPagePo extends PagePo {
+export class WorkLoadsPodEditPagePo extends BaseDetailPagePo {
   private static createPath(podId: string, clusterId: string, namespaceId: string) {
     return `/c/${ clusterId }/explorer/pod/${ namespaceId }/${ podId }`;
   }
@@ -86,9 +77,5 @@ export class WorkLoadsPodEditPagePo extends PagePo {
 
   constructor(podId: string, clusterId = 'local', namespaceId = 'default') {
     super(WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId));
-  }
-
-  saveCreateForm(): ResourceDetailPo {
-    return new ResourceDetailPo(this.self());
   }
 }

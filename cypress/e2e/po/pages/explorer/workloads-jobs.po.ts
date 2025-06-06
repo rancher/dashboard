@@ -1,10 +1,11 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '~/cypress/e2e/po/pages/base/base-detail-page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
-export class WorkloadsJobsListPagePo extends PagePo {
+export class WorkloadsJobsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/batch.job`;
   }
@@ -17,21 +18,17 @@ export class WorkloadsJobsListPagePo extends PagePo {
     super(WorkloadsJobsListPagePo.createPath(clusterId));
   }
 
-  list() {
-    return new BaseResourceList(this.self());
-  }
+  static navTo(clusterId = 'local') {
+    const burgerMenu = new BurgerMenuPo();
+    const sideNav = new ProductNavPo();
 
-  listCreate() {
-    return this.list().masthead().actions().eq(0)
-      .click();
-  }
-
-  listElementWithName(name:string) {
-    return this.list().resourceTable().sortableTable().rowElementWithName(name);
+    burgerMenu.goToCluster(clusterId);
+    sideNav.navToSideMenuGroupByLabel('Workloads');
+    sideNav.navToSideMenuEntryByLabel('Jobs');
   }
 }
 
-export class WorkLoadsJobDetailsPagePo extends PagePo {
+export class WorkLoadsJobDetailsPagePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(jobId: string, clusterId: string, namespaceId: string, queryParams?: Record<string, string>) {
@@ -67,16 +64,8 @@ export class WorkLoadsJobDetailsPagePo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'Namespace');
   }
 
-  name() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="name-ns-description-name"]');
-  }
-
   containerImage(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Container Image');
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
   errorBanner() {
