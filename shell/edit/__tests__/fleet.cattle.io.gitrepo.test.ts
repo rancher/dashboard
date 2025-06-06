@@ -5,6 +5,7 @@ import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
 
 const mockStore = {
   dispatch: jest.fn(),
+  commit:   jest.fn(),
   getters:  {
     'i18n/t':                  (text: string) => text,
     'i18n/exists':             jest.fn(),
