@@ -276,6 +276,7 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
           getters: {
             currentProduct:         { inStore: 'cluster' },
             'management/schemaFor': jest.fn(),
+            'rancher/byId':         jest.fn(),
             'i18n/t':               (text: string) => text,
             t:                      (text: string) => text,
           },

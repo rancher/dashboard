@@ -549,7 +549,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="!isWorkspaceCollapsed[workspace.id]"
+          v-if="!isWorkspaceCollapsed[workspace.id] && workspace.repos?.length"
           class="card-panel-expand mt-10"
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
