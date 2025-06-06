@@ -40,23 +40,28 @@ export default {
 </script>
 
 <template>
-  <Link
-    class="source-link"
-    label-key="source.display"
-    before-icon-key="source.icon"
-    url-key="source.value"
-    :row="row"
-    :value="row.source.value || ''"
-  />
-  <template v-if="row.source.value && row.sourceSub.value">
-    <div class="text-muted">
-      <Shortened
-        long-value-key="sourceSub.value"
-        :row="row"
-        :value="row.sourceSub.display"
-      />
-    </div>
+  <template v-if="row.source.showLink">
+    <Link
+      class="source-link"
+      label-key="source.display"
+      before-icon-key="source.icon"
+      url-key="source.value"
+      :row="row"
+      :value="row.source.value || ''"
+    />
+    <template v-if="row.source.value && row.sourceSub.value">
+      <div class="text-muted">
+        <Shortened
+          long-value-key="sourceSub.value"
+          :row="row"
+          :value="row.sourceSub.display"
+        />
+      </div>
+    </template>
   </template>
+  <span v-else>
+    {{ row.source.value }}
+  </span>
 </template>
 
 <style lang="scss" scoped>
