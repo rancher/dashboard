@@ -156,6 +156,10 @@ export default {
   created() {
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
     this.registerBeforeHook(this.updateBeforeSave);
+
+    if (this.realMode === _EDIT && this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
   },
 
   mounted() {
