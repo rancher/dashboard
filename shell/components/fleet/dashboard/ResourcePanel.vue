@@ -102,6 +102,10 @@ export default {
     if (this.showChart) {
       const container = document.getElementById(`${ this.chartId }-container`);
 
+      if (!container) {
+        return;
+      }
+
       const canvas = document.createElement('canvas');
 
       canvas.id = this.chartId;

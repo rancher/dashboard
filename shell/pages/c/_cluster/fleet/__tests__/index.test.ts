@@ -42,7 +42,8 @@ const fleetWorkspaces = [
       },
       uid: 'c117994d-5d21-4ac5-97be-15f25c5e8801'
     },
-    status: {}
+    status: {},
+    repos:  [{ name: 'lots-a' }]
   },
   {
     id:         'fleet-default',
@@ -83,7 +84,8 @@ const fleetWorkspaces = [
       },
       uid: 'c117994d-5d21-4ac5-97be-15f25c5e8801'
     },
-    status: {}
+    status: {},
+    repos:  [{ name: 'lots-c' }]
   }
 ];
 
