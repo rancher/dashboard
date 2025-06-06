@@ -72,19 +72,19 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
     chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
     // a deprecated chart should not be listed before enabling the checkbox
-    chartsPage.getAppByName('deprecatedChart').should('not.exist');
+    chartsPage.getAppByName('deprecatedChart').checkNotExists();
     // an experimental chart should still be visible
-    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+    chartsPage.getAppByName('experimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
     // a chart that's deprecated & experimental should not be listed before enabling the checkbox
-    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('not.exist');
+    chartsPage.getAppByName('deprecatedAndExperimentalChart').checkNotExists();
     // enabling the checkbox
     chartsPage.chartsShowDeprecatedFilterCheckbox().set();
-    chartsPage.getAppByName('deprecatedChart').should('exist').scrollIntoView()
+    chartsPage.getAppByName('deprecatedChart').checkExists().scrollIntoView()
       .and('be.visible');
-    chartsPage.getAppByName('experimentalChart').should('exist').scrollIntoView()
+    chartsPage.getAppByName('experimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
-    chartsPage.getAppByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView()
+    chartsPage.getAppByName('deprecatedAndExperimentalChart').checkExists().scrollIntoView()
       .and('be.visible');
     // going to chart's page
     const chartPage = new ChartPage();
@@ -105,7 +105,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getAppByName(chartName)
-      .should('exist')
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
@@ -129,7 +129,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getAppByName(chartName)
-      .should('exist')
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
