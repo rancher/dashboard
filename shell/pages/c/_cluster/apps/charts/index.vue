@@ -441,7 +441,7 @@ export default {
           data-testid="app-chart-cards-container"
         >
           <rc-item-card
-            v-for="(card, i) in appCards"
+            v-for="(card, i) in appChartCards"
             :id="card.id"
             :key="card.id"
             :pill="card.pill"
