@@ -93,6 +93,43 @@ export default class HelmOp extends FleetApplication {
     return FleetUtils.resourceIcons[FLEET.HELM_OP];
   }
 
+  github(value) {
+    const url = (value || '');
+
+    const matchHttps = url.match(FleetUtils.HTTPS_REGEX);
+
+    if (matchHttps) {
+      return matchHttps[1];
+    }
+
+    const matchSSH = url.match(FleetUtils.SSH_REGEX);
+
+    if (matchSSH) {
+      return FleetUtils.parseSSHUrl(matchSSH[0]).repoPath;
+    }
+
+    return false;
+  }
+
+  repoDisplay(repo) {
+    if (!repo) {
+      return null;
+    }
+
+    const github = this.github(repo);
+
+    if (github) {
+      return github;
+    }
+
+    repo = repo.replace(/.git$/, '');
+    repo = repo.replace(/^https:\/\//, '');
+    repo = repo.replace(/^oci:\/\//, '');
+    repo = repo.replace(/\/+$/, '');
+
+    return repo;
+  }
+
   /**
    *  Source type examples:
    *
@@ -139,10 +176,21 @@ export default class HelmOp extends FleetApplication {
       value = this.spec.helm?.chart || ''; // TODO ellipsis and tooltip
     }
 
+    const matchHttps = value.match(FleetUtils.HTTPS_REGEX);
+    const matchOCI = value.match(FleetUtils.OCI_REGEX);
+    const matchSSH = value.match(FleetUtils.SSH_REGEX);
+
+    if (matchSSH) {
+      const { sshUserAndHost, repoPath } = FleetUtils.parseSSHUrl(matchSSH[0]);
+
+      value = `https://${ sshUserAndHost.replace('git@', '') }/${ repoPath }`;
+    }
+
     return {
       value,
-      display: value,
-      icon:    'icon icon-application'
+      display:  this.repoDisplay(value),
+      icon:     'icon icon-application',
+      showLink: matchHttps || matchSSH || matchOCI
     };
   }
 

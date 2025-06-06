@@ -151,6 +151,30 @@ class Fleet {
 
   HelmOp = new HelmOp();
 
+  HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
+  SSH_REGEX = /^git@github\.com:.*\.git$/;
+  OCI_REGEX = /^oci:\/\//;
+
+  quacksLikeAHash(str: string) {
+    if (str.match(/^[a-f0-9]{40,}$/i)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  parseSSHUrl(url: string) {
+    const parts = (url || '').split(':');
+
+    const sshUserAndHost = parts[0];
+    const repoPath = parts[1]?.replace('.git', '');
+
+    return {
+      sshUserAndHost,
+      repoPath
+    };
+  }
+
   resourceId(r: BundleResourceKey): string {
     return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
   }
