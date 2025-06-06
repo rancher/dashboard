@@ -5,7 +5,7 @@ const LOCAL_STORAGE_KEY = '#notifications';
 // Expire in seconds (14 days)
 const EXPIRY = 14 * 24 * 60 * 60;
 
-// Maximum number of notifications that are allowed
+// Maximum number of notifications that will be kept
 const MAX_NOTIFICATIONS = 50;
 
 /**
@@ -190,11 +190,7 @@ export const mutations = {
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
-    // state.notifications.unshift(notification);
     state.notifications = notifications;
-
-    // Sort the notifications by created date so that this one appears in the correct place
-    // TODO
   },
 };
 
