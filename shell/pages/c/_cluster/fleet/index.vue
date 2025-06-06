@@ -10,6 +10,7 @@ import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth'
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import { RcButton } from '@components/RcButton';
 import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
 import ResourceCard from '@shell/components/fleet/dashboard/ResourceCard.vue';
 import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
@@ -29,6 +30,7 @@ export default {
     FleetRepos,
     Loading,
     NoWorkspaces,
+    RcButton,
     ResourceCard,
     ResourcePanel,
   },
@@ -530,17 +532,19 @@ export default {
               class="expand-button"
               :data-testid="'expand-button'"
             >
-              <i
-                role="button"
-                tabindex="0"
-                :aria-label="t(`${ isWorkspaceCollapsed[workspace.id] ? 'expand': 'collapse' }-${ workspace.id }`)"
-                :class="{
-                  ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
-                  ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
-                }"
+              <RcButton
+                small
+                ghost
+                :aria-label="`workspace-expand-btn-${ workspace.id }`"
                 @click="toggleCard(workspace.id)"
-                @keydown.space.enter.stop.prevent="toggleCard(workspace.id)"
-              />
+              >
+                <i
+                  :class="{
+                    ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
+                  }"
+                />
+              </RcButton>
             </div>
           </div>
         </div>
@@ -604,7 +608,7 @@ export default {
                   role="button"
                   tabindex="0"
                   class="title"
-                  :aria-label="t(`${ isStateCollapsed[workspace.id]?.[state.stateDisplay] ? 'expand': 'collapse' }-${ state.stateDisplay }`)"
+                  :aria-label="`state-expand-btn-${ state.stateDisplay }`"
                   @click="toggleState(workspace.id, state.stateDisplay)"
                   @keydown.space.enter.stop.prevent="toggleState(workspace.id, state.stateDisplay)"
                 >
@@ -645,7 +649,7 @@ export default {
                         v-if="y < (cardsCount[workspace.id]?.[state.stateDisplay] || CARDS_MIN)"
                         role="button"
                         tabindex="0"
-                        :aria-label="`aria-label-card-${ item.id }`"
+                        :aria-label="`resource-card-${ item.id }`"
                         :data-testid="`resource-card-${ item.id }`"
                         :value="item"
                         :state-panel="state.statePanel"
@@ -729,6 +733,10 @@ export default {
   min-width: 500px;
   padding: 16px;
 
+  :focus-visible {
+    @include focus-outline;
+  }
+
   .card-panel-main {
     display: flex;
     align-items: center;
@@ -789,6 +797,10 @@ export default {
 
   .card-panel-expand {
     animation: slideInOut 0.5s ease-in-out;
+
+    :focus-visible {
+      @include focus-outline;
+    }
 
     .actions {
       display: flex;
