@@ -1,12 +1,15 @@
 import { watch } from 'vue';
 import { dasherize } from '@shell/utils/string';
+import { NORMAN } from '@shell/config/types';
 
 export default {
-
   data() {
+    const principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+
     return {
       _init:   [],
-      presets: {}
+      presets: {},
+      user:    principal.loginName,
     };
   },
 
@@ -29,7 +32,7 @@ export default {
       console.warn(`Preset: load presets failed, invalid presets [${ this.presetKey }]`); // eslint-disable-line no-console
     }
 
-    if (presets?.data && presets?.version === version) {
+    if (presets?.data && presets?.user === this.user && presets?.version === version) {
       this.presets = presets;
 
       return;
@@ -37,6 +40,7 @@ export default {
 
     this.presets = {
       data: {},
+      user: this.user,
       version
     };
   },
