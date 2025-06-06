@@ -3,7 +3,12 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
 
-export default class AuthProviderPo extends PagePo {
+export enum AuthProvider {
+  AMAZON_COGNITO = 'Amazon Cognito', // eslint-disable-line no-unused-vars
+  AZURE = 'AzureAD', // eslint-disable-line no-unused-vars
+}
+
+export class AuthProviderPo extends PagePo {
   private static createPath(clusterId: string, id?: string ) {
     return `/c/${ clusterId }/auth/config`;
   }
@@ -31,15 +36,13 @@ export default class AuthProviderPo extends PagePo {
     return PagePo.goTo(`/c/${ clusterId }/auth/config/azuread?mode=edit`);
   }
 
-  selectAzureAd() {
-    return this.selectionGrid().select('AzureAD"]');
-  }
-
   goToAmazonCongitoCreation(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(`/c/${ clusterId }/auth/config/cognito?mode=edit`);
   }
 
-  selectAmazonCognito() {
-    return this.selectionGrid().select('Amazon Cognito"]');
+  selectProvider(provider: AuthProvider) {
+    return this.selectionGrid().select(provider);
   }
 }
+
+export default AuthProviderPo;

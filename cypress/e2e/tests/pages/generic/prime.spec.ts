@@ -1,5 +1,5 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import AuthProviderPo from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 import AzureadPo from '@/cypress/e2e/po/edit/auth/azuread.po';
 
 const homePage = new HomePagePo();
@@ -35,7 +35,7 @@ describe('Prime Extension', { testIsolation: 'off', tags: ['@generic', '@adminUs
   it('should have prime doc link in a page that renders a doc link from i18n', () => {
     AuthProviderPo.navTo();
     authProviderPo.waitForPage();
-    authProviderPo.selectAzureAd();
+    authProviderPo.selectProvider(AuthProvider.AZURE);
     azureadPo.waitForPage();
 
     azureadPo.permissionsWarningBanner().find('A').should('have.attr', 'href').and('satisfy', (href: string) => href.indexOf(PRIME_DOCS_BASE) === 0);

@@ -1,6 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AmazonCognitoPo from '@/cypress/e2e/po/edit/auth/cognito.po';
-import AuthProviderPo from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
 const authProviderPo = new AuthProviderPo('local');
 const cognitoPo = new AmazonCognitoPo('local');
@@ -19,7 +19,7 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
     authProviderPo.waitForPage();
-    authProviderPo.selectAmazonCognito();
+    authProviderPo.selectProvider(AuthProvider.AMAZON_COGNITO);
     cognitoPo.waitForPage();
   });
 
@@ -30,7 +30,7 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     cognitoPo.permissionsWarningBanner().should('be.visible');
   });
 
-  it('sends correct request to create Amazon Cognito AD', () => {
+  it('sends correct request to create Amazon Cognito auth provider', () => {
     cy.intercept('POST', 'v3/cognitoConfigs/cognito?action=configureTest', (req) => {
       expect(req.body.enabled).to.equal(false);
       expect(req.body.id).to.equal('cognito');
