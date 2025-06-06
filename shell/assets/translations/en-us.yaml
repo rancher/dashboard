@@ -2563,6 +2563,14 @@ fleet:
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
       empty: The root of the repo is used by default. Multiple different directories can be provided.
+    bundlePaths:
+      label: Subpaths
+      tooltip: Fleet will use additional kubernetes and config YAML files defined in subpaths to deploy resources. Multiple base directories and options can be provided.
+      protipKey: "A subpath in the Git Repo."
+      protipValue: "The name of a fleet config file in the subpath; optional."
+      props:
+        base: Base
+        options: Options
     repo:
       title: Source
       label: Repository URL

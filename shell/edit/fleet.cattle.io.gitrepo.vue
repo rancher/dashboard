@@ -1,4 +1,5 @@
 <script>
+import KeyValue from '@shell/components/form/KeyValue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -44,6 +45,7 @@ export default {
   emits: ['input'],
 
   components: {
+    KeyValue,
     Checkbox,
     ArrayList,
     Banner,
@@ -577,6 +579,17 @@ export default {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.value.currentUser.id;
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = this.value.currentUser.username;
       }
+
+      this.value.spec.bundles = this.value.spec.bundles?.reduce((acc, bundle) => {
+        if (bundle.base) {
+          return [
+            ...acc,
+            bundle
+          ];
+        }
+
+        return acc;
+      }, []);
     },
 
     durationSeconds(value) {
@@ -654,6 +667,7 @@ export default {
       <ArrayList
         v-model:value="value.spec.paths"
         data-testid="gitRepo-paths"
+        class="mb-20"
         :title="t('fleet.gitRepo.paths.label')"
         :mode="mode"
         :initial-empty-row="false"
@@ -662,6 +676,29 @@ export default {
         :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
         :add-icon="'icon-plus'"
         :protip="t('fleet.gitRepo.paths.empty')"
+        :remove-label="' '"
+        :remove-icon="'icon-x'"
+      />
+
+      <KeyValue
+        v-model:value="value.spec.bundles"
+        :mode="mode"
+        :title="t('fleet.gitRepo.bundlePaths.label')"
+        :titleProtip="t('fleet.gitRepo.bundlePaths.tooltip')"
+        :protip="t('fleet.gitRepo.bundlePaths.protipKey')"
+        :protip-value="t('fleet.gitRepo.bundlePaths.protipValue')"
+        :key-name="'base'"
+        :value-name="'options'"
+        :key-label="t('fleet.gitRepo.bundlePaths.props.base')"
+        :value-label="t('fleet.gitRepo.bundlePaths.props.options')"
+        :as-map="false"
+        :value-can-be-empty="true"
+        :read-allowed="false"
+        :key-placeholder="' '"
+        :value-placeholder="' '"
+        :add-icon="'icon-plus'"
+        :remove-label="' '"
+        :remove-icon="'icon-x'"
       />
     </template>
 
