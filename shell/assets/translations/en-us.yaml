@@ -748,6 +748,14 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  registerApplication:
+    action: Add Application
+    success: Added
+    waiting: Adding&hellip;
+  saveApplication:
+    action: Save Application
+    success: Saveed
+    waiting: Saving&hellip;
   apply:
     action: Apply
     success: Applied
@@ -6576,6 +6584,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+  genericUrl: field must be a valid URL
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -7275,6 +7284,11 @@ typeDescription:
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
 
 typeLabel:
+  management.cattle.io.oidcclient: |-
+    {count, plural,
+      one { Client Application }
+      other { Client Applications }
+    }
   management.cattle.io.token: |-
     {count, plural,
       one { API Key }
@@ -7836,6 +7850,60 @@ typeLabel:
       one { Cluster Registration Token }
       other { Cluster Registration Tokens }
     }
+
+oidcclient:
+  a11y:
+    copyText:
+      issuerURL: Copy Issuer URL to clipboard
+      discoveryDocument: Copy Discovery Document URL to clipboard
+      jwksUri: Copy JWKS URI to clipboard
+      clientId: Copy client Id to clipboard
+      clientSecret: Copy client secret to clipboard
+  usedNever: Never
+  listViewCreate: Add Application
+  listInfoBanner: Here you can add applications to Rancher's single sign-on identity provider
+  oidcEndpoints: OIDC Endpoints
+  createClient: Create a new application
+  clientData: Application
+  clientId: Client ID
+  clientSecrets: Client Secrets
+  issuerURL: Issuer URL
+  discoveryDocument: Discovery Document
+  jwksUri: JWKS URI
+  regenerate: Regenerate
+  addNewSecret: Add new secret
+  copySecretText: <b>Copy your secret now<b>. This is the only time it will be displayed. Be sure to save it in a safe place
+  secretRegenerated: Secret regenerated!
+  secretAdded: Secret Added!
+  removeOidcClientModal:
+    title: Client Application deletion
+    content: Are you sure you want to delete the following client applications?
+    action: Delete Application
+  regenModal:
+    title: Client Application Secret regeneration
+    content: Are you sure you want to regenerate this client application secret? The old secret will stop working immediately
+    action: Regenerate Secret
+  removeModal:
+    title: Client Application Secret deletion
+    content: Are you sure you want to delete this client application secret? The old secret will stop working immediately
+    action: Delete Secret
+  appName:
+    label: Application Name
+    placeholder: The name of your application shown to users during the authorization flow
+  appDescription:
+    label: Application Description
+    placeholder: A brief description of your application
+  redirectURIs:
+    label: Authorization Callback URLs
+    addLabel: Add Callback URL
+    valueLabel: Redirect URIs
+    placeholder: The allowed redirect URL for your application after a user authenticates. HTTPS is required. You may add multiple URLs
+  refreshTokenExpirationSeconds:
+    label: Refresh Token Expiration
+    placeholder:  Duration (in seconds) a refresh token can be used to obtain new access/ID tokens without re-login
+  tokenExpirationSeconds:
+    label: Token Expiration
+    placeholder:  Duration (in seconds) the token containing user authentication information is valid
 
 action:
   ariaLabel:
