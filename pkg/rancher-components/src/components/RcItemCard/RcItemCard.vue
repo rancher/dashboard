@@ -107,11 +107,14 @@ const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; ( e: 'vari
 
 /**
  * Handles the card click while avoiding nested interactive elements
- * By having .no-card-click class on an element the 'card-click' will be ignored
+ * By using RcItemCardAction.vue the 'item-card-action' attribute automatically gets added
+ * which then gets used to ignore 'card-click'
  */
 function _handleCardClick(e: MouseEvent | KeyboardEvent) {
+  const interactiveSelector = '[item-card-action]';
+
   // Prevent card click if the user clicks on an inner actionable element like repo, category, or tag
-  if ((e.target as HTMLElement).closest('.no-card-click')) {
+  if ((e.target as HTMLElement).closest(interactiveSelector)) {
     return;
   }
 
@@ -287,12 +290,12 @@ watch(dynamicVariant, (neu) => {
             </div>
 
             <template v-if="$slots['item-card-actions']">
-              <div class="item-card-header-action-menu no-card-click">
+              <div class="item-card-header-action-menu">
                 <slot name="item-card-actions" />
               </div>
             </template>
             <template v-else-if="actions">
-              <div class="item-card-header-action-menu no-card-click">
+              <div class="item-card-header-action-menu">
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
                   :custom-actions="actions"

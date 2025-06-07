@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RcItemCardAction } from '@components/RcItemCard';
 
 interface FooterItem {
   icon?: string;
@@ -17,7 +18,7 @@ defineProps<{
     <div
       v-for="(footerItem, i) in items"
       :key="i"
-      class="app-chart-card-footer-item no-card-click"
+      class="app-chart-card-footer-item"
       data-testid="app-chart-card-footer-item"
     >
       <i
@@ -25,14 +26,14 @@ defineProps<{
         v-clean-tooltip="t(footerItem.iconTooltip?.key)"
         :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
       />
-      <p
+      <rc-item-card-action
         v-for="(label, j) in footerItem.labels"
         :key="j"
         class="app-chart-card-footer-item-text"
         data-testid="app-chart-card-footer-item-text"
       >
         {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
-      </p>
+      </rc-item-card-action>
     </div>
   </div>
 </template>
