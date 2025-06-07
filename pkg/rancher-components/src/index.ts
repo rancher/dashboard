@@ -10,5 +10,5 @@ export {
   RcDropdownTrigger,
   RcDropdownMenu
 } from './components/RcDropdown';
-export { RcItemCard } from './components/RcItemCard';
+export { RcItemCard, RcItemCardAction } from './components/RcItemCard';
 export * from './components/Form';

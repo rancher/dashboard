@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RcItemCard from './RcItemCard.vue';
+import RcItemCardAction from './RcItemCardAction.vue';
 
 class ResizeObserverMock {
   observe = jest.fn();
@@ -100,16 +101,17 @@ describe('rcItemCard', () => {
     expect(emitted?.[0]).toStrictEqual([{ someProperty: 'some-value' }]);
   });
 
-  it('does not emit card-click when clicking on .no-card-click', async() => {
+  it('does not emit card-click when clicking on rc-item-card-action content', async() => {
     const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
         clickable: true
       },
-      slots: { 'item-card-actions': '<button class="no-card-click">Actions</button>' }
+      global: { components: { RcItemCardAction } },
+      slots:  { 'item-card-actions': '<rc-item-card-action>Click me</rc-item-card-action>' }
     });
 
-    await wrapper.find('.no-card-click').trigger('click');
+    await wrapper.get('[data-testid="rc-item-card-action"]').trigger('click');
 
     expect(wrapper.emitted('card-click')).toBeFalsy();
   });
