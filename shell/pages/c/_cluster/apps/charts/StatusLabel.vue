@@ -13,7 +13,7 @@ defineProps<{
   <div class="status-label">
     {{ label }}
     <i
-      v-clean-tooltip="tooltip"
+      v-clean-tooltip.right="tooltip"
       :class="['icon', icon, iconColor]"
     />
   </div>

@@ -153,7 +153,7 @@ const updateFilter = (key: string, value: string[]) => {
   &-filter-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
 
     &-title {
@@ -170,11 +170,12 @@ const updateFilter = (key: string, value: string[]) => {
     .filter-panel-filter-checkbox {
 
       .checkbox-label span {
-        max-width: 240px;
+        max-width: 200px;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
         color: var(--link-text-secondary);
+        margin-left: 4px;
       }
     }
   }
