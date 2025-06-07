@@ -24,7 +24,7 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
-    chartsPage.charts().select(chartName);
+    chartsPage.clickChart(chartName);
   }
 
   chartHeader(options?: any) {
