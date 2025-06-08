@@ -1047,7 +1047,12 @@ catalog:
     search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
-    addNew: Add new
+    addNewRepo:
+      label: Add new
+      ariaLabel: Add a new repository
+    appChartCard:
+      footerItem:
+        ariaLabel: Apply filter
     experimentalStatus:
       tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
   install:

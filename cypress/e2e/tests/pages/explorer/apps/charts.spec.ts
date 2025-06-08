@@ -78,6 +78,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the list of repository filters', () => {
     // go to repository page and disable a repo
     const appRepoList = new ReposListPagePo('local', 'apps');
+
     appRepoList.goTo();
     appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();

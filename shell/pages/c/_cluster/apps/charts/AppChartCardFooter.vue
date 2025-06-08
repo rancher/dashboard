@@ -39,7 +39,13 @@ function onFooterItemClick(type: string, label: string) {
         data-testid="app-chart-card-footer-item-text"
         @click="onFooterItemClick(footerItem.type, label)"
       >
-        {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+        <span
+          tabindex="0"
+          :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
+        >
+          {{ label }}
+        </span>
+        <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </rc-item-card-action>
     </div>
   </div>
