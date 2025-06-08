@@ -1,6 +1,7 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 
 const chartsPage = new ChartsPage();
 
@@ -74,27 +75,26 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
   });
 
-  it('A disabled repo should NOT be listed on the repos dropdown', () => {
-    const disabledRepoId = 'disabled-repo';
-
-    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`, (req) => {
-      req.reply({
-        statusCode: 200,
-        body:       {
-          data: [
-            { id: disabledRepoId, spec: { enabled: false } }, // disabled
-            { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
-            { id: 'enabled-repo-2', spec: {} } // enabled
-          ]
-        }
-      });
-    }).as('getRepos');
-
-    cy.wait('@getRepos');
-
-    chartsPage.getFilterOptionByName('enabled-repo-1').checkExists();
-    chartsPage.getFilterOptionByName('enabled-repo-2').checkExists();
-    chartsPage.getAllOptionsByGroupName('Repository').contains(disabledRepoId)
+  it('A disabled repo should NOT be listed on the list of repository filters', () => {
+    // go to repository page and disable a repo
+    const appRepoList = new ReposListPagePo('local', 'apps');
+    appRepoList.goTo();
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+    appRepoList.list().actionMenu('Partners').getMenuItem('Disable').click();
+    // go to charts page
+    chartsPage.goTo();
+    chartsPage.waitForPage();
+    // check enabled repos are listed but the disabled repo is not
+    chartsPage.getFilterOptionByName('Rancher').checkExists();
+    chartsPage.getFilterOptionByName('RKE2').checkExists();
+    chartsPage.getAllOptionsByGroupName('Repository').contains('Partners')
       .should('not.exist');
+
+    // re-enable the disabled repo
+    appRepoList.goTo();
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
+    appRepoList.list().actionMenu('Partners').getMenuItem('Enable').click();
   });
 });
