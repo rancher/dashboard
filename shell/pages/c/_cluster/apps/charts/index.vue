@@ -214,6 +214,31 @@ export default {
       return sortBy(out, ['label']);
     },
 
+    filterPanelFilters() {
+      return [
+        {
+          key:     'repos',
+          title:   this.t('gitPicker.github.repo.label'),
+          options: this.repoOptions
+        },
+        {
+          key:     'categories',
+          title:   this.t('generic.category'),
+          options: this.categoryOptions
+        },
+        {
+          key:     'statuses',
+          title:   this.t('tableHeaders.status'),
+          options: this.statusOptions
+        },
+        {
+          key:     'tags',
+          title:   this.t('generic.tag'),
+          options: this.tagOptions
+        }
+      ];
+    },
+
     appChartCards() {
       return this.filteredCharts.map((chart) => ({
         id:     chart.id,
@@ -400,84 +425,55 @@ export default {
       :label="err"
     />
 
-    <template v-if="allCharts.length">
-      <div class="wrapper">
-        <rc-filter-panel
-          :value="internalFilters"
-          :filters="[
-            {
-              key: 'repos',
-              title: 'Repository',
-              options: repoOptions
-            },
-            {
-              key: 'categories',
-              title: 'Category',
-              options: categoryOptions
-            },
-            {
-              key: 'statuses',
-              title: 'Status',
-              options: statusOptions
-            },
-            {
-              key: 'tags',
-              title: 'Tag',
-              options: tagOptions
-            }
-          ]"
-          @filter-change="onFilterChange"
-        />
+    <div class="wrapper">
+      <rc-filter-panel
+        :value="internalFilters"
+        :filters="filterPanelFilters"
+        @filter-change="onFilterChange"
+      />
 
-        <div
-          v-if="filteredCharts.length === 0"
-          class="app-chart-cards-empty-state"
-        >
-          <h1>{{ t('catalog.charts.noCharts') }}</h1>
-        </div>
-        <div
-          v-else
-          class="app-chart-cards"
-          data-testid="app-chart-cards-container"
-        >
-          <rc-item-card
-            v-for="(card, i) in appChartCards"
-            :id="card.id"
-            :key="card.id"
-            :pill="card.pill"
-            :header="card.header"
-            :image="card.image"
-            :content="card.content"
-            :value="card.rawChart"
-            :variant="i === 0 ? undefined : (cardVariant || 'medium')"
-            :clickable="true"
-            @card-click="selectChart"
-            @variant="cardVariant = $event"
-          >
-            <template
-              v-once
-              #item-card-sub-header
-            >
-              <AppChartCardSubHeader :items="card.subHeaderItems" />
-            </template>
-            <template
-              v-once
-              #item-card-footer
-            >
-              <AppChartCardFooter
-                :items="card.footerItems"
-                @footer-item-click="handleFooterItemClick"
-              />
-            </template>
-          </rc-item-card>
-        </div>
+      <div
+        v-if="filteredCharts.length === 0"
+        class="app-chart-cards-empty-state"
+      >
+        <h1>{{ t('catalog.charts.noCharts') }}</h1>
       </div>
-    </template>
-    <div
-      v-else
-      class="m-50 text-center"
-    >
-      <h1>{{ t('catalog.charts.noCharts') }}</h1>
+      <div
+        v-else
+        class="app-chart-cards"
+        data-testid="app-chart-cards-container"
+      >
+        <rc-item-card
+          v-for="(card, i) in appChartCards"
+          :id="card.id"
+          :key="card.id"
+          :pill="card.pill"
+          :header="card.header"
+          :image="card.image"
+          :content="card.content"
+          :value="card.rawChart"
+          :variant="i === 0 ? undefined : (cardVariant || 'medium')"
+          :clickable="true"
+          @card-click="selectChart"
+          @variant="cardVariant = $event"
+        >
+          <template
+            v-once
+            #item-card-sub-header
+          >
+            <AppChartCardSubHeader :items="card.subHeaderItems" />
+          </template>
+          <template
+            v-once
+            #item-card-footer
+          >
+            <AppChartCardFooter
+              :items="card.footerItems"
+              @footer-item-click="handleFooterItemClick"
+            />
+          </template>
+        </rc-item-card>
+      </div>
     </div>
   </div>
 </template>

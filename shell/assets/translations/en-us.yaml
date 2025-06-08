@@ -125,6 +125,7 @@ generic:
   shortFeatured: Feat
   category: Category
   tags: Tags
+  tag: Tag
   placeholder: "e.g. {text}"
   moreInfo: More Info
   selectors:
