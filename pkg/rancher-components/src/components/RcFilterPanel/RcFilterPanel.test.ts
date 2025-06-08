@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RcFilterPanel from './RcFilterPanel.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const filters = [
   {
@@ -45,9 +46,12 @@ describe('rcFilterPanel', () => {
       }
     });
 
-    const deprecatedCheckbox = wrapper.getComponent('[data-testid="filter-panel-filter-checkbox-1"]');
+    const checkboxes = wrapper.findAllComponents(Checkbox);
+    const deprecatedCheckbox = checkboxes.find((c) => c.props('label') === 'Deprecated');
 
-    deprecatedCheckbox.vm.$emit('update:value', ['installed', 'deprecated']);
+    expect(deprecatedCheckbox).toBeTruthy();
+
+    deprecatedCheckbox?.vm.$emit('update:value', ['installed', 'deprecated']);
     await wrapper.vm.$nextTick();
 
     const emitted = wrapper.emitted('update:modelValue');
@@ -64,9 +68,12 @@ describe('rcFilterPanel', () => {
       }
     });
 
-    const installedCheckbox = wrapper.getComponent('[data-testid="filter-panel-filter-checkbox-0"]');
+    const checkboxes = wrapper.findAllComponents(Checkbox);
+    const installedCheckbox = checkboxes.find((c) => c.props('label') === 'Installed');
 
-    installedCheckbox.vm.$emit('update:value', ['installed']);
+    expect(installedCheckbox).toBeTruthy();
+
+    installedCheckbox?.vm.$emit('update:value', ['installed']);
     await wrapper.vm.$nextTick();
 
     const emitted = wrapper.emitted('filter-change');

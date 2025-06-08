@@ -34,8 +34,8 @@ export class ChartsPage extends PagePo {
     return new RcFilterPanelPo(this.self()).getFilterByName(name);
   }
 
-  getAllOptionsByFilterGroupName(name: string) {
-    return new RcFilterPanelPo(this.self()).getOptionsByFilterGroupName(name);
+  getAllOptionsByGroupName(name: string) {
+    return new RcFilterPanelPo(this.self()).getFiltersByGroupName(name);
   }
 
   resetAllFilters() {

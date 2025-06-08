@@ -94,7 +94,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     chartsPage.getFilterOptionByName('enabled-repo-1').checkExists();
     chartsPage.getFilterOptionByName('enabled-repo-2').checkExists();
-    chartsPage.getAllOptionsByFilterGroupName('Repository').contains(disabledRepoId)
+    chartsPage.getAllOptionsByGroupName('Repository').contains(disabledRepoId)
       .should('not.exist');
   });
 });
