@@ -37,15 +37,13 @@ function onFooterItemClick(type: string, label: string) {
         :key="j"
         class="app-chart-card-footer-item-text secondary-text-link"
         data-testid="app-chart-card-footer-item-text"
+        tabindex="0"
+        :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
         @click="onFooterItemClick(footerItem.type, label)"
+        @keydown.enter="onFooterItemClick(footerItem.type, label)"
+        @keydown.space.prevent="onFooterItemClick(footerItem.type, label)"
       >
-        <span
-          tabindex="0"
-          :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
-        >
-          {{ label }}
-        </span>
-        <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+        {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </rc-item-card-action>
     </div>
   </div>
