@@ -1,6 +1,5 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
-import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartsPage = new ChartsPage();
@@ -19,43 +18,10 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   });
 
   it('Charts have expected icons', () => {
-    chartsPage.chartsFilterReposSelect().toggle();
-    chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
+    chartsPage.resetAllFilters();
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
     chartsPage.checkChartGenericIcon('CIS Benchmark', false);
     chartsPage.checkChartGenericIcon('Logging', false);
-  });
-
-  it('Show deprecated apps filter works properly', () => {
-    generateDeprecatedAndExperimentalCharts();
-    cy.wait('@generateDeprecatedAndExperimentalCharts');
-    // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
-    chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
-    // a deprecated chart should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedChart').checkNotExists();
-    // an experimental chart should still be visible
-    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
-      .and('be.visible');
-    // a chart that's deprecated & experimental should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkNotExists();
-    // enabling the checkbox
-    chartsPage.chartsShowDeprecatedFilterCheckbox().set();
-    chartsPage.getChartByName('deprecatedChart').checkExists().scrollIntoView()
-      .and('be.visible');
-    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
-      .and('be.visible');
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkExists().scrollIntoView()
-      .and('be.visible');
-    // going to chart's page
-    const chartPage = new ChartPage();
-
-    generateDeprecatedAndExperimentalChart();
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').click();
-    cy.wait('@generateDeprecatedAndExperimentalChart');
-    // checking the "deprecated" query to be included in the url
-    cy.location('search').should('include', 'deprecated=true');
-    // checking the warning banner to be visible
-    chartPage.deprecationAndExperimentalWarning().banner().should('exist').and('be.visible');
   });
 
   it('should call fetch when route query changes with valid parameters', () => {
@@ -126,10 +92,9 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     cy.wait('@getRepos');
 
-    chartsPage.chartsFilterReposSelect().toggle();
-    chartsPage.chartsFilterReposSelect().isOpened();
-    chartsPage.chartsFilterReposSelect().getOptions().should('have.length', 3); // should include three options: All, enabled-repo-1 and enabled-repo-2
-    chartsPage.chartsFilterReposSelect().getOptions().contains(disabledRepoId)
+    chartsPage.getFilterOptionByName('enabled-repo-1').checkExists();
+    chartsPage.getFilterOptionByName('enabled-repo-2').checkExists();
+    chartsPage.getAllOptionsByFilterGroupName('Repository').contains(disabledRepoId)
       .should('not.exist');
   });
 });

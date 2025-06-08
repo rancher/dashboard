@@ -98,6 +98,7 @@ const updateFilter = (key: string, value: string[]) => {
       v-for="filter in filters"
       :key="filter.key"
       class="filter-panel-filter-group"
+      data-testid="filter-panel-filter-group"
     >
       <h4 class="filter-panel-filter-group-title">
         {{ filter.title }}
@@ -111,6 +112,7 @@ const updateFilter = (key: string, value: string[]) => {
           <component
             :is="option.component"
             v-bind="option.componentProps"
+            data-testid="filter-panel-custom-component"
           />
         </template>
         <template v-else>
@@ -120,7 +122,7 @@ const updateFilter = (key: string, value: string[]) => {
             :label="typeof option.label === 'string' ? option.label : undefined"
             :value="currentValue[filter.key]"
             :value-when-true="option.value"
-            :data-testid="`filter-panel-filter-checkbox-${i}`"
+            data-testid="filter-panel-filter-checkbox"
             @update:value="updateFilter(filter.key, $event)"
           >
             <template #label>
