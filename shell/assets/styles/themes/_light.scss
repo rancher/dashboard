@@ -78,6 +78,7 @@ BODY, .theme-light {
 
   --link                    : #{$link};
   --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
   --link-hover-bg           : #{darken($link, 10%)};
   --link-hover-text         : #{saturate($lightest, 20%)};
   --link-active-bg          : #{darken($link, 25%)};
@@ -93,6 +94,15 @@ BODY, .theme-light {
 
     &.disabled {
       color: var(--disabled-text) !important;
+    }
+  }
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
     }
   }
 
@@ -350,6 +360,7 @@ BODY, .theme-light {
   --border                     : #{$medium};
   --border-width               : 1px;
   --border-radius              : 4px;
+  --border-radius-md           : 6px;
   --border-radius-lg           : 8px;
   --outline                    : var(--primary);
   --outline-width              : 1px;
@@ -552,4 +563,8 @@ BODY, .theme-light {
   --badge-state-disabled-text  : #{$darker};
   --badge-state-disabled-bg    : #{$lighter};
   --badge-state-disabled-border: #{$medium};
+
+  --gap                        : 8px;
+  --gap-md                     : 16px;
+  --gap-lg                     : 24px;
 }

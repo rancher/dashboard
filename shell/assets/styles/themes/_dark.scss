@@ -229,4 +229,10 @@
   $slate: #4B4F6B;
 
   --slate: #{$slate};
+
+  --link-text-secondary: #{$secondary};
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+  }
 }
