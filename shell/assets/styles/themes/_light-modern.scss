@@ -378,7 +378,7 @@ BODY, .theme-light-modern {
   --nav-width                  : 250px;
   --nav-bg                     : var(--body-bg);
   --nav-active                 : #{$grey-10};
-  --nav--hover                  : #{$grey-10};
+  --nav-hover                  : #{$grey-10};
   --nav-category-active--hover : #{$grey-20};
   --nav-active--hover          : var(--active--hover);
   --nav-expander-hover         : #{darken($grey-20, 10%)};

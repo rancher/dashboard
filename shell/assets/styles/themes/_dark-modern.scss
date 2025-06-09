@@ -138,7 +138,7 @@
   --nav-bg                     : var(--body-bg);
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav--hover                 : #{$grey-60};
+  --nav-hover                 : #{$grey-60};
   --nav-category-active--hover: #{$grey-70};
   --nav-active--hover          : var(--active--hover);
   --nav-expander-hover         : var(--primary-banner-bg);
@@ -294,7 +294,7 @@
   --topmost-border: var(--body__border);
   --header-border: var(--body__border);
 
-  --nav--hover: #{lighten($body-bg, 10%)};
+  --nav-hover: #{lighten($body-bg, 10%)};
 
   --sortable-table-bg          : #{darken($body-bg, 10%)};
   --sortable-table-row-bg       : var(--body-bg);
