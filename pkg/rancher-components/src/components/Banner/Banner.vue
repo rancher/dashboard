@@ -237,7 +237,7 @@ $icon-size: 24px;
     .error & {
       background: var(--error-banner-bg);
       border-color: var(--error);
-      color: var(--error-banner-text);
+      color: var(--error-banner-text, var(--error));
     }
 
     &.stacked {

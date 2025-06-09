@@ -1072,7 +1072,7 @@ export default {
   .user-name {
     display: flex;
     align-items: center;
-    color: var(--body-text);
+    color: var(--body-text, var(--secondary));
   }
 
   .user-menu {
