@@ -102,7 +102,6 @@ export default {
           }
         }
       ],
-      installedApps: [],
       appCardsCache: {},
     };
   },
