@@ -178,7 +178,7 @@ $icon-size: 24px;
 
     .error & {
       background: var(--error);
-      color: var(--on-primary);
+      color: var(--primary-text);
     }
   }
 

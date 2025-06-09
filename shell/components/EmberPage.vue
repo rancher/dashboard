@@ -450,7 +450,7 @@ export default {
 
           // Notify the embedded UI of the primary and primary text colors
           const primary = window.getComputedStyle(document.body).getPropertyValue('--primary');
-          const primaryText = window.getComputedStyle(document.body).getPropertyValue('--on-primary');
+          const primaryText = window.getComputedStyle(document.body).getPropertyValue('--primary-text');
 
           this.iframeEl.contentWindow.postMessage({
             action: 'colors',
