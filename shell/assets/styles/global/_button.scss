@@ -74,7 +74,7 @@ button,
   color: var(--primary-text);
 
   &:hover, &._hover {
-    background-color: var(--primary-hover);
+    background-color: var(--primary-hover, var(--primary-hover-bg));
     color: var(--primary-text);
   }
 
@@ -84,19 +84,19 @@ button,
 }
 
 .role-secondary {
-  background: var(--secondary);
-  color: var(--on-secondary);
+  background: var(--secondary, transparent);
+  color: var(--on-secondary, var(--primary));
 
   border: solid 1px var(--secondary__border);
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
     background: var(--secondary-hover);
-    color: var(--on-secondary);
+    color: var(--on-secondary, var(--lightest));
   }
 
   &:focus, &.focused {
-    background: var(--secondary-hover);
+    background: var(--secondary-hover, var(--primary-hover-bg));
   }
 
   &.btn-sm {
@@ -109,8 +109,8 @@ button,
 }
 
 .role-tertiary {
-  background: var(--tertiary);
-  color: var(--on-tertiary);
+  background: var(--tertiary, var(--accent-btn));
+  color: var(--on-tertiary, var(--primary));
 
   &:hover, &._hover {
     background: var(--tertiary-hover);
@@ -123,8 +123,8 @@ button,
 }
 
 .role-link {
-  background: var(--tertiary);
-  color: var(--on-tertiary);
+  background: var(--tertiary, transparent);
+  color: var(--on-tertiary, var(--link));
   padding: 0;
   width: $btn-height;
   display: flex;
