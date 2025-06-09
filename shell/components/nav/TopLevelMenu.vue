@@ -1205,8 +1205,8 @@ export default {
         }
 
         &:hover {
-          //color: var(--nav--hover-text);
-          background: var(--nav--hover);
+          //color: var(--nav-hover-text);
+          background: var(--nav-hover);
           > div {
             //color: var(--primary-hover-text);
 
