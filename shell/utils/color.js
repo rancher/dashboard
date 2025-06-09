@@ -2,7 +2,7 @@
 Primary color classes from _light.scss
 
   --primary                    : #{$primary};
-  --on-primary               : #{contrast-color($primary)};
+  --primary-text               : #{contrast-color($primary)};
   --primary-hover-bg           : #{darken($primary, 10%)};
   --primary-hover-text         : #{saturate($grey-0, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};

@@ -2136,11 +2136,11 @@ export default {
         }
 
         > *, .icon-chevron-down {
-          color: var(--on-primary);
+          color: var(--primary-text);
         }
 
         .button-divider {
-          border-color: var(--on-primary);
+          border-color: var(--primary-text);
         }
 
         &.disabled {
