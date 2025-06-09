@@ -8,6 +8,7 @@ import {
 import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
+import { FleetDashboardState, FleetResourceState } from '@shell/utils/fleet-types';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -30,7 +31,7 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Fleet {
-  dashboardStates = [
+  dashboardStates: FleetDashboardState[] = [
     {
       index:           0,
       id:              'error',
@@ -162,7 +163,7 @@ class Fleet {
     }
   }
 
-  getResourcesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string) {
+  getResourcesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string): Record<string, FleetResourceState> {
     return [
       STATES_ENUM.READY,
       STATES_ENUM.NOT_READY,
@@ -183,7 +184,7 @@ class Fleet {
     }, {});
   }
 
-  getBundlesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string) {
+  getBundlesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string): Record<string, FleetResourceState> {
     return [
       STATES_ENUM.READY,
       STATES_ENUM.INFO,
@@ -209,7 +210,7 @@ class Fleet {
     return resource?.stateColor?.replace('text-', '') || 'warning';
   }
 
-  getDashboardState(resource: { stateColor: string }) {
+  getDashboardState(resource: { stateColor: string }): FleetDashboardState | {} {
     const stateId = this.getDashboardStateId(resource);
 
     return this.dashboardStates.find(({ id }) => stateId === id) || {};

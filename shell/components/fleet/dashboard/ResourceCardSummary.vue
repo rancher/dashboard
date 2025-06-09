@@ -1,7 +1,7 @@
-<script>
+<script lang="ts">
 import { colorForState, stateSort } from '@shell/plugins/dashboard-store/resource-class';
 import { sortBy } from '@shell/utils/sort';
-import ProgressBarMulti from '@shell/components/ProgressBarMulti';
+import ProgressBarMulti from '@shell/components/ProgressBarMulti.vue';
 
 export default {
 
@@ -30,7 +30,7 @@ export default {
     },
 
     countsPerCluster() {
-      return (this.value.targetClusters || []).map(({ id }) => this.value.status?.perClusterResourceCounts?.[id] || { desiredReady: 0 });
+      return ((this.value.targetClusters || []) as { id: string }[]).map(({ id }) => this.value.status?.perClusterResourceCounts?.[id] || { desiredReady: 0 });
     },
 
     summary() {

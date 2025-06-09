@@ -1,10 +1,23 @@
-<script>
-import { markRaw } from 'vue';
+<script lang="ts">
+import { markRaw, PropType } from 'vue';
 import { mapGetters } from 'vuex';
 import { lcFirst } from '@shell/utils/string';
-import { Chart, registerables } from 'chart.js';
+import {
+  Chart, ChartOptions, ChartEvent, TooltipItem, registerables
+} from 'chart.js';
 import { BadgeState } from '@components/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
+import { FleetDashboardResourceStates, FleetDashboardState } from '@shell/utils/fleet-types';
+
+type ChartOptionsType = ChartOptions<'doughnut'>;
+type ChartType = Chart<'doughnut', any[], ChartOptionsType>;
+
+interface DataType {
+  chartId: string,
+  chart: ChartType | null
+}
+
+type StatePanel = FleetDashboardState & { count: number }
 
 Chart.register(...registerables);
 
@@ -18,8 +31,8 @@ export default {
 
   props: {
     states: {
-      type:    Object,
-      default: () => ({})
+      type:    Array as PropType<FleetDashboardResourceStates[]>,
+      default: () => []
     },
 
     workspace: {
@@ -43,12 +56,12 @@ export default {
     },
 
     selectedStates: {
-      type:    Object,
+      type:    Object as PropType<Record<string, boolean>>,
       default: () => ({})
     },
   },
 
-  data() {
+  data(): DataType {
     return {
       chartId: `${ this.workspace }-${ this.type }`,
       chart:   null,
@@ -71,7 +84,7 @@ export default {
       container.append(canvas);
 
       const data = this.buildChartData();
-      const options = {
+      const options: ChartOptionsType = {
         responsive: true,
         elements:   {
           arc: {
@@ -86,7 +99,7 @@ export default {
           tooltip: {
             yAlign:    'bottom',
             callbacks: {
-              title: (ctx) => {
+              title: (ctx: TooltipItem<'doughnut'>[]) => {
                 const v = ctx[0];
 
                 return `${ v?.formattedValue } ${ lcFirst(v.label) }`;
@@ -96,13 +109,13 @@ export default {
           }
         },
         cutout:  13,
-        onHover: (event) => {
-          if (this.selectable) {
+        onHover: (event: any) => {
+          if (this.selectable && event?.native?.target?.style) {
             event.native.target.style.cursor = 'pointer';
           }
         },
-        onClick: (_, element) => {
-          const idx = element[0]?.index;
+        onClick: (_: ChartEvent, element?: { index: number }[]) => {
+          const idx = element?.[0]?.index;
 
           if (idx === undefined) {
             return;
@@ -119,7 +132,7 @@ export default {
         type: 'doughnut',
         data,
         options,
-      });
+      }) as ChartType;
 
       this.chart = markRaw(chart);
     }
@@ -129,7 +142,7 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     statePanels() {
-      const out = [];
+      const out: StatePanel[] = [];
 
       this.states.forEach((state) => {
         const {
@@ -144,7 +157,6 @@ export default {
         } else {
           out.push({
             ...statePanel,
-            state,
             count: resources.length
           });
         }
@@ -194,7 +206,7 @@ export default {
       };
     },
 
-    updateStates(value) {
+    updateStates(value: StatePanel[]) {
       if (this.chart) {
         this.chart.data.datasets.forEach((dataset) => {
           dataset.data = this.getChartStates(value);
@@ -204,19 +216,19 @@ export default {
       }
     },
 
-    getChartStates(states) {
+    getChartStates(states: StatePanel[]) {
       return FleetUtils.dashboardStates.map(({ id }) => states.find((s) => s.id === id)?.count || 0);
     },
 
-    selectState(state) {
+    selectState(state?: StatePanel) {
       if (!this.selectable) {
         return;
       }
 
-      this.$emit('click:state', state.id);
+      this.$emit('click:state', state?.id);
     },
 
-    onClickBadge(state) {
+    onClickBadge(state: StatePanel) {
       this.selectState(state);
     },
 

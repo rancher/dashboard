@@ -1,9 +1,11 @@
-<script>
+<script lang="ts">
+import { PropType } from 'vue';
 import { clone } from '@shell/utils/object';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import RcItemCard from '@shell/components/cards/RcItemCard';
+import RcItemCard from '@shell/components/cards/RcItemCard.vue';
 import ResourceCardSummary from '@shell/components/fleet/dashboard/ResourceCardSummary.vue';
 import FleetUtils from '@shell/utils/fleet';
+import { FleetDashboardState, FleetResourceState } from '@shell/utils/fleet-types';
 
 export default {
 
@@ -24,13 +26,20 @@ export default {
     },
 
     statePanel: {
-      type:     Object,
+      type:     Object as PropType<FleetDashboardState>,
       required: true
     },
   },
 
   data() {
-    return { resourcesDefaultStates: FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], 'fleet.fleetSummary.state') };
+    let resourcesDefaultStates: FleetResourceState | object = {};
+
+    try {
+      resourcesDefaultStates = FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], 'fleet.fleetSummary.state');
+    } catch (error) {
+    }
+
+    return { resourcesDefaultStates };
   },
 
   computed: {
@@ -62,9 +71,9 @@ export default {
     },
 
     resourceCounts() {
-      const out = clone(this.resourcesDefaultStates);
+      const out: Record<string, FleetResourceState> = clone(this.resourcesDefaultStates);
 
-      const resourceStatuses = this.value.allResourceStatuses;
+      const resourceStatuses: Record<string, number> = this.value.allResourceStatuses;
 
       Object.entries(resourceStatuses.states)
         .filter(([_, count]) => count > 0)
@@ -84,7 +93,7 @@ export default {
         }
 
         return acc;
-      }, []).reverse();
+      }, [] as FleetResourceState[]).reverse();
     },
 
     resourcesTooltip() {
@@ -105,8 +114,8 @@ export default {
   },
 
   methods: {
-    select(value) {
-      const elem = value?.srcElement;
+    select(value: PointerEvent) {
+      const elem = value?.srcElement as HTMLElement;
 
       if (elem?.tagName === 'A' || elem?.tagName === 'BUTTON' || elem?.className.includes('icon icon-actions')) {
         return;
@@ -125,7 +134,6 @@ export default {
     variant="small"
     :header="{
       title: { text: value.nameDisplay },
-      image: {},
       statuses,
     }"
     :content="{}"

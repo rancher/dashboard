@@ -1,9 +1,11 @@
-<script>
+<script lang="ts">
+import { PropType } from 'vue';
 import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import FleetResources from '@shell/components/fleet/FleetResources';
+import FleetResources from '@shell/components/fleet/FleetResources.vue';
 import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
 import { RcButton } from '@components/RcButton';
+import { FleetDashboardState } from '@shell/utils/fleet-types';
 
 export default {
   name: 'FleetDashboardResourceDetails',
@@ -22,7 +24,7 @@ export default {
     },
 
     statePanel: {
-      type:     Object,
+      type:     Object as PropType<FleetDashboardState>,
       required: true
     },
 
@@ -35,17 +37,17 @@ export default {
   data() {
     return {
       FLEET,
-      cluster: null
+      clusterId: ''
     };
   },
 
   mounted() {
-    this.cluster = this.clusterOptions[0]?.value;
+    this.clusterId = this.clusters[0]?.value || '';
   },
 
   computed: {
-    clusterOptions() {
-      return this.value.targetClusters.map((cluster) => ({
+    clusters() {
+      return this.value.targetClusters.map((cluster: { id: string, nameDisplay: string }) => ({
         label: cluster.nameDisplay,
         value: cluster.id
       }));
@@ -112,7 +114,7 @@ export default {
     </h3>
     <FleetResources
       :rows="value.resourcesStatuses"
-      :cluster-id="cluster"
+      :cluster-id="clusterId"
       :search="!noResources"
     >
       <template
@@ -122,9 +124,9 @@ export default {
         <div class="row">
           <div class="col span-10">
             <LabeledSelect
-              v-model:value="cluster"
+              v-model:value="clusterId"
               :label="'Cluster'"
-              :options="clusterOptions"
+              :options="clusters"
               :mode="'edit'"
               :disabled="workspace.id === 'fleet-local'"
             />
