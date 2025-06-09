@@ -1205,21 +1205,8 @@ export default {
         }
 
         &:hover {
-          //color: var(--nav-hover-text);
-          background: var(--nav-hover);
-          > div {
-            //color: var(--primary-hover-text);
+          background: var(--nav-hover, var(--primary-hover-bg));
 
-            .description {
-              //color: var(--default);
-            }
-          }
-          svg {
-            //fill: var(--primary-hover-text);
-          }
-          div {
-            //color: var(--primary-hover-text);
-          }
           &.disabled {
             background: transparent;
             color: var(--muted);
