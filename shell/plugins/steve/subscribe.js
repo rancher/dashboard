@@ -1211,6 +1211,19 @@ const defaultGetters = {
     return !!existing;
   },
 
+  /**
+   * Try to determine the latest revision to use in a watch request.
+   *
+   * It does some dodgy revision comparisons (revisions are not guaranteed to be numerical or equate higher to newer)
+   *
+   * If we have an id - and that resource has a revision - use it
+   * If we have a list - and the store has a revision - and it's a string - use it straight away
+   * If we have a list - and the store has a revision - and it's a number - compare it to the revisions in the list and use overall highest
+   *
+   * Note - This used to use parseInt which does stuff like `abc-123` --> NaN, `123-abc` --> 123
+   *
+   * Returns string, non-zero number or null
+   */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
     let revision = 0;
@@ -1218,32 +1231,38 @@ const defaultGetters = {
     if ( id ) {
       const existing = getters['byId'](type, id);
 
-      revision = parseInt(existing?.metadata?.resourceVersion, 10);
+      revision = existing?.metadata?.resourceVersion;
     }
 
     if ( !revision ) {
       const cache = state.types[type];
 
+      // No Cache, nothing to compare to, return early
       if ( !cache ) {
         return null;
       }
 
-      revision = cache.revision; // This is always zero.....
+      revision = Number(cache.revision, 0);
 
-      for ( const obj of cache.list ) {
+      // Cached LIST revision isn't a number, cannot compare to, return early
+      if (Number.isNaN(revision)) {
+        return cache.revision || null;
+      }
+
+      for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
+          const neu = Number(obj.metadata.resourceVersion);
+
+          if (Number.isNaN(neu)) {
+            continue;
+          }
 
           revision = Math.max(revision, neu);
         }
       }
     }
 
-    if ( revision ) {
-      return revision;
-    }
-
-    return null;
+    return revision || null;
   },
 };
 
