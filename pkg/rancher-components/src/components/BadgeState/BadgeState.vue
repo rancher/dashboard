@@ -81,23 +81,23 @@ export default defineComponent({
 
     &.bg-info {
       color: var(--on-info-banner);
-      background: var(--info-badge);
+      background: var(--info-badge, var(--info-banner));
     }
 
     &.bg-error {
       color: var(--on-error-banner);
-      background: var(--error-badge);
+      background: var(--error-badge, var(--error-banner));
     }
 
     &.bg-warning {
       color: var(--on-warning-banner);
-      background: var(--warning-badge);
+      background: var(--warning-badge, var(--warning-banner));
     }
 
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
-      color: var(--on-success-banner);
-      background: var(--success-badge);
+      color: var(--on-success-banner, var(--success-text));
+      background: var(--success-badge, var(--success));
     }
 
     // Added badge-disabled instead of bg-disabled since bg-disabled is used in other places with !important styling, an investigation is needed to make the naming consistent
