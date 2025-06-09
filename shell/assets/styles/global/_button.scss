@@ -74,12 +74,12 @@ button,
   color: var(--primary-text);
 
   &:hover, &._hover {
-    background-color: var(--primary--hover);
+    background-color: var(--primary-hover);
     color: var(--primary-text);
   }
 
   &:focus, &.focused {
-    background-color: var(--primary--hover);
+    background-color: var(--primary-hover);
   }
 }
 
@@ -91,12 +91,12 @@ button,
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
-    background: var(--secondary--hover);
+    background: var(--secondary-hover);
     color: var(--on-secondary);
   }
 
   &:focus, &.focused {
-    background: var(--secondary--hover);
+    background: var(--secondary-hover);
   }
 
   &.btn-sm {
@@ -113,12 +113,12 @@ button,
   color: var(--on-tertiary);
 
   &:hover, &._hover {
-    background: var(--tertiary--hover);
+    background: var(--tertiary-hover);
     color: var(--on-tertiary);
   }
 
   &:focus, &.focused {
-    background: var(--tertiary--hover);
+    background: var(--tertiary-hover);
   }
 }
 
@@ -192,7 +192,7 @@ fieldset[disabled] .btn {
     color: var(--toggle-OFF__color);
 
     &:hover {
-      background: var(--toggle-OFF--hover);
+      background: var(--toggle-OFF-hover);
     }
    
     &.toggle-on {
@@ -200,7 +200,7 @@ fieldset[disabled] .btn {
       color: var(--toggle-ON__color);
 
       &:hover {
-        background: var(--active--hover);
+        background: var(--active-hover);
       }
     }
 
