@@ -3,7 +3,6 @@ import { PropType } from 'vue';
 import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources.vue';
-import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
 import { RcButton } from '@components/RcButton';
 import { FleetDashboardState } from '@shell/utils/fleet-types';
 import FleetApplicationSource from '@shell/components/formatter/FleetApplicationSource.vue';
@@ -13,7 +12,6 @@ export default {
 
   components: {
     LabeledSelect,
-    FleetRepo,
     FleetResources,
     FleetApplicationSource,
     RcButton,
@@ -39,7 +37,7 @@ export default {
   data() {
     return {
       FLEET,
-      clusterId: '',
+      clusterId:      '',
       detailLocation: {
         ...this.value._detailLocation,
         name: 'c-cluster-fleet-application-resource-namespace-id'
