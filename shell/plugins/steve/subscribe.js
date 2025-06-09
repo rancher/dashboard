@@ -509,15 +509,7 @@ const sharedActions = {
       }
     }
 
-    // 1. Without dependent backend changes there's likely no `revision` in the http response.
-    // 2. UI will then grab latest revision from the resources themselves
-    // 3. latest revision from resources is likely `too old`
-    // 4. `too old` flow makes a http request to get latest `revision`.. which it does not supply
-    // 5. GOTO 2 (repeats)
-    // validRevision will be removed once rancher/rancher#40773 is resolved, which will then finally fix #12734
-    const validRevision = !paginationUtils.isSteveCacheEnabled({ rootGetters });
-
-    if ( revision && validRevision ) {
+    if ( revision ) {
       msg.resourceVersion = `${ revision }`;
     }
 
