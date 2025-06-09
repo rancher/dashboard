@@ -59,7 +59,7 @@ BODY, .theme-light-modern {
   --link: #{$primary-80};
   
   --primary: #{$primary};
-  --on-primary: #{$grey-0};
+  --primary-text: #{$grey-0};
   --primary--hover: #{$primary-120};
 
   --non-primary-hover: #{$primary-20};
@@ -106,7 +106,7 @@ BODY, .theme-light-modern {
 
   .bg-primary {
     background-color: var(--primary);
-    color: var(--on-primary);
+    color: var(--primary-text);
 
     &.btn:hover {
       color: var(--primary-hover-text);
