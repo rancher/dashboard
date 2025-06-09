@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import {
-  ref, onMounted, onBeforeUnmount, computed, watch
-} from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import debounce from 'lodash/debounce';
 import LazyImage from '@shell/components/LazyImage.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
@@ -103,7 +100,7 @@ const props = defineProps<RcItemCardProps>();
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
  */
-const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; ( e: 'variant', value: RcItemCardVariant): void; }>();
+const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
 
 /**
  * Handles the card click while avoiding nested interactive elements
@@ -130,50 +127,8 @@ function labelText(label?: Label): string {
 
 /** ---------------- data ------------------ */
 const cardEl = ref<HTMLElement | null>(null);
-const dynamicWidth = ref(0);
-
-/** ---------------- Lifecycle Hooks ------------------ */
-const updateWidth = (width: number) => {
-  dynamicWidth.value = width;
-};
-const debounceUpdateWidth = debounce(updateWidth, 300);
-
-let resizeObserver: ResizeObserver | null = null;
-
-onMounted(() => {
-  if (!props.variant && cardEl.value) {
-    resizeObserver = new ResizeObserver(([entry]) => {
-      requestAnimationFrame(() => {
-        if (dynamicWidth.value) {
-          debounceUpdateWidth(entry.contentRect.width);
-        } else {
-          updateWidth(entry.contentRect.width);
-        }
-      });
-    });
-    resizeObserver.observe(cardEl.value);
-  }
-});
-
-onBeforeUnmount(() => {
-  if (resizeObserver && cardEl.value) {
-    resizeObserver.unobserve(cardEl.value);
-  }
-});
 
 /** ---------------- Computed ------------------ */
-
-const dynamicVariant = computed<RcItemCardVariant>(() => {
-  if (props.variant) {
-    return props.variant;
-  }
-
-  if (dynamicWidth.value < 470) {
-    return 'small';
-  }
-
-  return 'medium';
-});
 
 const headerTitle = computed(() => labelText(props.header.title));
 const imageAlt = computed(() => labelText(props.image?.alt));
@@ -188,15 +143,6 @@ const cardMeta = computed(() => ({
   role:      props.clickable ? 'button' : undefined
 }));
 
-/** ---------------- Watches ------------------ */
-
-watch(dynamicVariant, (neu) => {
-  if (props?.variant) {
-    return;
-  }
-
-  emit('variant', neu);
-}, { immediate: true });
 </script>
 
 <template>
@@ -211,13 +157,13 @@ watch(dynamicVariant, (neu) => {
     @keydown.enter="_handleCardClick"
     @keydown.space.prevent="_handleCardClick"
   >
-    <div :class="['item-card-body', dynamicVariant]">
-      <template v-if="dynamicVariant !== 'small'">
+    <div :class="['item-card-body', variant]">
+      <template v-if="variant !== 'small'">
         <div>
           <slot name="item-card-image">
             <div
               v-if="image"
-              :class="['item-card-image', dynamicVariant]"
+              :class="['item-card-image', variant]"
               data-testid="item-card-image"
             >
               <LazyImage
@@ -240,14 +186,14 @@ watch(dynamicVariant, (neu) => {
         </div>
       </template>
 
-      <div :class="['item-card-body-details', dynamicVariant]">
-        <div :class="['item-card-header', dynamicVariant]">
+      <div :class="['item-card-body-details', variant]">
+        <div :class="['item-card-header', variant]">
           <div class="item-card-header-left">
-            <template v-if="dynamicVariant === 'small'">
+            <template v-if="variant === 'small'">
               <slot name="item-card-image">
                 <div
                   v-if="image"
-                  :class="['item-card-image', dynamicVariant]"
+                  :class="['item-card-image', variant]"
                   data-testid="item-card-image"
                 >
                   <LazyImage
@@ -262,7 +208,7 @@ watch(dynamicVariant, (neu) => {
               <h3
                 v-if="header.title"
                 v-clean-tooltip="headerTitle"
-                :class="['item-card-header-title', dynamicVariant]"
+                :class="['item-card-header-title', variant]"
                 data-testid="item-card-header-title"
               >
                 {{ headerTitle }}
