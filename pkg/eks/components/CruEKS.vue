@@ -694,6 +694,7 @@ export default defineComponent({
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"
+          :use-hash="false"
           @removeTab="removeGroup($event)"
           @addTab="addGroup()"
         >
