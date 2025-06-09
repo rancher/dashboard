@@ -24,6 +24,7 @@ export default class RadioGroupInputPo extends ComponentPo {
     return this.self().find('.radio-container > span').eq(value).then(($el) => expect($el).have.attr('aria-checked', 'true'));
   }
 
+<<<<<<< HEAD
   /**
    * Get all radio options from a given group
    * @returns
@@ -39,5 +40,9 @@ export default class RadioGroupInputPo extends ComponentPo {
    */
   getOptionByIndex(index: number): Cypress.Chainable {
     return this.self().find('.radio-label').eq(index);
+=======
+  isUnchecked(value: number) {
+    return this.self().find('.radio-container > span').eq(value).then(($el) => expect($el).have.attr('aria-checked', 'false'));
+>>>>>>> 1c7660ea0 (aks e2e test in progress)
   }
 }
