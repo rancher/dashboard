@@ -3,6 +3,7 @@ import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources';
 import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
+import { RcButton } from '@components/RcButton';
 
 export default {
   name: 'FleetDashboardResourceDetails',
@@ -10,7 +11,8 @@ export default {
   components: {
     LabeledSelect,
     FleetRepo,
-    FleetResources
+    FleetResources,
+    RcButton
   },
 
   props: {
@@ -83,14 +85,17 @@ export default {
           :style="{ color: statePanel.color }"
         />
       </div>
-      <i
-        class="icon icon-close"
+      <RcButton
+        small
+        ghost
         data-testid="slide-in-close"
         :aria-label="'slide-in-close'"
         tabindex="0"
         @click="closePanel"
         @keydown.space.enter.stop.prevent="closePanel"
-      />
+      >
+        <i class="icon icon-close" />
+      </RcButton>
     </div>
 
     <template v-if="value.type === FLEET.GIT_REPO">
@@ -166,10 +171,6 @@ export default {
         .state-icon {
           font-size: 1.5em;
         }
-      }
-
-      .icon-close {
-        cursor: pointer;
       }
     }
   }

@@ -111,15 +111,18 @@ export default {
         class="count"
       >
         <div class="label">
-          <span class="large">{{ summary.partial }}</span>
-          <span
-            v-if="summary.partial !== summary.total && summary.total !== 0"
-            class="label-secondary"
-          >/{{ summary.total }}</span>
-          &nbsp;
-          <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
-          <span class="large">{{ summary.clusters }}</span>
-          <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
+          <div>
+            <span class="large">{{ summary.partial }}</span>
+            <span
+              v-if="summary.partial !== summary.total && summary.total !== 0"
+              class="label-secondary"
+            >/{{ summary.total }}</span>
+          </div>
+          <div>
+            <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part1') }}</span>
+            <span class="large">{{ summary.clusters }}</span>
+            <span class="label-secondary">{{ t('fleet.dashboard.cards.resourceSummary.part2', { count: summary.clusters }) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -167,16 +170,19 @@ export default {
         }
 
         .label {
+          display: flex;
+          gap: 8px;
+
           .large {
             font-size: 18px;
+          }
+
+          .label-secondary{
+            color: var(--label-secondary);
           }
         }
       }
     }
-  }
-
-  .label-secondary{
-    color: var(--label-secondary);
   }
 
   .wrap-text {

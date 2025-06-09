@@ -883,7 +883,7 @@ export default {
               cursor: pointer;
 
               &.selected {
-                :deep() .item-card {
+                .dashboard-resource-card {
                   border: 2px solid var(--primary);
                   margin: 0;
                 }

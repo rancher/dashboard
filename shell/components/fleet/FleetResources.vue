@@ -111,6 +111,7 @@ export default {
     default-sort-by="state"
     :paged="true"
   >
+    <!-- Pass down templates provided by the caller -->
     <template
       v-for="(_, slot) of $slots"
       v-slot:[slot]="scope"

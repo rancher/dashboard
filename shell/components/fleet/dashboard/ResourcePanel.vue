@@ -50,9 +50,28 @@ export default {
 
   data() {
     return {
-      chartId:      `${ this.workspace }-${ this.type }`,
-      chart:        null,
-      chartOptions: {
+      chartId: `${ this.workspace }-${ this.type }`,
+      chart:   null,
+    };
+  },
+
+  mounted() {
+    if (this.showChart) {
+      const container = document.getElementById(`${ this.chartId }-container`);
+
+      if (!container) {
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+
+      canvas.id = this.chartId;
+      canvas.className = 'chart';
+
+      container.append(canvas);
+
+      const data = this.buildChartData();
+      const options = {
         responsive: true,
         elements:   {
           arc: {
@@ -94,27 +113,7 @@ export default {
           this.selectState(state);
         },
         animations: { borderColor: { duration: 0 } }
-      },
-    };
-  },
-
-  mounted() {
-    if (this.showChart) {
-      const container = document.getElementById(`${ this.chartId }-container`);
-
-      if (!container) {
-        return;
-      }
-
-      const canvas = document.createElement('canvas');
-
-      canvas.id = this.chartId;
-      canvas.className = 'chart';
-
-      container.append(canvas);
-
-      const data = this.buildChartData();
-      const options = this.chartOptions;
+      };
 
       const chart = new Chart(canvas, {
         type: 'doughnut',

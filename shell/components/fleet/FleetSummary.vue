@@ -27,9 +27,17 @@ export default {
   },
 
   data() {
+    let bundlesDefaultStates; let resourcesDefaultStates = {};
+
+    try {
+      bundlesDefaultStates = FleetUtils.getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+      resourcesDefaultStates = FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+    } catch (error) {
+    }
+
     return {
-      bundlesDefaultStates:   FleetUtils.getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey),
-      resourcesDefaultStates: FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey),
+      bundlesDefaultStates,
+      resourcesDefaultStates,
     };
   },
 

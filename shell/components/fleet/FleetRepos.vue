@@ -109,7 +109,7 @@ export default {
       ];
     },
 
-    _showIntro() {
+    shouldShowIntro() {
       return this.showIntro && !this.filteredRows.length;
     },
   },
@@ -123,9 +123,9 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="_showIntro && !loading" />
+    <FleetIntro v-if="shouldShowIntro && !loading" />
     <ResourceTable
-      v-if="!_showIntro"
+      v-if="!shouldShowIntro"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"

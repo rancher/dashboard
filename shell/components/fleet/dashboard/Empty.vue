@@ -28,6 +28,7 @@ export default {
 <template>
   <div
     class="fleet-empty-dashboard"
+    aria-hidden="true"
     :data-testid="'fleet-empty-dashboard'"
   >
     <i class="icon-fleet mb-30" />
@@ -41,6 +42,7 @@ export default {
       >
         {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
       </a>
+      <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
     </p>
     <template v-if="permissions.gitRepos">
       <h3 class="mb-30">
@@ -72,6 +74,10 @@ export default {
 
     > p > span {
       color: var(--disabled-text);
+    }
+
+    .sr-only {
+      visibility: hidden;
     }
   }
 </style>

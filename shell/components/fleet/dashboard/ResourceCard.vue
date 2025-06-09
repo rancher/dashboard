@@ -159,17 +159,14 @@ export default {
 <style lang="scss" scoped>
   .dashboard-resource-card {
     margin: 1px;
-
-    :deep() .item-card-body {
-      width: -webkit-fill-available;
-    }
-  }
-
-  :deep() .item-card-header-title {
-    margin-left: 8px;
   }
 
   .icon-lg {
     font-size: 25px;
+    margin-right: 8px;
   }
+
+  // .item-card-body {
+  //   width: -webkit-fill-available;
+  // }
 </style>
