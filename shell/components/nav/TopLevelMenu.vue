@@ -1194,7 +1194,7 @@ export default {
           }
 
           &:hover {
-            background: var(--nav-active--hover);
+            background: var(--nav-active-hover);
           }
         }
 
