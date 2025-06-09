@@ -371,7 +371,7 @@ export default {
         }
 
         &:hover {
-          background-color: var(--nav-active--hover);
+          background-color: var(--nav-active-hover);
         }
       }
       &:hover:not(.active) {
@@ -418,7 +418,7 @@ export default {
 
         .child, .header {
           &:hover {
-            background: var(--category--active--hover);
+            background: var(--category--active-hover);
           }
         }
       }
@@ -476,7 +476,7 @@ export default {
       font-weight: bold;
 
       &:hover {
-        background: var(--nav-active--hover);
+        background: var(--nav-active-hover);
       }
     }
   }

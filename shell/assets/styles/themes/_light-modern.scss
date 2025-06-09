@@ -60,30 +60,30 @@ BODY, .theme-light-modern {
   
   --primary: #{$primary};
   --primary-text: #{$grey-0};
-  --primary--hover: #{$primary-120};
+  --primary-hover: #{$primary-120};
 
   --non-primary-hover: #{$primary-20};
 
   --secondary: var(--body-bg);
   --secondary__border: #{$primary};
   --on-secondary: #{$primary};
-  --secondary--hover: var(--non-primary-hover);
+  --secondary-hover: var(--non-primary-hover);
 
   --tertiary: transparent;
   --on-tertiary: var(--link);
-  --tertiary--hover: var(--non-primary-hover);
+  --tertiary-hover: var(--non-primary-hover);
   
   --active: #{$primary-110};
   --on-active: #{$grey-0};
-  --active--hover: #{lighten($primary-110, 5%)};
+  --active-hover: #{lighten($primary-110, 5%)};
   --category--active: #{$primary-15};
-  --category--active--hover: #{$grey-20};
+  --category--active-hover: #{$grey-20};
 
   --toggle-OFF__bg: #{$grey-5};
   --toggle-OFF__color: #{$grey-50};
   --toggle-ON__bg: var(--active);
   --toggle-ON__color: var(--on-active);
-  --toggle-OFF--hover: #{$grey-10};
+  --toggle-OFF-hover: #{$grey-10};
 
   --vertical-tabs__bg: #{$grey-5};
 
@@ -379,8 +379,8 @@ BODY, .theme-light-modern {
   --nav-bg                     : var(--body-bg);
   --nav-active                 : #{$grey-10};
   --nav-hover                  : #{$grey-10};
-  --nav-category-active--hover : #{$grey-20};
-  --nav-active--hover          : var(--active--hover);
+  --nav-category-active-hover : #{$grey-20};
+  --nav-active-hover          : var(--active-hover);
   --nav-expander-hover         : #{darken($grey-20, 10%)};
   --nav-border                 : #{$grey-20};
   --nav-border-size            : 1px;
