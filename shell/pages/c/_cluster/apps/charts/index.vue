@@ -102,7 +102,8 @@ export default {
           }
         }
       ],
-      cardVariant: undefined,
+      installedApps: [],
+      appCardsCache: {},
     };
   },
 
@@ -240,19 +241,26 @@ export default {
     },
 
     appChartCards() {
-      return this.filteredCharts.map((chart) => ({
-        id:     chart.id,
-        pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
-        header: {
-          title:    { text: chart.chartNameDisplay },
-          statuses: chart.cardContent.statuses
-        },
-        subHeaderItems: chart.cardContent.subHeaderItems,
-        image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
-        content:        { text: chart.chartDescription },
-        footerItems:    chart.cardContent.footerItems,
-        rawChart:       chart
-      }));
+      return this.filteredCharts.map((chart) => {
+        if (!this.appCardsCache[chart.id]) {
+          // Cache the converted value. We're caching chart.cardContent anyway, so no need to worry about showing updates to state
+          this.appCardsCache[chart.id] = {
+            id:     chart.id,
+            pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
+            header: {
+              title:    { text: chart.chartNameDisplay },
+              statuses: chart.cardContent.statuses
+            },
+            subHeaderItems: chart.cardContent.subHeaderItems,
+            image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+            content:        { text: chart.chartDescription },
+            footerItems:    chart.cardContent.footerItems,
+            rawChart:       chart
+          };
+        }
+
+        return this.appCardsCache[chart.id];
+      });
     },
 
     clusterId() {
@@ -444,7 +452,7 @@ export default {
         data-testid="app-chart-cards-container"
       >
         <rc-item-card
-          v-for="(card, i) in appChartCards"
+          v-for="card in appChartCards"
           :id="card.id"
           :key="card.id"
           :pill="card.pill"
@@ -452,7 +460,7 @@ export default {
           :image="card.image"
           :content="card.content"
           :value="card.rawChart"
-          :variant="i === 0 ? undefined : (cardVariant || 'medium')"
+          variant="medium"
           :clickable="true"
           @card-click="selectChart"
           @variant="cardVariant = $event"
