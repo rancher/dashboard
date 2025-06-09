@@ -396,7 +396,10 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <div class="header">
-      <h1 class="m-0">
+      <h1
+        data-testid="charts-header-title"
+        class="m-0"
+      >
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
