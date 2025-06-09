@@ -1,4 +1,4 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
@@ -45,5 +45,14 @@ export default class CreateEditViewPo extends ComponentPo {
 
   saveClusterAsYaml() {
     return new AsyncButtonPo(this.self().find('[data-testid="rke2-custom-create-yaml-save"]')).click();
+  }
+
+  saveAndWaitForRequests(method, endpoint: string, statusCode?: number, options?: GetOptions): Cypress.Chainable {
+    cy.intercept(method, endpoint).as(endpoint);
+    this.save();
+    /* eslint-disable cypress/no-assigning-return-values */
+    const wait = cy.wait(`@${ endpoint }`, options);
+
+    return statusCode ? wait.its('response.statusCode').should('eq', statusCode) : wait;
   }
 }

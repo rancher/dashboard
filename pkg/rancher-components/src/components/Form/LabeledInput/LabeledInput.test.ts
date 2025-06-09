@@ -69,7 +69,7 @@ describe('component: LabeledInput', () => {
     ])('for type %p should correctly fill out the appropriate fields on the component', (type, validationType, ariaLabel, subLabel, ariaDescribedById) => {
       const wrapper = mount(LabeledInput, {
         propsData: {
-          value: '', type, ariaLabel, subLabel, required: true
+          value: '', type, ariaLabel, subLabel, required: true, mode: 'view'
         },
         attrs: { 'aria-describedby': ariaDescribedById },
         mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
@@ -79,12 +79,16 @@ describe('component: LabeledInput', () => {
       const ariaLabelProp = field.attributes('aria-label');
       const ariaDescribedBy = field.attributes('aria-describedby');
       const ariaRequired = field.attributes('aria-required');
+      const ariaDisabled = field.attributes('aria-disabled');
+      const disabledAttr = field.attributes('disabled');
 
       // validates type of input rendered
       expect(field.exists()).toBe(true);
       expect(ariaLabelProp).toBe(ariaLabel);
       expect(ariaDescribedBy).toBe(`${ ariaDescribedById } ${ wrapper.vm.describedById }`);
       expect(ariaRequired).toBe(ariaRequiredVal);
+      expect(ariaDisabled).toBe('true');
+      expect(disabledAttr).toBeDefined();
     });
   });
 

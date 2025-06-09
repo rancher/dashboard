@@ -6,6 +6,7 @@ import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import loadPlugins from '@shell/plugins/plugin';
 import { LOGIN_ERRORS } from '@shell/store/auth';
+import { AUTH_BROADCAST_CHANNEL_NAME } from '@shell/utils/auth';
 
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
 
@@ -13,11 +14,22 @@ const oauthProviders = ['github', 'googleoauth', 'azuread'];
 
 function reply(err, code) {
   try {
-    window.opener.window.onAuthTest(err, code);
+    // If we have access to the opener, then use the `onAuthTest` callback
+    if (window.opener) {
+      window.opener.window.onAuthTest(err, code);
+    } else {
+      // Otherwise, use a broadcast channel
+      const bc = new BroadcastChannel(AUTH_BROADCAST_CHANNEL_NAME);
+      const msg = { err, code };
+
+      bc.postMessage(JSON.stringify(msg));
+      bc.close();
+    }
     setTimeout(() => {
       window.close();
     }, 250);
   } catch (e) {
+    console.error('Error replying to authentication verification', e); // eslint-disable-line no-console
     window.close();
   }
 }

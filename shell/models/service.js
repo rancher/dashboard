@@ -138,6 +138,11 @@ export default class Service extends SteveModel {
   }
 
   async fetchPods() {
+    if (!this.podRelationship) {
+      // If empty or not present, the service is assumed to have an external process managing its endpoints
+      return [];
+    }
+
     return await this.$dispatch('findLabelSelector', {
       type:     POD,
       matching: {

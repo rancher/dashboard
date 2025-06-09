@@ -379,8 +379,17 @@ export default {
     manualRefreshButtonSize: {
       type:    String,
       default: ''
-    }
+    },
 
+    /**
+     * Usually the manual refresh button is controlled via isTooManyItemsToAutoUpdate
+     *
+     * However this is singular on page. In some places there's more than one...
+     */
+    hideManualRefreshButton: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -1200,7 +1209,7 @@ export default {
           <slot name="watch-controls" />
           <slot name="header-right" />
           <AsyncButton
-            v-if="isTooManyItemsToAutoUpdate"
+            v-if="!hideManualRefreshButton && isTooManyItemsToAutoUpdate"
             mode="manual-refresh"
             :size="manualRefreshButtonSize"
             :current-phase="refreshButtonPhase"

@@ -446,7 +446,7 @@ export default {
         :rules="rules.namespace"
       />
       <button
-        aria="Cancel create"
+        :aria-label="t('namespace.cancelCreateAriaLabel')"
         @click="cancelCreateNamespace"
       >
         <i

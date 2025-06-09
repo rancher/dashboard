@@ -124,6 +124,9 @@ export default {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
         await this.$fetch();
+        if (this.clearSelection) {
+          this.clearSelection();
+        }
         if (this.canPaginate && this.fetchPageSecondaryResources) {
           this.fetchPageSecondaryResources({
             canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult

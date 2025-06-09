@@ -371,19 +371,23 @@ export default {
     },
 
     async clickSave(buttonDone) {
-      try {
-        await this.createNamespaceIfNeeded();
-
-        // If the attempt to create the new namespace
-        // is successful, save the resource.
-        this.$emit('finish', buttonDone);
-      } catch (err) {
+      if (this.createNamespace) {
+        try {
+          await this.createNamespaceIfNeeded();
+        } catch (err) {
         // After the attempt to create the namespace,
         // show any applicable errors if the namespace is
         // invalid.
-        this.$emit('error', exceptionToErrorsArray(err.message));
-        buttonDone(false);
+          this.$emit('error', exceptionToErrorsArray(err.message));
+          buttonDone(false);
+
+          return;
+        }
       }
+
+      // If the attempt to create the new namespace
+      // was successful or no ns needs to be created, save the resource.
+      this.$emit('finish', buttonDone);
     },
 
     save() {
@@ -395,17 +399,13 @@ export default {
       const newNamespaceName = get(this.resource, this.namespaceKey);
       let namespaceAlreadyExists = false;
 
-      if (!this.createNamespace) {
-        return;
-      }
-
       try {
         // This is in a try-catch block because the call to fetch
         // a namespace throws an error if the namespace is not found.
         namespaceAlreadyExists = !!(await this.$store.dispatch(`${ inStore }/find`, { type: NAMESPACE, id: newNamespaceName }));
       } catch {}
 
-      if (this.createNamespace && !namespaceAlreadyExists) {
+      if (!namespaceAlreadyExists) {
         try {
           const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: newNamespaceName }, { root: true });
 
