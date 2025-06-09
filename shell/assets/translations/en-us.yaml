@@ -1123,6 +1123,13 @@ catalog:
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     button:
+      alreadyInstalled: '{chart} version {version} is already installed.'
+      viewDetails: View chart details
+      customizeInstall: Customize Install Options
+      viewLogs: View Installation Logs
+      waitForLogs: Installation initialized; waiting for logs...
+      canNotCreateRepos: It looks like you don't have permission to add repositories and install helm charts. 
+      canNotInstallApps: The {repo} repository has been added, but you don't have permission to install charts from it.
       stages:
         addRepo:
           action: Add the {repo} repository
@@ -1137,11 +1144,16 @@ catalog:
         installChart:
           action: Install {chart}
           waiting: Installing {chart}...
-          success: '{chart} installation  initialized'
+          success: '{chart} installation  started'
           error: Error installing {chart}
-      viewLogs: View Installation Logs
-      customizeInstall: Customize Install Options
-      waitForLogs: Installation initialized; waiting for logs...
+        waitForLogs:
+          action: View installation logs
+          waiting: Waiting for installation logs...
+          error: Unable to load installation logs
+      errors:
+        fetchChart: Error retrieving chart from repository
+        alreadyInstalled: Chart already installed
+        timeoutWaiting: Timed out waiting for logs
     chart: Chart
     warning:
       managed:
