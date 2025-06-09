@@ -42,28 +42,28 @@
   
   --primary: #{$primary};
   --primary-text: #{$grey-0};
-  --primary--hover: #{$primary-110};
+  --primary-hover: #{$primary-110};
 
   --non-primary-hover: #{$primary-150};
 
   --secondary: var(--body-bg);
   --secondary__border: #{$primary-60};
   --on-secondary: #{$primary-60};
-  --secondary--hover: var(--non-primary-hover);
+  --secondary-hover: var(--non-primary-hover);
 
   --tertiary: transparent;
   --on-tertiary: var(--link);
-  --tertiary--hover: var(--non-primary-hover);
+  --tertiary-hover: var(--non-primary-hover);
   
   --active: #{$primary-50};
   --on-active: #{$grey-90};
-  --active--hover: #{darken($primary-50, 5%)};
+  --active-hover: #{darken($primary-50, 5%)};
   --category--active: #{$primary-75};
-  --category--active--hover: #{$grey-70};
+  --category--active-hover: #{$grey-70};
 
   --toggle-OFF__bg: #{$grey-80};
   --toggle-OFF__color: #{$grey-30};
-  --toggle-OFF--hover: #{$grey-90};
+  --toggle-OFF-hover: #{$grey-90};
   --toggle-ON__bg: var(--active);
   --toggle-ON__color: var(--on-active);
 
@@ -139,8 +139,8 @@
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                 : #{$grey-60};
-  --nav-category-active--hover: #{$grey-70};
-  --nav-active--hover          : var(--active--hover);
+  --nav-category-active-hover: #{$grey-70};
+  --nav-active-hover          : var(--active-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
