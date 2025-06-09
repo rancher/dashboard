@@ -375,7 +375,7 @@ export default {
         }
       }
       &:hover:not(.active) {
-        background-color: var(--nav--hover);
+        background-color: var(--nav-hover);
       }
       &:hover:not(.active).noHover {
         background-color: inherit;
@@ -410,7 +410,7 @@ export default {
       }
 
       .child:hover {
-        background: var(--nav--hover);
+        background: var(--nav-hover);
       }
 
       &.group-highlight {
