@@ -381,17 +381,17 @@ export default {
       }
 
       &.active {
-        color: var(--on-active);
-        background-color: var(--active);
+        color: var(--on-active, var(--primary-hover-text));
+        background-color: var(--active, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--on-active);
+          color: var(--on-active, var(--primary-hover-text));
         }
 
         &:hover {
-          background-color: var(--nav-active-hover);
+          background-color: var(--nav-active-hover, var(--primary-hover-bg));
         }
 
         ~ I {
@@ -434,11 +434,11 @@ export default {
       }
 
       .child:hover {
-        background: var(--nav-hover);
+        background: var(--nav-hover, var(--nav-active));
       }
 
       &.group-highlight {
-        background: var(--category--active);
+        background: var(--category--active, var(--nav-active));
 
         .child, .header {
           &:hover {
@@ -493,12 +493,12 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--on-active);
+      color: var(--on-active, var(--primary-hover-text));
     }
 
     A {
-      color: var(--on-active);
-      background: var(--active);
+      color: var(--on-active, var(--primary-hover-text));
+      background: var(--active, var(--primary-hover-bg));
       font-weight: bold;
 
       &:hover {
