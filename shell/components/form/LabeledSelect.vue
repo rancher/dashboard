@@ -644,7 +644,7 @@ $icon-size: 18px;
       > div { // badge
         background-color: var(--primary);
         border-radius: 4px;
-        color: var(--on-primary);
+        color: var(--primary-text);
         font-size: 12px;
         height: 18px;
         line-height: 18px;

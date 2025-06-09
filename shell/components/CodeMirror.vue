@@ -379,20 +379,20 @@ export default {
       }
 
       .CodeMirror-selectedtext {
-        color: var(--on-primary);
+        color: var(--primary-text);
       }
 
       .CodeMirror-line::selection,
       .CodeMirror-line > span::selection,
       .CodeMirror-line > span > span::selection {
-        color: var(--on-primary);
+        color: var(--primary-text);
         background-color: var(--primary);
       }
 
       .CodeMirror-line::-moz-selection,
       .CodeMirror-line > span::-moz-selection,
       .CodeMirror-line > span > span::-moz-selection {
-        color: var(--on-primary);
+        color: var(--primary-text);
         background-color: var(--primary);
       }
 

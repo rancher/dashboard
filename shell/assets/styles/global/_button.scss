@@ -71,11 +71,11 @@ button,
 //btn roles
 .role-primary {
   background: var(--primary);
-  color: var(--on-primary);
+  color: var(--primary-text);
 
   &:hover, &._hover {
     background-color: var(--primary--hover);
-    color: var(--on-primary);
+    color: var(--primary-text);
   }
 
   &:focus, &.focused {

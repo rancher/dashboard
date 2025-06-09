@@ -243,7 +243,7 @@ export default {
         font-size: 12px;
         line-height: 12px;
         background-color: var(--primary);
-        color: var(--on-primary);
+        color: var(--primary-text);
       }
 
       .version {

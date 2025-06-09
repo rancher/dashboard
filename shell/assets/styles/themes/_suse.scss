@@ -4,7 +4,7 @@
 
   &.theme-light {
     --primary: #{$green-jungle};
-    --on-primary: #FFFFFF;
+    --primary-text: #FFFFFF;
     --primary--hover: #{$green-120};
 
     --non-primary-text: #{$green-120};
@@ -35,7 +35,7 @@
 
   &.theme-dark {
     --primary: #{$light-green-jungle};
-    --on-primary: #{$grey-90};
+    --primary-text: #{$grey-90};
     --primary--hover: #{$lighter-green-jungle};
 
     --non-primary-text: #{$lighter-green-jungle};
