@@ -1206,6 +1206,11 @@ export default {
 
         &:hover {
           background: var(--nav-hover, var(--primary-hover-bg));
+          color: var(--primary-hover-text);
+
+          svg {
+            color: var(--primary-hover-text);
+          }
 
           &.disabled {
             background: transparent;
