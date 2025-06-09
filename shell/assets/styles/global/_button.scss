@@ -188,19 +188,19 @@ fieldset[disabled] .btn {
     justify-content: center;
     align-items: center;
     border-radius: var(--border-radius);
-    background: var(--toggle-OFF__bg);
-    color: var(--toggle-OFF__color);
+    background: var(--toggle-OFF__bg, var(--disabled-bg));
+    color: var(--toggle-OFF__color, var(--body-text));
 
     &:hover {
-      background: var(--toggle-OFF-hover);
+      background: var(--toggle-OFF-hover, var(--disabled-bg));
     }
    
     &.toggle-on {
-      background: var(--toggle-ON__bg);
-      color: var(--toggle-ON__color);
+      background: var(--toggle-ON__bg, var(--primary));
+      color: var(--toggle-ON__color, var(--primary-hover-text));
 
       &:hover {
-        background: var(--active-hover);
+        background: var(--active-hover, var(--primary-hover-bg));
       }
     }
 
