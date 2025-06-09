@@ -1209,7 +1209,7 @@ export default {
           color: var(--primary-hover-text);
 
           svg {
-            color: var(--primary-hover-text);
+            fill: var(--primary-hover-text);
           }
 
           &.disabled {
