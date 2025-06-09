@@ -5255,10 +5255,8 @@ prefs:
   theme:
     label: Theme
     light: Light
-    light-modern: Light Modern
     auto: Auto
     dark: Dark
-    dark-modern: Dark Modern
     autoDetail: Auto uses OS preference if available, or dark from {pm} to {am}
   language: Language
   landing:
