@@ -105,7 +105,7 @@ export default {
       ],
       appCardsCache:      {},
       selectedSortOption: 'featured',
-      sortOptions: [
+      sortOptions:        [
         { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
         { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
         { value: 'name', label: this.t('catalog.charts.sortBy.name') },

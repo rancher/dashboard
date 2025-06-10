@@ -713,7 +713,7 @@ export function filterAndArrangeCharts(charts, {
   }
 
   if (sort === 'lastupdated') {
-    return sortBy(out, ['lastUpdated'], true)
+    return sortBy(out, ['lastUpdated'], true);
   }
 
   if (sort === 'name') {
