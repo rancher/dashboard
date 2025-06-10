@@ -52,9 +52,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
     namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
-    workloadsPodPage.sortableTable()
+    workloadsPodPage.list().resourceTable().sortableTable()
       .groupElementWithName('cattle-fleet-system')
-      .scrollIntoView().should('be.visible')
+      .scrollIntoView()
+      .should('be.visible')
       .and('have.length', 1);
 
     // clear selection: from dropdown controller
@@ -67,8 +68,12 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clickOptionByLabel('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
-    workloadsPodPage.sortableTable().groupElementWithName('kube-system').scrollIntoView().should('be.visible');
-    workloadsPodPage.sortableTable().groupElementWithName('cattle-fleet-system').scrollIntoView().should('be.visible');
+    workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('kube-system')
+      .scrollIntoView()
+      .should('be.visible');
+    workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('cattle-fleet-system')
+      .scrollIntoView()
+      .should('be.visible');
   });
 
   it('can select only one of the top 5 resource filters at a time', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
