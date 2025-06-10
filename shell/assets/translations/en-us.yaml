@@ -2571,7 +2571,17 @@ fleet:
       ariaLabel: Enter path for Git Repo
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default. Multiple different directories can be provided.
+      tooltip: The root of the repo is used by default.<br>Fleet will use additional kubernetes and config YAML files defined in subpaths to deploy resources.<br>Multiple different directories and options can be provided.
+    bundlePaths:
+      addLabel: Add Subpath
+      protipKey: "A subpath in the root path."
+      protipValue: "The name of a fleet config file in the subpath; optional."
+      props:
+        base: Subpath
+        options: Options
+      placeholders:
+        key: e.g. default
+        value: e.g. fleet.yaml
     repo:
       title: Source
       label: Repository URL
