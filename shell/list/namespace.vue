@@ -3,9 +3,11 @@
  * This file is used in shell/scripts/test-plugins-build.sh (creates an extension with it in, and builds using a shell built from source)
  */
 import { mapGetters } from 'vuex';
-import { NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
+import { NS_SNAPSHOT_QUOTA, DESCRIPTION } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
 import { HCI } from '@shell/config/types';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+
 export default {
   name:       'ListNamespace',
   components: { ResourceTable },
@@ -34,6 +36,9 @@ export default {
 
   computed: {
     ...mapGetters(['currentProduct']),
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
     hasHarvesterResourceQuotaSchema() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -42,8 +47,12 @@ export default {
     headers() {
       const headersFromSchema = this.$store.getters['type-map/headersFor'](this.schema);
 
-      if (this.hasHarvesterResourceQuotaSchema) {
-        headersFromSchema.splice(2, 0, NS_SNAPSHOT_QUOTA);
+      if (this.isHarvester) {
+        headersFromSchema.splice(2, 0, DESCRIPTION);
+      }
+
+      if (this.isHarvester && this.hasHarvesterResourceQuotaSchema) {
+        headersFromSchema.splice(3, 0, NS_SNAPSHOT_QUOTA);
       }
 
       return headersFromSchema;
