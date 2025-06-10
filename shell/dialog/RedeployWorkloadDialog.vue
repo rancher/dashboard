@@ -53,11 +53,6 @@ export default {
 
   methods: {
     resourceNames,
-    safeButtonDone(result) {
-      if (typeof result === 'function') {
-        result(true);
-      }
-    },
     close(buttonDone) {
       if (typeof buttonDone === 'function') {
         buttonDone(true);
