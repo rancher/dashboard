@@ -94,7 +94,12 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-redeploy" :show-highlight-border="false">
+  <Card
+    role="alertdialog"
+    aria-modal="true"
+    class="prompt-redeploy"
+    :show-highlight-border="false"
+  >
     <template #title>
       <h4 class="text-default-text">{{ t('promptRedeploy.title') }}</h4>
     </template>
@@ -109,19 +114,26 @@ export default {
         />
         <Banner
           v-for="(error, i) in errors"
-          :key="i"
+          role="alert"
           color="error"
+          :key="i"
           :label="error"
         />
       </div>
     </template>
 
     <template #actions>
-      <button class="btn role-secondary" @click="close">
+      <button
+        role="button"
+        class="btn role-secondary"
+        :aria-label="t('generic.cancel')"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
       <div class="spacer" />
       <AsyncButton
+        role="button"
         class="btn bg-error ml-10"
         :action-label="t('asyncButton.redeploy.action')"
         @click="apply"
