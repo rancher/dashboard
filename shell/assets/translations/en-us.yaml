@@ -1056,6 +1056,17 @@ catalog:
         ariaLabel: Apply filter
     experimentalStatus:
       tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
+    totalChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart in total }
+          other { {count} charts in total }
+        }
+    totalMatchedChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart matching your criteria. }
+          other { {count} charts matching your criteria. }
+        }
+    resetFiltersMessage: Clear All filters
   install:
     action:
       goToUpgrade: Edit/Upgrade

@@ -24,6 +24,13 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 
+const createInitialFilters = () => ({
+  repos:      [],
+  categories: [],
+  statuses:   [],
+  tags:       []
+});
+
 export default {
   name:       'Charts',
   components: {
@@ -59,20 +66,11 @@ export default {
       debouncedSearchQuery: null,
       showDeprecated:       null,
       showHidden:           null,
-      filters:              {
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      internalFilters: { // in order to update the filter checkboxes smoothly
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      installedApps: [],
-      statusOptions: [
+      filters:              createInitialFilters(),
+      // to optimize UI responsiveness by immediately updating the filter state
+      internalFilters:      createInitialFilters(),
+      installedApps:        [],
+      statusOptions:        [
         {
           value: APP_STATUS.INSTALLED,
           label: {
@@ -264,6 +262,18 @@ export default {
 
     clusterId() {
       return this.$store.getters['clusterId'];
+    },
+
+    noFiltersApplied() {
+      return Object.values(this.internalFilters).every((arr) => arr.length === 0) && !this.searchQuery;
+    },
+
+    totalMessage() {
+      if (this.noFiltersApplied) {
+        return this.t('catalog.charts.totalChartsMessage', { count: this.appChartCards.length });
+      } else {
+        return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
+      }
     }
   },
 
@@ -388,6 +398,14 @@ export default {
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
+
+    resetAllFilters() {
+      const initialState = createInitialFilters();
+
+      this.internalFilters = initialState;
+      this.filters = initialState;
+      this.searchQuery = '';
+    },
   },
 };
 </script>
@@ -450,39 +468,55 @@ export default {
       </div>
       <div
         v-else
-        class="app-chart-cards"
-        data-testid="app-chart-cards-container"
+        class="right-section"
       >
-        <rc-item-card
-          v-for="card in appChartCards"
-          :id="card.id"
-          :key="card.id"
-          :pill="card.pill"
-          :header="card.header"
-          :image="card.image"
-          :content="card.content"
-          :value="card.rawChart"
-          variant="medium"
-          :clickable="true"
-          @card-click="selectChart"
-          @variant="cardVariant = $event"
+        <div class="total-and-sort">
+          <p class="total">
+            {{ totalMessage }}
+          </p>
+          <a
+            v-if="!noFiltersApplied"
+            class="reset-filters"
+            @click="resetAllFilters"
+          >
+            {{ t('catalog.charts.resetFiltersMessage') }}
+          </a>
+        </div>
+        <div
+          class="app-chart-cards"
+          data-testid="app-chart-cards-container"
         >
-          <template
-            v-once
-            #item-card-sub-header
+          <rc-item-card
+            v-for="card in appChartCards"
+            :id="card.id"
+            :key="card.id"
+            :pill="card.pill"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :value="card.rawChart"
+            variant="medium"
+            :clickable="true"
+            @card-click="selectChart"
+            @variant="cardVariant = $event"
           >
-            <AppChartCardSubHeader :items="card.subHeaderItems" />
-          </template>
-          <template
-            v-once
-            #item-card-footer
-          >
-            <AppChartCardFooter
-              :items="card.footerItems"
-              @footer-item-click="handleFooterItemClick"
-            />
-          </template>
-        </rc-item-card>
+            <template
+              v-once
+              #item-card-sub-header
+            >
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
+            </template>
+            <template
+              v-once
+              #item-card-footer
+            >
+              <AppChartCardFooter
+                :items="card.footerItems"
+                @footer-item-click="handleFooterItemClick"
+              />
+            </template>
+          </rc-item-card>
+        </div>
       </div>
     </div>
   </div>
@@ -501,18 +535,32 @@ export default {
   margin-bottom: 24px;
 }
 
-.checkbox-select {
-  .vs__search {
-    position: absolute;
-    right: 0
+.right-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+.total-and-sort {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+
+  .total {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--body-text);
+    max-width: 50%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
-  .vs__selected-options  {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    line-height: 2.4rem;
+  .reset-filters {
+    font-size: 16px;
+    font-weight: 600;
+    margin-left: 8px;
+    cursor: pointer;
   }
 }
 
