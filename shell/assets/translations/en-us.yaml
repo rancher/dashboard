@@ -1144,7 +1144,7 @@ catalog:
         installChart:
           action: Install {chart}
           waiting: Installing {chart}...
-          success: '{chart} installation  started'
+          success: '{chart} installation started'
           error: Error installing {chart}
         waitForLogs:
           action: View installation logs
