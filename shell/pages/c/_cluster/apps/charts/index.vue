@@ -528,7 +528,6 @@ export default {
             variant="medium"
             :clickable="true"
             @card-click="selectChart"
-            @variant="cardVariant = $event"
           >
             <template
               v-once
