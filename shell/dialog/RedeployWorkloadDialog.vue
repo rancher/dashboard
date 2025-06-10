@@ -8,33 +8,32 @@ import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 
 export default {
+  name: 'RedeployWorkloadDialog',
+
   emits: ['close'],
 
-  components: { Card, AsyncButton, Banner },
+  components: {
+    Card,
+    AsyncButton,
+    Banner,
+  },
 
   props: {
     workloads: {
-      type: Array,
+      type:     Array,
       required: true,
     },
   },
 
   data() {
-    return {
-      errors: [],
-    };
+    return { errors: [] };
   },
 
   computed: {
-    ...mapGetters({
-      t: 'i18n/t',
-      labelFor: 'type-map/labelFor',
-    }),
-
+    ...mapGetters({ t: 'i18n/t', labelFor: 'type-map/labelFor' }),
     names() {
       return this.workloads.map(({ nameDisplay }) => nameDisplay);
     },
-
     type() {
       const types = new Set(this.workloads.map(({ type }) => type));
 
@@ -45,7 +44,7 @@ export default {
       const [{ schema } = {}] = this.workloads;
 
       if (!schema) {
-        return `resource${this.workloads.length === 1 ? '' : 's'}`;
+        return `resource${ this.workloads.length === 1 ? '' : 's' }`;
       }
 
       return this.labelFor(schema, this.workloads.length);
@@ -54,26 +53,25 @@ export default {
 
   methods: {
     resourceNames,
-
     safeButtonDone(result) {
       if (typeof result === 'function') {
         result(true);
       }
     },
-
     close(buttonDone) {
       if (typeof buttonDone === 'function') {
         buttonDone(true);
       }
       this.$emit('close');
     },
-
     async apply(buttonDone) {
       try {
         const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 
         for (const workload of this.workloads) {
-          const metadata = workload.spec.template.metadata || (workload.spec.template.metadata = {});
+          const metadata =
+            workload.spec.template.metadata ||
+            (workload.spec.template.metadata = {});
           const annotations = metadata.annotations || (metadata.annotations = {});
 
           annotations[TIMESTAMP] = now;
@@ -101,7 +99,9 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">{{ t('promptRedeploy.title') }}</h4>
+      <h4 class="text-default-text">
+        {{ t('promptRedeploy.title') }}
+      </h4>
     </template>
 
     <template #body>
@@ -109,14 +109,14 @@ export default {
         <span
           v-clean-html="t('promptRedeploy.attemptingToRedeploy', {
             type,
-            names: resourceNames(names, null, t)
+            names: resourceNames(names, null, t),
           })"
         />
         <Banner
           v-for="(error, i) in errors"
+          :key="i"
           role="alert"
           color="error"
-          :key="i"
           :label="error"
         />
       </div>

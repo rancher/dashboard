@@ -48,11 +48,11 @@ export default class Workload extends WorkloadService {
       });
 
       insertAt(out, 0, {
-        action:   'redeploy',
-        label:    this.t('action.redeploy'),
-        icon:     'icon icon-refresh',
-        enabled:  !!this.links.update,
-        bulkable: true,
+        action:     'redeploy',
+        label:      this.t('action.redeploy'),
+        icon:       'icon icon-refresh',
+        enabled:    !!this.links.update,
+        bulkable:   true,
         bulkAction: 'redeploy'
       });
 
@@ -449,7 +449,7 @@ export default class Workload extends WorkloadService {
     const workloads = Array.isArray(resources) ? resources : [resources];
 
     this.$dispatch('promptModal', {
-      modalWidth: '500px',
+      modalWidth:     '500px',
       componentProps: { workloads },
       component:      'RedeployWorkloadDialog'
     });
