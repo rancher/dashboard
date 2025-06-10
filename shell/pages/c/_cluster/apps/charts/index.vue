@@ -5,7 +5,7 @@ import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
 import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
@@ -53,6 +53,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
+    this.selectedSortOption = query[SORT_BY] || 'featured';
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -103,7 +104,12 @@ export default {
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: 'featured'
+      selectedSortOption: 'featured',
+      sortOptions: [
+        { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
+        { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
+        { value: 'name', label: this.t('catalog.charts.sortBy.name') },
+      ]
     };
   },
 
@@ -174,7 +180,8 @@ export default {
         category:    categories,
         searchQuery: this.debouncedSearchQuery,
         repo:        repos,
-        tag:         tags
+        tag:         tags,
+        sort:        this.selectedSortOption
       });
 
       // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
@@ -277,17 +284,7 @@ export default {
       } else {
         return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
       }
-    },
-
-    sortOptions() {
-      const out = [
-        { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
-        { value: 'versions[0].created', label: this.t('catalog.charts.sortBy.lastUpdated') },
-        { value: 'chartNameDisplay', label: this.t('catalog.charts.sortBy.name') },
-      ];
-
-      return out;
-    },
+    }
   },
 
   watch: {
@@ -312,7 +309,14 @@ export default {
         this.$router.applyQuery(query);
         this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
-    }
+    },
+
+    selectedSortOption: {
+      handler(neu) {
+        this.$router.applyQuery({ [SORT_BY]: neu || undefined });
+      },
+      immediate: false
+    },
   },
 
   methods: {
@@ -394,7 +398,7 @@ export default {
     },
 
     filterCharts({
-      repo, category, tag, searchQuery
+      repo, category, tag, searchQuery, sort
     }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -409,6 +413,7 @@ export default {
         showHidden:     this.showHidden,
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        sort
       });
     },
 

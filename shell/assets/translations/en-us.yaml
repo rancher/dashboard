@@ -1037,7 +1037,6 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
-    featuredCharts: Featured Charts
     noCharts: 'There are no charts available, have you added any repos or set filters?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
