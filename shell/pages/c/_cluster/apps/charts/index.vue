@@ -564,6 +564,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--gap-md);
+  flex: 1;
 }
 
 .total-and-sort {
