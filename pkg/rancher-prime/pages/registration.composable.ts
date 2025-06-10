@@ -194,7 +194,12 @@ export const usePrimeRegistration = () => {
       await registerSchema();
     }
 
-    registration.value = await store.dispatch('management/findAll', { type: K8S_RESOURCE_NAME });
+    const registrations = await store.dispatch('management/findAll', { type: K8S_RESOURCE_NAME });
+
+    // TODO: Pick one registration only to display
+    if (registrations.length) {
+      registration.value = registrations[0];
+    }
   });
 
   return {
