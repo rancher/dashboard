@@ -1066,7 +1066,12 @@ catalog:
           =1 { {count} chart matching your criteria. }
           other { {count} charts matching your criteria. }
         }
-    resetFiltersMessage: Clear All filters
+    resetFilters:
+      title: Clear All filters
+    sortBy:
+      recommended: 'Sort by: Recommended'
+      lastUpdated: 'Sort by: Last updated'
+      name: 'Sort by: Chart name'
   install:
     action:
       goToUpgrade: Edit/Upgrade

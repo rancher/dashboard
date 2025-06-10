@@ -23,6 +23,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import Select from '@shell/components/form/Select';
 
 const createInitialFilters = () => ({
   repos:      [],
@@ -41,7 +42,8 @@ export default {
     RcItemCard,
     RcFilterPanel,
     AppChartCardSubHeader,
-    AppChartCardFooter
+    AppChartCardFooter,
+    Select
   },
 
   async fetch() {
@@ -100,7 +102,8 @@ export default {
           }
         }
       ],
-      appCardsCache: {},
+      appCardsCache:      {},
+      selectedSortOption: 'featured'
     };
   },
 
@@ -274,7 +277,17 @@ export default {
       } else {
         return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
       }
-    }
+    },
+
+    sortOptions() {
+      const out = [
+        { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
+        { value: 'versions[0].created', label: this.t('catalog.charts.sortBy.lastUpdated') },
+        { value: 'chartNameDisplay', label: this.t('catalog.charts.sortBy.name') },
+      ];
+
+      return out;
+    },
   },
 
   watch: {
@@ -471,16 +484,28 @@ export default {
         class="right-section"
       >
         <div class="total-and-sort">
-          <p class="total">
-            {{ totalMessage }}
-          </p>
-          <a
-            v-if="!noFiltersApplied"
-            class="reset-filters"
-            @click="resetAllFilters"
-          >
-            {{ t('catalog.charts.resetFiltersMessage') }}
-          </a>
+          <div class="total">
+            <p class="total-message">
+              {{ totalMessage }}
+            </p>
+            <a
+              v-if="!noFiltersApplied"
+              class="reset-filters"
+              role="button"
+              :aria-label="t('catalog.charts.resetFilters.title')"
+              @click="resetAllFilters"
+            >
+              {{ t('catalog.charts.resetFilters.title') }}
+            </a>
+          </div>
+          <Select
+            v-model:value="selectedSortOption"
+            :clearable="false"
+            :searchable="false"
+            :options="sortOptions"
+            placement="bottom"
+            class="charts-sort-select"
+          />
         </div>
         <div
           class="app-chart-cards"
@@ -544,23 +569,33 @@ export default {
 .total-and-sort {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
   padding: 8px 0;
 
   .total {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--body-text);
-    max-width: 50%;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
+    display: flex;
+
+    .total-message {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--body-text);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .reset-filters {
+      font-size: 16px;
+      font-weight: 600;
+      margin-left: 8px;
+      cursor: pointer;
+    }
   }
 
-  .reset-filters {
-    font-size: 16px;
-    font-weight: 600;
-    margin-left: 8px;
-    cursor: pointer;
+  .charts-sort-select {
+    width: 300px;
   }
 }
 
