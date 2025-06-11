@@ -42,6 +42,7 @@ export default {
     headers() {
       const headersFromSchema = this.$store.getters['type-map/headersFor'](this.schema);
 
+      // harvester is reusing this namespace.js to render ns page, we need to make sure harvester backend support quota schema to show this column.
       if (this.hasHarvesterResourceQuotaSchema && Array.isArray(headersFromSchema) && headersFromSchema.length > 1) {
         const columnIdx = headersFromSchema.length - 1;
 
