@@ -6,16 +6,18 @@ import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import CopyToClipboardTextPo from '@/cypress/e2e/po/components/copy-to-clipboard-text.po';
 
 export default class OidcClientsCreateEditPo extends PagePo {
-  private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/auth/management.cattle.io.oidcclient/create`;
+  private static createPath(clusterId: string, oidcClientId?: string, isEdit?: boolean) {
+    const root = `/c/${ clusterId }/auth/management.cattle.io.oidcclient`;
+
+    return oidcClientId ? `${ root }/${ oidcClientId }${ isEdit ? '?mode=edit' : '' }` : `${ root }/create`;
   }
 
-  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(OidcClientsCreateEditPo.createPath(clusterId));
+  static goTo(clusterId: string, oidcClientId?: string, isEdit?: boolean): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(OidcClientsCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
   }
 
-  constructor(clusterId = 'local') {
-    super(OidcClientsCreateEditPo.createPath(clusterId));
+  constructor(clusterId = 'local', oidcClientId = '', isEdit = false) {
+    super(OidcClientsCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
   }
 
   applicationName() {
@@ -42,9 +44,21 @@ export default class OidcClientsCreateEditPo extends PagePo {
     return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-client-id"]');
   }
 
-  //   addWhitelistDomain(domain: string, idx: number) {
-  //     return new ArrayListPo('[data-testid="driver-create-whitelist-list"]').setValueAtIndex(domain, idx);
-  //   }
+  clientFullSecretCopy(index: number) {
+    return new CopyToClipboardTextPo(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`);
+  }
+
+  addNewSecretBtnClick() {
+    return cy.get('[data-testid="oidc-client-add-new-secret"]').click();
+  }
+
+  regenSecretBtnClick(index: number) {
+    return cy.get(`[data-testid="oidc-client-secret-${ index }-regen-secret"]`).click();
+  }
+
+  removeSecretBtnClick(index: number) {
+    return cy.get(`[data-testid="oidc-client-secret-${ index }-remove-secret"]`).click();
+  }
 
   saveCreateForm(): ResourceDetailPo {
     return new ResourceDetailPo(this.self());

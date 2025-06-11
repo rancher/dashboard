@@ -17,12 +17,4 @@ export default class OidcClientsListPo extends BaseResourceList {
   jwksURI() {
     return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-jwks-uri"]');
   }
-
-  //   activate() {
-  //     return cy.getId('sortable-table-activate');
-  //   }
-
-//   deactivate() {
-//     return cy.getId('sortable-table-deactivate');
-//   }
 }

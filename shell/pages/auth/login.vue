@@ -32,7 +32,6 @@ import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
-import { checkIfIsRancherAsOidcProviderLogin, getRedirectUrlFromParams } from '@shell/utils/auth';
 
 export default {
   name:       'Login',
@@ -139,9 +138,6 @@ export default {
 
     this.username = username;
     this.remember = !!username;
-
-    console.log('***** ROUTE!!!! *****', this.$route);
-    console.log('***** ROUTE!!!! keys *****', Object.keys(this.$route.query));
 
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
@@ -263,7 +259,8 @@ export default {
           body:     {
             username: this.username,
             password: this.password
-          }
+          },
+          currRoute: this.$route.query
         });
 
         const user = await this.$store.dispatch('rancher/findAll', {
@@ -285,18 +282,6 @@ export default {
           });
         } else {
           this.$cookies.remove(USERNAME);
-        }
-
-        if (checkIfIsRancherAsOidcProviderLogin(this.$route)) {
-          const redirectUrl = getRedirectUrlFromParams(this.$route, 'redirect_uri');
-
-          if (redirectUrl) {
-            return window.location.replace(redirectUrl);
-          }
-
-          this.err = 'Something went wrong while generating the redirect URL and we cannot redirect you to the desired URL';
-
-          return buttonCb(false);
         }
 
         // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
@@ -433,7 +418,6 @@ export default {
           v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
           :class="{'mt-30': !hasLoginMessage}"
         >
-          AAA---------------------------------------------------------------------
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -445,7 +429,6 @@ export default {
             @showInputs="showLocal = false"
             @error="handleProviderError"
           />
-          BBB---------------------------------------------------------------------
         </div>
         <template v-if="hasLocal">
           <form
