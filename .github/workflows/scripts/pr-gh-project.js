@@ -15,6 +15,9 @@ const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
 const GH_PRJ_IN_REVIEW = 'Review';
 
+// This label is used so that PRs from dependabot don't fail the check for 'fixes' notation
+const GH_DEPENDENCIES_LABEL = 'area/dependencies';
+
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
 
@@ -51,13 +54,15 @@ const event = require(process.env.GITHUB_EVENT_PATH);
 
 function getReferencedIssues(body) {
   // https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword
-  const regexp = /[Ff]ix(es|ed)?\s*#([0-9]*)|[Cc]lose(s|d)?\s*#([0-9]*)|[Rr]esolve(s|d)?\s*#([0-9]*)/g;
+  // Handle both Fixes #NNNN and Fixes https://github.com/rancher/dashboard/issuues/NNNN
+  const regexp = /[Ff]ix(es|ed)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Cc]lose(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Rr]esolve(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)/g;
   var v;
   const issues = [];
   do {
     v = regexp.exec(body);
     if (v) {
-      const vNumber = parseInt(v[2], 10);
+      // Matches - 0 = Full string, 1 = es or ed, 2 = # or https://github.com/rancher/dashboard/issuues/, 3 = Issue number
+      const vNumber = parseInt(v[3], 10);
 
       if (!isNaN(vNumber)) {
         issues.push(vNumber);
@@ -131,7 +136,6 @@ async function processClosedAction() {
     console.log('  This PR fixes issues: ' + issues.join(', '));
   } else {
     console.log("  This PR does not fix any issues");
-    return;
   }
 
   // Need to get all open PRs to see if any other references the same issues that this PR says it fixes
@@ -143,7 +147,13 @@ async function processClosedAction() {
   // If not, then the issue has been completed, so we can process it
   r.forEach(openPR => {
     const fixed = getReferencedIssues(openPR.body);
-    fixed.forEach(issue => issueMap[issue] = false);
+    fixed.forEach(issue => {
+      // If the other PR fixes one of the issues that is fixed by this PR, then we need to update our map
+      // so that we ignore it, as there is still an open PR linked to the issue
+      if (issueMap[issue]) {
+        issueMap[issue] = false;
+      }
+    });
   });
 
   // Filter down the list of issues that should be closed because this PR was merged
@@ -260,6 +270,14 @@ async function processOpenOrEditAction() {
     console.log('+ This PR fixes issues: #' + issues.join(', '));
   } else {
     console.log("+ This PR does not fix any issues");
+
+    // PRs must fix an issue or have the label 'QA/None'
+    if (!hasLabel(pr, QA_NONE_LABEL) && !hasLabel(pr, GH_DEPENDENCIES_LABEL)) {
+      console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label');
+      process.exit(1);
+    }
+
+    console.log('Allowing PR to proceed without being linked to an issue because of the labels on the PR');    
   }
 
   const milestones = {};

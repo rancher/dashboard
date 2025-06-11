@@ -17,7 +17,7 @@ jobs:
       SHELL_TAG: ${{ steps.retrieve-data.outputs.SHELL_TAG }}
       CREATORS_TAG: ${{ steps.retrieve-data.outputs.CREATORS_TAG }}
       ECI_TAG: ${{ steps.retrieve-data.outputs.ECI_TAG }}
-      EXTENSIONS_TAG: ${{ steps.retrieve-data.outputs.EXTENSIONS_TAG }}
+      EXTENSION_TAG: ${{ steps.retrieve-data.outputs.EXTENSION_TAG }}
       CURR_JOB_ID: ${{ github.job }}
       tags-job-status: ${{ job.status }}
     steps:
@@ -40,7 +40,7 @@ jobs:
       pages: write
     with:
       target_branch: 'gh-pages'
-      tagged_release:  ${{ needs.retrieve-tags-release-2-dot-8.outputs.EXTENSIONS_TAG }}
+      tagged_release:  ${{ needs.retrieve-tags-release-2-dot-8.outputs.EXTENSION_TAG }}
       is_test:  'true'
       test_ext_repo: 'elemental-ui'
       test_ext_branch:  'release-2.8.x'

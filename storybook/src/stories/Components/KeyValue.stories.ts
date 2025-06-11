@@ -27,10 +27,13 @@ export const Protected: Story = {
   ...Default,
   args: {
     value: {
-      foo: 'bar',
-      bar: 'foo',
+      before:    'value',
+      foo:       'bar',
+      bar:       'foo',
+      something: 'else'
     },
-    toggleFilter: true,
+    protectedKeys: ['foo', 'bar'],
+    toggleFilter:  true,
   },
 };
 

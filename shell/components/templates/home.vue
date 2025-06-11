@@ -3,6 +3,8 @@ import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import ModalManager from '@shell/components/ModalManager';
+import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
@@ -17,6 +19,8 @@ export default {
     Header,
     FixedBanner,
     GrowlManager,
+    ModalManager,
+    SlideInPanelManager,
     AzureWarning,
     AwsComplianceBanner,
     Inactivity,
@@ -58,6 +62,7 @@ export default {
     <AwsComplianceBanner />
     <AzureWarning />
     <PromptModal />
+    <ModalManager />
     <div
       class="dashboard-content"
       :class="{'dashboard-padding-left': showTopLevelMenu}"
@@ -67,7 +72,10 @@ export default {
         :simple="true"
       />
 
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        :aria-label="t('layouts.home')"
+      >
         <router-view
           :key="$route.path"
           class="outlet"
@@ -76,6 +84,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <SlideInPanelManager />
     <button
       v-if="themeShortcut"
       v-shortkey.once="['shift','t']"

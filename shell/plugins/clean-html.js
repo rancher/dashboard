@@ -2,6 +2,7 @@ import DOMPurify from 'dompurify';
 import { uniq } from '@shell/utils/array';
 
 const ALLOWED_TAGS = [
+  'center',
   'code',
   'li',
   'a',
@@ -13,6 +14,7 @@ const ALLOWED_TAGS = [
   'span',
   'div',
   'i',
+  'img',
   'em',
   'strong',
   'h1',
@@ -30,6 +32,8 @@ const ALLOWED_TAGS = [
   'blockquote'
 ];
 
+let linkInterceptors = [];
+
 // Allow 'A' tags to keep the target=_blank attribute if they have it
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
   if (node.tagName === 'A' && data.attrName === 'target' && data.attrValue === '_blank') {
@@ -46,8 +50,56 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
 
     node.setAttribute('rel', combined.join(' '));
   }
+
+  if (node.tagName === 'A' && linkInterceptors.length) {
+    let link = node.href;
+
+    // Allow each interceptor to modify the link href
+    link = processLink(link);
+
+    // If the link is different from the original update the href
+    if (link !== node.href) {
+      node.href = link;
+    }
+  }
 });
 
 export const purifyHTML = (value, options = { ALLOWED_TAGS }) => {
   return DOMPurify.sanitize(value, options);
 };
+
+// Link Interceptors are typically used to allow different doc links to be used
+
+export function addLinkInterceptor(fn, name) {
+  // Check the arg is not undefined and is a function
+  if (fn && typeof fn === 'function') {
+    linkInterceptors.push(fn);
+  } else {
+    if (name) {
+      console.error(`Invalid link interceptor function for ${ name }`); // eslint-disable-line no-console
+    } else {
+      console.error('Invalid link interceptor function'); // eslint-disable-line no-console
+    }
+  }
+}
+
+export function removeLinkInterceptor(fn) {
+  linkInterceptors = linkInterceptors.filter((item) => item !== fn);
+}
+
+/**
+ * Process a link through all of the link interceptors
+ */
+export function processLink(link) {
+  // Allow each interceptor to modify the link href
+  for (let i = 0; i < linkInterceptors.length; i++) {
+    const updated = linkInterceptors[i](link);
+
+    // If a value if returned, use that in place of the original value
+    if (updated) {
+      link = updated;
+    }
+  }
+
+  return link;
+}

@@ -14,15 +14,24 @@ Cypress.Commands.add('login', (
   username = Cypress.env('username'),
   password = Cypress.env('password'),
   cacheSession = true,
+  skipNavigation = false,
+  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-    LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    if (!skipNavigation) {
+      LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    }
     const loginPage = new LoginPagePo();
 
     loginPage
-      .checkIsCurrentPage();
+      .checkIsCurrentPage(!skipNavigation);
+
+    if (!!acceptConfirmation) {
+      loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
+      loginPage.confirmationAcceptButton().self().click();
+    }
 
     loginPage.switchToLocal();
 
@@ -486,7 +495,7 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
 /**
  * create a v3 / v1 resource
  */
-Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
@@ -494,15 +503,18 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    body
+    body,
+    failOnStatusCode
   })
     .then((resp) => {
-      // Expect 201, Created HTTP status code
-      expect(resp.status).to.eq(201);
+      if (failOnStatusCode) {
+      // Expect 200 or 201, Created HTTP status code
+        expect(resp.status).to.be.oneOf([200, 201]);
+      }
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
   const retry = () => {
@@ -513,6 +525,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
         'x-api-csrf': token.value,
         Accept:       'application/json'
       },
+      failOnStatusCode: config?.failOnStatusCode === undefined ? true : !!config?.failOnStatusCode,
     })
       .then((resp) => {
         if (!testFn(resp)) {
@@ -520,14 +533,14 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           if (retries === 0) {
             cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
 
-            return false;
+            return Promise.resolve(false);
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return retry();
         }
 
-        return true;
+        return Promise.resolve(true);
       });
   };
 
@@ -602,7 +615,9 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
  * Create RKE2 cluster with Amazon EC2 cloud provider
  */
 Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
-  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+  const {
+    machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon, metadata
+  } = params;
 
   return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
     .then((resp: Cypress.Response<any>) => {
@@ -625,8 +640,12 @@ Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2Cluster
               type:     'provisioning.cattle.io.cluster',
               metadata: {
                 namespace:   rke2ClusterAmazon.namespace,
-                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
-                name:        rke2ClusterAmazon.clusterName
+                annotations: {
+                  'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description`,
+                  ...(metadata?.annotations || {}),
+                },
+                labels: metadata?.labels || {},
+                name:   rke2ClusterAmazon.clusterName
               },
               spec: {
                 rkeConfig: {
@@ -1024,39 +1043,128 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string, iteration = 0) => {
+/**
+ * Check if the vai FF is enabled
+ */
+Cypress.Commands.add('isVaiCacheEnabled', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
+    .then((res) => res.body.spec.value === true || res.body.spec.value === 'true');
+});
+
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {
+  const {
+    clusterName, groupBy, namespaceFilter, allNamespaces
+  } = preferences;
+
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
     const payload = {
       id:   `${ userId }`,
       type: 'userpreference',
       data: {
-        cluster:         clusterName,
-        'per-page':      `${ rows }`,
-        'group-by':      groupBy,
-        'ns-by-cluster': namespaceFilter
+        cluster:          clusterName,
+        'per-page':       `${ rows }`,
+        'group-by':       groupBy,
+        'ns-by-cluster':  namespaceFilter,
+        'all-namespaces': allNamespaces,
       }
     };
 
-    cy.log(`tableRowsPerPageAndNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+    cy.log(`tableRowsPerPageAndPreferences: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
 
     cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
       return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
         .then((res) => {
           if (res) {
-            cy.log(`tableRowsPerPageAndNamespaceFilter: Success!`);
+            cy.log(`tableRowsPerPageAndPreferences: Success!`);
           } else {
             if (iteration < 3) {
-              cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Going to retry...`);
+              cy.log(`tableRowsPerPageAndPreferences: Failed! Going to retry...`);
 
-              return cy.tableRowsPerPageAndNamespaceFilter(rows, clusterName, groupBy, namespaceFilter, iteration + 1);
+              return cy.tableRowsPerPageAndPreferences(rows, preferences, iteration + 1);
             }
 
-            cy.log(`tableRowsPerPageAndNamespaceFilter: Failed! Giving up...`);
+            cy.log(`tableRowsPerPageAndPreferences: Failed! Giving up...`);
 
-            return Promise.reject(new Error('tableRowsPerPageAndNamespaceFilter failed'));
+            return Promise.reject(new Error('tableRowsPerPageAndPreferences failed'));
           }
         });
     });
+  });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+  return cy.tableRowsPerPageAndPreferences(rows, {
+    clusterName, groupBy, namespaceFilter
+  });
+});
+
+// Update the user preferences by over-writing the given preference
+Cypress.Commands.add('setUserPreference', (prefs: any) => {
+  return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
+    const update = resp.body.data[0];
+
+    update.data = {
+      ...update.data,
+      ...prefs
+    };
+
+    delete update.links;
+
+    return cy.setRancherResource('v1', 'userpreferences', update.id, update);
+  });
+});
+
+/**
+ * Create a secret via api request
+ */
+Cypress.Commands.add('createSecret', (namespace: string, name: string, options: { type?: string; metadata?: any; data?: any } = {}) => {
+  const defaultData = {
+    'tls.crt': Buffer.from('MOCKCERT').toString('base64'),
+    'tls.key': Buffer.from('MOCKPRIVATEKEY').toString('base64')
+  };
+
+  const body = {
+    type:     options.type || 'kubernetes.io/tls',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'secrets', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Create a service via api request
+ */
+Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {
+  const defaultSpec = {
+    ports: options.ports || [{
+      name:       'myport',
+      port:       8080,
+      protocol:   'TCP',
+      targetPort: 80
+    }],
+    sessionAffinity: 'None',
+    type:            options.type || 'ClusterIP'
+  };
+
+  const body = {
+    type:     'service',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    spec: options.spec || defaultSpec
+  };
+
+  return cy.createRancherResource('v1', 'services', body).then((resp) => {
+    return resp.body.metadata.name;
   });
 });

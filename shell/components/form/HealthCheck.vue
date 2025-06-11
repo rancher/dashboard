@@ -18,10 +18,10 @@ export default {
   },
 
   data() {
-    const { readinessProbe, livenessProbe, startupProbe } = this.value;
-
     return {
-      readinessProbe, livenessProbe, startupProbe
+      readinessProbe: this.value.readinessProbe,
+      livenessProbe:  this.value.livenessProbe,
+      startupProbe:   this.value.startupProbe,
     };
   },
 

@@ -3,6 +3,7 @@ import { PropType, defineComponent } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default defineComponent({
   name: 'Checkbox',
@@ -37,7 +38,7 @@ export default defineComponent({
      */
     id: {
       type:    String,
-      default: String(Math.random() * 1000)
+      default: generateRandomAlphaString(12)
     },
 
     /**
@@ -114,11 +115,45 @@ export default defineComponent({
       type:    Boolean,
       default: false
     },
+
+    /**
+     * Use this for usage of checkboxes that don't present a label.
+     * Used for cases such as table checkboxes (group or row)
+     */
+    alternateLabel: {
+      type:    String,
+      default: undefined
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'checkbox'
+    },
   },
 
   emits: ['update:value'],
 
+  data() {
+    return { describedById: `described-by-${ generateRandomAlphaString(12) }` };
+  },
+
   computed: {
+    ariaDescribedBy(): string | undefined {
+      const inheritedDescribedBy = this.$attrs['aria-describedby'];
+      const internalDescribedBy = this.descriptionKey || this.description ? this.describedById : undefined;
+
+      if (inheritedDescribedBy && internalDescribedBy) {
+        return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
+      } else if (inheritedDescribedBy || internalDescribedBy) {
+        return `${ inheritedDescribedBy || internalDescribedBy }`;
+      }
+
+      return undefined;
+    },
     /**
      * Determines if the checkbox is disabled.
      * @returns boolean: True when the disabled prop is true or when mode is
@@ -135,6 +170,25 @@ export default defineComponent({
      */
     isChecked(): boolean {
       return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
+    },
+
+    /**
+     * Determines if the Labeled Input should display a tooltip.
+     */
+    hasTooltip(): boolean {
+      return !!this.tooltip || !!this.tooltipKey;
+    },
+
+    replacementLabel(): string | undefined {
+      if (!this.label && !this.labelKey && this.alternateLabel) {
+        return this.alternateLabel;
+      }
+
+      return undefined;
+    },
+
+    idForLabel():string {
+      return `${ generateRandomAlphaString(12) }-checkbox-label`;
     }
   },
 
@@ -214,52 +268,68 @@ export default defineComponent({
   <div
     class="checkbox-outer-container"
     data-checkbox-ctrl
+    :class="{
+      'v-popper--has-tooltip': hasTooltip,
+    }"
   >
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
-      :for="id"
       @keydown.enter.prevent="clicked($event)"
       @keydown.space.prevent="clicked($event)"
       @click="clicked($event)"
     >
       <input
+        :id="id"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
-        :tabindex="-1"
-        :name="id"
+        tabindex="-1"
         @click.stop.prevent
+        @keyup.enter.stop.prevent
       >
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
-        :aria-label="label"
+        :aria-disabled="isDisabled"
+        :aria-label="replacementLabel"
         :aria-checked="!!value"
+        :aria-labelledby="labelKey || label ? idForLabel : undefined"
+        :aria-describedby="ariaDescribedBy"
         role="checkbox"
       />
       <span
-        v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
+        v-if="$slots.label || label || labelKey || hasTooltip"
         class="checkbox-label"
         :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
           <t
             v-if="labelKey"
+            :id="idForLabel"
             :k="labelKey"
             :raw="true"
           />
-          <template v-else-if="label">{{ label }}</template>
+          <span
+            v-else-if="label"
+            :id="idForLabel"
+          >{{ label }}</span>
           <i
             v-if="tooltipKey"
-            v-clean-tooltip="t(tooltipKey)"
+            v-clean-tooltip="{content: t(tooltipKey), triggers: ['hover', 'touch', 'focus']}"
+            v-stripped-aria-label="t(tooltipKey)"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + '-info-icon'"
+            :tabindex="isDisabled ? -1 : 0"
           />
           <i
             v-else-if="tooltip"
-            v-clean-tooltip="tooltip"
+            v-clean-tooltip="{content: tooltip, triggers: ['hover', 'touch', 'focus']}"
+            v-stripped-aria-label="tooltip"
             class="checkbox-info icon icon-info icon-lg"
+            :data-testid="componentTestid + '-info-icon'"
+            :tabindex="isDisabled ? -1 : 0"
           />
         </slot>
       </span>
@@ -270,11 +340,17 @@ export default defineComponent({
     >
       <t
         v-if="descriptionKey"
+        :id="describedById"
         :k="descriptionKey"
       />
       <template v-else-if="description">
-        {{ description }}
+        <p :id="describedById">
+          {{ description }}
+        </p>
       </template>
+    </div>
+    <div class="checkbox-outer-container-extra">
+      <slot name="extra" />
     </div>
   </div>
 </template>
@@ -291,6 +367,11 @@ $fontColor: var(--input-label);
     margin-left: 19px;
     margin-top: 5px;
     opacity: 0.8;
+  }
+  &-extra {
+    font-size: 14px;
+    margin-left: 19px;
+    margin-top: 5px;
   }
 }
 
@@ -317,7 +398,12 @@ $fontColor: var(--input-label);
 
   .checkbox-info {
     line-height: normal;
-    margin-left: 2px;
+    margin-left: 4px;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+    }
   }
 
  .checkbox-custom {
@@ -325,9 +411,14 @@ $fontColor: var(--input-label);
     width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
-    transition: all 0.3s ease-out;
     border: 1px solid var(--border);
     flex-shrink: 0;
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+      border-radius: 0;
+    }
   }
 
   input {
@@ -335,6 +426,12 @@ $fontColor: var(--input-label);
     opacity: 0;
     position: absolute;
     z-index: -1;
+  }
+
+  input:focus-visible ~ .checkbox-custom {
+    @include focus-outline;
+    outline-offset: 2px;
+    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom {

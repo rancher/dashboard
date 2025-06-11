@@ -45,6 +45,10 @@ export default {
         filters:              [],
         projectsOrNamespaces: [],
       },
+
+      paginationFromList: null,
+
+      isPaginationManualRefreshEnabled: paginationUtils.isListManualRefreshEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
@@ -58,19 +62,30 @@ export default {
       }
     },
 
+    /**
+     * Primary point that handles changes from either a table or the namespace filter
+     */
     paginationChanged(event) {
-      const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new PaginationFilterField({
+      if (!event) {
+        return;
+      }
+
+      this.paginationFromList = event;
+      const {
+        page, perPage, filter, sort, descending
+      } = event;
+      const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
-        value: event.filter.searchQuery,
+        value: filter.searchQuery,
         exact: false,
       })) : [];
 
       const pagination = new PaginationArgs({
-        page:     event.page,
-        pageSize: event.perPage,
-        sort:     event.sort?.map((field) => ({
+        page,
+        pageSize: perPage,
+        sort:     sort?.map((field) => ({
           field,
-          asc: !event.descending
+          asc: !descending
         })),
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
         filters:              [
@@ -80,32 +95,6 @@ export default {
       });
 
       this.debouncedSetPagination(pagination);
-    },
-
-    namespaceFilterChanged(neu) {
-      if (!this.canPaginate || !this.isNamespaced) {
-        return;
-      }
-
-      const {
-        projectsOrNamespaces,
-        filters
-      } = stevePaginationUtils.createParamsFromNsFilter({
-        allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-        selection:                    neu,
-        isAllNamespaces:              this.isAllNamespaces,
-        isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
-        showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
-        productHidesSystemNamespaces: this.productHidesSystemNamespaces,
-      });
-
-      this.requestFilters.filters = filters;
-      this.requestFilters.projectsOrNamespaces = projectsOrNamespaces;
-
-      // Kick off a change
-      if (this.pPagination) {
-        this.debouncedSetPagination({ ...this.pPagination });
-      }
     },
 
     /**
@@ -123,6 +112,19 @@ export default {
       }
 
       return false;
+    },
+
+    calcCanPaginate() {
+      if (!this.resource) {
+        return false;
+      }
+
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -181,16 +183,7 @@ export default {
         return;
       }
 
-      if (!this.resource) {
-        return false;
-      }
-
-      const args = {
-        id:      this.resource.id || this.resource,
-        context: this.context,
-      };
-
-      return this.resource && this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.calcCanPaginate();
     },
 
     paginationResult() {
@@ -282,8 +275,29 @@ export default {
           }
         }
 
-        this.namespaceFilterChanged(neu);
+        const {
+          projectsOrNamespaces,
+          filters
+        } = stevePaginationUtils.createParamsFromNsFilter({
+          allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
+          selection:                    neu,
+          isAllNamespaces:              this.isAllNamespaces,
+          isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
+          showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
+          productHidesSystemNamespaces: this.productHidesSystemNamespaces,
+        });
+
+        this.requestFilters.filters = filters;
+        this.requestFilters.projectsOrNamespaces = projectsOrNamespaces;
       }
+    },
+
+    'requestFilters.filters'() {
+      this.paginationChanged(this.paginationFromList);
+    },
+
+    'requestFilters.projectsOrNamespaces'() {
+      this.paginationChanged(this.paginationFromList);
     },
 
     /**

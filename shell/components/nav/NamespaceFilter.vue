@@ -20,10 +20,14 @@ import { KEY } from '@shell/utils/platform';
 import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { randomStr } from '@shell/utils/string';
+import { RcButton } from '@components/RcButton';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
+
+  components: { RcButton },
 
   data() {
     return {
@@ -35,6 +39,7 @@ export default {
       cachedFiltered:      [],
       NAMESPACE_FILTER_KINDS,
       namespaceFilterMode: undefined,
+      containerId:         `dropdown-${ randomStr() }`,
     };
   },
 
@@ -381,10 +386,6 @@ export default {
     }
   },
 
-  beforeUnmount() {
-    this.removeCloseKeyHandler();
-  },
-
   mounted() {
     this.layout();
   },
@@ -477,28 +478,25 @@ export default {
         }
       });
     },
-    addCloseKeyHandler() {
-      document.addEventListener('keyup', this.closeKeyHandler);
-    },
-    removeCloseKeyHandler() {
-      document.removeEventListener('keyup', this.closeKeyHandler);
-    },
-    closeKeyHandler(e) {
-      if (e.keyCode === KEY.ESCAPE ) {
-        this.close();
-      }
-    },
     // Keyboard support
     itemKeyHandler(e, opt) {
       if (e.keyCode === KEY.DOWN ) {
         e.preventDefault();
         e.stopPropagation();
         this.down();
-      } else if (e.keyCode === KEY.UP ) {
+
+        return;
+      }
+
+      if (e.keyCode === KEY.UP) {
         e.preventDefault();
         e.stopPropagation();
         this.up();
-      } else if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
+
+        return;
+      }
+
+      if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
         if (this.namespaceFilterMode && !opt.enabled) {
           return;
         }
@@ -515,10 +513,8 @@ export default {
         e.stopPropagation();
         this.down(true);
         break;
-      case KEY.TAB:
-        // Tab out of the input box
+      case KEY.ESCAPE:
         this.close();
-        e.target.blur();
         break;
       case KEY.CR:
         if (this.filtered.length === 1) {
@@ -526,6 +522,10 @@ export default {
           this.filter = '';
         }
         break;
+      case KEY.TAB:
+        if (e.shiftKey) {
+          this.close();
+        }
       }
     },
     mouseOver(event) {
@@ -541,11 +541,11 @@ export default {
       el.focus();
       this.activeElement = null;
     },
-    down(input) {
-      const exising = this.activeElement || document.activeElement;
+    down(input, focusFirst = true) {
+      const existing = this.activeElement || document.activeElement;
 
       // Focus the first element in the list
-      if (input || !exising) {
+      if (input || (!existing && !focusFirst)) {
         if (this.$refs.options) {
           const c = this.$refs.options.children;
 
@@ -554,15 +554,15 @@ export default {
           }
         }
       } else {
-        let next = exising.nextSibling;
+        let next = existing.nextElementSibling;
 
-        if (next?.children?.length) {
-          const item = next.children[0];
+        if (!next) {
+          next = existing.parentNode.firstElementChild;
+        }
 
-          // Skip over dividers (assumes we don't have two dividers next to each other)
-          if (item.classList.contains('ns-divider')) {
-            next = next.nextSibling;
-          }
+        // Skip over dividers (assumes we don't have two dividers next to each other)
+        if (next?.classList.contains('ns-divider')) {
+          next = next.nextElementSibling;
         }
 
         if (next?.focus) {
@@ -571,15 +571,17 @@ export default {
       }
     },
     up() {
-      if (document.activeElement) {
-        let prev = document.activeElement.previousSibling;
+      const existing = this.activeElement || document.activeElement;
 
-        if (prev?.children?.length) {
-          const item = prev.children[0];
+      if (existing) {
+        let prev = document.activeElement.previousElementSibling;
 
-          if (item.classList.contains('ns-divider')) {
-            prev = prev.previousSibling;
-          }
+        if (!prev) {
+          prev = existing.parentNode.lastElementChild;
+        }
+
+        if (prev.classList.contains('ns-divider')) {
+          prev = prev.previousElementSibling;
         }
 
         if (prev?.focus) {
@@ -599,17 +601,20 @@ export default {
       this.$nextTick(() => {
         this.focusFilter();
       });
-      this.addCloseKeyHandler();
       this.layout();
     },
+    clearFilter() {
+      this.filter = '';
+      this.focusFilter();
+    },
     focusFilter() {
-      this.$refs.filter.focus();
+      this.$refs.filterInput.focus();
     },
     close() {
       this.isOpen = false;
       this.activeElement = null;
-      this.removeCloseKeyHandler();
       this.layout();
+      this.$refs.namespaceFilterInput.focus();
     },
     clear() {
       this.value = [];
@@ -689,11 +694,15 @@ export default {
 <template>
   <div
     v-if="!$fetchState.pending"
+    ref="namespaceFilterInput"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"
     @mousedown.prevent
-    @focus="open()"
+    @keydown.self.down.enter.space.prevent="open"
   >
     <div
       v-if="isOpen"
@@ -703,6 +712,7 @@ export default {
 
     <!-- Select Dropdown control -->
     <div
+      :id="containerId"
       ref="dropdown"
       class="ns-dropdown"
       data-testid="namespaces-dropdown"
@@ -754,13 +764,18 @@ export default {
         >
           <div>{{ ns.label }}</div>
           <!-- block user from removing the last selection if ns forced filtering is on -->
-          <i
+          <RcButton
             v-if="!namespaceFilterMode || value.length > 1"
-            class="icon icon-close"
+            small
+            ghost
+            class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
+            @keydown.enter.space.stop="removeOption(ns, $event)"
             @mousedown="handleValueMouseDown(ns, $event)"
-          />
+          >
+            <i class="icon icon-close" />
+          </RcButton>
         </div>
       </div>
 
@@ -795,20 +810,33 @@ export default {
       data-testid="namespaces-menu"
     >
       <div class="ns-controls">
-        <div class="ns-input">
+        <div
+          class="ns-input"
+          role="status"
+          aria-live="polite"
+        >
           <input
-            ref="filter"
+            ref="filterInput"
             v-model="filter"
             tabindex="0"
             class="ns-filter-input"
+            :aria-label="t('namespaceFilter.input')"
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
-          <i
+          <RcButton
             v-if="hasFilter"
-            class="ns-filter-clear icon icon-close"
-            @click="filter = ''"
-          />
+            small
+            ghost
+            class="ns-filter-clear"
+            :aria-label="t('namespaceFilter.button.clearFilter')"
+            @click="clearFilter"
+            @keydown.enter.stop="clearFilter"
+          >
+            <i
+              class="icon icon-close"
+            />
+          </RcButton>
         </div>
         <div
           v-if="namespaceFilterMode"
@@ -819,57 +847,74 @@ export default {
             class="icon icon-info"
           />
         </div>
-        <div
+        <RcButton
           v-else
+          small
+          ghost
           class="ns-clear"
+          :aria-label="t('namespaceFilter.button.clear')"
+          @click="clear"
+          @keydown.enter.stop="clear"
+          @keydown.tab.exact.prevent="down"
         >
           <i
             class="icon icon-close"
-            @click="clear()"
           />
-        </div>
+        </RcButton>
       </div>
       <div class="ns-divider mt-0" />
       <div
         ref="options"
         class="ns-options"
-        role="list"
+        role="listbox"
+        tabindex="0"
+        aria-live="polite"
+        @keydown.down.enter.stop="down"
+        @keydown.escape="close"
+        @keydown.tab.exact.stop="close"
       >
-        <div
+        <template
           v-for="(opt, i) in cachedFiltered"
-          :id="opt.elementId"
           :key="opt.id"
-          tabindex="0"
-          class="ns-option"
-          :disabled="opt.enabled ? null : true"
-          :class="{
-            'ns-selected': opt.selected,
-            'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
-          }"
-          :data-testid="`namespaces-option-${i}`"
-          @click="opt.enabled && selectOption(opt)"
-          @mouseover="opt.enabled && mouseOver($event)"
-          @keydown="itemKeyHandler($event, opt)"
         >
-          <div
+          <hr
             v-if="opt.kind === NAMESPACE_FILTER_KINDS.DIVIDER"
+            role="separator"
+            aria-orientation="horizontal"
             class="ns-divider"
-          />
+          >
           <div
             v-else
-            class="ns-item"
+            :id="opt.elementId"
+            tabindex="-1"
+            role="option"
+            class="ns-option"
+            :aria-selected="opt.selected"
+            :disabled="opt.enabled ? null : true"
+            :class="{
+              'ns-selected': opt.selected,
+              'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
+            }"
+            :data-testid="`namespaces-option-${i}`"
+            @click="opt.enabled && selectOption(opt)"
+            @mouseover="opt.enabled && mouseOver($event)"
+            @keydown="itemKeyHandler($event, opt)"
           >
-            <i
-              v-if="opt.kind === NAMESPACE_FILTER_KINDS.NAMESPACE"
-              class="icon icon-folder"
-            />
-            <div>{{ opt.label }}</div>
-            <i
-              v-if="opt.selected"
-              class="icon icon-checkmark"
-            />
+            <div
+              class="ns-item"
+            >
+              <i
+                v-if="opt.kind === NAMESPACE_FILTER_KINDS.NAMESPACE"
+                class="icon icon-folder"
+              />
+              <div>{{ opt.label }}</div>
+              <i
+                v-if="opt.selected"
+                class="icon icon-checkmark"
+              />
+            </div>
           </div>
-        </div>
+        </template>
         <div
           v-if="cachedFiltered.length === 0"
           class="ns-none"
@@ -892,14 +937,16 @@ export default {
   .ns-filter {
     width: 280px;
     display: inline-block;
+    border-radius: var(--border-radius);
 
     .ns-glass {
-      height: 100vh;
-      left: 0;
-      opacity: 0;
-      position: absolute;
       top: 0;
-      width: 100vw;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      opacity: 0;
+      position: fixed;
+
       z-index: z-index('overContent');
     }
 
@@ -909,18 +956,15 @@ export default {
     }
 
     .ns-clear {
+      padding: 0 5px;
       &:hover {
         color: var(--primary);
-        cursor: pointer;
       }
     }
 
     .ns-singleton-info, .ns-clear {
       align-items: center;
       display: flex;
-      > i {
-        padding-right: 5px;
-      }
     }
 
     .ns-input {
@@ -937,10 +981,15 @@ export default {
       cursor: pointer;
       position: absolute;
       right: 10px;
-      top: 5px;
+      top: 10px;
       line-height: 24px;
       text-align: center;
-      width: 24px;
+      width: 14px;
+      min-height: 14px;
+    }
+
+    .ns-chip-button {
+      min-height: 14px;
     }
 
     .ns-dropdown-menu {
@@ -1008,7 +1057,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--dropdown-hover-bg);
+                color: var(--primary);
               }
             }
 

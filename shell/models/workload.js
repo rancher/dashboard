@@ -3,9 +3,10 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
+import { convertSelectorObj, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
+import { matching } from '@shell/utils/selector-typed';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -18,6 +19,7 @@ export const defaultContainer = {
   },
   volumeMounts: []
 };
+
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
@@ -34,7 +36,10 @@ export default class Workload extends WorkloadService {
       enabled: !!this.links.update,
     });
 
-    if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
+    if (type !== WORKLOAD_TYPES.JOB &&
+      type !== WORKLOAD_TYPES.CRON_JOB &&
+      type !== WORKLOAD_TYPES.REPLICA_SET
+    ) {
       insertAt(out, 0, {
         action:  'toggleRollbackModal',
         label:   this.t('action.rollback'),
@@ -202,22 +207,20 @@ export default class Workload extends WorkloadService {
     return this.goToEdit({ sidecar: true });
   }
 
-  get showPodRestarts() {
-    return true;
-  }
-
   get restartCount() {
-    const pods = this.pods;
+    return this.pods.reduce((total, pod) => {
+      const { status:{ containerStatuses = [] } } = pod;
 
-    let sum = 0;
+      if (containerStatuses.length) {
+        total += containerStatuses.reduce((tot, container) => {
+          tot += container.restartCount || 0;
 
-    pods.forEach((pod) => {
-      if (pod.status.containerStatuses) {
-        sum += pod.status?.containerStatuses[0].restartCount || 0;
+          return tot;
+        }, 0);
       }
-    });
 
-    return sum;
+      return total;
+    }, 0);
   }
 
   get hasSidecars() {
@@ -331,6 +334,10 @@ export default class Workload extends WorkloadService {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
+      restarts: {
+        label:   this.t('resourceDetail.masthead.restartCount'),
+        content: this.restartCount
+      },
       endpoint: {
         label:     'Endpoints',
         content:   this.endpoint,
@@ -397,10 +404,13 @@ export default class Workload extends WorkloadService {
       });
     }
 
-    out.push( {
+    out.push({
       label:     'Image',
       content:   this.imageNames,
       formatter: 'PodImages'
+    }, {
+      label:   detailItem.restarts.label,
+      content: detailItem.restarts.content,
     });
 
     switch (type) {
@@ -547,29 +557,56 @@ export default class Workload extends WorkloadService {
     }
   }
 
-  get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter((relationship) => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-      return pods.filter((obj) => {
-        return matches(obj, podRelationship.selector);
+  async fetchPods() {
+    if (this.podMatchExpression) {
+      return this.$dispatch('findLabelSelector', {
+        type:     POD,
+        matching: {
+          namespace:     this.metadata.namespace,
+          labelSelector: { matchExpressions: this.podMatchExpression },
+        },
       });
+    }
+
+    return undefined;
+  }
+
+  /**
+   * This getter expects a superset of workload pods to have been fetched already
+   *
+   * It assumes fetchPods has been called and should be used instead of the response of fetchPods
+   * (findAll --> findLabelSelector world results won't trigger change detection)
+   */
+  get pods() {
+    if (this.podMatchExpression) {
+      return this.$getters['matchingLabelSelector'](POD, { matchExpressions: this.podMatchExpression }, this.metadata.namespace);
     } else {
       return [];
     }
   }
 
-  get podGauges() {
+  /**
+   * Return a string version of a matchLabel expression
+   */
+  get podSelector() {
+    const relationships = this.metadata?.relationships || [];
+    const selector = relationships.filter((relationship) => relationship.toType === POD)[0]?.selector;
+
+    return selector;
+  }
+
+  get podMatchExpression() {
+    return this.podSelector ? parse(this.podSelector) : null;
+  }
+
+  calcPodGauges(pods) {
     const out = { };
 
-    if (!this.pods) {
+    if (!pods) {
       return out;
     }
 
-    this.pods.map((pod) => {
+    pods.map((pod) => {
       const { stateColor, stateDisplay } = pod;
 
       if (out[stateDisplay]) {
@@ -585,6 +622,10 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
+  get podGauges() {
+    return this.calcPodGauges(this.pods);
+  }
+
   // Job Specific
   get jobRelationships() {
     if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
@@ -594,6 +635,23 @@ export default class Workload extends WorkloadService {
     return (get(this, 'metadata.relationships') || []).filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB);
   }
 
+  /**
+   * Ensure the store has all matching jobs
+   */
+  async matchingJobs() {
+    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
+      return undefined;
+    }
+
+    // This will be 1 request per relationship, though there's not likely to be many per cron job
+    return Promise.all(this.jobRelationships.map((obj) => {
+      return this.$dispatch('find', { type: WORKLOAD_TYPES.JOB, id: obj.toId });
+    }));
+  }
+
+  /**
+   * Expects all required pods are fetched upfront
+   */
   get jobs() {
     if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
       return undefined;
@@ -643,13 +701,15 @@ export default class Workload extends WorkloadService {
   }
 
   async matchingPods() {
-    const all = await this.$dispatch('findAll', { type: POD });
-    const allInNamespace = all.filter((pod) => pod.metadata.namespace === this.metadata.namespace);
+    const matchInfo = await matching({
+      labelSelector: { matchExpressions: convertSelectorObj(this.spec.selector) },
+      type:          POD,
+      $store:        this.$store || { getters: this.$rootGetters, dispatch: (action, args) => this.$dispatch(action.split('/')[1], args) },
+      inStore:       this.$rootGetters['currentProduct'].inStore,
+      namespace:     this.metadata.namespace,
+    });
 
-    const selector = convertSelectorObj(this.spec.selector);
-
-    // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
-    return matching(allInNamespace, selector);
+    return matchInfo.matches;
   }
 
   cleanForSave(data) {

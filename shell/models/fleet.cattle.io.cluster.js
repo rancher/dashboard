@@ -1,5 +1,5 @@
 import { LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
-import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { CAPI, FLEET as FLEET_LABELS, SYSTEM_LABELS } from '@shell/config/labels-annotations';
 import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
@@ -69,11 +69,17 @@ export default class FleetCluster extends SteveModel {
   }
 
   assignTo() {
-    this.$dispatch('assignTo', [this]);
+    this.$dispatch('promptModal', {
+      component:      'AssignToDialog',
+      componentProps: { toAssign: [this] }
+    });
   }
 
   assignToBulk(items) {
-    this.$dispatch('assignTo', items);
+    this.$dispatch('promptModal', {
+      component:      'AssignToDialog',
+      componentProps: { toAssign: items }
+    });
   }
 
   get canDelete() {
@@ -188,6 +194,22 @@ export default class FleetCluster extends SteveModel {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
+  }
+
+  get customLabels() {
+    const parsedLabels = [];
+
+    if (this.labels) {
+      for (const k in this.labels) {
+        const [prefix] = k.split('/');
+
+        if (!SYSTEM_LABELS.includes(prefix) && k !== CAPI.PROVIDER) {
+          parsedLabels.push(`${ k }=${ this.labels[k] }`);
+        }
+      }
+    }
+
+    return parsedLabels;
   }
 
   async saveYaml(yaml) {

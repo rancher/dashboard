@@ -69,7 +69,7 @@ export default {
         return {
           id:   m.name,
           text: m.name,
-          url:  `mailto:${ m.email }`
+          url:  m.email ? `mailto:${ m.email }` : m.url
         };
       });
     },
@@ -169,6 +169,7 @@ export default {
             <LazyImage
               :src="chart.icon"
               class="logo"
+              :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
             />
           </div>
           <h1>

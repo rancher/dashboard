@@ -2,6 +2,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
 import { NEVER_ADD } from '@shell/utils/create-yaml';
 import { deleteProperty } from '@shell/utils/object';
+import { EXT_IDS } from '@shell/core/plugin';
 
 // Some fields that are removed for YAML (NEVER_ADD) are required via API
 const STEVE_ADD = [
@@ -10,6 +11,7 @@ const STEVE_ADD = [
   'metadata.clusterName',
   'metadata.deletionGracePeriodSeconds',
   'metadata.generateName',
+  'metadata.ownerReferences',
 ];
 const STEVE_NEVER_SAVE = NEVER_ADD.filter((na) => !STEVE_ADD.includes(na));
 
@@ -41,6 +43,13 @@ export default class SteveModel extends HybridModel {
     this._description = value;
   }
 
+  /**
+   * Get all model extensions for this model
+   */
+  get modelExtensions() {
+    return this.$plugin.getDynamic(EXT_IDS.MODEL_EXTENSION, this.type) || [];
+  }
+
   cleanForSave(data, forNew) {
     const val = super.cleanForSave(data);
 
@@ -49,5 +58,9 @@ export default class SteveModel extends HybridModel {
     }
 
     return val;
+  }
+
+  paginationEnabled() {
+    return this.$getters['paginationEnabled'](this.type);
   }
 }

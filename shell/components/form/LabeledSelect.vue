@@ -5,6 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
@@ -22,7 +23,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {
@@ -115,8 +116,11 @@ export default {
 
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      isOpen:               false,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -147,18 +151,25 @@ export default {
 
     // update placeholder text to inform user they can add their own opts when none are found
     showTagPrompts() {
-      return !this.options.length && this.$attrs.taggable;
+      return !this.options.length && this.$attrs.taggable && this.isSearchable;
     }
   },
 
   methods: {
     // resizeHandler = in mixin
-    focusSearch() {
-      const blurredAgo = Date.now() - this.blurred;
-
-      if (!this.focused && blurredAgo < 250) {
+    focusSearch(ev) {
+      if (this.isView || this.disabled || this.loading) {
         return;
       }
+
+      const searchBox = document.querySelector('.vs__search');
+
+      // added to mitigate https://github.com/rancher/dashboard/issues/14361
+      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
+        ev.preventDefault();
+      }
+
+      this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -180,11 +191,13 @@ export default {
     },
 
     onOpen() {
+      this.isOpen = true;
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
+      this.isOpen = false;
       this.$emit('on-close');
     },
 
@@ -238,7 +251,7 @@ export default {
       return noDrop ? false : open && shouldOpen && !mutableLoading;
     },
 
-    onSearch(newSearchString) {
+    onSearch(newSearchString, loading) {
       if (this.canPaginate) {
         this.setPaginationFilter(newSearchString);
       } else {
@@ -246,6 +259,7 @@ export default {
           this.dropdownShouldOpen(this.$refs['select-input'], true);
         }
       }
+      this.$emit('search', newSearchString, loading);
     },
 
     getOptionKey(opt) {
@@ -261,6 +275,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -277,14 +292,24 @@ export default {
         'no-label': !hasLabel
       }
     ]"
+    :tabindex="isView || disabled ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
     @click="focusSearch"
-    @focus="focusSearch"
+    @keydown.enter="focusSearch"
+    @keydown.down.prevent="focusSearch"
+    @keydown.space="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="labeledSelectLabelId"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -294,6 +319,7 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
@@ -318,7 +344,9 @@ export default {
       :selectable="selectable"
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
-
+      :tabindex="-1"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -327,6 +355,7 @@ export default {
       @close="onClose"
       @option:selecting="$emit('selecting', $event)"
       @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
         <template v-if="showTagPrompts">
@@ -348,7 +377,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">
@@ -383,7 +412,7 @@ export default {
 
       <template #list-footer>
         <div
-          v-if="canPaginate && totalResults"
+          v-if="canPaginate && totalResults && pages > 1"
           class="pagination-slot"
         >
           <div class="load-more">

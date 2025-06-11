@@ -3,6 +3,28 @@ import MachineDeploymentsPagePo from '@/cypress/e2e/po/pages/cluster-manager/mac
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
+describe('Visual testing MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  const machineDeploymentsPage = new MachineDeploymentsPagePo();
+
+  before(() => {
+    cy.login();
+  });
+  it('validating machine deployments page with percy', () => {
+    MachineDeploymentsPagePo.goTo();
+
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkVisible();
+    machineDeploymentsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    machineDeploymentsPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('machine deployments Page');
+  });
+});
+
 describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const machineDeploymentsPage = new MachineDeploymentsPagePo();
   const nsName = 'default';
@@ -22,7 +44,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('can create a MachineDeployments', function() {
-    MachineDeploymentsPagePo.navTo();
+    MachineDeploymentsPagePo.goTo();
     machineDeploymentsPage.waitForPage();
 
     machineDeploymentsPage.create();
@@ -34,6 +56,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       const json: any = jsyaml.load(machineDeploymentDoc);
 
       json.metadata.name = this.machineDeploymentsName;
+      json.metadata.namespace = nsName;
       machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
@@ -41,7 +64,6 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.createEditMachineDeployment().saveCreateForm().resourceYaml().saveOrCreate()
       .click();
     cy.wait('@createMachineDeployment').then((req) => {
-      resourceVersion = req.response?.body.metadata.resourceVersion;
       creationTimestamp = req.response?.body.metadata.creationTimestamp;
       time = req.response?.body.metadata.managedFields[0].time;
       uid = req.response?.body.metadata.uid;
@@ -55,6 +77,11 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.waitForPage();
     machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Edit YAML').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=edit&as=yaml');
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ this.machineDeploymentsName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      resourceVersion = resp.body.metadata.resourceVersion;
+    });
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments-edit.yml').then((machineSetDoc) => {
       // convert yaml into json to update values
@@ -85,12 +112,14 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.waitForPage();
     machineDeploymentsPage.list().actionMenu(this.machineDeploymentsName).getMenuItem('Clone').click();
     machineDeploymentsPage.createEditMachineDeployment(nsName, this.machineDeploymentsName).waitForPage('mode=clone&as=yaml');
+    const cloneName = `${ this.machineDeploymentsName }-clone`;
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machine-deployments.yml').then((machineSetDoc) => {
       // convert yaml into json to update name value
       const json: any = jsyaml.load(machineSetDoc);
 
-      json.metadata.name = `${ this.machineDeploymentsName }-clone`;
+      json.metadata.name = cloneName;
+      json.metadata.namespace = nsName;
       machineDeploymentsPage.yamlEditor().set(jsyaml.dump(json));
     });
 
@@ -101,7 +130,7 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     machineDeploymentsPage.waitForPage();
 
     // check list details
-    machineDeploymentsPage.list().details(`${ this.machineDeploymentsName }-clone`, 2).should('be.visible');
+    machineDeploymentsPage.list().details(cloneName, 2).should('be.visible');
   });
 
   it('can download YAML', function() {
@@ -125,8 +154,10 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     MachineDeploymentsPagePo.navTo();
     machineDeploymentsPage.waitForPage();
 
+    const cloneName = `${ this.machineDeploymentsName }-clone`;
+
     // delete original cloned MachineSet
-    machineDeploymentsPage.list().actionMenu(`${ this.machineDeploymentsName }-clone`).getMenuItem('Delete').click();
+    machineDeploymentsPage.list().actionMenu(cloneName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
@@ -136,8 +167,16 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
 
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      const resource = resp.body;
+
+      delete resource.metadata.finalizers;
+      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ nsName }/${ cloneName }`, resource);
+    });
+
     // check list details
-    cy.contains(`${ this.machineDeploymentsName }-clone`).should('not.exist');
+    cy.contains(cloneName).should('not.exist');
   });
 
   it('can delete MachineDeployments via bulk actions', function() {
@@ -149,7 +188,9 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
       .set();
     machineDeploymentsPage.list().openBulkActionDropdown();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ nsName }/${ this.machineDeploymentsName }`).as('deleteMachineSet');
+    const machineName = `${ nsName }/${ this.machineDeploymentsName }`;
+
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machinedeployments/${ machineName }`).as('deleteMachineSet');
     machineDeploymentsPage.list().bulkActionButton('Delete').click();
 
     const promptRemove = new PromptRemove();
@@ -157,6 +198,14 @@ describe('MachineDeployments', { testIsolation: 'off', tags: ['@manager', '@admi
     promptRemove.remove();
     cy.wait('@deleteMachineSet');
     machineDeploymentsPage.waitForPage();
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      const resource = resp.body;
+
+      delete resource.metadata.finalizers;
+      cy.setRancherResource('v1', 'cluster.x-k8s.io.machinedeployments', `${ machineName }`, resource);
+    });
 
     // check list details
     cy.contains(this.machineDeploymentsName).should('not.exist');

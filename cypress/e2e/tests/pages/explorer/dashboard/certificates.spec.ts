@@ -1,6 +1,6 @@
 
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { SecretsPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
+import { SecretsListPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
 
 const certName = 'expired';
@@ -102,7 +102,7 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
     clusterDashboard.fullSecretsList().scrollIntoView();
     clusterDashboard.fullSecretsList().click();
 
-    const secrets = new SecretsPagePo('local');
+    const secrets = new SecretsListPagePo('local');
 
     secrets.waitForPage();
   });

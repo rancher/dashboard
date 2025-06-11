@@ -2,32 +2,27 @@ import { filterBy, isArray } from '@shell/utils/array';
 
 export const state = function() {
   return {
-    show:              false,
-    resources:         [],
-    elem:              null,
-    event:             null,
-    showPromptMove:    false,
-    showPromptRemove:  false,
-    showPromptRestore: false,
-    showAssignTo:      false,
-    showPromptUpdate:  false,
-    showModal:         false,
-    toMove:            [],
-    toRemove:          [],
-    toRestore:         [],
-    toAssign:          [],
-    toUpdate:          [],
-    modalData:         {},
+    show:                false,
+    resources:           [],
+    elem:                null,
+    event:               null,
+    showPromptRemove:    false,
+    showPromptRestore:   false,
+    showModal:           false,
+    performCallbackData: undefined,
+    toRemove:            [],
+    toRestore:           [],
+    modalData:           {},
   };
 };
 
 export const getters = {
-  showing:   (state) => state.show,
-  elem:      (state) => state.elem,
-  event:     (state) => state.event,
-  resources: (state) => state.resources,
-
-  options(state) {
+  showing:             (state) => state.show,
+  elem:                (state) => state.elem,
+  event:               (state) => state.event,
+  resources:           (state) => state.resources,
+  performCallbackData: (state) => state.performCallbackData,
+  optionsArray(state) {
     let selected = state.resources;
 
     if ( !selected ) {
@@ -41,7 +36,7 @@ export const getters = {
     const map = {};
 
     for ( const node of selected ) {
-      if (node.availableActions) {
+      if (node?.availableActions) {
         for ( const act of node.availableActions ) {
           _add(map, act);
         }
@@ -50,7 +45,10 @@ export const getters = {
 
     const out = _filter(map);
 
-    return { ...out };
+    return [...out];
+  },
+  options(_state, getters) {
+    return { ...getters.optionsArray };
   },
 
 };
@@ -86,16 +84,6 @@ export const mutations = {
     state.toRemove = resources;
   },
 
-  togglePromptMove(state, resources) {
-    if (!resources) {
-      state.showPromptMove = false;
-      resources = [];
-    } else {
-      state.showPromptMove = !state.showPromptMove;
-      state.toMove = Array.isArray(resources) ? resources : [resources];
-    }
-  },
-
   togglePromptRestore(state, resources) {
     if (!resources) {
       state.showPromptRestore = false;
@@ -109,34 +97,12 @@ export const mutations = {
     state.toRestore = resources;
   },
 
-  toggleAssignTo(state, resources) {
-    state.showAssignTo = !state.showAssignTo;
-
-    if (!isArray(resources)) {
-      resources = [resources];
-    }
-
-    state.toAssign = resources;
-  },
-
-  togglePromptUpdate(state, resources) {
-    if (!resources) {
-      // Clearing the resources also hides the prompt
-      state.showPromptUpdate = false;
-    } else {
-      state.showPromptUpdate = !state.showPromptUpdate;
-    }
-
-    if (!isArray(resources)) {
-      resources = [resources];
-    }
-
-    state.toUpdate = resources;
-  },
-
   togglePromptModal(state, data) {
     if (!data) {
       // Clearing the resources also hides the prompt
+      state.showModal = false;
+    } else if (data.performCallback) {
+      state.performCallbackData = data;
       state.showModal = false;
     } else {
       state.showModal = true;
@@ -144,12 +110,26 @@ export const mutations = {
 
     state.modalData = data;
   },
+
+  clearCallbackData(state) {
+    state.performCallbackData = undefined;
+  },
+
+  SET_RESOURCE(state, resources) {
+    state.resources = !isArray(resources) ? [resources] : resources;
+  }
 };
 
 export const actions = {
   execute({ state }, { action, args, opts }) {
     return _execute(state.resources, action, args, opts);
   },
+  setResource({ commit }, resource) {
+    commit('SET_RESOURCE', resource);
+  },
+  clearCallbackData({ commit }) {
+    commit('clearCallbackData');
+  }
 };
 
 // -----------------------------

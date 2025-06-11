@@ -71,7 +71,7 @@ describe('page: cluster dashboard', () => {
   });
 
   describe.each([
-    ['local', 'fleet', true, ['fleetDeployment', 'fleetStatefulSet'], [
+    ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
@@ -80,7 +80,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'fleet', false, ['fleetStatefulSet'], [
+    ['downstream RKE2', 'fleet', false, ['fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
@@ -89,7 +89,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'cattle', false, ['cattleDeployment'], [
+    ['downstream RKE2', 'cattle', false, ['cattleAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
@@ -137,7 +137,7 @@ describe('page: cluster dashboard', () => {
   });
 
   describe.each([
-    ['local', 'fleet', true, ['fleetDeployment', 'fleetStatefulSet'], [
+    ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
@@ -146,7 +146,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'fleet', false, ['fleetStatefulSet'], [
+    ['downstream RKE2', 'fleet', false, ['fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
@@ -155,7 +155,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'cattle', false, ['cattleDeployment'], [
+    ['downstream RKE2', 'cattle', false, ['cattleAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
@@ -228,9 +228,9 @@ describe('page: cluster dashboard', () => {
     const wrapper = shallowMount(Dashboard, {
       ...options,
       data: () => ({
-        cattleDeployment: 'loading',
-        disconnected:     false,
-        canViewAgents:    true
+        cattleAgentResource: 'loading',
+        disconnected:        false,
+        canViewAgents:       true
       })
     });
 

@@ -2,6 +2,7 @@
 import { parseSi, formatSi, UNITS, FRACTIONAL } from '@shell/utils/units';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { _EDIT } from '@shell/config/query-params';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 export default {
   components: { LabeledInput },
@@ -134,6 +135,15 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+
+  data() {
+    return { describedById: `unit-describedbyid-${ generateRandomAlphaString(12) }` };
   },
 
   computed: {
@@ -206,7 +216,7 @@ export default {
       }
 
       if (this.outputModifier) {
-        out = out === null ? null : `${ inputValue }${ this.unit }`;
+        out = out === null ? null : `${ parseInt(inputValue) }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ inputValue }`;
       } else if (out) {
@@ -227,6 +237,7 @@ export default {
     type="number"
     :min="min"
     :mode="mode"
+    :disabled="disabled"
     :label="label"
     :delay="delay"
     :label-key="labelKey"
@@ -235,12 +246,14 @@ export default {
     :required="required"
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
-    @change="update($event.target.value)"
+    :aria-describedby="displayUnit ? describedById : undefined"
+    @update:value="update"
     @blur="update($event.target.value)"
   >
     <template #suffix>
       <div
         v-if="displayUnit"
+        :id="describedById"
         class="addon"
         :class="{'with-tooltip': tooltip || tooltipKey}"
       >
@@ -252,7 +265,6 @@ export default {
 
 <style lang="scss" scoped>
   .addon.with-tooltip {
-    position: relative;
-    right: 30px;
+    padding-right: 42px;
   }
 </style>

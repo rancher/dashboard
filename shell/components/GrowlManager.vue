@@ -87,7 +87,10 @@ export default {
     <div class="growl-list">
       <div
         v-for="(growl, idx) in stack"
-        :key="idx"
+        :key="growl.id"
+        role="alert"
+        :aria-labelledby="`growl-title-${ growl.id }`"
+        :aria-describedby="`growl-message-${ growl.id }`"
         :data-testid="`growl-list-item-${idx}`"
         :class="{'growl': true, ['bg-'+growl.color]: true}"
       >
@@ -103,10 +106,18 @@ export default {
               class="close hand icon icon-close"
               @click="close(growl)"
             />
-            <div class="growl-text-title">
+            <div
+              v-if="growl.title"
+              :id="`growl-title-${ growl.id }`"
+              class="growl-text-title"
+            >
               {{ growl.title }}
             </div>
-            <p v-if="growl.message">
+            <p
+              v-if="growl.message"
+              :id="`growl-message-${ growl.id }`"
+              :class="{ 'has-title': !!growl.title }"
+            >
               {{ growl.message }}
             </p>
           </div>
@@ -153,12 +164,16 @@ export default {
     word-break: break-all;
     box-shadow: 0 3px 5px 0px var(--shadow);
 
+    $growl-icon-size: 20px;
+
     .icon-container {
       align-self: center;
       flex-basis: 10%;
       padding: 10px 20px 10px 10px;
       i {
-        font-size: 24px;
+        font-size: $growl-icon-size;
+        width: $growl-icon-size;
+        height: $growl-icon-size;
       }
     }
 
@@ -183,11 +198,14 @@ export default {
         }
         .growl-text-title {
           font-size: 16px;
-          margin-bottom: 20px;
         }
 
         > P {
-          margin-top: 5px;
+          padding-top: 2px;
+
+          &.has-title {
+            margin-top: 5px;
+          }
         }
       }
     }

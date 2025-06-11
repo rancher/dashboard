@@ -210,6 +210,7 @@ export default {
             :disabled="form.expiryType !== 'custom'"
             type="number"
             :mode="mode"
+            :aria-label="t('accountAndKeys.apiKeys.add.ariaLabel.expiration')"
           >
           <Select
             v-model:value="form.customExpiryUnits"
@@ -217,6 +218,7 @@ export default {
             :options="expiryUnitsOptions"
             :clearable="false"
             :reduce="opt=>opt.value"
+            :aria-label="t('accountAndKeys.apiKeys.add.ariaLabel.expirationUnits')"
           />
         </div>
       </div>

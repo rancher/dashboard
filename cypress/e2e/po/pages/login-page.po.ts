@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export class LoginPagePo extends PagePo {
   static url = '/auth/login'
@@ -48,6 +49,10 @@ export class LoginPagePo extends PagePo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 
+  confirmationAcceptButton(): ComponentPo {
+    return new ComponentPo('[data-testid="login-confirmation-accept-button"]', this.self());
+  }
+
   /**
    * Get login message
    * @returns
@@ -62,5 +67,9 @@ export class LoginPagePo extends PagePo {
    */
   loginBackgroundImage() {
     return cy.getId('login-landscape__img');
+  }
+
+  localSelector() {
+    return cy.getId('locale-selector');
   }
 }

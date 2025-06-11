@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/platform';
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
@@ -29,6 +30,13 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      // Use either these Vuex getters
+      // OR the props to set the action menu state,
+      // but don't use both.
+      targetElem: 'action-menu/elem',
+      shouldShow: 'action-menu/showing',
+    }),
     // Used for the table-level selection check-box to show checked (all selected)/intermediate (some selected)/unchecked (none selected)
     howMuchSelected() {
       const total = this.pagedRows.length;
@@ -119,25 +127,38 @@ export default {
   },
 
   watch: {
-    // On page change
-    pagedRows() {
-      // When the table contents changes:
-      // - Remove items that are in the selection but no longer in the table.
+    /**
+     * Handle changes to the page (SSP enabled)
+     */
+    externalPaginationResult() {
+      // Handle changes to the page (SSP enabled)
+      this.pageChanged(this.pagedRows);
+    },
 
-      const content = this.pagedRows;
+    /**
+     * Handle changes to the page (SSP disabled)
+     */
+    pagedRows() {
+      this.pageChanged(this.pagedRows);
+    }
+  },
+
+  methods: {
+    /**
+     * Remove items that are in the selection but no longer in the table.
+     */
+    pageChanged(page) {
       const toRemove = [];
 
       for (const node of this.selectedRows) {
-        if (!content.includes(node) ) {
+        if (!page.includes(node) ) {
           toRemove.push(node);
         }
       }
 
       this.update([], toRemove);
-    }
-  },
+    },
 
-  methods: {
     onToggleAll(value) {
       if ( value ) {
         this.update(this.pagedRows, []);
@@ -270,11 +291,17 @@ export default {
           }
         }
 
-        this.$store.commit(`action-menu/show`, {
-          resources,
-          event: e,
-          elem:  actionElement
-        });
+        if (!this.targetElem && !this.shouldShow) {
+          this.$store.commit(`action-menu/show`, {
+            resources,
+            event: e,
+            elem:  actionElement
+          });
+        } else if (this.targetElem === actionElement && this.shouldShow) {
+          // this condition is needed so that we can "toggle" the action menu with
+          // the keyboard for accessibility (row action menu)
+          this.$store.commit('action-menu/hide');
+        }
 
         return;
       }
@@ -326,17 +353,6 @@ export default {
       if ( !isSelected ) {
         this.update([node], this.selectedRows.slice());
       }
-
-      let resources = this.selectedRows;
-
-      if ( this.mangleActionResources ) {
-        resources = await this.mangleActionResources(resources);
-      }
-
-      this.$store.commit(`action-menu/show`, {
-        resources,
-        event: e,
-      });
     },
 
     keySelectRow(row, more = false) {
@@ -528,7 +544,7 @@ export default {
     },
 
     clearSelection() {
-      this.update([], this.selectedRows);
+      this.update([], [...this.selectedRows]);
     },
 
   }

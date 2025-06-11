@@ -109,6 +109,14 @@ These values are provided when you create a new project within Cypress dashboard
 
 It's also possible to run a workflow in GitHub Actions E2E test using these values to record on personal dashboards.
 
+### Skip dashboard or tests
+
+CI gates can be disabled in the following way:
+
+- Use label `ci/skip-e2e` to skip the E2E tests in the PR
+- Use label `ci/skip-e2e-cypress-dashboard` to run the E2E tests without Sorry Cypress dashboard in the PR (it will enable `TEST_DISABLE_DASHBOARD_LABEL` env var)
+- Use GitHub settings and define env var `TEST_DISABLE_DASHBOARD` as `true` (which is string and not boolean) to disable the Cypress dashboard entirely in every CI run
+
 ## Local and CI/prod run
 
 It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `dist`, while the production will enable all the SSL configurations to run encrypted.
@@ -144,9 +152,18 @@ POs all inherit a root `component.po`. Common component functionality can be add
 
 ### Best Practices
 
-#### data-testid
-When selecting an element priority should be given to the attribute `data-testid`, if this does not exist using a specific css selector can be used.
-- In some cases, including lists, the data-testid is dynamically created with a context prefix or index, so check the DOM even if it code it's not obvious
+#### `data-testid` attribute
+When locating an element priority should be given to the attribute `data-testid`.
+
+Not all elements will need a `data-testid` attribute
+- These aren't stripped in production builds and add html bloat plus DOM complexity when debugging
+- Sub elements can be found via chaining css selectors i.e. find parent element via `data-testid` attribute --> find inner element via element type or css class
+
+Components in the dashboard often have a `data-testid` attribute. If this is missing and required by a test we should add them.
+- In some cases the generic component will be prefixed with something functional i.e. `cluster-create-select-dropdown`. This helps when there are multiple of that component shown on screen
+- In cases where there are multiple inner elements with `data-testid` the value will contain a counter to ensure uniqueness i.e. `key-1`, `key-2`, etc
+- input elements might not be the topmost element in a lot of generic components, but can easily be selected by css selectors like `input` or `> input`
+
 
 #### Environment State - Pre / Post Test
 

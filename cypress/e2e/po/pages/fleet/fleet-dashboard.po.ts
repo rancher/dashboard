@@ -1,9 +1,9 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-export class FleetDashboardPagePo extends PagePo {
+export class FleetDashboardListPagePo extends BaseListPagePo {
     static url: string;
 
     private static createPath(
@@ -22,7 +22,7 @@ export class FleetDashboardPagePo extends PagePo {
     }
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-      return super.goTo(FleetDashboardPagePo.createPath(clusterId));
+      return super.goTo(FleetDashboardListPagePo.createPath(clusterId));
     }
 
     static navTo() {
@@ -32,16 +32,22 @@ export class FleetDashboardPagePo extends PagePo {
     }
 
     constructor(clusterId: string) {
-      super(FleetDashboardPagePo.createPath(clusterId));
+      super(FleetDashboardListPagePo.createPath(clusterId));
     }
 
-    resourceTable(name: string) {
-      const table = this.self().find(`[data-testid="collapsible-card-${ name }"]`);
-
-      return new ResourceTablePo(table);
+    collapsibleTable(name: string) {
+      return new ResourceTablePo(this.self().find(`[data-testid="collapsible-card-${ name }"]`));
     }
 
-    sortableTable(tableName = 'fleet-local') {
-      return this.resourceTable(tableName).sortableTable();
+    goToGitRepoListLink(name: 'fleet-local' | 'fleet-default') {
+      return this.self().find(`[data-testid="collapsible-card-${ name }"] h2 span` );
+    }
+
+    fleetDashboardEmptyState() {
+      return this.self().get('.fleet-empty-dashboard');
+    }
+
+    getStartedButton() {
+      return this.self().get('.btn').contains('Get started');
     }
 }

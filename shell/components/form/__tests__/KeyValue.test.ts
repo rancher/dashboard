@@ -127,7 +127,7 @@ describe('component: KeyValue', () => {
     expect(secondKeyInput.exists()).toBe(false);
     expect(secondValueInput.exists()).toBe(false);
 
-    const addButton = wrapper.find('[data-testid="add_link_button"]');
+    const addButton = wrapper.find('[data-testid="add_row_item_button"]');
 
     addButton.trigger('click');
     await nextTick();
@@ -175,5 +175,41 @@ describe('component: KeyValue', () => {
 
     expect(firstKeyInput.element.value).toBe('testkey1');
     expect(firstValueInput.element.value).toBe('testvalue1');
+  });
+
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {
+    const value = [{ key: 'testkey1', value: 'testvalue1' }];
+
+    const wrapper = mount(KeyValue, {
+      props: {
+        value,
+        mode:           'edit',
+        valueMultiline: false,
+        asMap:          false,
+        readAllowed:    true
+      }
+    });
+
+    const mainContainer = wrapper.find('.kv-container');
+    const keyGroup = wrapper.find('.kv-item.key');
+    const valueGroup = wrapper.find('.kv-item.value');
+    const firstKeyInput = wrapper.find('[data-testid="input-kv-item-key-0"]');
+    const firstValueInput = wrapper.find('[data-testid="input-kv-item-value-0"]');
+    const rowRemove = wrapper.find('[data-testid="remove-column-0"] button');
+    const rowAdd = wrapper.find('[data-testid="add_row_item_button"]');
+    const readKeyValueFromFile = wrapper.find('[data-testid="read_all_key_value_button"]');
+
+    expect(wrapper.vm.rows[0].key).toBe(value[0].key);
+    expect(wrapper.vm.rows[0].value).toBe(value[0].value);
+
+    expect(mainContainer.attributes('aria-label')).toBe('%generic.ariaLabel.keyValue%');
+    expect(mainContainer.attributes('role')).toBe('grid');
+    expect(keyGroup.attributes('role')).toBe('gridcell');
+    expect(valueGroup.attributes('role')).toBe('gridcell');
+    expect(firstKeyInput.attributes('aria-label')).toBe('%generic.ariaLabel.key%');
+    expect(firstValueInput.attributes('aria-label')).toBe('%generic.ariaLabel.value%');
+    expect(rowRemove.attributes('aria-label')).toBe('%generic.ariaLabel.remove%');
+    expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
+    expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
   });
 });

@@ -8,10 +8,12 @@ import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
 import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
   components: {
-    BackLink, Loading, TabTitle
+    BackLink, ExtensionPanel, Loading, TabTitle
   },
   mixins: [BackRoute],
   async fetch() {
@@ -19,8 +21,10 @@ export default {
   },
   data() {
     return {
-      dashboardVersion: this.$config.dashboardVersion,
-      settings:         null,
+      extensionType:     ExtensionPoint.PANEL,
+      extensionLocation: PanelLocation.ABOUT_TOP,
+      dashboardVersion:  this.$config.dashboardVersion,
+      settings:          null,
       SETTING
     };
   },
@@ -115,12 +119,22 @@ export default {
         {{ t('about.diagnostic.title') }}
       </router-link>
     </div>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="{}"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
     <h3>{{ t('about.versions.title') }}</h3>
     <table>
       <thead>
         <tr>
-          <th>{{ t('about.versions.component') }}</th>
-          <th>{{ t('about.versions.version') }}</th>
+          <th class="custom-th">
+            {{ t('about.versions.component') }}
+          </th>
+          <th class="custom-th">
+            {{ t('about.versions.version') }}
+          </th>
         </tr>
       </thead>
       <tr v-if="rancherVersion">
@@ -210,11 +224,11 @@ export default {
           v-for="(d, i) in downloadImageList"
           :key="i"
         >
-          <td>
+          <th>
             <div class="os">
               <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
             </div>
-          </td>
+          </th>
           <td>
             <a
               v-if="d.imageList"
@@ -241,11 +255,11 @@ export default {
           :key="i"
           class="link"
         >
-          <td>
+          <th>
             <div class="os">
               <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
             </div>
-          </td>
+          </th>
           <td>
             <a
               v-if="d.cliLink"
@@ -273,7 +287,7 @@ export default {
     overflow: hidden;
     border-radius: var(--border-radius);
 
-    tr > td:first-of-type {
+    tr > th:first-of-type {
       width: 20%;
     }
 
@@ -284,9 +298,13 @@ export default {
       text-align: left;
     }
 
-    th {
+    th.custom-th {
       background-color: var(--sortable-table-top-divider);
       border-bottom: 1px solid var(--sortable-table-top-divider);
+    }
+
+    th:not(.custom-th) {
+      font-weight: normal;
     }
 
     a {

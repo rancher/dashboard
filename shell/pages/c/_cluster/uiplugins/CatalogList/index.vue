@@ -19,17 +19,15 @@ export default {
   mixins: [ResourceManager],
 
   data() {
-    const actions = [
-      {
-        action:  'showCatalogUninstallDialog',
-        label:   this.t('plugins.uninstall.label'),
-        icon:    'icon icon-trash',
-        enabled: true,
-      }
-    ];
-
     return {
-      actions,
+      actions: [
+        {
+          action:  'showCatalogUninstallDialog',
+          label:   this.t('plugins.uninstall.label'),
+          icon:    'icon icon-trash',
+          enabled: true,
+        }
+      ],
       catalogHeaders: UI_PLUGIN_CATALOG,
     };
   },
@@ -95,10 +93,12 @@ export default {
         <template #header-left>
           <div>
             <button
-              class="btn bg-primary mr-10"
+              class="btn role-primary mr-10"
               type="button"
               aria-haspopup="dialog"
               data-testid="extensions-catalog-load-dialog"
+              role="button"
+              :aria-label="t('plugins.manageCatalog.imageLoad.load')"
               @click="$emit('showCatalogLoadDialog')"
             >
               {{ t('plugins.manageCatalog.imageLoad.load') }}

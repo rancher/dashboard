@@ -3,7 +3,6 @@ import ClusterLink from '@shell/components/formatter/ClusterLink.vue';
 
 describe('component: ClusterLink', () => {
   const UNAVAILABLE_MACHINES_ICON_SELECTOR = '[data-testid="unavailable-machines-alert-icon"]';
-  const TEMPLATE_UPGRADE_ICON_SELECTOR = '[data-testid="rke-template-upgrade-alert-icon"]';
   const CONDITION_HAS_ERROR_ICON_SELECTOR = '[data-testid="conditions-has-error-icon"]';
 
   describe('unavailable machines alert icon', () => {
@@ -20,44 +19,15 @@ describe('component: ClusterLink', () => {
         const wrapper = mount(ClusterLink, {
           props: {
             row: {
-              hasError:           false,
-              status:             {},
+              hasError: false,
+              status:   {},
               unavailableMachines,
-              rkeTemplateUpgrade: undefined
             },
             reference: 'any',
             value:     'any'
           }
         });
         const el = wrapper.find(UNAVAILABLE_MACHINES_ICON_SELECTOR);
-
-        expect(el.exists()).toBe(expected);
-      }
-    );
-  });
-
-  describe('template upgrade alert icon', () => {
-    const testCases = [
-      [undefined, false],
-      ['any', true],
-    ];
-
-    it.each(testCases)(
-      'should show/hide properly based on rkeTemplateUpgrade',
-      (rkeTemplateUpgrade, expected) => {
-        const wrapper = mount(ClusterLink, {
-          props: {
-            row: {
-              hasError:            false,
-              status:              {},
-              unavailableMachines: 0,
-              rkeTemplateUpgrade
-            },
-            reference: 'any',
-            value:     'any'
-          }
-        });
-        const el = wrapper.find(TEMPLATE_UPGRADE_ICON_SELECTOR);
 
         expect(el.exists()).toBe(expected);
       }

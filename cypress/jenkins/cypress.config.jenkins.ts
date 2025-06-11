@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
+import websocketTasks from '../../cypress/support/utils/webSocket-utils';
+
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
@@ -86,7 +88,10 @@ export default defineConfig({
     azureClientId:       process.env.AZURE_CLIENT_ID,
     azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
     customNodeIp:        process.env.CUSTOM_NODE_IP,
-    customNodeKey:       process.env.CUSTOM_NODE_KEY
+    customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
+    customNodeIpRke1:    process.env.CUSTOM_NODE_IP_RKE1,
+    customNodeKeyRke1:   process.env.CUSTOM_NODE_KEY_RKE1
   },
   // Jenkins reporters configuration jUnit and HTML
   reporter:        'cypress-multi-reporters',
@@ -105,6 +110,9 @@ export default defineConfig({
       require('cypress-mochawesome-reporter/plugin')(on);
       require('@cypress/grep/src/plugin')(config);
       on('task', { removeDirectory });
+      websocketTasks(on, config);
+
+      return config;
     },
     fixturesFolder:               'cypress/e2e/blueprints',
     experimentalSessionAndOrigin: true,

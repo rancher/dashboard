@@ -266,11 +266,13 @@ export const CREATION_DATE = {
 };
 
 export const DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  align:    'left',
-  sort:     ['description'],
-  width:    300,
+  name:      'description',
+  labelKey:  'tableHeaders.description',
+  align:     'left',
+  value:     'description',
+  sort:      ['description'],
+  formatter: 'Description',
+  width:     300,
 };
 
 export const NS_SNAPSHOT_QUOTA = {
@@ -515,6 +517,12 @@ export const LAST_SEEN_TIME = {
   sort:     'lastTimestamp:desc',
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
+
+export const EVENT_LAST_SEEN_TIME = {
+  ...LAST_SEEN_TIME,
+  defaultSort: true,
+};
+
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
   labelKey:  'tableHeaders.lastSeen',
@@ -960,13 +968,24 @@ export const EXPIRES = {
   formatter: 'LiveExpiryDate'
 };
 
+export const LAST_USED = {
+  name:          'lastUsed',
+  value:         'lastUsedAt',
+  labelKey:      'tableHeaders.lastUsed',
+  align:         'left',
+  sort:          ['lastUsedAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate',
+  formatterOpts: { missingKey: 'generic.unknown' },
+};
+
 export const RESTART = {
   name:      'restart',
   labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
-  width:     75,
+  width:     125,
   align:     'center'
 };
 

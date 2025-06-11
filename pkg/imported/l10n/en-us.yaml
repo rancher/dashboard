@@ -1,0 +1,57 @@
+import:
+  label: Generic
+imported:
+  label: Imported
+  agentEnv:
+    header: Agent Environment Variables
+  basics:
+    versionMismatch: The selected version is lower than the actual version of this cluster.
+    versionManagement:
+      title: K8s version management
+      globalEnabled: Global default (enabled)
+      globalDisabled: Global default (disabled)
+      enabled: Enabled
+      disabled: Disabled
+      banner:
+        create:
+          nonDefault:
+            Future changes to this setting may result in redeployment of the cluster agent.
+          default:
+            Future changes to the system default setting will result in redeployment of the cluster agent.
+        edit:
+          different: This change will trigger cluster agent redeployment.
+          defaultToNonDefault: Future changes to the global setting will not affect the cluster.
+          nonDefaultToDefault: Future changes to the global setting will affect the cluster.
+      summary:
+        globallyEnabled: 'Version management for imported clusters is globally <b>enabled</b>.'
+        globallyDisabled: Version management for imported clusters is globally <b>disabled</b>.
+        canEnable: You can enable it at a cluster level.
+        willEnable: It will be manually <b>ENABLED</b> for this cluster.
+        willDisable: it will be manually <b>DISABLED</b> for this cluster.
+  drainWorkerNodes:
+    label: Drain Worker Nodes
+  drainControlPlaneNodes:
+    label: Drain Control Plane Nodes
+  memberRoles:
+    localBanner: 'Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. <br> Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation.' 
+  network:
+    banner: The imported cluster must support Kubernetes NetworkPolicy resources for Project Network Isolation to be enforced
+  accordions:
+    advanced: Advanced
+    basics: Basics
+    upgrade: Upgrade Strategy
+    networking: Networking
+    registries: Registries
+    labels: Labels and Annotations
+    k3sOptions: K3S Options
+    rke2Options: RKE2 Options
+  upgradeStrategy:
+    header: Upgrade Strategy
+  errors:
+    clusterName: 
+      required: Name is required
+      chars: Name may only contain lowercase alphanumerics and hyphens
+      startEnd: Name must start and end with a lowercase alphanumeric
+      length: Name may not exceed 63 characters
+    concurrency: '{key} must be an integer greater than 0'
+    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'

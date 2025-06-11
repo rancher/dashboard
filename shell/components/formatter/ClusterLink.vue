@@ -70,10 +70,10 @@ export default {
       data-testid="unavailable-machines-alert-icon"
     />
     <i
-      v-if="row.rkeTemplateUpgrade"
-      v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
-      class="template-upgrade-icon icon-alert icon"
-      data-testid="rke-template-upgrade-alert-icon"
+      v-if="row.isRke1"
+      v-clean-tooltip="t('cluster.rke1Unsupported')"
+      class="rke1-unsupported-icon icon-warning icon"
+      data-testid="rke1-unsupported-icon"
     />
     <i
       v-if="row.hasError && statusErrorConditions.length > 0"
@@ -106,12 +106,9 @@ export default {
   .mytooltip ul {
     outline: 1px dashed red;
   }
-  .template-upgrade-icon {
-    border: 1px solid var(--warning);
-    border-radius: 50%;
+  .rke1-unsupported-icon {
     color: var(--warning);
     margin-left: 4px;
     font-size: 14px;
-    padding: 2px;
   }
 </style>

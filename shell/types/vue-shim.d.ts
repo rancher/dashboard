@@ -1,13 +1,9 @@
 /* eslint-disable */
-import type { DefineComponent } from 'vue'
-import { ComponentCustomProperties } from 'vue';
+import type ShellApi from '@shell/plugins/internal-api/shell/shell.api';
 
-declare module '*.vue' {
-  const component: DefineComponent<{}, {}, any>
-  export default component
-}
+export {};
 
-declare module '@vue/runtime-core' {
+declare module 'vue' {
   interface ComponentCustomProperties {
     t: {
       (key: string, args?: Record<string, any>, raw?: boolean): string;
@@ -21,6 +17,7 @@ declare module '@vue/runtime-core' {
       getters: Record<string, any>,
       dispatch: (action: string, payload?: any) => Promise<any>,
       commit: (mutation: string, payload?: any) => void,
-    }
+    },
+    $shell: ShellApi,
   }
 }

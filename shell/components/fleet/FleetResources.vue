@@ -1,6 +1,17 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
-import { AGE } from '@shell/config/table-headers';
+import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+
+function stateDisplayProperties(state) {
+  const color = colorForState(state).replace('text-', 'bg-');
+  const display = stateDisplay(state);
+
+  return {
+    stateBackground: color,
+    stateDisplay:    display,
+    stateSort:       stateSort(color, display),
+  };
+}
 
 export default {
   name: 'FleetResources',
@@ -8,8 +19,8 @@ export default {
   components: { SortableTable },
 
   props: {
-    value: {
-      type:     Object,
+    rows: {
+      type:     Array,
       required: true,
     },
     clusterId: {
@@ -20,10 +31,13 @@ export default {
   },
 
   computed: {
-    computedResources() {
-      return this.value.resourcesStatuses;
+    resources() {
+      return (this.rows || []).map((r) => ({
+        tableKey: r.key,
+        ...stateDisplayProperties(r.state),
+        ...r,
+      }));
     },
-
     resourceHeaders() {
       return [
         {
@@ -65,7 +79,6 @@ export default {
           sort:  'namespace',
           label: 'Namespace',
         },
-        { ...AGE }
       ];
     },
   }
@@ -74,7 +87,7 @@ export default {
 
 <template>
   <SortableTable
-    :rows="computedResources"
+    :rows="resources"
     :headers="resourceHeaders"
     :table-actions="false"
     :row-actions="false"

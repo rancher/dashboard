@@ -33,6 +33,27 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer2', '@adm
     dialog.checkNotExists();
   });
 
+  it('can search by resource group', () => {
+    // Open the resource search
+    clusterDashboard.clusterActionsHeader().resourceSearchButton().click();
+
+    const dialog = new ResourceSearchDialog();
+
+    dialog.checkExists();
+    dialog.checkVisible();
+
+    dialog.searchBox().type('auth');
+
+    // Wait for less than 20 - then we know the results are updated for our search
+    dialog.results().should('have.length.lt', 20);
+    dialog.results().should('have.length.gt', 1);
+    dialog.results().first().should('have.text', 'SelfSubjectReviews (selfsubjectreviews.authentication.k8s.io)');
+
+    dialog.close();
+
+    dialog.checkNotExists();
+  });
+
   it('can show resource dialog when namespace chooser is open', () => {
     const namespacePicker = new NamespaceFilterPo();
 

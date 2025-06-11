@@ -6,7 +6,12 @@ export default {
 
   computed: {
     uniqueDisplayName() {
-      return this.t('model.authConfig.description.oidc');
+      switch (this.name) {
+      case 'cognito':
+        return this.t('model.authConfig.description.cognito');
+      default:
+        return this.t('model.authConfig.description.oidc');
+      }
     },
   },
 

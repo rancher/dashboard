@@ -1,6 +1,7 @@
+import { Translation } from '@shell/types/t';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-const mockT = (key: string, args: any) => {
+const mockT: Translation = (key: string, args: any) => {
   return JSON.stringify({
     message: key,
     ...args
@@ -8,6 +9,14 @@ const mockT = (key: string, args: any) => {
 };
 
 describe('formRules', () => {
+  it('should use "Value" as default label', () => {
+    const validators = formRulesGenerator(mockT, {});
+
+    const message = validators.required(null);
+
+    expect(message).toStrictEqual('{\"message\":\"validation.required\",\"key\":\"Value\"}');
+  });
+
   const formRules = formRulesGenerator(mockT, { key: 'testDisplayKey' });
 
   it('"required" : returns undefined when value supplied', () => {
@@ -23,22 +32,6 @@ describe('formRules', () => {
       message: 'validation.required',
       key:     'testDisplayKey'
     });
-
-    expect(formRuleResult).toStrictEqual(expectedResult);
-  });
-
-  it('"cronSchedule" : returns undefined when valid cron string value supplied', () => {
-    const testValue = '0 * * * *';
-    const formRuleResult = formRules.cronSchedule(testValue);
-
-    expect(formRuleResult).toBeUndefined();
-  });
-
-  it('"cronSchedule" : returns the correct message when invalid cron string value supplied', () => {
-    // specific logic of what constitutes a cron string is in the "cronstrue" function in an external library and not tested here
-    const testValue = '0 * * **';
-    const formRuleResult = formRules.cronSchedule(testValue);
-    const expectedResult = JSON.stringify({ message: 'validation.invalidCron' });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
@@ -97,6 +90,45 @@ describe('formRules', () => {
       'should return undefined or correct message based on the provided url',
       (url, expected) => {
         const formRuleResult = formRules.trailingForwardSlash(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('gitRepository', () => {
+    const message = JSON.stringify({ message: 'validation.git.repository' });
+    const testCases = [
+      // Valid HTTP(s)
+      ['https://github.com/rancher/dashboard.git', undefined],
+      ['http://github.com/rancher/dashboard.git', undefined],
+      ['https://github.com/rancher/dashboard', undefined],
+      ['https://github.com/rancher/dashboard/', undefined],
+
+      // Valid SSH
+      ['git@github.com:rancher/dashboard.git', undefined],
+      ['git@github.com:rancher/dashboard', undefined],
+      ['git@github.com:rancher/dashboard/', undefined],
+
+      // Not valid HTTP(s)
+      ['https://github.com/rancher/  dashboard.git', message],
+      ['http://github.com/rancher/  dashboard.git', message],
+      ['https://github.com/rancher/dashboard ', message],
+      ['foo://github.com/rancher/dashboard/', message],
+      ['github.com/rancher/dashboard/', message],
+
+      // Not valid SSH
+      ['git@github.com:rancher/  dashboard.git', message],
+      ['git@github.com:rancher/dashboard  ', message],
+      ['git@github.comrancher/dashboard', message],
+
+      [undefined, undefined]
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Git url: %p',
+      (url, expected) => {
+        const formRuleResult = formRules.gitRepository(url);
 
         expect(formRuleResult).toStrictEqual(expected);
       }
@@ -219,6 +251,33 @@ describe('formRules', () => {
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  describe('"registryUrl": has the expected output for each input', () => {
+    const expectedTranslation = JSON.stringify({ message: 'cluster.privateRegistry.privateRegistryUrlError' });
+    const testCases = [
+      // Empty
+      [undefined, undefined],
+
+      // Word
+      ['registry', expectedTranslation],
+
+      // Without schema
+      ['registry.io', undefined],
+
+      // With schemas
+      ['http://registry.io', undefined],
+      ['https://registry.io', undefined],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.registryUrl(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
   });
 
   it('"ruleGroups" : returns undefined when rulegroups are supplied', () => {
@@ -1112,6 +1171,13 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  /**
+   * Test all factory validators
+   * @param rule - the name of the factory validator
+   * @param argument - the value to validate
+   * @param correctValues - an array of values that should pass the validation
+   * @param wrongValues - an array of values that should fail the validation
+   */
   describe.each([
     ['minValue', 2, [3], [1]],
     ['maxValue', 256, [1], [300]],
@@ -1133,12 +1199,18 @@ describe('formRules', () => {
     });
   });
 
+  /**
+   * Test all standard validators
+   * @param rule - the name of the standard validator
+   * @param correctValues - an array of values that should pass the validation
+   * @param wrongValues - an array of values that should fail the validation
+   */
   describe.each([
     ['requiredInt', [2, 2.2], ['e']],
     ['isInteger', ['2', 2, 0], [2.2, 'e', '1.0']],
     ['isPositive', ['0', 1], [-1]],
     ['isOctal', ['0', 0, 10], ['01']],
-
+    ['cronSchedule', ['0 * * * *', '@daily'], ['0 * * **']],
   ])('given validator %p', (rule, correctValues, wrongValues) => {
     it.each(wrongValues as [])('should return error for value %p', (wrong) => {
       const formRuleResult = (formRules as any)[rule](wrong);

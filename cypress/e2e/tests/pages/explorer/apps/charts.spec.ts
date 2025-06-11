@@ -1,11 +1,14 @@
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartsPage = new ChartsPage();
 
 describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   beforeEach(() => {
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
+
     cy.login();
     chartsPage.goTo();
     chartsPage.waitForPage();
@@ -69,16 +72,20 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // by default "Show deprecated apps" filter is not enabled (except if "deprecated" query param exists in the url)
     chartsPage.chartsShowDeprecatedFilterCheckbox().isUnchecked();
     // a deprecated chart should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedChart').should('not.exist');
+    chartsPage.getChartByName('deprecatedChart').checkNotExists();
     // an experimental chart should still be visible
-    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
+      .and('be.visible');
     // a chart that's deprecated & experimental should not be listed before enabling the checkbox
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('not.exist');
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkNotExists();
     // enabling the checkbox
     chartsPage.chartsShowDeprecatedFilterCheckbox().set();
-    chartsPage.getChartByName('deprecatedChart').should('exist').scrollIntoView().and('be.visible');
-    chartsPage.getChartByName('experimentalChart').should('exist').scrollIntoView().and('be.visible');
-    chartsPage.getChartByName('deprecatedAndExperimentalChart').should('exist').scrollIntoView().and('be.visible');
+    chartsPage.getChartByName('deprecatedChart').checkExists().scrollIntoView()
+      .and('be.visible');
+    chartsPage.getChartByName('experimentalChart').checkExists().scrollIntoView()
+      .and('be.visible');
+    chartsPage.getChartByName('deprecatedAndExperimentalChart').checkExists().scrollIntoView()
+      .and('be.visible');
     // going to chart's page
     const chartPage = new ChartPage();
 
@@ -94,8 +101,11 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should call fetch when route query changes with valid parameters', () => {
     const chartName = 'Logging';
 
+    cy.wait('@fetchChartData');
+    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+
     chartsPage.getChartByName(chartName)
-      .should('exist')
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
@@ -105,18 +115,21 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartPage.waitForPage();
 
     // Set up intercept for the network request triggered by $fetch
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartData');
+    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
-    chartPage.selectVersion('103.1.1+up4.4.0');
+    chartPage.selectVersion('105.1.0+up4.10.0');
 
-    cy.wait('@fetchChartData').its('response.statusCode').should('eq', 200);
+    cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
   });
 
   it('should not call fetch when navigating back to charts page', () => {
     const chartName = 'Logging';
 
+    cy.wait('@fetchChartData');
+    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+
     chartsPage.getChartByName(chartName)
-      .should('exist')
+      .checkExists()
       .scrollIntoView()
       .should('be.visible')
       .click();
@@ -130,8 +143,33 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.waitForPage();
 
     // Set up intercept after navigating back
-    cy.intercept('GET', '**/v1/catalog.cattle.io.clusterrepos/**').as('fetchChartDataAfterBack');
+    cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterBack');
 
     cy.get('@fetchChartDataAfterBack.all').should('have.length', 0);
+  });
+
+  it('A disabled repo should NOT be listed on the repos dropdown', () => {
+    const disabledRepoId = 'disabled-repo';
+
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          data: [
+            { id: disabledRepoId, spec: { enabled: false } }, // disabled
+            { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
+            { id: 'enabled-repo-2', spec: {} } // enabled
+          ]
+        }
+      });
+    }).as('getRepos');
+
+    cy.wait('@getRepos');
+
+    chartsPage.chartsFilterReposSelect().toggle();
+    chartsPage.chartsFilterReposSelect().isOpened();
+    chartsPage.chartsFilterReposSelect().getOptions().should('have.length', 3); // should include three options: All, enabled-repo-1 and enabled-repo-2
+    chartsPage.chartsFilterReposSelect().getOptions().contains(disabledRepoId)
+      .should('not.exist');
   });
 });

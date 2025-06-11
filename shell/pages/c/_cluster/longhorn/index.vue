@@ -12,9 +12,9 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      this.uiServices = await this.$store.dispatch('cluster/findMatching', {
+      this.uiServices = await this.$store.dispatch('cluster/findLabelSelector', {
         type:     SERVICE,
-        selector: 'app=longhorn-ui'
+        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } }
       });
     }
   },
@@ -84,7 +84,7 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr>
+            <hr role="none">
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

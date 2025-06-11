@@ -1,3 +1,4 @@
+import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_BASE_URL, isSupportedChartVersion } from '@shell/config/uiplugins';
@@ -43,9 +44,11 @@ export async function getLatestExtensionVersion(
  *
  * @param store Vue store
  * @param name Name of the extension
+ * @param maxRetries Number of times to check for availability
+ * @param retryWait Gap (in ms) between availability checks
  * @returns the extension object when available, null if timed out waiting for it to be available
  */
-export async function waitForUIExtension(store: any, name: string): Promise<any> {
+export async function waitForUIExtension(store: any, name: string, maxRetries = MAX_RETRIES, retryWait = RETRY_WAIT): Promise<any> {
   let tries = 0;
 
   while (true) {
@@ -68,11 +71,11 @@ export async function waitForUIExtension(store: any, name: string): Promise<any>
 
     tries++;
 
-    if (tries > MAX_RETRIES) {
+    if (tries > maxRetries) {
       return null;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, retryWait));
   }
 }
 
@@ -81,9 +84,11 @@ export async function waitForUIExtension(store: any, name: string): Promise<any>
  *
  * @param store Vue store
  * @param extension Extension object
+ * @param maxRetries Number of times to check for availability
+ * @param retryWait Gap (in MS) between availability checks
  * @returns true when available, false if timed out waiting for it to be available
  */
-export async function waitForUIPackage(store: any, extension: any): Promise<boolean> {
+export async function waitForUIPackage(store: any, extension: any, maxRetries = MAX_RETRIES, retryWait = RETRY_WAIT): Promise<boolean> {
   let tries = 0;
 
   const { name, version } = extension;
@@ -103,11 +108,11 @@ export async function waitForUIPackage(store: any, extension: any): Promise<bool
 
     tries++;
 
-    if (tries > MAX_RETRIES) {
+    if (tries > maxRetries) {
       return false;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, retryWait));
   }
 }
 
@@ -158,37 +163,56 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
 }
 
 /**
- * Get the Helm repository object
  *
  * @param store Vue store
- * @param url The url of the Helm repository
- * @param branch The branch of the Helm repository
+ * @param url Repository Url
  * @returns HelmRepository
  */
-export async function getHelmRepository(store: any, url: string, branch?: string): Promise<HelmRepository> {
+export async function getHelmRepositoryExact(store: any, url: string): Promise<HelmRepository> {
+  return await getHelmRepository(store, (repository: any) => {
+    const target = repository.spec?.gitRepo || repository.spec?.url;
+
+    return target === url;
+  });
+}
+
+/**
+ *
+ * @param store Vue store
+ * @param urlRegexes Regex to match a community repository
+ * @returns HelmRepository
+ */
+export async function getHelmRepositoryMatch(store: any, urlRegexes: string[]): Promise<HelmRepository> {
+  return await getHelmRepository(store, (repository: any) => {
+    const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
+
+    return matchesSomeRegex(target, urlRegexes);
+  });
+}
+
+/**
+ *
+ * @param store Vue store
+ * @param matchFn Match function for repository's urls
+ * @returns HelmRepository
+ */
+async function getHelmRepository(store: any, matchFn: (repository: any) => boolean): Promise<HelmRepository> {
   if (store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
     const repos = await store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true, watch: false } });
 
-    return repos.find((r: any) => {
-      const target = branch ? r.spec?.gitRepo : r.spec?.url ;
-
-      return target === url;
-    });
+    return repos.find(matchFn);
   } else {
     throw new Error('No permissions');
   }
 }
 
 /**
- * Refresh the Helm repository
- * Ensures that we find the latest extension versions
  *
  * @param store Vue store
- * @param gitRepo Extension Repository url
- * @param gitBranch Extension Repository branch
+ * @param url Repository Url
  */
-export async function refreshHelmRepository(store: any, gitRepo: string, gitBranch: string): Promise<void> {
-  const repository = await getHelmRepository(store, gitRepo, gitBranch);
+export async function refreshHelmRepository(store: any, url: string): Promise<void> {
+  const repository = await getHelmRepositoryExact(store, url);
 
   const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
@@ -202,39 +226,31 @@ export async function refreshHelmRepository(store: any, gitRepo: string, gitBran
 }
 
 /**
- * Ensure the required Helm Repository exits, if it does not, add it with the specified name
- *
- * Wait until the newly added repository has been downloaded
  *
  * @param store Vue store
- * @param url The url of the Helm repository
- * @param name The name of the cluster repository
- * @param branch The branch of the Helm repository
- * @returns HelmRepository object
+ * @param name Repository name
+ * @param url Repository Url
+ * @param branch Repository Branch
+ * @returns HelmRepository
  */
-export async function ensureHelmRepository(store: any, url: string, name: string, branch?: string): Promise<HelmRepository> {
-  let helmRepo = await getHelmRepository(store, url, branch);
+export async function createHelmRepository(store: any, name: string, url: string, branch?: string): Promise<HelmRepository> {
+  const data = {
+    type:     CATALOG.CLUSTER_REPO,
+    metadata: { name },
+    spec:     {} as any
+  };
 
-  // Add the Helm repository, if it is not there
-  if (!helmRepo) {
-    const data = {
-      type:     CATALOG.CLUSTER_REPO,
-      metadata: { name },
-      spec:     {} as any
-    };
-
-    if (branch) {
-      data.spec.gitBranch = branch;
-      data.spec.gitRepo = url;
-    } else {
-      data.spec.url = url;
-    }
-
-    // Create a model for the new repository and save it
-    const repo = await store.dispatch('management/create', data);
-
-    helmRepo = await repo.save();
+  if (branch) {
+    data.spec.gitBranch = branch;
+    data.spec.gitRepo = url;
+  } else {
+    data.spec.url = url;
   }
+
+  // Create a model for the new repository and save it
+  const repo = await store.dispatch('management/create', data);
+
+  const helmRepo = await repo.save();
 
   // Poll the repository until it says it has been downloaded
   let fetched = false;
@@ -278,7 +294,7 @@ export async function ensureHelmRepository(store: any, url: string, name: string
  * Get the given Helm Chart from the specified Helm Repository
  *
  * @param store Vue store
- * @param repository Helm Repository
+ * @param repository Repository Url
  * @param chartName Helm Chart name
  * @returns Helm Chart
  */

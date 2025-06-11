@@ -132,13 +132,18 @@ export default {
   },
 
   methods: {
+    /**
+     * Fetch resources required to populate POD_RESTARTS and WORKLOAD_HEALTH_SCALE columns
+     */
     loadHeathResources() {
       // See https://github.com/rancher/dashboard/issues/10417, health comes from selectors applied locally to all pods (bad)
       if (this.paginationEnabled) {
+        // Unfortunately with SSP enabled we cannot fetch all pods to then let each row find applicable pods by locally applied selectors (bad for scaling)
+        // See https://github.com/rancher/dashboard/issues/14211
         return;
       }
 
-      // Fetch these in the background to populate workload health
+      // Fetch these in the background
       if ( this.allTypes ) {
         this.$fetchType(POD);
         this.$fetchType(WORKLOAD_TYPES.JOB);
@@ -159,6 +164,10 @@ export default {
     }
   },
 
+  typeDisplay() {
+    // Used by shell/components/ResourceList/index.vue to override list title (usually found via schema, which doesn't exist for this virtual type)
+    return this.$store.getters['type-map/labelFor'](this.schema || workloadSchema, 99);
+  },
 };
 </script>
 

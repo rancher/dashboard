@@ -4,8 +4,34 @@ import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.p
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
+const gitRepoUrl = 'https://github.com/rancher/charts';
+
+describe('Visual Testing', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  it('validating repositories page with percy', () => {
+    const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.list().resourceTable().sortableTable().checkVisible();
+    repositoriesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    repositoriesPage.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignore dinamic data inside rows 5 y 4(age and branch)
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-5']");
+    cy.hideElementBySelector("[data-testid^='sortable-cell-'][data-testid$='-4']");
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('repositories Page');
+  });
+});
 
 describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
@@ -22,14 +48,15 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos').its('response.statusCode').should('eq', 201);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
     repositoriesPage.waitForPage();
 
     // check list details
@@ -44,7 +71,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Edit Config').click();
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=edit');
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-edit`);
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`);
     repositoriesPage.waitForPage();
 
     // check details page
@@ -59,7 +86,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories(this.repoName).waitForPage('mode=clone');
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }-clone`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-desc-clone`);
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
     // check list details
@@ -86,8 +113,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can refresh a repository', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    cy.intercept('PUT', `/v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('refreshRepo');
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click();
+    cy.intercept('PUT', `${ CLUSTER_REPOS_BASE_URL }/${ this.repoName }`).as('refreshRepo');
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').click({ force: true });
     cy.wait('@refreshRepo').its('response.statusCode').should('eq', 200);
 
     // check list details
@@ -129,10 +156,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }basic`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createBasicAuth('test', 'test');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
     // check list details
@@ -148,10 +175,10 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().nameNsDescription().name().set(`${ this.repoName }ssh`);
     repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
     repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set('https://github.com/rancher/charts');
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
     repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
     repositoriesPage.createEditRepositories().clusterRepoAuthSelectOrCreate().createSSHAuth('privateKey', 'publicKey');
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
     repositoriesPage.waitForPage();
 
     // check list details
@@ -202,7 +229,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
@@ -221,9 +248,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.createEditRepositories().ociMaxWaitInput().setValue(ociMaxWait);
     repositoriesPage.createEditRepositories().ociMaxWaitInput().clear();
 
-    cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos').as('createRepository');
+    cy.intercept('POST', CLUSTER_REPOS_BASE_URL).as('createRepository');
 
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     cy.wait('@createRepository', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(201);
@@ -241,6 +268,63 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
 
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
+
+    const promptRemove = new PromptRemove();
+
+    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
+
+    promptRemove.remove();
+    cy.wait('@deleteRepository');
+    repositoriesPage.waitForPage();
+
+    // check list details
+    cy.contains(this.repoName).should('not.exist');
+  });
+
+  it('can disable/enable a repository', function() {
+    // create repo
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    repositoriesPage.create();
+    repositoriesPage.createEditRepositories().waitForPage();
+    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
+    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
+    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
+    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
+    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
+    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    repositoriesPage.waitForPage();
+
+    // check list details
+    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
+    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+
+    // refresh should be displayed for an enabled repo
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
+    // close action menu
+    repositoriesPage.list().closeActionMenu();
+
+    // disable repo
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1500);
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
+    repositoriesPage.list().details(this.repoName, 1).contains('Disabled', { timeout: 10000 }).scrollIntoView()
+      .should('be.visible');
+
+    // refresh should NOT be displayed for a disabled repo
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
+    // close action menu
+    repositoriesPage.list().closeActionMenu();
+
+    // enable repo
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1500);
+    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
+    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).scrollIntoView()
+      .should('be.visible');
+
+    // delete repo
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();

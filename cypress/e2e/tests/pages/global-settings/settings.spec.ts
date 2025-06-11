@@ -14,6 +14,7 @@ const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
+const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -25,6 +26,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
 
     cy.title().should('eq', 'Rancher - Global Settings - Settings');
+  });
+
+  it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
+
+    settingsPage.settingBanner().banner().contains(BANNER_TEXT);
   });
 
   it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -44,6 +51,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
     settingsPage.waitForPage();
     settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].new);
+    // Scroll to the setting
+    cy.get('.main-layout').scrollTo('bottom');
     settingsPage.modifiedLabel('engine-iso-url').should('be.visible'); // modified label should display after update
 
     // Reset

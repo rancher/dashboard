@@ -5,9 +5,11 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
+let removeExtensions = false;
 
 const DISABLED_CACHE_EXTENSION_NAME = 'large-extension';
 // const DISABLED_CACHE_EXTENSION_MENU_LABEL = 'Large-extension';
@@ -16,20 +18,41 @@ const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
+const GIT_REPO_NAME = 'rancher-plugin-examples';
 
 describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it('versions for built-in extensions should display as expected', () => {
-    const pluginVersion = '1.0.0';
+  it('should go to the available tab by default', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'available');
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+  });
+
+  it('should show built-in extensions only when configured', () => {
+    const extensionsPo = new ExtensionsPagePo();
+    const pluginVersion = '1.0.0';
+
+    cy.setUserPreference({ 'plugin-developer': false });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Should not be able to see the built-in tab
+    extensionsPo.extensionTabBuiltin().checkNotExists();
+
+    // Set the preference
+    cy.setUserPreference({ 'plugin-developer': true });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Reload
+    extensionsPo.extensionTabBuiltin().checkExists();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabBuiltinClick();
+    extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
     extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
@@ -58,6 +81,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
+
+    cy.setUserPreference({ 'plugin-developer': false });
   });
 
   it('add repository', () => {
@@ -69,7 +94,9 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionTabInstalledClick(); // Avoid nav guard failures that probably auto move user to this tab
 
     // install the rancher plugin examples
-    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', GIT_REPO_NAME).then(() => {
+      removeExtensions = true;
+    });
   });
 
   it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
@@ -191,6 +218,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
     appRepoList.goTo();
     appRepoList.waitForPage();
+    appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
@@ -253,9 +281,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should install an extension', () => {
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
@@ -267,6 +297,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // select version and click install
     extensionsPo.installModalSelectVersionClick(2);
     extensionsPo.installModalInstallClick();
+    cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -297,6 +328,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should update an extension version', () => {
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -308,6 +340,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on update button on card
     extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
     extensionsPo.installModalInstallClick();
+    cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -400,6 +433,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
+    extensionsPo.loading().should('not.exist');
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
@@ -409,6 +443,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
 
     // make sure both extensions have been imported
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
@@ -427,7 +463,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure both extensions have been imported after logging in again
     cy.login(undefined, undefined, false);
     extensionsPo.goTo();
-    extensionsPo.waitForPage();
+    extensionsPo.waitForPage(null, 'installed');
+    extensionsPo.loading().should('not.exist');
     extensionsPo.waitForTitle();
     extensionsPo.extensionScriptImport(UNAUTHENTICATED_EXTENSION_NAME).should('exist');
     extensionsPo.extensionScriptImport(EXTENSION_NAME).should('exist');
@@ -514,5 +551,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available');
     extensionsPo.extensionCardClick(DISABLED_CACHE_EXTENSION_NAME);
     extensionsPo.extensionDetailsTitle().should('contain', DISABLED_CACHE_EXTENSION_NAME);
+  });
+
+  after(() => {
+    if ( removeExtensions ) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', GIT_REPO_NAME);
+    }
   });
 });

@@ -7,35 +7,51 @@ import { STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-tab
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
+const reason = {
+  ...REASON,
+  ...{ canBeVariable: true },
+  width: 130,
+};
+
+const eventHeaders = [
+  reason,
+  OBJECT,
+  MESSAGE,
+  NAME, {
+    name:        'date',
+    label:       'Date',
+    labelKey:    'clusterIndexPage.sections.events.date.label',
+    value:       'timestamp',
+    sort:        'timestamp:desc',
+    formatter:   'Date',
+    width:       220,
+    defaultSort: true,
+  },
+];
+
 export default {
   components: { PaginatedResourceTable },
 
   data() {
-    const reason = {
-      ...REASON,
-      ...{ canBeVariable: true },
-      width: 130,
+    return {
+      schema:            null,
+      events:            [],
+      eventHeaders,
+      paginationHeaders: null,
+      allEventsLink:     {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  EXPLORER,
+          resource: EVENT,
+        }
+      }
     };
+  },
 
-    const eventHeaders = [
-      reason,
-      OBJECT,
-      MESSAGE,
-      NAME, {
-        name:        'date',
-        label:       'Date',
-        labelKey:    'clusterIndexPage.sections.events.date.label',
-        value:       'timestamp',
-        sort:        'timestamp:desc',
-        formatter:   'Date',
-        width:       220,
-        defaultSort: true,
-      },
-    ];
-
+  beforeMount() {
     const schema = this.$store.getters['cluster/schemaFor'](EVENT);
 
-    const paginationHeaders = [
+    const paginationHeaders = schema ? [
       reason,
       STEVE_EVENT_OBJECT,
       MESSAGE,
@@ -49,21 +65,10 @@ export default {
         defaultSort: true,
       },
       headerFromSchemaColString('Count', schema, this.$store.getters, true),
-    ];
+    ] : [];
 
-    return {
-      schema,
-      events:        [],
-      eventHeaders,
-      paginationHeaders,
-      allEventsLink: {
-        name:   'c-cluster-product-resource',
-        params: {
-          product:  EXPLORER,
-          resource: EVENT,
-        }
-      }
-    };
+    this.schema = schema;
+    this.paginationHeaders = paginationHeaders;
   },
 
   mounted() {
@@ -88,6 +93,7 @@ export default {
 
 <template>
   <PaginatedResourceTable
+    v-if="!!schema"
     :schema="schema"
     :headers="eventHeaders"
     :pagination-headers="paginationHeaders"
@@ -115,6 +121,6 @@ export default {
 .events-link {
   align-self: center;
   padding-right: 20px;
-  min-width: 200px;
+  white-space: nowrap;
 }
 </style>

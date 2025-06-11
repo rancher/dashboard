@@ -1,15 +1,22 @@
 import { set } from '@shell/utils/object';
-import { EKSConfig, EKSNodeGroup } from 'types';
+import { EKSConfig, EKSNodeGroup, NormanCluster } from 'types';
 
 export interface CruEKSContext {
   t: Function,
   config: EKSConfig,
   nodeGroups: EKSNodeGroup[],
+  normanCluster: NormanCluster
 }
+
+const displayNameRequired = (ctx: CruEKSContext) => {
+  return (): string | null => {
+    return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
+  };
+};
 
 const clusterNameRequired = (ctx: CruEKSContext) => {
   return (): string | null => {
-    return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('nameNsDescription.name.label') }) : null;
+    return !ctx.normanCluster?.name ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
   };
 };
 
@@ -170,6 +177,7 @@ const nodeGroupsRequired = (ctx: CruEKSContext) => {
 };
 
 export default {
+  displayNameRequired,
   clusterNameRequired,
   nodeGroupNamesRequired,
   nodeGroupNamesUnique,

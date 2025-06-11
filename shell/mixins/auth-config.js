@@ -137,6 +137,14 @@ export default {
       }
     },
 
+    /**
+     * On save several operations are executed to return a URL or open pop-up:
+     * - Retrieve data from the UI
+     * - "Test" the configuration through action and override the model
+     * - Retrieve scopes from redirect URL
+     * - Set default scopes and merge them with the ones from the redirect URL and from the "test" action
+     * @param {*} btnCb
+     */
     async save(btnCb) {
       await this.applyHooks(BEFORE_SAVE_HOOKS);
 
@@ -166,7 +174,7 @@ export default {
               this.model.accessMode = 'unrestricted';
             }
             if (this.model.openLdapConfig && !this.showLdap) {
-              delete this.model.openLdapConfig;
+              this.model.openLdapConfig = null;
             }
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
@@ -299,7 +307,14 @@ export default {
 
         // KeyCloakOIDCConfig --> OIDCConfig
         this.model.rancherUrl = `${ serverUrl }/verify-auth`;
-        this.model.scope = this.model.id === 'keycloakoidc' ? BASE_SCOPES.keycloakoidc[0] : BASE_SCOPES.genericoidc[0];
+
+        // If there are base scopes defined for this provider, use those
+        if (Array.isArray(BASE_SCOPES[this.model.id])) {
+          this.model.scope = BASE_SCOPES[this.model.id][0];
+        } else {
+          // Default if base scopes not defined for this auth provider
+          this.model.scope = BASE_SCOPES.genericoidc[0];
+        }
         break;
       }
 

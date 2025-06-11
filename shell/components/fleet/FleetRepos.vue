@@ -6,17 +6,15 @@ import FleetIntro from '@shell/components/fleet/FleetIntro';
 
 import {
   AGE,
-  STATE,
-  NAME,
-  FLEET_SUMMARY,
   FLEET_REPO,
-  FLEET_REPO_TARGET,
-  FLEET_REPO_CLUSTERS_READY,
   FLEET_REPO_CLUSTER_SUMMARY,
-  FLEET_REPO_PER_CLUSTER_STATE
-
+  FLEET_REPO_CLUSTERS_READY,
+  FLEET_REPO_PER_CLUSTER_STATE,
+  FLEET_REPO_TARGET,
+  FLEET_SUMMARY,
+  NAME,
+  STATE,
 } from '@shell/config/table-headers';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 // i18n-ignore repoDisplay
 export default {
@@ -77,31 +75,18 @@ export default {
 
     headers() {
       // Cluster summary is only shown in the cluster view
-      const fleetClusterSummary = {
+      const summary = this.isClusterView ? [{
         ...FLEET_REPO_CLUSTER_SUMMARY,
-        formatterOpts: {
-          // Fleet uses labels to identify clusters
-          clusterLabel: this.clusterId
-        },
-      };
+        formatterOpts: { clusterId: this.clusterId },
+      }] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
 
       // if hasPerClusterState then use the repo state
-      const fleetPerClusterState = {
+      const state = this.isClusterView ? {
         ...FLEET_REPO_PER_CLUSTER_STATE,
-        value: (row) => {
-          const statePerCluster = row.clusterResourceStatus?.find((c) => {
-            return c.clusterLabel === this.clusterId;
-          });
+        value: (repo) => repo.clusterState(this.clusterId),
+      } : STATE;
 
-          return statePerCluster ? statePerCluster?.status?.displayStatus : STATES_ENUM.ACTIVE;
-        },
-      };
-
-      const summary = this.isClusterView ? [fleetClusterSummary] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
-
-      const state = this.isClusterView ? fleetPerClusterState : STATE;
-
-      const out = [
+      return [
         state,
         NAME,
         FLEET_REPO,
@@ -109,8 +94,6 @@ export default {
         ...summary,
         AGE
       ];
-
-      return out;
     },
   },
   methods: {
@@ -137,7 +120,7 @@ export default {
       <template #cell:repo="{ row }">
         <Link
           :row="row"
-          :value="row.spec.repo"
+          :value="row.spec.repo || ''"
           label-key="repoDisplay"
           before-icon-key="repoIcon"
           url-key="spec.repo"

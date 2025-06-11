@@ -5,13 +5,17 @@ import {
 import { ISTIO, MANAGEMENT } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
+/**
+ * obscure namespaces are reserved and have special meaning if they're also classed as `system`
+ *
+ * (by default hidden from user given by default `show dynamic namespaces` preference is disabled and `user namespaces` filter is on)
+ */
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
 
@@ -74,7 +78,13 @@ export default class Namespace extends SteveModel {
   }
 
   move(resources = this) {
-    this.$dispatch('promptMove', resources);
+    this.$dispatch('promptModal', {
+      component:  'MoveNamespaceDialog',
+      resources:  !Array.isArray(resources) ? [resources] : resources,
+      modalWidth: '440',
+      height:     'auto',
+      styles:     'max-height: 100vh;'
+    });
   }
 
   get isSystem() {
@@ -124,11 +134,11 @@ export default class Namespace extends SteveModel {
     return project;
   }
 
-  get groupByLabel() {
-    const name = this.project?.nameDisplay;
+  get groupById() {
+    const projectId = this.project?.id;
 
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.project', { name: escapeHtml(name) });
+    if ( projectId ) {
+      return projectId;
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAProject');
     }

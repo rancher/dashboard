@@ -24,6 +24,8 @@ export default {
     Banner
   },
 
+  inheritAttrs: false,
+
   mixins: [CreateEditView, FormValidation],
 
   data() {

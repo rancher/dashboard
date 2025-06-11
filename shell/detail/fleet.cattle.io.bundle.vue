@@ -1,11 +1,15 @@
 <script>
-import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
+import FleetResources from '@shell/components/fleet/FleetResources';
 import FleetUtils from '@shell/utils/fleet';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import Loading from '@shell/components/Loading.vue';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default {
   name: 'FleetBundleDetail',
 
-  components: { FleetBundleResources },
+  components: { Loading, FleetResources },
   props:      {
     value: {
       type:     Object,
@@ -13,9 +17,74 @@ export default {
     }
   },
 
+  data() {
+    return { allBundleDeployments: [] };
+  },
+
+  async fetch() {
+    const allDispatches = await checkSchemasForFindAllHash({
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT,
+      },
+
+      // must be loaded for bundle.targetClusters to work
+      allFleetClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }, { root: true });
+    }
+
+    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
+  },
+
   computed: {
     bundleResources() {
-      return FleetUtils.resourcesFromBundleStatus(this.value?.status);
+      if (!this.allBundleDeployments) {
+        return [];
+      }
+
+      const bundleDeploymentsByClusterId = this.allBundleDeployments
+        .reduce((res, bd) => {
+          if (this.value.id === FleetUtils.bundleIdFromBundleDeploymentLabels(bd.metadata?.labels)) {
+            res[FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels)] = bd;
+          }
+
+          return res;
+        }, {});
+
+      return this.value.targetClusters.reduce((res, cluster) => {
+        const bd = bundleDeploymentsByClusterId[cluster.id];
+
+        if (bd) {
+          FleetUtils.resourcesFromBundleDeploymentStatus(bd.status)
+            .forEach((r) => {
+              const type = FleetUtils.resourceType(r);
+              const key = `${ cluster.id }-${ type }-${ r.namespace }-${ r.name }`;
+
+              res.push({
+                ...r,
+                key,
+                type,
+                id:          FleetUtils.resourceId(r),
+                clusterId:   cluster.id,
+                clusterName: cluster.nameDisplay,
+
+                detailLocation: FleetUtils.detailLocation(r, cluster.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME]),
+              });
+            });
+        }
+
+        return res;
+      }, []);
     },
     resourceCount() {
       return this.bundleResources.length;
@@ -31,8 +100,10 @@ export default {
       <h2>{{ t('fleet.bundles.resources') }}</h2>
       <span>{{ resourceCount }}</span>
     </div>
-    <FleetBundleResources
-      :value="bundleResources"
+    <Loading v-if="$fetchState.pending" />
+    <FleetResources
+      v-else
+      :rows="bundleResources"
     />
   </div>
 </template>

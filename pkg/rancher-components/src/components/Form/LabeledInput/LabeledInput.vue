@@ -2,7 +2,7 @@
 import { defineComponent, inject } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
@@ -105,6 +105,15 @@ export default defineComponent({
     class: {
       type:    String,
       default: ''
+    },
+
+    /**
+     * Optionally use this to comply with a11y IF there's no label
+     * associated with the input
+     */
+    ariaLabel: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -139,6 +148,8 @@ export default defineComponent({
     return {
       updated:          false,
       validationErrors: '',
+      inputId:          `input-${ generateRandomAlphaString(12) }`,
+      describedById:    `described-by-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -148,6 +159,19 @@ export default defineComponent({
      */
     hasLabel(): boolean {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
+    },
+
+    ariaDescribedBy(): string | undefined {
+      const inheritedDescribedBy = this.$attrs['aria-describedby'];
+      const internalDescribedBy = this.cronHint || this.subLabel ? this.describedById : undefined;
+
+      if (inheritedDescribedBy && internalDescribedBy) {
+        return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
+      } else if (inheritedDescribedBy || internalDescribedBy) {
+        return `${ inheritedDescribedBy || internalDescribedBy }`;
+      }
+
+      return undefined;
     },
 
     /**
@@ -179,14 +203,28 @@ export default defineComponent({
       if (this.type !== 'cron' || !this.value) {
         return;
       }
+
+      // TODO - #13202: This is required due use of 2 libraries and 3 different libraries through the code.
+      const predefined = [
+        '@yearly',
+        '@annually',
+        '@monthly',
+        '@weekly',
+        '@daily',
+        '@midnight',
+        '@hourly'
+      ];
+      const isPredefined = predefined.includes(this.value as string);
+
       // refer https://github.com/GuillaumeRochat/cron-validator#readme
-      if (!isValidCron(this.value as string, {
+      if (!isPredefined && !isValidCron(this.value as string, {
         alias:              true,
         allowBlankDay:      true,
         allowSevenAsSunday: true,
       })) {
         return this.t('generic.invalidCron');
       }
+
       try {
         const hint = cronstrue.toString(this.value as string || '', { verbose: true });
 
@@ -223,6 +261,14 @@ export default defineComponent({
 
     className() {
       return this.class;
+    }
+  },
+
+  mounted() {
+    const id = this.$attrs?.id as string | undefined;
+
+    if (id) {
+      this.inputId = id;
     }
   },
 
@@ -316,7 +362,10 @@ export default defineComponent({
     }"
   >
     <slot name="label">
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="inputId"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -326,6 +375,7 @@ export default defineComponent({
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </slot>
@@ -335,31 +385,42 @@ export default defineComponent({
     <slot name="field">
       <TextAreaAutoGrow
         v-if="type === 'multiline' || type === 'multiline-password'"
+        :id="inputId"
         ref="value"
         v-bind="$attrs"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
+        :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @update:value="onInput"
         @focus="onFocus"
         @blur="onBlur"
       />
       <input
         v-else
+        :id="inputId"
         ref="value"
+        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        role="textbox"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :maxlength="_maxlength"
         :disabled="isDisabled"
+        :aria-disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
         :value="value"
         :placeholder="_placeholder"
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
+        :aria-describedby="ariaDescribedBy"
+        :aria-required="requiredField"
         @input="onInput"
         @focus="onFocus"
         @blur="onBlur"
@@ -368,12 +429,14 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- informational tooltip about field -->
     <LabeledTooltip
-      v-if="hasTooltip && !focused"
+      v-if="hasTooltip"
       :hover="hoverTooltip"
       :value="tooltipValue"
       :status="status"
     />
+    <!-- validation tooltip -->
     <LabeledTooltip
       v-if="!!validationMessage"
       :hover="hoverTooltip"
@@ -382,14 +445,19 @@ export default defineComponent({
     <div
       v-if="cronHint || subLabel"
       class="sub-label"
+      data-testid="sub-label"
     >
       <div
         v-if="cronHint"
+        :id="describedById"
+        role="alert"
+        :aria-label="cronHint"
       >
         {{ cronHint }}
       </div>
       <div
-        v-if="subLabel"
+        v-else-if="subLabel"
+        :id="describedById"
         v-clean-html="subLabel"
       />
     </div>

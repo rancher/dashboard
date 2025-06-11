@@ -14,11 +14,12 @@ import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO } from '../types';
+import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, communityRepoRegexes } from '../types';
 import {
   getLatestExtensionVersion,
-  getHelmRepository,
-  ensureHelmRepository,
+  getHelmRepositoryExact,
+  getHelmRepositoryMatch,
+  createHelmRepository,
   refreshHelmRepository,
   installHelmChart,
   waitForUIExtension,
@@ -102,9 +103,9 @@ export default {
   },
 
   watch: {
-    async harvesterRepository(value) {
-      if (value) {
-        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+    async harvesterRepository(neu) {
+      if (neu) {
+        await refreshHelmRepository(this.$store, neu.spec.gitRepo || neu.spec.url);
 
         if (this.harvester.extension) {
           await this.setHarvesterUpdateVersion();
@@ -207,12 +208,30 @@ export default {
     typeDisplay() {
       return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.rows?.length || 0 });
     },
+
+    rowsPerPage() {
+      // Using 5 as a rows limit to leave space below the table to display extension's messages.
+      if (
+        this.harvester.hasErrors ||
+        this.harvester.toInstall ||
+        this.harvester.toUpdate
+      ) {
+        return 5;
+      }
+
+      // No custom rows limit; 'Table Rows Per Page' preference will be used.
+      return null;
+    }
   },
 
   methods: {
     async getHarvesterRepository() {
       try {
-        return await getHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+        if (isRancherPrime()) {
+          return await getHelmRepositoryExact(this.$store, HARVESTER_REPO.gitRepo);
+        } else {
+          return await getHelmRepositoryMatch(this.$store, communityRepoRegexes);
+        }
       } catch (error) {
         this.harvesterRepositoryError = true;
       }
@@ -234,13 +253,17 @@ export default {
       let installed = false;
 
       try {
-        const harvesterRepo = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
+        let harvesterRepository = this.harvesterRepository;
+
+        if (!harvesterRepository) {
+          harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
+        }
 
         /**
          * Server issue
          * It needs to refresh the HelmRepository because the server can have a previous one in the cache.
          */
-        await refreshHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.spec.gitBranch);
+        await refreshHelmRepository(this.$store, harvesterRepository.spec.gitRepo || harvesterRepository.spec.url);
 
         this.harvesterInstallVersion = await getLatestExtensionVersion(this.$store, HARVESTER_CHART.name, this.rancherVersion, this.kubeVersion);
 
@@ -250,11 +273,20 @@ export default {
           return;
         }
 
-        await installHelmChart(harvesterRepo, { ...HARVESTER_CHART, version: this.harvesterInstallVersion }, {}, UI_PLUGIN_NAMESPACE, 'install');
+        await installHelmChart(
+          harvesterRepository,
+          {
+            ...HARVESTER_CHART,
+            version: this.harvesterInstallVersion
+          },
+          {},
+          UI_PLUGIN_NAMESPACE,
+          'install'
+        );
 
-        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
+        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name, 20);
 
-        installed = await waitForUIPackage(this.$store, extension);
+        installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
       }
 
@@ -272,7 +304,7 @@ export default {
 
       try {
         if (this.harvester.missingRepository) {
-          this.harvesterRepository = await ensureHelmRepository(this.$store, HARVESTER_REPO.spec.gitRepo, HARVESTER_REPO.metadata.name, HARVESTER_REPO.spec.gitBranch);
+          this.harvesterRepository = await createHelmRepository(this.$store, HARVESTER_REPO.metadata.name, HARVESTER_REPO.gitRepo, HARVESTER_REPO.gitBranch);
 
           await this.setHarvesterUpdateVersion();
         }
@@ -283,7 +315,16 @@ export default {
           return;
         }
 
-        await installHelmChart(this.harvesterRepository, { ...HARVESTER_CHART, version: this.harvesterUpdateVersion }, {}, UI_PLUGIN_NAMESPACE, 'upgrade');
+        await installHelmChart(
+          this.harvesterRepository,
+          {
+            ...HARVESTER_CHART,
+            version: this.harvesterUpdateVersion
+          },
+          {},
+          UI_PLUGIN_NAMESPACE,
+          'upgrade'
+        );
 
         const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
 
@@ -358,7 +399,7 @@ export default {
         :is-creatable="true"
         :namespaced="false"
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-        :rows-per-page="5"
+        :rows-per-page="rowsPerPage"
       >
         <template #col:name="{row}">
           <td>
@@ -381,19 +422,23 @@ export default {
         </template>
 
         <template #cell:harvester="{row}">
-          <router-link
+          <button
             class="btn btn-sm role-primary"
-            :to="row.detailLocation"
+            :disabled="!row.isSupportedHarvester"
+            @click="$router.push(row.detailLocation)"
           >
             {{ t('harvesterManager.manage') }}
-          </router-link>
+          </button>
         </template>
       </ResourceTable>
       <div v-else>
         <div class="no-clusters">
           {{ t('harvesterManager.cluster.none') }}
         </div>
-        <hr class="info-section">
+        <hr
+          class="info-section"
+          role="none"
+        >
       </div>
     </div>
     <template v-if="harvester.toInstall || harvester.toUpdate || !rows || !rows.length">

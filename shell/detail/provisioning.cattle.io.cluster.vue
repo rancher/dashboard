@@ -84,6 +84,7 @@ export default {
   async fetch() {
     await this.value.waitForProvisioner();
 
+    // Support for the 'provisioner' extension
     const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
 
     if (extClass) {
@@ -94,9 +95,19 @@ export default {
         $plugin:  this.$store.app.$plugin,
         $t:       this.t
       });
+
       this.extDetailTabs = {
         ...this.extDetailTabs,
         ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
+    // Support for a model extension
+    if (this.value.customProvisionerHelper) {
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.value.customProvisionerHelper.detailTabs
       };
       this.extCustomParams = { provider: this.value.machineProvider };
     }
@@ -204,6 +215,41 @@ export default {
   },
 
   data() {
+    const noneGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    };
+    const poolColumn = {
+      name:     'pool',
+      labelKey: 'cluster.machinePool.name.label',
+      value:    'spec.nodePoolName',
+      getValue: (row) => row.spec.nodePoolName,
+      sort:     ['spec.nodePoolName'],
+    };
+    const poolGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.pool',
+      icon:       'icon-cluster',
+      hideColumn: poolColumn.name,
+      value:      'spec.nodePoolName',
+      field:      'spec.nodePoolName'
+    };
+
+    const machineColumn = {
+      name:     'pool',
+      labelKey: 'cluster.machinePool.name.label',
+      value:    'pool.nameDisplay',
+      getValue: (row) => row.pool.nameDisplay,
+      sort:     ['pool.nameDisplay'],
+    };
+    const machineGroupOption = {
+      tooltipKey: 'resourceTable.groupBy.pool',
+      icon:       'icon-cluster',
+      hideColumn: machineColumn.name,
+      value:      'poolId',
+      field:      'poolId'
+    };
+
     return {
 
       allMachines:           [],
@@ -239,7 +285,25 @@ export default {
         conditions:   true, // in ResourceTabs
       },
 
-      showWindowsWarning: false
+      showWindowsWarning: false,
+
+      machineColumn,
+      poolColumn,
+
+      noneGroupOption,
+
+      machineGroupOption,
+      machineGroupOptions: [
+        noneGroupOption,
+        machineGroupOption
+      ],
+
+      poolGroupOption,
+      poolGroupOptions: [
+        noneGroupOption,
+        poolGroupOption,
+      ]
+
     };
   },
 
@@ -379,17 +443,21 @@ export default {
     },
 
     showNodes() {
-      return !this.showMachines && this.haveNodes && !!this.nodes.length;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length && this.extDetailTabs.machines;
     },
 
     showSnapshots() {
       if (this.value.isRke1) {
-        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP) && this.extDetailTabs.snapshots;
+        return false;
       } else if (this.value.isRke2) {
         return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
+    },
+
+    isRke1() {
+      return this.value.isRke1;
     },
 
     showEksNodeGroupWarning() {
@@ -405,7 +473,7 @@ export default {
     },
 
     machineHeaders() {
-      return [
+      const headers = [
         STATE,
         NAME_COL,
         {
@@ -422,11 +490,23 @@ export default {
         ROLES,
         AGE,
       ];
+
+      if (!this.value.isCustom) {
+        headers.splice(3, 0, this.machineColumn);
+      }
+
+      return headers;
     },
 
     mgmtNodeSchemaHeaders() {
-      return [
-        STATE, NAME_COL,
+      // Remove Cluster name being a link
+      const RKE1_NAME_COL = {
+        ...NAME_COL,
+        formatter: undefined
+      };
+
+      const headers = [
+        STATE, RKE1_NAME_COL,
         {
           name:          'node-name',
           labelKey:      'tableHeaders.machineNodeName',
@@ -441,6 +521,12 @@ export default {
         ROLES,
         AGE
       ];
+
+      if (!this.value.isCustom) {
+        headers.splice(3, 0, this.poolColumn);
+      }
+
+      return headers;
     },
 
     rke1Snapshots() {
@@ -734,6 +820,12 @@ export default {
       color="error"
       :label="$fetchState.error"
     />
+
+    <Banner
+      v-if="value.isRke1"
+      color="warning"
+      label-key="cluster.banner.rke1DeprecationMessage"
+    />
     <ResourceTabs
       :value="value"
       :default-tab="defaultTab"
@@ -755,10 +847,10 @@ export default {
           :schema="machineSchema"
           :headers="machineHeaders"
           default-sort-by="name"
-          :groupable="false"
-          :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
+          :group-default="machineGroupOption.value"
           :group-sort="['pool.nameDisplay']"
+          :group-options="value.isCustom ? [noneGroupOption] : machineGroupOptions"
           :sort-generation-fn="machineSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
@@ -842,11 +934,12 @@ export default {
           :schema="mgmtNodeSchema"
           :headers="mgmtNodeSchemaHeaders"
           :rows="nodes"
-          :groupable="false"
-          :group-by="value.isCustom ? null : 'spec.nodePoolName'"
           group-ref="pool"
+          :group-default="poolGroupOption.value"
           :group-sort="['pool.nameDisplay']"
+          :group-options="value.isCustom ? [noneGroupOption] : poolGroupOptions"
           :sort-generation-fn="nodeSortGenerationFn"
+          :hide-grouping-controls="true"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">
@@ -884,7 +977,7 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref"
+                v-if="group.ref && !isRke1"
                 class="right group-header-buttons"
               >
                 <MachineSummaryGraph

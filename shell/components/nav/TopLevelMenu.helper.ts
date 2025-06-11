@@ -1,10 +1,12 @@
 import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
+import { reactive } from 'vue';
 import { LocationAsRelativeRaw } from 'vue-router';
 
 interface TopLevelMenuCluster {
@@ -13,6 +15,7 @@ interface TopLevelMenuCluster {
   ready: boolean
   providerNavLogo: string,
   badge: string,
+  iconColor: string,
   isLocal: boolean,
   pinned: boolean,
   description: string,
@@ -36,7 +39,7 @@ type ProvCluster = {
 }
 
 /**
- * Order
+ * Order of v1 mgmt clusters
  * 1. local cluster - https://github.com/rancher/dashboard/issues/10975
  * 2. working clusters
  * 3. name
@@ -46,10 +49,10 @@ const DEFAULT_SORT: Array<PaginationSort> = [
     asc:   false,
     field: 'spec.internal',
   },
-  // {
-  //   asc:   true,
-  //   field: 'status.conditions[0].status' // Pending API changes https://github.com/rancher/rancher/issues/48092
-  // },
+  {
+    asc:   false,
+    field: 'status.connected'
+  },
   {
     asc:   true,
     field: 'spec.displayName',
@@ -85,7 +88,15 @@ export interface TopLevelMenuHelper {
   */
   clustersOthers: Array<TopLevelMenuCluster>;
 
-  update: (args: UpdateArgs) => Promise<void>
+  /**
+   * Fetch all cluster resources
+   */
+  update: (args: UpdateArgs) => Promise<void>;
+
+  /**
+   * Cleanup on destroy of TopLevelMenu
+   */
+  destroy: () => Promise<void>;
 }
 
 export abstract class BaseTopLevelMenuHelper {
@@ -105,7 +116,7 @@ export abstract class BaseTopLevelMenuHelper {
   * 2. ready
   * 3. name
   */
-  public clustersPinned: Array<TopLevelMenuCluster> = [];
+  public clustersPinned: Array<TopLevelMenuCluster> = reactive([]);
 
   /**
   * Filter mgmt clusters by
@@ -120,7 +131,7 @@ export abstract class BaseTopLevelMenuHelper {
   * 2. ready
   * 3. name
   */
-  public clustersOthers: Array<TopLevelMenuCluster> = [];
+  public clustersOthers: Array<TopLevelMenuCluster> = reactive([]);
 
   constructor({ $store }: {
     $store: VuexStore,
@@ -128,15 +139,22 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+    // Reduce flicker when component is recreated on a different layout
+    const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
+
+    this.clustersPinned.push(...clustersPinned);
+    this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
     return {
       id:              mgmtCluster.id,
       label:           mgmtCluster.nameDisplay,
-      ready:           mgmtCluster.isReady, // && !provCluster?.hasError,
+      ready:           mgmtCluster.isReady,
       providerNavLogo: mgmtCluster.providerMenuLogo,
       badge:           mgmtCluster.badge,
+      iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
       description:     provCluster?.description || mgmtCluster.description,
@@ -144,6 +162,10 @@ export abstract class BaseTopLevelMenuHelper {
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
     };
+  }
+
+  protected cacheClusters() {
+    this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
   }
 }
 
@@ -153,69 +175,64 @@ export abstract class BaseTopLevelMenuHelper {
 export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper implements TopLevelMenuHelper {
   private args?: UpdateArgs;
 
-  private clustersPinnedWrapper: PaginationWrapper;
-  private clustersOthersWrapper: PaginationWrapper;
-  private provClusterWrapper: PaginationWrapper;
-
-  private commonClusterFilters: PaginationParam[];
+  private clustersPinnedWrapper: PaginationWrapper<any>;
+  private clustersOthersWrapper: PaginationWrapper<any>;
+  private provClusterWrapper: PaginationWrapper<any>;
 
   constructor({ $store }: {
       $store: VuexStore,
   }) {
     super({ $store });
 
-    this.commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
-
+    // Fetch all PINNED clusters (see `clustersPinned` description for details)
+    // No need to monitor for changes, the UNPINNED request will handle it
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
-      onUpdate: () => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
-        if (this.args) {
-          this.update(this.args);
-        }
-      },
+      id:         'tlm-pinned-clusters',
       enabledFor: {
-        store:    'management',
+        store:    STORE.MANAGEMENT,
         resource: {
           id:      MANAGEMENT.CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      formatResponse: { classify: true }
     });
+    // Fetch all UNPINNED clusters capped at 10 (see `clustersOthers` description for details)
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
-      onUpdate: (res) => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
+      id:       'tlm-unpinned-clusters',
+      onChange: () => {
         if (this.args) {
           this.update(this.args);
         }
       },
       enabledFor: {
-        store:    'management',
+        store:    STORE.MANAGEMENT,
         resource: {
           id:      MANAGEMENT.CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      formatResponse: { classify: true }
     });
+    // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
       $store,
-      onUpdate: (res) => {
-        // trigger on websocket update (only need 1 trigger for this cluster type)
-        // https://github.com/rancher/rancher/issues/40773 / https://github.com/rancher/dashboard/issues/12734
+      id:       'tlm-prov-clusters',
+      onChange: () => {
         if (this.args) {
           this.update(this.args);
         }
       },
       enabledFor: {
-        store:    'management',
+        store:    STORE.MANAGEMENT,
         resource: {
           id:      CAPI.RANCHER_CLUSTER,
           context: 'side-bar',
         }
-      }
+      },
+      formatResponse: { classify: true }
     });
   }
 
@@ -246,6 +263,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       return res;
     }, {} as { [mgmtId: string]: ProvCluster});
 
+    // Filter out mgmt clusters that don't have matching prov cluster and convert remaining to required format
     const _clustersNotPinned = res.notPinned
       .filter((mgmtCluster) => !!provClustersByMgmtId[mgmtCluster.id])
       .map((mgmtCluster) => this.convertToCluster(mgmtCluster, provClustersByMgmtId[mgmtCluster.id]));
@@ -258,8 +276,23 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
   }
 
+  async destroy() {
+    this.clustersPinnedWrapper.onDestroy();
+    this.clustersOthersWrapper.onDestroy();
+    this.provClusterWrapper.onDestroy();
+  }
+
+  /**
+   * Helper function
+   *
+   * This extracts all the functionality previously in TopLevelMenu
+   *
+   * Construct SSP filter params
+   */
   private constructParams({
     pinnedIds,
     searchTerm,
@@ -275,7 +308,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     includePinned?: boolean,
     excludePinned?: boolean,
   }): PaginationParam[] {
-    const filters: PaginationParam[] = [...this.commonClusterFilters];
+    const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
+    const filters: PaginationParam[] = [...commonClusterFilters];
 
     if (pinnedIds) {
       if (includePinned) {
@@ -327,7 +361,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-      classify: true,
     }).then((r) => r.data);
   }
 
@@ -348,7 +381,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-      classify: true,
     }).then((r) => r.data);
   }
 
@@ -372,7 +404,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
-      classify: true,
     }).then((r) => r.data);
   }
 }
@@ -401,6 +432,12 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
+
+    this.cacheClusters();
+  }
+
+  async destroy() {
+    // No-op
   }
 
   /**

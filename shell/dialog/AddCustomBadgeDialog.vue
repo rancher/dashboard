@@ -258,7 +258,6 @@ export default {
             <Checkbox
               v-model:value="badgeAsIcon"
               :label="t('clusterBadge.modal.badgeAsIcon')"
-
               :tooltip="t('clusterBadge.modal.maxCharsTooltip')"
             />
 
@@ -296,6 +295,7 @@ export default {
               v-model:value="badgeBgColor"
               :disabled="!badgeColorPicker"
               :default-value="badgeBgColor"
+              :aria-label="t('clusterBadge.modal.badgeBgColorInput')"
             />
           </div>
         </div>
@@ -312,7 +312,9 @@ export default {
         />
         <div class="buttons">
           <button
+            role="button"
             class="btn role-secondary mr-10"
+            :aria-label="t('generic.cancel')"
             @click="close"
           >
             {{ t('generic.cancel') }}
@@ -320,6 +322,8 @@ export default {
           <AsyncButton
             :action-label="t('clusterBadge.modal.buttonAction')"
             :disabled="!canSubmit"
+            role="button"
+            :aria-label="t('generic.cancel')"
             @click="apply"
           />
         </div>

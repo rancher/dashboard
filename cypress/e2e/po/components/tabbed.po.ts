@@ -13,8 +13,20 @@ export default class TabbedPo extends ComponentPo {
     return this.self().find(`${ selector }`).click();
   }
 
+  clickTabWithName(name: string) {
+    return this.self().get(`[data-testid="btn-${ name }"]`).click();
+  }
+
   allTabs() {
     return this.self().get('[data-testid="tabbed-block"] > li');
+  }
+
+  assertTabIsActive(selector: string) {
+    return this.self().find(`${ selector }`).should('have.class', 'active');
+  }
+
+  getTab(name: string) {
+    return new ComponentPo(`[data-testid="${ name }"]`, this.self());
   }
 
   /**

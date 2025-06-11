@@ -48,13 +48,19 @@ export default {
   <a
     v-if="text"
     class="copy-to-clipboard-text"
+    role="button"
     :class="{ 'copied': copied, 'plain': plain}"
     href="#"
+    :aria-label="t('generic.copyToClipboard')"
+    v-bind="$attrs"
     @click="clicked"
+    @keyup.space="clicked"
   >
-    {{ text }} <i
+    {{ text }}
+    <i
       class="icon"
       :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
+      :alt="!copied ? t('generic.copyToClipboard') : t('generic.copiedToClipboard')"
     />
   </a>
 </template>

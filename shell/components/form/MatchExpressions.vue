@@ -25,7 +25,11 @@ export default {
       default: 'edit'
     },
 
-    // pod/node affinity types have different operator options
+    /**
+     * pod/node affinity types have different operator options
+     *
+     * Note - This prop should just be isNode
+     */
     type: {
       type:    String,
       default: NODE
@@ -70,6 +74,14 @@ export default {
   },
 
   data() {
+    return {
+      ops:    [],
+      rules:  [],
+      custom: []
+    };
+  },
+
+  created() {
     const t = this.$store.getters['i18n/t'];
 
     const podOptions = [
@@ -87,8 +99,6 @@ export default {
       { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
       { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
     ];
-
-    const ops = this.type === NODE ? nodeOptions : podOptions;
 
     let rules;
 
@@ -127,11 +137,8 @@ export default {
       rules.push(newRule);
     }
 
-    return {
-      ops,
-      rules,
-      custom: []
-    };
+    this.rules = rules;
+    this.ops = this.type === NODE ? nodeOptions : podOptions;
   },
 
   computed: {
@@ -210,7 +217,10 @@ export default {
     update() {
       this.$nextTick(() => {
         const out = this.rules.map((rule) => {
-          const expression = { key: rule.key, operator: rule.operator };
+          const expression = {
+            key:      rule.key.trim(),
+            operator: rule.operator
+          };
 
           if (this.matchingSelectorDisplay) {
             expression.matching = rule.matching;
@@ -242,6 +252,10 @@ export default {
 
 <template>
   <div>
+    <slot
+      v-if="rules.length"
+      name="header"
+    />
     <button
       v-if="showRemove && !isView"
       type="button"

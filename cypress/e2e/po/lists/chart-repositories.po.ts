@@ -8,6 +8,10 @@ export default class ChartRepositoriesListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowActionMenuOpen(repoName);
   }
 
+  closeActionMenu() {
+    cy.get('body').type('{esc}');
+  }
+
   openBulkActionDropdown() {
     return this.resourceTable().sortableTable().bulkActionDropDownOpen();
   }
@@ -21,8 +25,11 @@ export default class ChartRepositoriesListPo extends BaseResourceList {
   }
 
   refreshRepo(repoName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(repoName).getMenuItem('Refresh')
-      .click();
+    return this.resourceTable()
+      .sortableTable()
+      .rowActionMenuOpen(repoName)
+      .getMenuItem('Refresh')
+      .click({ force: true }); // We shouldn't require force, but other methods don't work
   }
 
   state(repoName: string) {

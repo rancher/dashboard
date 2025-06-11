@@ -32,6 +32,7 @@ export default {
       type:    String,
       default: 'create'
     },
+
     loading: {
       default: false,
       type:    Boolean
@@ -39,6 +40,15 @@ export default {
   },
 
   data() {
+    return {
+      selectNode:   null,
+      nodeName:     '',
+      nodeAffinity: {},
+      nodeSelector: {},
+    };
+  },
+
+  created() {
     const isHarvester = this.$store.getters['currentProduct'].inStore === VIRTUAL;
 
     let { nodeName = '' } = this.value;
@@ -64,9 +74,10 @@ export default {
       nodeAffinity['preferredDuringSchedulingIgnoredDuringExecution'] = [];
     }
 
-    return {
-      selectNode, nodeName, nodeAffinity, nodeSelector
-    };
+    this.selectNode = selectNode;
+    this.nodeName = nodeName;
+    this.nodeAffinity = nodeAffinity;
+    this.nodeSelector = nodeSelector;
   },
 
   computed: {
@@ -169,6 +180,7 @@ export default {
         name="selectNode"
         :options="selectNodeOptions"
         :mode="mode"
+        :data-testid="'node-scheduling-selectNode'"
         @input="update"
       />
     </div>
@@ -182,7 +194,8 @@ export default {
             :mode="mode"
             :multiple="false"
             :loading="loading"
-            @input="update"
+            :data-testid="'node-scheduling-nodeSelector'"
+            @update:value="update"
           />
         </div>
       </div>
@@ -191,6 +204,7 @@ export default {
       <NodeAffinity
         v-model:value="nodeAffinity"
         :mode="mode"
+        :data-testid="'node-scheduling-nodeAffinity'"
         @input="update"
       />
     </template>

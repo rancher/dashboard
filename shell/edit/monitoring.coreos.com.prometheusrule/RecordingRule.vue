@@ -71,7 +71,7 @@ export default {
         >
           <template #field>
             <CodeMirror
-              class="mt-20"
+              class="mt-20 promql-input"
               :value="value.expr"
               :options="{
                 mode: null,
@@ -104,5 +104,9 @@ export default {
 <style lang="scss" scoped>
 .row {
   margin: 20px 0;
+}
+
+.promql-input {
+  width: 100%;
 }
 </style>

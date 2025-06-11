@@ -17,17 +17,19 @@ export default {
   mixins: [Brand, BrowserTabVisibility],
 
   data() {
+    return {
+      previousRoute: '',
+      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
+    };
+  },
+
+  created() {
     const store = this.$store;
 
     if (!store.state.error && !store.state.cameFromError) {
       store.commit('cameFromError');
       this.$router.replace('/');
     }
-
-    return {
-      previousRoute: '',
-      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
-    };
   },
 
   computed: {
@@ -70,12 +72,15 @@ export default {
         :simple="true"
       />
 
-      <main class="main-layout">
+      <main
+        class="main-layout"
+        aria-label="Fail whale layout"
+      >
         <div
           v-if="error"
           class="outlet"
         >
-          <main class="main-layout error">
+          <div class="main-layout error">
             <div class="text-center">
               <BrandImage
                 file-name="error-desert-landscape.svg"
@@ -105,6 +110,7 @@ export default {
               <hr
                 class="custom-content"
                 :style="styles"
+                role="none"
               >
               <p class="mt-20">
                 <a
@@ -115,7 +121,7 @@ export default {
                 </a>
               </p>
             </div>
-          </main>
+          </div>
         </div>
       </main>
     </div>
