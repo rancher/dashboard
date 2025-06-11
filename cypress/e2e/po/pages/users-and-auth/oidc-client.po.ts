@@ -25,30 +25,9 @@ export default class OidcClientsPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Client Application');
   }
 
-  // goToDriverListAndGetDriverDetails(driverName: string): Cypress.Chainable<{ id: string }> {
-  //   let driverDetails = [];
-
-  //   cy.intercept({
-  //     method: 'GET',
-  //     path:   '/v3/kontainerDrivers/',
-  //   }, (req) => {
-  //     req.continue((res) => {
-  //       driverDetails = res.body.data;
-  //     });
-  //   }).as('request');
-
-  //   super.goTo();
-
-  //   return cy.wait('@request', { timeout: 10000 }).then(() => driverDetails.filter((c) => c.name === driverName)[0]);
-  // }
-
   title() {
     return cy.contains('.title > h1', 'Client Applications');
   }
-
-  // refreshKubMetadata() {
-  //   return cy.contains('[data-testid="kontainer-driver-refresh"]', 'Refresh Kubernetes Metadata');
-  // }
 
   createOidcClient() {
     return this.list().masthead().actions().eq(0)

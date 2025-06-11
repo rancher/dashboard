@@ -12,13 +12,13 @@ import { findBy } from '@shell/utils/array';
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
 export const RANCHER_AS_OIDC_PROV_COND = ['scope', 'client_id', 'redirect_uri', 'response_type'];
 
-export function checkIfIsRancherAsOidcProviderLogin(vueRoute) {
-  return vueRoute.query && Object.keys(vueRoute.query).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(vueRoute.query).includes(item));
+export function checkIfIsRancherAsOidcProviderLogin(queryParams) {
+  return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(queryParams).includes(item));
 }
 
-export function getRedirectUrlFromParams(vueRoute, redirectUrlKey) {
-  const redirectUrl = vueRoute.query?.[redirectUrlKey];
-  const urlParams = new URLSearchParams(vueRoute.query);
+export function getRedirectUrlFromParams(queryParams, redirectUrlKey) {
+  const redirectUrl = queryParams?.[redirectUrlKey];
+  const urlParams = new URLSearchParams(queryParams);
 
   if (redirectUrl) {
     return `${ redirectUrl }?${ urlParams }`;

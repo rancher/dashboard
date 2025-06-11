@@ -14,7 +14,8 @@ export default {
           requestId,
           publicKey,
           responseType
-        }
+        },
+        queryParams: this.$route.query
       });
 
       const { idpRedirectUrl } = res;

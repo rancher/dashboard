@@ -22,7 +22,7 @@ export const SECRET_ACTION = {
   REMOVE: 'remove-secret',
 };
 
-const SECRET_ANNOTATION = {
+export const SECRET_ANNOTATION = {
   CREATE: 'cattle.io/oidc-client-secret-create',
   REGEN:  'cattle.io/oidc-client-secret-regenerate',
   REMOVE: 'cattle.io/oidc-client-secret-remove',
@@ -179,7 +179,7 @@ export default defineComponent({
   },
 
   methods: {
-    promptSecretsModal(actionType: SecretActionType, secretId: string) {
+    promptSecretsModal(actionType: SecretActionType, secret: secretManageData) {
       this.errors = [];
 
       this.$store.dispatch('management/promptModal', {
@@ -192,7 +192,7 @@ export default defineComponent({
           type:     actionType,
           actionCb: async() => {
             try {
-              await this.performSecretAction(actionType, secretId);
+              await this.performSecretAction(actionType, secret);
             } catch (error: any) {
               this.errors.push(error.data);
             }
@@ -204,12 +204,12 @@ export default defineComponent({
       this.errors = [];
 
       try {
-        await this.performSecretAction(SECRET_ACTION.CREATE);
-      } catch (error) {
+        await this.performSecretAction(SECRET_ACTION.CREATE, {});
+      } catch (error: any) {
         this.errors.push(error.data);
       }
     },
-    async performSecretAction(actionType: SecretActionType, secret: secretManageData) {
+    async performSecretAction(actionType: SecretActionType, secret: secretManageData | any) {
       let isValidAction = false;
 
       if (!this.value?.metadata?.annotations) {
@@ -287,6 +287,7 @@ export default defineComponent({
       >
         {{ t('oidcclient.clientData') }}
       </h2>
+      <!-- app name, app description -->
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -325,7 +326,7 @@ export default defineComponent({
       </h3>
       <!-- managing secrets -->
       <div
-        v-if="isView"
+        v-if="!isCreate"
         class="mb-20"
       >
         <h3 class="mt-20 mb-20">
@@ -337,16 +338,20 @@ export default defineComponent({
           class="custom-card"
         >
           <div class="custom-card-content">
-            <p v-if="secret.displayFullSecret">
+            <p v-if="secret.displayFullSecret && isView">
               <CopyToClipboardText
                 :aria-label="t('oidcclient.a11y.copyText.clientSecret')"
                 :text="secret.decodedData"
+                :data-testid="`oidc-client-secret-${i}-copy-full-secret`"
               />
             </p>
             <p v-else>
               ********{{ secret.lastFiveCharacters }}
             </p>
-            <p>{{ t('generic.created') }}: <DateComponent :value="secret.createdAt" /></p>
+            <p>
+              <span>{{ t('generic.created') }}: </span>
+              <span><DateComponent :value="secret.createdAt" /></span>
+            </p>
             <p>
               <span>{{ t('tableHeaders.lastUsed') }}: </span>
               <span v-if="!secret.lastUsedAt">{{ t('oidcclient.usedNever') }}</span>
@@ -356,12 +361,16 @@ export default defineComponent({
           <div class="custom-card-actions">
             <button
               class="btn-sm role-primary"
+              :data-testid="`oidc-client-secret-${i}-regen-secret`"
+              :disabled="isEdit ? 'true' : undefined"
               @click="promptSecretsModal(SECRET_ACTION.REGEN, secret)"
             >
               {{ t('oidcclient.regenerate') }}
             </button>
             <button
               class="btn-sm role-primary"
+              :data-testid="`oidc-client-secret-${i}-remove-secret`"
+              :disabled="isEdit ? 'true' : undefined"
               @click="promptSecretsModal(SECRET_ACTION.REMOVE, secret)"
             >
               {{ t('generic.remove') }}
@@ -370,11 +379,14 @@ export default defineComponent({
         </div>
         <button
           class="btn role-primary mt-20"
+          data-testid="oidc-client-add-new-secret"
+          :disabled="isEdit ? 'true' : undefined"
           @click="addNewSecret"
         >
           {{ t('oidcclient.addNewSecret') }}
         </button>
       </div>
+      <!-- cb urls, tokens -->
       <div class="row mt-20">
         <div class="col span-6">
           <ArrayList
@@ -399,7 +411,7 @@ export default defineComponent({
       <div class="row mt-20">
         <div
           class="col span-3"
-          data-testid="oidc-client-ref-token-exp-input"
+          data-testid="oidc-client-token-exp-input"
         >
           <UnitInput
             v-model:value="value.spec.tokenExpirationSeconds"
@@ -416,7 +428,7 @@ export default defineComponent({
         </div>
         <div
           class="col span-3"
-          data-testid="oidc-client-token-exp-input"
+          data-testid="oidc-client-ref-token-exp-input"
         >
           <UnitInput
             v-model:value="value.spec.refreshTokenExpirationSeconds"
