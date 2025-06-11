@@ -5028,8 +5028,8 @@ promptRollback:
   singleRevisionBanner: There are no revisions to roll back to.
 
 promptRedeploy:
-  title: Are you sure?
-  attemptingToRedeploy: "You are attempting to redeploy the {type} {names}"
+  title: Redeploy {type}?
+  attemptingToRedeploy: "You are attempting to redeploy the {type} {names}<br><br>Redeploying will restart the selected workloads and may cause temporary downtime."
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys

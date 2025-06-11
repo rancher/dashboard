@@ -107,7 +107,7 @@ export default {
   >
     <template #title>
       <h4 class="text-default-text">
-        {{ t('promptRedeploy.title') }}
+        {{ t('promptRedeploy.title', { type }) }}
       </h4>
     </template>
 
