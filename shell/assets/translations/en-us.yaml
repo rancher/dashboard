@@ -4126,6 +4126,7 @@ networkpolicy:
           =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
           other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
         }
+
 node:
   list:
     pool: Pool
@@ -6667,6 +6668,9 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+    started: Started
+    duration: Last Scheduled Time
+    image: Image
   error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
@@ -8250,5 +8254,43 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 
-
-
+component:
+  resource:
+    detail:
+      card:
+        resourceUsage:
+          used: Used
+          amount: '{used} of {available}'
+          cpu: CPU
+          memory: Memory
+          pods: Pods
+        resourcesCard:
+          title: Resources
+          rows:
+            services: Services
+            ingresses: Ingresses
+            referredToBy: Referred to by
+            refersTo: Refers to
+        podsCard:
+          title: Pods
+          ariaResourceName: pods
+        insightsCard:
+          title: Insights
+          rows:
+            conditions: Conditions
+            events: Events
+        scaler:
+          ariaLabel:
+            increase: Increase {resourceName}
+            decrease: Decrease {resourceName}
+      titleBar:
+        showConfiguration: Show Configuration
+      metadata:
+        identifyingInformation:
+          namespace: Namespace
+          project: Project
+          age: Age
+          image: Image
+          ready: Ready
+          up-to-date: Up-to-date
+          available: Available

@@ -106,6 +106,16 @@ A {
     @include focus-outline;
     outline-offset: 2px;
   }
+
+  &.secondary {
+    color: var(--body-text);
+    text-decoration: underline;
+
+    &:hover,
+    &:active {
+      text-decoration: none;
+    }
+  }
 }
 
 HR {
