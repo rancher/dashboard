@@ -3,7 +3,6 @@ import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import TypeDescription from '@shell/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
@@ -30,7 +29,6 @@ export default {
     AsyncButton,
     Banner,
     Loading,
-    TypeDescription,
     RcItemCard,
     RcFilterPanel,
     AppChartCardSubHeader,
@@ -411,7 +409,6 @@ export default {
         @click="refresh"
       />
     </div>
-    <TypeDescription resource="chart" />
     <input
       ref="searchQuery"
       v-model="searchQuery"
@@ -517,7 +514,7 @@ export default {
 
 .wrapper {
   display: flex;
-  gap: 16px;
+  gap: var(--gap-lg);
 }
 
 .app-chart-cards-empty-state {

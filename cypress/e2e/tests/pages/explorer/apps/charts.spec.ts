@@ -14,10 +14,6 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.waitForPage();
   });
 
-  it('should render an informational message inside of a banner', () => {
-    chartsPage.bannerContent().should('be.visible').and('not.be.empty');
-  });
-
   it('Charts have expected icons', () => {
     chartsPage.resetAllFilters();
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
