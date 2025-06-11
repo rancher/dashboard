@@ -1242,7 +1242,7 @@ const defaultGetters = {
         return null;
       }
 
-      revision = Number(cache.revision, 0);
+      revision = Number(cache.revision);
 
       // Cached LIST revision isn't a number, cannot compare to, return early
       if (Number.isNaN(revision)) {
