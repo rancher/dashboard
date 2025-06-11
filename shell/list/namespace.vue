@@ -42,8 +42,10 @@ export default {
     headers() {
       const headersFromSchema = this.$store.getters['type-map/headersFor'](this.schema);
 
-      if (this.hasHarvesterResourceQuotaSchema) {
-        headersFromSchema.splice(2, 0, NS_SNAPSHOT_QUOTA);
+      if (this.hasHarvesterResourceQuotaSchema && Array.isArray(headersFromSchema) && headersFromSchema.length > 1) {
+        const columnIdx = headersFromSchema.length - 1;
+
+        headersFromSchema.splice(columnIdx, 0, NS_SNAPSHOT_QUOTA);
       }
 
       return headersFromSchema;
